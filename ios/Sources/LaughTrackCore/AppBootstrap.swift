@@ -180,7 +180,11 @@ public struct AppBootstrap {
         }
 
         ServiceRegistration.configureZipLocationResolver(container, apiClient: apiClient)
-        ServiceRegistration.configureOfflineQueue(container, apiClient: apiClient)
+        ServiceRegistration.configureOfflineQueue(
+            container,
+            apiClient: apiClient,
+            authManager: authManager
+        )
         ServiceRegistration.configureNotificationPreferenceSync(container, apiClient: apiClient)
         ServiceRegistration.configureProfileLocationSync(container, apiClient: apiClient)
         ServiceRegistration.configurePushDeviceTokenManager(container, apiClient: apiClient)

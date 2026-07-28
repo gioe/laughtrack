@@ -160,9 +160,17 @@ struct ServiceRegistrationTests {
 
     @Test("configureOfflineQueue registers OfflineOperationQueue")
     @MainActor
-    func configureOfflineQueueRegistersQueue() {
+    func configureOfflineQueueRegistersQueue() async {
         let container = ServiceContainer()
-        ServiceRegistration.configureOfflineQueue(container, apiClient: makeStubClient())
+        ServiceRegistration.configure(container)
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(
+            name: "service-registration-offline-queue"
+        )
+        ServiceRegistration.configureOfflineQueue(
+            container,
+            apiClient: makeStubClient(),
+            authManager: authManager
+        )
         let resolved = container.resolveOptional(OfflineOperationQueue<LaughTrackOfflineOperation>.self)
         #expect(resolved != nil)
     }

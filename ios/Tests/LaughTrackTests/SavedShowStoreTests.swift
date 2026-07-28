@@ -203,13 +203,15 @@ struct SavedShowStoreTests {
         }
         let client = makeClient(transport: transport)
         let harness = makeHarness { operation in
-            guard case .setSavedShow(let showId) = operation.type else {
+            guard case .setSavedShow(let accountId, let showId) = operation.type else {
                 throw OfflineOperationError.terminal(reason: "Unexpected operation")
             }
             let payload = try JSONDecoder().decode(
                 SavedShowMutationPayload.self,
                 from: operation.payload
             )
+            #expect(accountId == "account-a")
+            #expect(payload.accountId == accountId)
             #expect(payload.showId == showId)
             let response = try await client.saveShow(path: .init(showId: showId))
             guard case .ok = response else {
@@ -224,12 +226,8 @@ struct SavedShowStoreTests {
             authManager: auth
         )
 
-        #expect(result == .queued(true))
+        #expect(result == .updated(true))
         #expect(harness.store.value(for: 66) == true)
-        #expect(await harness.queue.operationCount == 1)
-
-        await harness.queue.syncPendingOperations()
-
         #expect(await harness.queue.operationCount == 0)
         #expect(await attempts.count == 2)
     }
@@ -238,29 +236,186 @@ struct SavedShowStoreTests {
     func queueIdentityIncludesShowId() async throws {
         let harness = makeHarness()
         try await harness.queue.enqueue(
-            type: .setSavedShow(showId: 1),
+            type: .setSavedShow(accountId: "account-a", showId: 1),
             payload: JSONEncoder().encode(
-                SavedShowMutationPayload(showId: 1, isSaved: true)
+                SavedShowMutationPayload(accountId: "account-a", showId: 1, isSaved: true)
             )
         )
         try await harness.queue.enqueue(
-            type: .setSavedShow(showId: 2),
+            type: .setSavedShow(accountId: "account-a", showId: 2),
             payload: JSONEncoder().encode(
-                SavedShowMutationPayload(showId: 2, isSaved: true)
+                SavedShowMutationPayload(accountId: "account-a", showId: 2, isSaved: true)
             )
         )
         try await harness.queue.enqueue(
-            type: .setSavedShow(showId: 1),
+            type: .setSavedShow(accountId: "account-a", showId: 1),
             payload: JSONEncoder().encode(
-                SavedShowMutationPayload(showId: 1, isSaved: false)
+                SavedShowMutationPayload(accountId: "account-a", showId: 1, isSaved: false)
+            )
+        )
+        try await harness.queue.enqueue(
+            type: .setSavedShow(accountId: "account-b", showId: 1),
+            payload: JSONEncoder().encode(
+                SavedShowMutationPayload(accountId: "account-b", showId: 1, isSaved: true)
             )
         )
 
         let pending = await harness.queue.pendingOperationsList
-        #expect(pending.count == 2)
-        let showOne = pending.first { $0.type == .setSavedShow(showId: 1) }
+        #expect(pending.count == 3)
+        let showOne = pending.first {
+            $0.type == .setSavedShow(accountId: "account-a", showId: 1)
+        }
         let payload = try #require(showOne).payload
         #expect(try JSONDecoder().decode(SavedShowMutationPayload.self, from: payload).isSaved == false)
+    }
+
+    @Test("auth lifecycle clears one account queue before another account can replay it")
+    func authLifecycleClearsPriorAccountQueue() async throws {
+        let auth = await makeAuth(accountId: "account-a")
+        let executions = AttemptCounter()
+        let harness = makeHarness { _ in
+            _ = await executions.next()
+        }
+        let client = makeClient(transport: .alwaysSucceeds())
+
+        harness.store.bindAuthLifecycle(authManager: auth, apiClient: client)
+        await settleAsyncWork()
+        try await harness.queue.enqueue(
+            type: .setSavedShow(accountId: "account-a", showId: 9),
+            payload: JSONEncoder().encode(
+                SavedShowMutationPayload(
+                    accountId: "account-a",
+                    showId: 9,
+                    isSaved: true
+                )
+            )
+        )
+
+        await auth.signOut()
+        await settleAsyncWork()
+
+        auth.loadUserRequest = {
+            AuthenticatedUser(
+                userId: "account-b",
+                displayName: "account-b",
+                email: "account-b@example.com",
+                avatarURL: nil
+            )
+        }
+        await auth.signInWithTestTokens(
+            accessToken: "account-b-access",
+            refreshToken: "account-b-refresh"
+        )
+        await settleAsyncWork()
+
+        #expect(auth.currentUser?.userId == "account-b")
+        #expect(await harness.queue.operationCount == 0)
+        #expect(await executions.count == 0)
+    }
+
+    @Test("newer queued intent replaces an older intent before replay")
+    func newerIntentSupersedesQueuedIntent() async throws {
+        let auth = await makeAuth(accountId: "account-a")
+        let replayedValues = SavedValueRecorder()
+        let harness = makeHarness { operation in
+            let payload = try JSONDecoder().decode(
+                SavedShowMutationPayload.self,
+                from: operation.payload
+            )
+            await replayedValues.append(payload.isSaved)
+        }
+        try await harness.queue.enqueue(
+            type: .setSavedShow(accountId: "account-a", showId: 12),
+            payload: JSONEncoder().encode(
+                SavedShowMutationPayload(
+                    accountId: "account-a",
+                    showId: 12,
+                    isSaved: true
+                )
+            )
+        )
+        let client = makeClient(transport: StubClientTransport { _, _, _, operationID in
+            #expect(operationID == Operations.GetSavedShowState.id)
+            return jsonResponse(
+                .ok,
+                Components.Schemas.SavedShowStateResponse(data: .init(isSaved: false)),
+                encoder: APIMockEncoder.make()
+            )
+        })
+
+        let result = await harness.store.setSaved(
+            showId: 12,
+            isSaved: false,
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(result == .updated(false))
+        #expect(await replayedValues.values == [false])
+        #expect(await harness.queue.operationCount == 0)
+    }
+
+    @Test("an in-flight response cannot overwrite a newly active account")
+    func inFlightResponseDoesNotCrossAccounts() async {
+        let authA = await makeAuth(accountId: "account-a")
+        let authB = await makeAuth(accountId: "account-b")
+        let gate = SuspensionGate()
+        let attempts = AttemptCounter()
+        let client = makeClient(transport: StubClientTransport { _, _, _, operationID in
+            #expect(operationID == Operations.GetSavedShowState.id)
+            if await attempts.next() == 1 {
+                await gate.suspend()
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowStateResponse(data: .init(isSaved: true)),
+                    encoder: APIMockEncoder.make()
+                )
+            }
+            return jsonResponse(
+                .ok,
+                Components.Schemas.SavedShowStateResponse(data: .init(isSaved: false)),
+                encoder: APIMockEncoder.make()
+            )
+        })
+        let harness = makeHarness()
+
+        let accountALoad = Task {
+            await harness.store.loadState(
+                showId: 17,
+                apiClient: client,
+                authManager: authA
+            )
+        }
+        await gate.waitUntilSuspended()
+        await harness.store.loadState(
+            showId: 17,
+            apiClient: client,
+            authManager: authB
+        )
+        await gate.release()
+        await accountALoad.value
+
+        #expect(harness.store.value(for: 17) == false)
+    }
+
+    @Test("terminal replay failure rolls back optimistic state")
+    func terminalReplayFailureRollsBack() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let harness = makeHarness { _ in
+            throw OfflineOperationError.terminal(reason: "show can no longer be saved")
+        }
+
+        let result = await harness.store.setSaved(
+            showId: 18,
+            isSaved: true,
+            apiClient: makeClient(transport: .alwaysFails()),
+            authManager: auth
+        )
+
+        #expect(result == .failure("LaughTrack couldn’t replay that saved-show change."))
+        #expect(harness.store.value(for: 18) == false)
+        #expect(await harness.queue.operationCount == 0)
+        #expect(await harness.queue.failedOperations.count == 1)
     }
 
     @Test("legacy queued comedian operation remains Codable")
@@ -311,9 +466,9 @@ struct SavedShowStoreTests {
             authManager: auth
         )
         try await harness.queue.enqueue(
-            type: .setSavedShow(showId: 77),
+            type: .setSavedShow(accountId: "account-a", showId: 77),
             payload: JSONEncoder().encode(
-                SavedShowMutationPayload(showId: 77, isSaved: false)
+                SavedShowMutationPayload(accountId: "account-a", showId: 77, isSaved: false)
             )
         )
 
@@ -349,12 +504,14 @@ struct SavedShowStoreTests {
     }
 
     @Test("service registration exposes the saved-show store")
-    func serviceRegistrationExposesStore() {
+    func serviceRegistrationExposesStore() async {
         let container = ServiceContainer()
         ServiceRegistration.configure(container)
+        let auth = await makeAuth(accountId: "account-a")
         ServiceRegistration.configureOfflineQueue(
             container,
-            apiClient: makeClient(transport: .alwaysSucceeds())
+            apiClient: makeClient(transport: .alwaysSucceeds()),
+            authManager: auth
         )
 
         #expect(container.resolveOptional(SavedShowStore.self) != nil)
@@ -467,6 +624,21 @@ private actor AttemptCounter {
         count += 1
         return count
     }
+}
+
+private actor SavedValueRecorder {
+    private(set) var values: [Bool] = []
+
+    func append(_ value: Bool) {
+        values.append(value)
+    }
+}
+
+private func settleAsyncWork() async {
+    for _ in 0..<20 {
+        await Task.yield()
+    }
+    try? await Task.sleep(nanoseconds: 10_000_000)
 }
 
 private actor SuspensionGate {

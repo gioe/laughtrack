@@ -104,7 +104,11 @@ public enum ServiceRegistration {
     }
 
     @MainActor
-    public static func configureOfflineQueue(_ container: ServiceContainer, apiClient: Client) {
+    public static func configureOfflineQueue(
+        _ container: ServiceContainer,
+        apiClient: Client,
+        authManager: AuthManager
+    ) {
         container.register(OfflineOperationQueue<LaughTrackOfflineOperation>.self, scope: .appLevel) {
             OfflineOperationQueue<LaughTrackOfflineOperation>(
                 storageKey: "laughtrack.offline",
@@ -155,15 +159,34 @@ public enum ServiceRegistration {
                                 throw URLError(.badServerResponse)
                             }
                         }
-                    case .setSavedShow(let showId):
+                    case .setSavedShow(let accountId, let showId):
                         let payload = try JSONDecoder().decode(
                             SavedShowMutationPayload.self,
                             from: op.payload
                         )
-                        guard payload.showId == showId else {
+                        guard payload.accountId == accountId, payload.showId == showId else {
                             throw OfflineOperationError.terminal(
                                 reason: "Saved-show queue payload did not match its operation identity"
                             )
+                        }
+                        let activeAccountId = await MainActor.run {
+                            authManager.currentUser?.userId
+                        }
+                        guard activeAccountId == accountId else {
+                            throw OfflineOperationError.terminal(
+                                reason: "Saved-show queue operation belongs to an inactive account"
+                            )
+                        }
+                        let terminalFailure: @Sendable (String) async -> OfflineOperationError = {
+                            reason in
+                            let store = container.resolveOptional(SavedShowStore.self)
+                            await store?.handleReplayFailure(
+                                accountId: accountId,
+                                showId: showId,
+                                apiClient: apiClient,
+                                authManager: authManager
+                            )
+                            return .terminal(reason: reason)
                         }
 
                         if payload.isSaved {
@@ -174,24 +197,22 @@ public enum ServiceRegistration {
                             case .ok:
                                 break
                             case .badRequest:
-                                throw OfflineOperationError.terminal(reason: "saveShow returned 400 Bad Request")
+                                throw await terminalFailure("saveShow returned 400 Bad Request")
                             case .unauthorized:
-                                throw OfflineOperationError.terminal(reason: "saveShow returned 401 Unauthorized")
+                                throw await terminalFailure("saveShow returned 401 Unauthorized")
                             case .notFound:
-                                throw OfflineOperationError.terminal(reason: "saveShow returned 404 Not Found")
+                                throw await terminalFailure("saveShow returned 404 Not Found")
                             case .conflict:
-                                throw OfflineOperationError.terminal(reason: "saveShow returned 409 Conflict")
+                                throw await terminalFailure("saveShow returned 409 Conflict")
                             case .unprocessableContent:
-                                throw OfflineOperationError.terminal(reason: "saveShow returned 422 Unprocessable Content")
+                                throw await terminalFailure("saveShow returned 422 Unprocessable Content")
                             case .tooManyRequests, .internalServerError:
                                 throw URLError(.badServerResponse)
                             case .undocumented(let status, _):
                                 if status == 429 || status >= 500 {
                                     throw URLError(.badServerResponse)
                                 }
-                                throw OfflineOperationError.terminal(
-                                    reason: "saveShow returned \(status)"
-                                )
+                                throw await terminalFailure("saveShow returned \(status)")
                             }
                         } else {
                             let response = try await apiClient.unsaveShow(
@@ -201,20 +222,18 @@ public enum ServiceRegistration {
                             case .ok:
                                 break
                             case .badRequest:
-                                throw OfflineOperationError.terminal(reason: "unsaveShow returned 400 Bad Request")
+                                throw await terminalFailure("unsaveShow returned 400 Bad Request")
                             case .unauthorized:
-                                throw OfflineOperationError.terminal(reason: "unsaveShow returned 401 Unauthorized")
+                                throw await terminalFailure("unsaveShow returned 401 Unauthorized")
                             case .unprocessableContent:
-                                throw OfflineOperationError.terminal(reason: "unsaveShow returned 422 Unprocessable Content")
+                                throw await terminalFailure("unsaveShow returned 422 Unprocessable Content")
                             case .tooManyRequests, .internalServerError:
                                 throw URLError(.badServerResponse)
                             case .undocumented(let status, _):
                                 if status == 429 || status >= 500 {
                                     throw URLError(.badServerResponse)
                                 }
-                                throw OfflineOperationError.terminal(
-                                    reason: "unsaveShow returned \(status)"
-                                )
+                                throw await terminalFailure("unsaveShow returned \(status)")
                             }
                         }
                     }
@@ -230,5 +249,9 @@ public enum ServiceRegistration {
                 )
             )
         }
+        container.resolve(SavedShowStore.self).bindAuthLifecycle(
+            authManager: authManager,
+            apiClient: apiClient
+        )
     }
 }

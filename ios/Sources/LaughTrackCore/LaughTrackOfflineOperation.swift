@@ -3,12 +3,13 @@ import Foundation
 /// Operation types that can be queued for offline execution.
 public enum LaughTrackOfflineOperation: Hashable, Sendable {
     case toggleFavorite
-    case setSavedShow(showId: Int)
+    case setSavedShow(accountId: String, showId: Int)
 }
 
 extension LaughTrackOfflineOperation: Codable {
     private enum CodingKeys: String, CodingKey {
         case type
+        case accountId
         case showId
     }
 
@@ -30,7 +31,10 @@ extension LaughTrackOfflineOperation: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         switch try container.decode(OperationType.self, forKey: .type) {
         case .setSavedShow:
-            self = .setSavedShow(showId: try container.decode(Int.self, forKey: .showId))
+            self = .setSavedShow(
+                accountId: try container.decode(String.self, forKey: .accountId),
+                showId: try container.decode(Int.self, forKey: .showId)
+            )
         }
     }
 
@@ -39,9 +43,10 @@ extension LaughTrackOfflineOperation: Codable {
         case .toggleFavorite:
             var container = encoder.singleValueContainer()
             try container.encode("toggleFavorite")
-        case .setSavedShow(let showId):
+        case .setSavedShow(let accountId, let showId):
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(OperationType.setSavedShow, forKey: .type)
+            try container.encode(accountId, forKey: .accountId)
             try container.encode(showId, forKey: .showId)
         }
     }
@@ -55,10 +60,12 @@ public struct ToggleFavoritePayload: Codable, Sendable {
 
 /// Desired final state for an offline saved-show mutation.
 public struct SavedShowMutationPayload: Codable, Sendable {
+    public let accountId: String
     public let showId: Int
     public let isSaved: Bool
 
-    public init(showId: Int, isSaved: Bool) {
+    public init(accountId: String, showId: Int, isSaved: Bool) {
+        self.accountId = accountId
         self.showId = showId
         self.isSaved = isSaved
     }

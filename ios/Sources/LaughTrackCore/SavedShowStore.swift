@@ -62,6 +62,7 @@ public final class SavedShowStore: ObservableObject {
     private let cacheTTL: TimeInterval
     private var activeAccountId: String?
     private var accountCacheKeys: Set<LaughTrackCacheKey> = []
+    private var authLifecycleCancellable: AnyCancellable?
 
     init(
         cache: DataCache<LaughTrackCacheKey>,
@@ -101,6 +102,25 @@ public final class SavedShowStore: ObservableObject {
         await offlineQueue.clearAll()
     }
 
+    public func bindAuthLifecycle(
+        authManager: AuthManager,
+        apiClient: Client
+    ) {
+        authLifecycleCancellable = authManager.$currentUser
+            .map(\.?.userId)
+            .removeDuplicates()
+            .sink { [weak self, weak authManager] accountId in
+                Task { @MainActor [weak self, weak authManager] in
+                    guard let self, let authManager else { return }
+                    await self.handleAccountChange(
+                        accountId,
+                        apiClient: apiClient,
+                        authManager: authManager
+                    )
+                }
+            }
+    }
+
     public func loadState(
         showId: Int,
         apiClient: Client,
@@ -117,6 +137,7 @@ public final class SavedShowStore: ObservableObject {
         )
         accountCacheKeys.insert(key)
         if !force, let cached: Bool = await cache.get(forKey: key) {
+            guard activeAccountId == accountId else { return }
             values[showId] = cached
             stateFailure = nil
             return
@@ -126,6 +147,7 @@ public final class SavedShowStore: ObservableObject {
             let output = try await apiClient.getSavedShowState(
                 path: .init(showId: showId)
             )
+            guard activeAccountId == accountId else { return }
             switch output {
             case .ok(let ok):
                 let isSaved = try ok.body.json.data.isSaved
@@ -166,6 +188,7 @@ public final class SavedShowStore: ObservableObject {
             }
         } catch {
             guard !Task.isCancelled else { return }
+            guard activeAccountId == accountId else { return }
             stateFailure = classifyRequestError(
                 error,
                 context: "saved-show state",
@@ -197,6 +220,7 @@ public final class SavedShowStore: ObservableObject {
 
         if !force {
             if let cached: Components.Schemas.SavedShowListResponse = await cache.get(forKey: key) {
+                guard activeAccountId == accountId else { return }
                 apply(cached, period: period)
                 return
             }
@@ -206,7 +230,9 @@ public final class SavedShowStore: ObservableObject {
                 page: page,
                 size: size
             ) {
+                guard activeAccountId == accountId else { return }
                 await cache.set(cached, forKey: key, ttl: cacheTTL)
+                guard activeAccountId == accountId else { return }
                 apply(cached, period: period)
                 return
             }
@@ -220,6 +246,7 @@ public final class SavedShowStore: ObservableObject {
                     size: size
                 )
             )
+            guard activeAccountId == accountId else { return }
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
@@ -273,6 +300,7 @@ public final class SavedShowStore: ObservableObject {
             }
         } catch {
             guard !Task.isCancelled else { return }
+            guard activeAccountId == accountId else { return }
             setPhase(
                 .failure(classifyRequestError(
                     error,
@@ -301,8 +329,33 @@ public final class SavedShowStore: ObservableObject {
         values[showId] = isSaved
         applyOptimisticCollectionChange(showId: showId, isSaved: isSaved, show: show)
         pending.insert(showId)
-        defer { pending.remove(showId) }
+        defer {
+            if activeAccountId == accountId {
+                pending.remove(showId)
+            }
+        }
         await invalidateCollectionCaches(accountId: accountId)
+
+        let operationType = LaughTrackOfflineOperation.setSavedShow(
+            accountId: accountId,
+            showId: showId
+        )
+        let queuedIntentExists = await offlineQueue.pendingOperationsList.contains {
+            $0.type == operationType
+        }
+
+        if queuedIntentExists {
+            return await replaceQueuedIntentAndReplay(
+                accountId: accountId,
+                showId: showId,
+                isSaved: isSaved,
+                previousValue: previousValue,
+                previousUpcoming: previousUpcoming,
+                previousPast: previousPast,
+                apiClient: apiClient,
+                authManager: authManager
+            )
+        }
 
         do {
             let serverValue = try await performMutation(
@@ -310,6 +363,9 @@ public final class SavedShowStore: ObservableObject {
                 isSaved: isSaved,
                 apiClient: apiClient
             )
+            guard activeAccountId == accountId else {
+                return .signInRequired("The active account changed before that update completed.")
+            }
             values[showId] = serverValue
             if serverValue != isSaved {
                 upcomingPage = previousUpcoming
@@ -323,6 +379,9 @@ public final class SavedShowStore: ObservableObject {
             await cache.set(serverValue, forKey: stateKey, ttl: cacheTTL)
             return .updated(serverValue)
         } catch MutationFailure.signInRequired(let message) {
+            guard activeAccountId == accountId else {
+                return .signInRequired("The active account changed before that update completed.")
+            }
             rollback(
                 showId: showId,
                 value: previousValue,
@@ -331,6 +390,9 @@ public final class SavedShowStore: ObservableObject {
             )
             return .signInRequired(message)
         } catch MutationFailure.permanent(let message) {
+            guard activeAccountId == accountId else {
+                return .signInRequired("The active account changed before that update completed.")
+            }
             rollback(
                 showId: showId,
                 value: previousValue,
@@ -339,15 +401,28 @@ public final class SavedShowStore: ObservableObject {
             )
             return .failure(message)
         } catch {
+            guard activeAccountId == accountId else {
+                return .signInRequired("The active account changed before that update completed.")
+            }
             do {
-                let payload = try JSONEncoder().encode(
-                    SavedShowMutationPayload(showId: showId, isSaved: isSaved)
+                let replay = try await enqueueAndReplay(
+                    accountId: accountId,
+                    showId: showId,
+                    isSaved: isSaved
                 )
-                try await offlineQueue.enqueue(
-                    type: .setSavedShow(showId: showId),
-                    payload: payload
-                )
-                return .queued(isSaved)
+                guard activeAccountId == accountId else {
+                    return .signInRequired("The active account changed before that update completed.")
+                }
+                if replay.failed {
+                    rollback(
+                        showId: showId,
+                        value: previousValue,
+                        upcoming: previousUpcoming,
+                        past: previousPast
+                    )
+                    return .failure("LaughTrack couldn’t replay that saved-show change.")
+                }
+                return replay.pending ? .queued(isSaved) : .updated(isSaved)
             } catch {
                 rollback(
                     showId: showId,
@@ -364,6 +439,186 @@ public final class SavedShowStore: ObservableObject {
         case signInRequired(String)
         case permanent(String)
         case transient
+    }
+
+    private struct ReplayResult {
+        let pending: Bool
+        let failed: Bool
+    }
+
+    private func replaceQueuedIntentAndReplay(
+        accountId: String,
+        showId: Int,
+        isSaved: Bool,
+        previousValue: Bool,
+        previousUpcoming: Page?,
+        previousPast: Page?,
+        apiClient: Client,
+        authManager: AuthManager
+    ) async -> MutationResult {
+        do {
+            let replay = try await enqueueAndReplay(
+                accountId: accountId,
+                showId: showId,
+                isSaved: isSaved
+            )
+            guard activeAccountId == accountId,
+                  authManager.currentUser?.userId == accountId
+            else {
+                return .signInRequired("The active account changed before that update completed.")
+            }
+            if replay.failed {
+                rollback(
+                    showId: showId,
+                    value: previousValue,
+                    upcoming: previousUpcoming,
+                    past: previousPast
+                )
+                return .failure("LaughTrack couldn’t replay that saved-show change.")
+            }
+            if replay.pending {
+                return .queued(isSaved)
+            }
+
+            await loadState(
+                showId: showId,
+                apiClient: apiClient,
+                authManager: authManager,
+                force: true
+            )
+            return .updated(values[showId] ?? isSaved)
+        } catch {
+            guard activeAccountId == accountId else {
+                return .signInRequired("The active account changed before that update completed.")
+            }
+            rollback(
+                showId: showId,
+                value: previousValue,
+                upcoming: previousUpcoming,
+                past: previousPast
+            )
+            return .failure("LaughTrack couldn’t save that change for retry.")
+        }
+    }
+
+    private func enqueueAndReplay(
+        accountId: String,
+        showId: Int,
+        isSaved: Bool
+    ) async throws -> ReplayResult {
+        let operationType = LaughTrackOfflineOperation.setSavedShow(
+            accountId: accountId,
+            showId: showId
+        )
+        let priorFailedIds = Set((await offlineQueue.failedOperations).map(\.id))
+        let payload = try JSONEncoder().encode(
+            SavedShowMutationPayload(
+                accountId: accountId,
+                showId: showId,
+                isSaved: isSaved
+            )
+        )
+        try await offlineQueue.enqueue(type: operationType, payload: payload)
+        await offlineQueue.syncPendingOperations()
+
+        let pending = await offlineQueue.pendingOperationsList.contains {
+            $0.type == operationType
+        }
+        let failed = await offlineQueue.failedOperations.contains {
+            !priorFailedIds.contains($0.id) && $0.type == operationType
+        }
+        return ReplayResult(pending: pending, failed: failed)
+    }
+
+    private func handleAccountChange(
+        _ accountId: String?,
+        apiClient: Client,
+        authManager: AuthManager
+    ) async {
+        if activeAccountId != nil, activeAccountId != accountId {
+            await resetAccountState()
+        }
+        guard let accountId else { return }
+
+        activeAccountId = accountId
+        await offlineQueue.syncPendingOperations()
+
+        guard activeAccountId == accountId,
+              authManager.currentUser?.userId == accountId
+        else { return }
+        await reconcileReplayFailures(
+            accountId: accountId,
+            apiClient: apiClient,
+            authManager: authManager
+        )
+    }
+
+    func handleReplayFailure(
+        accountId: String,
+        showId: Int,
+        apiClient: Client,
+        authManager: AuthManager
+    ) async {
+        guard activeAccountId == accountId,
+              authManager.currentUser?.userId == accountId
+        else { return }
+
+        await loadState(
+            showId: showId,
+            apiClient: apiClient,
+            authManager: authManager,
+            force: true
+        )
+        await reloadVisibleCollections(apiClient: apiClient, authManager: authManager)
+    }
+
+    private func reconcileReplayFailures(
+        accountId: String,
+        apiClient: Client,
+        authManager: AuthManager
+    ) async {
+        let showIds: Set<Int> = Set(
+            (await offlineQueue.failedOperations).compactMap { operation -> Int? in
+            guard case .setSavedShow(let operationAccountId, let showId) = operation.type,
+                  operationAccountId == accountId
+            else { return nil }
+            return showId
+            }
+        )
+        for showId in showIds {
+            await handleReplayFailure(
+                accountId: accountId,
+                showId: showId,
+                apiClient: apiClient,
+                authManager: authManager
+            )
+        }
+    }
+
+    private func reloadVisibleCollections(
+        apiClient: Client,
+        authManager: AuthManager
+    ) async {
+        if let page = upcomingPage {
+            await loadSavedShows(
+                period: .upcoming,
+                page: page.page,
+                size: page.size,
+                apiClient: apiClient,
+                authManager: authManager,
+                force: true
+            )
+        }
+        if let page = pastPage {
+            await loadSavedShows(
+                period: .past,
+                page: page.page,
+                size: page.size,
+                apiClient: apiClient,
+                authManager: authManager,
+                force: true
+            )
+        }
     }
 
     private func performMutation(
