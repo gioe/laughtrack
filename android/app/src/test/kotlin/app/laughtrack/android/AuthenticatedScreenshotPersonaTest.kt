@@ -38,6 +38,20 @@ class AuthenticatedScreenshotPersonaTest {
     }
 
     @Test
+    fun `saved shows include deterministic upcoming and past collections`() {
+        val savedShows = AuthenticatedScreenshotPersona.savedShowsSnapshot
+
+        assertEquals(listOf(910_103), savedShows.upcoming.shows.map { it.id })
+        assertEquals(listOf(910_104), savedShows.past.shows.map { it.id })
+        assertTrue(savedShows.upcoming.shows.all { it.imageUrl.isEmpty() })
+        assertTrue(savedShows.past.shows.all { it.imageUrl.isEmpty() })
+        assertEquals(true, savedShows.values[910_103])
+        assertEquals(true, savedShows.values[910_104])
+        assertFalse(savedShows.upcoming.isLoading)
+        assertFalse(savedShows.past.isLoading)
+    }
+
+    @Test
     fun `notifications are populated with fixed timestamps and no remote images`() {
         val notifications = AuthenticatedScreenshotPersona.notificationListResponseData
 
