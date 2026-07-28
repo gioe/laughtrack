@@ -108,12 +108,23 @@ struct HomeContentSectionTests {
             from: "private struct HomeShowsTonightHeroCard",
             to: "struct HomeShowsTonightPortraitMetrics"
         )
+        let scrollingCardBlock = try sourceBlock(
+            in: source,
+            from: "private struct HomeShowsTonightScrollingCard",
+            to: "private struct HomeShowsTonightHeroCard"
+        )
 
         #expect(carouselBlock.contains("Text(\"TONIGHT!\")"))
         #expect(carouselBlock.contains("HomeMarqueeStageBackground("))
         #expect(carouselBlock.contains("HomeShowsTonightPageIndicator("))
+        #expect(carouselBlock.contains("scrollingCarouselButtons(cardWidth: 320)"))
         #expect(carouselBlock.contains(".background(laughTrack.colors.surface)"))
         #expect(carouselBlock.contains(".stroke(laughTrack.colors.borderSubtle"))
+        #expect(scrollingCardBlock.contains("Text(\"TONIGHT!\")"))
+        #expect(scrollingCardBlock.contains("HomeMarqueeStageBackground("))
+        #expect(scrollingCardBlock.contains("HomeShowsTonightPageIndicator("))
+        #expect(scrollingCardBlock.contains(".background(laughTrack.colors.surface)"))
+        #expect(scrollingCardBlock.contains(".stroke(laughTrack.colors.borderSubtle"))
         #expect(heroBlock.contains("ClubWallHeadshotFrame("))
         #expect(heroBlock.contains("Text(timeLabel)"))
         #expect(heroBlock.contains("Text(ShowTitlePresentation.title(for: show))"))

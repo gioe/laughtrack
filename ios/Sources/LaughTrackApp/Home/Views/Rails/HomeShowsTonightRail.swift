@@ -189,8 +189,7 @@ private struct HomeShowsTonightCarousel: View {
         #else
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: theme.spacing.sm) {
-                carouselButtons(pageWidth: 320)
-                    .frame(width: 320)
+                scrollingCarouselButtons(cardWidth: 320)
             }
         }
         #endif
@@ -208,6 +207,26 @@ private struct HomeShowsTonightCarousel: View {
                     .frame(width: pageWidth)
             }
             .frame(width: pageWidth)
+            .clipped()
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(show.id == shows.first?.id ? LaughTrackViewTestID.homeShowsTonightHeroButton : LaughTrackViewTestID.homeShowsTonightButton(show.id))
+            .tag(show.id)
+        }
+    }
+
+    private func scrollingCarouselButtons(cardWidth: CGFloat) -> some View {
+        ForEach(shows, id: \.id) { show in
+            Button {
+                coordinator.open(.show(show.id))
+            } label: {
+                HomeShowsTonightScrollingCard(
+                    show: show,
+                    width: cardWidth,
+                    pageIndicatorCount: shows.count,
+                    selectedPageIndex: selectedShowIndex
+                )
+            }
+            .frame(width: cardWidth)
             .clipped()
             .buttonStyle(.plain)
             .accessibilityIdentifier(show.id == shows.first?.id ? LaughTrackViewTestID.homeShowsTonightHeroButton : LaughTrackViewTestID.homeShowsTonightButton(show.id))
@@ -288,6 +307,55 @@ private struct HomeShowsTonightPageIndicator: View {
         .frame(height: count > 1 ? 12 : 0)
         .opacity(count > 1 ? 1 : 0)
         .accessibilityHidden(true)
+    }
+}
+
+private struct HomeShowsTonightScrollingCard: View {
+    let show: Components.Schemas.Show
+    let width: CGFloat
+    let pageIndicatorCount: Int
+    let selectedPageIndex: Int
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+        let contentWidth = max(
+            0,
+            width - (laughTrack.browseDensity.compactCardPadding * 2)
+        )
+
+        VStack(alignment: .center, spacing: theme.spacing.md) {
+            Text("TONIGHT!")
+                .font(.system(size: 22, weight: .heavy, design: .rounded))
+                .tracking(2.4)
+                .textCase(.uppercase)
+                .foregroundStyle(laughTrack.colors.accentStrong)
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
+
+            ZStack(alignment: .top) {
+                HomeMarqueeStageBackground(glowRadius: 200, glowOpacity: 0.22)
+                    .frame(height: HomeShowsTonightCarouselLayout.stageHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                HomeShowsTonightHeroCard(show: show, width: contentWidth)
+            }
+            .frame(width: contentWidth)
+            .clipped()
+
+            HomeShowsTonightPageIndicator(
+                count: pageIndicatorCount,
+                selectedIndex: selectedPageIndex
+            )
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .frame(width: width, height: 456, alignment: .top)
+        .background(laughTrack.colors.surface)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
     }
 }
 
