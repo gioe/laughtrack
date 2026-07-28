@@ -60,20 +60,29 @@ public final class SavedShowStore: ObservableObject {
     private let persistentCache: PersistentMainPageCache
     private let offlineQueue: OfflineOperationQueue<LaughTrackOfflineOperation>
     private let cacheTTL: TimeInterval
+    private let replayDelaysNanoseconds: [UInt64]
     private var activeAccountId: String?
     private var accountCacheKeys: Set<LaughTrackCacheKey> = []
     private var authLifecycleCancellable: AnyCancellable?
+    private var replayTask: Task<Void, Never>?
 
     init(
         cache: DataCache<LaughTrackCacheKey>,
         persistentCache: PersistentMainPageCache,
         offlineQueue: OfflineOperationQueue<LaughTrackOfflineOperation>,
-        cacheTTL: TimeInterval = 15 * 60
+        cacheTTL: TimeInterval = 15 * 60,
+        replayDelaysNanoseconds: [UInt64] = [
+            2_000_000_000,
+            4_000_000_000,
+            8_000_000_000,
+            16_000_000_000,
+        ]
     ) {
         self.cache = cache
         self.persistentCache = persistentCache
         self.offlineQueue = offlineQueue
         self.cacheTTL = cacheTTL
+        self.replayDelaysNanoseconds = replayDelaysNanoseconds
     }
 
     public func value(for showId: Int, fallback: Bool? = nil) -> Bool {
@@ -91,6 +100,8 @@ public final class SavedShowStore: ObservableObject {
     public func resetAccountState() async {
         let priorAccountId = activeAccountId
         let keys = accountCacheKeys
+        replayTask?.cancel()
+        replayTask = nil
         clearPublishedState()
 
         for key in keys {
@@ -527,7 +538,38 @@ public final class SavedShowStore: ObservableObject {
         let failed = await offlineQueue.failedOperations.contains {
             !priorFailedIds.contains($0.id) && $0.type == operationType
         }
+        if pending {
+            scheduleReplay(accountId: accountId)
+        }
         return ReplayResult(pending: pending, failed: failed)
+    }
+
+    private func scheduleReplay(accountId: String) {
+        guard replayTask == nil else { return }
+        replayTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer { replayTask = nil }
+
+            for delay in replayDelaysNanoseconds {
+                do {
+                    try await Task.sleep(nanoseconds: delay)
+                } catch {
+                    return
+                }
+                guard activeAccountId == accountId else { return }
+
+                await offlineQueue.syncPendingOperations()
+                let hasPendingSavedShows = await offlineQueue.pendingOperationsList.contains {
+                    guard case .setSavedShow(let operationAccountId, _) = $0.type else {
+                        return false
+                    }
+                    return operationAccountId == accountId
+                }
+                if !hasPendingSavedShows {
+                    return
+                }
+            }
+        }
     }
 
     private func handleAccountChange(
@@ -546,6 +588,15 @@ public final class SavedShowStore: ObservableObject {
         guard activeAccountId == accountId,
               authManager.currentUser?.userId == accountId
         else { return }
+        let hasPendingSavedShows = await offlineQueue.pendingOperationsList.contains {
+            guard case .setSavedShow(let operationAccountId, _) = $0.type else {
+                return false
+            }
+            return operationAccountId == accountId
+        }
+        if hasPendingSavedShows {
+            scheduleReplay(accountId: accountId)
+        }
         await reconcileReplayFailures(
             accountId: accountId,
             apiClient: apiClient,

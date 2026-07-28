@@ -418,6 +418,35 @@ struct SavedShowStoreTests {
         #expect(await harness.queue.failedOperations.count == 1)
     }
 
+    @Test("connected replay retries through backoff without a connectivity edge")
+    func connectedReplayContinuesAfterRetryableFailure() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let replayAttempts = AttemptCounter()
+        let harness = makeHarness(
+            replayDelaysNanoseconds: [2_100_000_000]
+        ) { _ in
+            if await replayAttempts.next() == 1 {
+                throw URLError(.timedOut)
+            }
+        }
+
+        let result = await harness.store.setSaved(
+            showId: 19,
+            isSaved: true,
+            apiClient: makeClient(transport: .alwaysFails()),
+            authManager: auth
+        )
+        #expect(result == .queued(true))
+
+        await waitUntil(maxAttempts: 3_000) {
+            await harness.queue.operationCount == 0
+        }
+
+        #expect(await replayAttempts.count == 2)
+        #expect(await harness.queue.operationCount == 0)
+        #expect(harness.store.value(for: 19) == true)
+    }
+
     @Test("legacy queued comedian operation remains Codable")
     func legacyOperationCodableCompatibility() throws {
         let decoded = try JSONDecoder().decode(
@@ -534,6 +563,12 @@ struct SavedShowStoreTests {
     }
 
     private func makeHarness(
+        replayDelaysNanoseconds: [UInt64] = [
+            2_000_000_000,
+            4_000_000_000,
+            8_000_000_000,
+            16_000_000_000,
+        ],
         executor: @escaping @Sendable (
             QueuedOperation<LaughTrackOfflineOperation>
         ) async throws -> Void = { _ in }
@@ -558,7 +593,8 @@ struct SavedShowStoreTests {
                 directory: directory,
                 schemaVersion: "tests"
             ),
-            offlineQueue: queue
+            offlineQueue: queue,
+            replayDelaysNanoseconds: replayDelaysNanoseconds
         )
         return (store, queue)
     }
@@ -639,6 +675,19 @@ private func settleAsyncWork() async {
         await Task.yield()
     }
     try? await Task.sleep(nanoseconds: 10_000_000)
+}
+
+private func waitUntil(
+    maxAttempts: Int = 100,
+    _ condition: @escaping @Sendable () async -> Bool
+) async {
+    for _ in 0..<maxAttempts {
+        if await condition() {
+            return
+        }
+        try? await Task.sleep(nanoseconds: 1_000_000)
+    }
+    Issue.record("Timed out waiting for asynchronous saved-show work")
 }
 
 private actor SuspensionGate {
