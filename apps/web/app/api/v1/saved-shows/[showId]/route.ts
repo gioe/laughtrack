@@ -119,6 +119,22 @@ export const POST = withRequestMetrics(async function POST(
             );
         }
 
+        const existingSavedShow = await db.savedShow.findUnique({
+            where: {
+                profileId_showId: {
+                    profileId: authCtx.profileId,
+                    showId,
+                },
+            },
+            select: { showId: true },
+        });
+        if (existingSavedShow) {
+            return NextResponse.json(
+                { data: { isSaved: true } },
+                { headers: successHeaders(rl) },
+            );
+        }
+
         const show = await db.show.findFirst({
             where: { id: showId, club: { visible: true } },
             select: { id: true, date: true },

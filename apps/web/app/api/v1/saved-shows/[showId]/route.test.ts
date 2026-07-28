@@ -55,6 +55,7 @@ function makeCall(handler: Handler, showId = "42"): ReturnType<Handler> {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockFindSavedShow.mockResolvedValue(null);
 });
 
 describe("/api/v1/saved-shows/[showId]", () => {
@@ -193,6 +194,21 @@ describe("/api/v1/saved-shows/[showId]", () => {
 
         expect(response.status).toBe(409);
         expect((await response.json()).error).toMatch(/upcoming/i);
+        expect(mockUpsert).not.toHaveBeenCalled();
+    });
+
+    it("keeps save retries idempotent after an already-saved show passes", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockFindSavedShow.mockResolvedValue({ showId: 42 } as never);
+
+        const response = await makeCall(POST);
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({ data: { isSaved: true } });
+        expect(mockFindShow).not.toHaveBeenCalled();
         expect(mockUpsert).not.toHaveBeenCalled();
     });
 
