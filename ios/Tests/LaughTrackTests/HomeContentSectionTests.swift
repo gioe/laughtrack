@@ -69,6 +69,58 @@ struct HomeContentSectionTests {
             pageWidth: 300,
             translation: CGSize(width: 40, height: 120)
         ) == 1)
+        #expect(HomeHorizontalPagerDrag.nextIndex(
+            currentIndex: 0,
+            itemCount: 3,
+            pageWidth: 300,
+            translation: CGSize(width: 120, height: 8)
+        ) == 0)
+        #expect(HomeHorizontalPagerDrag.nextIndex(
+            currentIndex: 2,
+            itemCount: 3,
+            pageWidth: 300,
+            translation: CGSize(width: -120, height: 8)
+        ) == 2)
+        #expect(HomeHorizontalPagerDrag.nextIndex(
+            currentIndex: 1,
+            itemCount: 3,
+            pageWidth: 300,
+            translation: CGSize(width: 40, height: 8)
+        ) == 1)
+        #expect(HomeHorizontalPagerDrag.nextIndex(
+            currentIndex: 0,
+            itemCount: 0,
+            pageWidth: 300,
+            translation: CGSize(width: -120, height: 8)
+        ) == 0)
+    }
+
+    @Test("tonight carousel keeps shared chrome outside moving show pages")
+    func tonightCarouselKeepsSharedChromeOutsideMovingShowPages() throws {
+        let source = try homeSourceText()
+        let carouselBlock = try sourceBlock(
+            in: source,
+            from: "private struct HomeShowsTonightCarousel",
+            to: "private struct HomeShowsTonightPageIndicator"
+        )
+        let heroBlock = try sourceBlock(
+            in: source,
+            from: "private struct HomeShowsTonightHeroCard",
+            to: "struct HomeShowsTonightPortraitMetrics"
+        )
+
+        #expect(carouselBlock.contains("Text(\"TONIGHT!\")"))
+        #expect(carouselBlock.contains("HomeMarqueeStageBackground("))
+        #expect(carouselBlock.contains("HomeShowsTonightPageIndicator("))
+        #expect(carouselBlock.contains(".background(laughTrack.colors.surface)"))
+        #expect(carouselBlock.contains(".stroke(laughTrack.colors.borderSubtle"))
+        #expect(heroBlock.contains("ClubWallHeadshotFrame("))
+        #expect(heroBlock.contains("Text(timeLabel)"))
+        #expect(heroBlock.contains("Text(ShowTitlePresentation.title(for: show))"))
+        #expect(heroBlock.contains("Text(venueLine)"))
+        #expect(!heroBlock.contains("Text(\"TONIGHT!\")"))
+        #expect(!heroBlock.contains("HomeMarqueeStageBackground("))
+        #expect(!heroBlock.contains("HomeShowsTonightPageIndicator("))
     }
 
     @Test("home cards use cached async images")
@@ -153,7 +205,7 @@ struct HomeContentSectionTests {
         #expect(carouselBlock.contains(".frame(width: pageWidth"))
         #expect(carouselBlock.contains(".clipped()"))
         #expect(carouselBlock.contains(".frame(height: 456)"))
-        #expect(carouselBlock.contains(".highPriorityGesture(pagerDragGesture(pageWidth: pageWidth))"))
+        #expect(carouselBlock.contains(".highPriorityGesture(pagerDragGesture(pageWidth: contentWidth))"))
         #expect(heroBlock.contains(".scaledToFill()"))
         #expect(source.contains("HomeDiscoverHeader("))
         #expect(source.contains("nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)"))
@@ -361,9 +413,9 @@ struct HomeContentSectionTests {
         #expect(block.contains(".font(.system(size: 9, weight: .semibold, design: .rounded))"))
         #expect(block.contains(".padding(.horizontal, 12)"))
         #expect(block.contains(".padding(.vertical, 5)"))
-        #expect(block.contains("HomeShowsTonightPageIndicator("))
-        #expect(block.contains("pageIndicatorCount"))
-        #expect(block.contains("selectedPageIndex"))
+        #expect(!block.contains("HomeShowsTonightPageIndicator("))
+        #expect(!block.contains("pageIndicatorCount"))
+        #expect(!block.contains("selectedPageIndex"))
     }
 
     @Test("tonight hero caption follows the comedian used for artwork")

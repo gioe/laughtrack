@@ -139,15 +139,50 @@ private struct HomeShowsTonightCarousel: View {
         VStack(spacing: theme.spacing.xs) {
             GeometryReader { proxy in
                 let pageWidth = min(proxy.size.width, max(0, UIScreen.main.bounds.width - 64))
+                let laughTrack = theme.laughTrackTokens
+                let contentWidth = max(
+                    0,
+                    pageWidth - (laughTrack.browseDensity.compactCardPadding * 2)
+                )
 
-                HStack(spacing: 0) {
-                    carouselButtons(pageWidth: pageWidth)
+                VStack(alignment: .center, spacing: theme.spacing.md) {
+                    Text("TONIGHT!")
+                        .font(.system(size: 22, weight: .heavy, design: .rounded))
+                        .tracking(2.4)
+                        .textCase(.uppercase)
+                        .foregroundStyle(laughTrack.colors.accentStrong)
+                        .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
+
+                    ZStack(alignment: .top) {
+                        HomeMarqueeStageBackground(glowRadius: 200, glowOpacity: 0.22)
+                            .frame(height: HomeShowsTonightCarouselLayout.stageHeight)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                        HStack(spacing: 0) {
+                            carouselButtons(pageWidth: contentWidth)
+                        }
+                        .offset(x: -CGFloat(selectedShowIndex) * contentWidth)
+                        .animation(.snappy(duration: 0.25), value: selectedShowIndex)
+                        .frame(width: contentWidth, alignment: .leading)
+                        .clipped()
+                        .highPriorityGesture(pagerDragGesture(pageWidth: contentWidth))
+                    }
+                    .frame(width: contentWidth)
+                    .clipped()
+
+                    HomeShowsTonightPageIndicator(
+                        count: shows.count,
+                        selectedIndex: selectedShowIndex
+                    )
                 }
-                .offset(x: -CGFloat(selectedShowIndex) * pageWidth)
-                .animation(.snappy(duration: 0.25), value: selectedShowIndex)
-                .frame(width: pageWidth, alignment: .leading)
-                .clipped()
-                .highPriorityGesture(pagerDragGesture(pageWidth: pageWidth))
+                .padding(laughTrack.browseDensity.compactCardPadding)
+                .frame(width: pageWidth, height: 456, alignment: .top)
+                .background(laughTrack.colors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
             }
             .frame(height: 456)
         }
@@ -168,9 +203,7 @@ private struct HomeShowsTonightCarousel: View {
             } label: {
                 HomeShowsTonightHeroCard(
                     show: show,
-                    width: pageWidth,
-                    pageIndicatorCount: shows.count,
-                    selectedPageIndex: selectedShowIndex
+                    width: pageWidth
                 )
                     .frame(width: pageWidth)
             }
@@ -204,6 +237,10 @@ private struct HomeShowsTonightCarousel: View {
                 selectedShowID = shows[nextIndex].id
             }
     }
+}
+
+private enum HomeShowsTonightCarouselLayout {
+    static let stageHeight: CGFloat = 198
 }
 
 enum HomeHorizontalPagerDrag {
@@ -257,8 +294,6 @@ private struct HomeShowsTonightPageIndicator: View {
 private struct HomeShowsTonightHeroCard: View {
     let show: Components.Schemas.Show
     var width: CGFloat?
-    var pageIndicatorCount = 0
-    var selectedPageIndex = 0
 
     @Environment(\.appTheme) private var theme
 
@@ -266,13 +301,6 @@ private struct HomeShowsTonightHeroCard: View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(alignment: .center, spacing: theme.spacing.md) {
-            Text("TONIGHT!")
-                .font(.system(size: 22, weight: .heavy, design: .rounded))
-                .tracking(2.4)
-                .textCase(.uppercase)
-                .foregroundStyle(laughTrack.colors.accentStrong)
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
-
             artwork
 
             VStack(alignment: .center, spacing: 10) {
@@ -313,53 +341,36 @@ private struct HomeShowsTonightHeroCard: View {
                         .shadow(color: laughTrack.colors.accentStrong.opacity(0.45), radius: 6, y: 2)
                         .padding(.top, 4)
                 }
-
-                HomeShowsTonightPageIndicator(
-                    count: pageIndicatorCount,
-                    selectedIndex: selectedPageIndex
-                )
             }
             .frame(maxWidth: .infinity)
         }
-        .padding(laughTrack.browseDensity.compactCardPadding)
         .frame(width: width, alignment: .leading)
-        .background(laughTrack.colors.surface)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(ShowTitlePresentation.title(for: show)), \(show.clubName ?? "Unknown club"), \(accessibilityMetadata.joined(separator: ", "))")
     }
-
-    private static let stageHeight: CGFloat = 198
 
     @ViewBuilder
     private var artwork: some View {
         GeometryReader { proxy in
             let metrics = portraitMetrics(for: proxy.size.width)
 
-            ZStack {
-                HomeMarqueeStageBackground(glowRadius: 200, glowOpacity: 0.22)
-
-                ClubWallHeadshotFrame(
-                    caption: headshotCaption,
-                    photoWidth: metrics.photoWidth,
-                    photoHeight: metrics.photoHeight,
-                    frameWidth: metrics.frameWidth,
-                    frameHeight: metrics.frameHeight,
-                    captionFontSize: metrics.captionFontSize,
-                    captionWidth: metrics.captionWidth,
-                    captionHeight: metrics.captionHeight
-                ) {
-                    artworkImage
-                }
+            ClubWallHeadshotFrame(
+                caption: headshotCaption,
+                photoWidth: metrics.photoWidth,
+                photoHeight: metrics.photoHeight,
+                frameWidth: metrics.frameWidth,
+                frameHeight: metrics.frameHeight,
+                captionFontSize: metrics.captionFontSize,
+                captionWidth: metrics.captionWidth,
+                captionHeight: metrics.captionHeight
+            ) {
+                artworkImage
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: Self.stageHeight)
+        .frame(height: HomeShowsTonightCarouselLayout.stageHeight)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
