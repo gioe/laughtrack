@@ -11,6 +11,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.api.FavoritesApi
 import app.laughtrack.android.core.network.generated.model.AddFavoriteClubRequest
 import app.laughtrack.android.core.network.generated.model.AddFavoritePodcastRequest
@@ -32,6 +33,13 @@ interface FavoriteQueue {
         id: String,
         isFavorite: Boolean,
     )
+
+    fun cancel(
+        entity: FavoriteEntity,
+        id: String,
+    )
+
+    fun cancelAll()
 }
 
 @Singleton
@@ -60,6 +68,7 @@ class FavoriteOfflineQueue
                             KEY_IS_FAVORITE to isFavorite,
                         ),
                     )
+                    .addTag(WORK_TAG)
                     .build()
 
             workManager.enqueueUniqueWork(
@@ -69,10 +78,22 @@ class FavoriteOfflineQueue
             )
         }
 
+        override fun cancel(
+            entity: FavoriteEntity,
+            id: String,
+        ) {
+            workManager.cancelUniqueWork(uniqueName(entity, id))
+        }
+
+        override fun cancelAll() {
+            workManager.cancelAllWorkByTag(WORK_TAG)
+        }
+
         companion object {
             const val KEY_ENTITY = "entity"
             const val KEY_ID = "id"
             const val KEY_IS_FAVORITE = "isFavorite"
+            const val WORK_TAG = "favorite-replay"
 
             fun uniqueName(
                 entity: FavoriteEntity,
@@ -96,9 +117,14 @@ class FavoriteReplayWorker
                     ?: return Result.failure()
             val id = inputData.getString(FavoriteOfflineQueue.KEY_ID) ?: return Result.failure()
             val isFavorite = inputData.getBoolean(FavoriteOfflineQueue.KEY_IS_FAVORITE, false)
+            val numericId =
+                when (entity) {
+                    FavoriteEntity.COMEDIAN -> null
+                    FavoriteEntity.CLUB, FavoriteEntity.PODCAST -> id.toIntOrNull() ?: return Result.failure()
+                }
 
             val response =
-                runCatching {
+                runCatchingCancellable {
                     when (entity) {
                         FavoriteEntity.COMEDIAN ->
                             if (isFavorite) {
@@ -107,19 +133,17 @@ class FavoriteReplayWorker
                                 favoritesApi.removeFavorite(id)
                             }
                         FavoriteEntity.CLUB -> {
-                            val clubId = id.toIntOrNull() ?: return Result.failure()
                             if (isFavorite) {
-                                favoritesApi.addFavoriteClub(AddFavoriteClubRequest(clubId))
+                                favoritesApi.addFavoriteClub(AddFavoriteClubRequest(checkNotNull(numericId)))
                             } else {
-                                favoritesApi.removeFavoriteClub(clubId)
+                                favoritesApi.removeFavoriteClub(checkNotNull(numericId))
                             }
                         }
                         FavoriteEntity.PODCAST -> {
-                            val podcastId = id.toIntOrNull() ?: return Result.failure()
                             if (isFavorite) {
-                                favoritesApi.addFavoritePodcast(AddFavoritePodcastRequest(podcastId))
+                                favoritesApi.addFavoritePodcast(AddFavoritePodcastRequest(checkNotNull(numericId)))
                             } else {
-                                favoritesApi.removeFavoritePodcast(podcastId)
+                                favoritesApi.removeFavoritePodcast(checkNotNull(numericId))
                             }
                         }
                     }

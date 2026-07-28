@@ -18,6 +18,13 @@ object NoOpQueue : FavoriteQueue {
         id: String,
         isFavorite: Boolean,
     ) = Unit
+
+    override fun cancel(
+        entity: FavoriteEntity,
+        id: String,
+    ) = Unit
+
+    override fun cancelAll() = Unit
 }
 
 /** [TokenStore] with no stored session, so the auth session restores to signed-out. */
