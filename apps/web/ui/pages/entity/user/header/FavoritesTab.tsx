@@ -15,6 +15,11 @@ import FavoriteSearchableSection from "./FavoriteSearchableSection";
 
 const FAVORITE_SHOWS_PAGE_SIZE = 20;
 const FAVORITE_SHOWS_PAGE_KEY = "showsPage";
+const SAVED_SHOWS_PAGE_SIZE = 20;
+const UPCOMING_SAVED_SHOWS_PAGE_KEY = "upcomingSavedShowsPage";
+const PAST_SAVED_SHOWS_PAGE_KEY = "pastSavedShowsPage";
+
+type SavedShowPeriod = "upcoming" | "past";
 
 interface FavoritePodcastApiItem {
     id: number;
@@ -69,15 +74,80 @@ const showMatches = (show: ShowDTO, q: string): boolean => {
     return name.includes(q) || club.includes(q) || lineup.includes(q);
 };
 
+const pageFromSearchParams = (
+    searchParams: ReturnType<typeof useSearchParams>,
+    key: string,
+): number =>
+    Math.max(1, Number.parseInt(searchParams?.get(key) ?? "1", 10) || 1);
+
+const useSavedShows = (period: SavedShowPeriod, page: number) => {
+    const [shows, setShows] = useState<ShowDTO[]>([]);
+    const [total, setTotal] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        setIsLoading(true);
+        setError(null);
+
+        const loadSavedShows = async () => {
+            try {
+                const response = await fetch(
+                    `/api/v1/saved-shows?period=${period}&page=${page}&size=${SAVED_SHOWS_PAGE_SIZE}`,
+                    { credentials: "same-origin" },
+                );
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status}`);
+                }
+                const body = (await response.json()) as {
+                    data?: ShowDTO[];
+                    total?: number;
+                };
+                if (!cancelled) {
+                    setShows(body.data ?? []);
+                    setTotal(body.total ?? 0);
+                }
+            } catch {
+                if (!cancelled) {
+                    setShows([]);
+                    setTotal(0);
+                    setError(`Failed to load ${period} saved shows.`);
+                }
+            } finally {
+                if (!cancelled) setIsLoading(false);
+            }
+        };
+
+        void loadSavedShows();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [page, period]);
+
+    return { shows, total, isLoading, error };
+};
+
 const FavoritesTab = () => {
     const searchParams = useSearchParams();
-    const showsPage = Math.max(
-        1,
-        Number.parseInt(
-            searchParams?.get(FAVORITE_SHOWS_PAGE_KEY) ?? "1",
-            10,
-        ) || 1,
+    const showsPage = pageFromSearchParams(
+        searchParams,
+        FAVORITE_SHOWS_PAGE_KEY,
     );
+    const upcomingSavedShowsPage = pageFromSearchParams(
+        searchParams,
+        UPCOMING_SAVED_SHOWS_PAGE_KEY,
+    );
+    const pastSavedShowsPage = pageFromSearchParams(
+        searchParams,
+        PAST_SAVED_SHOWS_PAGE_KEY,
+    );
+    const upcomingSavedShows = useSavedShows(
+        "upcoming",
+        upcomingSavedShowsPage,
+    );
+    const pastSavedShows = useSavedShows("past", pastSavedShowsPage);
 
     // A grouped notification tap arrives as ?shows=555,777 — scope the upcoming
     // shows section to just those shows (the notification's context).
@@ -221,10 +291,22 @@ const FavoritesTab = () => {
         (show: ShowDTO) => <ShowCard show={show} />,
         [],
     );
+    const renderPastShow = useCallback(
+        (show: ShowDTO) => <ShowCard show={show} variant="past" />,
+        [],
+    );
 
     const showsHeaderNote =
         !loadingShows && showsTotal > 0
-            ? `${showsTotal} upcoming show${showsTotal === 1 ? "" : "s"} from your favorites`
+            ? `${showsTotal} upcoming show${showsTotal === 1 ? "" : "s"} from your favorite comedians`
+            : undefined;
+    const upcomingSavedShowsHeaderNote =
+        !upcomingSavedShows.isLoading && upcomingSavedShows.total > 0
+            ? `${upcomingSavedShows.total} upcoming saved show${upcomingSavedShows.total === 1 ? "" : "s"}`
+            : undefined;
+    const pastSavedShowsHeaderNote =
+        !pastSavedShows.isLoading && pastSavedShows.total > 0
+            ? `${pastSavedShows.total} past saved show${pastSavedShows.total === 1 ? "" : "s"}`
             : undefined;
 
     return (
@@ -271,6 +353,48 @@ const FavoritesTab = () => {
                 queryKey="podcastsPage"
             />
 
+            <FavoriteSearchableSection<ShowDTO>
+                title="Saved Shows — Upcoming"
+                items={upcomingSavedShows.shows}
+                isLoading={upcomingSavedShows.isLoading}
+                loadError={upcomingSavedShows.error}
+                emptyMessage="You haven't saved any upcoming shows."
+                searchPlaceholder="Search upcoming saved shows"
+                matchesQuery={showMatches}
+                renderItem={renderShow}
+                itemKey={(show) => show.id}
+                gridClassName="grid grid-cols-1 gap-4"
+                queryKey={UPCOMING_SAVED_SHOWS_PAGE_KEY}
+                headerNote={upcomingSavedShowsHeaderNote}
+                searchScopeLabel="saved shows"
+                serverPageInfo={{
+                    currentPage: upcomingSavedShowsPage,
+                    pageSize: SAVED_SHOWS_PAGE_SIZE,
+                    totalItems: upcomingSavedShows.total,
+                }}
+            />
+
+            <FavoriteSearchableSection<ShowDTO>
+                title="Saved Shows — Past"
+                items={pastSavedShows.shows}
+                isLoading={pastSavedShows.isLoading}
+                loadError={pastSavedShows.error}
+                emptyMessage="You haven't saved any past shows."
+                searchPlaceholder="Search past saved shows"
+                matchesQuery={showMatches}
+                renderItem={renderPastShow}
+                itemKey={(show) => show.id}
+                gridClassName="grid grid-cols-1 gap-4"
+                queryKey={PAST_SAVED_SHOWS_PAGE_KEY}
+                headerNote={pastSavedShowsHeaderNote}
+                searchScopeLabel="saved shows"
+                serverPageInfo={{
+                    currentPage: pastSavedShowsPage,
+                    pageSize: SAVED_SHOWS_PAGE_SIZE,
+                    totalItems: pastSavedShows.total,
+                }}
+            />
+
             {scopedShowIds && (
                 <div className="flex flex-wrap items-center justify-between gap-2 bg-surface-muted border border-subtle rounded-lg px-4 py-3">
                     <span className="text-sm text-foreground/85 font-dmSans">
@@ -295,7 +419,7 @@ const FavoritesTab = () => {
                 title={
                     scopedShowIds
                         ? "From your notification"
-                        : "Upcoming Shows from Favorites"
+                        : "Upcoming Shows from Favorite Comedians"
                 }
                 items={
                     scopedShowIds
