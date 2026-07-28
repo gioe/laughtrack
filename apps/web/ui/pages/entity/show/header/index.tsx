@@ -40,6 +40,17 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
         const interval = setInterval(() => setNow(new Date()), 60_000);
         return () => clearInterval(interval);
     }, []);
+    useEffect(() => {
+        const timeUntilStart =
+            new Date(show.date.toString()).getTime() - now.getTime();
+        if (timeUntilStart < 0 || timeUntilStart > 60_000) return;
+
+        const timeout = setTimeout(
+            () => setNow(new Date()),
+            timeUntilStart + 1,
+        );
+        return () => clearTimeout(timeout);
+    }, [now, show.date]);
     const heading =
         show.name && show.name.trim()
             ? show.name

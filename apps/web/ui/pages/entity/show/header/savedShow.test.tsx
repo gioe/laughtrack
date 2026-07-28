@@ -89,11 +89,39 @@ beforeEach(() => {
 
 afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.clearAllMocks();
     vi.unstubAllGlobals();
 });
 
 describe("ShowDetailHeader saved-show action", () => {
+    it("disables saving at the exact show start boundary", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-08-28T19:59:30Z"));
+        const mockFetch = vi
+            .fn()
+            .mockResolvedValueOnce(response({ data: { isSaved: false } }));
+        vi.stubGlobal("fetch", mockFetch);
+
+        render(<ShowDetailHeader show={show} />);
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(0);
+        });
+        const saveButton = screen.getByRole("button", {
+            name: "Save show",
+        });
+        expect(saveButton).toHaveProperty("disabled", false);
+
+        await act(async () => {
+            vi.advanceTimersByTime(30_001);
+        });
+
+        expect(saveButton).toHaveProperty("disabled", true);
+        fireEvent.click(saveButton);
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
     it("does not offer an enabled save action after the show starts", async () => {
         const mockFetch = vi
             .fn()
