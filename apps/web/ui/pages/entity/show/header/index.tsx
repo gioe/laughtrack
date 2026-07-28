@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Ticket } from "lucide-react";
+import { Bookmark, Loader2, Ticket } from "lucide-react";
 import { formatShowCountdown } from "@/util/dateUtil";
 import { showHeroImage } from "@/util/show/showHeroImage";
 import { ShowDetailDTO } from "@/lib/data/show/detail/interface";
 import MarqueeHero from "@/ui/pages/entity/MarqueeHero";
+import { Button } from "@/ui/components/ui/button";
+import { useSavedShow } from "@/hooks/useSavedShow";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -48,6 +50,26 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
     const hero = showHeroImage(show);
     const imageSrc = hero.src && hero.src !== PLACEHOLDER ? hero.src : null;
     const imageAlt = hero.headliner?.name ?? show.clubName ?? "Club";
+    const {
+        isSaved,
+        isAuthenticated,
+        isLoading,
+        isPending,
+        error,
+        announcement,
+        toggleSavedShow,
+    } = useSavedShow(show.id);
+    const savedShowLabel = !isAuthenticated
+        ? "Sign in to save this show"
+        : isLoading
+          ? "Checking saved show status"
+          : isPending
+            ? isSaved
+                ? "Removing saved show…"
+                : "Saving show…"
+            : isSaved
+              ? "Remove saved show"
+              : "Save show";
 
     return (
         <MarqueeHero
@@ -80,6 +102,55 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
             >
                 {countdown.label}
             </span>
+
+            <div className="mt-2 flex flex-col items-center gap-2">
+                <Button
+                    type="button"
+                    variant="roundedShimmerOutline"
+                    size="roundedShimmerOutline"
+                    onClick={() => void toggleSavedShow()}
+                    disabled={isLoading || isPending}
+                    aria-label={savedShowLabel}
+                    aria-pressed={
+                        isAuthenticated && !isLoading ? isSaved : undefined
+                    }
+                    aria-busy={isLoading || isPending || undefined}
+                    className={
+                        isSaved
+                            ? "border-highlight bg-highlight text-foreground hover:bg-highlight/85 hover:text-foreground"
+                            : undefined
+                    }
+                >
+                    {isLoading || isPending ? (
+                        <Loader2
+                            className="mr-2 h-4 w-4 animate-spin"
+                            aria-hidden="true"
+                        />
+                    ) : (
+                        <Bookmark
+                            className={`mr-2 h-4 w-4 ${
+                                isSaved ? "fill-current" : ""
+                            }`}
+                            aria-hidden="true"
+                        />
+                    )}
+                    {savedShowLabel}
+                </Button>
+
+                {announcement ? (
+                    <p className="sr-only" role="status" aria-live="polite">
+                        {announcement}
+                    </p>
+                ) : null}
+                {error ? (
+                    <p
+                        className="max-w-sm text-sm font-medium text-red-200"
+                        role="alert"
+                    >
+                        {error}
+                    </p>
+                ) : null}
+            </div>
 
             {/* Admin-only debug affordance — re-homed from the removed
                 date/room/address block (the ticket stub owns that data now). */}

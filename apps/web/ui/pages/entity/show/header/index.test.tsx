@@ -77,6 +77,18 @@ vi.mock("@/hooks", async () => {
     return { useMotionProps: mockUseMotionProps };
 });
 
+vi.mock("@/hooks/useSavedShow", () => ({
+    useSavedShow: () => ({
+        isSaved: false,
+        isAuthenticated: false,
+        isLoading: false,
+        isPending: false,
+        error: null,
+        announcement: "",
+        toggleSavedShow: vi.fn(),
+    }),
+}));
+
 const baseShow: ShowDetailDTO = {
     id: 42,
     clubId: 24,
@@ -165,9 +177,9 @@ describe("ShowDetailHeader", () => {
         expect(image.className).not.toContain("object-cover");
         // Letterbox gutters get the muted backing inside the unchanged ring.
         expect(image.parentElement?.className).toContain("bg-surface-muted");
-        expect(
-            screen.getByTestId("marquee-poster-frame").className,
-        ).toContain("border-dashed");
+        expect(screen.getByTestId("marquee-poster-frame").className).toContain(
+            "border-dashed",
+        );
     });
 
     it("renders the inferred headliner's headshot instead of the club image", () => {
