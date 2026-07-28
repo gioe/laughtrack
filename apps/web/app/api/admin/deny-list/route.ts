@@ -3,6 +3,7 @@ import { denyPodcastsHostedByComedianName } from "@/lib/admin/podcastDenyList";
 import { db } from "@/lib/db";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import type { Prisma } from "@prisma/client";
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withRequestMetrics } from "@/lib/metrics";
@@ -24,6 +25,12 @@ type DenyListWriter = Pick<Prisma.TransactionClient, "$queryRaw"> &
 
 function normalizeName(name: string) {
     return name.trim().replace(/\s+/g, " ");
+}
+
+function revalidatePodcastSurfaces() {
+    revalidateTag("podcasts-search-page-data-v3");
+    revalidateTag("podcast-detail-data-v2");
+    revalidateTag("podcast-metadata");
 }
 
 function serializeRow(row: DenyListRow) {
@@ -136,6 +143,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             return { entry: after, deniedPodcasts };
         });
 
+        revalidatePodcastSurfaces();
         return NextResponse.json({ ok: true, ...result }, { status: 201 });
     } catch (error) {
         console.error("Admin deny-list POST failed:", error);

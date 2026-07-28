@@ -19,6 +19,10 @@ vi.mock("@/lib/admin/podcastDenyList", () => ({
     denyPodcastsHostedByComedianName: vi.fn(() => Promise.resolve([])),
 }));
 
+vi.mock("next/cache", () => ({
+    revalidateTag: vi.fn(),
+}));
+
 vi.mock("@prisma/client", () => ({
     Prisma: {
         sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({
@@ -32,12 +36,14 @@ import { DELETE, GET, POST } from "./route";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { denyPodcastsHostedByComedianName } from "@/lib/admin/podcastDenyList";
+import { revalidateTag } from "next/cache";
 
 const mockAuth = vi.mocked(auth);
 const mockQueryRaw = vi.mocked(db.$queryRaw);
 const mockTransaction = vi.mocked(db.$transaction);
 const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
 const mockDenyHostedPodcasts = vi.mocked(denyPodcastsHostedByComedianName);
+const mockRevalidateTag = vi.mocked(revalidateTag);
 
 const adminSession = {
     profile: {
@@ -269,6 +275,13 @@ describe("POST /api/admin/deny-list", () => {
                 feedUrl: "https://thejimmydoreshow.libsyn.com/rss",
             },
         ]);
+        expect(mockRevalidateTag).toHaveBeenCalledWith(
+            "podcasts-search-page-data-v3",
+        );
+        expect(mockRevalidateTag).toHaveBeenCalledWith(
+            "podcast-detail-data-v2",
+        );
+        expect(mockRevalidateTag).toHaveBeenCalledWith("podcast-metadata");
         expect(tx.adminActionAudit.create).toHaveBeenCalledWith({
             data: expect.objectContaining({
                 action: "comedian_deny_list.create",
