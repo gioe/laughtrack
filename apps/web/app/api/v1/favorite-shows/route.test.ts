@@ -125,6 +125,7 @@ describe("GET /api/v1/favorite-shows", () => {
                 },
             },
         });
+        expect(where).not.toHaveProperty("savedShows");
         const dateFilter = where.date as { gte: Date };
         expect(dateFilter.gte).toBeInstanceOf(Date);
     });
@@ -171,9 +172,7 @@ describe("GET /api/v1/favorite-shows", () => {
         mockFindShowsForHome.mockResolvedValue([]);
 
         await GET(
-            new NextRequest(
-                "http://localhost/api/v1/favorite-shows?size=9999",
-            ),
+            new NextRequest("http://localhost/api/v1/favorite-shows?size=9999"),
         );
 
         expect(mockFindShowsForHome).toHaveBeenCalledWith(
