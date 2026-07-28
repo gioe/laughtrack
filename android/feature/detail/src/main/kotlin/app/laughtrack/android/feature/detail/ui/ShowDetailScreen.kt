@@ -23,9 +23,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -43,6 +47,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +80,7 @@ import app.laughtrack.android.feature.detail.util.parseShowDateTime
 import app.laughtrack.android.feature.detail.util.showRowTitleSubtitle
 import kotlinx.coroutines.delay
 import java.math.BigDecimal
+import java.time.Instant
 
 @Composable
 fun ShowDetailScreen(
@@ -86,6 +93,8 @@ fun ShowDetailScreen(
     LaunchedEffect(id) { viewModel.load(id) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isAdmin by viewModel.isAdmin.collectAsStateWithLifecycle()
+    val savedShows by viewModel.savedShowsSnapshot.collectAsStateWithLifecycle()
+    val savedShowMessage by viewModel.savedShowMessage.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize()) {
         when (state) {
@@ -94,9 +103,14 @@ fun ShowDetailScreen(
                 ShowDetailBody(
                     ui = (state as UiState.Success<ShowDetailUi>).value,
                     isAdmin = isAdmin,
+                    isSaved = savedShows.values[id] ?: false,
+                    isSavedPending = id in savedShows.pending,
+                    savedShowMessage = savedShowMessage,
                     onBack = onBack,
                     onHome = onHome,
                     onOpenEntity = onOpenEntity,
+                    onToggleSaved = { viewModel.toggleSaved(id) },
+                    onClearSavedShowMessage = viewModel::clearSavedShowMessage,
                 )
             else -> DetailLoading(Modifier.fillMaxSize())
         }
@@ -107,9 +121,14 @@ fun ShowDetailScreen(
 private fun ShowDetailBody(
     ui: ShowDetailUi,
     isAdmin: Boolean,
+    isSaved: Boolean,
+    isSavedPending: Boolean,
+    savedShowMessage: String?,
     onBack: () -> Unit,
     onHome: (() -> Unit)?,
     onOpenEntity: (AppRoute) -> Unit,
+    onToggleSaved: () -> Unit,
+    onClearSavedShowMessage: () -> Unit,
 ) {
     val show = ui.detail
     val context = LocalContext.current
@@ -125,6 +144,9 @@ private fun ShowDetailBody(
                     show = show,
                     onBack = onBack,
                     onHome = onHome,
+                    isSaved = isSaved,
+                    isSavedPending = isSavedPending,
+                    onToggleSaved = onToggleSaved,
                 )
             },
             content = {
@@ -134,6 +156,12 @@ private fun ShowDetailBody(
                 ) {
                     if (isAdmin) {
                         AdminShowIdBadge(showId = show.id)
+                    }
+                    savedShowMessage?.let { message ->
+                        AssistChip(
+                            onClick = onClearSavedShowMessage,
+                            label = { Text(message) },
+                        )
                     }
                     ShowTicketSummary(
                         show = show,
@@ -206,6 +234,9 @@ private fun ShowMarqueeHero(
     show: ShowDetail,
     onBack: () -> Unit,
     onHome: (() -> Unit)?,
+    isSaved: Boolean,
+    isSavedPending: Boolean,
+    onToggleSaved: () -> Unit,
 ) {
     val heroComedian = showDetailHeroComedian(show)
     val heroImage = showDetailHeroImageUrl(show)
@@ -239,6 +270,28 @@ private fun ShowMarqueeHero(
                 onHome?.let {
                     FloatingChromeButton(onClick = it) {
                         Icon(Icons.Filled.Home, contentDescription = "Home")
+                    }
+                }
+            }
+            if (showDetailSavedActionVisible(show, isSaved)) {
+                FloatingChromeButton(
+                    onClick = onToggleSaved,
+                    enabled = !isSavedPending,
+                ) {
+                    if (isSavedPending) {
+                        CircularProgressIndicator(
+                            modifier =
+                                Modifier
+                                    .size(18.dp)
+                                    .semantics { contentDescription = "Updating saved show" },
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Icon(
+                            imageVector = if (isSaved) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                            contentDescription = if (isSaved) "Remove saved show" else "Save show",
+                            tint = if (isSaved) LaughTrackColors.AccentStrong else LaughTrackColors.Foreground,
+                        )
                     }
                 }
             }
@@ -627,6 +680,7 @@ private fun DetailDarkCard(
 @Composable
 private fun FloatingChromeButton(
     onClick: () -> Unit,
+    enabled: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     Surface(
@@ -634,10 +688,10 @@ private fun FloatingChromeButton(
             Modifier
                 .size(42.dp)
                 .clip(CircleShape)
-                .clickable(onClick = onClick)
+                .clickable(enabled = enabled, onClick = onClick)
                 .border(1.dp, LaughTrackColors.BorderSubtle, CircleShape),
         color = LaughTrackColors.Surface.copy(alpha = 0.94f),
-        contentColor = LaughTrackColors.Foreground,
+        contentColor = if (enabled) LaughTrackColors.Foreground else LaughTrackColors.ForegroundMuted,
         shape = CircleShape,
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -647,6 +701,16 @@ private fun FloatingChromeButton(
 }
 
 private fun ShowDetail.venueTimezone(): String? = timezone ?: club.timezone
+
+internal fun showDetailSavedActionVisible(
+    show: ShowDetail,
+    isSaved: Boolean,
+    now: Instant = Instant.now(),
+): Boolean {
+    if (isSaved) return true
+    val showInstant = parseShowDateTime(show.date, show.venueTimezone())?.toInstant() ?: return true
+    return showInstant.isAfter(now)
+}
 
 internal fun showDetailHeroComedian(show: ShowDetail): ComedianLineup? {
     if (showDetailIsOpenMic(show)) return null
