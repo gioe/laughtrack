@@ -105,6 +105,7 @@
 		6377EC201CBBF6EB676926B7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A8E6CBF78B8826E53BA50BFF /* PrivacyInfo.xcprivacy */; };
 		66513EAB557802277ACF3E78 /* SoftPushPromptCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE512D16DCA065F42F4D755 /* SoftPushPromptCoordinatorTests.swift */; };
 		67C5E1EF2908C6CEFABC1691 /* MarqueeHeroLetterboxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C7FA012A0D0A87051A85B0 /* MarqueeHeroLetterboxTests.swift */; };
+		6974AFF36273AA5C3C41E265 /* ShowDetailSavedShowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1A8DBB5010EBE27C42EA57 /* ShowDetailSavedShowTests.swift */; };
 		69B7A099BA643750CFE54512 /* EntityDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9A2BE7EB1ACA27F65E10C5 /* EntityDataFlowTests.swift */; };
 		69DAA965C9A4EC53475DE815 /* ClubWallHeadshotFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF69C0C1F7AC5E0A78021672 /* ClubWallHeadshotFrame.swift */; };
 		6ABEE832F9DD11A82D34B73C /* SearchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22E3FEC26FAACA575C943CBF /* SearchRootView.swift */; };
@@ -261,6 +262,7 @@
 		FDB334A4E9D26AA5BB986002 /* MiddlewareIntegrationTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB123B3A5E6AEA324B240A1 /* MiddlewareIntegrationTestSupport.swift */; };
 		FEA7B9F292F79DD9E58A7F6A /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
 		FED5872D13A1F92A8D3A2EF8 /* TabBarBottomSpacingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11277FC3FADF5A9B05C97C0C /* TabBarBottomSpacingTests.swift */; };
+		FFB218FC35FE3313AB8B4F63 /* LibrarySavedShowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EAD0A4974F22EDC6366889 /* LibrarySavedShowsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -466,6 +468,7 @@
 		59B97BD6A9A65CD575EA8F07 /* LaughTrackNavigationChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackNavigationChrome.swift; sourceTree = "<group>"; };
 		5B1037EF95781CD7B17928EB /* ComedianFavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianFavoriteStore.swift; sourceTree = "<group>"; };
 		5B4667185B0633AF2BE41B00 /* AuthenticatedScreenshotPersonaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedScreenshotPersonaTests.swift; sourceTree = "<group>"; };
+		5C1A8DBB5010EBE27C42EA57 /* ShowDetailSavedShowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowDetailSavedShowTests.swift; sourceTree = "<group>"; };
 		5DF853E33C8EFE7127FC3FD6 /* SignedOutAuthOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignedOutAuthOptions.swift; sourceTree = "<group>"; };
 		5ECFDA180E971F9A26F6E1C5 /* ComedianOnboardingModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianOnboardingModel.swift; sourceTree = "<group>"; };
 		613A6C65D3E6FDBC1FEE04C5 /* AuthProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthProvider.swift; sourceTree = "<group>"; };
@@ -483,6 +486,7 @@
 		758E99D05CBD4C53BF89DD20 /* LaughTrackNotificationDeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackNotificationDeepLink.swift; sourceTree = "<group>"; };
 		7593C96779BA48EAD4AC7E16 /* StubURLProtocolSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocolSupport.swift; sourceTree = "<group>"; };
 		77792AE6A29CBDA8435461B6 /* LaughTrackNotificationServiceExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LaughTrackNotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		77EAD0A4974F22EDC6366889 /* LibrarySavedShowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySavedShowsTests.swift; sourceTree = "<group>"; };
 		77FB1D59ADDFE8101352E823 /* ExternalLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalLinkRouter.swift; sourceTree = "<group>"; };
 		787B72EABFD79CFD44CEF1A1 /* ComediansDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryModel.swift; sourceTree = "<group>"; };
 		7A6667B928C06BDF139513D4 /* PushPermissionTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionTestSupport.swift; sourceTree = "<group>"; };
@@ -729,6 +733,7 @@
 				847B300414E0F1BA6011DA7B /* LaughTrackTests.swift */,
 				FA8627914216136279852602 /* LaughTrackThemeTests.swift */,
 				7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */,
+				77EAD0A4974F22EDC6366889 /* LibrarySavedShowsTests.swift */,
 				9DCCCE4F2A5D080DC2574451 /* LibraryViewTests.swift */,
 				64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */,
 				F2C7FA012A0D0A87051A85B0 /* MarqueeHeroLetterboxTests.swift */,
@@ -752,6 +757,7 @@
 				90B6537DBFBB91D1848405D7 /* SearchRootViewTests.swift */,
 				EE6ED3B8ED09F12D8A03111F /* ServiceRegistrationTests.swift */,
 				ECED0A3A8EEF5B333E588DB8 /* SettingsViewStateTests.swift */,
+				5C1A8DBB5010EBE27C42EA57 /* ShowDetailSavedShowTests.swift */,
 				B4E1670E2DC2AFEA73AB1A3E /* ShowDetailViewTests.swift */,
 				8C77B3479ADE72E172E12CF5 /* ShowRowTests.swift */,
 				2CBD475AC232F6E6652F50BE /* ShowsListEmptyMessageTests.swift */,
@@ -1618,6 +1624,7 @@
 				81080CF76CF34AE7689E0E15 /* LaughTrackTests.swift in Sources */,
 				32A5E020FCE38B5DB95F3150 /* LaughTrackThemeTests.swift in Sources */,
 				497B1B88853BE206736ADEFC /* LibraryFavoritesViewTests.swift in Sources */,
+				FFB218FC35FE3313AB8B4F63 /* LibrarySavedShowsTests.swift in Sources */,
 				50B7B8939830138B1D3D7FDF /* LibraryViewTests.swift in Sources */,
 				C6716683C773C258B4689242 /* MainPageCacheTests.swift in Sources */,
 				67C5E1EF2908C6CEFABC1691 /* MarqueeHeroLetterboxTests.swift in Sources */,
@@ -1641,6 +1648,7 @@
 				1E02A267A51AA495C1E0D807 /* SearchRootViewTests.swift in Sources */,
 				8327AF474D76C38707EE0262 /* ServiceRegistrationTests.swift in Sources */,
 				4E555BF23B469378A967859A /* SettingsViewStateTests.swift in Sources */,
+				6974AFF36273AA5C3C41E265 /* ShowDetailSavedShowTests.swift in Sources */,
 				81438189E9144731336F4867 /* ShowDetailViewTests.swift in Sources */,
 				E7D45F297A2772032A361F9D /* ShowRowTests.swift in Sources */,
 				294F3A72B4D34C290321DB3D /* ShowTitlePresentationTests.swift in Sources */,
@@ -1761,7 +1769,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
@@ -1781,7 +1789,7 @@
 		169B7D4C92BE72224038C095 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackNotificationServiceExtension/Info.plist;
@@ -1906,7 +1914,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
@@ -2072,7 +2080,7 @@
 		D8D475425D0D687DEC955D35 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackNotificationServiceExtension/Info.plist;
