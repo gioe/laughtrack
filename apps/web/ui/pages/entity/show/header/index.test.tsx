@@ -80,6 +80,7 @@ vi.mock("@/hooks", async () => {
 vi.mock("@/hooks/useSavedShow", () => ({
     useSavedShow: () => ({
         isSaved: false,
+        isStateKnown: false,
         isAuthenticated: false,
         isLoading: false,
         isPending: false,

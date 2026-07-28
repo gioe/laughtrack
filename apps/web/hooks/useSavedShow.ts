@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import useLoginModal from "./useLoginModal";
 
@@ -16,6 +16,7 @@ type SavedShowResponse = {
 
 interface UseSavedShowReturn {
     isSaved: boolean;
+    isStateKnown: boolean;
     isAuthenticated: boolean;
     isLoading: boolean;
     isPending: boolean;
@@ -49,26 +50,34 @@ export function useSavedShow(showId: number): UseSavedShowReturn {
     const session = useSession();
     const loginModal = useLoginModal();
     const [isSaved, setIsSaved] = useState(false);
+    const [isStateKnown, setIsStateKnown] = useState(false);
     const [isStateLoading, setIsStateLoading] = useState(true);
     const [isPending, setIsPending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [announcement, setAnnouncement] = useState("");
+    const requestGenerationRef = useRef(0);
     const isAuthenticated = session.status === "authenticated";
     const isLoading = session.status === "loading" || isStateLoading;
 
     useEffect(() => {
+        const requestGeneration = ++requestGenerationRef.current;
+        setIsSaved(false);
+        setIsStateKnown(false);
+        setIsPending(false);
+        setError(null);
+        setAnnouncement("");
+
         if (!isAuthenticated) {
-            setIsSaved(false);
             setIsStateLoading(false);
-            setError(null);
-            setAnnouncement("");
-            return;
+            return () => {
+                if (requestGenerationRef.current === requestGeneration) {
+                    requestGenerationRef.current += 1;
+                }
+            };
         }
 
         const controller = new AbortController();
         setIsStateLoading(true);
-        setError(null);
-        setAnnouncement("");
 
         void fetch(`/api/v1/saved-shows/${showId}`, {
             method: "GET",
@@ -76,17 +85,38 @@ export function useSavedShow(showId: number): UseSavedShowReturn {
         })
             .then((response) => parseSavedShowResponse(response, LOAD_ERROR))
             .then((saved) => {
-                if (!controller.signal.aborted) setIsSaved(saved);
+                if (
+                    !controller.signal.aborted &&
+                    requestGenerationRef.current === requestGeneration
+                ) {
+                    setIsSaved(saved);
+                    setIsStateKnown(true);
+                }
             })
             .catch((cause: unknown) => {
-                if (controller.signal.aborted) return;
+                if (
+                    controller.signal.aborted ||
+                    requestGenerationRef.current !== requestGeneration
+                ) {
+                    return;
+                }
                 setError(cause instanceof Error ? cause.message : LOAD_ERROR);
             })
             .finally(() => {
-                if (!controller.signal.aborted) setIsStateLoading(false);
+                if (
+                    !controller.signal.aborted &&
+                    requestGenerationRef.current === requestGeneration
+                ) {
+                    setIsStateLoading(false);
+                }
             });
 
-        return () => controller.abort();
+        return () => {
+            controller.abort();
+            if (requestGenerationRef.current === requestGeneration) {
+                requestGenerationRef.current += 1;
+            }
+        };
     }, [isAuthenticated, showId]);
 
     const toggleSavedShow = useCallback(async () => {
@@ -94,9 +124,10 @@ export function useSavedShow(showId: number): UseSavedShowReturn {
             loginModal.onOpen();
             return;
         }
-        if (isLoading || isPending) return;
+        if (!isStateKnown || isLoading || isPending) return;
 
         const nextSaved = !isSaved;
+        const requestGeneration = requestGenerationRef.current;
         setIsPending(true);
         setError(null);
         setAnnouncement("");
@@ -110,18 +141,31 @@ export function useSavedShow(showId: number): UseSavedShowReturn {
                 MUTATION_ERROR,
             );
             if (saved !== nextSaved) throw new Error(MUTATION_ERROR);
+            if (requestGenerationRef.current !== requestGeneration) return;
 
             setIsSaved(saved);
             setAnnouncement(saved ? "Show saved." : "Saved show removed.");
         } catch (cause) {
+            if (requestGenerationRef.current !== requestGeneration) return;
             setError(cause instanceof Error ? cause.message : MUTATION_ERROR);
         } finally {
-            setIsPending(false);
+            if (requestGenerationRef.current === requestGeneration) {
+                setIsPending(false);
+            }
         }
-    }, [isAuthenticated, isLoading, isPending, isSaved, loginModal, showId]);
+    }, [
+        isAuthenticated,
+        isLoading,
+        isPending,
+        isSaved,
+        isStateKnown,
+        loginModal,
+        showId,
+    ]);
 
     return {
         isSaved,
+        isStateKnown,
         isAuthenticated,
         isLoading,
         isPending,

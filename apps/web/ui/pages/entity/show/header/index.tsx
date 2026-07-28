@@ -52,6 +52,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
     const imageAlt = hero.headliner?.name ?? show.clubName ?? "Club";
     const {
         isSaved,
+        isStateKnown,
         isAuthenticated,
         isLoading,
         isPending,
@@ -63,13 +64,15 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
         ? "Sign in to save this show"
         : isLoading
           ? "Checking saved show status"
-          : isPending
-            ? isSaved
-                ? "Removing saved show…"
-                : "Saving show…"
-            : isSaved
-              ? "Remove saved show"
-              : "Save show";
+          : !isStateKnown
+            ? "Saved show status unavailable"
+            : isPending
+              ? isSaved
+                  ? "Removing saved show…"
+                  : "Saving show…"
+              : isSaved
+                ? "Remove saved show"
+                : "Save show";
 
     return (
         <MarqueeHero
@@ -109,10 +112,16 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
                     variant="roundedShimmerOutline"
                     size="roundedShimmerOutline"
                     onClick={() => void toggleSavedShow()}
-                    disabled={isLoading || isPending}
+                    disabled={
+                        isLoading ||
+                        isPending ||
+                        (isAuthenticated && !isStateKnown)
+                    }
                     aria-label={savedShowLabel}
                     aria-pressed={
-                        isAuthenticated && !isLoading ? isSaved : undefined
+                        isAuthenticated && !isLoading && isStateKnown
+                            ? isSaved
+                            : undefined
                     }
                     aria-busy={isLoading || isPending || undefined}
                     className={

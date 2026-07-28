@@ -217,4 +217,65 @@ describe("ShowDetailHeader saved-show action", () => {
             ).toBe("true");
         });
     });
+
+    it("does not claim an unsaved state when the initial read fails", async () => {
+        const mockFetch = vi
+            .fn()
+            .mockResolvedValueOnce(
+                response({ error: "Unable to load saved show" }, 500),
+            );
+        vi.stubGlobal("fetch", mockFetch);
+
+        render(<ShowDetailHeader show={show} />);
+
+        expect((await screen.findByRole("alert")).textContent).toBe(
+            "Unable to load saved show",
+        );
+        const unavailableButton = screen.getByRole("button", {
+            name: "Saved show status unavailable",
+        });
+        expect(unavailableButton.getAttribute("aria-pressed")).toBeNull();
+        expect(unavailableButton).toHaveProperty("disabled", true);
+    });
+
+    it("ignores a mutation result after navigating to another show", async () => {
+        let resolveMutation!: (value: Response) => void;
+        const pendingMutation = new Promise<Response>((resolve) => {
+            resolveMutation = resolve;
+        });
+        const mockFetch = vi
+            .fn()
+            .mockResolvedValueOnce(response({ data: { isSaved: false } }))
+            .mockReturnValueOnce(pendingMutation)
+            .mockResolvedValueOnce(response({ data: { isSaved: false } }));
+        vi.stubGlobal("fetch", mockFetch);
+
+        const { rerender } = render(<ShowDetailHeader show={show} />);
+        fireEvent.click(
+            await screen.findByRole("button", { name: "Save show" }),
+        );
+
+        rerender(
+            <ShowDetailHeader
+                show={{
+                    ...show,
+                    id: 43,
+                    name: "Next Show",
+                }}
+            />,
+        );
+        await screen.findByRole("button", { name: "Save show" });
+
+        await act(async () => {
+            resolveMutation(response({ data: { isSaved: true } }));
+            await pendingMutation;
+        });
+
+        await waitFor(() => {
+            expect(
+                screen.getByRole("button", { name: "Save show" }),
+            ).toBeTruthy();
+            expect(screen.queryByRole("status")).toBeNull();
+        });
+    });
 });
