@@ -556,21 +556,6 @@ enum HomeShowsTonightHeroPresentation {
     }
 
     private static func artworkComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
-        if let showImageComedian = lineupComedianMatchingShowImage(for: show) {
-            return showImageComedian
-        }
-
-        return ShowRow.artworkComedian(for: show)
-    }
-
-    private static func lineupComedianMatchingShowImage(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
-        let showImageURL = show.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !showImageURL.isEmpty, let lineup = show.lineup else { return nil }
-
-        return lineup
-            .map(ShowRow.effectiveComedian)
-            .first { comedian in
-                comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines) == showImageURL
-            }
+        ShowRow.artworkComedian(for: show)
     }
 }

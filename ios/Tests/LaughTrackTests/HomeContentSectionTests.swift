@@ -447,7 +447,7 @@ struct HomeContentSectionTests {
                     uuid: "brittany-brave",
                     id: 11,
                     userId: nil,
-                    socialData: nil,
+                    socialData: .init(id: 11, popularity: 90),
                     isFavorite: false,
                     showCount: 2
                 ),
@@ -457,7 +457,7 @@ struct HomeContentSectionTests {
                     uuid: "mike-britt",
                     id: 12,
                     userId: nil,
-                    socialData: nil,
+                    socialData: .init(id: 12, popularity: 10),
                     isFavorite: false,
                     showCount: 19
                 ),
@@ -470,8 +470,11 @@ struct HomeContentSectionTests {
             distanceMiles: nil
         )
 
-        #expect(HomeShowsTonightHeroPresentation.headshotCaption(for: show) == "Mike Britt")
-        #expect(HomeShowsTonightHeroPresentation.artworkImageURL(for: show) == mikeImage)
+        #expect(HomeShowsTonightHeroPresentation.headshotCaption(for: show) == "Brittany Brave")
+        #expect(
+            HomeShowsTonightHeroPresentation.artworkImageURL(for: show)
+                == "https://cdn.example.com/brittany-brave.jpg"
+        )
     }
 
     // The Home surface was split out of the single HomeView.swift (TASK-3641)
