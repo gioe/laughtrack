@@ -346,6 +346,40 @@ class FavoritesRepositoryTest {
         }
 
     @Test
+    fun sign_out_prevents_a_waiting_mutation_from_reaching_the_backend() =
+        runTest {
+            val finishAdd = CompletableDeferred<Unit>()
+            val removeStarted = CompletableDeferred<Unit>()
+            val api =
+                ProgrammableFavoritesApi(
+                    addComedianBehavior = {
+                        finishAdd.await()
+                        favoriteResponse(true)
+                    },
+                    removeComedianBehavior = {
+                        removeStarted.complete(Unit)
+                        favoriteResponse(false)
+                    },
+                )
+            val repository = repository(api, signedIn = true)
+
+            val older = async { repository.setComedianFavorite("comedian-1", true) }
+            runCurrent()
+            val waiting = async { repository.setComedianFavorite("comedian-1", false) }
+            runCurrent()
+            assertFalse(removeStarted.isCompleted)
+
+            repository.resetSignedOut()
+            finishAdd.complete(Unit)
+            older.await()
+            waiting.await()
+
+            assertFalse(removeStarted.isCompleted)
+            assertEquals(1, api.comedianCalls)
+            assertEquals(FavoritesSnapshot(), repository.snapshot.value)
+        }
+
+    @Test
     fun sign_out_invalidates_in_flight_refresh() =
         runTest {
             val favorites = CompletableDeferred<Response<FavoriteListResponse>>()

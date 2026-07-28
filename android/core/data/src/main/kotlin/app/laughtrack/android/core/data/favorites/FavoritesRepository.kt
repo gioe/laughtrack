@@ -333,6 +333,11 @@ class FavoritesRepository
 
             return try {
                 mutationMutex(mutationKey).withLock {
+                    synchronized(stateLock) {
+                        if (!isCurrentMutation(mutationKey, mutation)) {
+                            return@withLock currentMutationResult(mutationKey, nextValue)
+                        }
+                    }
                     val responseResult = runCatchingCancellable { serverCall(nextValue) }
                     val response =
                         responseResult.getOrElse { error ->
