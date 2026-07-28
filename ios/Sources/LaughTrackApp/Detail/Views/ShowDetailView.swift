@@ -97,7 +97,7 @@ struct ShowDetailView: View {
                                 })
 
                                 ShowSavedAction(
-                                    showID: show.id,
+                                    show: show,
                                     apiClient: apiClient,
                                     store: savedShowStore,
                                     onFeedback: { feedbackMessage = $0 }
@@ -182,8 +182,18 @@ struct ShowDetailView: View {
     }
 }
 
+enum ShowSavedActionPresentation {
+    static func shouldShow(
+        isSaved: Bool,
+        showDate: Date,
+        now: Date = Date()
+    ) -> Bool {
+        isSaved || showDate >= now
+    }
+}
+
 private struct ShowSavedAction: View {
-    let showID: Int
+    let show: Components.Schemas.ShowDetail
     let apiClient: Client
     @ObservedObject var store: SavedShowStore
     let onFeedback: (String) -> Void
@@ -193,55 +203,62 @@ private struct ShowSavedAction: View {
     @Environment(\.appTheme) private var theme
 
     private var isSaved: Bool {
-        store.value(for: showID)
+        store.value(for: show.id)
     }
 
     private var isPending: Bool {
-        store.isPending(showID)
+        store.isPending(show.id)
     }
 
+    @ViewBuilder
     var body: some View {
-        Button {
-            Task {
-                await updateSavedState()
-            }
-        } label: {
-            HStack(spacing: theme.spacing.sm) {
-                if isPending {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .accessibilityHidden(true)
-                } else {
-                    Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
-                        .accessibilityHidden(true)
+        if ShowSavedActionPresentation.shouldShow(
+            isSaved: isSaved,
+            showDate: show.date
+        ) {
+            Button {
+                Task {
+                    await updateSavedState()
                 }
+            } label: {
+                HStack(spacing: theme.spacing.sm) {
+                    if isPending {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .accessibilityHidden(true)
+                    } else {
+                        Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+                            .accessibilityHidden(true)
+                    }
 
-                Text(isSaved ? "Saved to Library" : "Save show")
-                    .font(theme.laughTrackTokens.typography.metadata)
+                    Text(isSaved ? "Saved to Library" : "Save show")
+                        .font(theme.laughTrackTokens.typography.metadata)
 
-                Spacer()
+                    Spacer()
+                }
+                .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+                .padding(theme.spacing.md)
+                .background(
+                    theme.laughTrackTokens.colors.surface.opacity(0.94),
+                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
+                )
             }
-            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-            .padding(theme.spacing.md)
-            .background(
-                theme.laughTrackTokens.colors.surface.opacity(0.94),
-                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
-            )
+            .buttonStyle(.plain)
+            .disabled(isPending)
+            .accessibilityLabel(isSaved ? "Remove from saved shows" : "Save show")
+            .accessibilityValue(isPending ? "Updating" : (isSaved ? "Saved" : "Not saved"))
         }
-        .buttonStyle(.plain)
-        .disabled(isPending)
-        .accessibilityLabel(isSaved ? "Remove from saved shows" : "Save show")
-        .accessibilityValue(isPending ? "Updating" : (isSaved ? "Saved" : "Not saved"))
     }
 
     private func updateSavedState() async {
         let result = await store.setSaved(
-            showId: showID,
+            showId: show.id,
             isSaved: !isSaved,
+            show: ShowDetailPresentation.savedShowRow(for: show),
             apiClient: apiClient,
             authManager: authManager
         )
@@ -345,6 +362,29 @@ enum ShowDetailPresentation {
 
     static func shouldShowEditorNote(for show: Components.Schemas.ShowDetail) -> Bool {
         false
+    }
+
+    static func savedShowRow(
+        for show: Components.Schemas.ShowDetail
+    ) -> Components.Schemas.Show {
+        Components.Schemas.Show(
+            id: show.id,
+            clubId: show.club.id,
+            clubName: show.clubName ?? show.club.name,
+            date: show.date,
+            tickets: show.tickets,
+            name: show.name,
+            socialData: show.socialData,
+            lineup: show.lineup,
+            tags: show.tags,
+            description: show.description,
+            address: show.address ?? show.club.address,
+            room: show.room,
+            imageUrl: show.imageUrl,
+            soldOut: show.soldOut,
+            distanceMiles: show.distanceMiles,
+            timezone: show.timezone ?? show.club.timezone
+        )
     }
 
     /// The lineup item we treat as the headliner. The API has no role field on
