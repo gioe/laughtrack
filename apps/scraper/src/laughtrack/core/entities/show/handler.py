@@ -386,6 +386,11 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         for show in batch:
             key = self._cross_batch_duplicate_key(show.club_id, show.date, show.name)
             existing_rows = existing_by_key.get(key, [])
+            if not existing_rows:
+                # There is nothing to collapse onto. Treating an empty match set
+                # as canonical would blank the incoming room and can make two
+                # otherwise-distinct shows collide in the batch upsert.
+                continue
             canonical_room = self._canonical_cross_batch_room(existing_rows, show.room)
             if canonical_room is not self._NO_CANONICAL_ROOM and show.room != canonical_room:
                 show.room = canonical_room

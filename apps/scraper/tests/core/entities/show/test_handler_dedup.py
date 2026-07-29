@@ -183,6 +183,32 @@ def test_insert_shows_preserves_distinct_rooms():
     assert inserted_items[0][6] == "Side Room"
 
 
+def test_cross_batch_collapse_preserves_rooms_without_matching_existing_rows():
+    """An unrelated DB match must not blank rooms on new shows in the same batch."""
+    h = _handler()
+    h.execute_with_cursor = MagicMock(
+        return_value=[
+            {
+                "id": 10,
+                "club_id": 1,
+                "date": datetime(2026, 6, 1, 20, 0, 0),
+                "room": "",
+                "name": "Existing Show",
+            }
+        ]
+    )
+    shows = [
+        _show(name="Existing Show", room=""),
+        _show(name="New Main Room Show", room="Main Room"),
+        _show(name="New Upstairs Show", room="Upstairs"),
+    ]
+
+    collapsed = h._collapse_cross_batch_duplicates(shows)
+
+    assert collapsed == 0
+    assert [show.room for show in shows] == ["", "Main Room", "Upstairs"]
+
+
 # --- PatronTicket instance-id reconciliation (TASK-2494) -------------------
 
 _PT_URL = "https://secondcityus.my.salesforce-sites.com/ticket/#/instances/a0FTP000004XeKY2A0"
