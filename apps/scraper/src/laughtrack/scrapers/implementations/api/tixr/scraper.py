@@ -39,6 +39,7 @@ from laughtrack.infrastructure.config.presets import BatchConfigPresets
 from laughtrack.infrastructure.monitoring import create_monitored_tixr_client
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.shared.types import ScrapingTarget
+from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 from .extractor import TixrExtractor
@@ -1064,13 +1065,14 @@ class TixrScraper(BaseScraper):
             room_el = row.select_one(".list-show-room") or row.select_one(".list-show-room-new")
             room = room_el.get_text(" ", strip=True) if room_el else ""
             ticket_price = self._extract_stand_ticket_price(row, buy_btn)
+            lineup = self._extract_stand_lineup(row)
 
             show = Show(
                 name=title,
                 club_id=self.club.id,
                 date=show_date,
                 show_page_url=ticket_url,
-                lineup=[],
+                lineup=lineup,
                 tickets=[
                     Ticket(
                         price=ticket_price,
@@ -1087,6 +1089,23 @@ class TixrScraper(BaseScraper):
             events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
 
         return events
+
+    @staticmethod
+    def _extract_stand_lineup(row: Any) -> List[Comedian]:
+        name_elements = [
+            *row.select("h4.lineup-head.d-none.d-sm-block + div.row p small"),
+            *row.select(".comic-slider ul.slider-container p small"),
+        ]
+        names: List[str] = []
+        seen_names: set[str] = set()
+        for name_element in name_elements:
+            name = name_element.get_text(" ", strip=True)
+            normalized_name = " ".join(name.split()).casefold()
+            if not normalized_name or normalized_name in seen_names:
+                continue
+            seen_names.add(normalized_name)
+            names.append(name)
+        return ShowFactoryUtils.create_lineup_from_performers(names)
 
     def _extract_stand_ticket_price(self, row: Any, buy_btn: Any) -> Optional[float]:
         ticket_container = (

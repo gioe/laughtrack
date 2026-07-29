@@ -351,6 +351,20 @@ def _stand_public_card_html() -> str:
 <div class="row show_row ">
   <h2 class="showtitle"><a href="https://thestandnyc.com//shows/show/12964/2026-05-08-190000-the-stand-presents-josh-ocean-thomas">The Stand Presents: Josh Ocean Thomas</a></h2>
   <h3 class="showinfo"><span class="show_date">May 8</span> | <span class="show_date">7:00 PM</span> <span class="list-show-room">Upstairs</span></h3>
+  <h4 class="lineup-head d-none d-sm-block pt-0">The Lineup</h4>
+  <div class="row gx-3 d-none d-sm-flex">
+    <div><p class="lh-sm pb-o"><small>Stephon Bishop</small></p></div>
+    <div><p class="lh-sm pb-o"><small>Ashley King</small></p></div>
+    <div><p class="lh-sm pb-o"><small>TBA</small></p></div>
+  </div>
+  <h4 class="lineup-head d-sm-none mt-0">The Lineup</h4>
+  <div class="swiffy-slider comic-slider d-sm-none">
+    <ul class="slider-container">
+      <li><p class="lh-sm pb-o"><small>Stephon Bishop</small></p></li>
+      <li><p class="lh-sm pb-o"><small>Ashley King</small></p></li>
+      <li><p class="lh-sm pb-o"><small>TBA</small></p></li>
+    </ul>
+  </div>
   <div class="text-uppercase">
     <div class="show-price">$32.50</div>
     <a href="https://www.tixr.com/groups/thestandnyc/events/the-stand-presents-josh-ocean-thomas--187376" class="btn btn-stand">Buy Tickets</a>
@@ -819,6 +833,56 @@ async def test_public_card_scraper_avoids_blocked_detail_fetch(monkeypatch):
     assert event.show.date.hour == 19
     assert event.show.date.minute == 0
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_parses_stand_lineup(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _stand_public_card_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is not None
+    assert [comedian.name for comedian in result.event_list[0].show.lineup] == [
+        "Stephon Bishop",
+        "Ashley King",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_deduplicates_stand_responsive_lineup(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _stand_public_card_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is not None
+    lineup = result.event_list[0].show.lineup
+    assert [comedian.name for comedian in lineup] == ["Stephon Bishop", "Ashley King"]
+    assert len({comedian.uuid for comedian in lineup}) == len(lineup)
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_allows_missing_stand_lineup(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _stand_public_card_html_with_free_ticket()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is not None
+    assert result.event_list[0].show.lineup == []
 
 
 @pytest.mark.asyncio
