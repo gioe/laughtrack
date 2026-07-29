@@ -193,6 +193,7 @@ describe("getComediansByZip", () => {
             expect(sql).toMatch(
                 /LEFT JOIN(?: LATERAL)?\s+\(?\s*SELECT[\s\S]*FROM comedian_image_assets/i,
             );
+            expect(sql).toMatch(/avatar_path IS NOT NULL/i);
             expect(mockQueryRaw).toHaveBeenCalledOnce();
         });
 

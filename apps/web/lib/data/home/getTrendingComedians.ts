@@ -103,6 +103,7 @@ export function buildTrendingComediansQuery({
                 FROM comedian_image_assets
                 WHERE comedian_id = c.id
                   AND is_active = true
+                  AND avatar_path IS NOT NULL
                 ORDER BY published_at DESC, id DESC
                 LIMIT 1
             ) image_asset ON true
