@@ -13,8 +13,32 @@ vi.mock("@/lib/db", () => ({
     db: { $queryRaw: vi.fn() },
 }));
 vi.mock("@/util/imageUtil", () => ({
-    buildComedianImageUrl: vi.fn(
-        (name: string) => `https://cdn.example.com/${name}.png`,
+    buildComedianImageUrl: vi.fn((name: string, hasImage = true) =>
+        hasImage ? `https://cdn.example.com/${name}.png` : "",
+    ),
+}));
+vi.mock("@/lib/data/comedian/imageAssets", () => ({
+    buildComedianImageAssetUrl: vi.fn(
+        (path: string) => `https://cdn.example.com/${path}`,
+    ),
+    buildComedianImageUrls: vi.fn(
+        ({
+            name,
+            hasImage,
+            activeAsset,
+        }: {
+            name: string;
+            hasImage?: boolean | null;
+            activeAsset?: { avatarPath?: string | null } | null;
+        }) => {
+            const legacyUrl = hasImage
+                ? `https://cdn.example.com/${name}.png`
+                : "";
+            const avatarUrl = activeAsset?.avatarPath
+                ? `https://cdn.example.com/${activeAsset.avatarPath}`
+                : legacyUrl;
+            return { imageUrl: avatarUrl, avatarUrl, heroUrl: legacyUrl };
+        },
     ),
 }));
 
@@ -42,6 +66,7 @@ function makeRow(
         popularity: number;
         linktree: string | null;
         has_image: boolean;
+        active_avatar_path: string | null;
         show_count: number;
     }> = {},
 ) {
@@ -59,6 +84,7 @@ function makeRow(
         popularity: 95,
         linktree: null,
         has_image: true,
+        active_avatar_path: null,
         show_count: 5,
         ...overrides,
     };
@@ -143,6 +169,14 @@ const TRENDING_COMEDIANS_FIXTURE_SCHEMA = `
 
     CREATE TABLE comedian_deny_list (
         name TEXT PRIMARY KEY
+    );
+
+    CREATE TABLE comedian_image_assets (
+        id INTEGER PRIMARY KEY,
+        comedian_id INTEGER NOT NULL REFERENCES comedians(id),
+        avatar_path TEXT,
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        published_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 `;
 
@@ -553,6 +587,63 @@ describe("getTrendingComedians", () => {
     });
 
     describe("row mapping", () => {
+        it("prefers an active avatar over legacy image state", async () => {
+            const activeAvatarRow = makeRow({
+                id: 1,
+                uuid: "uuid-active",
+                name: "Active Asset Comic",
+                has_image: false,
+                active_avatar_path: "comedians/1/avatar.webp",
+            });
+            const legacyFallbackRow = makeRow({
+                id: 2,
+                uuid: "uuid-legacy",
+                name: "Legacy Image Comic",
+                has_image: true,
+                active_avatar_path: null,
+            });
+            mockQueryRaw.mockResolvedValue([
+                activeAvatarRow,
+                legacyFallbackRow,
+            ]);
+
+            const result = await getTrendingComedians(8, 1);
+            const activeAvatar = result.find(
+                (comedian) => comedian.id === activeAvatarRow.id,
+            );
+            const legacyFallback = result.find(
+                (comedian) => comedian.id === legacyFallbackRow.id,
+            );
+
+            expect(activeAvatar).toMatchObject({
+                imageUrl: "https://cdn.example.com/comedians/1/avatar.webp",
+                hasImage: true,
+            });
+            expect(legacyFallback).toMatchObject({
+                imageUrl: "https://cdn.example.com/Legacy Image Comic.png",
+                hasImage: true,
+            });
+        });
+
+        it("resolves active avatars without per-row queries", async () => {
+            mockQueryRaw.mockResolvedValue([
+                makeRow({ active_avatar_path: "comedians/1/avatar.webp" }),
+                makeRow({
+                    id: 2,
+                    uuid: "uuid-2",
+                    active_avatar_path: "comedians/2/avatar.webp",
+                }),
+            ]);
+
+            await getTrendingComedians(8, 1);
+
+            const { sql } = firstQueryRawSql();
+            expect(sql).toMatch(
+                /LEFT JOIN(?: LATERAL)?\s+\(?\s*SELECT[\s\S]*FROM comedian_image_assets/i,
+            );
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
+        });
+
         it("maps a DB row to ComedianDTO correctly", async () => {
             const row = makeRow();
             mockQueryRaw.mockResolvedValue([row]);

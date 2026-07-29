@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import { buildComedianImageUrl } from "@/util/imageUtil";
+import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 
 type TrendingComedianRow = {
@@ -18,6 +18,7 @@ type TrendingComedianRow = {
     popularity: number;
     linktree: string | null;
     has_image: boolean;
+    active_avatar_path: string | null;
     show_count: number;
 };
 
@@ -93,9 +94,18 @@ export function buildTrendingComediansQuery({
                 c.popularity,
                 c.linktree,
                 c.has_image,
+                image_asset.avatar_path AS active_avatar_path,
                 el.show_count
             FROM comedians c
             JOIN eligible_lineups el ON el.canonical_comedian_id = c.id
+            LEFT JOIN LATERAL (
+                SELECT avatar_path
+                FROM comedian_image_assets
+                WHERE comedian_id = c.id
+                  AND is_active = true
+                ORDER BY published_at DESC, id DESC
+                LIMIT 1
+            ) image_asset ON true
             WHERE
                 c.visible = true
                 AND c.popularity > ${MIN_POPULARITY}
@@ -114,7 +124,7 @@ export function buildTrendingComediansQuery({
         SELECT *
         FROM comedian_counts
         WHERE show_count > ${MIN_UPCOMING_SHOWS}
-        ORDER BY has_image DESC, show_count DESC
+        ORDER BY (has_image OR active_avatar_path IS NOT NULL) DESC, show_count DESC
         LIMIT ${fetchLimit}
         OFFSET ${fetchOffset}
     `;
@@ -171,8 +181,14 @@ export async function getTrendingComedians(
         id: row.id,
         uuid: row.uuid,
         name: row.name,
-        imageUrl: buildComedianImageUrl(row.name, row.has_image),
-        hasImage: row.has_image,
+        imageUrl: buildComedianImageUrls({
+            name: row.name,
+            hasImage: row.has_image,
+            activeAsset: row.active_avatar_path
+                ? { avatarPath: row.active_avatar_path }
+                : null,
+        }).imageUrl,
+        hasImage: row.has_image || Boolean(row.active_avatar_path),
         socialData: {
             id: row.id,
             instagramAccount: row.instagram_account,

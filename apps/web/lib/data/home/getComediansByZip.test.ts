@@ -4,8 +4,32 @@ vi.mock("@/lib/db", () => ({
     db: { $queryRaw: vi.fn() },
 }));
 vi.mock("@/util/imageUtil", () => ({
-    buildComedianImageUrl: vi.fn(
-        (name: string) => `https://cdn.example.com/${name}.png`,
+    buildComedianImageUrl: vi.fn((name: string, hasImage = true) =>
+        hasImage ? `https://cdn.example.com/${name}.png` : "",
+    ),
+}));
+vi.mock("@/lib/data/comedian/imageAssets", () => ({
+    buildComedianImageAssetUrl: vi.fn(
+        (path: string) => `https://cdn.example.com/${path}`,
+    ),
+    buildComedianImageUrls: vi.fn(
+        ({
+            name,
+            hasImage,
+            activeAsset,
+        }: {
+            name: string;
+            hasImage?: boolean | null;
+            activeAsset?: { avatarPath?: string | null } | null;
+        }) => {
+            const legacyUrl = hasImage
+                ? `https://cdn.example.com/${name}.png`
+                : "";
+            const avatarUrl = activeAsset?.avatarPath
+                ? `https://cdn.example.com/${activeAsset.avatarPath}`
+                : legacyUrl;
+            return { imageUrl: avatarUrl, avatarUrl, heroUrl: legacyUrl };
+        },
     ),
 }));
 vi.mock("zipcodes", () => ({
@@ -21,9 +45,7 @@ import zipcodesMod from "zipcodes";
 const mockQueryRaw = vi.mocked(db.$queryRaw);
 const mockZipRadius = vi.mocked(zipcodesMod.radius);
 
-type ComedianZipRow = ReturnType<typeof makeRow> & {
-    has_image: boolean;
-};
+type ComedianZipRow = ReturnType<typeof makeRow>;
 
 function makeRow(
     overrides: Partial<{
@@ -39,6 +61,8 @@ function makeRow(
         website: string | null;
         popularity: number;
         linktree: string | null;
+        has_image: boolean;
+        active_avatar_path: string | null;
         show_count: number;
     }> = {},
 ) {
@@ -55,6 +79,8 @@ function makeRow(
         website: "https://alice.example.com",
         popularity: 95,
         linktree: null,
+        has_image: true,
+        active_avatar_path: null,
         show_count: 3,
         ...overrides,
     };
@@ -112,6 +138,64 @@ describe("getComediansByZip", () => {
     });
 
     describe("happy path — row mapping", () => {
+        it("prefers an active avatar over legacy image state", async () => {
+            const activeAvatarRow = makeRow({
+                id: 1,
+                uuid: "uuid-active",
+                name: "Active Asset Comic",
+                has_image: false,
+                active_avatar_path: "comedians/1/avatar.webp",
+            });
+            const legacyFallbackRow = makeRow({
+                id: 2,
+                uuid: "uuid-legacy",
+                name: "Legacy Image Comic",
+                has_image: true,
+                active_avatar_path: null,
+            });
+            mockQueryRaw.mockResolvedValue([
+                activeAvatarRow,
+                legacyFallbackRow,
+            ]);
+
+            const result = await getComediansByZip("10001");
+            const activeAvatar = result.find(
+                (comedian) => comedian.id === activeAvatarRow.id,
+            );
+            const legacyFallback = result.find(
+                (comedian) => comedian.id === legacyFallbackRow.id,
+            );
+
+            expect(activeAvatar).toMatchObject({
+                imageUrl: "https://cdn.example.com/comedians/1/avatar.webp",
+                hasImage: true,
+            });
+            expect(legacyFallback).toMatchObject({
+                imageUrl: "https://cdn.example.com/Legacy Image Comic.png",
+                hasImage: true,
+            });
+        });
+
+        it("resolves active avatars without per-row queries", async () => {
+            mockQueryRaw.mockResolvedValue([
+                makeRow({ active_avatar_path: "comedians/1/avatar.webp" }),
+                makeRow({
+                    id: 2,
+                    uuid: "uuid-2",
+                    active_avatar_path: "comedians/2/avatar.webp",
+                }),
+            ]);
+
+            await getComediansByZip("10001");
+
+            const query = mockQueryRaw.mock.calls[0]?.[0] as readonly string[];
+            const sql = query.join(" ");
+            expect(sql).toMatch(
+                /LEFT JOIN(?: LATERAL)?\s+\(?\s*SELECT[\s\S]*FROM comedian_image_assets/i,
+            );
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
+        });
+
         it("maps a single DB row to a ComedianDTO correctly", async () => {
             const row = makeRow();
             mockQueryRaw.mockResolvedValue([row]);
@@ -321,11 +405,14 @@ describe("getComediansByZip", () => {
             mockZipRadius.mockReturnValue(["10001", "10002", "10003"]);
             const rowWithImage: ComedianZipRow = {
                 ...makeRow({ id: 1, uuid: "uuid-1", name: "Has Pic" }),
-                has_image: true,
             };
             const rowWithoutImage: ComedianZipRow = {
-                ...makeRow({ id: 2, uuid: "uuid-2", name: "No Pic" }),
-                has_image: false,
+                ...makeRow({
+                    id: 2,
+                    uuid: "uuid-2",
+                    name: "No Pic",
+                    has_image: false,
+                }),
             };
             mockQueryRaw.mockResolvedValue([rowWithImage, rowWithoutImage]);
 

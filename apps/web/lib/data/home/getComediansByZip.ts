@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import { buildComedianImageUrl } from "@/util/imageUtil";
+import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 
 type NearYouComedianRow = {
@@ -18,6 +18,7 @@ type NearYouComedianRow = {
     popularity: number;
     linktree: string | null;
     has_image: boolean;
+    active_avatar_path: string | null;
     show_count: number;
 };
 
@@ -42,7 +43,7 @@ export async function getComediansByZip(
     const nearbyZips = resolveNearbyZips(zipCode, radius);
     const orderByClause =
         options?.sortBy === "upcomingShows"
-            ? Prisma.sql`ORDER BY has_image DESC, show_count DESC, popularity DESC`
+            ? Prisma.sql`ORDER BY (has_image OR active_avatar_path IS NOT NULL) DESC, show_count DESC, popularity DESC`
             : Prisma.sql`ORDER BY popularity DESC`;
 
     const rows = await db.$queryRaw<NearYouComedianRow[]>`
@@ -61,11 +62,20 @@ export async function getComediansByZip(
                 c.popularity,
                 c.linktree,
                 c.has_image,
+                image_asset.avatar_path AS active_avatar_path,
                 COUNT(DISTINCT s.id)::int AS show_count
             FROM comedians c
             JOIN lineup_items li ON li.comedian_id = c.uuid
             JOIN shows s ON s.id = li.show_id
             JOIN clubs cl ON cl.id = s.club_id
+            LEFT JOIN LATERAL (
+                SELECT avatar_path
+                FROM comedian_image_assets
+                WHERE comedian_id = c.id
+                  AND is_active = true
+                ORDER BY published_at DESC, id DESC
+                LIMIT 1
+            ) image_asset ON true
             WHERE cl.zip_code IN (${Prisma.join(nearbyZips)})
               AND s.date > ${now}
               AND c.visible = true
@@ -78,7 +88,8 @@ export async function getComediansByZip(
               )
             GROUP BY c.id, c.uuid, c.name, c.instagram_account, c.instagram_followers,
                      c.tiktok_account, c.tiktok_followers, c.youtube_account,
-                     c.youtube_followers, c.website, c.popularity, c.linktree, c.has_image
+                     c.youtube_followers, c.website, c.popularity, c.linktree, c.has_image,
+                     image_asset.avatar_path
         )
         SELECT *
         FROM comedian_counts
@@ -90,8 +101,14 @@ export async function getComediansByZip(
         id: row.id,
         uuid: row.uuid,
         name: row.name,
-        imageUrl: buildComedianImageUrl(row.name, row.has_image),
-        hasImage: row.has_image,
+        imageUrl: buildComedianImageUrls({
+            name: row.name,
+            hasImage: row.has_image,
+            activeAsset: row.active_avatar_path
+                ? { avatarPath: row.active_avatar_path }
+                : null,
+        }).imageUrl,
+        hasImage: row.has_image || Boolean(row.active_avatar_path),
         socialData: {
             id: row.id,
             instagramAccount: row.instagram_account,
