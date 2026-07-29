@@ -122,6 +122,103 @@ def test_event_to_show_uses_eventbrite_ticket_url_and_price():
     assert show.description == "Featuring Raj Suresh (Don't Tell Comedy)"
 
 
+def test_event_to_show_parses_labeled_lineup_text():
+    event = WixFunctionsShowsExtractor.extract_events(
+        {
+            "shows": [
+                _raw_show(
+                    lineup_text=(
+                        "Featuring Raj Suresh (Don&#39;t Tell Comedy), "
+                        "JJ Liberman (Kill Tony) and More"
+                    )
+                )
+            ]
+        },
+        "America/New_York",
+    )[0]
+
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert [comedian.name for comedian in show.lineup] == ["Raj Suresh", "JJ Liberman"]
+    assert show.description == (
+        "Featuring Raj Suresh (Don't Tell Comedy), JJ Liberman (Kill Tony) and More"
+    )
+
+
+def test_event_to_show_deduplicates_and_decodes_lineup_text():
+    event = WixFunctionsShowsExtractor.extract_events(
+        {
+            "shows": [
+                _raw_show(
+                    lineup_text=(
+                        "Featuring D&#39;Lo (Netflix), Aisha Alfa (CBC), "
+                        "d&#39;lo (Late Night) &amp; More!"
+                    )
+                )
+            ]
+        },
+        "America/New_York",
+    )[0]
+
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert [comedian.name for comedian in show.lineup] == ["D'Lo", "Aisha Alfa"]
+    assert show.description == "Featuring D'Lo (Netflix), Aisha Alfa (CBC), d'lo (Late Night) & More!"
+
+
+@pytest.mark.parametrize(
+    "lineup_text",
+    [
+        None,
+        "",
+        "Raj Suresh (Don't Tell Comedy), JJ Liberman (Kill Tony)",
+        "Featuring",
+        "Featuring Raj Suresh (Don't Tell Comedy",
+        "Featuring Raj Suresh (Don't Tell Comedy) JJ Liberman (Kill Tony) & More!",
+    ],
+)
+def test_event_to_show_ignores_unlabeled_or_empty_lineup_text(lineup_text):
+    event = WixFunctionsShowsExtractor.extract_events(
+        {"shows": [_raw_show(lineup_text=lineup_text)]},
+        "America/New_York",
+    )[0]
+
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.lineup == []
+
+
+def test_event_to_show_preserves_wix_show_fields():
+    event = WixFunctionsShowsExtractor.extract_events(
+        {
+            "shows": [
+                _raw_show(
+                    title="Preserved Wix Show",
+                    start_local="2099-07-03T20:00:00",
+                    ticket_url="https://example.com/preserved-wix-show",
+                    price_from="17.50",
+                    lineup_text="Featuring Raj Suresh (Don't Tell Comedy) & More!",
+                )
+            ]
+        },
+        "America/New_York",
+    )[0]
+
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.name == "Preserved Wix Show"
+    assert show.description == "Featuring Raj Suresh (Don't Tell Comedy) & More!"
+    assert show.date == datetime(2099, 7, 3, 20, 0, tzinfo=ZoneInfo("America/New_York"))
+    assert show.show_page_url == "https://example.com/preserved-wix-show"
+    assert len(show.tickets) == 1
+    assert show.tickets[0].purchase_url == "https://example.com/preserved-wix-show"
+    assert show.tickets[0].price == 17.5
+
+
 @pytest.mark.asyncio
 async def test_collect_scraping_targets_returns_feed_url():
     scraper = WixFunctionsShowsScraper(_club())
