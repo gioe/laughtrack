@@ -340,6 +340,12 @@ public final class SavedShowStore: ObservableObject {
         values[showId] = isSaved
         applyOptimisticCollectionChange(showId: showId, isSaved: isSaved, show: show)
         pending.insert(showId)
+        let stateKey = LaughTrackCacheKey.savedShowState(
+            accountId: accountId,
+            showId: showId
+        )
+        accountCacheKeys.insert(stateKey)
+        await cache.set(isSaved, forKey: stateKey, ttl: cacheTTL)
         defer {
             if activeAccountId == accountId {
                 pending.remove(showId)
@@ -382,33 +388,30 @@ public final class SavedShowStore: ObservableObject {
                 upcomingPage = previousUpcoming
                 pastPage = previousPast
             }
-            let stateKey = LaughTrackCacheKey.savedShowState(
-                accountId: accountId,
-                showId: showId
-            )
-            accountCacheKeys.insert(stateKey)
             await cache.set(serverValue, forKey: stateKey, ttl: cacheTTL)
             return .updated(serverValue)
         } catch MutationFailure.signInRequired(let message) {
             guard activeAccountId == accountId else {
                 return .signInRequired("The active account changed before that update completed.")
             }
-            rollback(
+            await rollback(
                 showId: showId,
                 value: previousValue,
                 upcoming: previousUpcoming,
-                past: previousPast
+                past: previousPast,
+                accountId: accountId
             )
             return .signInRequired(message)
         } catch MutationFailure.permanent(let message) {
             guard activeAccountId == accountId else {
                 return .signInRequired("The active account changed before that update completed.")
             }
-            rollback(
+            await rollback(
                 showId: showId,
                 value: previousValue,
                 upcoming: previousUpcoming,
-                past: previousPast
+                past: previousPast,
+                accountId: accountId
             )
             return .failure(message)
         } catch {
@@ -425,21 +428,23 @@ public final class SavedShowStore: ObservableObject {
                     return .signInRequired("The active account changed before that update completed.")
                 }
                 if replay.failed {
-                    rollback(
+                    await rollback(
                         showId: showId,
                         value: previousValue,
                         upcoming: previousUpcoming,
-                        past: previousPast
+                        past: previousPast,
+                        accountId: accountId
                     )
                     return .failure("LaughTrack couldn’t replay that saved-show change.")
                 }
                 return replay.pending ? .queued(isSaved) : .updated(isSaved)
             } catch {
-                rollback(
+                await rollback(
                     showId: showId,
                     value: previousValue,
                     upcoming: previousUpcoming,
-                    past: previousPast
+                    past: previousPast,
+                    accountId: accountId
                 )
                 return .failure("LaughTrack couldn’t save that change for retry.")
             }
@@ -479,11 +484,12 @@ public final class SavedShowStore: ObservableObject {
                 return .signInRequired("The active account changed before that update completed.")
             }
             if replay.failed {
-                rollback(
+                await rollback(
                     showId: showId,
                     value: previousValue,
                     upcoming: previousUpcoming,
-                    past: previousPast
+                    past: previousPast,
+                    accountId: accountId
                 )
                 return .failure("LaughTrack couldn’t replay that saved-show change.")
             }
@@ -502,11 +508,12 @@ public final class SavedShowStore: ObservableObject {
             guard activeAccountId == accountId else {
                 return .signInRequired("The active account changed before that update completed.")
             }
-            rollback(
+            await rollback(
                 showId: showId,
                 value: previousValue,
                 upcoming: previousUpcoming,
-                past: previousPast
+                past: previousPast,
+                accountId: accountId
             )
             return .failure("LaughTrack couldn’t save that change for retry.")
         }
@@ -799,14 +806,48 @@ public final class SavedShowStore: ObservableObject {
         if !isSaved {
             upcomingPage = removing(showId: showId, from: upcomingPage)
             pastPage = removing(showId: showId, from: pastPage)
-        } else if let show, show.date >= Date(), let page = upcomingPage,
-                  !page.shows.contains(where: { $0.id == showId }) {
-            upcomingPage = replacing(
-                page: page,
-                shows: [show] + page.shows,
-                total: page.total + 1
-            )
+            return
         }
+
+        guard let show else { return }
+        let period: Period = show.date >= Date() ? .upcoming : .past
+        switch period {
+        case .upcoming:
+            guard let page = upcomingPage else { return }
+            upcomingPage = inserting(show, into: page, period: period)
+            upcomingPhase = .loaded
+        case .past:
+            guard let page = pastPage else { return }
+            pastPage = inserting(show, into: page, period: period)
+            pastPhase = .loaded
+        }
+    }
+
+    private func inserting(
+        _ show: Components.Schemas.Show,
+        into page: Page,
+        period: Period
+    ) -> Page {
+        guard !page.shows.contains(where: { $0.id == show.id }) else {
+            return page
+        }
+
+        let total = page.total + 1
+        guard page.page == 1 else {
+            return replacing(page: page, shows: page.shows, total: total)
+        }
+
+        let sorted = (page.shows + [show]).sorted { lhs, rhs in
+            if lhs.date == rhs.date {
+                return period == .upcoming ? lhs.id < rhs.id : lhs.id > rhs.id
+            }
+            return period == .upcoming ? lhs.date < rhs.date : lhs.date > rhs.date
+        }
+        return replacing(
+            page: page,
+            shows: Array(sorted.prefix(max(0, page.size))),
+            total: total
+        )
     }
 
     private func removing(showId: Int, from page: Page?) -> Page? {
@@ -834,11 +875,18 @@ public final class SavedShowStore: ObservableObject {
         showId: Int,
         value: Bool,
         upcoming: Page?,
-        past: Page?
-    ) {
+        past: Page?,
+        accountId: String
+    ) async {
         values[showId] = value
         upcomingPage = upcoming
         pastPage = past
+        let key = LaughTrackCacheKey.savedShowState(
+            accountId: accountId,
+            showId: showId
+        )
+        accountCacheKeys.insert(key)
+        await cache.set(value, forKey: key, ttl: cacheTTL)
     }
 
     private func invalidateCollectionCaches(accountId: String) async {

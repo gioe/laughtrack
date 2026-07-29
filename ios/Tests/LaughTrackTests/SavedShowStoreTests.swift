@@ -232,6 +232,173 @@ struct SavedShowStoreTests {
         #expect(await attempts.count == 2)
     }
 
+    @Test(
+        "queued save and unsave keep optimistic cache after active pending state clears",
+        arguments: [true, false]
+    )
+    func queuedMutationKeepsOptimisticCacheAfterPendingClears(isSaved: Bool) async {
+        let auth = await makeAuth(accountId: "account-a")
+        let transport = StubClientTransport { _, _, _, operationID in
+            switch operationID {
+            case Operations.GetSavedShowState.id:
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowStateResponse(data: .init(isSaved: !isSaved)),
+                    encoder: APIMockEncoder.make()
+                )
+            case Operations.SaveShow.id, Operations.UnsaveShow.id:
+                throw URLError(.notConnectedToInternet)
+            default:
+                throw URLError(.badServerResponse)
+            }
+        }
+        let harness = makeHarness(replayDelaysNanoseconds: []) { _ in
+            throw URLError(.timedOut)
+        }
+        let client = makeClient(transport: transport)
+
+        await harness.store.loadState(
+            showId: 67,
+            apiClient: client,
+            authManager: auth
+        )
+        let result = await harness.store.setSaved(
+            showId: 67,
+            isSaved: isSaved,
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(result == .queued(isSaved))
+        #expect(harness.store.value(for: 67) == isSaved)
+        #expect(harness.store.isPending(67) == false)
+
+        await harness.store.loadState(
+            showId: 67,
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(harness.store.value(for: 67) == isSaved)
+        #expect(
+            transport.capturedRequests.count {
+                $0.operationID == Operations.GetSavedShowState.id
+            } == 1
+        )
+    }
+
+    @Test("optimistic upcoming insertion preserves API order and page size")
+    func optimisticUpcomingInsertionPreservesOrderAndPageSize() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let now = Date()
+        let transport = StubClientTransport { request, _, _, operationID in
+            switch operationID {
+            case Operations.GetSavedShows.id:
+                #expect(queryValue("period", from: request.path) == "upcoming")
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowListResponse(
+                        data: [
+                            makeShow(id: 71, date: now.addingTimeInterval(100)),
+                            makeShow(id: 73, date: now.addingTimeInterval(300)),
+                        ],
+                        total: 2,
+                        page: 1,
+                        size: 2,
+                        totalPages: 1
+                    ),
+                    encoder: APIMockEncoder.make()
+                )
+            case Operations.SaveShow.id:
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowStateResponse(data: .init(isSaved: true)),
+                    encoder: APIMockEncoder.make()
+                )
+            default:
+                throw URLError(.badServerResponse)
+            }
+        }
+        let harness = makeHarness()
+        let client = makeClient(transport: transport)
+        await harness.store.loadSavedShows(
+            period: .upcoming,
+            size: 2,
+            apiClient: client,
+            authManager: auth
+        )
+
+        let result = await harness.store.setSaved(
+            showId: 72,
+            isSaved: true,
+            show: makeShow(id: 72, date: now.addingTimeInterval(200)),
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(result == .updated(true))
+        #expect(harness.store.upcomingPage?.shows.map(\.id) == [71, 72])
+        #expect(harness.store.upcomingPage?.shows.count == 2)
+        #expect(harness.store.upcomingPage?.total == 3)
+        #expect(harness.store.upcomingPage?.totalPages == 2)
+    }
+
+    @Test("optimistic past insertion preserves reverse API order and page size")
+    func optimisticPastInsertionPreservesOrderAndPageSize() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let now = Date()
+        let transport = StubClientTransport { request, _, _, operationID in
+            switch operationID {
+            case Operations.GetSavedShows.id:
+                #expect(queryValue("period", from: request.path) == "past")
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowListResponse(
+                        data: [
+                            makeShow(id: 83, date: now.addingTimeInterval(-100)),
+                            makeShow(id: 81, date: now.addingTimeInterval(-300)),
+                        ],
+                        total: 2,
+                        page: 1,
+                        size: 2,
+                        totalPages: 1
+                    ),
+                    encoder: APIMockEncoder.make()
+                )
+            case Operations.SaveShow.id:
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowStateResponse(data: .init(isSaved: true)),
+                    encoder: APIMockEncoder.make()
+                )
+            default:
+                throw URLError(.badServerResponse)
+            }
+        }
+        let harness = makeHarness()
+        let client = makeClient(transport: transport)
+        await harness.store.loadSavedShows(
+            period: .past,
+            size: 2,
+            apiClient: client,
+            authManager: auth
+        )
+
+        let result = await harness.store.setSaved(
+            showId: 82,
+            isSaved: true,
+            show: makeShow(id: 82, date: now.addingTimeInterval(-200)),
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(result == .updated(true))
+        #expect(harness.store.pastPage?.shows.map(\.id) == [83, 82])
+        #expect(harness.store.pastPage?.shows.count == 2)
+        #expect(harness.store.pastPage?.total == 3)
+        #expect(harness.store.pastPage?.totalPages == 2)
+    }
+
     @Test("queue identity coalesces one show without discarding another")
     func queueIdentityIncludesShowId() async throws {
         let harness = makeHarness()
