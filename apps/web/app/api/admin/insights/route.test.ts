@@ -45,6 +45,10 @@ const adminSession = {
     },
 };
 
+function makeGetRequest() {
+    return new NextRequest("http://localhost/api/admin/insights");
+}
+
 function makePostRequest(body: unknown) {
     return new NextRequest("http://localhost/api/admin/insights", {
         method: "POST",
@@ -76,7 +80,7 @@ describe("GET /api/admin/insights", () => {
     it("requires admin access", async () => {
         mockAuth.mockResolvedValue(null as never);
 
-        const res = await GET();
+        const res = await GET(makeGetRequest());
 
         expect(res.status).toBe(401);
     });
@@ -84,7 +88,7 @@ describe("GET /api/admin/insights", () => {
     it("returns 422 when the authenticated session has no profile", async () => {
         mockAuth.mockResolvedValue({} as never);
 
-        const res = await GET();
+        const res = await GET(makeGetRequest());
 
         expect(res.status).toBe(422);
         expect(mockGetDiscoveryEvaluation).not.toHaveBeenCalled();
@@ -97,14 +101,14 @@ describe("GET /api/admin/insights", () => {
             role: "user",
         } as never);
 
-        const res = await GET();
+        const res = await GET(makeGetRequest());
 
         expect(res.status).toBe(403);
         expect(mockGetDiscoveryEvaluation).not.toHaveBeenCalled();
     });
 
     it("lists curated insight definitions without query text", async () => {
-        const res = await GET();
+        const res = await GET(makeGetRequest());
         const body = await res.json();
 
         expect(res.status).toBe(200);
@@ -133,7 +137,7 @@ describe("GET /api/admin/insights", () => {
     });
 
     it("covers the initial admin primitives", async () => {
-        const res = await GET();
+        const res = await GET(makeGetRequest());
         const body = await res.json();
 
         expect(

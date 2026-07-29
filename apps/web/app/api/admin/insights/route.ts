@@ -39,11 +39,11 @@ function invalidPayload(error: z.ZodError) {
     );
 }
 
-export const GET = withRequestMetrics(async function GET(req?: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
 
-    if (req?.nextUrl.searchParams.get("report") === "discovery") {
+    if (req.nextUrl.searchParams.get("report") === "discovery") {
         const parsedDays = z.coerce
             .number()
             .int()
