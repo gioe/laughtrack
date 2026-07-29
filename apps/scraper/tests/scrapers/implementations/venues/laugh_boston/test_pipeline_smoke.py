@@ -118,6 +118,23 @@ def test_pixl_empty_sales_then_populated_sales_leaves_only_real_tier():
     ]
 
 
+def test_pixl_parser_uses_shared_description_lineup_extraction():
+    data = _pixl_response()
+    data["events"][0]["description"] = (
+        "<p>Sober &amp; Curious Boston creates alcohol-free events.</p>"
+        "<p>Comics performing: Tony V, Al Park, Cher Lynn, and Jack Burke.</p>"
+    )
+
+    events = LaughBostonEventExtractor.parse_events_from_pixl(data, _club())
+
+    assert [comedian.name for comedian in events[0].show.lineup] == [
+        "Tony V",
+        "Al Park",
+        "Cher Lynn",
+        "Jack Burke",
+    ]
+
+
 # ---------------------------------------------------------------------------
 # Smoke tests
 # ---------------------------------------------------------------------------

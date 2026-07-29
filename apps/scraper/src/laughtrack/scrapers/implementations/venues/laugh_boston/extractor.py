@@ -9,6 +9,7 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
+from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 
 class LaughBostonEventExtractor:
@@ -95,7 +96,7 @@ class LaughBostonEventExtractor:
                 club_id=club.id,
                 date=date,
                 show_page_url=ticket_url,
-                lineup=[],
+                lineup=ShowFactoryUtils.create_lineup_from_labeled_description(description),
                 tickets=tickets,
                 supplied_tags=["event"],
                 description=description,
