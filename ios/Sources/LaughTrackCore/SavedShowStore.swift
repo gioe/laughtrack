@@ -815,11 +815,9 @@ public final class SavedShowStore: ObservableObject {
         case .upcoming:
             guard let page = upcomingPage else { return }
             upcomingPage = inserting(show, into: page, period: period)
-            upcomingPhase = .loaded
         case .past:
             guard let page = pastPage else { return }
             pastPage = inserting(show, into: page, period: period)
-            pastPhase = .loaded
         }
     }
 
