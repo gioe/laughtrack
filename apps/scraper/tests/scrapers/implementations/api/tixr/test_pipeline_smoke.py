@@ -6,6 +6,7 @@ mocked HTML and a mocked TixrClient. Verifies that both short-form and
 long-form Tixr URLs are extracted and resolved to TixrEvents.
 """
 
+import html
 import importlib.util
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock
@@ -1177,6 +1178,78 @@ async def test_get_data_uses_configured_pixl_calendar_api_without_tixr_detail_fe
     assert [ticket.price for ticket in event.show.tickets] == [22.95, 32.95]
     assert [ticket.sold_out for ticket in event.show.tickets] == [False, True]
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+def test_pixl_parser_extracts_labeled_comics_from_description():
+    data = _comic_strip_edmonton_pixl_response()
+    data["events"][0]["description"] = (
+        "<p>Sober &amp; Curious Boston creates alcohol-free events.</p>"
+        "<p>Comics performing: Tony V, Al Park, Cher Lynn, and Jack Burke.</p>"
+    )
+
+    events = TixrScraper(_comic_strip_edmonton_club())._parse_pixl_calendar_events(data)
+
+    assert [comedian.name for comedian in events[0].show.lineup] == [
+        "Tony V",
+        "Al Park",
+        "Cher Lynn",
+        "Jack Burke",
+    ]
+
+
+def test_pixl_parser_extracts_spanish_en_escena_lineup():
+    data = _house_of_comedy_bc_pixl_response()
+    data["events"][0]["description"] = (
+        "<p>COMEDIA EN ESPAÑOL EN VANCOUVER!</p>"
+        "<p>En escena...así como los vieron en Comedy Central, Just for Laughs, "
+        "Latin Comedy Fest y los mejores festivales del mundo..."
+        "Stephan Dyer (de Costa Rica), Juan Cajiao (de Colombia)!</p>"
+    )
+
+    events = TixrScraper(_house_of_comedy_bc_club())._parse_pixl_calendar_events(data)
+
+    assert [comedian.name for comedian in events[0].show.lineup] == [
+        "Stephan Dyer",
+        "Juan Cajiao",
+    ]
+
+
+@pytest.mark.parametrize(
+    "description",
+    [
+        "<p>Tony V is a comedian who has appeared on Comedy Central.</p>",
+        "<p>Performer lineups subject to change without notice.</p>",
+        "<p>Featuring LGBTQIA+ performers from the local comedy community.</p>",
+    ],
+)
+def test_pixl_parser_ignores_performer_boilerplate_and_biographies(description):
+    data = _comic_strip_edmonton_pixl_response()
+    data["events"][0]["description"] = description
+
+    events = TixrScraper(_comic_strip_edmonton_club())._parse_pixl_calendar_events(data)
+
+    assert events[0].show.lineup == []
+
+
+def test_pixl_lineup_extraction_preserves_existing_show_fields():
+    data = _comic_strip_edmonton_pixl_response()
+    raw_description = (
+        "<p>Sober &amp; Curious Boston creates alcohol-free events.</p>"
+        "<p>Comics performing: Tony V, Al Park, Cher Lynn, and Jack Burke.</p>"
+    )
+    data["events"][0]["description"] = raw_description
+
+    event = TixrScraper(_comic_strip_edmonton_club())._parse_pixl_calendar_events(data)[0]
+
+    assert event.title == "Sean Lecomber"
+    assert event.show.date.isoformat() == "2026-06-12T21:30:00-06:00"
+    assert event.show.show_page_url == (
+        "https://www.tixr.com/groups/comicstripedmonton/events/sean-lecomber-185406"
+    )
+    assert [ticket.type for ticket in event.show.tickets] == ["General Admission", "VIP"]
+    assert [ticket.price for ticket in event.show.tickets] == [22.95, 32.95]
+    assert [ticket.sold_out for ticket in event.show.tickets] == [False, True]
+    assert event.show.description == html.unescape(raw_description)
 
 
 @pytest.mark.asyncio

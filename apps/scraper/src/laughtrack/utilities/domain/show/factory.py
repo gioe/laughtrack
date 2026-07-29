@@ -8,6 +8,7 @@ Standardizes initialization logic across different venue-specific initializers.
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from bs4 import BeautifulSoup
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
@@ -121,6 +122,16 @@ _LINEUP_TITLE_KEYWORD_BLOCKLIST = frozenset({
 import re as _re
 _VENUE_CODE_PREFIX_RE = _re.compile(r"^\([A-Z]\)")
 _DJ_SET_RE = _re.compile(r"\bDJ\b", _re.IGNORECASE)
+_COMICS_PERFORMING_RE = _re.compile(
+    r"^Comics performing:\s*(?P<names>.+?)\s*[.!]?$",
+    _re.IGNORECASE,
+)
+_EN_ESCENA_RE = _re.compile(
+    r"^En escena(?:\.{3}|…).+(?:\.{3}|…)(?P<names>.+?)\s*[.!]?$",
+    _re.IGNORECASE,
+)
+_LINEUP_CONJUNCTION_RE = _re.compile(r",?\s+(?:and|y|&)\s+", _re.IGNORECASE)
+_TRAILING_CREDENTIAL_RE = _re.compile(r"\s*\([^()]+\)\s*$")
 
 # Keywords that positively identify a comedy event by its title/tags/description.
 # Used to filter mixed-use venues (music bars, jazz clubs) that opt into comedy
@@ -314,6 +325,56 @@ class ShowFactoryUtils:
                 continue
 
         return lineup
+
+    @staticmethod
+    def create_lineup_from_labeled_description(description: Optional[str]) -> List[Comedian]:
+        """Extract an explicitly labeled comedian list from a show description.
+
+        Pixl descriptions contain substantial biography and venue-policy prose,
+        so this intentionally recognizes only the production formats that
+        identify a performer section.
+        """
+        if not description:
+            return []
+
+        soup = BeautifulSoup(description, "html.parser")
+        blocks = [
+            element.get_text(" ", strip=True)
+            for element in soup.find_all(["p", "li"])
+        ]
+        if not blocks:
+            blocks = [soup.get_text(" ", strip=True)]
+
+        for block in blocks:
+            match = _COMICS_PERFORMING_RE.fullmatch(block)
+            if match is None:
+                match = _EN_ESCENA_RE.fullmatch(block)
+            if match is None:
+                continue
+
+            names_text = _LINEUP_CONJUNCTION_RE.sub(
+                ", ",
+                match.group("names").rstrip(" .!"),
+            )
+            names = [
+                _TRAILING_CREDENTIAL_RE.sub("", name).strip()
+                for name in names_text.split(",")
+            ]
+            if not names or any(not _is_valid_lineup_name(name) for name in names):
+                return []
+
+            unique_names = []
+            seen_names = set()
+            for name in names:
+                key = name.casefold()
+                if key not in seen_names:
+                    seen_names.add(key)
+                    unique_names.append(name)
+
+            lineup = ShowFactoryUtils.create_lineup_from_performers(unique_names)
+            return lineup if len(lineup) == len(unique_names) else []
+
+        return []
 
     @staticmethod
     def build_description_from_parts(parts: List[str]) -> str:

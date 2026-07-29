@@ -520,7 +520,7 @@ class TixrScraper(BaseScraper):
             club_id=self.club.id,
             date=date,
             show_page_url=ticket_url,
-            lineup=[],
+            lineup=ShowFactoryUtils.create_lineup_from_labeled_description(description),
             tickets=tickets,
             supplied_tags=["event"],
             description=description,
