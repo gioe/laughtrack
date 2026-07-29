@@ -22,7 +22,7 @@ import json
 import os
 import re
 from typing import Any, Dict, Iterator, List, Optional
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import pytz
 from bs4 import BeautifulSoup
@@ -1026,10 +1026,9 @@ class TixrScraper(BaseScraper):
         """Parse The Stand NYC's Bootstrap-style ``.show_row`` cards.
 
         The title link's href encodes a ``/shows/show/<id>/<YYYY-MM-DD>-<HHMMSS>-...``
-        slug — that is the source of truth for date/time. The Tixr ticket URL
-        lives on ``a.btn-stand``; sold-out shows replace the buy button with a
-        ``span.btn-outline-danger`` and are skipped (no Tixr URL means the
-        Tixr API path can't reach them either).
+        slug — that is the source of truth for date/time. Purchasable cards use
+        their ``a.btn-stand`` Tixr URL. Sold-out cards replace that link with a
+        ``span.btn-outline-danger`` and use the venue show URL instead.
         """
         events: List[TixrEvent] = []
         seen_ids: set[str] = set()
@@ -1037,16 +1036,31 @@ class TixrScraper(BaseScraper):
         for row in soup.select(".show_row"):
             title_el = row.select_one("h2.showtitle a")
             buy_btn = row.select_one('a.btn-stand[href*="tixr.com"]')
-            if not title_el or not buy_btn:
+            sold_out_marker = next(
+                (
+                    marker
+                    for marker in row.select(".btn-outline-danger")
+                    if "sold out" in marker.get_text(" ", strip=True).casefold()
+                ),
+                None,
+            )
+            if not title_el or (buy_btn is None and sold_out_marker is None):
                 continue
 
             title = title_el.get_text(" ", strip=True)
             title_href = str(title_el.get("href") or "")
-            ticket_url = str(buy_btn.get("href") or "").strip()
+            sold_out = buy_btn is None
+            ticket_url = (
+                str(buy_btn.get("href") or "").strip()
+                if buy_btn is not None
+                else self._stand_venue_show_url(title_href)
+            )
             if not title or not ticket_url:
                 continue
 
-            event_id = TixrExtractor.get_event_id(ticket_url) or ""
+            event_id = ""
+            if buy_btn is not None:
+                event_id = TixrExtractor.get_event_id(ticket_url) or ""
             if event_id and event_id in seen_ids:
                 continue
 
@@ -1064,7 +1078,8 @@ class TixrScraper(BaseScraper):
 
             room_el = row.select_one(".list-show-room") or row.select_one(".list-show-room-new")
             room = room_el.get_text(" ", strip=True) if room_el else ""
-            ticket_price = self._extract_stand_ticket_price(row, buy_btn)
+            ticket_action = buy_btn if buy_btn is not None else sold_out_marker
+            ticket_price = self._extract_stand_ticket_price(row, ticket_action)
             lineup = self._extract_stand_lineup(row)
 
             show = Show(
@@ -1077,7 +1092,7 @@ class TixrScraper(BaseScraper):
                     Ticket(
                         price=ticket_price,
                         purchase_url=ticket_url,
-                        sold_out=False,
+                        sold_out=sold_out,
                         type="General Admission",
                     )
                 ],
@@ -1089,6 +1104,13 @@ class TixrScraper(BaseScraper):
             events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
 
         return events
+
+    def _stand_venue_show_url(self, title_href: str) -> str:
+        website = URLUtils.normalize_url(str(self.club.website or ""))
+        title_path = urlparse(title_href).path
+        if not website or not title_path:
+            return ""
+        return urljoin(f"{website.rstrip('/')}/", title_path.lstrip("/"))
 
     @staticmethod
     def _extract_stand_lineup(row: Any) -> List[Comedian]:

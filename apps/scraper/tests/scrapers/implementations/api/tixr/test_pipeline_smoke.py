@@ -33,6 +33,10 @@ STAND_SCRAPING_URL = "thestandnyc.com"
 STAND_PUBLIC_SHOWS_URL = "https://thestandnyc.com/shows"
 STAND_TIXR_URL = "https://www.tixr.com/groups/thestandnyc/events/the-stand-presents-josh-ocean-thomas--187376"
 STAND_FREE_TIXR_URL = "https://www.tixr.com/groups/thestandnyc/events/free-comedy-night--187377"
+STAND_SOLD_OUT_URL = (
+    "https://thestandnyc.com/shows/show/12965/"
+    "2026-05-08-200000-the-stand-presents-kyle-dunnigan"
+)
 GOCF_HALIFAX_URL = "https://www.greatoutdoorscomedyfestival.com/cities/halifax"
 GOCF_MATT_RIFE_TIXR_URL = (
     "https://www.tixr.com/groups/gocf/events/"
@@ -421,6 +425,18 @@ def _stand_public_card_html_with_free_title_and_missing_ticket_text() -> str:
 </body></html>"""
 
 
+def _stand_public_card_html_without_action() -> str:
+    return """<html><body>
+<div class="row show_row ">
+  <h2 class="showtitle"><a href="/shows/show/12969/2026-05-08-230000-coming-soon">Coming Soon</a></h2>
+  <h3 class="showinfo"><span class="show_date">May 8</span> | <span class="show_date">11:00 PM</span> <span class="list-show-room">Upstairs</span></h3>
+  <div class="text-uppercase">
+    <span class="btn btn-outline-secondary">Coming Soon</span>
+  </div>
+</div>
+</body></html>"""
+
+
 def _gocf_public_card_html() -> str:
     return f"""
 <html><body>
@@ -802,7 +818,7 @@ async def test_public_card_scraper_avoids_blocked_detail_fetch(monkeypatch):
     The Stand's /shows page exposes title, ISO datetime in the title-link
     slug, and a Tixr ticket URL, so the public-card scraper builds Show
     objects from the page instead of calling the DataDome-blocked Tixr
-    detail endpoint. Sold-out cards have no Tixr URL and are skipped.
+    detail endpoint. Sold-out cards use their venue show URL.
     """
     scraper = TixrPublicCardScraper(_stand_club())
 
@@ -819,8 +835,8 @@ async def test_public_card_scraper_avoids_blocked_detail_fetch(monkeypatch):
     result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
 
     assert isinstance(result, TixrPageData)
-    assert result.get_event_count() == 1
-    event = result.event_list[0]
+    assert result.get_event_count() == 2
+    event = next(item for item in result.event_list if item.source_url == STAND_TIXR_URL)
     assert event.title == "The Stand Presents: Josh Ocean Thomas"
     assert event.source_url == STAND_TIXR_URL
     assert event.show.show_page_url == STAND_TIXR_URL
@@ -946,7 +962,7 @@ async def test_public_card_scraper_parses_stand_free_ticket_prices(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_public_card_scraper_skips_stand_sold_out_cards(monkeypatch):
+async def test_public_card_scraper_preserves_stand_sold_out_cards(monkeypatch):
     scraper = TixrPublicCardScraper(_stand_club())
 
     async def fake_fetch_html(self, url, **kwargs):
@@ -957,8 +973,73 @@ async def test_public_card_scraper_skips_stand_sold_out_cards(monkeypatch):
     result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
 
     assert result is not None
-    assert result.get_event_count() == 1
-    assert [event.title for event in result.event_list] == ["The Stand Presents: Josh Ocean Thomas"]
+    assert result.get_event_count() == 2
+    sold_out_event = next(event for event in result.event_list if event.source_url == STAND_SOLD_OUT_URL)
+    assert sold_out_event.title == "The Stand Presents: Kyle Dunnigan"
+    assert sold_out_event.show.date.year == 2026
+    assert sold_out_event.show.date.month == 5
+    assert sold_out_event.show.date.day == 8
+    assert sold_out_event.show.date.hour == 20
+    assert sold_out_event.show.date.minute == 0
+    assert sold_out_event.show.room == "Main Room"
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_uses_venue_url_for_stand_sold_out_card(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _stand_public_card_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is not None
+    sold_out_event = next(event for event in result.event_list if event.source_url == STAND_SOLD_OUT_URL)
+    assert sold_out_event.event_id == ""
+    assert sold_out_event.show.show_page_url == STAND_SOLD_OUT_URL
+    assert len(sold_out_event.show.tickets) == 1
+    ticket = sold_out_event.show.tickets[0]
+    assert ticket.purchase_url == STAND_SOLD_OUT_URL
+    assert ticket.sold_out is True
+    assert ticket.price is None
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_keeps_purchasable_stand_ticket_behavior(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _stand_public_card_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is not None
+    event = next(item for item in result.event_list if item.source_url == STAND_TIXR_URL)
+    assert event.event_id == "187376"
+    assert event.show.show_page_url == STAND_TIXR_URL
+    assert [comedian.name for comedian in event.show.lineup] == ["Stephon Bishop", "Ashley King"]
+    ticket = event.show.tickets[0]
+    assert ticket.purchase_url == STAND_TIXR_URL
+    assert ticket.price == 32.5
+    assert ticket.sold_out is False
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_skips_unactionable_stand_card(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _stand_public_card_html_without_action()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is None
 
 
 @pytest.mark.asyncio
