@@ -1,7 +1,6 @@
 package app.laughtrack.android.feature.home
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.nio.file.Files
@@ -19,7 +18,7 @@ class TonightCarouselTest {
     }
 
     @Test
-    fun sharedChromeIsOutsideTheMovingShowPage() {
+    fun carousel_keeps_shared_chrome_and_delegates_each_page_to_the_shared_card() {
         val source = String(Files.readAllBytes(homeScreenPath()))
         val carousel = functionSource(source, "TonightCarousel")
         val movingPage = functionSource(source, "TonightHeroPage")
@@ -28,17 +27,14 @@ class TonightCarouselTest {
         assertTrue(lazyRowIndex >= 0)
         assertTrue(carousel.indexOf("Surface(") in 0 until lazyRowIndex)
         assertTrue(carousel.indexOf("text = \"TONIGHT!\"") in 0 until lazyRowIndex)
-        assertTrue(carousel.indexOf("MarqueeArtworkBackground()") in 0 until lazyRowIndex)
         assertTrue(carousel.indexOf("TonightPageIndicator(") > lazyRowIndex)
         assertTrue(carousel.contains("rememberSnapFlingBehavior(lazyListState = listState)"))
         assertTrue(carousel.contains("onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) }"))
 
-        assertTrue(movingPage.contains("MarqueeArtwork(show = show)"))
-        assertTrue(movingPage.contains("modifier.clickable(onClick = onClick)"))
-        assertFalse(movingPage.contains("TONIGHT!"))
-        assertFalse(movingPage.contains("MarqueeArtworkBackground"))
-        assertFalse(movingPage.contains("TonightPageIndicator"))
-        assertFalse(movingPage.contains("Surface("))
+        assertTrue(movingPage.contains("TonightHeroCard("))
+        assertTrue(movingPage.contains("TonightHeroCardContent("))
+        assertTrue(movingPage.contains("onClick = onClick"))
+        assertTrue(movingPage.contains("modifier = modifier"))
     }
 
     private fun homeScreenPath(): Path {

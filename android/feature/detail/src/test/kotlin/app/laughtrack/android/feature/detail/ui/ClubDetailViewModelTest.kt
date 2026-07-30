@@ -2,6 +2,9 @@ package app.laughtrack.android.feature.detail.ui
 
 import app.laughtrack.android.core.network.generated.api.ClubsApi
 import app.laughtrack.android.core.network.generated.model.ClubDetail
+import app.laughtrack.android.core.network.generated.model.ClubHighlights
+import app.laughtrack.android.core.network.generated.model.ClubHighlightsResponse
+import app.laughtrack.android.core.network.generated.model.ClubRelatedVenue
 import app.laughtrack.android.core.network.generated.model.ClubShowsResponse
 import app.laughtrack.android.core.network.generated.model.GetClub200Response
 import app.laughtrack.android.core.network.generated.model.Show
@@ -72,6 +75,40 @@ class ClubDetailViewModelTest {
         }
 
     @Test
+    fun load_publishes_highlights_independently() =
+        runTest {
+            val viewModel = viewModel(FakeClubsApi())
+
+            viewModel.load(42)
+            advanceUntilIdle()
+
+            assertEquals(listOf(91), viewModel.highlights.value?.tonightShows?.map { it.id })
+            assertTrue(viewModel.state.value is UiState.Success)
+        }
+
+    @Test
+    fun highlights_failure_preserves_detail_related_venues_and_pagination() =
+        runTest {
+            val viewModel = viewModel(FakeClubsApi(highlightsFail = true))
+
+            viewModel.load(42)
+            advanceUntilIdle()
+
+            assertEquals(null, viewModel.highlights.value)
+            val initial = (viewModel.state.value as UiState.Success).value
+            assertEquals(listOf(7), initial.detail.relatedVenues?.map { it.id })
+            assertEquals(listOf(1), initial.upcomingShows.map { it.id })
+            assertTrue(initial.canLoadMore)
+
+            viewModel.loadMore()
+            advanceUntilIdle()
+
+            val paginated = (viewModel.state.value as UiState.Success).value
+            assertEquals(listOf(1, 2), paginated.upcomingShows.map { it.id })
+            assertEquals(1, paginated.currentPage)
+        }
+
+    @Test
     fun shows_endpoint_failure_degrades_to_empty_list() =
         runTest {
             val viewModel = viewModel(FakeClubsApi(showsFail = true))
@@ -106,6 +143,7 @@ class ClubDetailViewModelTest {
     private class FakeClubsApi(
         private val detailFails: Boolean = false,
         private val showsFail: Boolean = false,
+        private val highlightsFail: Boolean = false,
     ) : ClubsApi by throwingApi() {
         override suspend fun getClub(id: Int): Response<GetClub200Response> {
             if (detailFails) throw IOException("network down")
@@ -125,6 +163,19 @@ class ClubDetailViewModelTest {
                 ),
             )
         }
+
+        override suspend fun getClubHighlights(id: Int): Response<ClubHighlightsResponse> {
+            if (highlightsFail) throw IOException("network down")
+            return Response.success(
+                ClubHighlightsResponse(
+                    ClubHighlights(
+                        tonightShows = listOf(show(91, id)),
+                        nextShow = show(92, id),
+                        frequentPerformers = emptyList(),
+                    ),
+                ),
+            )
+        }
     }
 
     private companion object {
@@ -136,6 +187,14 @@ class ClubDetailViewModelTest {
                 heroImageUrl = "https://example.com/club-$id-hero.jpg",
                 website = "https://example.com/club-$id",
                 address = "1 Main St, New York, NY",
+                relatedVenues =
+                    listOf(
+                        ClubRelatedVenue(
+                            id = 7,
+                            name = "Downtown Room",
+                            imageUrl = "https://example.com/club-7.jpg",
+                        ),
+                    ),
             )
 
         fun show(

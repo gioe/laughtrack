@@ -41,12 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -68,6 +63,8 @@ import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.TicketShowRowColors
 import app.laughtrack.android.core.ui.components.TicketStubColors
+import app.laughtrack.android.core.ui.components.TonightHeroCard
+import app.laughtrack.android.core.ui.components.TonightHeroCardContent
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
@@ -384,7 +381,6 @@ private fun TonightCarousel(
                             .weight(1f),
                 ) {
                     val pageWidth = maxWidth
-                    MarqueeArtworkBackground()
                     LazyRow(
                         modifier = Modifier.fillMaxSize(),
                         state = listState,
@@ -420,56 +416,26 @@ private fun TonightHeroPage(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val price = formatPrice(show.tickets?.mapNotNull { it.price })
-    Column(
-        modifier = modifier.clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        MarqueeArtwork(show = show)
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-        ) {
-            Text(
-                text = formatShowTime(show) ?: "",
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Black,
-                fontSize = 30.sp,
-                maxLines = 1,
-            )
-            Text(
-                text = show.name?.uppercase(Locale.US) ?: "SHOW",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(
-                text = "At ${show.clubName ?: "Unknown club"}".uppercase(Locale.US),
-                style =
-                    MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 2.sp,
-                    ),
-                textAlign = TextAlign.Center,
-                color = LaughTrackColors.AccentStrong,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.weight(1f))
-            PricePill(price = price)
-        }
-    }
+    TonightHeroCard(
+        content =
+            TonightHeroCardContent(
+                timeLabel = formatShowTime(show).orEmpty(),
+                title = show.name ?: "Show",
+                venueLabel = "At ${show.clubName ?: "Unknown club"}",
+                artworkUrl = heroArtworkUrl(show),
+                artworkCaption = heroArtworkCaption(show),
+                artworkContentDescription = show.name ?: "Show",
+                artworkFallback =
+                    if (heroArtworkComedian(show) != null) {
+                        RemoteImageFallback.Comedian
+                    } else {
+                        RemoteImageFallback.Show
+                    },
+                priceLabel = formatPrice(show.tickets?.mapNotNull { it.price }),
+            ),
+        onClick = onClick,
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -497,113 +463,6 @@ private fun TonightPageIndicator(
                             ),
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun MarqueeArtworkBackground() {
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(198.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.radialGradient(
-                        colors =
-                            listOf(
-                                LaughTrackColors.AccentStrong.copy(alpha = 0.24f),
-                                LaughTrackColors.Surface.copy(alpha = 0.96f),
-                            ),
-                    ),
-                ),
-    )
-}
-
-@Composable
-private fun PricePill(price: String?) {
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(38.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (price != null) {
-            Surface(
-                color = LaughTrackColors.AccentStrong,
-                shape = RoundedCornerShape(999.dp),
-            ) {
-                Text(
-                    text = price,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Black),
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun MarqueeArtwork(show: Show) {
-    val artworkFallback =
-        if (heroArtworkComedian(show) != null) {
-            RemoteImageFallback.Comedian
-        } else {
-            RemoteImageFallback.Show
-        }
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(198.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            modifier =
-                Modifier
-                    .width(154.dp)
-                    .height(170.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                LaughTrackColors.Foreground.copy(alpha = 0.94f),
-                                Color(0xFFD1C2A8),
-                            ),
-                        ),
-                    )
-                    .border(2.dp, Color.Black.copy(alpha = 0.72f), RoundedCornerShape(8.dp))
-                    .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(5.dp),
-        ) {
-            RemoteImage(
-                url = heroArtworkUrl(show),
-                fallback = artworkFallback,
-                contentDescription = show.name ?: "Show",
-                modifier =
-                    Modifier
-                        .width(138.dp)
-                        .height(132.dp)
-                        .clip(RectangleShape)
-                        .border(1.dp, Color.Black.copy(alpha = 0.5f), RectangleShape),
-            )
-            Text(
-                text = heroArtworkCaption(show).uppercase(Locale.US),
-                style =
-                    MaterialTheme.typography.labelSmall.copy(
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                color = Color.Black.copy(alpha = 0.74f),
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth().background(Color.White.copy(alpha = 0.30f)),
-            )
         }
     }
 }

@@ -3,6 +3,7 @@ package app.laughtrack.android.feature.detail.data
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.api.ClubsApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
+import app.laughtrack.android.core.network.generated.model.ClubHighlights
 import app.laughtrack.android.feature.detail.model.ClubDetailUi
 import app.laughtrack.android.feature.detail.model.ClubShowsPage
 import javax.inject.Inject
@@ -44,6 +45,12 @@ class ClubDetailRepository(
         val response = clubsApi.getClubShows(id = id, page = page, size = CLUB_SHOWS_LIMIT)
         val body = response.body() ?: error("Club shows unavailable (HTTP ${response.code()})")
         return ClubShowsPage(shows = body.data, total = body.total, page = page)
+    }
+
+    suspend fun getClubHighlights(id: Int): ClubHighlights {
+        val response = clubsApi.getClubHighlights(id)
+        return response.body()?.data
+            ?: error("Club highlights unavailable (HTTP ${response.code()})")
     }
 
     private companion object {

@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +48,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,12 +60,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.ClubDetail
+import app.laughtrack.android.core.network.generated.model.ClubHighlights
 import app.laughtrack.android.core.network.generated.model.ClubRelatedVenue
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
+import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
+import app.laughtrack.android.core.ui.components.TonightHeroCard
+import app.laughtrack.android.core.ui.components.TonightHeroCardContent
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ClubDetailUi
 import app.laughtrack.android.feature.detail.ui.components.AdaptiveDetailCatalogLayout
@@ -90,6 +99,7 @@ fun ClubDetailScreen(
     LaunchedEffect(id) { viewModel.load(id) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isLoadingMore by viewModel.isLoadingMore.collectAsStateWithLifecycle()
+    val highlights by viewModel.highlights.collectAsStateWithLifecycle()
     val favoritesSnapshot by viewModel.favoritesSnapshot.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize()) {
@@ -99,6 +109,7 @@ fun ClubDetailScreen(
                 val ui = (state as UiState.Success<ClubDetailUi>).value
                 ClubDetailBody(
                     ui = ui,
+                    highlights = highlights,
                     isFavorite = favoritesSnapshot.clubValues[ui.detail.id] == true,
                     isFavoritePending = viewModel.isFavoritePending(ui.detail.id),
                     isLoadingMore = isLoadingMore,
@@ -116,6 +127,7 @@ fun ClubDetailScreen(
 @Composable
 private fun ClubDetailBody(
     ui: ClubDetailUi,
+    highlights: ClubHighlights?,
     isFavorite: Boolean,
     isFavoritePending: Boolean,
     isLoadingMore: Boolean,
@@ -142,6 +154,11 @@ private fun ClubDetailBody(
             },
             content = {
                 Column {
+                    ClubHighlightsSections(
+                        club = ui.detail,
+                        highlights = highlights,
+                        onOpenEntity = onOpenEntity,
+                    )
                     ClubCalendarSection(
                         club = ui.detail,
                         shows = ui.upcomingShows,
@@ -158,6 +175,162 @@ private fun ClubDetailBody(
                 }
             },
         )
+    }
+}
+
+internal data class ClubFeaturedShow(
+    val eyebrow: String,
+    val show: Show,
+)
+
+internal fun clubFeaturedShow(highlights: ClubHighlights?): ClubFeaturedShow? {
+    val tonight = highlights?.tonightShows?.firstOrNull()
+    val next = highlights?.nextShow
+    return when {
+        tonight != null -> ClubFeaturedShow("Tonight", tonight)
+        next != null -> ClubFeaturedShow("Next up", next)
+        else -> null
+    }
+}
+
+internal fun clubFrequentPerformers(highlights: ClubHighlights?): List<ComedianListItem> =
+    highlights?.frequentPerformers.orEmpty()
+
+@Composable
+private fun ClubHighlightsSections(
+    club: ClubDetail,
+    highlights: ClubHighlights?,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
+    clubFeaturedShow(highlights)?.let { featured ->
+        ClubFeaturedShowSection(
+            club = club,
+            featured = featured,
+            onClick = { onOpenEntity(AppRoute.ShowDetail(featured.show.id)) },
+        )
+    }
+    val performers = clubFrequentPerformers(highlights)
+    if (performers.isNotEmpty()) {
+        ClubFrequentPerformersSection(
+            performers = performers,
+            onPerformer = { onOpenEntity(AppRoute.ComedianDetail(it.id)) },
+        )
+    }
+}
+
+@Composable
+private fun ClubFeaturedShowSection(
+    club: ClubDetail,
+    featured: ClubFeaturedShow,
+    onClick: () -> Unit,
+) {
+    val show = featured.show
+    val headliner = clubShowHeadliner(show)
+    val time =
+        parseShowDateTime(show.date, show.timezone)?.toLocalTime()
+            ?.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a", Locale.US))
+            .orEmpty()
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .testTag(CLUB_HIGHLIGHT_SECTION_TEST_TAG)
+                .semantics { contentDescription = "${featured.eyebrow} show at ${club.name}" }
+                .padding(horizontal = 8.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(
+            featured.eyebrow.uppercase(Locale.US),
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+            color = LaughTrackColors.AccentStrong,
+        )
+        Surface(
+            color = LaughTrackColors.Surface,
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth().height(388.dp),
+        ) {
+            TonightHeroCard(
+                content =
+                    TonightHeroCardContent(
+                        timeLabel = time,
+                        title = show.name ?: "Show",
+                        venueLabel = "At ${show.clubName ?: club.name}",
+                        artworkUrl = headliner?.imageUrl ?: show.imageUrl.takeIf(String::isNotBlank),
+                        artworkCaption = headliner?.name ?: show.name ?: club.name,
+                        artworkContentDescription = headliner?.name ?: show.name ?: "Show",
+                        artworkFallback =
+                            if (headliner != null) {
+                                RemoteImageFallback.Comedian
+                            } else {
+                                RemoteImageFallback.Show
+                            },
+                        priceLabel = clubShowTicketLabel(show),
+                    ),
+                onClick = onClick,
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .testTag("$CLUB_HIGHLIGHT_SHOW_TEST_TAG_PREFIX${show.id}")
+                        .semantics { contentDescription = "Open ${show.name ?: "show"}" }
+                        .padding(12.dp),
+                artworkHeight = 170.dp,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClubFrequentPerformersSection(
+    performers: List<ComedianListItem>,
+    onPerformer: (ComedianListItem) -> Unit,
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .testTag(CLUB_FREQUENT_PERFORMERS_SECTION_TEST_TAG)
+                .semantics { contentDescription = "Frequent performers" }
+                .padding(horizontal = 8.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(
+            "FREQUENT PERFORMERS",
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+            color = LaughTrackColors.AccentStrong,
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(performers, key = { it.uuid }) { performer ->
+                Surface(
+                    modifier =
+                        Modifier
+                            .width(148.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .testTag("$CLUB_PERFORMER_TEST_TAG_PREFIX${performer.id}")
+                            .semantics { contentDescription = "Open ${performer.name}" }
+                            .clickable(role = Role.Button) { onPerformer(performer) },
+                    color = LaughTrackColors.Surface,
+                    shape = RoundedCornerShape(14.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+                ) {
+                    Column {
+                        RemoteImage(
+                            url = performer.imageUrl,
+                            fallback = RemoteImageFallback.Comedian,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxWidth().height(116.dp),
+                        )
+                        Text(
+                            performer.name,
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = LaughTrackColors.Foreground,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(10.dp),
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -604,6 +777,10 @@ private fun ClubTicketPerforation(color: Color) {
 
 /** Stable semantics hook used to mirror the iOS club-detail → show-detail screenshot flow. */
 const val CLUB_SHOW_ROW_TEST_TAG = "club-show-row"
+const val CLUB_HIGHLIGHT_SECTION_TEST_TAG = "club-detail-highlight-section"
+const val CLUB_HIGHLIGHT_SHOW_TEST_TAG_PREFIX = "club-detail-highlight-show-"
+const val CLUB_FREQUENT_PERFORMERS_SECTION_TEST_TAG = "club-detail-frequent-performers-section"
+const val CLUB_PERFORMER_TEST_TAG_PREFIX = "club-detail-performer-"
 
 @Composable
 private fun ClubRelatedVenuesSection(

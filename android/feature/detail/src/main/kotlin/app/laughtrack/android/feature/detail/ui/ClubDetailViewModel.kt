@@ -6,6 +6,7 @@ import app.laughtrack.android.core.data.favorites.FavoriteEntity
 import app.laughtrack.android.core.data.favorites.FavoritesRepository
 import app.laughtrack.android.core.data.favorites.FavoritesSnapshot
 import app.laughtrack.android.core.data.runCatchingCancellable
+import app.laughtrack.android.core.network.generated.model.ClubHighlights
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.detail.data.ClubDetailRepository
 import app.laughtrack.android.feature.detail.model.ClubDetailUi
@@ -29,6 +30,8 @@ class ClubDetailViewModel
         val state: StateFlow<UiState<ClubDetailUi>> = _state.asStateFlow()
         private val _isLoadingMore = MutableStateFlow(false)
         val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
+        private val _highlights = MutableStateFlow<ClubHighlights?>(null)
+        val highlights: StateFlow<ClubHighlights?> = _highlights.asStateFlow()
         val favoritesSnapshot: StateFlow<FavoritesSnapshot> =
             favoritesRepository.snapshot
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), FavoritesSnapshot())
@@ -39,10 +42,15 @@ class ClubDetailViewModel
             if (loadedId == id && _state.value is UiState.Success) return
             loadedId = id
             _state.value = UiState.Loading
+            _highlights.value = null
             viewModelScope.launch {
                 runCatchingCancellable { repository.getClub(id) }
                     .onSuccess { _state.value = UiState.Success(it) }
                     .onFailure { _state.value = UiState.Failure(it) }
+            }
+            viewModelScope.launch {
+                runCatchingCancellable { repository.getClubHighlights(id) }
+                    .onSuccess { _highlights.value = it }
             }
         }
 
