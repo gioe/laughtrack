@@ -7,6 +7,7 @@ import okhttp3.RequestBody
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+import app.laughtrack.android.core.network.generated.model.ClubHighlightsResponse
 import app.laughtrack.android.core.network.generated.model.ClubSearchResponse
 import app.laughtrack.android.core.network.generated.model.ClubShowsResponse
 import app.laughtrack.android.core.network.generated.model.ErrorResponse
@@ -28,6 +29,22 @@ interface ClubsApi {
      */
     @GET("clubs/{id}")
     suspend fun getClub(@Path("id") id: kotlin.Int): Response<GetClub200Response>
+
+    /**
+     * Get dynamic highlights for a club
+     * Returns shows occurring today in the club&#39;s timezone, the first show after today, and frequently appearing performers when recorded lineup coverage is strong enough. Rate limit: 60 req/min anonymous, 300 req/min authenticated. Cache-Control: public, max-age&#x3D;60, s-maxage&#x3D;300, stale-while-revalidate&#x3D;300.
+     * Responses:
+     *  - 200: Club highlights
+     *  - 400: Non-numeric ID
+     *  - 404: Club not found or inactive
+     *  - 429: Rate limit exceeded
+     *  - 500: Server error
+     *
+     * @param id 
+     * @return [ClubHighlightsResponse]
+     */
+    @GET("clubs/{id}/highlights")
+    suspend fun getClubHighlights(@Path("id") id: kotlin.Int): Response<ClubHighlightsResponse>
 
     /**
      * List upcoming shows for a club

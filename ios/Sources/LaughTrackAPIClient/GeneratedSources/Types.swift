@@ -105,6 +105,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /clubs/{id}`.
     /// - Remark: Generated from `#/paths//clubs/{id}/get(getClub)`.
     func getClub(_ input: Operations.GetClub.Input) async throws -> Operations.GetClub.Output
+    /// Get dynamic highlights for a club
+    ///
+    /// Returns shows occurring today in the club's timezone, the first show after today, and frequently appearing performers when recorded lineup coverage is strong enough. Rate limit: 60 req/min anonymous, 300 req/min authenticated. Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=300.
+    ///
+    /// - Remark: HTTP `GET /clubs/{id}/highlights`.
+    /// - Remark: Generated from `#/paths//clubs/{id}/highlights/get(getClubHighlights)`.
+    func getClubHighlights(_ input: Operations.GetClubHighlights.Input) async throws -> Operations.GetClubHighlights.Output
     /// List upcoming shows for a club
     ///
     /// - Remark: HTTP `GET /clubs/{id}/shows`.
@@ -459,6 +466,21 @@ extension APIProtocol {
         headers: Operations.GetClub.Input.Headers = .init()
     ) async throws -> Operations.GetClub.Output {
         try await getClub(Operations.GetClub.Input(
+            path: path,
+            headers: headers
+        ))
+    }
+    /// Get dynamic highlights for a club
+    ///
+    /// Returns shows occurring today in the club's timezone, the first show after today, and frequently appearing performers when recorded lineup coverage is strong enough. Rate limit: 60 req/min anonymous, 300 req/min authenticated. Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=300.
+    ///
+    /// - Remark: HTTP `GET /clubs/{id}/highlights`.
+    /// - Remark: Generated from `#/paths//clubs/{id}/highlights/get(getClubHighlights)`.
+    public func getClubHighlights(
+        path: Operations.GetClubHighlights.Input.Path,
+        headers: Operations.GetClubHighlights.Input.Headers = .init()
+    ) async throws -> Operations.GetClubHighlights.Output {
+        try await getClubHighlights(Operations.GetClubHighlights.Input(
             path: path,
             headers: headers
         ))
@@ -3459,6 +3481,50 @@ public enum Components {
                 case city
                 case state
                 case imageUrl
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ClubHighlights`.
+        public struct ClubHighlights: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ClubHighlights/tonightShows`.
+            public var tonightShows: [Components.Schemas.Show]
+            /// - Remark: Generated from `#/components/schemas/ClubHighlights/nextShow`.
+            public var nextShow: Components.Schemas.Show?
+            /// - Remark: Generated from `#/components/schemas/ClubHighlights/frequentPerformers`.
+            public var frequentPerformers: [Components.Schemas.ComedianListItem]
+            /// Creates a new `ClubHighlights`.
+            ///
+            /// - Parameters:
+            ///   - tonightShows:
+            ///   - nextShow:
+            ///   - frequentPerformers:
+            public init(
+                tonightShows: [Components.Schemas.Show],
+                nextShow: Components.Schemas.Show? = nil,
+                frequentPerformers: [Components.Schemas.ComedianListItem]
+            ) {
+                self.tonightShows = tonightShows
+                self.nextShow = nextShow
+                self.frequentPerformers = frequentPerformers
+            }
+            public enum CodingKeys: String, CodingKey {
+                case tonightShows
+                case nextShow
+                case frequentPerformers
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ClubHighlightsResponse`.
+        public struct ClubHighlightsResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ClubHighlightsResponse/data`.
+            public var data: Components.Schemas.ClubHighlights
+            /// Creates a new `ClubHighlightsResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.ClubHighlights) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
             }
         }
         /// - Remark: Generated from `#/components/schemas/ClubShowsResponse`.
@@ -8646,6 +8712,361 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.GetClub.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Get dynamic highlights for a club
+    ///
+    /// Returns shows occurring today in the club's timezone, the first show after today, and frequently appearing performers when recorded lineup coverage is strong enough. Rate limit: 60 req/min anonymous, 300 req/min authenticated. Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=300.
+    ///
+    /// - Remark: HTTP `GET /clubs/{id}/highlights`.
+    /// - Remark: Generated from `#/paths//clubs/{id}/highlights/get(getClubHighlights)`.
+    public enum GetClubHighlights {
+        public static let id: Swift.String = "getClubHighlights"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/path/id`.
+                public var id: Swift.Int
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id:
+                public init(id: Swift.Int) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.GetClubHighlights.Input.Path
+            /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetClubHighlights.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetClubHighlights.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetClubHighlights.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.GetClubHighlights.Input.Path,
+                headers: Operations.GetClubHighlights.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ClubHighlightsResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ClubHighlightsResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetClubHighlights.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetClubHighlights.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Club highlights
+            ///
+            /// - Remark: Generated from `#/paths//clubs/{id}/highlights/get(getClubHighlights)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetClubHighlights.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetClubHighlights.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetClubHighlights.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetClubHighlights.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Non-numeric ID
+            ///
+            /// - Remark: Generated from `#/paths//clubs/{id}/highlights/get(getClubHighlights)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.GetClubHighlights.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.GetClubHighlights.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetClubHighlights.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetClubHighlights.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Club not found or inactive
+            ///
+            /// - Remark: Generated from `#/paths//clubs/{id}/highlights/get(getClubHighlights)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.GetClubHighlights.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.GetClubHighlights.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetClubHighlights.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetClubHighlights.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.GetClubHighlights.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetClubHighlights.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//clubs/{id}/highlights/get(getClubHighlights)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetClubHighlights.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetClubHighlights.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/clubs/{id}/highlights/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetClubHighlights.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetClubHighlights.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//clubs/{id}/highlights/get(getClubHighlights)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetClubHighlights.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetClubHighlights.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):
