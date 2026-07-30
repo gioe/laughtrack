@@ -498,6 +498,7 @@ struct ComedianRelatedPanel: View {
 
 struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
     let id: Int
+    let episodeID: Int
     let podcastID: Int?
     let episodeTitle: String
     let podcastName: String
@@ -514,6 +515,7 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
 
     init(
         id: Int,
+        episodeID: Int? = nil,
         podcastID: Int? = nil,
         episodeTitle: String,
         podcastName: String,
@@ -525,6 +527,7 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
         releaseDate: String? = nil
     ) {
         self.id = id
+        self.episodeID = episodeID ?? id
         self.podcastID = podcastID
         self.episodeTitle = episodeTitle
         self.podcastName = podcastName
@@ -539,6 +542,7 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
     func markingAudioFailed() -> PodcastPlaybackItem {
         .init(
             id: id,
+            episodeID: episodeID,
             podcastID: podcastID,
             episodeTitle: episodeTitle,
             podcastName: podcastName,
@@ -569,10 +573,10 @@ enum ComedianPodcastPresentation {
     static func playbackItem(for appearance: Components.Schemas.PodcastAppearance) -> PodcastPlaybackItem? {
         let audioURL = URL.normalizedExternalURL(appearance.episode.audioUrl)
         let episodeURL = URL.normalizedExternalURL(appearance.episode.episodeUrl)
-        guard audioURL != nil || episodeURL != nil else { return nil }
 
         return .init(
             id: appearance.id,
+            episodeID: appearance.episode.id,
             podcastID: appearance.podcast.id,
             episodeTitle: appearance.episode.title,
             podcastName: appearance.podcast.title,
@@ -853,15 +857,10 @@ struct ComedianPodcastPanel: View {
         let laughTrack = theme.laughTrackTokens
         let releaseLabel = ComedianPodcastPresentation.formattedReleaseDate(item.releaseDate)
 
-        Button {
-            podcastPlayer.start(item)
-        } label: {
-            HStack(alignment: .top, spacing: theme.spacing.sm) {
-                Image(systemName: item.audioURL == nil ? "arrow.up.right.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 22, weight: .semibold))
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
-
+        HStack(alignment: .center, spacing: theme.spacing.sm) {
+            Button {
+                coordinator.push(.podcastEpisodeDetail(item.episodeID))
+            } label: {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.episodeTitle)
                         .font(laughTrack.typography.body)
@@ -875,17 +874,30 @@ struct ComedianPodcastPanel: View {
                             .foregroundStyle(laughTrack.colors.textSecondary)
                     }
                 }
-
-                Spacer(minLength: 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .padding(.vertical, 4)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .accessibilityLabel(
+                "Open " + [item.episodeTitle, releaseLabel].compactMap { $0 }.joined(separator: ", ")
+            )
+            .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeRow(item.episodeID))
+
+            if item.audioURL != nil {
+                Button {
+                    podcastPlayer.start(item)
+                } label: {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 24, weight: .semibold))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Play \(item.episodeTitle)")
+                .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodePlayButton(item.episodeID))
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(
-            [item.episodeTitle, releaseLabel].compactMap { $0 }.joined(separator: ", ")
-        )
+        .padding(.vertical, 4)
     }
 
     @ViewBuilder
@@ -978,6 +990,7 @@ struct PodcastAppearanceRow: View {
     var showsDisclosureIndicator = false
     var subtitleOverride: String?
     let onSelect: () -> Void
+    var onPlay: (() -> Void)?
     var onOpenPodcast: (() -> Void)?
     var onOpenComedian: ((Int) -> Void)?
 
@@ -1046,6 +1059,18 @@ struct PodcastAppearanceRow: View {
 
                 Spacer(minLength: 0)
 
+                if let onPlay {
+                    Button(action: onPlay) {
+                        Image(systemName: "play.circle.fill")
+                            .font(.system(size: 26, weight: .semibold))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Play \(item.episodeTitle)")
+                    .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodePlayButton(item.episodeID))
+                }
+
                 if showsDisclosureIndicator {
                     Image(systemName: "chevron.right")
                         .font(.system(size: theme.iconSizes.sm, weight: .semibold))
@@ -1068,6 +1093,7 @@ struct PodcastAppearanceRow: View {
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
         .accessibilityLabel(accessibilityLabel)
+        .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeRow(item.episodeID))
     }
 
     private var accessibilityLabel: String {
@@ -1083,15 +1109,11 @@ struct PodcastAppearanceRow: View {
     }
 
     private var artworkActionIconSystemName: String {
-        item.audioURL == nil ? "arrow.up.right.circle.fill" : "play.circle.fill"
+        "chevron.right.circle.fill"
     }
 
     private var selectionAccessibilityLabel: String {
-        if showsDisclosureIndicator && !showsArtworkActionIcon {
-            return "Open podcast"
-        }
-
-        return item.audioURL == nil ? "Open episode" : "Play episode"
+        "Open episode details"
     }
 
     @ViewBuilder

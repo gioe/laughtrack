@@ -64,6 +64,9 @@ enum LaughTrackViewTestID {
     static let showDetailScreen = "laughtrack.show-detail.screen"
     static let comedianDetailScreen = "laughtrack.comedian-detail.screen"
     static let podcastDetailScreen = "laughtrack.podcast-detail-screen"
+    static let podcastEpisodeDetailScreen = "laughtrack.podcast-episode-detail.screen"
+    static let podcastEpisodeDetailPrimaryAction = "laughtrack.podcast-episode-detail.primary-action"
+    static let podcastEpisodeDetailPodcastLink = "laughtrack.podcast-episode-detail.podcast-link"
     static let comedianDetailTabPicker = "laughtrack.comedian-detail.tab-picker"
     static let podcastMiniPlayer = "laughtrack.podcast-mini-player"
     static let clubDetailScreen = "laughtrack.club-detail.screen"
@@ -134,6 +137,18 @@ enum LaughTrackViewTestID {
 
     static func podcastsSearchResultButton(_ id: String) -> String {
         "laughtrack.podcasts-search.result-\(id)"
+    }
+
+    static func podcastEpisodeDetailComedianLink(_ id: Int) -> String {
+        "laughtrack.podcast-episode-detail.comedian-\(id)"
+    }
+
+    static func podcastEpisodeRow(_ id: Int) -> String {
+        "laughtrack.podcast-episode.row-\(id)"
+    }
+
+    static func podcastEpisodePlayButton(_ id: Int) -> String {
+        "laughtrack.podcast-episode.play-\(id)"
     }
 
     static func primitiveFilterButton(_ primitive: String) -> String {
@@ -397,6 +412,8 @@ struct ContentView: View {
                 ClubDetailView(clubId: id, apiClient: apiClient)
             case .podcastDetail(let id):
                 PodcastDetailView(podcastID: id, apiClient: apiClient)
+            case .podcastEpisodeDetail(let id):
+                PodcastEpisodeDetailView(episodeID: id, apiClient: apiClient)
             }
         } root: {
             AppShellView(

@@ -10,6 +10,7 @@ enum AppRoute: Hashable, Codable {
     case comedianDetail(Int)
     case clubDetail(Int)
     case podcastDetail(Int)
+    case podcastEpisodeDetail(Int)
 
     var shellTab: AppTab? {
         switch self {
@@ -19,7 +20,8 @@ enum AppRoute: Hashable, Codable {
             return .search
         case .library:
             return .favorites
-        case .profile, .notifications, .showDetail, .comedianDetail, .clubDetail, .podcastDetail:
+        case .profile, .notifications, .showDetail, .comedianDetail, .clubDetail,
+             .podcastDetail, .podcastEpisodeDetail:
             return nil
         }
     }
