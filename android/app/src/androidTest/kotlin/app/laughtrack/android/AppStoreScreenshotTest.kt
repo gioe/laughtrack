@@ -29,6 +29,8 @@ import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.components.RemoteImageTestTags
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
+import app.laughtrack.android.feature.detail.ui.CLUB_FREQUENT_PERFORMERS_SECTION_TEST_TAG
+import app.laughtrack.android.feature.detail.ui.CLUB_HIGHLIGHT_SECTION_TEST_TAG
 import app.laughtrack.android.feature.detail.ui.CLUB_SHOW_ROW_TEST_TAG
 import app.laughtrack.android.feature.detail.ui.components.DETAIL_LOADING_TEST_TAG
 import app.laughtrack.android.feature.search.ui.SEARCH_RESULT_ROW_TEST_TAG
@@ -245,6 +247,8 @@ class AppStoreScreenshotTest {
         // 05 — Open the catalog's fixed club fixture.
         searchFor("The Comedy Store")
         openFirstResult()
+        waitFor(hasTestTag(CLUB_HIGHLIGHT_SECTION_TEST_TAG), timeoutMs = 30_000)
+        waitFor(hasTestTag(CLUB_FREQUENT_PERFORMERS_SECTION_TEST_TAG), timeoutMs = 30_000)
         if (capture("05_ClubDetail")) return
 
         // 06 — Show detail. Match iOS by opening the first upcoming show from
