@@ -2175,6 +2175,71 @@
         }
       }
     },
+    "/podcast-episodes/{id}": {
+      "get": {
+        "operationId": "getPodcastEpisode",
+        "summary": "Get podcast episode detail",
+        "description": "Returns one podcast episode by internal numeric id with its public parent podcast context and accepted visible comedian appearances. Unlike podcast detail, this endpoint is not limited to the 50 most recent episodes.",
+        "tags": ["podcasts"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Podcast episode numeric id",
+            "schema": { "type": "integer", "minimum": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Podcast episode detail payload",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PodcastEpisodeDetailResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid podcast episode id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Podcast episode not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/favorites": {
       "get": {
         "operationId": "getFavorites",
@@ -3846,6 +3911,14 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
           }
+        }
+      },
+      "PodcastEpisodeDetailResponse": {
+        "type": "object",
+        "required": ["podcast", "episode"],
+        "properties": {
+          "podcast": { "$ref": "#/components/schemas/PodcastDetailPodcast" },
+          "episode": { "$ref": "#/components/schemas/PodcastDetailEpisode" }
         }
       },
       "FavoriteShowListResponse": {

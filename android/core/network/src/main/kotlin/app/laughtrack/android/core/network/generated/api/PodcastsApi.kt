@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 
 import app.laughtrack.android.core.network.generated.model.ErrorResponse
 import app.laughtrack.android.core.network.generated.model.PodcastDetailResponse
+import app.laughtrack.android.core.network.generated.model.PodcastEpisodeDetailResponse
 import app.laughtrack.android.core.network.generated.model.PodcastSearchResponse
 
 interface PodcastsApi {
@@ -27,6 +28,22 @@ interface PodcastsApi {
      */
     @GET("podcasts/{id}")
     suspend fun getPodcast(@Path("id") id: kotlin.Int): Response<PodcastDetailResponse>
+
+    /**
+     * Get podcast episode detail
+     * Returns one podcast episode by internal numeric id with its public parent podcast context and accepted visible comedian appearances. Unlike podcast detail, this endpoint is not limited to the 50 most recent episodes.
+     * Responses:
+     *  - 200: Podcast episode detail payload
+     *  - 400: Invalid podcast episode id
+     *  - 404: Podcast episode not found
+     *  - 429: Rate limit exceeded
+     *  - 500: Server error
+     *
+     * @param id Podcast episode numeric id
+     * @return [PodcastEpisodeDetailResponse]
+     */
+    @GET("podcast-episodes/{id}")
+    suspend fun getPodcastEpisode(@Path("id") id: kotlin.Int): Response<PodcastEpisodeDetailResponse>
 
     /**
      * Search podcasts with sorting and pagination
