@@ -370,20 +370,27 @@ enum PodcastDetailPresentation {
         podcast: PodcastDetail,
         episode: PodcastDetailEpisode
     ) -> PodcastPlaybackItem? {
-        let audioURL = URL.normalizedExternalURL(episode.audioUrl)
-        let episodeURL = URL.normalizedExternalURL(episode.episodeUrl)
-        guard audioURL != nil || episodeURL != nil else { return nil }
+        let item = episodeItem(podcast: podcast, episode: episode)
+        guard item.audioURL != nil || item.episodeURL != nil else { return nil }
+        return item
+    }
 
+    static func episodeItem(
+        podcast: PodcastDetail,
+        episode: PodcastDetailEpisode
+    ) -> PodcastPlaybackItem {
         return PodcastPlaybackItem(
             id: episode.id,
+            episodeID: episode.id,
             podcastID: podcast.id,
             episodeTitle: episode.title,
             podcastName: podcast.title,
             podcastImageURL: podcast.imageUrl,
             displayRole: "",
-            audioURL: audioURL,
-            episodeURL: episodeURL,
-            failedAudioURL: nil
+            audioURL: URL.normalizedExternalURL(episode.audioUrl),
+            episodeURL: URL.normalizedExternalURL(episode.episodeUrl),
+            failedAudioURL: nil,
+            releaseDate: episode.releaseDate
         )
     }
 
@@ -439,22 +446,19 @@ private struct PodcastEpisodeListSection: View {
     @State private var currentPage = 0
 
     var body: some View {
-        let playableEntries: [(item: PodcastPlaybackItem, metadata: String, lineup: [LineupAvatarItem])] = episodes.compactMap { episode in
-            guard let item = PodcastDetailPresentation.playbackItem(podcast: podcast, episode: episode) else {
-                return nil
-            }
+        let entries: [(item: PodcastPlaybackItem, metadata: String, lineup: [LineupAvatarItem])] = episodes.map { episode in
             return (
-                item,
+                PodcastDetailPresentation.episodeItem(podcast: podcast, episode: episode),
                 PodcastDetailPresentation.episodeMetadata(for: episode),
                 PodcastDetailPresentation.episodeLineup(for: episode, podcast: podcast)
             )
         }
 
-        let pageCount = max(1, (playableEntries.count + Self.pageSize - 1) / Self.pageSize)
+        let pageCount = max(1, (entries.count + Self.pageSize - 1) / Self.pageSize)
         let safePage = min(currentPage, pageCount - 1)
         let startIndex = safePage * Self.pageSize
-        let endIndex = min(startIndex + Self.pageSize, playableEntries.count)
-        let visibleEntries = playableEntries.isEmpty ? [] : Array(playableEntries[startIndex..<endIndex])
+        let endIndex = min(startIndex + Self.pageSize, entries.count)
+        let visibleEntries = entries.isEmpty ? [] : Array(entries[startIndex..<endIndex])
 
         VStack(alignment: .leading, spacing: 12) {
             LaughTrackSectionHeader(eyebrow: "Catalog", title: "Episodes")
@@ -464,27 +468,29 @@ private struct PodcastEpisodeListSection: View {
                     title: "No Episodes Found",
                     message: "\(podcast.title) has no episodes on LaughTrack yet."
                 )
-            } else if playableEntries.isEmpty {
-                EmptyCard(
-                    title: "No playable episodes yet",
-                    message: "LaughTrack has not matched this podcast with playable episodes yet."
-                )
             } else {
                 ForEach(visibleEntries, id: \.item.id) { entry in
                     PodcastAppearanceRow(
                         item: entry.item,
                         isCurrent: podcastPlayer.currentItem?.id == entry.item.id,
                         lineup: entry.lineup,
-                        subtitleOverride: entry.metadata
-                    ) {
-                        podcastPlayer.start(entry.item)
-                    } onOpenComedian: { comedianID in
-                        coordinator.open(.comedian(comedianID))
-                    }
+                        showsArtworkActionIcon: false,
+                        showsDisclosureIndicator: true,
+                        subtitleOverride: entry.metadata,
+                        onSelect: {
+                            coordinator.push(.podcastEpisodeDetail(entry.item.episodeID))
+                        },
+                        onPlay: entry.item.audioURL == nil ? nil : {
+                            podcastPlayer.start(entry.item)
+                        },
+                        onOpenComedian: { comedianID in
+                            coordinator.open(.comedian(comedianID))
+                        }
+                    )
                 }
 
                 if pageCount > 1 {
-                    pager(currentPage: safePage, pageCount: pageCount, totalCount: playableEntries.count)
+                    pager(currentPage: safePage, pageCount: pageCount, totalCount: entries.count)
                 }
             }
         }
