@@ -12,11 +12,13 @@ import app.laughtrack.android.core.testing.signedOutFavoritesRepository
 import app.laughtrack.android.core.testing.throwingApi
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.detail.data.ClubDetailRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -87,6 +89,31 @@ class ClubDetailViewModelTest {
         }
 
     @Test
+    fun stale_highlights_do_not_replace_the_current_club() =
+        runTest {
+            val releaseFirst = CompletableDeferred<Unit>()
+            val viewModel =
+                viewModel(
+                    FakeClubsApi(
+                        delayedHighlightId = 1,
+                        delayedHighlightRelease = releaseFirst,
+                    ),
+                )
+
+            viewModel.load(1)
+            runCurrent()
+            viewModel.load(2)
+            runCurrent()
+            assertEquals(listOf(201), viewModel.highlights.value?.tonightShows?.map { it.id })
+
+            releaseFirst.complete(Unit)
+            advanceUntilIdle()
+
+            assertEquals(listOf(201), viewModel.highlights.value?.tonightShows?.map { it.id })
+            assertEquals(2, (viewModel.state.value as UiState.Success).value.detail.id)
+        }
+
+    @Test
     fun highlights_failure_preserves_detail_related_venues_and_pagination() =
         runTest {
             val viewModel = viewModel(FakeClubsApi(highlightsFail = true))
@@ -144,6 +171,8 @@ class ClubDetailViewModelTest {
         private val detailFails: Boolean = false,
         private val showsFail: Boolean = false,
         private val highlightsFail: Boolean = false,
+        private val delayedHighlightId: Int? = null,
+        private val delayedHighlightRelease: CompletableDeferred<Unit>? = null,
     ) : ClubsApi by throwingApi() {
         override suspend fun getClub(id: Int): Response<GetClub200Response> {
             if (detailFails) throw IOException("network down")
@@ -166,10 +195,12 @@ class ClubDetailViewModelTest {
 
         override suspend fun getClubHighlights(id: Int): Response<ClubHighlightsResponse> {
             if (highlightsFail) throw IOException("network down")
+            if (id == delayedHighlightId) delayedHighlightRelease?.await()
+            val tonightId = if (delayedHighlightId != null) id * 100 + 1 else 91
             return Response.success(
                 ClubHighlightsResponse(
                     ClubHighlights(
-                        tonightShows = listOf(show(91, id)),
+                        tonightShows = listOf(show(tonightId, id)),
                         nextShow = show(92, id),
                         frequentPerformers = emptyList(),
                     ),

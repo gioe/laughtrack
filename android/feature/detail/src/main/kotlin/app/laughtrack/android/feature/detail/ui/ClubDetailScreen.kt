@@ -294,7 +294,7 @@ private fun ClubFrequentPerformersSection(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
-            "FREQUENT PERFORMERS",
+            "Frequently on this stage",
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
             color = LaughTrackColors.AccentStrong,
         )

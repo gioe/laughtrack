@@ -42,15 +42,21 @@ class ClubDetailViewModel
             if (loadedId == id && _state.value is UiState.Success) return
             loadedId = id
             _state.value = UiState.Loading
+            _isLoadingMore.value = false
             _highlights.value = null
             viewModelScope.launch {
                 runCatchingCancellable { repository.getClub(id) }
-                    .onSuccess { _state.value = UiState.Success(it) }
-                    .onFailure { _state.value = UiState.Failure(it) }
+                    .onSuccess {
+                        if (loadedId == id) _state.value = UiState.Success(it)
+                    }.onFailure {
+                        if (loadedId == id) _state.value = UiState.Failure(it)
+                    }
             }
             viewModelScope.launch {
                 runCatchingCancellable { repository.getClubHighlights(id) }
-                    .onSuccess { _highlights.value = it }
+                    .onSuccess {
+                        if (loadedId == id) _highlights.value = it
+                    }
             }
         }
 
@@ -72,16 +78,18 @@ class ClubDetailViewModel
                         page = current.currentPage + 1,
                     )
                 }.onSuccess { next ->
-                    _state.value =
-                        UiState.Success(
-                            current.copy(
-                                upcomingShows =
-                                    (current.upcomingShows + next.shows)
-                                        .distinctBy { it.id },
-                                totalShows = next.total,
-                                currentPage = next.page,
-                            ),
-                        )
+                    if (loadedId == current.detail.id) {
+                        _state.value =
+                            UiState.Success(
+                                current.copy(
+                                    upcomingShows =
+                                        (current.upcomingShows + next.shows)
+                                            .distinctBy { it.id },
+                                    totalShows = next.total,
+                                    currentPage = next.page,
+                                ),
+                            )
+                    }
                 }
                 _isLoadingMore.value = false
             }
