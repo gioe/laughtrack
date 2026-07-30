@@ -20,6 +20,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     private enum Identifier {
         static let primitiveFilterScroller = "laughtrack.primitive-filter.scroller"
         static let clubDetailScreen = "laughtrack.club-detail.screen"
+        static let clubDetailHighlightSection = "laughtrack.club-detail.highlight-section"
+        static let clubDetailFrequentPerformersSection = "laughtrack.club-detail.frequent-performers-section"
         static let showDetailScreen = "laughtrack.show-detail.screen"
         static let comedianDetailScreen = "laughtrack.comedian-detail.screen"
         static let podcastDetailScreen = "laughtrack.podcast-detail-screen"
@@ -103,6 +105,10 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 screen: identified(Identifier.clubDetailScreen, as: "club detail screen"),
                 content: [
                     text("The Comedy Store", as: "club title"),
+                    identified(Identifier.clubDetailHighlightSection, as: "club highlight section"),
+                    prefixed("laughtrack.club-detail.highlight-show-", as: "club highlight show action"),
+                    identified(Identifier.clubDetailFrequentPerformersSection, as: "club frequent performers section"),
+                    prefixed("laughtrack.club-detail.performer-", as: "club performer action"),
                     prefixed("laughtrack.shows-search.result-", as: "upcoming show"),
                     noLoadingLabels(["Loading", "Loading shows"]),
                 ]

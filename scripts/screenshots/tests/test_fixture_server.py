@@ -56,6 +56,20 @@ def test_default_mode_preserves_fallback_focused_contract() -> None:
     assert [club["showCount"] for club in clubs["data"]] == [120, 110, 100, 90, 80]
 
 
+def test_club_highlights_fixture_populates_tonight_and_qualified_performers() -> None:
+    payload = fixture_response("/api/v1/clubs/201/highlights", "http://fixture")
+    highlights = payload["data"]
+
+    assert [show["id"] for show in highlights["tonightShows"]] == [101]
+    assert highlights["nextShow"]["id"] == 102
+    assert len(highlights["frequentPerformers"]) == 3
+    assert [performer["id"] for performer in highlights["frequentPerformers"]] == [
+        301,
+        302,
+        303,
+    ]
+
+
 def test_asset_rich_mode_populates_dense_search_results_with_distinct_artwork() -> None:
     contract = CONTENT_FIXTURE["modes"]["asset-rich"]
     artwork_urls: set[str] = set()

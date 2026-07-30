@@ -362,6 +362,17 @@ def fixture_response(path: str, base_url: str, mode: str = DEFAULT_MODE) -> dict
         ], "total": result_count, "filters": []}
     if path == f"{API_PREFIX}clubs/201":
         return {"data": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "heroImageUrl": f"{base_url}/artwork/comedy-store.png", "website": "https://thecomedystore.com", "address": "8433 Sunset Blvd, West Hollywood, CA", "zipCode": "90069", "phoneNumber": "(323) 650-6268"}}
+    if path == f"{API_PREFIX}clubs/201/highlights":
+        return {
+            "data": {
+                "tonightShows": [_show(base_url)],
+                "nextShow": _show(base_url, 102, "Comedy Store Showcase", 21),
+                "frequentPerformers": [
+                    _comedian(base_url, index, name, mode)
+                    for index, name in enumerate(COMEDIAN_NAMES[:3])
+                ],
+            }
+        }
     if path == f"{API_PREFIX}clubs/201/shows":
         return {
             "data": [
