@@ -1026,6 +1026,7 @@ struct PodcastAppearanceRow: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeRow(item.episodeID))
 
                     if let subtitleOverride {
                         Text(subtitleOverride)
@@ -1093,7 +1094,6 @@ struct PodcastAppearanceRow: View {
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
         .accessibilityLabel(accessibilityLabel)
-        .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeRow(item.episodeID))
     }
 
     private var accessibilityLabel: String {
