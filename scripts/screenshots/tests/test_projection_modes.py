@@ -136,7 +136,7 @@ options = {run_root: ARGV.fetch(2)}
 options[:comparison_only] = true if ARGV.fetch(3) == "comparison"
 if ARGV.fetch(3) == "targeted"
   options[:profiles] = ARGV.fetch(1) == "ios" ? "ios_phone,ios_large_tablet" : "android_phone"
-  options[:scenarios] = "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts"
+  options[:scenarios] = "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts,10_PodcastEpisodeDetail"
   $lanes.fetch(:verify_screenshots).call(options)
 else
   $lanes.fetch(:screenshots).call(options)
@@ -194,13 +194,15 @@ def test_targeted_mode_captures_selected_subset_without_projecting_storefront(
         "03_SearchComedians",
         "04_SearchClubs",
         "08_SearchPodcasts",
+        "10_PodcastEpisodeDetail",
     ]
     capture = next(event["capture"] for event in events if "capture" in event)
     if platform == "ios":
         assert capture["clear_previous_screenshots"] is True
         assert capture["launch_arguments"] == [
             "-UITestMockMode -ScreenshotScenarios "
-            "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts",
+            "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts,"
+            "10_PodcastEpisodeDetail",
         ]
     else:
         assert capture["scenario_ids"] == collect["scenario_ids"]

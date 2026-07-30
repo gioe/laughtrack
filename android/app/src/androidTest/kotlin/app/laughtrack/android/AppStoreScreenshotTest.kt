@@ -87,6 +87,7 @@ class AppStoreScreenshotTest {
             "07_ComedianDetail",
             "08_SearchPodcasts",
             "09_PodcastDetail",
+            "10_PodcastEpisodeDetail",
             "11_Profile",
             "18_AuthPrompt",
             "13_Onboarding",
@@ -96,6 +97,9 @@ class AppStoreScreenshotTest {
             "17_AuthenticatedNotifications",
             "19_FirstEntryAuthChoice",
         )
+    private val podcastEpisodeRowTag = "podcastEpisodeRow-501"
+    private val podcastEpisodeDetailTag = "podcastEpisodeDetail"
+    private val podcastEpisodePrimaryActionTag = "podcastEpisodeDetailPrimaryAction"
     private val selectedScenarioIds: List<String>? by lazy {
         InstrumentationRegistry.getArguments().getString("screenshotScenarios")
             ?.split(",")
@@ -278,6 +282,18 @@ class AppStoreScreenshotTest {
         searchFor("The Joe Rogan Experience")
         openFirstResult()
         if (capture("09_PodcastDetail")) return
+
+        // 10 — Open the same deterministic episode from podcast detail.
+        waitFor(hasTestTag(podcastEpisodeRowTag), timeoutMs = 20_000)
+        composeRule
+            .onNodeWithContentDescription("Open episode #2520 - A Night of Comedy")
+            .performScrollTo()
+            .performClick()
+        waitFor(hasTestTag(podcastEpisodeDetailTag), timeoutMs = 20_000)
+        waitUntilGone(hasTestTag(DETAIL_LOADING_TEST_TAG), timeoutMs = 30_000)
+        waitFor(hasText("#2520 - A Night of Comedy"), timeoutMs = 20_000)
+        waitFor(hasTestTag(podcastEpisodePrimaryActionTag), timeoutMs = 20_000)
+        if (capture("10_PodcastEpisodeDetail")) return
 
         navigate(navController, AppRoute.Profile)
         waitFor(hasText("Guest mode"))

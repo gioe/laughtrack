@@ -250,7 +250,7 @@ def test_generates_17_scenario_labeled_sheets_in_profile_order(tmp_path: Path, m
     font.write_bytes(b"test font placeholder")
     generate_sheets(comparison, tmp_path / "sheets", font=font)
 
-    assert len(commands) == 17
+    assert len(commands) == 18
     assert [Path(group["sheet_path"]).stem for group in groups] == list(SCENARIO_IDS)
     expected_labels = [
         (

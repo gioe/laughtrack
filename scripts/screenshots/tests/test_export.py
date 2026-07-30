@@ -102,6 +102,14 @@ def test_play_projection_exports_eight_phone_and_four_per_tablet(tmp_path: Path)
     assert file_hashes(manifest.parent) == run_before
 
 
+def test_episode_detail_remains_comparison_only() -> None:
+    assert all(
+        "10_PodcastEpisodeDetail" not in scenario_ids
+        for storefront in STOREFRONT_SELECTIONS.values()
+        for scenario_ids in storefront.values()
+    )
+
+
 def test_app_store_projection_exports_all_canonical_phone_and_ipad_images(
     tmp_path: Path,
 ) -> None:
@@ -137,7 +145,7 @@ def test_collection_serializes_normalized_validated_manifest(tmp_path: Path) -> 
     assert manifest["mode"] == "complete"
     assert manifest["profiles"] == ["ios_phone", "ios_large_tablet"]
     assert manifest["scenarios"] == [scenario["id"] for scenario in load_catalog(CATALOG_PATH)["scenarios"]]
-    assert len(manifest["images"]) == 34
+    assert len(manifest["images"]) == 36
     assert manifest["images"][0]["path"] == "images/ios_phone/01_NearMe.png"
     assert all(Path(image["path"]).name == f"{image['scenario_id']}.png" for image in manifest["images"])
 
@@ -311,7 +319,7 @@ def test_completed_profile_is_reusable_while_later_profiles_are_incomplete(tmp_p
 
     assert file_hashes(phone_directory) == phone_before
     assert manifest["profiles"] == ["android_phone", "android_small_tablet", "android_large_tablet"]
-    assert len(manifest["images"]) == 51
+    assert len(manifest["images"]) == 54
 
 
 def test_incomplete_or_wrong_sized_profile_is_not_reusable(tmp_path: Path) -> None:

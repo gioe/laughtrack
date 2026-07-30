@@ -25,6 +25,10 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         static let showDetailScreen = "laughtrack.show-detail.screen"
         static let comedianDetailScreen = "laughtrack.comedian-detail.screen"
         static let podcastDetailScreen = "laughtrack.podcast-detail-screen"
+        static let podcastEpisodeDetailScreen = "laughtrack.podcast-episode-detail.screen"
+        static let podcastEpisodeDetailPrimaryAction = "laughtrack.podcast-episode-detail.primary-action"
+        static let podcastEpisodeDetailPodcastLink = "laughtrack.podcast-episode-detail.podcast-link"
+        static let podcastEpisodeRow = "laughtrack.podcast-episode.row-501"
     }
 
     override func prepareForSnapshot() {
@@ -193,6 +197,52 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 screen: identified(Identifier.podcastDetailScreen, as: "podcast detail screen"),
                 content: [
                     text("The Joe Rogan Experience", as: "podcast title"),
+                    noLoadingLabels(["Loading"]),
+                ]
+            )
+        }
+
+        try runScenario("10_PodcastEpisodeDetail") {
+            if selectedScenarioIDs != nil {
+                relaunchOnSearchTab()
+                tapPrimitive("podcasts")
+                searchFor(
+                    "The Joe Rogan Experience",
+                    resultIdentifierPrefix: "laughtrack.podcasts-search.result-"
+                )
+                tapFirstResult(
+                    identifierPrefix: "laughtrack.podcasts-search.result-",
+                    detailIdentifier: Identifier.podcastDetailScreen,
+                    description: "podcast"
+                )
+            }
+            let episode = element(Identifier.podcastEpisodeRow)
+            XCTAssertTrue(episode.waitForExistence(timeout: 15), "Expected deterministic podcast episode")
+            for _ in 0 ..< 3 where !episode.isHittable {
+                app.swipeUp()
+            }
+            XCTAssertTrue(episode.isHittable, "Expected deterministic podcast episode to be hittable")
+            episode.tap()
+            assertExists(
+                Identifier.podcastEpisodeDetailScreen,
+                message: "Expected podcast episode detail"
+            )
+            try capture(
+                "10_PodcastEpisodeDetail",
+                screen: identified(
+                    Identifier.podcastEpisodeDetailScreen,
+                    as: "podcast episode detail screen"
+                ),
+                content: [
+                    text("#2520 - A Night of Comedy", as: "podcast episode title"),
+                    identified(
+                        Identifier.podcastEpisodeDetailPrimaryAction,
+                        as: "podcast episode primary action"
+                    ),
+                    identified(
+                        Identifier.podcastEpisodeDetailPodcastLink,
+                        as: "podcast context link"
+                    ),
                     noLoadingLabels(["Loading"]),
                 ]
             )

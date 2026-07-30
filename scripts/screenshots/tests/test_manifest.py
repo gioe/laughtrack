@@ -106,6 +106,12 @@ def test_checked_in_catalog_defines_cross_platform_fixture_contracts(catalog: di
     assert {scenario_id: contexts[scenario_id] for scenario_id in FIXTURE_CAPTURE_CONTEXTS} == dict(
         FIXTURE_CAPTURE_CONTEXTS
     )
+    assert contexts["10_PodcastEpisodeDetail"] == {
+        "screen": "podcast_episode_detail",
+        "source_scenario_id": "09_PodcastDetail",
+        "selection": "first_episode",
+        "episode_id": 501,
+    }
 
 
 def test_checked_in_catalog_matches_shared_content_fixture(catalog: dict) -> None:
@@ -237,7 +243,7 @@ def test_completed_platform_run_records_and_validates_every_image(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
     validate_manifest(completed_run, catalog, repo_root=tmp_path)
-    assert len(completed_run["images"]) == 51
+    assert len(completed_run["images"]) == 54
 
 
 def test_verification_manifest_accepts_canonical_profile_and_scenario_subsets(
@@ -448,7 +454,7 @@ def test_manifest_enforces_freshness_boundary(
 
 def test_cli_validates_catalog(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["validate-catalog", "--catalog", str(CATALOG_PATH)]) == 0
-    assert "valid catalog: 17 scenarios" in capsys.readouterr().out
+    assert "valid catalog: 18 scenarios" in capsys.readouterr().out
 
 
 def test_cli_plan_emits_canonical_profile_scenario_order(
@@ -469,7 +475,7 @@ def test_cli_plan_emits_canonical_profile_scenario_order(
         == 0
     )
     plan = json.loads(capsys.readouterr().out)
-    assert len(plan) == 34
+    assert len(plan) == 36
     assert plan[0] == {"profile_id": "ios_phone", "scenario_id": "01_NearMe"}
     assert plan[-1] == {
         "profile_id": "ios_large_tablet",

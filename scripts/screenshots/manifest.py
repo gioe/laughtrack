@@ -26,6 +26,7 @@ SCENARIO_IDS = (
     "07_ComedianDetail",
     "08_SearchPodcasts",
     "09_PodcastDetail",
+    "10_PodcastEpisodeDetail",
     "11_Profile",
     "13_Onboarding",
     "14_NowPlaying",
@@ -82,6 +83,12 @@ FIXTURE_CAPTURE_CONTEXTS: Mapping[str, Mapping[str, Any]] = {
         "source_scenario_id": "08_SearchPodcasts",
         "query": "The Joe Rogan Experience",
         "selection": "first_result",
+    },
+    "10_PodcastEpisodeDetail": {
+        "screen": "podcast_episode_detail",
+        "source_scenario_id": "09_PodcastDetail",
+        "selection": "first_episode",
+        "episode_id": 501,
     },
     "15_AuthenticatedFavorites": {
         "screen": "favorites",

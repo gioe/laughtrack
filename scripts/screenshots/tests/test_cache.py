@@ -146,6 +146,8 @@ def test_unchanged_profile_is_reused_and_materialized_with_capture_provenance(tm
     assert result["reused_profiles"] == ["ios_phone"]
     assert result["pending_profiles"] == ["ios_large_tablet"]
     assert all(path.is_file() for _, path in _profile_paths(capture, "ios_phone"))
+    episode_path = dict(_profile_paths(capture, "ios_phone"))["10_PodcastEpisodeDetail"]
+    assert episode_path.is_file()
     provenance = json.loads((capture / PROVENANCE_FILENAME).read_text(encoding="utf-8"))
     record = provenance["profiles"]["ios_phone"]
     assert record["source"] == "cache"

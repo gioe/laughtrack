@@ -18,7 +18,8 @@
           "club": { "id": 201, "name": "The Comedy Store" },
           "show": { "id": 101, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
           "comedian": { "id": 301, "name": "Ali Wong" },
-          "podcast": { "id": 401, "name": "The Joe Rogan Experience" }
+          "podcast": { "id": 401, "name": "The Joe Rogan Experience" },
+          "episode": { "id": 501, "name": "#2520 - A Night of Comedy" }
         },
         "dates": {
           "primary_show": "2030-07-18T20:00:00-07:00",
@@ -36,7 +37,8 @@
           "club": { "id": 201, "name": "The Comedy Store" },
           "show": { "id": 101, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
           "comedian": { "id": 301, "name": "Ali Wong" },
-          "podcast": { "id": 401, "name": "The Joe Rogan Experience" }
+          "podcast": { "id": 401, "name": "The Joe Rogan Experience" },
+          "episode": { "id": 501, "name": "#2520 - A Night of Comedy" }
         },
         "dates": {
           "primary_show": "2030-07-18T20:00:00-07:00",
@@ -132,6 +134,17 @@
         "source_scenario_id": "08_SearchPodcasts",
         "query": "The Joe Rogan Experience",
         "selection": "first_result"
+      }
+    },
+    {
+      "id": "10_PodcastEpisodeDetail",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": {
+        "screen": "podcast_episode_detail",
+        "source_scenario_id": "09_PodcastDetail",
+        "selection": "first_episode",
+        "episode_id": 501
       }
     },
     {

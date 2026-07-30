@@ -22,7 +22,7 @@ usage() {
 Usage: scripts/screenshots/regenerate-comparisons [options]
 
 Capture all catalog scenarios for iOS phone/iPad and Android phone/7-inch/
-10-inch, persist validated manifests, generate 17 cross-platform scenario
+10-inch, persist validated manifests, generate 18 cross-platform scenario
 sheets, and open them. This command never uploads screenshots to either store.
 
 Options:

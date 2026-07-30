@@ -36,6 +36,7 @@ CONTENT_FIXTURE = {
                 },
                 "comedian": {"id": 301, "name": "Ali Wong"},
                 "podcast": {"id": 401, "name": "The Joe Rogan Experience"},
+                "episode": {"id": 501, "name": "#2520 - A Night of Comedy"},
             },
             "dates": {
                 "primary_show": "2030-07-18T20:00:00-07:00",
@@ -58,6 +59,7 @@ CONTENT_FIXTURE = {
                 },
                 "comedian": {"id": 301, "name": "Ali Wong"},
                 "podcast": {"id": 401, "name": "The Joe Rogan Experience"},
+                "episode": {"id": 501, "name": "#2520 - A Night of Comedy"},
             },
             "dates": {
                 "primary_show": "2030-07-18T20:00:00-07:00",
@@ -281,6 +283,57 @@ def _show(
     }
 
 
+def _podcast_host(base_url: str) -> dict:
+    return {
+        "id": 304,
+        "uuid": "fixture-304",
+        "name": "Joe Rogan",
+        "imageUrl": f"{base_url}/artwork/joe-rogan.png",
+    }
+
+
+def _podcast(base_url: str) -> dict:
+    return {
+        "id": 401,
+        "slug": "joe-rogan-experience",
+        "title": "The Joe Rogan Experience",
+        "episodeCount": 2520,
+        "hosts": [_podcast_host(base_url)],
+        "authorName": "Joe Rogan",
+        "websiteUrl": "https://example.invalid/podcasts/jre",
+        "feedUrl": "https://example.invalid/feeds/jre",
+        "imageUrl": f"{base_url}/artwork/joe-rogan.png",
+        "description": "Long-form conversations with comedians, artists, and fascinating guests.",
+        "isFavorite": False,
+    }
+
+
+def _podcast_episode(base_url: str) -> dict:
+    return {
+        "id": 501,
+        "title": "#2520 - A Night of Comedy",
+        "description": "A conversation about stand-up, new material, and life on the road.",
+        "releaseDate": "2030-07-01",
+        "durationSeconds": 8940,
+        "episodeUrl": "https://example.invalid/episodes/501",
+        "audioUrl": "https://example.invalid/audio/501.mp3",
+        "appearances": [
+            {
+                "id": 304,
+                "uuid": "fixture-304",
+                "name": "Joe Rogan",
+                "imageUrl": f"{base_url}/artwork/joe-rogan.png",
+            },
+            {
+                "id": 301,
+                "uuid": "fixture-301",
+                "name": "Ali Wong",
+                "imageUrl": f"{base_url}/artwork/ali-wong.png",
+            },
+        ],
+    }
+
+
 def fixture_response(path: str, base_url: str, mode: str = DEFAULT_MODE) -> dict | None:
     """Return the canonical payload for an API path, ignoring query parameters."""
     result_count = fixture_contract(mode)["result_count"]
@@ -352,7 +405,7 @@ def fixture_response(path: str, base_url: str, mode: str = DEFAULT_MODE) -> dict
                 "slug": f"fixture-{401 + index}",
                 "title": title,
                 "episodeCount": 2520 - index * 100,
-                "hosts": [{"id": 301, "uuid": "fixture-301", "name": "Joe Rogan", "imageUrl": f"{base_url}/artwork/joe-rogan.png"}],
+                "hosts": [_podcast_host(base_url)],
                 "authorName": "Comedy Podcast Network",
                 "imageUrl": f"{base_url}/artwork/{'joe-rogan' if mode == DEFAULT_MODE else PODCAST_ARTWORK[index % len(PODCAST_ARTWORK)]}.png",
                 "description": "Stand-up conversations and new episodes every week.",
@@ -396,7 +449,26 @@ def fixture_response(path: str, base_url: str, mode: str = DEFAULT_MODE) -> dict
     if path in {f"{API_PREFIX}comedians/301/co-bill", f"{API_PREFIX}comedians/past-shows"}:
         return {"data": [], **({"total": 0} if path.endswith("past-shows") else {})}
     if path == f"{API_PREFIX}podcasts/401":
-        return {"podcast": {"id": 401, "slug": "joe-rogan-experience", "title": "The Joe Rogan Experience", "episodeCount": 2520, "hosts": [{"id": 301, "uuid": "fixture-301", "name": "Joe Rogan", "imageUrl": f"{base_url}/artwork/joe-rogan.png"}], "authorName": "Joe Rogan", "websiteUrl": "https://example.invalid/podcasts/jre", "feedUrl": "https://example.invalid/feeds/jre", "imageUrl": f"{base_url}/artwork/joe-rogan.png", "description": "Long-form conversations with comedians, artists, and fascinating guests.", "isFavorite": False}, "episodes": [{"id": 501, "title": "#2520 - A Night of Comedy", "description": "A conversation about stand-up and new material.", "releaseDate": "2030-07-01", "durationSeconds": 8940, "episodeUrl": "https://example.invalid/episodes/501", "audioUrl": "https://example.invalid/audio/501.mp3", "appearances": []}], "relatedComedians": [{"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": f"{base_url}/artwork/ali-wong.png", "socialData": _social(301, "aliwong"), "showCount": 28, "isFavorite": False}]}
+        return {
+            "podcast": _podcast(base_url),
+            "episodes": [_podcast_episode(base_url)],
+            "relatedComedians": [
+                {
+                    "id": 301,
+                    "uuid": "fixture-301",
+                    "name": "Ali Wong",
+                    "imageUrl": f"{base_url}/artwork/ali-wong.png",
+                    "socialData": _social(301, "aliwong"),
+                    "showCount": 28,
+                    "isFavorite": False,
+                }
+            ],
+        }
+    if path == f"{API_PREFIX}podcast-episodes/501":
+        return {
+            "podcast": _podcast(base_url),
+            "episode": _podcast_episode(base_url),
+        }
     return None
 
 

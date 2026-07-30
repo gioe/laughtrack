@@ -8,7 +8,7 @@ scripts/screenshots/regenerate-comparisons
 
 The command runs the capture-only iOS and Android Fastlane lanes sequentially,
 persists validated manifests for all catalog scenarios and five device profiles,
-generates 17 labeled cross-platform scenario sheets, writes delta-aware audit
+generates 18 labeled cross-platform scenario sheets, writes delta-aware audit
 metadata, and opens them. It never uploads screenshots or
 metadata to App Store Connect or Google Play.
 
@@ -32,6 +32,21 @@ android/bin/lane verify_screenshots \
   profiles:android_phone \
   scenarios:02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts \
   run_root:/tmp/laughtrack-android-search-verification
+```
+
+To verify the episode-detail capture specifically, select its prerequisite and
+the detail scenario in canonical order:
+
+```bash
+ios/bin/lane verify_screenshots \
+  profiles:ios_phone,ios_large_tablet \
+  scenarios:09_PodcastDetail,10_PodcastEpisodeDetail \
+  run_root:/tmp/laughtrack-ios-podcast-episode-verification
+
+android/bin/lane verify_screenshots \
+  profiles:android_phone,android_small_tablet,android_large_tablet \
+  scenarios:09_PodcastDetail,10_PodcastEpisodeDetail \
+  run_root:/tmp/laughtrack-android-podcast-episode-verification
 ```
 
 Selections must be unique subsequences in catalog order. Targeted runs use the

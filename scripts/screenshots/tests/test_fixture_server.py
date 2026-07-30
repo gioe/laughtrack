@@ -70,6 +70,53 @@ def test_club_highlights_fixture_populates_tonight_and_qualified_performers() ->
     ]
 
 
+def test_every_mode_declares_the_deterministic_episode_entity() -> None:
+    for contract in CONTENT_FIXTURE["modes"].values():
+        assert contract["featured_entities"]["episode"] == {
+            "id": 501,
+            "name": "#2520 - A Night of Comedy",
+        }
+
+
+def test_episode_detail_matches_catalog_and_populates_lineup_media() -> None:
+    podcast_detail = fixture_response("/api/v1/podcasts/401", "http://fixture")
+    episode_detail = fixture_response("/api/v1/podcast-episodes/501", "http://fixture")
+
+    assert set(episode_detail) == {"podcast", "episode"}
+    assert episode_detail["podcast"] == podcast_detail["podcast"]
+    assert episode_detail["episode"] == podcast_detail["episodes"][0]
+
+    podcast = episode_detail["podcast"]
+    episode = episode_detail["episode"]
+    assert podcast["id"] == 401
+    assert podcast["imageUrl"] == "http://fixture/artwork/joe-rogan.png"
+    assert [host["name"] for host in podcast["hosts"]] == ["Joe Rogan"]
+    assert episode["id"] == 501
+    assert episode["audioUrl"] == "https://example.invalid/audio/501.mp3"
+    assert episode["episodeUrl"] == "https://example.invalid/episodes/501"
+    assert episode["description"]
+    assert episode["durationSeconds"] == 8940
+    assert [appearance["name"] for appearance in episode["appearances"]] == [
+        "Joe Rogan",
+        "Ali Wong",
+    ]
+    host_ids = {host["id"] for host in podcast["hosts"]}
+    assert [
+        appearance["name"]
+        for appearance in episode["appearances"]
+        if appearance["id"] not in host_ids
+    ] == ["Ali Wong"]
+
+
+def test_episode_detail_is_served_at_the_exact_native_api_path(
+    fixture_server: str,
+) -> None:
+    response = get_json(f"{fixture_server}/api/v1/podcast-episodes/501")
+
+    assert response["podcast"]["id"] == 401
+    assert response["episode"]["id"] == 501
+
+
 def test_asset_rich_mode_populates_dense_search_results_with_distinct_artwork() -> None:
     contract = CONTENT_FIXTURE["modes"]["asset-rich"]
     artwork_urls: set[str] = set()
