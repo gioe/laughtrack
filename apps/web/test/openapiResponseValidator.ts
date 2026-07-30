@@ -73,7 +73,12 @@ function validateSchema(
     schema: JsonSchema,
     path: string,
 ): string[] {
-    const resolved = schema.$ref ? resolveRef(schema.$ref) : schema;
+    // OpenAPI 3.1 allows JSON Schema keywords next to `$ref`. Preserve those
+    // sibling constraints (for example `type: ["object", "null"]`) instead
+    // of discarding them when the referenced component is resolved.
+    const resolved = schema.$ref
+        ? { ...resolveRef(schema.$ref), ...schema, $ref: undefined }
+        : schema;
     const errors: string[] = [];
 
     if (resolved.type) {
