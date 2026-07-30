@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -60,7 +61,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -75,6 +79,7 @@ import app.laughtrack.android.core.network.generated.model.PodcastAppearance
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.core.network.generated.model.UpcomingRun
+import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
@@ -100,6 +105,7 @@ fun ComedianDetailScreen(
     id: Int,
     onBack: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
+    onPlay: (PodcastPlaybackItem) -> Unit = {},
     viewModel: ComedianDetailViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(id) { viewModel.load(id) }
@@ -118,6 +124,7 @@ fun ComedianDetailScreen(
                     isFavoritePending = viewModel.isFavoritePending(ui.detail.uuid),
                     onFavorite = { viewModel.toggleFavorite(ui.detail.uuid) },
                     onOpenEntity = onOpenEntity,
+                    onPlay = onPlay,
                 )
             }
             else -> DetailLoading(Modifier.fillMaxSize())
@@ -133,6 +140,7 @@ private fun ComedianDetailBody(
     isFavoritePending: Boolean,
     onFavorite: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
+    onPlay: (PodcastPlaybackItem) -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     Column(
@@ -162,7 +170,12 @@ private fun ComedianDetailBody(
                     ComedianTabPicker(selectedTab = selectedTab, onSelectTab = { selectedTab = it })
                     when (selectedTab) {
                         0 -> ComedianShowsTab(ui, onOpenEntity)
-                        else -> ComedianPodcastsTab(ui.detail.podcastAppearances, onOpenEntity)
+                        else ->
+                            ComedianPodcastsTab(
+                                appearances = ui.detail.podcastAppearances,
+                                onOpenEntity = onOpenEntity,
+                                onPlay = onPlay,
+                            )
                     }
                 }
             },
@@ -730,6 +743,7 @@ private fun UpcomingRunRow(
 private fun ComedianPodcastsTab(
     appearances: List<PodcastAppearance>,
     onOpenEntity: (AppRoute) -> Unit,
+    onPlay: (PodcastPlaybackItem) -> Unit,
 ) {
     if (appearances.isEmpty()) {
         EmptyTab("No podcast appearances yet.")
@@ -737,14 +751,87 @@ private fun ComedianPodcastsTab(
     }
     Column(Modifier.fillMaxWidth()) {
         appearances.forEach { appearance ->
-            ShowRow(
-                title = appearance.podcast.title,
-                subtitle = appearance.episode.title,
-                imageUrl = appearance.podcast.imageUrl,
-                onClick = { onOpenEntity(AppRoute.PodcastDetail(appearance.podcast.id)) },
+            ComedianPodcastEpisodeRow(
+                appearance = appearance,
+                onOpen = { onOpenEntity(AppRoute.PodcastEpisodeDetail(appearance.episode.id)) },
+                onPlay = onPlay,
             )
         }
     }
+}
+
+@Composable
+private fun ComedianPodcastEpisodeRow(
+    appearance: PodcastAppearance,
+    onOpen: () -> Unit,
+    onPlay: (PodcastPlaybackItem) -> Unit,
+) {
+    val playbackItem = podcastAppearancePlaybackItem(appearance)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .testTag(podcastEpisodeRowTestTag(appearance.episode.id))
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            Modifier
+                .weight(1f)
+                .clickable(onClick = onOpen)
+                .semantics {
+                    contentDescription = "Open episode ${appearance.episode.title}"
+                },
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RemoteImage(
+                url = appearance.podcast.imageUrl,
+                contentDescription = appearance.podcast.title,
+                modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)),
+                fallback = RemoteImageFallback.Podcast,
+            )
+            Column(Modifier.weight(1f)) {
+                Text(
+                    appearance.episode.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    appearance.podcast.title,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        if (playbackItem != null) {
+            IconButton(
+                onClick = { onPlay(playbackItem) },
+                modifier = Modifier.testTag(podcastEpisodePlayTestTag(appearance.episode.id)),
+            ) {
+                Icon(
+                    Icons.Filled.PlayArrow,
+                    contentDescription = "Play episode ${appearance.episode.title}",
+                    tint = LaughTrackColors.AccentStrong,
+                )
+            }
+        }
+    }
+}
+
+internal fun podcastAppearancePlaybackItem(appearance: PodcastAppearance): PodcastPlaybackItem? {
+    val audioUrl = appearance.episode.audioUrl.trim().takeIf(String::isNotEmpty) ?: return null
+    return PodcastPlaybackItem(
+        episodeId = appearance.episode.id,
+        podcastId = appearance.podcast.id,
+        podcastTitle = appearance.podcast.title,
+        episodeTitle = appearance.episode.title,
+        audioUrl = audioUrl,
+        artworkUrl = appearance.podcast.imageUrl,
+    )
 }
 
 @Composable

@@ -52,6 +52,7 @@ import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.ui.ClubDetailScreen
 import app.laughtrack.android.feature.detail.ui.ComedianDetailScreen
 import app.laughtrack.android.feature.detail.ui.PodcastDetailScreen
+import app.laughtrack.android.feature.detail.ui.PodcastEpisodeDetailScreen
 import app.laughtrack.android.feature.detail.ui.ShowDetailScreen
 import app.laughtrack.android.feature.home.HomeScreen
 import app.laughtrack.android.feature.library.LibraryScreen
@@ -215,6 +216,7 @@ fun AppShell(
                             id = entry.toRoute<AppRoute.ComedianDetail>().id,
                             onBack = { navController.popBackStack() },
                             onOpenEntity = navController::openEntity,
+                            onPlay = { item -> playbackController?.play(item) },
                         )
                     }
                     composable<AppRoute.ClubDetail> { entry ->
@@ -227,6 +229,13 @@ fun AppShell(
                     composable<AppRoute.PodcastDetail> { entry ->
                         PodcastDetailScreen(
                             id = entry.toRoute<AppRoute.PodcastDetail>().id,
+                            onBack = { navController.popBackStack() },
+                            onOpenEntity = navController::openEntity,
+                        )
+                    }
+                    composable<AppRoute.PodcastEpisodeDetail> { entry ->
+                        PodcastEpisodeDetailScreen(
+                            id = entry.toRoute<AppRoute.PodcastEpisodeDetail>().id,
                             onBack = { navController.popBackStack() },
                             onOpenEntity = navController::openEntity,
                         )
@@ -401,6 +410,7 @@ internal object AppShellChrome {
             AppRoute.ComedianDetail::class,
             AppRoute.ClubDetail::class,
             AppRoute.PodcastDetail::class,
+            AppRoute.PodcastEpisodeDetail::class,
             AppRoute.NowPlaying::class,
             AppRoute.NotificationCenter::class,
         )

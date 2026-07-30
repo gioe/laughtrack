@@ -102,6 +102,7 @@ class AppShellChromeTest {
                 AppRoute.ComedianDetail::class,
                 AppRoute.ClubDetail::class,
                 AppRoute.PodcastDetail::class,
+                AppRoute.PodcastEpisodeDetail::class,
                 AppRoute.Profile::class,
                 AppRoute.NotificationCenter::class,
             ),

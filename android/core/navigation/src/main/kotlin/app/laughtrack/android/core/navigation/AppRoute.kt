@@ -38,6 +38,9 @@ sealed interface AppRoute {
     data class PodcastDetail(val id: Int) : AppRoute
 
     @Serializable
+    data class PodcastEpisodeDetail(val id: Int) : AppRoute
+
+    @Serializable
     data object NowPlaying : AppRoute
 
     @Serializable

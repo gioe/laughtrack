@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GraphicEq
@@ -30,6 +29,7 @@ import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -49,6 +49,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -446,7 +449,7 @@ private fun PodcastEpisodeSection(
     onOpenEntity: (AppRoute) -> Unit,
     onPlay: (PodcastPlaybackItem) -> Unit,
 ) {
-    val visibleEpisodes = remember(episodes) { episodes.filter { it.isPlayableOrOpenable() } }
+    val visibleEpisodes = episodes
     val pageCount = maxOf(1, (visibleEpisodes.size + PODCAST_EPISODE_PAGE_SIZE - 1) / PODCAST_EPISODE_PAGE_SIZE)
     var currentPage by rememberSaveable(podcast.id) { mutableIntStateOf(0) }
     val safePage = currentPage.coerceIn(0, pageCount - 1)
@@ -460,11 +463,6 @@ private fun PodcastEpisodeSection(
                 PodcastEmptyCard(
                     "No Episodes Found",
                     "${podcast.title} has no episodes on LaughTrack yet.",
-                )
-            visibleEpisodes.isEmpty() ->
-                PodcastEmptyCard(
-                    "No playable episodes yet",
-                    "LaughTrack has not matched this podcast with playable episodes yet.",
                 )
             else -> {
                 page.forEach { episode ->
@@ -494,9 +492,7 @@ private fun PodcastEpisodeCard(
     onOpenEntity: (AppRoute) -> Unit,
     onPlay: (PodcastPlaybackItem) -> Unit,
 ) {
-    val context = LocalContext.current
     val playbackItem = episode.playbackItem(podcast)
-    val action = { playbackItem?.let(onPlay) ?: context.openUrl(episode.episodeUrl) }
     val guests = episode.nonHostAppearances(podcast)
     Column(
         Modifier
@@ -504,54 +500,70 @@ private fun PodcastEpisodeCard(
             .clip(RoundedCornerShape(16.dp))
             .background(LaughTrackColors.SurfaceMuted)
             .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(16.dp))
-            .clickable(onClick = action)
+            .testTag(podcastEpisodeRowTestTag(episode.id))
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box {
-                RemoteImage(
-                    url = podcast.imageUrl,
-                    contentDescription = podcast.title,
-                    modifier = Modifier.size(56.dp).clip(RoundedCornerShape(10.dp)),
-                    fallback = RemoteImageFallback.Podcast,
-                )
-                Surface(
-                    shape = CircleShape,
-                    color = LaughTrackColors.SurfaceElevated,
-                    modifier = Modifier.size(22.dp).align(Alignment.BottomEnd),
-                ) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Icon(
-                            if (playbackItem != null) {
-                                Icons.Filled.PlayArrow
-                            } else {
-                                Icons.AutoMirrored.Filled.OpenInNew
-                            },
-                            contentDescription = if (playbackItem != null) "Play episode" else "Open episode",
-                            tint = LaughTrackColors.AccentStrong,
-                            modifier = Modifier.size(16.dp),
-                        )
+            Row(
+                Modifier
+                    .weight(1f)
+                    .clickable { onOpenEntity(AppRoute.PodcastEpisodeDetail(episode.id)) }
+                    .semantics { contentDescription = "Open episode ${episode.title}" },
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Box {
+                    RemoteImage(
+                        url = podcast.imageUrl,
+                        contentDescription = podcast.title,
+                        modifier = Modifier.size(56.dp).clip(RoundedCornerShape(10.dp)),
+                        fallback = RemoteImageFallback.Podcast,
+                    )
+                    Surface(
+                        shape = CircleShape,
+                        color = LaughTrackColors.SurfaceElevated,
+                        modifier = Modifier.size(22.dp).align(Alignment.BottomEnd),
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                "›",
+                                color = LaughTrackColors.AccentStrong,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
                     }
                 }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        episode.title,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = LaughTrackColors.Foreground,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        podcastEpisodeMetadata(episode),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LaughTrackColors.ForegroundMuted,
+                        maxLines = 1,
+                    )
+                }
             }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    episode.title,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = LaughTrackColors.Foreground,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    podcastEpisodeMetadata(episode),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LaughTrackColors.ForegroundMuted,
-                    maxLines = 1,
-                )
+            if (playbackItem != null) {
+                IconButton(
+                    onClick = { onPlay(playbackItem) },
+                    modifier = Modifier.testTag(podcastEpisodePlayTestTag(episode.id)),
+                ) {
+                    Icon(
+                        Icons.Filled.PlayArrow,
+                        contentDescription = "Play episode ${episode.title}",
+                        tint = LaughTrackColors.AccentStrong,
+                    )
+                }
             }
         }
         if (guests.isNotEmpty()) {
@@ -743,9 +755,6 @@ private fun formatPodcastDuration(seconds: Int?): String? {
         else -> "$minutes min"
     }
 }
-
-private fun PodcastDetailEpisode.isPlayableOrOpenable(): Boolean =
-    !audioUrl.isNullOrBlank() || !episodeUrl.isNullOrBlank()
 
 private fun PodcastDetailEpisode.nonHostAppearances(
     podcast: PodcastDetailPodcast,
