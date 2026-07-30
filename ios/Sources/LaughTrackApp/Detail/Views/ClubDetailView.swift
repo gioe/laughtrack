@@ -16,12 +16,14 @@ struct ClubDetailView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var model: ClubDetailModel
+    @StateObject private var highlightsModel: ClubHighlightsModel
     @State private var feedbackMessage: String?
 
     init(clubId: Int, apiClient: Client) {
         self.clubId = clubId
         self.apiClient = apiClient
         _model = StateObject(wrappedValue: ClubDetailModel(clubId: clubId))
+        _highlightsModel = StateObject(wrappedValue: ClubHighlightsModel(clubId: clubId))
     }
 
     var body: some View {
@@ -53,6 +55,25 @@ struct ClubDetailView: View {
                         )
                     } content: {
                         VStack(alignment: .leading, spacing: 20) {
+                            if case .success(let highlights) = highlightsModel.phase {
+                                if let featuredShow = ClubDetailHighlightsPresentation.featuredShow(
+                                    from: highlights
+                                ) {
+                                    ClubDetailShowHighlightSection(featuredShow: featuredShow) {
+                                        coordinator.open(.show(featuredShow.show.id))
+                                    }
+                                }
+
+                                if !highlights.frequentPerformers.isEmpty {
+                                    ClubDetailFrequentPerformersSection(
+                                        performers: highlights.frequentPerformers,
+                                        openPerformer: { performer in
+                                            coordinator.open(.comedian(performer.id))
+                                        }
+                                    )
+                                }
+                            }
+
                             PinnedShowsList(
                                 apiClient: apiClient,
                                 nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
@@ -83,6 +104,9 @@ struct ClubDetailView: View {
         ))
         .task {
             await model.loadIfNeeded(apiClient: apiClient, cache: detailCache)
+        }
+        .task {
+            await highlightsModel.loadIfNeeded(apiClient: apiClient)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
@@ -141,6 +165,105 @@ struct ClubDetailView: View {
                 )
             }
         )
+    }
+}
+
+struct ClubDetailFeaturedShow: Hashable {
+    let title: String
+    let show: Components.Schemas.Show
+}
+
+enum ClubDetailHighlightsPresentation {
+    static func featuredShow(
+        from highlights: Components.Schemas.ClubHighlights
+    ) -> ClubDetailFeaturedShow? {
+        if let tonight = highlights.tonightShows.first {
+            return ClubDetailFeaturedShow(title: "Tonight", show: tonight)
+        }
+        if let next = highlights.nextShow {
+            return ClubDetailFeaturedShow(title: "Next up", show: next)
+        }
+        return nil
+    }
+}
+
+private struct ClubDetailShowHighlightSection: View {
+    let featuredShow: ClubDetailFeaturedShow
+    let openShow: () -> Void
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            Text(featuredShow.title)
+                .font(laughTrack.typography.sectionTitle)
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .accessibilityIdentifier(LaughTrackViewTestID.clubDetailHighlightSection)
+
+            Button(action: openShow) {
+                HomeShowsTonightHeroCard(
+                    show: featuredShow.show,
+                    width: nil,
+                    artworkHeight: 150
+                )
+                    .padding(theme.spacing.md)
+                    .frame(maxWidth: .infinity)
+                    .background(laughTrack.colors.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                            .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                    )
+                    .clipShape(
+                        RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(
+                LaughTrackViewTestID.clubDetailHighlightShowButton(featuredShow.show.id)
+            )
+        }
+    }
+}
+
+private struct ClubDetailFrequentPerformersSection: View {
+    let performers: [Components.Schemas.ComedianListItem]
+    let openPerformer: (Components.Schemas.ComedianListItem) -> Void
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            Text("Frequently on this stage")
+                .font(laughTrack.typography.sectionTitle)
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .accessibilityIdentifier(
+                    LaughTrackViewTestID.clubDetailFrequentPerformersSection
+                )
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: theme.spacing.sm) {
+                    ForEach(performers, id: \.uuid) { performer in
+                        Button {
+                            openPerformer(performer)
+                        } label: {
+                            HomeTrendingComedianCard(
+                                comedian: performer,
+                                stageHeight: 112
+                            )
+                                .frame(width: 156)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier(
+                            LaughTrackViewTestID.clubDetailPerformerButton(performer.id)
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

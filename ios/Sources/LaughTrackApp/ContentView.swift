@@ -67,6 +67,8 @@ enum LaughTrackViewTestID {
     static let comedianDetailTabPicker = "laughtrack.comedian-detail.tab-picker"
     static let podcastMiniPlayer = "laughtrack.podcast-mini-player"
     static let clubDetailScreen = "laughtrack.club-detail.screen"
+    static let clubDetailHighlightSection = "laughtrack.club-detail.highlight-section"
+    static let clubDetailFrequentPerformersSection = "laughtrack.club-detail.frequent-performers-section"
     static let settingsNearbyEmptyState = "laughtrack.settings.nearby.empty-state"
     static let settingsNearbySavedState = "laughtrack.settings.nearby.saved-state"
     static let settingsZipField = "laughtrack.settings.zip-field"
@@ -88,6 +90,14 @@ enum LaughTrackViewTestID {
 
     static func showsSearchResultButton(_ id: Int) -> String {
         "laughtrack.shows-search.result-\(id)"
+    }
+
+    static func clubDetailHighlightShowButton(_ id: Int) -> String {
+        "laughtrack.club-detail.highlight-show-\(id)"
+    }
+
+    static func clubDetailPerformerButton(_ id: Int) -> String {
+        "laughtrack.club-detail.performer-\(id)"
     }
 
     static func comediansSearchResultButton(_ id: Int) -> String {

@@ -359,9 +359,10 @@ private struct HomeShowsTonightScrollingCard: View {
     }
 }
 
-private struct HomeShowsTonightHeroCard: View {
+struct HomeShowsTonightHeroCard: View {
     let show: Components.Schemas.Show
     var width: CGFloat?
+    var artworkHeight: CGFloat = HomeShowsTonightCarouselLayout.stageHeight
 
     @Environment(\.appTheme) private var theme
 
@@ -421,7 +422,10 @@ private struct HomeShowsTonightHeroCard: View {
     @ViewBuilder
     private var artwork: some View {
         GeometryReader { proxy in
-            let metrics = portraitMetrics(for: proxy.size.width)
+            let metrics = portraitMetrics(
+                for: proxy.size.width,
+                artworkHeight: artworkHeight
+            )
 
             ClubWallHeadshotFrame(
                 caption: headshotCaption,
@@ -438,7 +442,7 @@ private struct HomeShowsTonightHeroCard: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: HomeShowsTonightCarouselLayout.stageHeight)
+        .frame(height: artworkHeight)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
@@ -486,8 +490,13 @@ private struct HomeShowsTonightHeroCard: View {
         HomeShowsTonightHeroPresentation.headshotCaption(for: show)
     }
 
-    private func portraitMetrics(for availableWidth: CGFloat) -> HomeShowsTonightPortraitMetrics {
-        let scale = min(1.0, max(0.84, availableWidth / 300))
+    private func portraitMetrics(
+        for availableWidth: CGFloat,
+        artworkHeight: CGFloat
+    ) -> HomeShowsTonightPortraitMetrics {
+        let widthScale = max(0.84, availableWidth / 300)
+        let heightScale = max(0.72, artworkHeight / 170)
+        let scale = min(1.0, widthScale, heightScale)
 
         return HomeShowsTonightPortraitMetrics(
             photoWidth: 138 * scale,

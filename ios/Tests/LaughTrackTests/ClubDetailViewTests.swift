@@ -10,12 +10,12 @@ import LaughTrackCore
 @Suite("Club detail view")
 @MainActor
 struct ClubDetailViewTests {
-    @Test("club detail loads live venue data and related content")
-    func clubDetailLoadsAndDisplaysSections() async throws {
+    @Test("club detail loads venue data without the redundant related-content search")
+    func clubDetailLoadsVenueWithoutRelatedContentSearch() async throws {
         let model = ClubDetailModel(clubId: 201)
         let transport = MockClubDetailTransport(
             clubResponse: .success(.init(data: primaryClub)),
-            relatedShowsResponse: .success(.init(data: relatedShows, total: relatedShows.count, filters: [], zipCapTriggered: false))
+            highlightsResponse: .success(.init(data: highlights()))
         )
         await model.loadIfNeeded(apiClient: makeClient(transport: transport))
 
@@ -25,12 +25,7 @@ struct ClubDetailViewTests {
         }
 
         #expect(content.club.name == "Comedy Cellar")
-        #expect(content.upcomingShows.map(\.name) == ["Mark Normand and Friends"])
-        #expect(content.featuredComedians.map(\.name) == ["Mark Normand", "Atsuko Okatsuka"])
-        #expect(content.relatedContentMessage == nil)
-        #expect(transport.searchShowPaths.contains { path in
-            path.contains("club=Comedy%20Cellar") && path.contains("sort=date_asc")
-        })
+        #expect(transport.operationIDs == ["getClub"])
     }
 
     @Test("club detail places venue actions in the hero")
@@ -81,7 +76,7 @@ struct ClubDetailViewTests {
         await model.loadIfNeeded(
             apiClient: makeClient(
                 clubResponse: .status(.notFound),
-                relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false))
+                highlightsResponse: .success(.init(data: highlights()))
             )
         )
 
@@ -95,70 +90,86 @@ struct ClubDetailViewTests {
         #expect(failure.message == "This club could not be found. (HTTP 404)")
     }
 
-    @Test("club detail renders explicit empty states for missing related content")
-    func clubDetailShowsEmptyStates() async throws {
-        let model = ClubDetailModel(clubId: 201)
-        await model.loadIfNeeded(
-            apiClient: makeClient(
-                clubResponse: .success(.init(data: primaryClub)),
-                relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false))
-            )
-        )
+    @Test("club highlight presentation prefers tonight, falls back to next up, then omits")
+    func clubHighlightSelectionOrder() {
+        let tonight = relatedShows[0]
+        let next = relatedShows[1]
 
-        guard case .success(let content) = model.phase else {
-            Issue.record("Expected success phase, got \(model.phase)")
-            return
-        }
-        #expect(content.upcomingShows.isEmpty)
-        #expect(content.featuredComedians.isEmpty)
-        #expect(content.relatedContentMessage == nil)
+        let tonightSelection = ClubDetailHighlightsPresentation.featuredShow(
+            from: highlights(tonightShows: [tonight], nextShow: next)
+        )
+        #expect(tonightSelection == .init(title: "Tonight", show: tonight))
+
+        let nextSelection = ClubDetailHighlightsPresentation.featuredShow(
+            from: highlights(tonightShows: [], nextShow: next)
+        )
+        #expect(nextSelection == .init(title: "Next up", show: next))
+
+        #expect(
+            ClubDetailHighlightsPresentation.featuredShow(
+                from: highlights(tonightShows: [], nextShow: nil)
+            ) == nil
+        )
     }
 
-    @Test("club detail keeps venue content visible when related shows fail")
-    func clubDetailShowsRelatedContentWarning() async throws {
-        let model = ClubDetailModel(clubId: 201)
-        await model.loadIfNeeded(
-            apiClient: makeClient(
-                clubResponse: .success(.init(data: primaryClub)),
-                relatedShowsResponse: .status(.internalServerError)
-            )
-        )
+    @Test("club highlights expose only API-qualified frequent performers")
+    func clubHighlightFrequentPerformers() {
+        #expect(highlights().frequentPerformers.map(\.name) == ["Mark Normand", "Atsuko Okatsuka", "Sam Jay"])
+        #expect(highlights(frequentPerformers: []).frequentPerformers.isEmpty)
+    }
 
-        guard case .success(let content) = model.phase else {
-            Issue.record("Expected success phase, got \(model.phase)")
+    @Test("club highlight failure leaves venue content successful and performs no show search")
+    func clubHighlightFailureIsIndependent() async {
+        let clubModel = ClubDetailModel(clubId: 201)
+        let highlightsModel = ClubHighlightsModel(clubId: 201)
+        let transport = MockClubDetailTransport(
+            clubResponse: .success(.init(data: primaryClub)),
+            highlightsResponse: .status(.internalServerError)
+        )
+        let client = makeClient(transport: transport)
+
+        await clubModel.loadIfNeeded(apiClient: client)
+        await highlightsModel.loadIfNeeded(apiClient: client)
+
+        guard case .success(let content) = clubModel.phase else {
+            Issue.record("Expected club success, got \(clubModel.phase)")
             return
         }
         #expect(content.club.name == "Comedy Cellar")
-        #expect(content.relatedContentMessage == "LaughTrack hit a server error while loading this club’s related content.")
+        guard case .failure = highlightsModel.phase else {
+            Issue.record("Expected independent highlight failure, got \(highlightsModel.phase)")
+            return
+        }
+        #expect(transport.operationIDs == ["getClub", "getClubHighlights"])
     }
 
-    @Test("club detail show search pins requests to the current club")
-    func clubDetailShowSearchPinsRequestsToCurrentClub() async throws {
-        let model = ClubDetailModel(clubId: 201)
-        let transport = MockClubDetailTransport(
-            clubResponse: .success(.init(data: primaryClub)),
-            relatedShowsResponse: .success(.init(data: relatedShows, total: relatedShows.count, filters: [], zipCapTriggered: false))
-        )
-        let apiClient = Client(
-            serverURL: URL(string: "https://example.com")!,
-            configuration: .laughTrack,
-            transport: transport
-        )
-        await model.loadIfNeeded(apiClient: apiClient)
+    @Test("club highlight actions preserve entity navigation and stable accessibility IDs")
+    func clubHighlightActionsAndIdentifiers() throws {
+        #expect(EntityNavigationTarget.show(301).route == .showDetail(301))
+        #expect(EntityNavigationTarget.comedian(101).route == .comedianDetail(101))
+        #expect(LaughTrackViewTestID.clubDetailHighlightSection == "laughtrack.club-detail.highlight-section")
+        #expect(LaughTrackViewTestID.clubDetailHighlightShowButton(301) == "laughtrack.club-detail.highlight-show-301")
+        #expect(LaughTrackViewTestID.clubDetailFrequentPerformersSection == "laughtrack.club-detail.frequent-performers-section")
+        #expect(LaughTrackViewTestID.clubDetailPerformerButton(101) == "laughtrack.club-detail.performer-101")
 
-        #expect(transport.searchShowPaths.contains { path in
-            path.contains("club=Comedy%20Cellar")
-        })
+        let source = try String(
+            contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
+            encoding: .utf8
+        )
+        #expect(source.contains("coordinator.open(.show(featuredShow.show.id))"))
+        #expect(source.contains("coordinator.open(.comedian(performer.id))"))
+        #expect(source.contains("LaughTrackViewTestID.clubDetailHighlightSection"))
+        #expect(source.contains("LaughTrackViewTestID.clubDetailFrequentPerformersSection"))
     }
 
     private func makeClient(
         clubResponse: MockClubDetailTransport.EntityResponse<Operations.GetClub.Output.Ok.Body.JsonPayload>,
-        relatedShowsResponse: MockClubDetailTransport.EntityResponse<Components.Schemas.ShowSearchResponse>
+        highlightsResponse: MockClubDetailTransport.EntityResponse<Components.Schemas.ClubHighlightsResponse>
     ) -> Client {
         makeClient(
             transport: MockClubDetailTransport(
                 clubResponse: clubResponse,
-                relatedShowsResponse: relatedShowsResponse
+                highlightsResponse: highlightsResponse
             )
         )
     }
@@ -186,44 +197,74 @@ struct ClubDetailViewTests {
 
     private var relatedShows: [Components.Schemas.Show] {
         [
-            .init(
-                id: 301,
-                clubId: 201,
-                clubName: "Comedy Cellar",
-                date: Date().addingTimeInterval(60 * 60 * 24),
-                tickets: nil,
-                name: "Mark Normand and Friends",
-                socialData: nil,
-                lineup: [
-                    .init(
-                        name: "Mark Normand",
-                        imageUrl: "https://example.com/mark.png",
-                        uuid: "demo-comedian-101",
-                        id: 101,
-                        userId: nil,
-                        socialData: nil,
-                        isFavorite: false,
-                        showCount: 12
-                    ),
-                    .init(
-                        name: "Atsuko Okatsuka",
-                        imageUrl: "https://example.com/atsuko.png",
-                        uuid: "demo-comedian-102",
-                        id: 102,
-                        userId: nil,
-                        socialData: nil,
-                        isFavorite: false,
-                        showCount: 6
-                    )
-                ],
-                description: nil,
-                address: "117 MacDougal St, New York, NY",
-                room: "Main Room",
-                imageUrl: "https://example.com/show.png",
-                soldOut: false,
-                distanceMiles: 2.0
-            )
+            show(id: 301, name: "Mark Normand and Friends"),
+            show(id: 302, name: "Late show"),
         ]
+    }
+
+    private func show(id: Int, name: String) -> Components.Schemas.Show {
+        .init(
+            id: id,
+            clubId: 201,
+            clubName: "Comedy Cellar",
+            date: Date().addingTimeInterval(60 * 60 * 24),
+            tickets: nil,
+            name: name,
+            socialData: nil,
+            lineup: nil,
+            description: nil,
+            address: "117 MacDougal St, New York, NY",
+            room: "Main Room",
+            imageUrl: "https://example.com/show.png",
+            soldOut: false,
+            distanceMiles: 2.0
+        )
+    }
+
+    private func highlights(
+        tonightShows: [Components.Schemas.Show]? = nil,
+        nextShow: Components.Schemas.Show? = nil,
+        frequentPerformers: [Components.Schemas.ComedianListItem]? = nil
+    ) -> Components.Schemas.ClubHighlights {
+        .init(
+            tonightShows: tonightShows ?? [relatedShows[0]],
+            nextShow: nextShow,
+            frequentPerformers: frequentPerformers ?? [
+                performer(id: 101, name: "Mark Normand"),
+                performer(id: 102, name: "Atsuko Okatsuka"),
+                performer(id: 103, name: "Sam Jay"),
+            ]
+        )
+    }
+
+    private func performer(id: Int, name: String) -> Components.Schemas.ComedianListItem {
+        .init(
+            id: id,
+            uuid: "demo-comedian-\(id)",
+            name: name,
+            imageUrl: "https://example.com/\(id).png",
+            socialData: .init(
+                id: id,
+                instagramAccount: nil,
+                instagramFollowers: nil,
+                tiktokAccount: nil,
+                tiktokFollowers: nil,
+                youtubeAccount: nil,
+                youtubeFollowers: nil,
+                website: nil,
+                popularity: nil,
+                linktree: nil
+            ),
+            showCount: 12
+        )
+    }
+
+    private func detailSourceURL(named fileName: String, filePath: String = #filePath) -> URL {
+        URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/LaughTrackApp/Detail/Views/\(fileName)")
     }
 }
 
@@ -234,15 +275,15 @@ private final class MockClubDetailTransport: ClientTransport, @unchecked Sendabl
     }
 
     let clubResponse: EntityResponse<Operations.GetClub.Output.Ok.Body.JsonPayload>
-    let relatedShowsResponse: EntityResponse<Components.Schemas.ShowSearchResponse>
-    private(set) var searchShowPaths: [String] = []
+    let highlightsResponse: EntityResponse<Components.Schemas.ClubHighlightsResponse>
+    private(set) var operationIDs: [String] = []
 
     init(
         clubResponse: EntityResponse<Operations.GetClub.Output.Ok.Body.JsonPayload>,
-        relatedShowsResponse: EntityResponse<Components.Schemas.ShowSearchResponse>
+        highlightsResponse: EntityResponse<Components.Schemas.ClubHighlightsResponse>
     ) {
         self.clubResponse = clubResponse
-        self.relatedShowsResponse = relatedShowsResponse
+        self.highlightsResponse = highlightsResponse
     }
 
     func send(
@@ -251,12 +292,12 @@ private final class MockClubDetailTransport: ClientTransport, @unchecked Sendabl
         baseURL: URL,
         operationID: String
     ) async throws -> (HTTPResponse, HTTPBody?) {
+        operationIDs.append(operationID)
         switch operationID {
         case "getClub":
             return try encodedResponse(for: clubResponse)
-        case "searchShows":
-            searchShowPaths.append(request.path ?? "")
-            return try encodedResponse(for: relatedShowsResponse)
+        case "getClubHighlights":
+            return try encodedResponse(for: highlightsResponse)
         default:
             Issue.record("Unexpected operation: \(operationID)")
             return (HTTPResponse(status: .internalServerError), nil)

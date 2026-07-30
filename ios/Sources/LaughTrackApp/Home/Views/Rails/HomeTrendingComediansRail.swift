@@ -126,8 +126,9 @@ private struct HomeTrendingComediansGridSkeleton: View {
     }
 }
 
-private struct HomeTrendingComedianCard: View {
+struct HomeTrendingComedianCard: View {
     let comedian: Components.Schemas.ComedianListItem
+    var stageHeight: CGFloat = 154
 
     @Environment(\.appTheme) private var theme
 
@@ -137,8 +138,6 @@ private struct HomeTrendingComedianCard: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(comedian.name)
     }
-
-    private static let stageHeight: CGFloat = 154
 
     private var artwork: some View {
         GeometryReader { proxy in
@@ -159,11 +158,13 @@ private struct HomeTrendingComedianCard: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: Self.stageHeight)
+        .frame(height: stageHeight)
     }
 
     private func headshotMetrics(for availableWidth: CGFloat) -> HomeShowsTonightPortraitMetrics {
-        let scale = min(1.0, max(0.82, availableWidth / 156))
+        let widthScale = max(0.82, availableWidth / 156)
+        let heightScale = max(0.65, stageHeight / 154)
+        let scale = min(1.0, widthScale, heightScale)
 
         return HomeShowsTonightPortraitMetrics(
             photoWidth: 124 * scale,

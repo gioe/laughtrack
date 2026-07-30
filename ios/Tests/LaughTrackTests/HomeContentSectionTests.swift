@@ -105,13 +105,13 @@ struct HomeContentSectionTests {
         )
         let heroBlock = try sourceBlock(
             in: source,
-            from: "private struct HomeShowsTonightHeroCard",
+            from: "struct HomeShowsTonightHeroCard",
             to: "struct HomeShowsTonightPortraitMetrics"
         )
         let scrollingCardBlock = try sourceBlock(
             in: source,
             from: "private struct HomeShowsTonightScrollingCard",
-            to: "private struct HomeShowsTonightHeroCard"
+            to: "struct HomeShowsTonightHeroCard"
         )
 
         #expect(carouselBlock.contains("Text(\"TONIGHT!\")"))
@@ -207,7 +207,7 @@ struct HomeContentSectionTests {
         )
         let heroBlock = try sourceBlock(
             in: source,
-            from: "private struct HomeShowsTonightHeroCard",
+            from: "struct HomeShowsTonightHeroCard",
             to: "enum HomeShowsTonightHeroPresentation"
         )
 
@@ -330,7 +330,7 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
-            from: "private struct HomeTrendingComedianCard",
+            from: "struct HomeTrendingComedianCard",
             to: "@MainActor\nfinal class HomeTrendingComediansModel"
         )
 
@@ -342,7 +342,9 @@ struct HomeContentSectionTests {
         #expect(block.contains("frameWidth: metrics.frameWidth"))
         #expect(block.contains("captionFontSize: metrics.captionFontSize"))
         #expect(block.contains("private func headshotMetrics(for availableWidth: CGFloat)"))
-        #expect(block.contains("let scale = min(1.0, max(0.82, availableWidth / 156))"))
+        #expect(block.contains("let widthScale = max(0.82, availableWidth / 156)"))
+        #expect(block.contains("let heightScale = max(0.65, stageHeight / 154)"))
+        #expect(block.contains("let scale = min(1.0, widthScale, heightScale)"))
         #expect(block.contains("photoWidth: 124 * scale"))
         #expect(block.contains("frameWidth: 144 * scale"))
         #expect(block.contains("frameHeight: 154 * scale"))
@@ -388,16 +390,18 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
-            from: "private struct HomeShowsTonightHeroCard",
+            from: "struct HomeShowsTonightHeroCard",
             to: "enum HomeShowsTonightHeroPresentation"
         )
 
         #expect(block.contains("ClubWallHeadshotFrame("))
         #expect(block.contains("caption: headshotCaption"))
         #expect(block.contains("GeometryReader"))
-        #expect(block.contains("let metrics = portraitMetrics(for: proxy.size.width)"))
-        #expect(block.contains("private func portraitMetrics(for availableWidth: CGFloat)"))
-        #expect(block.contains("let scale = min(1.0, max(0.84, availableWidth / 300))"))
+        #expect(block.contains("let metrics = portraitMetrics("))
+        #expect(block.contains("artworkHeight: artworkHeight"))
+        #expect(block.contains("private func portraitMetrics("))
+        #expect(block.contains("let widthScale = max(0.84, availableWidth / 300)"))
+        #expect(block.contains("let heightScale = max(0.72, artworkHeight / 170)"))
         #expect(block.contains("photoWidth: 138 * scale"))
         #expect(block.contains("frameWidth: 154 * scale"))
         #expect(block.contains("frameHeight: 170 * scale"))
@@ -415,7 +419,7 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
-            from: "private struct HomeShowsTonightHeroCard",
+            from: "struct HomeShowsTonightHeroCard",
             to: "enum HomeShowsTonightHeroPresentation"
         )
 

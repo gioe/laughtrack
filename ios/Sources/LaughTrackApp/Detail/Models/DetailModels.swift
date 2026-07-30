@@ -152,9 +152,6 @@ struct ComedianPastShowsPage: Hashable {
 
 struct ClubDetailContent: Hashable {
     let club: Components.Schemas.ClubDetail
-    let upcomingShows: [Components.Schemas.Show]
-    let featuredComedians: [Components.Schemas.ComedianLineup]
-    let relatedContentMessage: String?
 }
 
 @MainActor
@@ -496,7 +493,6 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
 
 @MainActor
 final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
-    private static let pageSize = 8
     let clubId: Int
 
     init(clubId: Int) {
@@ -540,7 +536,14 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
             }
             switch output {
             case .ok(let ok):
-                return await loadRelatedContent(for: try ok.body.json.data, apiClient: apiClient, cache: cache)
+                let content = ClubDetailContent(club: try ok.body.json.data)
+                await MainPageCache.set(
+                    content,
+                    forKey: .club(id: String(clubId)),
+                    in: cache,
+                    persistentCache: nil
+                )
+                return .success(content)
             case .badRequest:
                 return .failure(.badParams("LaughTrack could not load this club right now."))
             case .notFound:
@@ -554,106 +557,54 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
             return .failure(classifyDetailFetchError(error, context: "club details"))
         }
     }
+}
 
-    private func loadRelatedContent(
-        for club: Components.Schemas.ClubDetail,
-        apiClient: Client,
-        cache: DataCache<LaughTrackCacheKey>?
-    ) async -> Result<ClubDetailContent, LoadFailure> {
-        do {
-            let output = try await apiClient.searchShows(
-                .init(
-                    query: .init(
-                        from: ShowFormatting.apiDate(Date()),
-                        page: 0,
-                        size: Self.pageSize,
-                        club: club.name,
-                        sort: ShowSortOption.earliest.rawValue
-                    )
-                )
-            )
+@MainActor
+final class ClubHighlightsModel: EntityDetailModel<Components.Schemas.ClubHighlights> {
+    let clubId: Int
 
-            switch output {
-            case .ok(let ok):
-                let response = try ok.body.json
-                let upcomingShows = response.data.filter { show in
-                    (show.clubName ?? "").localizedCaseInsensitiveCompare(club.name) == .orderedSame
-                }
+    init(clubId: Int) {
+        self.clubId = clubId
+    }
 
-                var seenComedians = Set<String>()
-                let featuredComedians = upcomingShows
-                    .flatMap { $0.lineup ?? [] }
-                    .filter { comedian in
-                        seenComedians.insert(comedian.uuid).inserted
-                    }
-
-                return await cacheAndReturn(
-                    club: club,
-                    upcomingShows: upcomingShows,
-                    featuredComedians: featuredComedians,
-                    relatedContentMessage: nil,
-                    cache: cache
-                )
-            case .badRequest:
-                return await cacheAndReturn(
-                    club: club,
-                    upcomingShows: [],
-                    featuredComedians: [],
-                    relatedContentMessage: "LaughTrack could not load this club’s upcoming shows right now.",
-                    cache: cache
-                )
-            case .tooManyRequests:
-                return await cacheAndReturn(
-                    club: club,
-                    upcomingShows: [],
-                    featuredComedians: [],
-                    relatedContentMessage: "LaughTrack is rate-limiting this club’s related content right now. Please try again in a moment.",
-                    cache: cache
-                )
-            case .internalServerError:
-                return await cacheAndReturn(
-                    club: club,
-                    upcomingShows: [],
-                    featuredComedians: [],
-                    relatedContentMessage: "LaughTrack hit a server error while loading this club’s related content.",
-                    cache: cache
-                )
-            case .undocumented(let status, _):
-                return await cacheAndReturn(
-                    club: club,
-                    upcomingShows: [],
-                    featuredComedians: [],
-                    relatedContentMessage: "LaughTrack returned an unexpected related shows response (\(status)).",
-                    cache: cache
-                )
-            }
-        } catch {
-            return await cacheAndReturn(
-                club: club,
-                upcomingShows: [],
-                featuredComedians: [],
-                relatedContentMessage: "LaughTrack could not reach this club’s related content service. Check your connection and try again.",
-                cache: cache
-            )
+    func loadIfNeeded(apiClient: Client) async {
+        await super.loadIfNeeded {
+            await self.fetch(apiClient: apiClient)
         }
     }
 
-    private func cacheAndReturn(
-        club: Components.Schemas.ClubDetail,
-        upcomingShows: [Components.Schemas.Show],
-        featuredComedians: [Components.Schemas.ComedianLineup],
-        relatedContentMessage: String?,
-        cache: DataCache<LaughTrackCacheKey>?
-    ) async -> Result<ClubDetailContent, LoadFailure> {
-        let content = ClubDetailContent(
-            club: club,
-            upcomingShows: upcomingShows,
-            featuredComedians: featuredComedians,
-            relatedContentMessage: relatedContentMessage
-        )
-        if relatedContentMessage == nil {
-            await MainPageCache.set(content, forKey: .club(id: String(clubId)), in: cache, persistentCache: nil)
+    func reload(apiClient: Client) async {
+        await super.reload {
+            await self.fetch(apiClient: apiClient)
         }
-        return .success(content)
+    }
+
+    private func fetch(apiClient: Client) async -> Result<Components.Schemas.ClubHighlights, LoadFailure> {
+        do {
+            let output = try await withDetailFetchRetry {
+                try await apiClient.getClubHighlights(.init(path: .init(id: clubId)))
+            }
+
+            switch output {
+            case .ok(let ok):
+                return .success(try ok.body.json.data)
+            case .badRequest:
+                return .failure(.badParams("LaughTrack could not load this club’s highlights right now."))
+            case .notFound:
+                return .failure(.unexpected(status: 404, message: "Club highlights could not be found."))
+            case .tooManyRequests(let tooManyRequests):
+                let retryAfter = tooManyRequests.headers.retryAfter.map(TimeInterval.init)
+                return .failure(.rateLimited(
+                    retryAfter: retryAfter,
+                    message: "LaughTrack is rate-limiting club highlights right now."
+                ))
+            case .internalServerError:
+                return .failure(.serverError(status: 500, message: nil))
+            case .undocumented(let status, _):
+                return .failure(classifyUndocumented(status: status, context: "club highlights"))
+            }
+        } catch {
+            return .failure(classifyDetailFetchError(error, context: "club highlights"))
+        }
     }
 }
