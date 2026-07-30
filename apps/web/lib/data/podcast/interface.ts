@@ -46,6 +46,11 @@ export interface PodcastDetailResponse {
     relatedComedians: ComedianDTO[];
 }
 
+export interface PodcastEpisodeDetailResponse {
+    podcast: Omit<PodcastDTO, "isFavorite">;
+    episode: PodcastEpisodeDTO;
+}
+
 export interface PodcastSearchResponse {
     data: PodcastDTO[];
     total: number;

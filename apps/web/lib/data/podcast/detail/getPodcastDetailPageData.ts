@@ -17,12 +17,12 @@ import { stripHtmlTags } from "@/util/primatives/stringUtil";
 
 // Delegates to the canonical sanitizer so entity references (&amp; etc.)
 // decode instead of rendering literally (TASK-2808).
-function plainText(value: string | null): string | null {
+export function plainText(value: string | null): string | null {
     if (!value) return null;
     return stripHtmlTags(value) || null;
 }
 
-function mapEpisode(episode: {
+export function mapEpisode(episode: {
     id: number;
     title: string;
     description: string | null;
