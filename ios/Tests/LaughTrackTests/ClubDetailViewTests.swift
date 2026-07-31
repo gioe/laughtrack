@@ -104,9 +104,9 @@ struct ClubDetailViewTests {
         #expect(source.contains("bottomPadding: 0"))
         #expect(source.contains("Text(\"Tonight\")"))
         #expect(source.contains("summary: eveningSummary"))
-        #expect(source.contains("Text(viewAllLabel)"))
+        #expect(!source.contains("Text(viewAllLabel)"))
         #expect(!source.contains("coordinator.open(.show(show.id))"))
-        #expect(source.contains("proxy.scrollTo("))
+        #expect(!source.contains("proxy.scrollTo("))
     }
 
     @Test("club detail surfaces API failures explicitly")
@@ -228,17 +228,8 @@ struct ClubDetailViewTests {
         ) == nil)
     }
 
-    @Test("club pinned shows can be switched to Today without clearing club scope")
-    func clubPinnedShowsTodayFilter() throws {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
-        let now = Date(timeIntervalSince1970: 1_800_000_000)
-        let filter = PinnedShowsListPresentation.todayFilter(now: now, calendar: calendar)
-
-        #expect(filter.isActive)
-        #expect(filter.from == calendar.startOfDay(for: now))
-        #expect(filter.to == filter.from)
-
+    @Test("club pinned shows remain scoped without a marquee show-count action")
+    func clubPinnedShowsHaveNoMarqueeAction() throws {
         let clubSource = try String(
             contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
             encoding: .utf8
@@ -247,12 +238,12 @@ struct ClubDetailViewTests {
             contentsOf: appSourceURL(relativePath: "Components/PinnedShowsList.swift"),
             encoding: .utf8
         )
-        #expect(clubSource.contains("ScrollViewReader { proxy in"))
-        #expect(clubSource.contains("proxy.scrollTo("))
-        #expect(clubSource.contains("todayRequest: pinnedShowsTodayRequest"))
+        #expect(!clubSource.contains("Text(viewAllLabel)"))
+        #expect(!clubSource.contains("pinnedShowsTodayRequest"))
+        #expect(!clubSource.contains("showAll:"))
         #expect(pinnedSource.contains("pinnedClubName: pinnedClubName"))
         #expect(pinnedSource.contains("ShowsListView(apiClient: apiClient, model: model, compactMode: true)"))
-        #expect(pinnedSource.contains(".onChange(of: todayRequest)"))
+        #expect(!pinnedSource.contains("todayRequest"))
     }
 
     @Test("club highlights expose only API-qualified frequent performers")
@@ -315,9 +306,8 @@ struct ClubDetailViewTests {
         #expect(source.contains(".padding(ClubVenueMarqueeStyle.bulbInset)"))
         #expect(source.contains("ClubVenueMarqueeStyle.bulbColor.opacity(0.35)"))
         #expect(!source.contains(".inset(by: 6)"))
-        #expect(source.contains("Text(viewAllLabel)"))
-        #expect(source.contains("pinnedShowsTodayRequest += 1"))
-        #expect(source.contains("return \"View all \\(summary.showCount) \\(noun)\""))
+        #expect(!source.contains("Text(viewAllLabel)"))
+        #expect(!source.contains("View all \\(summary.showCount)"))
     }
 
     @Test("frequent performers render after pinned shows")
