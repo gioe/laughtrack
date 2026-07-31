@@ -199,6 +199,13 @@ private fun ClubDetailBody(
                         venues = ui.detail.relatedVenues.orEmpty(),
                         onOpenEntity = onOpenEntity,
                     )
+                    val performers = clubFrequentPerformers(highlights)
+                    if (performers.isNotEmpty()) {
+                        ClubFrequentPerformersSection(
+                            performers = performers,
+                            onPerformer = { onOpenEntity(AppRoute.ComedianDetail(it.id)) },
+                        )
+                    }
                 }
             },
         )
@@ -312,13 +319,6 @@ private fun ClubHighlightsSections(
                 onClick = { onOpenEntity(AppRoute.ShowDetail(featured.show.id)) },
             )
         }
-    }
-    val performers = clubFrequentPerformers(highlights)
-    if (performers.isNotEmpty()) {
-        ClubFrequentPerformersSection(
-            performers = performers,
-            onPerformer = { onOpenEntity(AppRoute.ComedianDetail(it.id)) },
-        )
     }
 }
 

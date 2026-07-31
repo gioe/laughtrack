@@ -135,6 +135,18 @@ class ClubDetailHighlightsPresentationTest {
     }
 
     @Test
+    fun frequent_performers_render_after_the_calendar_and_related_venues() {
+        val source = clubDetailScreenSource()
+        val calendarPosition = source.indexOf("ClubCalendarSection(")
+        val relatedVenuesPosition = source.indexOf("ClubRelatedVenuesSection(")
+        val frequentPerformersPosition = source.indexOf("ClubFrequentPerformersSection(")
+
+        assertTrue(calendarPosition >= 0)
+        assertTrue(relatedVenuesPosition > calendarPosition)
+        assertTrue(frequentPerformersPosition > relatedVenuesPosition)
+    }
+
+    @Test
     fun source_wires_show_all_to_today_and_the_calendar_without_disabling_controls() {
         val source = clubDetailScreenSource()
 
