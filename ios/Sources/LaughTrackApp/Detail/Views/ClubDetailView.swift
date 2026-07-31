@@ -44,9 +44,9 @@ struct ClubDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let content):
                 let club = content.club
-                let marqueeRows: [ClubDetailMarqueeRow] = {
-                    guard case .success(let highlights) = highlightsModel.phase else { return [] }
-                    return ClubDetailHighlightsPresentation.marqueeRows(from: highlights)
+                let eveningSummary: ClubDetailEveningSummary? = {
+                    guard case .success(let highlights) = highlightsModel.phase else { return nil }
+                    return ClubDetailHighlightsPresentation.eveningSummary(from: highlights)
                 }()
                 ScrollViewReader { proxy in
                     ScrollView {
@@ -66,12 +66,9 @@ struct ClubDetailView: View {
                                     fallbackSystemImage: ArtworkFallbackKind.club.systemImage
                                 )
 
-                                if !marqueeRows.isEmpty {
+                                if let eveningSummary {
                                     ClubDetailTonightMarqueeSection(
-                                        rows: marqueeRows,
-                                        openShow: { show in
-                                            coordinator.open(.show(show.id))
-                                        },
+                                        summary: eveningSummary,
                                         showAll: {
                                             pinnedShowsTodayRequest += 1
                                             withAnimation {
@@ -88,7 +85,7 @@ struct ClubDetailView: View {
                         } content: {
                             VStack(alignment: .leading, spacing: 20) {
                                 if case .success(let highlights) = highlightsModel.phase {
-                                    if marqueeRows.isEmpty, let nextShow = highlights.nextShow {
+                                    if eveningSummary == nil, let nextShow = highlights.nextShow {
                                         ClubDetailShowHighlightSection(
                                             featuredShow: .init(title: "Next up", show: nextShow)
                                         ) {
@@ -212,63 +209,89 @@ struct ClubDetailFeaturedShow: Hashable {
 
 enum ClubDetailHighlightsPresentation {
     @MainActor
-    static func marqueeRows(
+    static func eveningSummary(
         from highlights: Components.Schemas.ClubHighlights
-    ) -> [ClubDetailMarqueeRow] {
-        highlights.tonightShows
-            .map { show in
-                let comedian = ShowRow.topLineup(for: show, limit: 1).first
-                return ClubDetailMarqueeRow(
-                    show: show,
-                    performerName: comedian?.name ?? ShowTitlePresentation.title(for: show),
-                    localizedStartTime: ShowFormatting.dateStack(
-                        show.date,
-                        timezoneID: show.timezone
-                    ).time,
-                    performerPopularity: comedian?.socialData?.popularity ?? -1,
-                    performerShowCount: comedian?.showCount ?? 0
-                )
+    ) -> ClubDetailEveningSummary? {
+        let shows = highlights.tonightShows.sorted(by: showsBefore)
+        guard let earliestShow = shows.first else { return nil }
+
+        var performersByID: [Int: Components.Schemas.ComedianLineup] = [:]
+        for show in shows {
+            for rawComedian in show.lineup ?? [] {
+                let comedian = ShowRow.effectiveComedian(rawComedian)
+                guard !comedian.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    continue
+                }
+                if
+                    let existing = performersByID[comedian.id],
+                    !performersBefore(comedian, existing)
+                {
+                    continue
+                }
+                performersByID[comedian.id] = comedian
             }
-            .sorted(by: ranksBefore)
-            .prefix(3)
-            .sorted(by: displaysBefore)
+        }
+
+        let rankedPerformers = performersByID.values.sorted(by: performersBefore)
+        let visibleNames = Array(rankedPerformers.prefix(3)).map(\.name)
+        let performerNames = visibleNames.isEmpty
+            ? [ShowTitlePresentation.title(for: earliestShow)]
+            : visibleNames
+
+        var seenTimes = Set<String>()
+        let localizedStartTimes = shows.compactMap { show -> String? in
+            let time = ShowFormatting.dateStack(
+                show.date,
+                timezoneID: show.timezone
+            ).time
+            return seenTimes.insert(time).inserted ? time : nil
+        }
+
+        return ClubDetailEveningSummary(
+            performerNames: performerNames,
+            remainingPerformerCount: max(0, rankedPerformers.count - visibleNames.count),
+            localizedStartTimes: localizedStartTimes,
+            showCount: shows.count
+        )
     }
 
-    private static func ranksBefore(
-        _ lhs: ClubDetailMarqueeRow,
-        _ rhs: ClubDetailMarqueeRow
+    private static func performersBefore(
+        _ lhs: Components.Schemas.ComedianLineup,
+        _ rhs: Components.Schemas.ComedianLineup
     ) -> Bool {
-        if lhs.performerPopularity != rhs.performerPopularity {
-            return lhs.performerPopularity > rhs.performerPopularity
+        let lhsPopularity = lhs.socialData?.popularity ?? -1
+        let rhsPopularity = rhs.socialData?.popularity ?? -1
+        if lhsPopularity != rhsPopularity {
+            return lhsPopularity > rhsPopularity
         }
-        if lhs.performerShowCount != rhs.performerShowCount {
-            return lhs.performerShowCount > rhs.performerShowCount
+        let lhsShowCount = lhs.showCount ?? 0
+        let rhsShowCount = rhs.showCount ?? 0
+        if lhsShowCount != rhsShowCount {
+            return lhsShowCount > rhsShowCount
         }
-        return displaysBefore(lhs, rhs)
+        return lhs.id < rhs.id
     }
 
-    private static func displaysBefore(
-        _ lhs: ClubDetailMarqueeRow,
-        _ rhs: ClubDetailMarqueeRow
+    private static func showsBefore(
+        _ lhs: Components.Schemas.Show,
+        _ rhs: Components.Schemas.Show
     ) -> Bool {
-        if lhs.show.date != rhs.show.date {
-            return lhs.show.date < rhs.show.date
+        if lhs.date != rhs.date {
+            return lhs.date < rhs.date
         }
-        return lhs.show.id < rhs.show.id
+        return lhs.id < rhs.id
     }
 }
 
-struct ClubDetailMarqueeRow: Hashable {
-    let show: Components.Schemas.Show
-    let performerName: String
-    let localizedStartTime: String
-    fileprivate let performerPopularity: Double
-    fileprivate let performerShowCount: Int
+struct ClubDetailEveningSummary: Equatable {
+    let performerNames: [String]
+    let remainingPerformerCount: Int
+    let localizedStartTimes: [String]
+    let showCount: Int
 }
 
 private struct ClubDetailTonightMarqueeSection: View {
-    let rows: [ClubDetailMarqueeRow]
-    let openShow: (Components.Schemas.Show) -> Void
+    let summary: ClubDetailEveningSummary
     let showAll: () -> Void
 
     @Environment(\.appTheme) private var theme
@@ -297,43 +320,38 @@ private struct ClubDetailTonightMarqueeSection: View {
                     .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
                 }
 
-            ForEach(Array(rows.enumerated()), id: \.element.show.id) { index, row in
-                if index > 0 {
-                    Divider()
-                        .overlay(Color.black.opacity(0.24))
-                        .padding(.horizontal, theme.spacing.md)
+            VStack(spacing: theme.spacing.sm) {
+                ForEach(Array(summary.performerNames.enumerated()), id: \.offset) { _, performerName in
+                    Text(performerName.uppercased())
+                        .font(.system(.headline, design: .monospaced, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
                 }
 
-                Button {
-                    openShow(row.show)
-                } label: {
-                    HStack(alignment: .firstTextBaseline, spacing: theme.spacing.md) {
-                        Text(row.performerName.uppercased())
-                            .font(.system(.headline, design: .monospaced, weight: .bold))
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                if summary.remainingPerformerCount > 0 {
+                    Text("+\(summary.remainingPerformerCount) more")
+                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                }
+            }
+            .foregroundStyle(Color.black)
+            .padding(.horizontal, theme.spacing.lg)
+            .padding(.vertical, theme.spacing.md)
 
-                        Text(row.localizedStartTime.uppercased())
-                            .font(.system(.subheadline, design: .monospaced, weight: .semibold))
-                            .lineLimit(1)
-
-                        Image(systemName: "chevron.right")
-                            .font(.caption.weight(.bold))
-                    }
-                    .foregroundStyle(Color.black)
+            if !summary.localizedStartTimes.isEmpty {
+                Text(summary.localizedStartTimes.joined(separator: " · ").uppercased())
+                    .font(.system(.subheadline, design: .monospaced, weight: .semibold))
+                    .foregroundStyle(Color.black.opacity(0.78))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
                     .padding(.horizontal, theme.spacing.lg)
-                    .padding(.vertical, theme.spacing.md)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("\(row.performerName), \(row.localizedStartTime)")
-                .accessibilityIdentifier(
-                    LaughTrackViewTestID.clubDetailHighlightShowButton(row.show.id)
-                )
+                    .padding(.vertical, theme.spacing.sm)
+                    .overlay(alignment: .top) {
+                        Divider().overlay(Color.black.opacity(0.3))
+                    }
             }
 
             Button(action: showAll) {
-                Text("Show all")
+                Text(viewAllLabel)
                     .font(.system(.subheadline, design: .monospaced, weight: .bold))
                     .foregroundStyle(Color.black)
                     .frame(maxWidth: .infinity)
@@ -374,6 +392,11 @@ private struct ClubDetailTonightMarqueeSection: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailHighlightSection)
+    }
+
+    private var viewAllLabel: String {
+        let noun = summary.showCount == 1 ? "show" : "shows"
+        return "View all \(summary.showCount) \(noun)"
     }
 }
 

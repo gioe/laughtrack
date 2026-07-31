@@ -98,7 +98,9 @@ struct ClubDetailViewTests {
         #expect(source.contains("actionStyle: .compactPill"))
         #expect(source.contains("bottomPadding: 0"))
         #expect(source.contains("Text(\"Tonight\")"))
-        #expect(source.contains("coordinator.open(.show(show.id))"))
+        #expect(source.contains("summary: eveningSummary"))
+        #expect(source.contains("Text(viewAllLabel)"))
+        #expect(!source.contains("coordinator.open(.show(show.id))"))
         #expect(source.contains("proxy.scrollTo("))
     }
 
@@ -122,8 +124,8 @@ struct ClubDetailViewTests {
         #expect(failure.message == "This club could not be found. (HTTP 404)")
     }
 
-    @Test("club marquee selects the three most popular lineups then displays them chronologically")
-    func clubMarqueeSelectionOrder() throws {
+    @Test("club evening summary deduplicates parent identities and ranks unique performers")
+    func clubEveningSummaryDeduplicatesAndRanksPerformers() throws {
         let calendar = Calendar(identifier: .gregorian)
         let base = try #require(calendar.date(from: DateComponents(
             timeZone: TimeZone(secondsFromGMT: 0),
@@ -132,93 +134,93 @@ struct ClubDetailViewTests {
             day: 30,
             hour: 18
         )))
+        let headliner = lineup(id: 101, name: "Headliner", popularity: 95, showCount: 10)
+        let headlinerAlias = lineup(
+            id: 901,
+            name: "Headliner Alias",
+            popularity: 1,
+            showCount: 1,
+            parentComedian: headliner
+        )
         let shows = [
             show(
                 id: 301,
-                name: "Nine",
-                date: base.addingTimeInterval(3 * 60 * 60),
-                lineup: [lineup(id: 101, name: "Third", popularity: 70)]
+                name: "Late",
+                date: base.addingTimeInterval(2 * 60 * 60),
+                lineup: [headlinerAlias, lineup(id: 104, name: "Fourth", popularity: 70)]
             ),
             show(
                 id: 302,
-                name: "Seven",
-                date: base.addingTimeInterval(60 * 60),
-                lineup: [lineup(id: 102, name: "First", popularity: 100)]
+                name: "Early",
+                date: base,
+                lineup: [headliner, lineup(id: 102, name: "Second by ID", popularity: 80, showCount: 20)]
             ),
             show(
                 id: 303,
-                name: "Eight",
-                date: base.addingTimeInterval(2 * 60 * 60),
-                lineup: [lineup(id: 103, name: "Second", popularity: 80)]
+                name: "Middle",
+                date: base.addingTimeInterval(60 * 60),
+                lineup: [lineup(id: 103, name: "Third by ID", popularity: 80, showCount: 20)]
             ),
             show(
                 id: 304,
-                name: "Six",
-                date: base,
-                lineup: [lineup(id: 104, name: "Excluded", popularity: 10)]
+                name: "Same time",
+                date: base.addingTimeInterval(60 * 60),
+                lineup: [lineup(id: 104, name: "Fourth", popularity: 70)]
             ),
         ]
 
-        let rows = ClubDetailHighlightsPresentation.marqueeRows(
+        let summary = try #require(ClubDetailHighlightsPresentation.eveningSummary(
             from: highlights(tonightShows: shows)
-        )
+        ))
 
-        #expect(rows.map(\.show.id) == [302, 303, 301])
-        #expect(rows.map(\.performerName) == ["First", "Second", "Third"])
-        #expect(rows.map(\.localizedStartTime) == rows.map {
-            ShowFormatting.dateStack($0.show.date, timezoneID: $0.show.timezone).time
+        #expect(summary.performerNames == ["Headliner", "Second by ID", "Third by ID"])
+        #expect(summary.remainingPerformerCount == 1)
+        #expect(summary.showCount == 4)
+        #expect(summary.localizedStartTimes == [shows[1], shows[2], shows[0]].map {
+            ShowFormatting.dateStack($0.date, timezoneID: $0.timezone).time
         })
     }
 
-    @Test("club marquee uses deterministic lineup and show fallbacks")
-    func clubMarqueeDeterministicFallbacks() {
+    @Test("club evening summary handles one performer and missing-lineup fallback")
+    func clubEveningSummaryHandlesSparseLineups() throws {
         let date = Date(timeIntervalSince1970: 1_800_000_000)
-        let rows = ClubDetailHighlightsPresentation.marqueeRows(
+        let single = try #require(ClubDetailHighlightsPresentation.eveningSummary(
             from: highlights(tonightShows: [
-                show(
-                    id: 304,
-                    name: "No lineup",
-                    date: date,
-                    lineup: nil
-                ),
-                show(
-                    id: 303,
-                    name: "Same count, higher ID",
-                    date: date,
-                    lineup: [lineup(id: 103, name: "Same count, higher ID", popularity: 50, showCount: 5)]
-                ),
-                show(
-                    id: 302,
-                    name: "Same count, lower ID",
-                    date: date,
-                    lineup: [lineup(id: 102, name: "Same count, lower ID", popularity: 50, showCount: 5)]
-                ),
-                show(
-                    id: 301,
-                    name: "Higher count",
-                    date: date,
-                    lineup: [lineup(id: 101, name: "Higher count", popularity: 50, showCount: 10)]
-                ),
+                show(id: 301, name: "Solo show", date: date, lineup: [
+                    lineup(id: 101, name: "Solo", popularity: nil),
+                ]),
             ])
-        )
+        ))
+        #expect(single.performerNames == ["Solo"])
+        #expect(single.remainingPerformerCount == 0)
+        #expect(single.showCount == 1)
 
-        #expect(rows.map(\.show.id) == [301, 302, 303])
-        let noLineupRow = ClubDetailHighlightsPresentation.marqueeRows(
+        let earliest = show(id: 302, name: "Earliest fallback", date: date, lineup: nil)
+        let later = show(
+            id: 303,
+            name: "Later fallback",
+            date: date.addingTimeInterval(60 * 60),
+            lineup: []
+        )
+        let noLineup = try #require(ClubDetailHighlightsPresentation.eveningSummary(
             from: highlights(tonightShows: [
-                show(id: 304, name: "No lineup", date: date, lineup: nil),
+                later,
+                earliest,
             ])
-        )
-        #expect(noLineupRow.first?.performerName == "No lineup")
-        #expect(
-            ClubDetailHighlightsPresentation.marqueeRows(
-                from: highlights(tonightShows: [], nextShow: relatedShows[1])
-            ).isEmpty
-        )
-        #expect(
-            ClubDetailHighlightsPresentation.marqueeRows(
-                from: highlights(tonightShows: [], nextShow: nil)
-            ).isEmpty
-        )
+        ))
+        #expect(noLineup.performerNames == [ShowTitlePresentation.title(for: earliest)])
+        #expect(noLineup.remainingPerformerCount == 0)
+        #expect(noLineup.showCount == 2)
+    }
+
+    @Test("club evening summary stays absent without tonight shows")
+    func clubEveningSummaryPreservesNoTonightFallback() {
+        #expect(ClubDetailHighlightsPresentation.eveningSummary(
+            from: highlights(tonightShows: [], nextShow: relatedShows[1])
+        ) == nil)
+        #expect(ClubDetailHighlightsPresentation.eveningSummary(
+            from: highlights(tonightShows: [], nextShow: nil)
+        ) == nil)
     }
 
     @Test("club pinned shows can be switched to Today without clearing club scope")
@@ -292,9 +294,8 @@ struct ClubDetailViewTests {
             contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
             encoding: .utf8
         )
-        #expect(source.contains("coordinator.open(.show(show.id))"))
-        #expect(source.contains("clubDetailHighlightShowButton(row.show.id)"))
-        #expect(source.contains("if marqueeRows.isEmpty, let nextShow = highlights.nextShow"))
+        #expect(!source.contains("clubDetailHighlightShowButton(row.show.id)"))
+        #expect(source.contains("if eveningSummary == nil, let nextShow = highlights.nextShow"))
         #expect(source.contains("featuredShow: .init(title: \"Next up\", show: nextShow)"))
         #expect(source.contains("coordinator.open(.show(nextShow.id))"))
         #expect(source.contains("coordinator.open(.comedian(performer.id))"))
@@ -304,6 +305,9 @@ struct ClubDetailViewTests {
         #expect(!source.contains("Text(\"Tonight's\")"))
         #expect(source.contains("ClubVenueMarqueeStyle.paper"))
         #expect(source.contains("ClubVenueMarqueeStyle.bulbStroke"))
+        #expect(source.contains("Text(viewAllLabel)"))
+        #expect(source.contains("pinnedShowsTodayRequest += 1"))
+        #expect(source.contains("return \"View all \\(summary.showCount) \\(noun)\""))
     }
 
     @Test("frequent performers render after pinned shows")
@@ -390,7 +394,8 @@ struct ClubDetailViewTests {
         id: Int,
         name: String,
         popularity: Double?,
-        showCount: Int = 12
+        showCount: Int = 12,
+        parentComedian: Components.Schemas.ComedianLineup? = nil
     ) -> Components.Schemas.ComedianLineup {
         .init(
             name: name,
@@ -398,7 +403,8 @@ struct ClubDetailViewTests {
             uuid: "demo-lineup-\(id)",
             id: id,
             socialData: .init(id: id, popularity: popularity),
-            showCount: showCount
+            showCount: showCount,
+            parentComedian: parentComedian
         )
     }
 

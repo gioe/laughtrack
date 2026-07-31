@@ -110,7 +110,6 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 content: [
                     text("The Comedy Store", as: "club title"),
                     identified(Identifier.clubDetailHighlightSection, as: "club highlight section"),
-                    prefixed("laughtrack.club-detail.highlight-show-", as: "club highlight show action"),
                     identified(Identifier.clubDetailFrequentPerformersSection, as: "club frequent performers section"),
                     prefixed("laughtrack.club-detail.performer-", as: "club performer action"),
                     prefixed("laughtrack.shows-search.result-", as: "upcoming show"),
