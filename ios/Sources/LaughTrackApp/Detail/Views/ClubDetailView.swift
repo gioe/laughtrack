@@ -18,9 +18,6 @@ struct ClubDetailView: View {
     @StateObject private var model: ClubDetailModel
     @StateObject private var highlightsModel: ClubHighlightsModel
     @State private var feedbackMessage: String?
-    @State private var pinnedShowsTodayRequest = 0
-
-    private static let pinnedShowsAnchor = "club-detail-pinned-shows"
 
     init(clubId: Int, apiClient: Client) {
         self.clubId = clubId
@@ -48,79 +45,65 @@ struct ClubDetailView: View {
                     guard case .success(let highlights) = highlightsModel.phase else { return nil }
                     return ClubDetailHighlightsPresentation.eveningSummary(from: highlights)
                 }()
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        AdaptiveDetailCatalogLayout {
-                            VStack(spacing: ClubVenueMarqueeStyle.artworkToBoardSpacing) {
-                                MarqueeHero(
-                                    title: club.name,
-                                    imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
-                                    thumbnailStyle: .clubMarquee,
-                                    // Set to true to restore venue artwork above the Tonight marquee.
-                                    showsThumbnail: false,
-                                    actions: clubHeroActions(club: club),
-                                    actionPlacement: .belowTitle,
-                                    actionStyle: .compactPill,
-                                    bottomPadding: 0,
-                                    openURL: { url in
-                                        openURL(url)
-                                    },
-                                    fallbackSystemImage: ArtworkFallbackKind.club.systemImage
+                ScrollView {
+                    AdaptiveDetailCatalogLayout {
+                        VStack(spacing: ClubVenueMarqueeStyle.artworkToBoardSpacing) {
+                            MarqueeHero(
+                                title: club.name,
+                                imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
+                                thumbnailStyle: .clubMarquee,
+                                // Set to true to restore venue artwork above the Tonight marquee.
+                                showsThumbnail: false,
+                                actions: clubHeroActions(club: club),
+                                actionPlacement: .belowTitle,
+                                actionStyle: .compactPill,
+                                bottomPadding: 0,
+                                openURL: { url in
+                                    openURL(url)
+                                },
+                                fallbackSystemImage: ArtworkFallbackKind.club.systemImage
+                            )
+
+                            if let eveningSummary {
+                                ClubDetailTonightMarqueeSection(
+                                    summary: eveningSummary
                                 )
-
-                                if let eveningSummary {
-                                    ClubDetailTonightMarqueeSection(
-                                        summary: eveningSummary,
-                                        showAll: {
-                                            pinnedShowsTodayRequest += 1
-                                            withAnimation {
-                                                proxy.scrollTo(
-                                                    Self.pinnedShowsAnchor,
-                                                    anchor: .top
-                                                )
-                                            }
-                                        }
-                                    )
-                                    .padding(.horizontal, 8)
-                                }
+                                .padding(.horizontal, 8)
                             }
-                        } content: {
-                            VStack(alignment: .leading, spacing: 20) {
-                                if case .success(let highlights) = highlightsModel.phase {
-                                    if eveningSummary == nil, let nextShow = highlights.nextShow {
-                                        ClubDetailShowHighlightSection(
-                                            featuredShow: .init(title: "Next up", show: nextShow)
-                                        ) {
-                                            coordinator.open(.show(nextShow.id))
-                                        }
-                                    }
-
-                                }
-
-                                PinnedShowsList(
-                                    apiClient: apiClient,
-                                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                                    pinnedClubName: club.name,
-                                    todayRequest: pinnedShowsTodayRequest
-                                )
-                                .id(Self.pinnedShowsAnchor)
-
-                                if case .success(let highlights) = highlightsModel.phase,
-                                   !highlights.frequentPerformers.isEmpty {
-                                    ClubDetailFrequentPerformersSection(
-                                        performers: highlights.frequentPerformers,
-                                        openPerformer: { performer in
-                                            coordinator.open(.comedian(performer.id))
-                                        }
-                                    )
-                                }
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, theme.spacing.lg)
                         }
+                    } content: {
+                        VStack(alignment: .leading, spacing: 20) {
+                            if case .success(let highlights) = highlightsModel.phase {
+                                if eveningSummary == nil, let nextShow = highlights.nextShow {
+                                    ClubDetailShowHighlightSection(
+                                        featuredShow: .init(title: "Next up", show: nextShow)
+                                    ) {
+                                        coordinator.open(.show(nextShow.id))
+                                    }
+                                }
+                            }
+
+                            PinnedShowsList(
+                                apiClient: apiClient,
+                                nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                                pinnedClubName: club.name
+                            )
+
+                            if case .success(let highlights) = highlightsModel.phase,
+                               !highlights.frequentPerformers.isEmpty {
+                                ClubDetailFrequentPerformersSection(
+                                    performers: highlights.frequentPerformers,
+                                    openPerformer: { performer in
+                                        coordinator.open(.comedian(performer.id))
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, theme.spacing.lg)
                     }
-                    .modifier(DetailAtmosphereScrollContent())
                 }
+                .modifier(DetailAtmosphereScrollContent())
             }
         }
         .ignoresSafeArea(.container, edges: .top)
@@ -294,7 +277,6 @@ struct ClubDetailEveningSummary: Equatable {
 
 private struct ClubDetailTonightMarqueeSection: View {
     let summary: ClubDetailEveningSummary
-    let showAll: () -> Void
 
     @Environment(\.appTheme) private var theme
 
@@ -352,18 +334,6 @@ private struct ClubDetailTonightMarqueeSection: View {
                     }
             }
 
-            Button(action: showAll) {
-                Text(viewAllLabel)
-                    .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                    .foregroundStyle(Color.black)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, theme.spacing.sm)
-            }
-            .buttonStyle(.plain)
-            .overlay(alignment: .top) {
-                Divider().overlay(Color.black.opacity(0.3))
-            }
-            .accessibilityHint("Shows every performance at this club today")
         }
         .background {
             ZStack {
@@ -398,10 +368,6 @@ private struct ClubDetailTonightMarqueeSection: View {
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailHighlightSection)
     }
 
-    private var viewAllLabel: String {
-        let noun = summary.showCount == 1 ? "show" : "shows"
-        return "View all \(summary.showCount) \(noun)"
-    }
 }
 
 private struct ClubDetailShowHighlightSection: View {
