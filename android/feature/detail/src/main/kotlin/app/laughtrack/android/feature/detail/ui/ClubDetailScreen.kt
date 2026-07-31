@@ -157,7 +157,7 @@ private fun ClubDetailBody(
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val marqueeRows = clubMarqueeRows(highlights)
+    val marqueeSummary = clubMarqueeSummary(highlights)
     val calendarBringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     var calendarFilter by remember(ui.detail.id) { mutableStateOf(ClubCalendarFilter.AnyDate) }
@@ -172,13 +172,12 @@ private fun ClubDetailBody(
             hero = {
                 ClubMarqueeHero(
                     club = ui.detail,
-                    marqueeRows = marqueeRows,
+                    marqueeSummary = marqueeSummary,
                     isFavorite = isFavorite,
                     isFavoritePending = isFavoritePending,
                     onFavorite = onFavorite,
                     onBack = onBack,
                     onHome = onHome,
-                    onShow = { row -> onOpenEntity(AppRoute.ShowDetail(row.show.id)) },
                     onShowAll = {
                         calendarFilter = ClubCalendarFilter.Today
                         coroutineScope.launch { calendarBringIntoViewRequester.bringIntoView() }
@@ -226,39 +225,51 @@ internal data class ClubFeaturedShow(
     val show: Show,
 )
 
-internal data class ClubMarqueeRow(
-    val show: Show,
-    val performerName: String,
-    val localizedStartTime: String,
-    internal val performerPopularity: BigDecimal,
-    internal val performerShowCount: Int,
+internal data class ClubMarqueeSummary(
+    val performerNames: List<String>,
+    val remainingPerformerCount: Int,
+    val localizedStartTimes: List<String>,
+    val showCount: Int,
 )
 
-internal fun clubMarqueeRows(highlights: ClubHighlights?): List<ClubMarqueeRow> =
-    highlights
-        ?.tonightShows
-        .orEmpty()
-        .map { show ->
-            val performer = clubMarqueeHeadliner(show)
-            ClubMarqueeRow(
-                show = show,
-                performerName = performer?.name ?: show.name?.takeIf(String::isNotBlank) ?: "Show",
-                localizedStartTime = clubMarqueeStartTime(show),
-                performerPopularity = performer?.socialData?.popularity ?: BigDecimal.valueOf(-1),
-                performerShowCount = performer?.showCount ?: 0,
-            )
-        }
-        .sortedWith { left, right ->
-            val popularity = right.performerPopularity.compareTo(left.performerPopularity)
-            val showCount = right.performerShowCount.compareTo(left.performerShowCount)
-            when {
-                popularity != 0 -> popularity
-                showCount != 0 -> showCount
-                else -> compareClubMarqueeDisplay(left, right)
+internal fun clubMarqueeSummary(highlights: ClubHighlights?): ClubMarqueeSummary? {
+    val tonightShows = highlights?.tonightShows.orEmpty()
+    if (tonightShows.isEmpty()) return null
+
+    val chronologicalShows = tonightShows.sortedWith(Comparator(::compareClubMarqueeShows))
+    val uniquePerformers =
+        tonightShows
+            .flatMap { it.lineup.orEmpty() }
+            .map(::effectiveClubShowComedian)
+            .filter { it.name.isNotBlank() }
+            .groupBy { it.id }
+            .values
+            .map { duplicates -> duplicates.sortedWith(clubMarqueePerformerRanking).first() }
+            .sortedWith(clubMarqueePerformerRanking)
+    val performerNames =
+        uniquePerformers
+            .take(3)
+            .map { it.name.trim() }
+            .ifEmpty {
+                listOf(
+                    chronologicalShows.first().name
+                        ?.trim()
+                        ?.takeIf(String::isNotEmpty)
+                        ?: "Show",
+                )
             }
-        }
-        .take(3)
-        .sortedWith(Comparator(::compareClubMarqueeDisplay))
+
+    return ClubMarqueeSummary(
+        performerNames = performerNames,
+        remainingPerformerCount = (uniquePerformers.size - performerNames.size).coerceAtLeast(0),
+        localizedStartTimes =
+            chronologicalShows
+                .map(::clubMarqueeStartTime)
+                .filter(String::isNotEmpty)
+                .distinct(),
+        showCount = tonightShows.size,
+    )
+}
 
 internal fun clubNextFeaturedShow(highlights: ClubHighlights?): ClubFeaturedShow? =
     highlights
@@ -266,19 +277,12 @@ internal fun clubNextFeaturedShow(highlights: ClubHighlights?): ClubFeaturedShow
         ?.nextShow
         ?.let { ClubFeaturedShow("Next up", it) }
 
-private fun clubMarqueeHeadliner(show: Show): ComedianLineup? =
-    show.lineup
-        .orEmpty()
-        .map(::effectiveClubShowComedian)
-        .distinctBy { it.id }
-        .sortedWith(
-            compareByDescending<ComedianLineup> {
-                it.socialData?.popularity ?: BigDecimal.valueOf(-1)
-            }
-                .thenByDescending { it.showCount ?: 0 }
-                .thenBy { it.id },
-        )
-        .firstOrNull()
+private val clubMarqueePerformerRanking =
+    compareByDescending<ComedianLineup> {
+        it.socialData?.popularity ?: BigDecimal.valueOf(-1)
+    }
+        .thenByDescending { it.showCount ?: 0 }
+        .thenBy { it.id }
 
 private fun clubMarqueeStartTime(show: Show): String =
     parseShowDateTime(show.date, show.timezone)
@@ -286,12 +290,12 @@ private fun clubMarqueeStartTime(show: Show): String =
         ?.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(Locale.getDefault()))
         .orEmpty()
 
-private fun compareClubMarqueeDisplay(
-    left: ClubMarqueeRow,
-    right: ClubMarqueeRow,
+private fun compareClubMarqueeShows(
+    left: Show,
+    right: Show,
 ): Int {
-    val leftInstant = parseShowDateTime(left.show.date, left.show.timezone)?.toInstant()
-    val rightInstant = parseShowDateTime(right.show.date, right.show.timezone)?.toInstant()
+    val leftInstant = parseShowDateTime(left.date, left.timezone)?.toInstant()
+    val rightInstant = parseShowDateTime(right.date, right.timezone)?.toInstant()
     val timeComparison =
         when {
             leftInstant == null && rightInstant == null -> 0
@@ -299,7 +303,7 @@ private fun compareClubMarqueeDisplay(
             rightInstant == null -> -1
             else -> leftInstant.compareTo(rightInstant)
         }
-    return timeComparison.takeIf { it != 0 } ?: left.show.id.compareTo(right.show.id)
+    return timeComparison.takeIf { it != 0 } ?: left.id.compareTo(right.id)
 }
 
 internal fun clubFrequentPerformers(highlights: ClubHighlights?): List<ComedianListItem> =
@@ -311,7 +315,7 @@ private fun ClubHighlightsSections(
     highlights: ClubHighlights?,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
-    if (clubMarqueeRows(highlights).isEmpty()) {
+    if (clubMarqueeSummary(highlights) == null) {
         clubNextFeaturedShow(highlights)?.let { featured ->
             ClubFeaturedShowSection(
                 club = club,
@@ -325,8 +329,7 @@ private fun ClubHighlightsSections(
 @Composable
 private fun ClubTonightMarqueeSection(
     club: ClubDetail,
-    rows: List<ClubMarqueeRow>,
-    onShow: (ClubMarqueeRow) -> Unit,
+    summary: ClubMarqueeSummary,
     onShowAll: () -> Unit,
 ) {
     Surface(
@@ -355,7 +358,7 @@ private fun ClubTonightMarqueeSection(
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
                     )
                 }
-                rows.forEachIndexed { index, row ->
+                summary.performerNames.forEachIndexed { index, performerName ->
                     if (index > 0) {
                         Box(
                             Modifier
@@ -368,18 +371,10 @@ private fun ClubTonightMarqueeSection(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .testTag("$CLUB_HIGHLIGHT_SHOW_TEST_TAG_PREFIX${row.show.id}")
-                                .semantics {
-                                    contentDescription =
-                                        "Open ${row.performerName}, ${row.localizedStartTime}"
-                                }
-                                .clickable(role = Role.Button) { onShow(row) }
                                 .padding(horizontal = 10.dp, vertical = 15.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            row.performerName.uppercase(Locale.getDefault()),
+                            performerName.uppercase(Locale.getDefault()),
                             style =
                                 MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Black,
@@ -390,14 +385,25 @@ private fun ClubTonightMarqueeSection(
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        Text(
-                            row.localizedStartTime.uppercase(Locale.getDefault()),
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                            color = ClubMarqueeInk,
-                            maxLines = 1,
-                        )
-                        Text("›", style = MaterialTheme.typography.titleMedium, color = ClubMarqueeInk)
                     }
+                }
+                if (summary.remainingPerformerCount > 0) {
+                    Text(
+                        "+${summary.remainingPerformerCount} MORE",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                        color = ClubMarqueeInk.copy(alpha = 0.72f),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                if (summary.localizedStartTimes.isNotEmpty()) {
+                    Text(
+                        summary.localizedStartTimes.joinToString(" • ").uppercase(Locale.getDefault()),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        color = ClubMarqueeInk,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
+                        textAlign = TextAlign.Center,
+                    )
                 }
                 Box(
                     Modifier
@@ -406,7 +412,7 @@ private fun ClubTonightMarqueeSection(
                         .background(ClubMarqueeInk.copy(alpha = 0.30f)),
                 )
                 Text(
-                    "Show all",
+                    "View all ${summary.showCount} ${if (summary.showCount == 1) "show" else "shows"}",
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
                     color = ClubMarqueeInk,
                     textAlign = TextAlign.Center,
@@ -563,13 +569,12 @@ private fun ClubFrequentPerformersSection(
 @Composable
 private fun ClubMarqueeHero(
     club: ClubDetail,
-    marqueeRows: List<ClubMarqueeRow>,
+    marqueeSummary: ClubMarqueeSummary?,
     isFavorite: Boolean,
     isFavoritePending: Boolean,
     onFavorite: () -> Unit,
     onBack: () -> Unit,
     onHome: (() -> Unit)?,
-    onShow: (ClubMarqueeRow) -> Unit,
     onShowAll: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -643,11 +648,10 @@ private fun ClubMarqueeHero(
                 ClubHeroAction(label = "Directions", symbol = "▥", onClick = { context.openMap(club.address) })
             }
             ClubPoster(url = club.heroImageUrl.ifBlank { club.imageUrl }, contentDescription = club.name)
-            if (marqueeRows.isNotEmpty()) {
+            marqueeSummary?.let { summary ->
                 ClubTonightMarqueeSection(
                     club = club,
-                    rows = marqueeRows,
-                    onShow = onShow,
+                    summary = summary,
                     onShowAll = onShowAll,
                 )
             }

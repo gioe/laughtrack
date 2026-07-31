@@ -22,68 +22,105 @@ import java.util.Locale
 
 class ClubDetailHighlightsPresentationTest {
     @Test
-    fun marquee_selects_three_most_popular_shows_then_displays_them_chronologically() {
-        val rows =
-            clubMarqueeRows(
+    fun marquee_deduplicates_and_ranks_unique_evening_performers() {
+        val canonical = lineup(1, "First", 100, 1)
+        val summary =
+            clubMarqueeSummary(
                 highlights(
                     tonight =
                         listOf(
-                            show(1, date = "2026-07-30T22:00:00-04:00", lineup = listOf(lineup(1, "Third", 100, 2))),
-                            show(2, date = "2026-07-30T20:00:00-04:00", lineup = listOf(lineup(2, "First", 80, 2))),
-                            show(3, date = "2026-07-30T21:00:00-04:00", lineup = listOf(lineup(3, "Second", 90, 2))),
-                            show(4, date = "2026-07-30T19:00:00-04:00", lineup = listOf(lineup(4, "Excluded", 10, 50))),
+                            show(
+                                1,
+                                lineup =
+                                    listOf(
+                                        canonical,
+                                        lineup(2, "Second", 90, 10),
+                                        lineup(4, "Fourth", 90, 5),
+                                    ),
+                            ),
+                            show(
+                                2,
+                                lineup =
+                                    listOf(
+                                        lineup(99, "Alias", 1, 1, parent = canonical),
+                                        lineup(3, "Third", 90, 10),
+                                        lineup(5, "Fifth", 80, 50),
+                                    ),
+                            ),
                         ),
                 ),
-            )
+            )!!
 
-        assertEquals(listOf(2, 3, 1), rows.map { it.show.id })
-        assertEquals(listOf("First", "Second", "Third"), rows.map { it.performerName })
+        assertEquals(listOf("First", "Second", "Third"), summary.performerNames)
+        assertEquals(2, summary.remainingPerformerCount)
+        assertEquals(2, summary.showCount)
     }
 
     @Test
-    fun marquee_uses_show_count_then_date_and_id_as_deterministic_fallbacks() {
-        val rows =
-            clubMarqueeRows(
+    fun marquee_uses_show_count_then_id_as_deterministic_ranking_fallbacks() {
+        val summary =
+            clubMarqueeSummary(
                 highlights(
                     tonight =
                         listOf(
-                            show(30, lineup = listOf(lineup(30, "Higher ID", 50, 5))),
-                            show(20, lineup = listOf(lineup(20, "Lower ID", 50, 5))),
-                            show(10, lineup = listOf(lineup(10, "Higher count", 50, 10))),
-                            show(40, lineup = listOf(lineup(40, "Excluded", 50, 1))),
+                            show(
+                                1,
+                                lineup =
+                                    listOf(
+                                        lineup(30, "Higher ID", 50, 5),
+                                        lineup(20, "Lower ID", 50, 5),
+                                        lineup(10, "Higher count", 50, 10),
+                                        lineup(40, "Excluded", 50, 1),
+                                    ),
+                            ),
                         ),
                 ),
-            )
+            )!!
 
-        assertEquals(listOf(10, 20, 30), rows.map { it.show.id })
-
-        val noLineup =
-            clubMarqueeRows(
-                highlights(tonight = listOf(show(50, name = "No lineup", lineup = null))),
-            )
-        assertEquals("No lineup", noLineup.single().performerName)
+        assertEquals(listOf("Higher count", "Lower ID", "Higher ID"), summary.performerNames)
+        assertEquals(1, summary.remainingPerformerCount)
     }
 
     @Test
-    fun marquee_uses_each_venue_timezone_and_the_current_locale_for_start_times() {
-        val show =
+    fun marquee_displays_distinct_localized_times_in_chronological_show_order() {
+        val later =
             show(
                 id = 1,
-                date = "2026-07-31T00:00:00Z",
+                date = "2026-07-30T22:00:00-04:00",
                 timezone = "America/Los_Angeles",
                 lineup = listOf(lineup(1, "Local headliner", 100, 5)),
             )
-        val row = clubMarqueeRows(highlights(tonight = listOf(show))).single()
-        val expected =
-            parseShowDateTime(show.date, show.timezone)!!
-                .toLocalTime()
-                .format(
-                    DateTimeFormatter
-                        .ofLocalizedTime(FormatStyle.SHORT)
-                        .withLocale(Locale.getDefault()),
-                )
+        val earlier = show(2, date = "2026-07-30T20:00:00-04:00", timezone = "America/New_York")
+        val duplicate = show(3, date = earlier.date, timezone = earlier.timezone)
+        val summary = clubMarqueeSummary(highlights(tonight = listOf(later, duplicate, earlier)))!!
 
-        assertEquals(expected, row.localizedStartTime)
+        assertEquals(listOf(earlier, later).map(::localizedTime), summary.localizedStartTimes)
+    }
+
+    @Test
+    fun marquee_handles_single_performer_and_missing_lineup_title_fallbacks() {
+        val single =
+            clubMarqueeSummary(
+                highlights(tonight = listOf(show(1, lineup = listOf(lineup(1, "Solo", 5, 1))))),
+            )!!
+        assertEquals(listOf("Solo"), single.performerNames)
+        assertEquals(0, single.remainingPerformerCount)
+
+        val missing =
+            clubMarqueeSummary(
+                highlights(
+                    tonight =
+                        listOf(
+                            show(2, name = "Later", date = "2026-07-30T22:00:00-04:00", lineup = null),
+                            show(1, name = "Early", date = "2026-07-30T20:00:00-04:00", lineup = emptyList()),
+                        ),
+                ),
+            )!!
+        assertEquals(listOf("Early"), missing.performerNames)
+        assertEquals(
+            listOf("Show"),
+            clubMarqueeSummary(highlights(tonight = listOf(show(3, name = " "))))!!.performerNames,
+        )
     }
 
     @Test
@@ -95,7 +132,7 @@ class ClubDetailHighlightsPresentationTest {
         assertEquals("Next up", featured?.eyebrow)
         assertEquals(2, featured?.show?.id)
         assertNull(clubNextFeaturedShow(highlights()))
-        assertTrue(clubMarqueeRows(highlights(next = next)).isEmpty())
+        assertNull(clubMarqueeSummary(highlights(next = next)))
     }
 
     @Test
@@ -125,12 +162,13 @@ class ClubDetailHighlightsPresentationTest {
     }
 
     @Test
-    fun source_wires_each_marquee_row_to_its_show_detail() {
+    fun source_renders_an_evening_summary_instead_of_selecting_individual_shows() {
         val source = clubDetailScreenSource()
 
-        assertTrue(source.contains("AppRoute.ShowDetail(row.show.id)"))
-        assertTrue(source.contains("testTag(\"\$CLUB_HIGHLIGHT_SHOW_TEST_TAG_PREFIX\${row.show.id}\")"))
-        assertTrue(source.contains("clickable(role = Role.Button)"))
+        assertTrue(source.contains("summary.performerNames.forEachIndexed"))
+        assertTrue(source.contains("summary.localizedStartTimes.joinToString(\" • \")"))
+        assertTrue(source.contains("+\${summary.remainingPerformerCount} MORE"))
+        assertFalse(source.contains("AppRoute.ShowDetail(row.show.id)"))
         assertTrue(source.contains("AppRoute.ComedianDetail(it.id)"))
     }
 
@@ -167,7 +205,7 @@ class ClubDetailHighlightsPresentationTest {
         assertTrue(source.contains("calendarBringIntoViewRequester.bringIntoView()"))
         assertTrue(source.contains("bringIntoViewRequester(calendarBringIntoViewRequester)"))
         assertTrue(source.contains("onFilter = { calendarFilter = it }"))
-        assertTrue(source.contains("\"Show all\""))
+        assertTrue(source.contains("\"View all \${summary.showCount}"))
         assertTrue(source.contains("testTag(CLUB_CALENDAR_SECTION_TEST_TAG)"))
     }
 
@@ -216,7 +254,7 @@ class ClubDetailHighlightsPresentationTest {
         assertTrue(source.contains("heightIn(min = 48.dp)"))
         assertTrue(source.contains("color = ClubMarqueeInk.copy(alpha = 0.82f)"))
         assertTrue(source.contains("contentColor = ClubMarqueePaper"))
-        assertTrue(source.contains("AppRoute.ShowDetail(row.show.id)"))
+        assertTrue(source.contains("AppRoute.ShowDetail(featured.show.id)"))
         assertTrue(source.contains("club.heroImageUrl.ifBlank { club.imageUrl }"))
         assertTrue(source.contains("fallback = RemoteImageFallback.Club"))
     }
@@ -252,6 +290,7 @@ class ClubDetailHighlightsPresentationTest {
         name: String,
         popularity: Int,
         showCount: Int?,
+        parent: ComedianLineup? = null,
     ) = ComedianLineup(
         id = id,
         uuid = "lineup-$id",
@@ -259,7 +298,17 @@ class ClubDetailHighlightsPresentationTest {
         imageUrl = "https://example.com/comedian-$id.jpg",
         socialData = SocialData(id = id, popularity = BigDecimal.valueOf(popularity.toLong())),
         showCount = showCount,
+        parentComedian = parent,
     )
+
+    private fun localizedTime(show: Show): String =
+        parseShowDateTime(show.date, show.timezone)!!
+            .toLocalTime()
+            .format(
+                DateTimeFormatter
+                    .ofLocalizedTime(FormatStyle.SHORT)
+                    .withLocale(Locale.getDefault()),
+            )
 
     private fun performer(
         id: Int,
