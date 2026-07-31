@@ -36,6 +36,7 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -221,45 +222,11 @@ fun AppShell(
                             onPlay = { item -> playbackController?.play(item) },
                         )
                     }
-                    composable<AppRoute.ClubDetail> { entry ->
-                        val route = entry.toRoute<AppRoute.ClubDetail>()
-                        val enteredExternally =
-                            entry.savedStateHandle.get<Boolean>(EXTERNAL_CLUB_ENTRY_KEY)
-                                ?: (pendingExternalClubId == route.id)
-                        val previousIsDiscover =
-                            navController.previousBackStackEntry
-                                ?.destination
-                                ?.hasRoute(AppRoute.Discover::class) == true
-
-                        LaunchedEffect(entry.id, enteredExternally) {
-                            entry.savedStateHandle[EXTERNAL_CLUB_ENTRY_KEY] = enteredExternally
-                            if (enteredExternally && pendingExternalClubId == route.id) {
-                                pendingExternalClubId = null
-                            }
-                        }
-
-                        ClubDetailScreen(
-                            id = route.id,
-                            onBack = { navController.popBackStack() },
-                            onHome =
-                                if (
-                                    AppShellChrome.showsClubDetailHome(
-                                        previousIsDiscover = previousIsDiscover,
-                                        enteredExternally = enteredExternally,
-                                    )
-                                ) {
-                                    {
-                                        navController.navigate(AppRoute.Discover) {
-                                            popUpTo(AppRoute.Discover) { inclusive = false }
-                                            launchSingleTop = true
-                                        }
-                                    }
-                                } else {
-                                    null
-                                },
-                            onOpenEntity = navController::openEntity,
-                        )
-                    }
+                    clubDetailDestination(
+                        navController = navController,
+                        pendingExternalClubId = pendingExternalClubId,
+                        onExternalRouteConsumed = { pendingExternalClubId = null },
+                    )
                     composable<AppRoute.PodcastDetail> { entry ->
                         PodcastDetailScreen(
                             id = entry.toRoute<AppRoute.PodcastDetail>().id,
@@ -328,6 +295,52 @@ fun AppShell(
     // ContentView's login-modal sheet.
     if (showLoginPrompt) {
         LoginPromptSheet(onDismiss = onLoginPromptDismiss)
+    }
+}
+
+private fun NavGraphBuilder.clubDetailDestination(
+    navController: NavHostController,
+    pendingExternalClubId: Int?,
+    onExternalRouteConsumed: () -> Unit,
+) {
+    composable<AppRoute.ClubDetail> { entry ->
+        val route = entry.toRoute<AppRoute.ClubDetail>()
+        val enteredExternally =
+            entry.savedStateHandle.get<Boolean>(EXTERNAL_CLUB_ENTRY_KEY)
+                ?: (pendingExternalClubId == route.id)
+        val previousIsDiscover =
+            navController.previousBackStackEntry
+                ?.destination
+                ?.hasRoute(AppRoute.Discover::class) == true
+
+        LaunchedEffect(entry.id, enteredExternally) {
+            entry.savedStateHandle[EXTERNAL_CLUB_ENTRY_KEY] = enteredExternally
+            if (enteredExternally && pendingExternalClubId == route.id) {
+                onExternalRouteConsumed()
+            }
+        }
+
+        ClubDetailScreen(
+            id = route.id,
+            onBack = { navController.popBackStack() },
+            onHome =
+                if (
+                    AppShellChrome.showsClubDetailHome(
+                        previousIsDiscover = previousIsDiscover,
+                        enteredExternally = enteredExternally,
+                    )
+                ) {
+                    {
+                        navController.navigate(AppRoute.Discover) {
+                            popUpTo(AppRoute.Discover) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    null
+                },
+            onOpenEntity = navController::openEntity,
+        )
     }
 }
 
