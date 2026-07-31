@@ -307,7 +307,7 @@ private struct ClubDetailTonightMarqueeSection: View {
                 .foregroundStyle(ClubVenueMarqueeStyle.paper)
                 .padding(.horizontal, theme.spacing.lg)
                 .padding(.vertical, theme.spacing.sm)
-                .background(ClubVenueMarqueeStyle.outline)
+                .background(ClubVenueMarqueeStyle.badgeBackground)
                 .clipShape(
                     RoundedRectangle(
                         cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
@@ -365,7 +365,22 @@ private struct ClubDetailTonightMarqueeSection: View {
             }
             .accessibilityHint("Shows every performance at this club today")
         }
-        .background(ClubVenueMarqueeStyle.paper)
+        .background {
+            ZStack {
+                ClubVenueMarqueeStyle.paper
+
+                RoundedRectangle(
+                    cornerRadius: ClubVenueMarqueeStyle.bulbCornerRadius,
+                    style: .continuous
+                )
+                .stroke(
+                    ClubVenueMarqueeStyle.bulbColor,
+                    style: ClubVenueMarqueeStyle.bulbStroke
+                )
+                .padding(ClubVenueMarqueeStyle.bulbInset)
+                .shadow(color: ClubVenueMarqueeStyle.bulbColor.opacity(0.35), radius: 3)
+            }
+        }
         .clipShape(
             RoundedRectangle(
                 cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
@@ -378,19 +393,6 @@ private struct ClubDetailTonightMarqueeSection: View {
                 style: .continuous
             )
                 .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
-        }
-        .overlay {
-            RoundedRectangle(
-                cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
-                style: .continuous
-            )
-                .inset(by: 6)
-                .stroke(
-                    ClubVenueMarqueeStyle.bulbColor,
-                    style: ClubVenueMarqueeStyle.bulbStroke
-                )
-                .shadow(color: ClubVenueMarqueeStyle.bulbColor.opacity(0.18), radius: 2)
-                .allowsHitTesting(false)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailHighlightSection)
