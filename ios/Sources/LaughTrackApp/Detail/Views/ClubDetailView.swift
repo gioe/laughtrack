@@ -18,6 +18,9 @@ struct ClubDetailView: View {
     @StateObject private var model: ClubDetailModel
     @StateObject private var highlightsModel: ClubHighlightsModel
     @State private var feedbackMessage: String?
+    @State private var pinnedShowsTodayRequest = 0
+
+    private static let pinnedShowsAnchor = "club-detail-pinned-shows"
 
     init(clubId: Int, apiClient: Client) {
         self.clubId = clubId
@@ -41,50 +44,73 @@ struct ClubDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let content):
                 let club = content.club
-                ScrollView {
-                    AdaptiveDetailCatalogLayout {
-                        MarqueeHero(
-                            title: club.name,
-                            imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
-                            thumbnailStyle: .clubMarquee,
-                            actions: clubHeroActions(club: club),
-                            openURL: { url in
-                                openURL(url)
-                            },
-                            fallbackSystemImage: ArtworkFallbackKind.club.systemImage
-                        )
-                    } content: {
-                        VStack(alignment: .leading, spacing: 20) {
-                            if case .success(let highlights) = highlightsModel.phase {
-                                if let featuredShow = ClubDetailHighlightsPresentation.featuredShow(
-                                    from: highlights
-                                ) {
-                                    ClubDetailShowHighlightSection(featuredShow: featuredShow) {
-                                        coordinator.open(.show(featuredShow.show.id))
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        AdaptiveDetailCatalogLayout {
+                            MarqueeHero(
+                                title: club.name,
+                                imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
+                                thumbnailStyle: .clubMarquee,
+                                actions: clubHeroActions(club: club),
+                                openURL: { url in
+                                    openURL(url)
+                                },
+                                fallbackSystemImage: ArtworkFallbackKind.club.systemImage
+                            )
+                        } content: {
+                            VStack(alignment: .leading, spacing: 20) {
+                                if case .success(let highlights) = highlightsModel.phase {
+                                    let marqueeRows = ClubDetailHighlightsPresentation.marqueeRows(
+                                        from: highlights
+                                    )
+                                    if !marqueeRows.isEmpty {
+                                        ClubDetailTonightMarqueeSection(
+                                            rows: marqueeRows,
+                                            openShow: { show in
+                                                coordinator.open(.show(show.id))
+                                            },
+                                            showAll: {
+                                                pinnedShowsTodayRequest += 1
+                                                withAnimation {
+                                                    proxy.scrollTo(
+                                                        Self.pinnedShowsAnchor,
+                                                        anchor: .top
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    } else if let nextShow = highlights.nextShow {
+                                        ClubDetailShowHighlightSection(
+                                            featuredShow: .init(title: "Next up", show: nextShow)
+                                        ) {
+                                            coordinator.open(.show(nextShow.id))
+                                        }
+                                    }
+
+                                    if !highlights.frequentPerformers.isEmpty {
+                                        ClubDetailFrequentPerformersSection(
+                                            performers: highlights.frequentPerformers,
+                                            openPerformer: { performer in
+                                                coordinator.open(.comedian(performer.id))
+                                            }
+                                        )
                                     }
                                 }
 
-                                if !highlights.frequentPerformers.isEmpty {
-                                    ClubDetailFrequentPerformersSection(
-                                        performers: highlights.frequentPerformers,
-                                        openPerformer: { performer in
-                                            coordinator.open(.comedian(performer.id))
-                                        }
-                                    )
-                                }
+                                PinnedShowsList(
+                                    apiClient: apiClient,
+                                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                                    pinnedClubName: club.name,
+                                    todayRequest: pinnedShowsTodayRequest
+                                )
+                                .id(Self.pinnedShowsAnchor)
                             }
-
-                            PinnedShowsList(
-                                apiClient: apiClient,
-                                nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                                pinnedClubName: club.name
-                            )
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, theme.spacing.lg)
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, theme.spacing.lg)
                     }
+                    .modifier(DetailAtmosphereScrollContent())
                 }
-                .modifier(DetailAtmosphereScrollContent())
             }
         }
         .ignoresSafeArea(.container, edges: .top)
@@ -174,16 +200,139 @@ struct ClubDetailFeaturedShow: Hashable {
 }
 
 enum ClubDetailHighlightsPresentation {
-    static func featuredShow(
+    @MainActor
+    static func marqueeRows(
         from highlights: Components.Schemas.ClubHighlights
-    ) -> ClubDetailFeaturedShow? {
-        if let tonight = highlights.tonightShows.first {
-            return ClubDetailFeaturedShow(title: "Tonight", show: tonight)
+    ) -> [ClubDetailMarqueeRow] {
+        highlights.tonightShows
+            .map { show in
+                let comedian = ShowRow.topLineup(for: show, limit: 1).first
+                return ClubDetailMarqueeRow(
+                    show: show,
+                    performerName: comedian?.name ?? ShowTitlePresentation.title(for: show),
+                    localizedStartTime: ShowFormatting.dateStack(
+                        show.date,
+                        timezoneID: show.timezone
+                    ).time,
+                    performerPopularity: comedian?.socialData?.popularity ?? -1,
+                    performerShowCount: comedian?.showCount ?? 0
+                )
+            }
+            .sorted(by: ranksBefore)
+            .prefix(3)
+            .sorted(by: displaysBefore)
+    }
+
+    private static func ranksBefore(
+        _ lhs: ClubDetailMarqueeRow,
+        _ rhs: ClubDetailMarqueeRow
+    ) -> Bool {
+        if lhs.performerPopularity != rhs.performerPopularity {
+            return lhs.performerPopularity > rhs.performerPopularity
         }
-        if let next = highlights.nextShow {
-            return ClubDetailFeaturedShow(title: "Next up", show: next)
+        if lhs.performerShowCount != rhs.performerShowCount {
+            return lhs.performerShowCount > rhs.performerShowCount
         }
-        return nil
+        return displaysBefore(lhs, rhs)
+    }
+
+    private static func displaysBefore(
+        _ lhs: ClubDetailMarqueeRow,
+        _ rhs: ClubDetailMarqueeRow
+    ) -> Bool {
+        if lhs.show.date != rhs.show.date {
+            return lhs.show.date < rhs.show.date
+        }
+        return lhs.show.id < rhs.show.id
+    }
+}
+
+struct ClubDetailMarqueeRow: Hashable {
+    let show: Components.Schemas.Show
+    let performerName: String
+    let localizedStartTime: String
+    fileprivate let performerPopularity: Double
+    fileprivate let performerShowCount: Int
+}
+
+private struct ClubDetailTonightMarqueeSection: View {
+    let rows: [ClubDetailMarqueeRow]
+    let openShow: (Components.Schemas.Show) -> Void
+    let showAll: () -> Void
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(rows.enumerated()), id: \.element.show.id) { index, row in
+                if index > 0 {
+                    Divider()
+                        .overlay(Color.black.opacity(0.24))
+                        .padding(.horizontal, theme.spacing.md)
+                }
+
+                Button {
+                    openShow(row.show)
+                } label: {
+                    HStack(alignment: .firstTextBaseline, spacing: theme.spacing.md) {
+                        Text(row.performerName.uppercased())
+                            .font(.system(.headline, design: .monospaced, weight: .bold))
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Text(row.localizedStartTime.uppercased())
+                            .font(.system(.subheadline, design: .monospaced, weight: .semibold))
+                            .lineLimit(1)
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.bold))
+                    }
+                    .foregroundStyle(Color.black)
+                    .padding(.horizontal, theme.spacing.lg)
+                    .padding(.vertical, theme.spacing.md)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(row.performerName), \(row.localizedStartTime)")
+                .accessibilityIdentifier(
+                    LaughTrackViewTestID.clubDetailHighlightShowButton(row.show.id)
+                )
+            }
+
+            Button(action: showAll) {
+                Text("Show all")
+                    .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                    .foregroundStyle(Color.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, theme.spacing.sm)
+            }
+            .buttonStyle(.plain)
+            .overlay(alignment: .top) {
+                Divider().overlay(Color.black.opacity(0.3))
+            }
+            .accessibilityHint("Shows every performance at this club today")
+        }
+        .background(Color(red: 0.99, green: 0.975, blue: 0.91))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.black.opacity(0.72), lineWidth: 1.5)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .inset(by: 6)
+                .stroke(
+                    Color.orange.opacity(0.58),
+                    style: StrokeStyle(
+                        lineWidth: 3,
+                        lineCap: .round,
+                        dash: [0.1, 10]
+                    )
+                )
+                .allowsHitTesting(false)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(LaughTrackViewTestID.clubDetailHighlightSection)
     }
 }
 

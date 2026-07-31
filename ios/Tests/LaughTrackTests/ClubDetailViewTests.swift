@@ -90,26 +90,130 @@ struct ClubDetailViewTests {
         #expect(failure.message == "This club could not be found. (HTTP 404)")
     }
 
-    @Test("club highlight presentation prefers tonight, falls back to next up, then omits")
-    func clubHighlightSelectionOrder() {
-        let tonight = relatedShows[0]
-        let next = relatedShows[1]
+    @Test("club marquee selects the three most popular lineups then displays them chronologically")
+    func clubMarqueeSelectionOrder() throws {
+        let calendar = Calendar(identifier: .gregorian)
+        let base = try #require(calendar.date(from: DateComponents(
+            timeZone: TimeZone(secondsFromGMT: 0),
+            year: 2026,
+            month: 7,
+            day: 30,
+            hour: 18
+        )))
+        let shows = [
+            show(
+                id: 301,
+                name: "Nine",
+                date: base.addingTimeInterval(3 * 60 * 60),
+                lineup: [lineup(id: 101, name: "Third", popularity: 70)]
+            ),
+            show(
+                id: 302,
+                name: "Seven",
+                date: base.addingTimeInterval(60 * 60),
+                lineup: [lineup(id: 102, name: "First", popularity: 100)]
+            ),
+            show(
+                id: 303,
+                name: "Eight",
+                date: base.addingTimeInterval(2 * 60 * 60),
+                lineup: [lineup(id: 103, name: "Second", popularity: 80)]
+            ),
+            show(
+                id: 304,
+                name: "Six",
+                date: base,
+                lineup: [lineup(id: 104, name: "Excluded", popularity: 10)]
+            ),
+        ]
 
-        let tonightSelection = ClubDetailHighlightsPresentation.featuredShow(
-            from: highlights(tonightShows: [tonight], nextShow: next)
+        let rows = ClubDetailHighlightsPresentation.marqueeRows(
+            from: highlights(tonightShows: shows)
         )
-        #expect(tonightSelection == .init(title: "Tonight", show: tonight))
 
-        let nextSelection = ClubDetailHighlightsPresentation.featuredShow(
-            from: highlights(tonightShows: [], nextShow: next)
+        #expect(rows.map(\.show.id) == [302, 303, 301])
+        #expect(rows.map(\.performerName) == ["First", "Second", "Third"])
+        #expect(rows.map(\.localizedStartTime) == rows.map {
+            ShowFormatting.dateStack($0.show.date, timezoneID: $0.show.timezone).time
+        })
+    }
+
+    @Test("club marquee uses deterministic lineup and show fallbacks")
+    func clubMarqueeDeterministicFallbacks() {
+        let date = Date(timeIntervalSince1970: 1_800_000_000)
+        let rows = ClubDetailHighlightsPresentation.marqueeRows(
+            from: highlights(tonightShows: [
+                show(
+                    id: 304,
+                    name: "No lineup",
+                    date: date,
+                    lineup: nil
+                ),
+                show(
+                    id: 303,
+                    name: "Same count, higher ID",
+                    date: date,
+                    lineup: [lineup(id: 103, name: "Same count, higher ID", popularity: 50, showCount: 5)]
+                ),
+                show(
+                    id: 302,
+                    name: "Same count, lower ID",
+                    date: date,
+                    lineup: [lineup(id: 102, name: "Same count, lower ID", popularity: 50, showCount: 5)]
+                ),
+                show(
+                    id: 301,
+                    name: "Higher count",
+                    date: date,
+                    lineup: [lineup(id: 101, name: "Higher count", popularity: 50, showCount: 10)]
+                ),
+            ])
         )
-        #expect(nextSelection == .init(title: "Next up", show: next))
 
+        #expect(rows.map(\.show.id) == [301, 302, 303])
+        let noLineupRow = ClubDetailHighlightsPresentation.marqueeRows(
+            from: highlights(tonightShows: [
+                show(id: 304, name: "No lineup", date: date, lineup: nil),
+            ])
+        )
+        #expect(noLineupRow.first?.performerName == "No lineup")
         #expect(
-            ClubDetailHighlightsPresentation.featuredShow(
-                from: highlights(tonightShows: [], nextShow: nil)
-            ) == nil
+            ClubDetailHighlightsPresentation.marqueeRows(
+                from: highlights(tonightShows: [], nextShow: relatedShows[1])
+            ).isEmpty
         )
+        #expect(
+            ClubDetailHighlightsPresentation.marqueeRows(
+                from: highlights(tonightShows: [], nextShow: nil)
+            ).isEmpty
+        )
+    }
+
+    @Test("club pinned shows can be switched to Today without clearing club scope")
+    func clubPinnedShowsTodayFilter() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let filter = PinnedShowsListPresentation.todayFilter(now: now, calendar: calendar)
+
+        #expect(filter.isActive)
+        #expect(filter.from == calendar.startOfDay(for: now))
+        #expect(filter.to == filter.from)
+
+        let clubSource = try String(
+            contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
+            encoding: .utf8
+        )
+        let pinnedSource = try String(
+            contentsOf: appSourceURL(relativePath: "Components/PinnedShowsList.swift"),
+            encoding: .utf8
+        )
+        #expect(clubSource.contains("ScrollViewReader { proxy in"))
+        #expect(clubSource.contains("proxy.scrollTo("))
+        #expect(clubSource.contains("todayRequest: pinnedShowsTodayRequest"))
+        #expect(pinnedSource.contains("pinnedClubName: pinnedClubName"))
+        #expect(pinnedSource.contains("ShowsListView(apiClient: apiClient, model: model, compactMode: true)"))
+        #expect(pinnedSource.contains(".onChange(of: todayRequest)"))
     }
 
     @Test("club highlights expose only API-qualified frequent performers")
@@ -156,10 +260,18 @@ struct ClubDetailViewTests {
             contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
             encoding: .utf8
         )
-        #expect(source.contains("coordinator.open(.show(featuredShow.show.id))"))
+        #expect(source.contains("coordinator.open(.show(show.id))"))
+        #expect(source.contains("clubDetailHighlightShowButton(row.show.id)"))
+        #expect(source.contains("else if let nextShow = highlights.nextShow"))
+        #expect(source.contains("featuredShow: .init(title: \"Next up\", show: nextShow)"))
+        #expect(source.contains("coordinator.open(.show(nextShow.id))"))
         #expect(source.contains("coordinator.open(.comedian(performer.id))"))
         #expect(source.contains("LaughTrackViewTestID.clubDetailHighlightSection"))
         #expect(source.contains("LaughTrackViewTestID.clubDetailFrequentPerformersSection"))
+        #expect(!source.contains("Text(\"Tonight\")"))
+        #expect(!source.contains("Text(\"Tonight's\")"))
+        #expect(source.contains("Color(red: 0.99, green: 0.975, blue: 0.91)"))
+        #expect(source.contains("dash: [0.1, 10]"))
     }
 
     private func makeClient(
@@ -202,22 +314,45 @@ struct ClubDetailViewTests {
         ]
     }
 
-    private func show(id: Int, name: String) -> Components.Schemas.Show {
+    private func show(
+        id: Int,
+        name: String,
+        date: Date = Date().addingTimeInterval(60 * 60 * 24),
+        lineup: [Components.Schemas.ComedianLineup]? = nil,
+        timezone: String? = nil
+    ) -> Components.Schemas.Show {
         .init(
             id: id,
             clubId: 201,
             clubName: "Comedy Cellar",
-            date: Date().addingTimeInterval(60 * 60 * 24),
+            date: date,
             tickets: nil,
             name: name,
             socialData: nil,
-            lineup: nil,
+            lineup: lineup,
             description: nil,
             address: "117 MacDougal St, New York, NY",
             room: "Main Room",
             imageUrl: "https://example.com/show.png",
             soldOut: false,
-            distanceMiles: 2.0
+            distanceMiles: 2.0,
+            timezone: timezone
+        )
+    }
+
+    private func lineup(
+        id: Int,
+        name: String,
+        popularity: Double?,
+        showCount: Int = 12
+    ) -> Components.Schemas.ComedianLineup {
+        .init(
+            name: name,
+            imageUrl: "https://example.com/comedian-\(id).png",
+            uuid: "demo-lineup-\(id)",
+            id: id,
+            socialData: .init(id: id, popularity: popularity),
+            showCount: showCount
         )
     }
 
@@ -260,11 +395,21 @@ struct ClubDetailViewTests {
     }
 
     private func detailSourceURL(named fileName: String, filePath: String = #filePath) -> URL {
+        appSourceURL(
+            relativePath: "Detail/Views/\(fileName)",
+            filePath: filePath
+        )
+    }
+
+    private func appSourceURL(
+        relativePath: String,
+        filePath: String = #filePath
+    ) -> URL {
         URL(fileURLWithPath: filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-            .appendingPathComponent("Sources/LaughTrackApp/Detail/Views/\(fileName)")
+            .appendingPathComponent("Sources/LaughTrackApp/\(relativePath)")
     }
 }
 
