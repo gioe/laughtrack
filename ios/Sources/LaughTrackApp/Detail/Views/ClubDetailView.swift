@@ -87,14 +87,6 @@ struct ClubDetailView: View {
                                         }
                                     }
 
-                                    if !highlights.frequentPerformers.isEmpty {
-                                        ClubDetailFrequentPerformersSection(
-                                            performers: highlights.frequentPerformers,
-                                            openPerformer: { performer in
-                                                coordinator.open(.comedian(performer.id))
-                                            }
-                                        )
-                                    }
                                 }
 
                                 PinnedShowsList(
@@ -104,6 +96,16 @@ struct ClubDetailView: View {
                                     todayRequest: pinnedShowsTodayRequest
                                 )
                                 .id(Self.pinnedShowsAnchor)
+
+                                if case .success(let highlights) = highlightsModel.phase,
+                                   !highlights.frequentPerformers.isEmpty {
+                                    ClubDetailFrequentPerformersSection(
+                                        performers: highlights.frequentPerformers,
+                                        openPerformer: { performer in
+                                            coordinator.open(.comedian(performer.id))
+                                        }
+                                    )
+                                }
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, theme.spacing.lg)

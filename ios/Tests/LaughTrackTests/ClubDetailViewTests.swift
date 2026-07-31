@@ -274,6 +274,20 @@ struct ClubDetailViewTests {
         #expect(source.contains("dash: [0.1, 10]"))
     }
 
+    @Test("frequent performers render after pinned shows")
+    func frequentPerformersFollowPinnedShows() throws {
+        let source = try String(
+            contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
+            encoding: .utf8
+        )
+        let pinnedShowsPosition = try #require(source.range(of: "PinnedShowsList("))
+        let frequentPerformersPosition = try #require(
+            source.range(of: "ClubDetailFrequentPerformersSection(")
+        )
+
+        #expect(pinnedShowsPosition.lowerBound < frequentPerformersPosition.lowerBound)
+    }
+
     private func makeClient(
         clubResponse: MockClubDetailTransport.EntityResponse<Operations.GetClub.Output.Ok.Body.JsonPayload>,
         highlightsResponse: MockClubDetailTransport.EntityResponse<Components.Schemas.ClubHighlightsResponse>
