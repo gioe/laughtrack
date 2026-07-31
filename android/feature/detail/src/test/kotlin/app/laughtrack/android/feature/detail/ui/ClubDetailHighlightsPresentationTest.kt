@@ -135,6 +135,19 @@ class ClubDetailHighlightsPresentationTest {
     }
 
     @Test
+    fun source_renders_the_optional_home_action_without_changing_back_or_favorite_actions() {
+        val source = clubDetailScreenSource()
+
+        assertTrue(source.contains("onHome: (() -> Unit)? = null"))
+        assertTrue(source.contains("onHome?.let"))
+        assertTrue(source.contains("ClubChromeButton(onClick = it)"))
+        assertTrue(source.contains("Icons.Filled.Home, contentDescription = \"Home\""))
+        assertTrue(source.contains("ClubChromeButton(onClick = onBack)"))
+        assertTrue(source.contains("Icons.AutoMirrored.Filled.ArrowBack, contentDescription = \"Back\""))
+        assertTrue(source.contains("ClubChromeButton(onClick = onFavorite, enabled = !isFavoritePending)"))
+    }
+
+    @Test
     fun frequent_performers_render_after_the_calendar_and_related_venues() {
         val source = clubDetailScreenSource()
         val calendarPosition = source.indexOf("ClubCalendarSection(")

@@ -15,6 +15,28 @@ import org.junit.Test
  */
 class AppShellChromeTest {
     @Test
+    fun club_detail_home_is_hidden_only_for_an_internal_direct_discover_push() {
+        assertFalse(
+            AppShellChrome.showsClubDetailHome(
+                previousIsDiscover = true,
+                enteredExternally = false,
+            ),
+        )
+        assertTrue(
+            AppShellChrome.showsClubDetailHome(
+                previousIsDiscover = false,
+                enteredExternally = false,
+            ),
+        )
+        assertTrue(
+            AppShellChrome.showsClubDetailHome(
+                previousIsDiscover = true,
+                enteredExternally = true,
+            ),
+        )
+    }
+
+    @Test
     fun shell_top_app_bar_is_shown_only_for_secondary_destinations_that_do_not_own_chrome() {
         assertEquals(
             setOf(

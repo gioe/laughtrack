@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -107,6 +108,7 @@ private val ClubMarqueeInk = Color.Black
 fun ClubDetailScreen(
     id: Int,
     onBack: () -> Unit,
+    onHome: (() -> Unit)? = null,
     onOpenEntity: (AppRoute) -> Unit,
     viewModel: ClubDetailViewModel = hiltViewModel(),
 ) {
@@ -130,6 +132,7 @@ fun ClubDetailScreen(
                     onFavorite = { viewModel.toggleFavorite(ui.detail.id) },
                     onLoadMore = viewModel::loadMore,
                     onBack = onBack,
+                    onHome = onHome,
                     onOpenEntity = onOpenEntity,
                 )
             }
@@ -149,6 +152,7 @@ private fun ClubDetailBody(
     onFavorite: () -> Unit,
     onLoadMore: () -> Unit,
     onBack: () -> Unit,
+    onHome: (() -> Unit)?,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -170,6 +174,7 @@ private fun ClubDetailBody(
                     isFavoritePending = isFavoritePending,
                     onFavorite = onFavorite,
                     onBack = onBack,
+                    onHome = onHome,
                 )
             },
             content = {
@@ -555,6 +560,7 @@ private fun ClubMarqueeHero(
     isFavoritePending: Boolean,
     onFavorite: () -> Unit,
     onBack: () -> Unit,
+    onHome: (() -> Unit)?,
 ) {
     val context = LocalContext.current
     Box(
@@ -580,8 +586,15 @@ private fun ClubMarqueeHero(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ClubChromeButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ClubChromeButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+                onHome?.let {
+                    ClubChromeButton(onClick = it) {
+                        Icon(Icons.Filled.Home, contentDescription = "Home")
+                    }
+                }
             }
             ClubChromeButton(onClick = onFavorite, enabled = !isFavoritePending) {
                 Icon(

@@ -85,6 +85,7 @@ fun AppShell(
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
+    var pendingExternalClubId by remember { mutableStateOf<Int?>(null) }
     val showFavoritesTab = AppShellTabs.showsFavoritesTab(signedIn, hasFavorites)
     val usesOpaqueCanvas = AppShellBackgrounds.usesOpaqueCanvas(currentDestination)
     val topAppBarContainerColor = if (usesOpaqueCanvas) LaughTrackColors.Canvas else Color.Transparent
@@ -93,6 +94,7 @@ fun AppShell(
     // recomposition or config change doesn't re-navigate.
     LaunchedEffect(pendingRoute) {
         pendingRoute?.let {
+            pendingExternalClubId = (it as? AppRoute.ClubDetail)?.id
             navController.openEntity(it)
             onRouteConsumed()
         }
@@ -220,9 +222,41 @@ fun AppShell(
                         )
                     }
                     composable<AppRoute.ClubDetail> { entry ->
+                        val route = entry.toRoute<AppRoute.ClubDetail>()
+                        val enteredExternally =
+                            entry.savedStateHandle.get<Boolean>(EXTERNAL_CLUB_ENTRY_KEY)
+                                ?: (pendingExternalClubId == route.id)
+                        val previousIsDiscover =
+                            navController.previousBackStackEntry
+                                ?.destination
+                                ?.hasRoute(AppRoute.Discover::class) == true
+
+                        LaunchedEffect(entry.id, enteredExternally) {
+                            entry.savedStateHandle[EXTERNAL_CLUB_ENTRY_KEY] = enteredExternally
+                            if (enteredExternally && pendingExternalClubId == route.id) {
+                                pendingExternalClubId = null
+                            }
+                        }
+
                         ClubDetailScreen(
-                            id = entry.toRoute<AppRoute.ClubDetail>().id,
+                            id = route.id,
                             onBack = { navController.popBackStack() },
+                            onHome =
+                                if (
+                                    AppShellChrome.showsClubDetailHome(
+                                        previousIsDiscover = previousIsDiscover,
+                                        enteredExternally = enteredExternally,
+                                    )
+                                ) {
+                                    {
+                                        navController.navigate(AppRoute.Discover) {
+                                            popUpTo(AppRoute.Discover) { inclusive = false }
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                } else {
+                                    null
+                                },
                             onOpenEntity = navController::openEntity,
                         )
                     }
@@ -426,7 +460,15 @@ internal object AppShellChrome {
 
     fun showsMiniPlayer(destination: NavDestination?): Boolean =
         destination == null || miniPlayerHiddenRoutes.none { destination.hasRoute(it) }
+
+    /** Home is redundant only for an in-app Discover -> ClubDetail push. */
+    fun showsClubDetailHome(
+        previousIsDiscover: Boolean,
+        enteredExternally: Boolean,
+    ): Boolean = enteredExternally || !previousIsDiscover
 }
+
+private const val EXTERNAL_CLUB_ENTRY_KEY = "club-detail-entered-externally"
 
 internal object AppShellBackgrounds {
     /** Specialized immersive routes that intentionally replace the inherited app atmosphere. */
