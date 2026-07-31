@@ -18,6 +18,9 @@ struct MarqueeHero: View {
     var thumbnailHeadshots: [DetailHeroHeadshot] = []
     var badges: [DetailHeroBadge] = []
     var actions: [DetailHeroAction] = []
+    var actionPlacement: MarqueeHeroActionPlacement = .belowThumbnail
+    var actionStyle: MarqueeHeroActionStyle = .iconStack
+    var bottomPadding: CGFloat? = nil
     var hosts: [DetailHeroHost] = []
     var openURL: ((URL) -> Void)? = nil
     var openComedian: ((Int) -> Void)? = nil
@@ -56,6 +59,10 @@ struct MarqueeHero: View {
                 .padding(.horizontal, 24)
                 .padding(.top, titleTopPadding)
 
+            if actionPlacement == .belowTitle {
+                heroActions
+            }
+
             heroThumbnail
 
             if !badges.isEmpty {
@@ -74,17 +81,8 @@ struct MarqueeHero: View {
                 }
             }
 
-            if let openURL, !actions.isEmpty {
-                let visibleActions = actions.filter { $0.url != nil }
-                if !visibleActions.isEmpty {
-                    HStack(spacing: theme.spacing.md) {
-                        ForEach(Array(visibleActions.enumerated()), id: \.offset) { _, action in
-                            if let url = action.url {
-                                actionButton(action: action, url: url, openURL: openURL)
-                            }
-                        }
-                    }
-                }
+            if actionPlacement == .belowThumbnail {
+                heroActions
             }
 
             if let openComedian, !hosts.isEmpty {
@@ -96,8 +94,24 @@ struct MarqueeHero: View {
             }
         }
         .padding(.top, Self.statusBarOffset)
-        .padding(.bottom, theme.spacing.lg)
+        .padding(.bottom, bottomPadding ?? theme.spacing.lg)
         .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private var heroActions: some View {
+        if let openURL, !actions.isEmpty {
+            let visibleActions = actions.filter { $0.url != nil }
+            if !visibleActions.isEmpty {
+                HStack(spacing: theme.spacing.md) {
+                    ForEach(Array(visibleActions.enumerated()), id: \.offset) { _, action in
+                        if let url = action.url {
+                            actionButton(action: action, url: url, openURL: openURL)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /// Status-bar clearance. Each detail view applies
@@ -179,21 +193,37 @@ struct MarqueeHero: View {
         Button {
             openURL(url)
         } label: {
-            VStack(spacing: 2) {
-                Image(systemName: action.systemImage)
-                    .font(.system(size: theme.iconSizes.sm, weight: .bold))
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(laughTrack.colors.surface.opacity(0.94))
-                    .clipShape(Circle())
-                    .overlay(
-                        Circle().stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-                    )
+            switch actionStyle {
+            case .iconStack:
+                VStack(spacing: 2) {
+                    Image(systemName: action.systemImage)
+                        .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .frame(width: 40, height: 40)
+                        .background(laughTrack.colors.surface.opacity(0.94))
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle().stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                        )
 
-                Text(action.title)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 2)
+                    Text(action.title)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 2)
+                }
+            case .compactPill:
+                Label(action.title, systemImage: action.systemImage)
+                    .font(laughTrack.typography.metadata.weight(.bold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .frame(minHeight: 44)
+                    .background(laughTrack.colors.surface.opacity(0.94))
+                    .clipShape(Capsule(style: .continuous))
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                    )
             }
         }
         .buttonStyle(.plain)
@@ -284,6 +314,30 @@ enum MarqueeHeroThumbnailStyle {
     case framedComedian
     case clubMarquee
     case podcastRail
+}
+
+enum MarqueeHeroActionPlacement: Equatable {
+    case belowTitle
+    case belowThumbnail
+}
+
+enum MarqueeHeroActionStyle: Equatable {
+    case iconStack
+    case compactPill
+}
+
+enum ClubVenueMarqueeStyle {
+    static let paper = Color(red: 0.99, green: 0.975, blue: 0.91)
+    static let outline = Color.black.opacity(0.72)
+    static let bulbColor = Color(red: 1.0, green: 0.78, blue: 0.24).opacity(0.58)
+    static let cornerRadius: CGFloat = 12
+    static let artworkToBoardSpacing: CGFloat = 10
+    static let bulbStroke = StrokeStyle(
+        lineWidth: 2,
+        lineCap: .round,
+        lineJoin: .round,
+        dash: [0.1, 10]
+    )
 }
 
 struct DetailHeroHeadshot: Identifiable, Hashable {
@@ -535,13 +589,7 @@ struct ClubMarqueeThumbnail: View {
     let imageURL: String
     let fallbackSystemImage: String
 
-    @Environment(\.appTheme) private var theme
-
-    private static let clubBulbColor = Color(red: 1.0, green: 0.78, blue: 0.24)
-
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
         ZStack {
             DetailThumbnailImage(
                 imageURL: imageURL,
@@ -549,29 +597,23 @@ struct ClubMarqueeThumbnail: View {
                 contentMode: .fit
             )
             .frame(width: MarqueePosterThumbnail.posterSize, height: MarqueePosterThumbnail.posterSize)
-            .background(laughTrack.colors.surfaceMuted)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .background(ClubVenueMarqueeStyle.paper)
+            .clipShape(RoundedRectangle(cornerRadius: ClubVenueMarqueeStyle.cornerRadius, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                RoundedRectangle(cornerRadius: ClubVenueMarqueeStyle.cornerRadius, style: .continuous)
+                    .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
             )
 
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: ClubVenueMarqueeStyle.cornerRadius, style: .continuous)
                 .strokeBorder(
-                    Self.clubBulbColor,
-                    style: StrokeStyle(
-                        lineWidth: 2,
-                        lineCap: .round,
-                        lineJoin: .round,
-                        dash: [1.2, 10]
-                    )
+                    ClubVenueMarqueeStyle.bulbColor,
+                    style: ClubVenueMarqueeStyle.bulbStroke
                 )
                 .frame(
                     width: MarqueePosterThumbnail.posterSize + MarqueePosterThumbnail.frameInset,
                     height: MarqueePosterThumbnail.posterSize + MarqueePosterThumbnail.frameInset
                 )
-                .shadow(color: Self.clubBulbColor.opacity(0.70), radius: 4)
-                .shadow(color: Self.clubBulbColor.opacity(0.34), radius: 9)
+                .shadow(color: ClubVenueMarqueeStyle.bulbColor.opacity(0.22), radius: 2)
         }
     }
 }

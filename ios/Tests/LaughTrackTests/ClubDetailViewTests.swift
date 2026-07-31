@@ -32,7 +32,7 @@ struct ClubDetailViewTests {
     func clubDetailPlacesVenueActionsInHero() {
         let actions = ClubDetailHeroPresentation.actions(for: primaryClub)
 
-        #expect(actions.map(\.title) == ["Website", "Maps"])
+        #expect(actions.map(\.title) == ["Website", "Directions"])
         #expect(actions.map(\.systemImage) == ["arrow.up.right", "map.fill"])
         #expect(actions.allSatisfy { $0.url != nil })
     }
@@ -80,6 +80,26 @@ struct ClubDetailViewTests {
         #expect(source.contains("DetailChromeBar("))
         #expect(source.contains("onBack: { coordinator.pop() }"))
         #expect(source.contains("onHome: coordinator.detailHomeAction"))
+    }
+
+    @Test("club detail integrates venue artwork and tonight board into one marquee")
+    func clubDetailIntegratesVenueMarquee() throws {
+        let source = try String(
+            contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
+            encoding: .utf8
+        )
+        let titlePosition = try #require(source.range(of: "title: club.name"))
+        let actionPosition = try #require(source.range(of: "actionPlacement: .belowTitle"))
+        let boardPosition = try #require(source.range(of: "ClubDetailTonightMarqueeSection("))
+
+        #expect(titlePosition.lowerBound < actionPosition.lowerBound)
+        #expect(actionPosition.lowerBound < boardPosition.lowerBound)
+        #expect(source.contains("VStack(spacing: ClubVenueMarqueeStyle.artworkToBoardSpacing)"))
+        #expect(source.contains("actionStyle: .compactPill"))
+        #expect(source.contains("bottomPadding: 0"))
+        #expect(source.contains("Text(\"Tonight\")"))
+        #expect(source.contains("coordinator.open(.show(show.id))"))
+        #expect(source.contains("proxy.scrollTo("))
     }
 
     @Test("club detail surfaces API failures explicitly")
@@ -274,16 +294,16 @@ struct ClubDetailViewTests {
         )
         #expect(source.contains("coordinator.open(.show(show.id))"))
         #expect(source.contains("clubDetailHighlightShowButton(row.show.id)"))
-        #expect(source.contains("else if let nextShow = highlights.nextShow"))
+        #expect(source.contains("if marqueeRows.isEmpty, let nextShow = highlights.nextShow"))
         #expect(source.contains("featuredShow: .init(title: \"Next up\", show: nextShow)"))
         #expect(source.contains("coordinator.open(.show(nextShow.id))"))
         #expect(source.contains("coordinator.open(.comedian(performer.id))"))
         #expect(source.contains("LaughTrackViewTestID.clubDetailHighlightSection"))
         #expect(source.contains("LaughTrackViewTestID.clubDetailFrequentPerformersSection"))
-        #expect(!source.contains("Text(\"Tonight\")"))
+        #expect(source.contains("Text(\"Tonight\")"))
         #expect(!source.contains("Text(\"Tonight's\")"))
-        #expect(source.contains("Color(red: 0.99, green: 0.975, blue: 0.91)"))
-        #expect(source.contains("dash: [0.1, 10]"))
+        #expect(source.contains("ClubVenueMarqueeStyle.paper"))
+        #expect(source.contains("ClubVenueMarqueeStyle.bulbStroke"))
     }
 
     @Test("frequent performers render after pinned shows")

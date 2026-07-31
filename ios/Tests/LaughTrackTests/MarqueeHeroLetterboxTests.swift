@@ -79,8 +79,13 @@ struct MarqueeHeroLetterboxTests {
         #expect(comedianBlock.contains("private static let headshotSize: CGFloat = 208"))
         #expect(comedianBlock.contains("caption: caption"))
         #expect(comedianBlock.contains("ClubWallHeadshotFrame("))
-        #expect(clubBlock.contains("private static let clubBulbColor = Color(red: 1.0, green: 0.78, blue: 0.24)"))
-        #expect(clubBlock.contains("dash: [1.2, 10]"))
+        #expect(source.contains("enum ClubVenueMarqueeStyle"))
+        #expect(source.contains("static let artworkToBoardSpacing: CGFloat = 10"))
+        #expect(source.contains("dash: [0.1, 10]"))
+        #expect(source.contains(".frame(minHeight: 44)"))
+        #expect(clubBlock.contains("ClubVenueMarqueeStyle.paper"))
+        #expect(clubBlock.contains("ClubVenueMarqueeStyle.bulbStroke"))
+        #expect(clubBlock.contains("radius: 2"))
         #expect(!clubBlock.contains("laughTrack.colors.accentStrong"))
     }
 

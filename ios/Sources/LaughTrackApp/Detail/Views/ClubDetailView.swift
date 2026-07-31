@@ -44,42 +44,51 @@ struct ClubDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let content):
                 let club = content.club
+                let marqueeRows: [ClubDetailMarqueeRow] = {
+                    guard case .success(let highlights) = highlightsModel.phase else { return [] }
+                    return ClubDetailHighlightsPresentation.marqueeRows(from: highlights)
+                }()
                 ScrollViewReader { proxy in
                     ScrollView {
                         AdaptiveDetailCatalogLayout {
-                            MarqueeHero(
-                                title: club.name,
-                                imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
-                                thumbnailStyle: .clubMarquee,
-                                actions: clubHeroActions(club: club),
-                                openURL: { url in
-                                    openURL(url)
-                                },
-                                fallbackSystemImage: ArtworkFallbackKind.club.systemImage
-                            )
+                            VStack(spacing: ClubVenueMarqueeStyle.artworkToBoardSpacing) {
+                                MarqueeHero(
+                                    title: club.name,
+                                    imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
+                                    thumbnailStyle: .clubMarquee,
+                                    actions: clubHeroActions(club: club),
+                                    actionPlacement: .belowTitle,
+                                    actionStyle: .compactPill,
+                                    bottomPadding: 0,
+                                    openURL: { url in
+                                        openURL(url)
+                                    },
+                                    fallbackSystemImage: ArtworkFallbackKind.club.systemImage
+                                )
+
+                                if !marqueeRows.isEmpty {
+                                    ClubDetailTonightMarqueeSection(
+                                        rows: marqueeRows,
+                                        openShow: { show in
+                                            coordinator.open(.show(show.id))
+                                        },
+                                        showAll: {
+                                            pinnedShowsTodayRequest += 1
+                                            withAnimation {
+                                                proxy.scrollTo(
+                                                    Self.pinnedShowsAnchor,
+                                                    anchor: .top
+                                                )
+                                            }
+                                        }
+                                    )
+                                    .padding(.horizontal, 8)
+                                }
+                            }
                         } content: {
                             VStack(alignment: .leading, spacing: 20) {
                                 if case .success(let highlights) = highlightsModel.phase {
-                                    let marqueeRows = ClubDetailHighlightsPresentation.marqueeRows(
-                                        from: highlights
-                                    )
-                                    if !marqueeRows.isEmpty {
-                                        ClubDetailTonightMarqueeSection(
-                                            rows: marqueeRows,
-                                            openShow: { show in
-                                                coordinator.open(.show(show.id))
-                                            },
-                                            showAll: {
-                                                pinnedShowsTodayRequest += 1
-                                                withAnimation {
-                                                    proxy.scrollTo(
-                                                        Self.pinnedShowsAnchor,
-                                                        anchor: .top
-                                                    )
-                                                }
-                                            }
-                                        )
-                                    } else if let nextShow = highlights.nextShow {
+                                    if marqueeRows.isEmpty, let nextShow = highlights.nextShow {
                                         ClubDetailShowHighlightSection(
                                             featuredShow: .init(title: "Next up", show: nextShow)
                                         ) {
@@ -266,6 +275,28 @@ private struct ClubDetailTonightMarqueeSection: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            Text("Tonight")
+                .font(.system(.subheadline, design: .rounded, weight: .heavy))
+                .tracking(1.4)
+                .textCase(.uppercase)
+                .foregroundStyle(ClubVenueMarqueeStyle.paper)
+                .padding(.horizontal, theme.spacing.lg)
+                .padding(.vertical, theme.spacing.sm)
+                .background(ClubVenueMarqueeStyle.outline)
+                .clipShape(
+                    RoundedRectangle(
+                        cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
+                        style: .continuous
+                    )
+                )
+                .overlay {
+                    RoundedRectangle(
+                        cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
+                        style: .continuous
+                    )
+                    .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
+                }
+
             ForEach(Array(rows.enumerated()), id: \.element.show.id) { index, row in
                 if index > 0 {
                     Divider()
@@ -314,23 +345,31 @@ private struct ClubDetailTonightMarqueeSection: View {
             }
             .accessibilityHint("Shows every performance at this club today")
         }
-        .background(Color(red: 0.99, green: 0.975, blue: 0.91))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(ClubVenueMarqueeStyle.paper)
+        .clipShape(
+            RoundedRectangle(
+                cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
+                style: .continuous
+            )
+        )
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color.black.opacity(0.72), lineWidth: 1.5)
+            RoundedRectangle(
+                cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
+                style: .continuous
+            )
+                .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
         }
         .overlay {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(
+                cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
+                style: .continuous
+            )
                 .inset(by: 6)
                 .stroke(
-                    Color.orange.opacity(0.58),
-                    style: StrokeStyle(
-                        lineWidth: 3,
-                        lineCap: .round,
-                        dash: [0.1, 10]
-                    )
+                    ClubVenueMarqueeStyle.bulbColor,
+                    style: ClubVenueMarqueeStyle.bulbStroke
                 )
+                .shadow(color: ClubVenueMarqueeStyle.bulbColor.opacity(0.18), radius: 2)
                 .allowsHitTesting(false)
         }
         .accessibilityElement(children: .contain)
@@ -434,7 +473,7 @@ enum ClubDetailHeroPresentation {
                 url: URL.normalizedExternalURL(club.website)
             ),
             DetailHeroAction(
-                title: "Maps",
+                title: "Directions",
                 systemImage: "map.fill",
                 url: URL.mapsURL(for: club.address)
             )
