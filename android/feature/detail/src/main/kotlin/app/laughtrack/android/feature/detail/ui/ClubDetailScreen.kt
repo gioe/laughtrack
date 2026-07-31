@@ -1,6 +1,7 @@
 package app.laughtrack.android.feature.detail.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +38,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,6 +86,11 @@ import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
 import app.laughtrack.android.feature.detail.util.openMap
 import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.parseShowDateTime
+import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -88,6 +100,8 @@ private val ProminentTicketPaper = Color(0xFFF5E3B3)
 private val ProminentTicketStub = Color(0xFFE0C27D)
 private val ProminentTicketBorder = Color(0xC7963B1A)
 private val ProminentTicketAccent = Color(0xFFA13D14)
+private val ClubMarqueePaper = Color(0xFFFFF9E8)
+private val ClubMarqueeInk = Color.Black
 
 @Composable
 fun ClubDetailScreen(
@@ -125,6 +139,7 @@ fun ClubDetailScreen(
 }
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 private fun ClubDetailBody(
     ui: ClubDetailUi,
     highlights: ClubHighlights?,
@@ -136,10 +151,15 @@ private fun ClubDetailBody(
     onBack: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
+    val scrollState = rememberScrollState()
+    val calendarBringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+    var calendarFilter by remember(ui.detail.id) { mutableStateOf(ClubCalendarFilter.AnyDate) }
+
     Column(
         Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(bottom = 28.dp),
     ) {
         AdaptiveDetailCatalogLayout(
@@ -158,6 +178,10 @@ private fun ClubDetailBody(
                         club = ui.detail,
                         highlights = highlights,
                         onOpenEntity = onOpenEntity,
+                        onShowAll = {
+                            calendarFilter = ClubCalendarFilter.Today
+                            coroutineScope.launch { calendarBringIntoViewRequester.bringIntoView() }
+                        },
                     )
                     ClubCalendarSection(
                         club = ui.detail,
@@ -167,6 +191,9 @@ private fun ClubDetailBody(
                         isLoadingMore = isLoadingMore,
                         onLoadMore = onLoadMore,
                         onOpenEntity = onOpenEntity,
+                        filter = calendarFilter,
+                        onFilter = { calendarFilter = it },
+                        modifier = Modifier.bringIntoViewRequester(calendarBringIntoViewRequester),
                     )
                     ClubRelatedVenuesSection(
                         venues = ui.detail.relatedVenues.orEmpty(),
@@ -183,14 +210,80 @@ internal data class ClubFeaturedShow(
     val show: Show,
 )
 
-internal fun clubFeaturedShow(highlights: ClubHighlights?): ClubFeaturedShow? {
-    val tonight = highlights?.tonightShows?.firstOrNull()
-    val next = highlights?.nextShow
-    return when {
-        tonight != null -> ClubFeaturedShow("Tonight", tonight)
-        next != null -> ClubFeaturedShow("Next up", next)
-        else -> null
-    }
+internal data class ClubMarqueeRow(
+    val show: Show,
+    val performerName: String,
+    val localizedStartTime: String,
+    internal val performerPopularity: BigDecimal,
+    internal val performerShowCount: Int,
+)
+
+internal fun clubMarqueeRows(highlights: ClubHighlights?): List<ClubMarqueeRow> =
+    highlights
+        ?.tonightShows
+        .orEmpty()
+        .map { show ->
+            val performer = clubMarqueeHeadliner(show)
+            ClubMarqueeRow(
+                show = show,
+                performerName = performer?.name ?: show.name?.takeIf(String::isNotBlank) ?: "Show",
+                localizedStartTime = clubMarqueeStartTime(show),
+                performerPopularity = performer?.socialData?.popularity ?: BigDecimal.valueOf(-1),
+                performerShowCount = performer?.showCount ?: 0,
+            )
+        }
+        .sortedWith { left, right ->
+            val popularity = right.performerPopularity.compareTo(left.performerPopularity)
+            val showCount = right.performerShowCount.compareTo(left.performerShowCount)
+            when {
+                popularity != 0 -> popularity
+                showCount != 0 -> showCount
+                else -> compareClubMarqueeDisplay(left, right)
+            }
+        }
+        .take(3)
+        .sortedWith(Comparator(::compareClubMarqueeDisplay))
+
+internal fun clubNextFeaturedShow(highlights: ClubHighlights?): ClubFeaturedShow? =
+    highlights
+        ?.takeIf { it.tonightShows.isEmpty() }
+        ?.nextShow
+        ?.let { ClubFeaturedShow("Next up", it) }
+
+private fun clubMarqueeHeadliner(show: Show): ComedianLineup? =
+    show.lineup
+        .orEmpty()
+        .map(::effectiveClubShowComedian)
+        .distinctBy { it.id }
+        .sortedWith(
+            compareByDescending<ComedianLineup> {
+                it.socialData?.popularity ?: BigDecimal.valueOf(-1)
+            }
+                .thenByDescending { it.showCount ?: 0 }
+                .thenBy { it.id },
+        )
+        .firstOrNull()
+
+private fun clubMarqueeStartTime(show: Show): String =
+    parseShowDateTime(show.date, show.timezone)
+        ?.toLocalTime()
+        ?.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(Locale.getDefault()))
+        .orEmpty()
+
+private fun compareClubMarqueeDisplay(
+    left: ClubMarqueeRow,
+    right: ClubMarqueeRow,
+): Int {
+    val leftInstant = parseShowDateTime(left.show.date, left.show.timezone)?.toInstant()
+    val rightInstant = parseShowDateTime(right.show.date, right.show.timezone)?.toInstant()
+    val timeComparison =
+        when {
+            leftInstant == null && rightInstant == null -> 0
+            leftInstant == null -> 1
+            rightInstant == null -> -1
+            else -> leftInstant.compareTo(rightInstant)
+        }
+    return timeComparison.takeIf { it != 0 } ?: left.show.id.compareTo(right.show.id)
 }
 
 internal fun clubFrequentPerformers(highlights: ClubHighlights?): List<ComedianListItem> =
@@ -201,13 +294,24 @@ private fun ClubHighlightsSections(
     club: ClubDetail,
     highlights: ClubHighlights?,
     onOpenEntity: (AppRoute) -> Unit,
+    onShowAll: () -> Unit,
 ) {
-    clubFeaturedShow(highlights)?.let { featured ->
-        ClubFeaturedShowSection(
+    val marqueeRows = clubMarqueeRows(highlights)
+    if (marqueeRows.isNotEmpty()) {
+        ClubTonightMarqueeSection(
             club = club,
-            featured = featured,
-            onClick = { onOpenEntity(AppRoute.ShowDetail(featured.show.id)) },
+            rows = marqueeRows,
+            onShow = { row -> onOpenEntity(AppRoute.ShowDetail(row.show.id)) },
+            onShowAll = onShowAll,
         )
+    } else {
+        clubNextFeaturedShow(highlights)?.let { featured ->
+            ClubFeaturedShowSection(
+                club = club,
+                featured = featured,
+                onClick = { onOpenEntity(AppRoute.ShowDetail(featured.show.id)) },
+            )
+        }
     }
     val performers = clubFrequentPerformers(highlights)
     if (performers.isNotEmpty()) {
@@ -215,6 +319,116 @@ private fun ClubHighlightsSections(
             performers = performers,
             onPerformer = { onOpenEntity(AppRoute.ComedianDetail(it.id)) },
         )
+    }
+}
+
+@Composable
+private fun ClubTonightMarqueeSection(
+    club: ClubDetail,
+    rows: List<ClubMarqueeRow>,
+    onShow: (ClubMarqueeRow) -> Unit,
+    onShowAll: () -> Unit,
+) {
+    Surface(
+        color = ClubMarqueePaper,
+        contentColor = ClubMarqueeInk,
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, ClubMarqueeInk.copy(alpha = 0.72f)),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 10.dp)
+                .testTag(CLUB_HIGHLIGHT_SECTION_TEST_TAG)
+                .semantics { contentDescription = "Show marquee at ${club.name}" },
+    ) {
+        Box {
+            Column(Modifier.padding(8.dp)) {
+                rows.forEachIndexed { index, row ->
+                    if (index > 0) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(ClubMarqueeInk.copy(alpha = 0.24f)),
+                        )
+                    }
+                    Row(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .testTag("$CLUB_HIGHLIGHT_SHOW_TEST_TAG_PREFIX${row.show.id}")
+                                .semantics {
+                                    contentDescription =
+                                        "Open ${row.performerName}, ${row.localizedStartTime}"
+                                }
+                                .clickable(role = Role.Button) { onShow(row) }
+                                .padding(horizontal = 16.dp, vertical = 15.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            row.performerName.uppercase(Locale.getDefault()),
+                            style =
+                                MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 0.8.sp,
+                                ),
+                            color = Color.Black,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            row.localizedStartTime.uppercase(Locale.getDefault()),
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            color = ClubMarqueeInk,
+                            maxLines = 1,
+                        )
+                        Text("›", style = MaterialTheme.typography.titleLarge, color = ClubMarqueeInk)
+                    }
+                }
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(ClubMarqueeInk.copy(alpha = 0.30f)),
+                )
+                Text(
+                    "Show all",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
+                    color = ClubMarqueeInk,
+                    textAlign = TextAlign.Center,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .testTag(CLUB_HIGHLIGHT_SHOW_ALL_TEST_TAG)
+                            .clickable(role = Role.Button, onClick = onShowAll)
+                            .padding(vertical = 10.dp),
+                )
+            }
+            Canvas(Modifier.fillMaxSize()) {
+                val inset = 7.dp.toPx()
+                val dotRadius = 1.5.dp.toPx()
+                val step = 12.dp.toPx()
+                val left = inset
+                val top = inset
+                val right = size.width - inset
+                val bottom = size.height - inset
+
+                var x = left + step
+                while (x < right - step) {
+                    drawCircle(ClubBulb.copy(alpha = 0.58f), dotRadius, Offset(x, top))
+                    drawCircle(ClubBulb.copy(alpha = 0.58f), dotRadius, Offset(x, bottom))
+                    x += step
+                }
+                var y = top + step
+                while (y < bottom - step) {
+                    drawCircle(ClubBulb.copy(alpha = 0.58f), dotRadius, Offset(left, y))
+                    drawCircle(ClubBulb.copy(alpha = 0.58f), dotRadius, Offset(right, y))
+                    y += step
+                }
+            }
+        }
     }
 }
 
@@ -505,10 +719,15 @@ private fun ClubCalendarSection(
     isLoadingMore: Boolean,
     onLoadMore: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
+    filter: ClubCalendarFilter,
+    onFilter: (ClubCalendarFilter) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+    val visibleShows = clubCalendarShows(shows, filter)
     Column(
-        Modifier
+        modifier
             .fillMaxWidth()
+            .testTag(CLUB_CALENDAR_SECTION_TEST_TAG)
             .padding(horizontal = 8.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -528,9 +747,21 @@ private fun ClubCalendarSection(
                 contentColor = LaughTrackColors.Foreground,
                 shape = RoundedCornerShape(999.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+                modifier =
+                    Modifier
+                        .testTag(CLUB_CALENDAR_DATE_FILTER_TEST_TAG)
+                        .clickable(role = Role.Button) {
+                            onFilter(
+                                if (filter == ClubCalendarFilter.Today) {
+                                    ClubCalendarFilter.AnyDate
+                                } else {
+                                    ClubCalendarFilter.Today
+                                },
+                            )
+                        },
             ) {
                 Text(
-                    "▦  Any date",
+                    if (filter == ClubCalendarFilter.Today) "▦  Today" else "▦  Any date",
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
@@ -538,28 +769,31 @@ private fun ClubCalendarSection(
         }
 
         Text(
-            "Showing ${shows.size} of $totalShows",
+            if (filter == ClubCalendarFilter.Today) {
+                "Showing ${visibleShows.size} today"
+            } else {
+                "Showing ${shows.size} of $totalShows"
+            },
             style = MaterialTheme.typography.titleSmall,
             color = LaughTrackColors.ForegroundMuted,
         )
 
-        if (shows.isEmpty()) {
+        if (visibleShows.isEmpty()) {
             Text(
-                "No upcoming shows yet.",
+                if (filter == ClubCalendarFilter.Today) "No shows today." else "No upcoming shows yet.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = LaughTrackColors.ForegroundMuted,
             )
-            return@Column
-        }
-
-        val standoutShowId = clubShowStandoutId(shows)
-        shows.forEach { show ->
-            ClubShowCard(
-                club = club,
-                show = show,
-                prominent = show.id == standoutShowId,
-                onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
-            )
+        } else {
+            val standoutShowId = clubShowStandoutId(visibleShows)
+            visibleShows.forEach { show ->
+                ClubShowCard(
+                    club = club,
+                    show = show,
+                    prominent = show.id == standoutShowId,
+                    onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
+                )
+            }
         }
 
         if (canLoadMore) {
@@ -779,6 +1013,9 @@ private fun ClubTicketPerforation(color: Color) {
 const val CLUB_SHOW_ROW_TEST_TAG = "club-show-row"
 const val CLUB_HIGHLIGHT_SECTION_TEST_TAG = "club-detail-highlight-section"
 const val CLUB_HIGHLIGHT_SHOW_TEST_TAG_PREFIX = "club-detail-highlight-show-"
+const val CLUB_HIGHLIGHT_SHOW_ALL_TEST_TAG = "club-detail-highlight-show-all"
+const val CLUB_CALENDAR_SECTION_TEST_TAG = "club-calendar-section"
+const val CLUB_CALENDAR_DATE_FILTER_TEST_TAG = "club-calendar-date-filter"
 const val CLUB_FREQUENT_PERFORMERS_SECTION_TEST_TAG = "club-detail-frequent-performers-section"
 const val CLUB_PERFORMER_TEST_TAG_PREFIX = "club-detail-performer-"
 
@@ -866,6 +1103,23 @@ private data class ClubShowDateParts(
     val month: String,
     val time: String,
 )
+
+internal enum class ClubCalendarFilter {
+    AnyDate,
+    Today,
+}
+
+internal fun clubCalendarShows(
+    shows: List<Show>,
+    filter: ClubCalendarFilter,
+    now: Instant = Instant.now(),
+): List<Show> {
+    if (filter == ClubCalendarFilter.AnyDate) return shows
+    return shows.filter { show ->
+        val showDateTime = parseShowDateTime(show.date, show.timezone) ?: return@filter false
+        showDateTime.toLocalDate() == now.atZone(showDateTime.zone).toLocalDate()
+    }
+}
 
 private fun Show.dateParts(): ClubShowDateParts {
     val parsed = parseShowDateTime(date, timezone)
