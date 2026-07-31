@@ -65,6 +65,11 @@ struct MarqueeHeroLetterboxTests {
             from: "struct FramedComedianThumbnail",
             to: "struct ClubMarqueeThumbnail"
         )
+        let thumbnailGateBlock = try sourceBlock(
+            in: source,
+            from: "if showsThumbnail {",
+            to: "if !badges.isEmpty"
+        )
 
         #expect(source.contains("enum MarqueeHeroThumbnailStyle"))
         #expect(source.contains("case marqueePoster"))
@@ -72,6 +77,8 @@ struct MarqueeHeroLetterboxTests {
         #expect(source.contains("case clubMarquee"))
         #expect(source.contains("case podcastRail"))
         #expect(source.contains("var titleTopPadding: CGFloat = 18"))
+        #expect(source.contains("var showsThumbnail: Bool = true"))
+        #expect(thumbnailGateBlock.contains("heroThumbnail"))
         #expect(source.contains("var thumbnailCaption: String? = nil"))
         #expect(source.contains("struct FramedComedianThumbnail"))
         #expect(source.contains("struct ClubMarqueeThumbnail"))

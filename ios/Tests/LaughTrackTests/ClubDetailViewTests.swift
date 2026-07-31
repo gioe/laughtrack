@@ -82,8 +82,8 @@ struct ClubDetailViewTests {
         #expect(source.contains("onHome: coordinator.detailHomeAction"))
     }
 
-    @Test("club detail integrates venue artwork and tonight board into one marquee")
-    func clubDetailIntegratesVenueMarquee() throws {
+    @Test("club detail replaces visible venue artwork with the tonight marquee")
+    func clubDetailUsesTonightAsPrimaryMarqueeContent() throws {
         let source = try String(
             contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
             encoding: .utf8
@@ -95,6 +95,11 @@ struct ClubDetailViewTests {
         #expect(titlePosition.lowerBound < actionPosition.lowerBound)
         #expect(actionPosition.lowerBound < boardPosition.lowerBound)
         #expect(source.contains("VStack(spacing: ClubVenueMarqueeStyle.artworkToBoardSpacing)"))
+        #expect(source.contains("imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? \"\""))
+        #expect(source.contains("thumbnailStyle: .clubMarquee"))
+        #expect(source.contains("showsThumbnail: false"))
+        #expect(source.contains("Set to true to restore venue artwork above the Tonight marquee."))
+        #expect(source.contains("fallbackSystemImage: ArtworkFallbackKind.club.systemImage"))
         #expect(source.contains("actionStyle: .compactPill"))
         #expect(source.contains("bottomPadding: 0"))
         #expect(source.contains("Text(\"Tonight\")"))

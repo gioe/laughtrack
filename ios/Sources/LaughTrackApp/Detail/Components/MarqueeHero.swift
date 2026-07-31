@@ -14,6 +14,7 @@ struct MarqueeHero: View {
     var titleTopPadding: CGFloat = 18
     let imageURL: String
     var thumbnailStyle: MarqueeHeroThumbnailStyle = .marqueePoster
+    var showsThumbnail: Bool = true
     var thumbnailCaption: String? = nil
     var thumbnailHeadshots: [DetailHeroHeadshot] = []
     var badges: [DetailHeroBadge] = []
@@ -63,7 +64,9 @@ struct MarqueeHero: View {
                 heroActions
             }
 
-            heroThumbnail
+            if showsThumbnail {
+                heroThumbnail
+            }
 
             if !badges.isEmpty {
                 HStack(spacing: theme.spacing.sm) {
