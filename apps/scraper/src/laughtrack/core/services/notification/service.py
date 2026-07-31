@@ -593,6 +593,49 @@ class ApnsPushService:
             reason=reason,
         )
 
+    def send_test_notification(
+        self,
+        device_token: str,
+        title: str = "LaughTrack test notification",
+        body: str = "If you can see this, push delivery is working.",
+    ) -> PushDeliveryResult:
+        """Send a diagnostic alert without a show or deep-link payload."""
+        try:
+            import httpx
+        except ImportError as e:
+            raise RuntimeError("APNs push delivery requires httpx with HTTP/2 support") from e
+
+        payload = {
+            "aps": {
+                "alert": {
+                    "title": title,
+                    "body": body,
+                },
+                "sound": "default",
+            },
+            "type": "delivery_test",
+        }
+        headers = {
+            "authorization": f"bearer {self._auth_token()}",
+            "apns-topic": self._bundle_id,
+            "apns-push-type": "alert",
+            "apns-priority": "10",
+        }
+        url = f"https://{self._host}/3/device/{device_token}"
+        with httpx.Client(http2=True, timeout=10.0) as client:
+            response = client.post(url, headers=headers, json=payload)
+
+        if 200 <= response.status_code < 300:
+            return PushDeliveryResult(success=True, status_code=response.status_code)
+
+        reason = self._extract_reason(response)
+        return PushDeliveryResult(
+            success=False,
+            invalid_token=response.status_code in (400, 410) and reason in _INVALID_APNS_REASONS,
+            status_code=response.status_code,
+            reason=reason,
+        )
+
     def send_youtube_live_notification(
         self,
         device_token: str,

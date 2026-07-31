@@ -1,0 +1,4 @@
+interface:
+  display_name: "Send Test Push"
+  short_description: "Send an APNs test push to a user"
+  default_prompt: "Use $send-test-push to send a diagnostic push notification to a user by email or user ID."

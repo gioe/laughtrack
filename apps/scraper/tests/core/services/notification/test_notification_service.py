@@ -506,6 +506,41 @@ class TestComedianImageUrl:
 
 
 class TestApnsPushServicePayload:
+    def test_send_test_builds_alert_without_deep_link(self):
+        service = ApnsPushService(
+            team_id="TEAM12345",
+            key_id="KEYID67890",
+            private_key_pem="unused",
+            bundle_id="com.example.app",
+            use_sandbox=True,
+        )
+        response = MagicMock(status_code=200)
+
+        with patch.object(service, "_auth_token", return_value="fake-token"):
+            with patch("httpx.Client") as MockClient:
+                client = MockClient.return_value.__enter__.return_value
+                client.post.return_value = response
+                result = service.send_test_notification(
+                    device_token="apns-token",
+                    title="Test title",
+                    body="Test body",
+                )
+
+        assert result.success is True
+        assert result.status_code == 200
+        request = client.post.call_args
+        assert request.args[0] == "https://api.sandbox.push.apple.com/3/device/apns-token"
+        assert request.kwargs["json"] == {
+            "aps": {
+                "alert": {"title": "Test title", "body": "Test body"},
+                "sound": "default",
+            },
+            "type": "delivery_test",
+        }
+        assert request.kwargs["headers"]["apns-push-type"] == "alert"
+        assert "showId" not in request.kwargs["json"]
+        assert "url" not in request.kwargs["json"]
+
     def test_send_show_body_matches_notification_center(self):
         # The push body must read like the in-app notification center subtitle:
         # "{club} on {date} at {time}" in the club's local time (lowercase am/pm,
