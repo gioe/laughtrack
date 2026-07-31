@@ -332,14 +332,17 @@ enum MarqueeHeroActionStyle: Equatable {
 enum ClubVenueMarqueeStyle {
     static let paper = Color(red: 0.99, green: 0.975, blue: 0.91)
     static let outline = Color.black.opacity(0.72)
-    static let bulbColor = Color(red: 1.0, green: 0.78, blue: 0.24).opacity(0.58)
+    static let badgeBackground = Color(red: 0.16, green: 0.15, blue: 0.14)
+    static let bulbColor = Color(red: 1.0, green: 0.74, blue: 0.18).opacity(0.9)
     static let cornerRadius: CGFloat = 12
+    static let bulbCornerRadius: CGFloat = 10
+    static let bulbInset: CGFloat = 9
     static let artworkToBoardSpacing: CGFloat = 10
     static let bulbStroke = StrokeStyle(
-        lineWidth: 2,
+        lineWidth: 3,
         lineCap: .round,
         lineJoin: .round,
-        dash: [0.1, 10]
+        dash: [0.1, 12]
     )
 }
 
