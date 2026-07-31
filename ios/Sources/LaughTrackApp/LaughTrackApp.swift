@@ -73,12 +73,15 @@ struct LaughTrackApp: App {
                         coordinator.push(route)
                     }
                     .onChange(of: scenePhase) { newPhase in
-                        // Keep the backend ZIP fresh for the location-based push job.
-                        // Silent + gated (already-geolocated + already-authorized);
-                        // skipped under mock mode so screenshot/UI-test launches
-                        // never reach for the device location.
+                        // Keep location and APNs registration fresh whenever the
+                        // authenticated app becomes active. The push refresh is
+                        // gated by the server-backed opt-in and repairs tokens that
+                        // changed after reinstall, restore, or OS migration.
                         guard newPhase == .active, !MockModeDetector.isMockMode else { return }
                         foregroundLocationRefresher.refreshIfEligible()
+                        Task {
+                            await authManager.refreshPushRegistrationIfNeeded()
+                        }
                     }
                     #if DEBUG
                     .task {

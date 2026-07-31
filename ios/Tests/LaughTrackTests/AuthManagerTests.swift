@@ -500,6 +500,91 @@ struct AuthManagerTests {
         #expect(manager.currentUser == expected)
     }
 
+    @Test("restoring an opted-in user refreshes APNs registration")
+    @MainActor
+    func restoreSessionRefreshesPushRegistrationForOptedInUser() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(
+            userDefaults: UserDefaults(
+                suiteName: "AuthManagerTests.refreshPush.\(UUID().uuidString)"
+            )!
+        )
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: MockOAuthSessionRunner()
+        )
+        let pushTokenManager = RecordingAuthPushDeviceTokenManager()
+        manager.pushTokenManager = pushTokenManager
+        manager.loadUserRequest = {
+            AuthenticatedUser(
+                userId: "push-user",
+                displayName: "Push User",
+                email: "push@example.com",
+                avatarURL: nil,
+                pushShowNotifications: true
+            )
+        }
+
+        await manager.restoreSession()
+        #expect(await pushTokenManager.registerCalls == 1)
+
+        // Foreground reconciliation is intentionally repeatable: asking APNs
+        // again is what repairs a token that changed while the app was absent.
+        await manager.refreshPushRegistrationIfNeeded()
+        #expect(await pushTokenManager.registerCalls == 2)
+    }
+
+    @Test("restoring an opted-out user does not register with APNs")
+    @MainActor
+    func restoreSessionDoesNotRefreshPushRegistrationForOptedOutUser() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(
+            userDefaults: UserDefaults(
+                suiteName: "AuthManagerTests.skipPush.\(UUID().uuidString)"
+            )!
+        )
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: MockOAuthSessionRunner()
+        )
+        let pushTokenManager = RecordingAuthPushDeviceTokenManager()
+        manager.pushTokenManager = pushTokenManager
+        manager.loadUserRequest = {
+            AuthenticatedUser(
+                userId: "no-push-user",
+                displayName: "No Push User",
+                email: "no-push@example.com",
+                avatarURL: nil,
+                pushShowNotifications: false
+            )
+        }
+
+        await manager.restoreSession()
+        await manager.refreshPushRegistrationIfNeeded()
+
+        #expect(await pushTokenManager.registerCalls == 0)
+    }
+
     @Test("loadUserRequest failure leaves currentUser unchanged so the UI can fall back to provider info")
     @MainActor
     func loadUserRequestFailureKeepsPriorCurrentUser() async {

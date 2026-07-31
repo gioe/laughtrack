@@ -143,10 +143,20 @@ public final class AuthManager: ObservableObject {
         hasLoadedCurrentUser = false
         do {
             currentUser = try await loadUserRequest()
+            await refreshPushRegistrationIfNeeded()
         } catch {
             await loadUserErrorObserver(error)
         }
         hasLoadedCurrentUser = true
+    }
+
+    /// Re-register with APNs whenever an opted-in authenticated session becomes
+    /// active. APNs device tokens can change after reinstall, restore, or OS
+    /// migration, so the server-backed preference must not leave registration
+    /// dependent on the user toggling push off and on again.
+    public func refreshPushRegistrationIfNeeded() async {
+        guard currentUser?.pushShowNotifications == true else { return }
+        await pushTokenManager?.registerForRemoteNotifications()
     }
 
     public func markComedianOnboardingCompleted() {
