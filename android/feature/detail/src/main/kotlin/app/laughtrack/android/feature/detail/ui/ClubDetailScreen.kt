@@ -647,7 +647,8 @@ private fun ClubMarqueeHero(
                 ClubHeroAction(label = "Website", symbol = "↗", onClick = { context.openUrl(club.website) })
                 ClubHeroAction(label = "Directions", symbol = "▥", onClick = { context.openMap(club.address) })
             }
-            ClubPoster(url = club.heroImageUrl.ifBlank { club.imageUrl }, contentDescription = club.name)
+            // Restore this call if club artwork returns above the Tonight marquee.
+            // ClubPoster(url = club.heroImageUrl.ifBlank { club.imageUrl }, contentDescription = club.name)
             marqueeSummary?.let { summary ->
                 ClubTonightMarqueeSection(
                     club = club,

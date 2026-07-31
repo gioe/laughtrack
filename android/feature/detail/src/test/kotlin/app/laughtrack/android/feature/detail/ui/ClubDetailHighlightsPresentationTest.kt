@@ -222,17 +222,19 @@ class ClubDetailHighlightsPresentationTest {
     }
 
     @Test
-    fun venue_artwork_and_tonight_board_form_one_marquee_composition() {
+    fun tonight_board_replaces_venue_artwork_after_the_hero_actions() {
         val source = clubDetailScreenSource()
+        val posterCall = "ClubPoster(url = club.heroImageUrl.ifBlank { club.imageUrl }, contentDescription = club.name)"
         val titlePosition = source.indexOf("club.name.uppercase()")
         val actionsPosition = source.indexOf("ClubHeroAction(label = \"Website\"")
-        val posterPosition = source.indexOf("ClubPoster(url = club.heroImageUrl.ifBlank { club.imageUrl }")
-        val boardPosition = source.indexOf("ClubTonightMarqueeSection(", posterPosition)
+        val boardPosition = source.indexOf("ClubTonightMarqueeSection(", actionsPosition)
 
         assertTrue(titlePosition >= 0)
         assertTrue(actionsPosition > titlePosition)
-        assertTrue(posterPosition > actionsPosition)
-        assertTrue(boardPosition > posterPosition)
+        assertTrue(boardPosition > actionsPosition)
+        assertFalse(source.lineSequence().any { it.trim() == posterCall })
+        assertTrue(source.lineSequence().any { it.trim() == "// $posterCall" })
+        assertTrue(source.contains("Restore this call if club artwork returns above the Tonight marquee."))
         assertTrue(source.contains("verticalArrangement = Arrangement.spacedBy(10.dp)"))
         assertTrue(source.contains(".size(206.dp)"))
         assertTrue(source.contains("\"TONIGHT\""))
