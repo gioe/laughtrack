@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -156,6 +157,7 @@ private fun ClubDetailBody(
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     val scrollState = rememberScrollState()
+    val marqueeRows = clubMarqueeRows(highlights)
     val calendarBringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     var calendarFilter by remember(ui.detail.id) { mutableStateOf(ClubCalendarFilter.AnyDate) }
@@ -170,11 +172,17 @@ private fun ClubDetailBody(
             hero = {
                 ClubMarqueeHero(
                     club = ui.detail,
+                    marqueeRows = marqueeRows,
                     isFavorite = isFavorite,
                     isFavoritePending = isFavoritePending,
                     onFavorite = onFavorite,
                     onBack = onBack,
                     onHome = onHome,
+                    onShow = { row -> onOpenEntity(AppRoute.ShowDetail(row.show.id)) },
+                    onShowAll = {
+                        calendarFilter = ClubCalendarFilter.Today
+                        coroutineScope.launch { calendarBringIntoViewRequester.bringIntoView() }
+                    },
                 )
             },
             content = {
@@ -183,10 +191,6 @@ private fun ClubDetailBody(
                         club = ui.detail,
                         highlights = highlights,
                         onOpenEntity = onOpenEntity,
-                        onShowAll = {
-                            calendarFilter = ClubCalendarFilter.Today
-                            coroutineScope.launch { calendarBringIntoViewRequester.bringIntoView() }
-                        },
                     )
                     ClubCalendarSection(
                         club = ui.detail,
@@ -306,17 +310,8 @@ private fun ClubHighlightsSections(
     club: ClubDetail,
     highlights: ClubHighlights?,
     onOpenEntity: (AppRoute) -> Unit,
-    onShowAll: () -> Unit,
 ) {
-    val marqueeRows = clubMarqueeRows(highlights)
-    if (marqueeRows.isNotEmpty()) {
-        ClubTonightMarqueeSection(
-            club = club,
-            rows = marqueeRows,
-            onShow = { row -> onOpenEntity(AppRoute.ShowDetail(row.show.id)) },
-            onShowAll = onShowAll,
-        )
-    } else {
+    if (clubMarqueeRows(highlights).isEmpty()) {
         clubNextFeaturedShow(highlights)?.let { featured ->
             ClubFeaturedShowSection(
                 club = club,
@@ -342,12 +337,24 @@ private fun ClubTonightMarqueeSection(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 10.dp)
                 .testTag(CLUB_HIGHLIGHT_SECTION_TEST_TAG)
                 .semantics { contentDescription = "Show marquee at ${club.name}" },
     ) {
         Box {
             Column(Modifier.padding(8.dp)) {
+                Surface(
+                    color = ClubMarqueeInk,
+                    contentColor = ClubMarqueePaper,
+                    shape = RoundedCornerShape(999.dp),
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                ) {
+                    Text(
+                        "TONIGHT",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
+                        letterSpacing = 1.2.sp,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+                    )
+                }
                 rows.forEachIndexed { index, row ->
                     if (index > 0) {
                         Box(
@@ -367,8 +374,8 @@ private fun ClubTonightMarqueeSection(
                                         "Open ${row.performerName}, ${row.localizedStartTime}"
                                 }
                                 .clickable(role = Role.Button) { onShow(row) }
-                                .padding(horizontal = 16.dp, vertical = 15.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                .padding(horizontal = 10.dp, vertical = 15.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
@@ -389,7 +396,7 @@ private fun ClubTonightMarqueeSection(
                             color = ClubMarqueeInk,
                             maxLines = 1,
                         )
-                        Text("›", style = MaterialTheme.typography.titleLarge, color = ClubMarqueeInk)
+                        Text("›", style = MaterialTheme.typography.titleMedium, color = ClubMarqueeInk)
                     }
                 }
                 Box(
@@ -422,14 +429,14 @@ private fun ClubTonightMarqueeSection(
 
                 var x = left + step
                 while (x < right - step) {
-                    drawCircle(ClubBulb.copy(alpha = 0.58f), dotRadius, Offset(x, top))
-                    drawCircle(ClubBulb.copy(alpha = 0.58f), dotRadius, Offset(x, bottom))
+                    drawCircle(ClubBulb.copy(alpha = 0.42f), dotRadius, Offset(x, top))
+                    drawCircle(ClubBulb.copy(alpha = 0.42f), dotRadius, Offset(x, bottom))
                     x += step
                 }
                 var y = top + step
                 while (y < bottom - step) {
-                    drawCircle(ClubBulb.copy(alpha = 0.58f), dotRadius, Offset(left, y))
-                    drawCircle(ClubBulb.copy(alpha = 0.58f), dotRadius, Offset(right, y))
+                    drawCircle(ClubBulb.copy(alpha = 0.42f), dotRadius, Offset(left, y))
+                    drawCircle(ClubBulb.copy(alpha = 0.42f), dotRadius, Offset(right, y))
                     y += step
                 }
             }
@@ -556,14 +563,17 @@ private fun ClubFrequentPerformersSection(
 @Composable
 private fun ClubMarqueeHero(
     club: ClubDetail,
+    marqueeRows: List<ClubMarqueeRow>,
     isFavorite: Boolean,
     isFavoritePending: Boolean,
     onFavorite: () -> Unit,
     onBack: () -> Unit,
     onHome: (() -> Unit)?,
+    onShow: (ClubMarqueeRow) -> Unit,
+    onShowAll: () -> Unit,
 ) {
     val context = LocalContext.current
-    Box(
+    BoxWithConstraints(
         Modifier
             .fillMaxWidth()
             .background(
@@ -577,6 +587,7 @@ private fun ClubMarqueeHero(
                 ),
             ),
     ) {
+        val contentTopPadding = if (maxWidth <= 360.dp) 148.dp else 118.dp
         Row(
             modifier =
                 Modifier
@@ -609,9 +620,9 @@ private fun ClubMarqueeHero(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = 118.dp, start = 20.dp, end = 20.dp, bottom = 16.dp),
+                    .padding(top = contentTopPadding, start = 20.dp, end = 20.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
                 club.name.uppercase(),
@@ -627,10 +638,18 @@ private fun ClubMarqueeHero(
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
-            ClubPoster(url = club.heroImageUrl.ifBlank { club.imageUrl }, contentDescription = club.name)
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ClubHeroAction(label = "Website", symbol = "↗", onClick = { context.openUrl(club.website) })
-                ClubHeroAction(label = "Maps", symbol = "▥", onClick = { context.openMap(club.address) })
+                ClubHeroAction(label = "Directions", symbol = "▥", onClick = { context.openMap(club.address) })
+            }
+            ClubPoster(url = club.heroImageUrl.ifBlank { club.imageUrl }, contentDescription = club.name)
+            if (marqueeRows.isNotEmpty()) {
+                ClubTonightMarqueeSection(
+                    club = club,
+                    rows = marqueeRows,
+                    onShow = onShow,
+                    onShowAll = onShowAll,
+                )
             }
         }
     }
@@ -644,12 +663,15 @@ private fun ClubPoster(
     Box(
         modifier =
             Modifier
-                .size(206.dp),
+                .size(206.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(ClubMarqueePaper)
+                .border(1.5.dp, ClubMarqueeInk.copy(alpha = 0.72f), RoundedCornerShape(12.dp)),
     ) {
         Canvas(Modifier.fillMaxSize()) {
             val cornerRadius = 20.dp.toPx()
-            val dotRadius = 2.dp.toPx()
-            val inset = 5.dp.toPx()
+            val dotRadius = 1.5.dp.toPx()
+            val inset = 7.dp.toPx()
             val left = inset
             val top = inset
             val right = size.width - inset
@@ -657,7 +679,7 @@ private fun ClubPoster(
             val step = 11.dp.toPx()
 
             drawRoundRect(
-                color = ClubBulb.copy(alpha = 0.24f),
+                color = ClubMarqueeInk.copy(alpha = 0.22f),
                 topLeft = Offset(left, top),
                 size = Size(right - left, bottom - top),
                 cornerRadius = CornerRadius(cornerRadius, cornerRadius),
@@ -666,15 +688,15 @@ private fun ClubPoster(
 
             var x = left + cornerRadius
             while (x <= right - cornerRadius) {
-                drawCircle(ClubBulb, dotRadius, Offset(x, top))
-                drawCircle(ClubBulb, dotRadius, Offset(x, bottom))
+                drawCircle(ClubBulb.copy(alpha = 0.42f), dotRadius, Offset(x, top))
+                drawCircle(ClubBulb.copy(alpha = 0.42f), dotRadius, Offset(x, bottom))
                 x += step
             }
 
             var y = top + cornerRadius
             while (y <= bottom - cornerRadius) {
-                drawCircle(ClubBulb, dotRadius, Offset(left, y))
-                drawCircle(ClubBulb, dotRadius, Offset(right, y))
+                drawCircle(ClubBulb.copy(alpha = 0.42f), dotRadius, Offset(left, y))
+                drawCircle(ClubBulb.copy(alpha = 0.42f), dotRadius, Offset(right, y))
                 y += step
             }
         }
@@ -685,10 +707,10 @@ private fun ClubPoster(
             contentScale = ContentScale.Fit,
             modifier =
                 Modifier
-                    .padding(5.dp)
+                    .padding(10.dp)
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Color.Black.copy(alpha = 0.55f), RoundedCornerShape(12.dp)),
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(1.dp, ClubMarqueeInk.copy(alpha = 0.55f), RoundedCornerShape(8.dp)),
         )
     }
 }
@@ -699,27 +721,25 @@ private fun ClubHeroAction(
     symbol: String,
     onClick: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier.clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+    Surface(
+        color = ClubMarqueeInk.copy(alpha = 0.82f),
+        contentColor = ClubMarqueePaper,
+        shape = RoundedCornerShape(999.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, ClubMarqueePaper.copy(alpha = 0.42f)),
+        modifier =
+            Modifier
+                .heightIn(min = 48.dp)
+                .semantics { contentDescription = label }
+                .clickable(role = Role.Button, onClick = onClick),
     ) {
-        Surface(
-            modifier = Modifier.size(40.dp),
-            color = LaughTrackColors.Surface.copy(alpha = 0.92f),
-            contentColor = LaughTrackColors.Foreground,
-            shape = CircleShape,
-            border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(symbol, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black))
-            }
+            Text(symbol, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black))
+            Text(label, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
         }
-        Text(
-            label,
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-            color = LaughTrackColors.Foreground,
-        )
     }
 }
 

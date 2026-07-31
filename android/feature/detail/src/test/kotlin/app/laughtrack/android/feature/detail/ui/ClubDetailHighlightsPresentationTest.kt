@@ -183,6 +183,44 @@ class ClubDetailHighlightsPresentationTest {
         assertFalse(source.contains("\"Tonight's marquee\""))
     }
 
+    @Test
+    fun venue_artwork_and_tonight_board_form_one_marquee_composition() {
+        val source = clubDetailScreenSource()
+        val titlePosition = source.indexOf("club.name.uppercase()")
+        val actionsPosition = source.indexOf("ClubHeroAction(label = \"Website\"")
+        val posterPosition = source.indexOf("ClubPoster(url = club.heroImageUrl.ifBlank { club.imageUrl }")
+        val boardPosition = source.indexOf("ClubTonightMarqueeSection(", posterPosition)
+
+        assertTrue(titlePosition >= 0)
+        assertTrue(actionsPosition > titlePosition)
+        assertTrue(posterPosition > actionsPosition)
+        assertTrue(boardPosition > posterPosition)
+        assertTrue(source.contains("verticalArrangement = Arrangement.spacedBy(10.dp)"))
+        assertTrue(source.contains(".size(206.dp)"))
+        assertTrue(source.contains("\"TONIGHT\""))
+        assertTrue(source.contains("ClubMarqueePaper"))
+        assertTrue(source.contains("ClubMarqueeInk.copy(alpha = 0.72f)"))
+        assertTrue(source.contains("ClubBulb.copy(alpha = 0.42f)"))
+    }
+
+    @Test
+    fun venue_action_pills_preserve_external_destinations_and_accessibility() {
+        val source = clubDetailScreenSource()
+
+        assertTrue(source.contains("ClubHeroAction(label = \"Website\""))
+        assertTrue(source.contains("ClubHeroAction(label = \"Directions\""))
+        assertTrue(source.contains("context.openUrl(club.website)"))
+        assertTrue(source.contains("context.openMap(club.address)"))
+        assertTrue(source.contains("semantics { contentDescription = label }"))
+        assertTrue(source.contains("clickable(role = Role.Button, onClick = onClick)"))
+        assertTrue(source.contains("heightIn(min = 48.dp)"))
+        assertTrue(source.contains("color = ClubMarqueeInk.copy(alpha = 0.82f)"))
+        assertTrue(source.contains("contentColor = ClubMarqueePaper"))
+        assertTrue(source.contains("AppRoute.ShowDetail(row.show.id)"))
+        assertTrue(source.contains("club.heroImageUrl.ifBlank { club.imageUrl }"))
+        assertTrue(source.contains("fallback = RemoteImageFallback.Club"))
+    }
+
     private fun highlights(
         tonight: List<Show> = emptyList(),
         next: Show? = null,
