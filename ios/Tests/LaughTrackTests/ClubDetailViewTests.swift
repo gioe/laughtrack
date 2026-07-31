@@ -70,6 +70,18 @@ struct ClubDetailViewTests {
         #expect(ClubDetailHeroPresentation.imageURL(for: club) == nil)
     }
 
+    @Test("club detail uses stack-aware Back and Home navigation chrome")
+    func clubDetailUsesStackAwareNavigationChrome() throws {
+        let source = try String(
+            contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(source.contains("DetailChromeBar("))
+        #expect(source.contains("onBack: { coordinator.pop() }"))
+        #expect(source.contains("onHome: coordinator.detailHomeAction"))
+    }
+
     @Test("club detail surfaces API failures explicitly")
     func clubDetailShowsErrorState() async throws {
         let model = ClubDetailModel(clubId: 201)
