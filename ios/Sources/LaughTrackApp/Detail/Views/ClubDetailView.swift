@@ -306,8 +306,11 @@ private struct ClubDetailTonightMarqueeSection: View {
                 VStack(spacing: theme.spacing.sm) {
                     ForEach(Array(summary.performerNames.enumerated()), id: \.offset) { _, performerName in
                         Text(performerName.uppercased())
-                            .font(.system(.headline, design: .monospaced, weight: .bold))
+                            .font(.system(.title3, design: .rounded, weight: .heavy))
+                            .tracking(0.8)
                             .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
                             .frame(maxWidth: .infinity)
                     }
 
@@ -318,17 +321,19 @@ private struct ClubDetailTonightMarqueeSection: View {
                 }
                 .foregroundStyle(Color.black)
                 .padding(.horizontal, theme.spacing.lg)
-                .padding(.top, theme.spacing.lg)
-                .padding(.bottom, theme.spacing.md)
+                .padding(.top, theme.spacing.xl)
+                .padding(.bottom, theme.spacing.sm)
 
                 if !summary.localizedStartTimes.isEmpty {
                     Text(summary.localizedStartTimes.joined(separator: " · ").uppercased())
-                        .font(.system(.subheadline, design: .monospaced, weight: .semibold))
-                        .foregroundStyle(Color.black.opacity(0.78))
+                        .font(.system(.footnote, design: .monospaced, weight: .semibold))
+                        .tracking(0.6)
+                        .foregroundStyle(Color.black.opacity(0.68))
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, theme.spacing.lg)
-                        .padding(.vertical, theme.spacing.sm)
+                        .padding(.top, theme.spacing.sm)
+                        .padding(.bottom, theme.spacing.md)
                         .overlay(alignment: .top) {
                             Divider().overlay(Color.black.opacity(0.3))
                         }
