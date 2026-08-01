@@ -287,21 +287,18 @@ private struct ClubDetailTonightMarqueeSection: View {
                 .tracking(1.4)
                 .textCase(.uppercase)
                 .foregroundStyle(ClubVenueMarqueeStyle.paper)
-                .padding(.horizontal, theme.spacing.lg)
+                .padding(.horizontal, theme.spacing.xl)
                 .padding(.vertical, theme.spacing.sm)
-                .background(ClubVenueMarqueeStyle.badgeBackground)
+                .background {
+                    ClubDetailMarqueeHeaderShape()
+                        .fill(ClubVenueMarqueeStyle.badgeBackground)
+                }
                 .clipShape(
-                    RoundedRectangle(
-                        cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
-                        style: .continuous
-                    )
+                    ClubDetailMarqueeHeaderShape()
                 )
                 .overlay {
-                    RoundedRectangle(
-                        cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
-                        style: .continuous
-                    )
-                    .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
+                    ClubDetailMarqueeHeaderShape()
+                        .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
                 }
                 .zIndex(1)
 
@@ -371,6 +368,27 @@ private struct ClubDetailTonightMarqueeSection: View {
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailHighlightSection)
     }
 
+}
+
+private struct ClubDetailMarqueeHeaderShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let radius = min(ClubVenueMarqueeStyle.cornerRadius, rect.height / 2)
+        var path = Path()
+        path.move(to: CGPoint(x: 0, y: rect.maxY))
+        path.addLine(to: CGPoint(x: 0, y: radius))
+        path.addQuadCurve(
+            to: CGPoint(x: radius, y: 0),
+            control: CGPoint(x: 0, y: 0)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: 0))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: radius),
+            control: CGPoint(x: rect.maxX, y: 0)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
 }
 
 private struct ClubDetailShowHighlightSection: View {
