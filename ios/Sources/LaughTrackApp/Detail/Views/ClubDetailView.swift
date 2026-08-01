@@ -200,44 +200,43 @@ enum ClubDetailHighlightsPresentation {
         let shows = highlights.tonightShows.sorted(by: showsBefore)
         guard let earliestShow = shows.first else { return nil }
 
-        var performersByID: [Int: Components.Schemas.ComedianLineup] = [:]
+        var performersByID: [Int: (
+            comedian: Components.Schemas.ComedianLineup,
+            earliestShow: Components.Schemas.Show
+        )] = [:]
         for show in shows {
             for rawComedian in show.lineup ?? [] {
                 let comedian = ShowRow.effectiveComedian(rawComedian)
                 guard !comedian.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                     continue
                 }
-                if
-                    let existing = performersByID[comedian.id],
-                    !performersBefore(comedian, existing)
-                {
+                guard let existing = performersByID[comedian.id] else {
+                    performersByID[comedian.id] = (comedian, show)
                     continue
                 }
-                performersByID[comedian.id] = comedian
+                if performersBefore(comedian, existing.comedian) {
+                    performersByID[comedian.id] = (comedian, existing.earliestShow)
+                }
             }
         }
 
-        let rankedPerformers = performersByID.values.sorted(by: performersBefore)
-        let visibleNames = Array(rankedPerformers.prefix(3)).map(\.name)
-        let performerNames = visibleNames.isEmpty
-            ? [ShowTitlePresentation.title(for: earliestShow)]
-            : visibleNames
-
-        var seenTimes = Set<String>()
-        let localizedStartTimes = shows.compactMap { show -> String? in
-            let time = ShowFormatting.dateStack(
-                show.date,
-                timezoneID: show.timezone
-            ).time
-            return seenTimes.insert(time).inserted ? time : nil
+        let rankedPerformers = performersByID.values.sorted {
+            performersBefore($0.comedian, $1.comedian)
         }
+        let visiblePerformers = Array(rankedPerformers.prefix(3)).map { entry in
+            ClubDetailMarqueePerformer(
+                name: entry.comedian.name,
+                localizedStartTime: localizedStartTime(for: entry.earliestShow)
+            )
+        }
+        let performers = visiblePerformers.isEmpty
+            ? [ClubDetailMarqueePerformer(
+                name: ShowTitlePresentation.title(for: earliestShow),
+                localizedStartTime: localizedStartTime(for: earliestShow)
+            )]
+            : visiblePerformers
 
-        return ClubDetailEveningSummary(
-            performerNames: performerNames,
-            remainingPerformerCount: max(0, rankedPerformers.count - visibleNames.count),
-            localizedStartTimes: localizedStartTimes,
-            showCount: shows.count
-        )
+        return ClubDetailEveningSummary(performers: performers)
     }
 
     private static func performersBefore(
@@ -266,13 +265,23 @@ enum ClubDetailHighlightsPresentation {
         }
         return lhs.id < rhs.id
     }
+
+    @MainActor
+    private static func localizedStartTime(for show: Components.Schemas.Show) -> String {
+        ShowFormatting.dateStack(
+            show.date,
+            timezoneID: show.timezone
+        ).time
+    }
+}
+
+struct ClubDetailMarqueePerformer: Equatable {
+    let name: String
+    let localizedStartTime: String
 }
 
 struct ClubDetailEveningSummary: Equatable {
-    let performerNames: [String]
-    let remainingPerformerCount: Int
-    let localizedStartTimes: [String]
-    let showCount: Int
+    let performers: [ClubDetailMarqueePerformer]
 }
 
 private struct ClubDetailTonightMarqueeSection: View {
@@ -303,42 +312,33 @@ private struct ClubDetailTonightMarqueeSection: View {
                 .zIndex(1)
 
             VStack(spacing: 0) {
-                VStack(spacing: theme.spacing.sm) {
-                    ForEach(Array(summary.performerNames.enumerated()), id: \.offset) { _, performerName in
-                        Text(performerName.uppercased())
-                            .font(.system(.title3, design: .rounded, weight: .heavy))
-                            .tracking(0.8)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.78)
-                            .frame(maxWidth: .infinity)
-                    }
+                ForEach(Array(summary.performers.enumerated()), id: \.offset) { index, performer in
+                    HStack(alignment: .firstTextBaseline, spacing: theme.spacing.md) {
+                        Text(performer.name.uppercased())
+                            .font(.system(.headline, design: .rounded, weight: .heavy))
+                            .tracking(0.6)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                            .frame(maxWidth: .infinity, alignment: .leading)
 
-                    if summary.remainingPerformerCount > 0 {
-                        Text("+\(summary.remainingPerformerCount) more")
-                            .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                        Text(performer.localizedStartTime.uppercased())
+                            .font(.system(.footnote, design: .monospaced, weight: .semibold))
+                            .tracking(0.4)
+                            .foregroundStyle(Color.black.opacity(0.68))
+                            .fixedSize(horizontal: true, vertical: false)
                     }
-                }
-                .foregroundStyle(Color.black)
-                .padding(.horizontal, theme.spacing.lg)
-                .padding(.top, theme.spacing.xl)
-                .padding(.bottom, theme.spacing.sm)
+                    .foregroundStyle(Color.black)
+                    .padding(.horizontal, theme.spacing.xl)
+                    .padding(.vertical, theme.spacing.sm)
 
-                if !summary.localizedStartTimes.isEmpty {
-                    Text(summary.localizedStartTimes.joined(separator: " · ").uppercased())
-                        .font(.system(.footnote, design: .monospaced, weight: .semibold))
-                        .tracking(0.6)
-                        .foregroundStyle(Color.black.opacity(0.68))
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, theme.spacing.lg)
-                        .padding(.top, theme.spacing.sm)
-                        .padding(.bottom, theme.spacing.md)
-                        .overlay(alignment: .top) {
-                            Divider().overlay(Color.black.opacity(0.3))
-                        }
+                    if index < summary.performers.count - 1 {
+                        Divider()
+                            .overlay(Color.black.opacity(0.22))
+                            .padding(.horizontal, theme.spacing.lg)
+                    }
                 }
             }
+            .padding(.vertical, theme.spacing.md)
             .background {
                 RoundedRectangle(
                     cornerRadius: ClubVenueMarqueeStyle.bulbCornerRadius,

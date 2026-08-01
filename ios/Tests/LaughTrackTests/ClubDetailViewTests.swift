@@ -178,12 +178,29 @@ struct ClubDetailViewTests {
             from: highlights(tonightShows: shows)
         ))
 
-        #expect(summary.performerNames == ["Headliner", "Second by ID", "Third by ID"])
-        #expect(summary.remainingPerformerCount == 1)
-        #expect(summary.showCount == 4)
-        #expect(summary.localizedStartTimes == [shows[1], shows[2], shows[0]].map {
-            ShowFormatting.dateStack($0.date, timezoneID: $0.timezone).time
-        })
+        #expect(summary.performers == [
+            ClubDetailMarqueePerformer(
+                name: "Headliner",
+                localizedStartTime: ShowFormatting.dateStack(
+                    shows[1].date,
+                    timezoneID: shows[1].timezone
+                ).time
+            ),
+            ClubDetailMarqueePerformer(
+                name: "Second by ID",
+                localizedStartTime: ShowFormatting.dateStack(
+                    shows[1].date,
+                    timezoneID: shows[1].timezone
+                ).time
+            ),
+            ClubDetailMarqueePerformer(
+                name: "Third by ID",
+                localizedStartTime: ShowFormatting.dateStack(
+                    shows[2].date,
+                    timezoneID: shows[2].timezone
+                ).time
+            ),
+        ])
     }
 
     @Test("club evening summary handles one performer and missing-lineup fallback")
@@ -196,9 +213,15 @@ struct ClubDetailViewTests {
                 ]),
             ])
         ))
-        #expect(single.performerNames == ["Solo"])
-        #expect(single.remainingPerformerCount == 0)
-        #expect(single.showCount == 1)
+        #expect(single.performers == [
+            ClubDetailMarqueePerformer(
+                name: "Solo",
+                localizedStartTime: ShowFormatting.dateStack(
+                    date,
+                    timezoneID: nil
+                ).time
+            ),
+        ])
 
         let earliest = show(id: 302, name: "Earliest fallback", date: date, lineup: nil)
         let later = show(
@@ -213,9 +236,15 @@ struct ClubDetailViewTests {
                 earliest,
             ])
         ))
-        #expect(noLineup.performerNames == [ShowTitlePresentation.title(for: earliest)])
-        #expect(noLineup.remainingPerformerCount == 0)
-        #expect(noLineup.showCount == 2)
+        #expect(noLineup.performers == [
+            ClubDetailMarqueePerformer(
+                name: ShowTitlePresentation.title(for: earliest),
+                localizedStartTime: ShowFormatting.dateStack(
+                    earliest.date,
+                    timezoneID: earliest.timezone
+                ).time
+            ),
+        ])
     }
 
     @Test("club evening summary stays absent without tonight shows")
@@ -304,7 +333,9 @@ struct ClubDetailViewTests {
         #expect(source.contains(".fill(ClubVenueMarqueeStyle.headerGradient)"))
         #expect(source.contains("ClubVenueMarqueeStyle.boardGradient"))
         #expect(source.contains("Color.black.opacity(0.3), radius: 8"))
-        #expect(source.contains(".font(.system(.title3, design: .rounded, weight: .heavy))"))
+        #expect(source.contains("ForEach(Array(summary.performers.enumerated())"))
+        #expect(source.contains("Text(performer.name.uppercased())"))
+        #expect(source.contains("Text(performer.localizedStartTime.uppercased())"))
         #expect(source.contains(".font(.system(.footnote, design: .monospaced, weight: .semibold))"))
         #expect(source.contains("VStack(spacing: 0)"))
         #expect(source.contains(".zIndex(1)"))
