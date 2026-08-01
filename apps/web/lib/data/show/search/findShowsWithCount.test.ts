@@ -69,10 +69,14 @@ function makeHelper(
         profileId: string | undefined;
         userId: string | undefined;
         zip: string | undefined;
+        clubId: string | undefined;
     }> = {},
 ) {
     return {
-        params: { zip: overrides.zip ?? undefined },
+        params: {
+            zip: overrides.zip ?? undefined,
+            clubId: overrides.clubId ?? undefined,
+        },
         getDateClause: vi.fn(() => ({})),
         getClubNameClause: vi.fn(() => ({})),
         getZipCodeClause: vi.fn(() => ({})),
@@ -266,6 +270,31 @@ describe("findShowsWithCount", () => {
     });
 
     describe("invocation contract — getClubNameClause and getZipCodeClause", () => {
+        it("applies clubId as an exact relation filter", async () => {
+            const helper = makeHelper({ clubId: "5" });
+
+            await findShowsWithCount(helper as never);
+
+            expect(mockCount).toHaveBeenCalledWith({
+                where: expect.objectContaining({
+                    club: expect.objectContaining({
+                        id: 5,
+                        visible: true,
+                    }),
+                }),
+            });
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        club: expect.objectContaining({
+                            id: 5,
+                            visible: true,
+                        }),
+                    }),
+                }),
+            );
+        });
+
         it("calls getClubNameClause and getZipCodeClause each once when clauses have values", async () => {
             mockCount.mockResolvedValue(3);
 

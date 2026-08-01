@@ -6,6 +6,7 @@ export interface SearchParams {
     distance?: string;
     comedian?: string;
     club?: string;
+    clubId?: string;
     sort?: string;
     page?: string;
     size?: string;

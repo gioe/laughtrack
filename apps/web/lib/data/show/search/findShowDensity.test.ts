@@ -12,6 +12,7 @@ import { findShowDensity } from "./findShowDensity";
 
 function makeHelper() {
     return {
+        params: { clubId: undefined as string | undefined },
         timezone: "America/New_York",
         getDateClause: vi.fn(() => ({
             date: {
@@ -157,6 +158,31 @@ describe("findShowDensity", () => {
                     club: {
                         visible: true,
                         name: { contains: "Comedy Cellar" },
+                    },
+                }),
+            }),
+        );
+    });
+
+    it("applies an exact club id without changing club-name matching", async () => {
+        const helper = {
+            ...makeHelper(),
+            params: { clubId: "5" },
+            getZipCodeClause: vi.fn(() => ({})),
+            getClubNameClause: vi.fn(() => ({
+                name: { contains: "The Stand" },
+            })),
+        };
+
+        await findShowDensity(helper as never);
+
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    club: {
+                        visible: true,
+                        id: 5,
+                        name: { contains: "The Stand" },
                     },
                 }),
             }),

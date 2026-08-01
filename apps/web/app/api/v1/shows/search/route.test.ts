@@ -105,6 +105,36 @@ describe("GET /api/v1/shows/search", () => {
         );
     });
 
+    it("forwards a numeric clubId for exact venue scoping", async () => {
+        mockGetSearchedShows.mockResolvedValue({
+            data: [],
+            total: 0,
+            filters: [],
+            zipCapTriggered: false,
+        } as never);
+
+        await GET(makeRequestWithQuery("clubId=5&club=The%20Stand"));
+
+        expect(mockGetSearchedShows).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    clubId: "5",
+                    club: "The Stand",
+                }),
+            }),
+        );
+    });
+
+    it("rejects an invalid clubId", async () => {
+        const res = await GET(makeRequestWithQuery("clubId=463oops"));
+
+        expect(res.status).toBe(400);
+        expect(await res.json()).toEqual({
+            error: "clubId must be a positive integer",
+        });
+        expect(mockGetSearchedShows).not.toHaveBeenCalled();
+    });
+
     it("returns 500 with rate-limit headers when the search helper fails unexpectedly", async () => {
         mockGetSearchedShows.mockRejectedValue(new Error("DB unavailable"));
 

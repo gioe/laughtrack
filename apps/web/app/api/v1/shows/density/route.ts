@@ -49,15 +49,23 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     // club-only request rather than a both-supplied 400.
     const comedian = sp.get("comedian") || undefined;
     const club = sp.get("club") || undefined;
+    const clubId = sp.get("clubId") || undefined;
 
     // Density is a calendar-navigation aid; combining a comedian and a club
     // filter would only ever return dates where THAT comedian plays THAT
     // club, which produces an almost-empty calendar and surprises callers.
     // /shows/search permits both because it's a results endpoint, not a
     // navigator. Keep density stricter — surface the conflict as 400.
-    if (comedian && club) {
+    if (comedian && (club || clubId)) {
         return NextResponse.json(
             { error: "comedian and club are mutually exclusive" },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
+
+    if (clubId !== undefined && (!/^\d+$/.test(clubId) || Number(clubId) < 1)) {
+        return NextResponse.json(
+            { error: "clubId must be a positive integer" },
             { status: 400, headers: rateLimitHeaders(rl) },
         );
     }
@@ -126,6 +134,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         distance: zip ? (distance ?? DEFAULT_DISTANCE) : undefined,
         comedian,
         club,
+        clubId,
     };
 
     try {

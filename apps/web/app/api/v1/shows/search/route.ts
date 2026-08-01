@@ -20,6 +20,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const size = sp.get("size") ?? undefined;
     const comedian = sp.get("comedian") ?? undefined;
     const club = sp.get("club") ?? undefined;
+    const clubId = sp.get("clubId") ?? undefined;
     const filters = sp.get("filters") ?? undefined;
     const distance = sp.get("distance");
     const sort = sp.get("sort") ?? undefined;
@@ -46,6 +47,13 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 { status: 400, headers: rateLimitHeaders(rl) },
             );
         }
+    }
+
+    if (clubId !== undefined && (!/^\d+$/.test(clubId) || Number(clubId) < 1)) {
+        return NextResponse.json(
+            { error: "clubId must be a positive integer" },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
     }
 
     const tzResult = readTimezoneHeader(req);
@@ -75,6 +83,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 size,
                 comedian,
                 club,
+                clubId,
                 filters,
                 sort,
             },

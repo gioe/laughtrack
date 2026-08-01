@@ -165,6 +165,43 @@ describe("GET /api/v1/shows/density", () => {
         );
     });
 
+    it("forwards a numeric clubId for exact venue density", async () => {
+        const res = await GET(
+            makeRequest({
+                from: "2026-06-01",
+                to: "2026-06-07",
+                clubId: "5",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(mockFindShowDensity).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    clubId: "5",
+                    club: undefined,
+                    comedian: undefined,
+                }),
+            }),
+        );
+    });
+
+    it("rejects an invalid clubId", async () => {
+        const res = await GET(
+            makeRequest({
+                from: "2026-06-01",
+                to: "2026-06-07",
+                clubId: "0",
+            }),
+        );
+
+        expect(res.status).toBe(400);
+        expect(await res.json()).toEqual({
+            error: "clubId must be a positive integer",
+        });
+        expect(mockFindShowDensity).not.toHaveBeenCalled();
+    });
+
     it("keeps ZIP-only behavior unchanged when neither comedian nor club is supplied (regression)", async () => {
         const res = await GET(
             makeRequest({
@@ -221,6 +258,21 @@ describe("GET /api/v1/shows/density", () => {
 
         expect(res.status).toBe(400);
         expect(body.error).toMatch(/mutually exclusive/i);
+        expect(mockFindShowDensity).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 when comedian and clubId are supplied", async () => {
+        const res = await GET(
+            makeRequest({
+                from: "2026-06-01",
+                to: "2026-06-07",
+                comedian: "Akaash Singh",
+                clubId: "5",
+            }),
+        );
+
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toMatch(/mutually exclusive/i);
         expect(mockFindShowDensity).not.toHaveBeenCalled();
     });
 

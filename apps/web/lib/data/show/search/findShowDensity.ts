@@ -11,11 +11,15 @@ export async function findShowDensity(
     try {
         const zipCodeClause = helper.getZipCodeClause();
         const clubNameClause = helper.getClubNameClause();
+        const clubId = helper.params.clubId
+            ? Number(helper.params.clubId)
+            : undefined;
         const dateClause = helper.getDateClause();
         const whereClause: Prisma.ShowWhereInput = {
             ...dateClause,
             club: {
                 visible: true,
+                ...(clubId !== undefined && { id: clubId }),
                 ...(zipCodeClause.zipCode && zipCodeClause),
                 ...(clubNameClause.name && clubNameClause),
             },

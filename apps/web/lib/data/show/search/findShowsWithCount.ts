@@ -29,6 +29,9 @@ export async function findShowsWithCount(
 ): Promise<ShowsResponse> {
     try {
         const clubNameClause = helper.getClubNameClause();
+        const clubId = helper.params.clubId
+            ? Number(helper.params.clubId)
+            : undefined;
         const zipCodeClause = helper.getZipCodeClause();
         // getDateClause returns {} when no fromDate/toDate are set. Show search
         // always wants upcoming-only results, so supply the default here.
@@ -42,6 +45,7 @@ export async function findShowsWithCount(
             // Club conditions
             club: {
                 visible: true,
+                ...(clubId !== undefined && { id: clubId }),
                 // Only add these clauses if they have values
                 ...(clubNameClause.name && clubNameClause),
                 ...(zipCodeClause.zipCode && zipCodeClause),
