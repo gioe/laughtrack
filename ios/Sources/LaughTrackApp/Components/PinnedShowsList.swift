@@ -31,7 +31,8 @@ struct PinnedShowsList: View {
             nearbyLocationController: nearbyLocationController,
             pinnedClubName: pinnedClubName,
             pinnedComedianName: pinnedComedianName,
-            initialUseDateRange: false
+            initialUseDateRange: false,
+            pageSize: 5
         ))
     }
 

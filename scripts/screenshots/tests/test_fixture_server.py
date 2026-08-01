@@ -74,21 +74,21 @@ def test_pinned_club_show_search_supports_multiple_pages() -> None:
     first = fixture_response(
         "/api/v1/shows/search",
         "http://fixture",
-        query={"club": ["The Comedy Store"], "page": ["1"], "size": ["20"]},
+        query={"club": ["The Comedy Store"], "page": ["1"], "size": ["5"]},
     )
     second = fixture_response(
         "/api/v1/shows/search",
         "http://fixture",
-        query={"club": ["The Comedy Store"], "page": ["2"], "size": ["20"]},
+        query={"club": ["The Comedy Store"], "page": ["2"], "size": ["5"]},
     )
     last = fixture_response(
         "/api/v1/shows/search",
         "http://fixture",
-        query={"club": ["The Comedy Store"], "page": ["3"], "size": ["20"]},
+        query={"club": ["The Comedy Store"], "page": ["9"], "size": ["5"]},
     )
 
     assert first["total"] == second["total"] == last["total"] == 45
-    assert len(first["data"]) == len(second["data"]) == 20
+    assert len(first["data"]) == len(second["data"]) == 5
     assert len(last["data"]) == 5
     assert {show["id"] for show in first["data"]}.isdisjoint(
         show["id"] for show in second["data"]

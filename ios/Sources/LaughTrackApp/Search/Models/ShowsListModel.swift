@@ -6,8 +6,6 @@ import LaughTrackCore
 
 @MainActor
 final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas.Show>, SearchRootQueryReceivable {
-    private static let pageSize = 20
-
     @Published var zipCodeDraft = ""
     @Published var comedianSearchText = ""
     @Published var clubSearchText = ""
@@ -69,6 +67,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
     }
 
     private let nearbyLocationController: NearbyLocationController
+    private let pageSize: Int
     let pinnedClubName: String?
     let pinnedComedianName: String?
     private var nearbyStatusCancellable: AnyCancellable?
@@ -79,9 +78,11 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         nearbyLocationController: NearbyLocationController,
         pinnedClubName: String? = nil,
         pinnedComedianName: String? = nil,
-        initialUseDateRange: Bool = true
+        initialUseDateRange: Bool = true,
+        pageSize: Int = 20
     ) {
         self.nearbyLocationController = nearbyLocationController
+        self.pageSize = max(1, pageSize)
         self.pinnedClubName = pinnedClubName
         self.pinnedComedianName = pinnedComedianName
         super.init()
@@ -228,7 +229,10 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         cache: DataCache<LaughTrackCacheKey>?,
         cacheTTL: TimeInterval
     ) async -> Result<DiscoverySearchResponse<Components.Schemas.Show>, LoadFailure> {
-        let cacheKey = LaughTrackCacheKey.showsSearch(requestKey: query.cacheKey, page: page)
+        let cacheKey = LaughTrackCacheKey.showsSearch(
+            requestKey: "\(query.cacheKey)|size:\(pageSize)",
+            page: page
+        )
         if let cached: DiscoverySearchResponse<Components.Schemas.Show> = await MainPageCache.get(
             cacheKey,
             from: cache,
@@ -245,7 +249,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
                         from: query.fromString,
                         to: query.toString,
                         page: page,
-                        size: Self.pageSize,
+                        size: pageSize,
                         comedian: query.comedian.nonEmpty,
                         club: query.club.nonEmpty,
                         filters: query.filtersParam,

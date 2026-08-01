@@ -282,6 +282,7 @@ struct ClubDetailViewTests {
         #expect(!clubSource.contains("showAll:"))
         #expect(pinnedSource.contains("pinnedClubName: pinnedClubName"))
         #expect(pinnedSource.contains("ShowsListView(apiClient: apiClient, model: model, compactMode: true)"))
+        #expect(pinnedSource.contains("pageSize: 5"))
         #expect(!pinnedSource.contains("todayRequest"))
     }
 
