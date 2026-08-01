@@ -301,6 +301,8 @@ struct ClubDetailViewTests {
         #expect(!source.contains("Text(\"Tonight's\")"))
         #expect(source.contains("ClubVenueMarqueeStyle.paper"))
         #expect(source.contains(".background(ClubVenueMarqueeStyle.badgeBackground)"))
+        #expect(source.contains("VStack(spacing: -1)"))
+        #expect(source.contains(".zIndex(1)"))
         #expect(source.contains("ClubVenueMarqueeStyle.bulbStroke"))
         #expect(source.contains("cornerRadius: ClubVenueMarqueeStyle.bulbCornerRadius"))
         #expect(source.contains(".padding(ClubVenueMarqueeStyle.bulbInset)"))
