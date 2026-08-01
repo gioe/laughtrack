@@ -281,29 +281,24 @@ private struct ClubDetailTonightMarqueeSection: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        VStack(spacing: -1) {
+        VStack(spacing: 0) {
             Text("Tonight")
                 .font(.system(.headline, design: .rounded, weight: .heavy))
                 .tracking(2)
                 .textCase(.uppercase)
                 .foregroundStyle(ClubVenueMarqueeStyle.paper)
-                .padding(.horizontal, theme.spacing.xl)
-                .padding(.vertical, theme.spacing.sm)
+                .frame(
+                    width: ClubVenueMarqueeStyle.headerWidth,
+                    height: ClubVenueMarqueeStyle.headerHeight
+                )
                 .background {
                     ClubDetailMarqueeHeaderShape()
                         .fill(ClubVenueMarqueeStyle.headerGradient)
                 }
-                .clipShape(
-                    ClubDetailMarqueeHeaderShape()
-                )
                 .overlay {
-                    ZStack {
-                        ClubDetailMarqueeHeaderShape()
-                            .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
-                        ClubDetailMarqueeHeaderShape()
-                            .stroke(Color.white.opacity(0.14), lineWidth: 0.75)
-                            .padding(2)
-                    }
+                    ClubDetailMarqueeHeaderShape()
+                        .stroke(Color.white.opacity(0.14), lineWidth: 0.75)
+                        .padding(2)
                 }
                 .zIndex(1)
 
@@ -340,41 +335,30 @@ private struct ClubDetailTonightMarqueeSection: View {
                 }
             }
             .background {
-                ZStack {
-                    ClubVenueMarqueeStyle.boardGradient
-
-                    RoundedRectangle(
-                        cornerRadius: ClubVenueMarqueeStyle.bulbCornerRadius,
-                        style: .continuous
-                    )
+                RoundedRectangle(
+                    cornerRadius: ClubVenueMarqueeStyle.bulbCornerRadius,
+                    style: .continuous
+                )
                     .stroke(
                         ClubVenueMarqueeStyle.bulbColor,
                         style: ClubVenueMarqueeStyle.bulbStroke
                     )
                     .padding(ClubVenueMarqueeStyle.bulbInset)
                     .shadow(color: ClubVenueMarqueeStyle.bulbColor.opacity(0.35), radius: 3)
-                }
             }
-            .clipShape(
-                RoundedRectangle(
-                    cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
-                    style: .continuous
-                )
-            )
-            .overlay {
-                ZStack {
-                    RoundedRectangle(
-                        cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
-                        style: .continuous
-                    )
-                        .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
-                    RoundedRectangle(
-                        cornerRadius: ClubVenueMarqueeStyle.cornerRadius - 2,
-                        style: .continuous
-                    )
-                        .stroke(Color.white.opacity(0.42), lineWidth: 0.75)
-                        .padding(2)
-                }
+        }
+        .background {
+            ClubDetailMarqueeShellShape()
+                .fill(ClubVenueMarqueeStyle.boardGradient)
+        }
+        .clipShape(ClubDetailMarqueeShellShape())
+        .overlay {
+            ZStack {
+                ClubDetailMarqueeShellShape()
+                    .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
+                ClubDetailMarqueeShellShape()
+                    .stroke(Color.white.opacity(0.34), lineWidth: 0.75)
+                    .padding(2)
             }
         }
         .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 5)
@@ -382,6 +366,60 @@ private struct ClubDetailTonightMarqueeSection: View {
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailHighlightSection)
     }
 
+}
+
+private struct ClubDetailMarqueeShellShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let radius = ClubVenueMarqueeStyle.cornerRadius
+        let headerHeight = ClubVenueMarqueeStyle.headerHeight
+        let headerWidth = min(ClubVenueMarqueeStyle.headerWidth, rect.width - radius * 4)
+        let headerLeading = (rect.width - headerWidth) / 2
+        let headerTrailing = headerLeading + headerWidth
+        let crownRise: CGFloat = 4
+
+        var path = Path()
+        path.move(to: CGPoint(x: headerLeading, y: headerHeight))
+        path.addLine(to: CGPoint(x: headerLeading, y: radius + crownRise))
+        path.addQuadCurve(
+            to: CGPoint(x: headerLeading + radius, y: crownRise),
+            control: CGPoint(x: headerLeading, y: crownRise)
+        )
+        path.addQuadCurve(
+            to: CGPoint(x: rect.midX, y: 0),
+            control: CGPoint(x: rect.midX - headerWidth * 0.2, y: 0)
+        )
+        path.addQuadCurve(
+            to: CGPoint(x: headerTrailing - radius, y: crownRise),
+            control: CGPoint(x: rect.midX + headerWidth * 0.2, y: 0)
+        )
+        path.addQuadCurve(
+            to: CGPoint(x: headerTrailing, y: radius + crownRise),
+            control: CGPoint(x: headerTrailing, y: crownRise)
+        )
+        path.addLine(to: CGPoint(x: headerTrailing, y: headerHeight))
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: headerHeight))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: headerHeight + radius),
+            control: CGPoint(x: rect.maxX, y: headerHeight)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX - radius, y: rect.maxY),
+            control: CGPoint(x: rect.maxX, y: rect.maxY)
+        )
+        path.addLine(to: CGPoint(x: radius, y: rect.maxY))
+        path.addQuadCurve(
+            to: CGPoint(x: 0, y: rect.maxY - radius),
+            control: CGPoint(x: 0, y: rect.maxY)
+        )
+        path.addLine(to: CGPoint(x: 0, y: headerHeight + radius))
+        path.addQuadCurve(
+            to: CGPoint(x: radius, y: headerHeight),
+            control: CGPoint(x: 0, y: headerHeight)
+        )
+        path.closeSubpath()
+        return path
+    }
 }
 
 private struct ClubDetailMarqueeHeaderShape: Shape {
