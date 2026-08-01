@@ -130,7 +130,9 @@ struct ShowsListView: View {
                         )
                     } else {
                         VStack(alignment: .leading, spacing: theme.spacing.md) {
-                            SearchResultsSummary(count: result.items.count, total: result.total)
+                            if !compactMode {
+                                SearchResultsSummary(count: result.items.count, total: result.total)
+                            }
 
                             let pageCount = model.pageCount(for: result.total)
                             if compactMode, pageCount > 1 {
