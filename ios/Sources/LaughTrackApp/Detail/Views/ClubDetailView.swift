@@ -281,7 +281,7 @@ private struct ClubDetailTonightMarqueeSection: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: -1) {
             Text("Tonight")
                 .font(.system(.subheadline, design: .rounded, weight: .heavy))
                 .tracking(1.4)
@@ -303,66 +303,69 @@ private struct ClubDetailTonightMarqueeSection: View {
                     )
                     .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
                 }
+                .zIndex(1)
 
-            VStack(spacing: theme.spacing.sm) {
-                ForEach(Array(summary.performerNames.enumerated()), id: \.offset) { _, performerName in
-                    Text(performerName.uppercased())
-                        .font(.system(.headline, design: .monospaced, weight: .bold))
+            VStack(spacing: 0) {
+                VStack(spacing: theme.spacing.sm) {
+                    ForEach(Array(summary.performerNames.enumerated()), id: \.offset) { _, performerName in
+                        Text(performerName.uppercased())
+                            .font(.system(.headline, design: .monospaced, weight: .bold))
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    if summary.remainingPerformerCount > 0 {
+                        Text("+\(summary.remainingPerformerCount) more")
+                            .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                    }
+                }
+                .foregroundStyle(Color.black)
+                .padding(.horizontal, theme.spacing.lg)
+                .padding(.top, theme.spacing.lg)
+                .padding(.bottom, theme.spacing.md)
+
+                if !summary.localizedStartTimes.isEmpty {
+                    Text(summary.localizedStartTimes.joined(separator: " · ").uppercased())
+                        .font(.system(.subheadline, design: .monospaced, weight: .semibold))
+                        .foregroundStyle(Color.black.opacity(0.78))
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
-                }
-
-                if summary.remainingPerformerCount > 0 {
-                    Text("+\(summary.remainingPerformerCount) more")
-                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                        .padding(.horizontal, theme.spacing.lg)
+                        .padding(.vertical, theme.spacing.sm)
+                        .overlay(alignment: .top) {
+                            Divider().overlay(Color.black.opacity(0.3))
+                        }
                 }
             }
-            .foregroundStyle(Color.black)
-            .padding(.horizontal, theme.spacing.lg)
-            .padding(.vertical, theme.spacing.md)
+            .background {
+                ZStack {
+                    ClubVenueMarqueeStyle.paper
 
-            if !summary.localizedStartTimes.isEmpty {
-                Text(summary.localizedStartTimes.joined(separator: " · ").uppercased())
-                    .font(.system(.subheadline, design: .monospaced, weight: .semibold))
-                    .foregroundStyle(Color.black.opacity(0.78))
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, theme.spacing.lg)
-                    .padding(.vertical, theme.spacing.sm)
-                    .overlay(alignment: .top) {
-                        Divider().overlay(Color.black.opacity(0.3))
-                    }
+                    RoundedRectangle(
+                        cornerRadius: ClubVenueMarqueeStyle.bulbCornerRadius,
+                        style: .continuous
+                    )
+                    .stroke(
+                        ClubVenueMarqueeStyle.bulbColor,
+                        style: ClubVenueMarqueeStyle.bulbStroke
+                    )
+                    .padding(ClubVenueMarqueeStyle.bulbInset)
+                    .shadow(color: ClubVenueMarqueeStyle.bulbColor.opacity(0.35), radius: 3)
+                }
             }
-
-        }
-        .background {
-            ZStack {
-                ClubVenueMarqueeStyle.paper
-
+            .clipShape(
                 RoundedRectangle(
-                    cornerRadius: ClubVenueMarqueeStyle.bulbCornerRadius,
+                    cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
                     style: .continuous
                 )
-                .stroke(
-                    ClubVenueMarqueeStyle.bulbColor,
-                    style: ClubVenueMarqueeStyle.bulbStroke
+            )
+            .overlay {
+                RoundedRectangle(
+                    cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
+                    style: .continuous
                 )
-                .padding(ClubVenueMarqueeStyle.bulbInset)
-                .shadow(color: ClubVenueMarqueeStyle.bulbColor.opacity(0.35), radius: 3)
+                    .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
             }
-        }
-        .clipShape(
-            RoundedRectangle(
-                cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
-                style: .continuous
-            )
-        )
-        .overlay {
-            RoundedRectangle(
-                cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
-                style: .continuous
-            )
-                .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailHighlightSection)
