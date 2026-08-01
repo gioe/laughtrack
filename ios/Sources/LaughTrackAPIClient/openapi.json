@@ -1760,6 +1760,12 @@
             "schema": { "type": "string" }
           },
           {
+            "name": "clubId",
+            "in": "query",
+            "description": "Filter by exact club ID. Use this for venue detail pages; club-name filtering remains substring-based for discovery.",
+            "schema": { "type": "integer", "minimum": 1 }
+          },
+          {
             "name": "filters",
             "in": "query",
             "description": "JSON-encoded filter object",
@@ -1830,7 +1836,7 @@
       "get": {
         "operationId": "getShowsDensity",
         "summary": "Per-day show counts for a date range",
-        "description": "Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.\n\nOptional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.",
+        "description": "Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.\n\nOptional `comedian`, `club`, and `clubId` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club/clubId). `comedian` is mutually exclusive with either club selector — supplying both returns 400. Entity filters may be combined with `zip` + `distance` for an additional geographic narrow.",
         "tags": ["shows"],
         "parameters": [
           {
@@ -1868,6 +1874,12 @@
             "in": "query",
             "description": "Filter density to dates hosted by this venue. Mutually exclusive with `comedian`.",
             "schema": { "type": "string" }
+          },
+          {
+            "name": "clubId",
+            "in": "query",
+            "description": "Filter density to dates hosted by the exact venue ID. Mutually exclusive with `comedian`.",
+            "schema": { "type": "integer", "minimum": 1 }
           },
           {
             "name": "X-Timezone",

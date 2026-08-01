@@ -31,7 +31,7 @@ interface ShowsApi {
 
     /**
      * Per-day show counts for a date range
-     * Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if &#x60;to&#x60; exceeds the cap, it is silently clamped server-side.  Optional &#x60;comedian&#x60; and &#x60;club&#x60; filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with &#x60;zip&#x60; + &#x60;distance&#x60; for an additional geographic narrow.
+     * Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if &#x60;to&#x60; exceeds the cap, it is silently clamped server-side.  Optional &#x60;comedian&#x60;, &#x60;club&#x60;, and &#x60;clubId&#x60; filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club/clubId). &#x60;comedian&#x60; is mutually exclusive with either club selector — supplying both returns 400. Entity filters may be combined with &#x60;zip&#x60; + &#x60;distance&#x60; for an additional geographic narrow.
      * Responses:
      *  - 200: Per-day show counts keyed by YYYY-MM-DD.
      *  - 400: Invalid parameters
@@ -44,11 +44,12 @@ interface ShowsApi {
      * @param distance Radius in miles (1-500, defaults to 25 when zip provided). (optional)
      * @param comedian Filter density to dates where this comedian appears in the show lineup. Mutually exclusive with &#x60;club&#x60;. (optional)
      * @param club Filter density to dates hosted by this venue. Mutually exclusive with &#x60;comedian&#x60;. (optional)
+     * @param clubId Filter density to dates hosted by the exact venue ID. Mutually exclusive with &#x60;comedian&#x60;. (optional)
      * @param xTimezone IANA timezone identifier (defaults to UTC). (optional, default to "UTC")
      * @return [kotlin.collections.Map<kotlin.String, kotlin.Int>]
      */
     @GET("shows/density")
-    suspend fun getShowsDensity(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<kotlin.collections.Map<kotlin.String, kotlin.Int>>
+    suspend fun getShowsDensity(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Query("clubId") clubId: kotlin.Int? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<kotlin.collections.Map<kotlin.String, kotlin.Int>>
 
     /**
      * List shows near a ZIP code
@@ -89,6 +90,7 @@ interface ShowsApi {
      * @param size  (optional)
      * @param comedian Filter by comedian name (optional)
      * @param club Filter by club name (optional)
+     * @param clubId Filter by exact club ID. Use this for venue detail pages; club-name filtering remains substring-based for discovery. (optional)
      * @param filters JSON-encoded filter object (optional)
      * @param distance Radius in miles (1-500, defaults to 25 when zip provided) (optional)
      * @param sort  (optional)
@@ -96,6 +98,6 @@ interface ShowsApi {
      * @return [ShowSearchResponse]
      */
     @GET("shows/search")
-    suspend fun searchShows(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Query("filters") filters: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("sort") sort: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<ShowSearchResponse>
+    suspend fun searchShows(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Query("clubId") clubId: kotlin.Int? = null, @Query("filters") filters: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("sort") sort: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<ShowSearchResponse>
 
 }

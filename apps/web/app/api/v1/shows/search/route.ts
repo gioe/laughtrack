@@ -49,7 +49,11 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         }
     }
 
-    if (clubId !== undefined && (!/^\d+$/.test(clubId) || Number(clubId) < 1)) {
+    const numericClubId = clubId === undefined ? undefined : Number(clubId);
+    if (
+        numericClubId !== undefined &&
+        (!Number.isSafeInteger(numericClubId) || numericClubId < 1)
+    ) {
         return NextResponse.json(
             { error: "clubId must be a positive integer" },
             { status: 400, headers: rateLimitHeaders(rl) },

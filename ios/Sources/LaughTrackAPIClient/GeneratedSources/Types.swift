@@ -179,7 +179,7 @@ public protocol APIProtocol: Sendable {
     ///
     /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
     ///
-    /// Optional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.
+    /// Optional `comedian`, `club`, and `clubId` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club/clubId). `comedian` is mutually exclusive with either club selector — supplying both returns 400. Entity filters may be combined with `zip` + `distance` for an additional geographic narrow.
     ///
     /// - Remark: HTTP `GET /shows/density`.
     /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
@@ -645,7 +645,7 @@ extension APIProtocol {
     ///
     /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
     ///
-    /// Optional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.
+    /// Optional `comedian`, `club`, and `clubId` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club/clubId). `comedian` is mutually exclusive with either club selector — supplying both returns 400. Entity filters may be combined with `zip` + `distance` for an additional geographic narrow.
     ///
     /// - Remark: HTTP `GET /shows/density`.
     /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
@@ -12396,6 +12396,10 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/shows/search/GET/query/club`.
                 public var club: Swift.String?
+                /// Filter by exact club ID. Use this for venue detail pages; club-name filtering remains substring-based for discovery.
+                ///
+                /// - Remark: Generated from `#/paths/shows/search/GET/query/clubId`.
+                public var clubId: Swift.Int?
                 /// JSON-encoded filter object
                 ///
                 /// - Remark: Generated from `#/paths/shows/search/GET/query/filters`.
@@ -12416,6 +12420,7 @@ public enum Operations {
                 ///   - size:
                 ///   - comedian: Filter by comedian name
                 ///   - club: Filter by club name
+                ///   - clubId: Filter by exact club ID. Use this for venue detail pages; club-name filtering remains substring-based for discovery.
                 ///   - filters: JSON-encoded filter object
                 ///   - distance: Radius in miles (1-500, defaults to 25 when zip provided)
                 ///   - sort:
@@ -12427,6 +12432,7 @@ public enum Operations {
                     size: Swift.Int? = nil,
                     comedian: Swift.String? = nil,
                     club: Swift.String? = nil,
+                    clubId: Swift.Int? = nil,
                     filters: Swift.String? = nil,
                     distance: Swift.Int? = nil,
                     sort: Swift.String? = nil
@@ -12438,6 +12444,7 @@ public enum Operations {
                     self.size = size
                     self.comedian = comedian
                     self.club = club
+                    self.clubId = clubId
                     self.filters = filters
                     self.distance = distance
                     self.sort = sort
@@ -12739,7 +12746,7 @@ public enum Operations {
     ///
     /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
     ///
-    /// Optional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.
+    /// Optional `comedian`, `club`, and `clubId` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club/clubId). `comedian` is mutually exclusive with either club selector — supplying both returns 400. Entity filters may be combined with `zip` + `distance` for an additional geographic narrow.
     ///
     /// - Remark: HTTP `GET /shows/density`.
     /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
@@ -12772,6 +12779,10 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/shows/density/GET/query/club`.
                 public var club: Swift.String?
+                /// Filter density to dates hosted by the exact venue ID. Mutually exclusive with `comedian`.
+                ///
+                /// - Remark: Generated from `#/paths/shows/density/GET/query/clubId`.
+                public var clubId: Swift.Int?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
@@ -12781,13 +12792,15 @@ public enum Operations {
                 ///   - distance: Radius in miles (1-500, defaults to 25 when zip provided).
                 ///   - comedian: Filter density to dates where this comedian appears in the show lineup. Mutually exclusive with `club`.
                 ///   - club: Filter density to dates hosted by this venue. Mutually exclusive with `comedian`.
+                ///   - clubId: Filter density to dates hosted by the exact venue ID. Mutually exclusive with `comedian`.
                 public init(
                     zip: Swift.String? = nil,
                     from: Swift.String? = nil,
                     to: Swift.String? = nil,
                     distance: Swift.Int? = nil,
                     comedian: Swift.String? = nil,
-                    club: Swift.String? = nil
+                    club: Swift.String? = nil,
+                    clubId: Swift.Int? = nil
                 ) {
                     self.zip = zip
                     self.from = from
@@ -12795,6 +12808,7 @@ public enum Operations {
                     self.distance = distance
                     self.comedian = comedian
                     self.club = club
+                    self.clubId = clubId
                 }
             }
             public var query: Operations.GetShowsDensity.Input.Query

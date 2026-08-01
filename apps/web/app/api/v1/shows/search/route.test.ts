@@ -126,7 +126,9 @@ describe("GET /api/v1/shows/search", () => {
     });
 
     it("rejects an invalid clubId", async () => {
-        const res = await GET(makeRequestWithQuery("clubId=463oops"));
+        const res = await GET(
+            makeRequestWithQuery("clubId=999999999999999999999999"),
+        );
 
         expect(res.status).toBe(400);
         expect(await res.json()).toEqual({

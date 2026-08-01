@@ -3901,6 +3901,13 @@ public struct Client: APIProtocol {
                     in: &request,
                     style: .form,
                     explode: true,
+                    name: "clubId",
+                    value: input.query.clubId
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
                     name: "filters",
                     value: input.query.filters
                 )
@@ -4043,7 +4050,7 @@ public struct Client: APIProtocol {
     ///
     /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
     ///
-    /// Optional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.
+    /// Optional `comedian`, `club`, and `clubId` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club/clubId). `comedian` is mutually exclusive with either club selector — supplying both returns 400. Entity filters may be combined with `zip` + `distance` for an additional geographic narrow.
     ///
     /// - Remark: HTTP `GET /shows/density`.
     /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
@@ -4102,6 +4109,13 @@ public struct Client: APIProtocol {
                     explode: true,
                     name: "club",
                     value: input.query.club
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "clubId",
+                    value: input.query.clubId
                 )
                 try converter.setHeaderFieldAsURI(
                     in: &request.headerFields,
