@@ -115,6 +115,28 @@ struct EntityDataFlowTests {
         }
     }
 
+    @Test("search model replaces results when navigating to a numbered page")
+    func searchModelLoadsNumberedPage() async {
+        let model = EntitySearchModel<String, Int>()
+
+        await model.reload(query: "shows") { _, _ in
+            .success(.init(items: [1, 2], total: 4))
+        }
+        await model.loadPage(1, query: "shows") { page, query in
+            #expect(page == 1)
+            #expect(query == "shows")
+            return .success(.init(items: [3, 4], total: 4))
+        }
+
+        guard case .success(let page) = model.phase else {
+            Issue.record("Expected numbered pagination to retain a success phase")
+            return
+        }
+        #expect(page.items == [3, 4])
+        #expect(page.total == 4)
+        #expect(page.page == 1)
+    }
+
     @Test("search model keeps prior results and surfaces pagination failures")
     func searchModelKeepsResultsOnPaginationFailure() async {
         let model = EntitySearchModel<String, Int>()
