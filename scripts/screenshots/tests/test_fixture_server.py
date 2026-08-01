@@ -60,11 +60,11 @@ def test_club_highlights_fixture_populates_tonight_and_qualified_performers() ->
     payload = fixture_response("/api/v1/clubs/201/highlights", "http://fixture")
     highlights = payload["data"]
 
-    assert [show["id"] for show in highlights["tonightShows"]] == [101, 106, 107, 108]
+    assert [show["id"] for show in highlights["tonightShows"]] == [106, 101, 107, 108]
     assert [
         show["lineup"][0]["name"] for show in highlights["tonightShows"]
-    ] == ["Taylor Tomlinson", "Ali Wong", "Andrew Schulz", "Taylor Tomlinson"]
-    assert highlights["tonightShows"][0]["lineup"][0]["socialData"]["popularity"] == 98
+    ] == ["Ali Wong", "Taylor Tomlinson", "Andrew Schulz", "Taylor Tomlinson"]
+    assert highlights["tonightShows"][1]["lineup"][0]["socialData"]["popularity"] == 98
     assert highlights["nextShow"]["id"] == 102
     assert len(highlights["frequentPerformers"]) == 3
     assert [performer["id"] for performer in highlights["frequentPerformers"]] == [
@@ -102,6 +102,11 @@ def test_pinned_club_show_search_supports_multiple_pages() -> None:
     assert {show["id"] for show in first["data"]}.isdisjoint(
         show["id"] for show in second["data"]
     )
+
+    highlights = fixture_response(
+        "/api/v1/clubs/201/highlights", "http://fixture"
+    )["data"]
+    assert highlights["tonightShows"] == first["data"][:4]
 
 
 def test_every_mode_declares_the_deterministic_episode_entity() -> None:

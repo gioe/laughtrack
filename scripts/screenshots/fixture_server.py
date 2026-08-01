@@ -295,15 +295,52 @@ def _show(
     }
 
 
-def _club_tonight_shows(base_url: str) -> list[dict]:
+def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
     taylor = _lineup(base_url)
     ali = _lineup(base_url, 0, "Ali Wong", popularity=96, show_count=36)
     andrew = _lineup(base_url, 2, "Andrew Schulz", popularity=94, show_count=34)
-    return [
-        _show(base_url, 101, "Taylor Tomlinson & Friends", 20, lineup=[taylor], day=18),
+    tonight = [
         _show(base_url, 106, "Ali Wong: Live", 19, "ali-wong", lineup=[ali], day=18),
+        _show(base_url, 101, "Taylor Tomlinson & Friends", 20, lineup=[taylor], day=18),
         _show(base_url, 107, "Andrew Schulz: New Material", 21, "andrew-schulz", lineup=[andrew], day=18),
         _show(base_url, 108, "Late Night with Taylor", 22, lineup=[taylor], day=18),
+    ]
+    later = []
+    reserved_ids = {show["id"] for show in tonight}
+    show_id = 102
+    while len(later) < 41:
+        if show_id in reserved_ids:
+            show_id += 1
+            continue
+        index = len(later)
+        comedian_index = index % len(COMEDIAN_NAMES)
+        comedian_name = COMEDIAN_NAMES[comedian_index]
+        lineup = _lineup(
+            base_url,
+            comedian_index,
+            comedian_name,
+            popularity=90 - comedian_index,
+            show_count=32 - comedian_index,
+        )
+        later.append(
+            _show(
+                base_url,
+                show_id,
+                SHOW_NAMES[index % len(SHOW_NAMES)],
+                SHOW_HOURS[index % len(SHOW_HOURS)],
+                "taylor" if mode == DEFAULT_MODE else COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)],
+                lineup=[lineup],
+                day=19 + index // 5,
+            )
+        )
+        show_id += 1
+    return tonight + later
+
+
+def _club_tonight_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
+    return [
+        show for show in _club_shows(base_url, mode)
+        if show["date"].startswith("2030-07-18")
     ]
 
 
@@ -396,16 +433,8 @@ def fixture_response(
         size = int((query or {}).get("size", [str(total)])[0])
         start = max(0, page) * size
         end = min(start + size, total)
-        shows = [
-            _show(
-                base_url,
-                101 + index,
-                SHOW_NAMES[index % len(SHOW_NAMES)],
-                SHOW_HOURS[index % len(SHOW_HOURS)],
-                "taylor" if mode == DEFAULT_MODE else COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)],
-            )
-            for index in range(start, end)
-        ]
+        catalog = _club_shows(base_url, mode)
+        shows = catalog[start:end]
         return {"data": shows, "total": total, "filters": [], "zipCapTriggered": False}
     if path in {f"{API_PREFIX}comedians/search", f"{API_PREFIX}comedians/suggestions"}:
         response = {
@@ -453,8 +482,8 @@ def fixture_response(
     if path == f"{API_PREFIX}clubs/201/highlights":
         return {
             "data": {
-                "tonightShows": _club_tonight_shows(base_url),
-                "nextShow": _show(base_url, 102, "Comedy Store Showcase", 21),
+                "tonightShows": _club_tonight_shows(base_url, mode),
+                "nextShow": _club_shows(base_url, mode)[4],
                 "frequentPerformers": [
                     _comedian(base_url, index, name, mode)
                     for index, name in enumerate(COMEDIAN_NAMES[:3])
@@ -463,23 +492,14 @@ def fixture_response(
         }
     if path == f"{API_PREFIX}clubs/201/shows":
         return {
-            "data": [
-                _show(
-                    base_url,
-                    101 + index,
-                    name,
-                    SHOW_HOURS[index % len(SHOW_HOURS)],
-                    "taylor" if mode == DEFAULT_MODE else COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)],
-                )
-                for index, name in enumerate(SHOW_NAMES[:result_count])
-            ],
+            "data": _club_shows(base_url, mode)[:result_count],
             "total": result_count,
         }
     show_detail_prefix = f"{API_PREFIX}shows/"
     if path.startswith(show_detail_prefix) and path.removeprefix(show_detail_prefix).isdigit():
         show_id = int(path.removeprefix(show_detail_prefix))
         show = next(
-            (item for item in _club_tonight_shows(base_url) if item["id"] == show_id),
+            (item for item in _club_shows(base_url, mode) if item["id"] == show_id),
             _show(base_url, show_id),
         )
         return {"data": {**show, "showPageUrl": f"https://example.invalid/show/{show_id}", "club": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "address": "8433 Sunset Blvd, West Hollywood, CA", "timezone": "America/Los_Angeles"}, "cta": {"label": "Buy tickets", "isSoldOut": False, "url": f"https://example.invalid/tickets/{show_id}"}, "description": "A special night of new material and surprise guests."}, "relatedShows": []}
