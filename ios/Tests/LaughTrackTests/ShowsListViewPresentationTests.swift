@@ -9,7 +9,7 @@ struct ShowsListViewPresentationTests {
     func compactPinnedListsUseClearDateSearchHeading() throws {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
 
-        #expect(source.contains("LaughTrackSectionHeader(title: \"Search other dates\")"))
+        #expect(source.contains("LaughTrackSectionHeader(title: \"Search dates\")"))
         #expect(!source.contains("LaughTrackSectionHeader(eyebrow: \"Calendar\""))
     }
 

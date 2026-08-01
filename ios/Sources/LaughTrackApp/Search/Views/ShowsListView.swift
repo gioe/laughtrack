@@ -315,7 +315,7 @@ private struct ShowFiltersPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
             if compactMode {
-                LaughTrackSectionHeader(title: "Search other dates")
+                LaughTrackSectionHeader(title: "Search dates")
             }
 
             ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
