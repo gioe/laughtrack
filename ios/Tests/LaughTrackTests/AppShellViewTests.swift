@@ -209,6 +209,57 @@ struct AppShellViewTests {
         #expect(recorder.allRequestsUseOfflineBaseURL)
     }
 
+    @Test("authenticated shell immediately reconciles a restored server push opt-in")
+    func authenticatedShellReconcilesRestoredPushOptIn() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
+            name: "shell-restored-push-opt-in"
+        )
+        authManager.loadUserRequest = {
+            AuthenticatedUser(
+                userId: "restored-push-user",
+                displayName: "Push User",
+                email: "push@example.com",
+                avatarURL: nil,
+                pushShowNotifications: true,
+                comedianOnboardingCompleted: true
+            )
+        }
+        await authManager.refreshCurrentUser()
+
+        let navigationCoordinator = TypedNavigationCoordinator<AppRoute>()
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(
+            name: "shell-restored-push-opt-in"
+        )
+        container.resolve(NearbyPreferenceStore.self).setManualZip("10012", distanceMiles: 25)
+        let requestRecorder = ShellFavoritesRequestRecorder()
+        let apiClient = Client(
+            serverURL: offlineAppShellBaseURL,
+            transport: MockShellFavoritesTransport(recorder: requestRecorder)
+        )
+        let pushCoordinator = LaughTrackHostedViewTestSupport.makeSoftPushPromptCoordinator(
+            name: "shell-restored-push-opt-in"
+        )
+        let host = HostedView(
+            AppShellView(
+                apiClient: apiClient,
+                favorites: ComedianFavoriteStore(),
+                shellState: AppShellState()
+            )
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, container)
+                .navigationCoordinator(navigationCoordinator)
+                .environmentObject(authManager)
+                .environmentObject(PodcastFavoriteStore())
+                .environmentObject(ClubFavoriteStore())
+                .environmentObject(PodcastPlaybackController(audioEngine: ShellRecordingPodcastAudioEngine()))
+                .environmentObject(pushCoordinator)
+        )
+        await host.settle()
+
+        #expect(pushCoordinator.presentation == .promptingSheet)
+        #expect(pushCoordinator.hasPresentedThisSession)
+    }
+
     private func appShellViewSourceURL(filePath: String = #filePath) throws -> URL {
         let testFileURL = URL(fileURLWithPath: filePath)
         let iosRoot = testFileURL

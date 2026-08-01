@@ -86,6 +86,42 @@ struct PushPermissionPromptCadenceTests {
         #expect(PushPermissionPromptCadence.evaluate(inputs) == .eligible)
     }
 
+    @Test("restored opt-in can bypass only the initial engagement threshold")
+    func restoredOptInBypassesOnlyEngagementThreshold() {
+        let eligible = PushPermissionPromptCadence.Inputs(
+            now: Self.fixedNow,
+            deferralCount: 0,
+            lastDeferredAt: nil,
+            engagementSignalCount: 0,
+            sessionCountSinceLastDeferral: 0,
+            hasPresentedThisSession: false,
+            requiresEngagementSignalThreshold: false
+        )
+        #expect(PushPermissionPromptCadence.evaluate(eligible) == .eligible)
+
+        let sessionGated = PushPermissionPromptCadence.Inputs(
+            now: Self.fixedNow.addingTimeInterval(30 * Self.day),
+            deferralCount: 1,
+            lastDeferredAt: Self.fixedNow,
+            engagementSignalCount: 0,
+            sessionCountSinceLastDeferral: 0,
+            hasPresentedThisSession: false,
+            requiresEngagementSignalThreshold: false
+        )
+        #expect(PushPermissionPromptCadence.evaluate(sessionGated) == .suppressedInsufficientSessionsSinceDeferral)
+
+        let capped = PushPermissionPromptCadence.Inputs(
+            now: Self.fixedNow.addingTimeInterval(365 * Self.day),
+            deferralCount: PushPermissionPromptCadence.maxDeferrals,
+            lastDeferredAt: Self.fixedNow,
+            engagementSignalCount: 0,
+            sessionCountSinceLastDeferral: 99,
+            hasPresentedThisSession: false,
+            requiresEngagementSignalThreshold: false
+        )
+        #expect(PushPermissionPromptCadence.evaluate(capped) == .suppressedMaxDeferralsReached)
+    }
+
     // MARK: - session-count filter (only applies after a deferral)
 
     @Test("after a deferral, fewer than requiredSessionsSinceDeferral cold launches suppresses with suppressedInsufficientSessionsSinceDeferral")

@@ -6,6 +6,128 @@ import LaughTrackBridge
 @Suite("SoftPushPromptCoordinator")
 @MainActor
 struct SoftPushPromptCoordinatorTests {
+    @Test("restored server opt-in registers immediately when OS authorization is already granted")
+    func restoredOptInAuthorizedRegistersWithoutPrompting() async {
+        let env = makeEnvironment(status: .authorized)
+
+        await env.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+
+        #expect(env.coordinator.presentation == .hidden)
+        #expect(!env.coordinator.hasPresentedThisSession)
+        #expect(env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
+        #expect(await env.pushTokenManager.registerCalls == 1)
+    }
+
+    @Test("restored server opt-in presents immediately when OS authorization is not determined")
+    func restoredOptInNotDeterminedPresentsWithoutEngagement() async {
+        let env = makeEnvironment(status: .notDetermined)
+
+        await env.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+
+        #expect(env.coordinator.presentation == .promptingSheet)
+        #expect(env.coordinator.hasPresentedThisSession)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 0)
+        #expect(env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
+    }
+
+    @Test("restored server opt-in with denied authorization uses the soft prompt Settings recovery path")
+    func restoredOptInDeniedUsesSettingsRecovery() async {
+        let env = makeEnvironment(status: .denied)
+
+        await env.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+        #expect(env.coordinator.presentation == .promptingSheet)
+
+        await env.coordinator.enableTapped()
+        #expect(env.coordinator.presentation == .hidden)
+        env.coordinator.handleSheetDismissed()
+        #expect(env.coordinator.presentation == .deniedAlert)
+
+        env.coordinator.openSystemSettings()
+        #expect(env.opener.openCount == 1)
+        #expect(await env.requester.requestCount == 0)
+    }
+
+    @Test("restored server opt-in reconciliation presents at most once per session")
+    func restoredOptInPresentsAtMostOncePerSession() async {
+        let env = makeEnvironment(status: .notDetermined)
+
+        await env.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+        #expect(env.coordinator.presentation == .promptingSheet)
+
+        env.coordinator.presentation = .hidden
+        await env.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+
+        #expect(env.coordinator.presentation == .hidden)
+    }
+
+    @Test("server opt-out restores the local preference and retains engagement cadence")
+    func serverOptOutRetainsEngagementCadence() async {
+        let env = makeEnvironment(status: .notDetermined)
+        env.preferenceStore.setFavoriteComedianPushAlertsEnabled(true)
+
+        await env.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: false)
+        #expect(!env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
+
+        await fireFavoriteEvents(env.coordinator, count: 2)
+        #expect(env.coordinator.presentation == .hidden)
+
+        await fireFavoriteEvents(env.coordinator, count: 1)
+        #expect(env.coordinator.presentation == .promptingSheet)
+    }
+
+    @Test("restored opt-in bypasses engagement but retains deferral session, backoff, and cap gates")
+    func restoredOptInRetainsDeferralProtections() async {
+        let sessionClock = MutableClock(Self.fixedNow)
+        let sessionGated = makeEnvironment(status: .notDetermined, now: { sessionClock.now })
+        sessionGated.stateStore.recordDeferral()
+        sessionClock.advance(by: 30 * 86_400)
+
+        await sessionGated.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+        #expect(sessionGated.coordinator.presentation == .hidden)
+
+        let backoffClock = MutableClock(Self.fixedNow)
+        let backoffGated = makeEnvironment(status: .notDetermined, now: { backoffClock.now })
+        backoffGated.stateStore.recordDeferral()
+        for _ in 0..<PushPermissionPromptCadence.requiredSessionsSinceDeferral {
+            backoffGated.stateStore.recordColdLaunchSession()
+        }
+        backoffClock.advance(by: 86_400)
+
+        await backoffGated.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+        #expect(backoffGated.coordinator.presentation == .hidden)
+
+        let capped = makeEnvironment(status: .notDetermined)
+        for _ in 0..<PushPermissionPromptCadence.maxDeferrals {
+            capped.stateStore.recordDeferral()
+        }
+
+        await capped.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+        #expect(capped.coordinator.presentation == .hidden)
+    }
+
+    @Test("restored opt-in analytics retain their dedicated trigger through the OS result")
+    func restoredOptInUsesDedicatedAnalyticsTrigger() async {
+        let analytics = RecordingPushAnalyticsManager()
+        let env = makeEnvironment(
+            statusSequence: [.notDetermined, .notDetermined],
+            requestResult: true,
+            analytics: analytics
+        )
+
+        await env.coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+        await env.coordinator.enableTapped()
+
+        let eventNames = [
+            PushAnalyticsEvents.softPromptShown,
+            PushAnalyticsEvents.softPromptEnableTapped,
+            PushAnalyticsEvents.osPromptResult,
+        ]
+        for eventName in eventNames {
+            let event = analytics.events.first { $0.name == eventName }
+            #expect(event?.string(PushAnalyticsEvents.Param.trigger) == PushAnalyticsEvents.Trigger.restoredServerOptIn.rawValue)
+        }
+    }
+
     @Test("does nothing when the favorite event happens during onboarding")
     func ignoresOnboardingFavorites() async {
         let env = makeEnvironment(status: .notDetermined)
@@ -649,12 +771,14 @@ struct SoftPushPromptCoordinatorTests {
         let statusProvider = SequencedPushAuthorizationStatusProvider(sequence: statusSequence)
         let requester = RecordingPushAuthorizationRequester(result: requestResult)
         let opener = RecordingSystemSettingsOpener()
+        let pushTokenManager = RecordingSoftPromptPushDeviceTokenManager()
         let coordinator = SoftPushPromptCoordinator(
             stateStore: stateStore,
             notificationPreferenceStore: preferenceStore,
             authorizationStatusProvider: statusProvider,
             authorizationRequester: requester,
             systemSettingsOpener: opener,
+            pushTokenManager: pushTokenManager,
             analytics: analytics,
             now: now
         )
@@ -663,7 +787,8 @@ struct SoftPushPromptCoordinatorTests {
             stateStore: stateStore,
             preferenceStore: preferenceStore,
             requester: requester,
-            opener: opener
+            opener: opener,
+            pushTokenManager: pushTokenManager
         )
     }
 
@@ -674,7 +799,20 @@ struct SoftPushPromptCoordinatorTests {
         let preferenceStore: NotificationPreferenceStore
         let requester: RecordingPushAuthorizationRequester
         let opener: RecordingSystemSettingsOpener
+        let pushTokenManager: RecordingSoftPromptPushDeviceTokenManager
     }
+}
+
+private actor RecordingSoftPromptPushDeviceTokenManager: PushDeviceTokenManaging {
+    private(set) var registerCalls = 0
+
+    func registerForRemoteNotifications() async {
+        registerCalls += 1
+    }
+
+    func uploadDeviceToken(_ deviceToken: Data) async {}
+
+    func deactivateCurrentDeviceToken() async {}
 }
 
 @MainActor
