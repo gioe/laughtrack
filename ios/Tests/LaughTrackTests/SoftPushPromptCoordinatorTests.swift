@@ -60,6 +60,35 @@ struct SoftPushPromptCoordinatorTests {
         #expect(env.coordinator.presentation == .hidden)
     }
 
+    @Test("cancelled restored opt-in reconciliation cannot present stale recovery UI")
+    func cancelledRestoredOptInDoesNotPresent() async {
+        let suiteName = "SoftPushPromptCoordinatorTests.cancelled.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let storage = AppStateStorage(userDefaults: defaults)
+        let statusProvider = SuspendedPushAuthorizationStatusProvider()
+        let pushTokenManager = RecordingSoftPromptPushDeviceTokenManager()
+        let coordinator = SoftPushPromptCoordinator(
+            stateStore: PushPermissionStateStore(appStateStorage: storage),
+            notificationPreferenceStore: NotificationPreferenceStore(appStateStorage: storage),
+            authorizationStatusProvider: statusProvider,
+            authorizationRequester: RecordingPushAuthorizationRequester(result: true),
+            pushTokenManager: pushTokenManager
+        )
+
+        let reconciliation = Task {
+            await coordinator.reconcileAuthenticatedLaunch(serverPushEnabled: true)
+        }
+        await statusProvider.waitUntilRequested()
+        reconciliation.cancel()
+        await statusProvider.resolve(with: .notDetermined)
+        await reconciliation.value
+
+        #expect(coordinator.presentation == .hidden)
+        #expect(!coordinator.hasPresentedThisSession)
+        #expect(await pushTokenManager.registerCalls == 0)
+    }
+
     @Test("server opt-out restores the local preference and retains engagement cadence")
     func serverOptOutRetainsEngagementCadence() async {
         let env = makeEnvironment(status: .notDetermined)
@@ -813,6 +842,27 @@ private actor RecordingSoftPromptPushDeviceTokenManager: PushDeviceTokenManaging
     func uploadDeviceToken(_ deviceToken: Data) async {}
 
     func deactivateCurrentDeviceToken() async {}
+}
+
+private actor SuspendedPushAuthorizationStatusProvider: PushAuthorizationStatusProviding {
+    private var continuation: CheckedContinuation<PushAuthorizationStatus, Never>?
+
+    func currentAuthorizationStatus() async -> PushAuthorizationStatus {
+        await withCheckedContinuation { continuation in
+            self.continuation = continuation
+        }
+    }
+
+    func waitUntilRequested() async {
+        while continuation == nil {
+            await Task.yield()
+        }
+    }
+
+    func resolve(with status: PushAuthorizationStatus) {
+        continuation?.resume(returning: status)
+        continuation = nil
+    }
 }
 
 @MainActor

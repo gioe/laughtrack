@@ -146,6 +146,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         guard serverPushEnabled else { return }
 
         let status = await authorizationStatusProvider.currentAuthorizationStatus()
+        guard !Task.isCancelled else { return }
         switch status {
         case .authorized:
             await pushTokenManager?.registerForRemoteNotifications()
