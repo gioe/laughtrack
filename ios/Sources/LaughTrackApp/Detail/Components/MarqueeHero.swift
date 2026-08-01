@@ -353,6 +353,8 @@ enum ClubVenueMarqueeStyle {
     static let cornerRadius: CGFloat = 12
     static let bulbCornerRadius: CGFloat = 10
     static let bulbInset: CGFloat = 9
+    static let headerWidth: CGFloat = 176
+    static let headerHeight: CGFloat = 48
     static let artworkToBoardSpacing: CGFloat = 10
     static let bulbStroke = StrokeStyle(
         lineWidth: 3,
