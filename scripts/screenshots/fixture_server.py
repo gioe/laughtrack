@@ -334,8 +334,13 @@ def _podcast_episode(base_url: str) -> dict:
     }
 
 
-def fixture_response(path: str, base_url: str, mode: str = DEFAULT_MODE) -> dict | None:
-    """Return the canonical payload for an API path, ignoring query parameters."""
+def fixture_response(
+    path: str,
+    base_url: str,
+    mode: str = DEFAULT_MODE,
+    query: dict[str, list[str]] | None = None,
+) -> dict | None:
+    """Return the canonical payload for an API path and optional pagination query."""
     result_count = fixture_contract(mode)["result_count"]
     if path == f"{API_PREFIX}home/feed":
         primary = _show(base_url)
@@ -361,17 +366,23 @@ def fixture_response(path: str, base_url: str, mode: str = DEFAULT_MODE) -> dict
             "popularClubs": [{"id": 201, "address": "8433 Sunset Blvd, West Hollywood, CA", "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "activeComedianCount": 120, "zipCode": "90069"}],
         }}
     if path == f"{API_PREFIX}shows/search":
+        is_pinned_club_search = bool((query or {}).get("club"))
+        total = 45 if is_pinned_club_search else result_count
+        page = int((query or {}).get("page", ["1"])[0])
+        size = int((query or {}).get("size", [str(total)])[0])
+        start = max(0, page - 1) * size
+        end = min(start + size, total)
         shows = [
             _show(
                 base_url,
                 101 + index,
-                name,
+                SHOW_NAMES[index % len(SHOW_NAMES)],
                 SHOW_HOURS[index % len(SHOW_HOURS)],
                 "taylor" if mode == DEFAULT_MODE else COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)],
             )
-            for index, name in enumerate(SHOW_NAMES[:result_count])
+            for index in range(start, end)
         ]
-        return {"data": shows, "total": result_count, "filters": [], "zipCapTriggered": False}
+        return {"data": shows, "total": total, "filters": [], "zipCapTriggered": False}
     if path in {f"{API_PREFIX}comedians/search", f"{API_PREFIX}comedians/suggestions"}:
         response = {
             "data": [
@@ -531,6 +542,7 @@ class FixtureHandler(BaseHTTPRequestHandler):
             path,
             f"http://{host}",
             self.server.fixture_state.current_mode(),
+            parse_qs(parsed.query),
         )
         if payload is None:
             self._write(404, b'{"error":"fixture not found"}', "application/json")
