@@ -99,6 +99,10 @@ enum LaughTrackViewTestID {
         "laughtrack.club-detail.highlight-show-\(id)"
     }
 
+    static func clubDetailMarqueeShowButton(_ showID: Int, performerID: Int) -> String {
+        "laughtrack.club-detail.marquee-show-\(showID)-performer-\(performerID)"
+    }
+
     static func clubDetailPerformerButton(_ id: Int) -> String {
         "laughtrack.club-detail.performer-\(id)"
     }
