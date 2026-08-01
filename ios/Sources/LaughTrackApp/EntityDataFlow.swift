@@ -138,6 +138,22 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
         await load(page: current.page + 1, query: query, shouldDebounce: false, fetch: fetch, resetResults: false)
     }
 
+    func loadPage(
+        _ page: Int,
+        query: Query,
+        fetch: @escaping (_ page: Int, _ query: Query) async -> Result<DiscoverySearchResponse<Item>, LoadFailure>
+    ) async {
+        guard page >= 0, case .success = phase, !isLoadingMore else { return }
+        await load(
+            page: page,
+            query: query,
+            shouldDebounce: false,
+            fetch: fetch,
+            resetResults: false,
+            appendResults: false
+        )
+    }
+
     var currentItems: [Item] {
         guard case .success(let current) = phase else { return [] }
         return current.items
@@ -155,7 +171,8 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
         query: Query,
         shouldDebounce: Bool,
         fetch: @escaping (_ page: Int, _ query: Query) async -> Result<DiscoverySearchResponse<Item>, LoadFailure>,
-        resetResults: Bool
+        resetResults: Bool,
+        appendResults: Bool = true
     ) async {
         let existingItems = currentItems
         paginationFailure = nil
@@ -186,7 +203,7 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
         case .success(let response):
             phase = .success(
                 .init(
-                    items: resetResults ? response.items : existingItems + response.items,
+                    items: resetResults || !appendResults ? response.items : existingItems + response.items,
                     total: response.total,
                     page: page,
                     filters: response.filters,

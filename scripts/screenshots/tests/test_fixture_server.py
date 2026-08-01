@@ -74,17 +74,17 @@ def test_pinned_club_show_search_supports_multiple_pages() -> None:
     first = fixture_response(
         "/api/v1/shows/search",
         "http://fixture",
-        query={"club": ["The Comedy Store"], "page": ["1"], "size": ["5"]},
+        query={"club": ["The Comedy Store"], "page": ["0"], "size": ["5"]},
     )
     second = fixture_response(
         "/api/v1/shows/search",
         "http://fixture",
-        query={"club": ["The Comedy Store"], "page": ["2"], "size": ["5"]},
+        query={"club": ["The Comedy Store"], "page": ["1"], "size": ["5"]},
     )
     last = fixture_response(
         "/api/v1/shows/search",
         "http://fixture",
-        query={"club": ["The Comedy Store"], "page": ["9"], "size": ["5"]},
+        query={"club": ["The Comedy Store"], "page": ["8"], "size": ["5"]},
     )
 
     assert first["total"] == second["total"] == last["total"] == 45

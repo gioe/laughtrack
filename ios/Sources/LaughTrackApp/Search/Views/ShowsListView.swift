@@ -132,6 +132,33 @@ struct ShowsListView: View {
                         VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
 
+                            let pageCount = model.pageCount(for: result.total)
+                            if compactMode, pageCount > 1 {
+                                LaughTrackPagedControls(
+                                    currentPage: result.page,
+                                    pageCount: pageCount,
+                                    onPrevious: {
+                                        Task {
+                                            await model.loadPage(
+                                                result.page - 1,
+                                                apiClient: apiClient,
+                                                cache: pageCache
+                                            )
+                                        }
+                                    },
+                                    onNext: {
+                                        Task {
+                                            await model.loadPage(
+                                                result.page + 1,
+                                                apiClient: apiClient,
+                                                cache: pageCache
+                                            )
+                                        }
+                                    }
+                                )
+                                .disabled(model.isLoadingMore)
+                            }
+
                             let standoutShowID = ShowsListStandout.resolveID(in: result.items)
                             AdaptiveSearchResults(spacing: theme.spacing.md) {
                                 ForEach(result.items, id: \.id) { show in
@@ -152,7 +179,7 @@ struct ShowsListView: View {
                                 InlineStatusMessage(message: paginationFailure.message)
                             }
 
-                            if result.canLoadMore {
+                            if !compactMode, result.canLoadMore {
                                 LoadMoreButton(
                                     title: "Load more shows",
                                     isLoading: model.isLoadingMore

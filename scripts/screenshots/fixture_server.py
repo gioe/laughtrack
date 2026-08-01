@@ -368,9 +368,9 @@ def fixture_response(
     if path == f"{API_PREFIX}shows/search":
         is_pinned_club_search = bool((query or {}).get("club"))
         total = 45 if is_pinned_club_search else result_count
-        page = int((query or {}).get("page", ["1"])[0])
+        page = int((query or {}).get("page", ["0"])[0])
         size = int((query or {}).get("size", [str(total)])[0])
-        start = max(0, page - 1) * size
+        start = max(0, page) * size
         end = min(start + size, total)
         shows = [
             _show(

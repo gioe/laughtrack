@@ -133,6 +133,30 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         }
     }
 
+    func loadPage(
+        _ page: Int,
+        apiClient: Client,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
+        await super.loadPage(page, query: requestKey) { [weak self] page, query in
+            guard let self else {
+                return .failure(.unexpected(status: 0, message: "LaughTrack could not load shows right now."))
+            }
+            return await self.fetchPage(
+                page: page,
+                query: query,
+                apiClient: apiClient,
+                cache: cache,
+                cacheTTL: cacheTTL
+            )
+        }
+    }
+
+    func pageCount(for total: Int) -> Int {
+        max(1, (max(0, total) + pageSize - 1) / pageSize)
+    }
+
     func applySearchRootQuery(_ query: String) {
         // The unified root currently treats show search as a comedian-name query.
         // Venue-name discovery remains explicit in the Clubs pivot.

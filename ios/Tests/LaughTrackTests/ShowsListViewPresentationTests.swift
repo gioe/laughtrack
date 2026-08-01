@@ -11,6 +11,10 @@ struct ShowsListViewPresentationTests {
 
         #expect(source.contains("LaughTrackSectionHeader(title: \"Search dates\")"))
         #expect(!source.contains("LaughTrackSectionHeader(eyebrow: \"Calendar\""))
+        #expect(source.contains("if compactMode, pageCount > 1"))
+        #expect(source.contains("LaughTrackPagedControls("))
+        #expect(source.contains("if !compactMode, result.canLoadMore"))
+        #expect(source.contains("await model.loadPage("))
     }
 
     @Test("show search results use compact ticket row presentation")
