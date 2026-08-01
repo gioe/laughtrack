@@ -72,6 +72,12 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     private let analytics: (any AnalyticsManagerProtocol)?
     private let now: () -> Date
 
+    // Carries the source that presented the current sheet through its complete
+    // interaction. Enable, defer, and OS-result events may arrive after an
+    // async authorization check, so deriving the trigger at tap time would
+    // misattribute restored-opt-in recovery to the engagement funnel.
+    private var activePromptTrigger = PushAnalyticsEvents.Trigger.engagementMoment
+
     // Tracks whether the user responded via the sheet's Enable / Maybe later
     // buttons. Swipe-to-dismiss bypasses both, so onDismiss treats a
     // false flag as an implicit deferral — otherwise a chronic swiper would
@@ -126,6 +132,30 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         await handleEngagementSignal(isPostOnboarding: isPostOnboarding)
     }
 
+    /// Reconciles the server-backed push preference after the authenticated
+    /// shell mounts. A reinstall clears local preferences and iOS notification
+    /// authorization while the account preference survives on the server, so
+    /// the server value is the source of truth for the local toggle.
+    ///
+    /// Already-authorized devices refresh APNs registration immediately. When
+    /// authorization needs user action, the restored opt-in bypasses only the
+    /// initial engagement threshold; prior deferrals still enforce the normal
+    /// per-session, cold-launch, time-backoff, and permanent-cap protections.
+    public func reconcileAuthenticatedLaunch(serverPushEnabled: Bool) async {
+        notificationPreferenceStore.setFavoriteComedianPushAlertsEnabled(serverPushEnabled)
+        guard serverPushEnabled else { return }
+
+        let status = await authorizationStatusProvider.currentAuthorizationStatus()
+        switch status {
+        case .authorized:
+            await pushTokenManager?.registerForRemoteNotifications()
+        case .notDetermined, .denied:
+            let inputs = cadenceInputs(requiresEngagementSignalThreshold: false)
+            guard case .eligible = PushPermissionPromptCadence.evaluate(inputs) else { return }
+            presentPrompt(trigger: .restoredServerOptIn)
+        }
+    }
+
     /// Records a show-detail view as an engagement signal, debounced to one
     /// signal per unique `showID` per app process. Revisits of a show that
     /// already fired this session are a no-op — including the no-op cases
@@ -165,29 +195,13 @@ public final class SoftPushPromptCoordinator: ObservableObject {
 
         stateStore.recordEngagementSignal()
 
-        let inputs = PushPermissionPromptCadence.Inputs(
-            now: now(),
-            deferralCount: stateStore.deferralCount,
-            lastDeferredAt: stateStore.lastDeferredAt,
-            engagementSignalCount: stateStore.postOnboardingFavoriteCount,
-            sessionCountSinceLastDeferral: stateStore.sessionCountSinceLastDeferral,
-            hasPresentedThisSession: hasPresentedThisSession
-        )
+        let inputs = cadenceInputs()
         guard case .eligible = PushPermissionPromptCadence.evaluate(inputs) else { return }
 
         let status = await authorizationStatusProvider.currentAuthorizationStatus()
         switch status {
         case .notDetermined:
-            hasPresentedThisSession = true
-            hasRespondedExplicitly = false
-            presentation = .promptingSheet
-            analytics?.track(
-                PushAnalyticsEvents.softPromptShown,
-                parameters: [
-                    PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.engagementMoment.rawValue,
-                    PushAnalyticsEvents.Param.deferralCount: stateStore.deferralCount
-                ]
-            )
+            presentPrompt(trigger: .engagementMoment)
         case .authorized:
             // OS allows push but the user has the app's push pref off. Treat as a
             // deliberate Settings choice — don't silently re-enable, don't show
@@ -206,7 +220,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         analytics?.track(
             PushAnalyticsEvents.softPromptEnableTapped,
             parameters: [
-                PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.engagementMoment.rawValue,
+                PushAnalyticsEvents.Param.trigger: activePromptTrigger.rawValue,
                 PushAnalyticsEvents.Param.deferralCount: stateStore.deferralCount
             ]
         )
@@ -231,7 +245,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
                 PushAnalyticsEvents.osPromptResult,
                 parameters: [
                     PushAnalyticsEvents.Param.granted: granted,
-                    PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.engagementMoment.rawValue
+                    PushAnalyticsEvents.Param.trigger: activePromptTrigger.rawValue
                 ]
             )
             if granted {
@@ -262,7 +276,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         analytics?.track(
             PushAnalyticsEvents.softPromptDeferTapped,
             parameters: [
-                PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.engagementMoment.rawValue,
+                PushAnalyticsEvents.Param.trigger: activePromptTrigger.rawValue,
                 PushAnalyticsEvents.Param.deferralCount: stateStore.deferralCount
             ]
         )
@@ -293,9 +307,38 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         hasPresentedThisSession = true
         hasRespondedExplicitly = true
         pendingDeniedAlertAfterDismiss = false
+        activePromptTrigger = .engagementMoment
         presentation = .promptingSheet
     }
 #endif
+
+    private func cadenceInputs(
+        requiresEngagementSignalThreshold: Bool = true
+    ) -> PushPermissionPromptCadence.Inputs {
+        PushPermissionPromptCadence.Inputs(
+            now: now(),
+            deferralCount: stateStore.deferralCount,
+            lastDeferredAt: stateStore.lastDeferredAt,
+            engagementSignalCount: stateStore.postOnboardingFavoriteCount,
+            sessionCountSinceLastDeferral: stateStore.sessionCountSinceLastDeferral,
+            hasPresentedThisSession: hasPresentedThisSession,
+            requiresEngagementSignalThreshold: requiresEngagementSignalThreshold
+        )
+    }
+
+    private func presentPrompt(trigger: PushAnalyticsEvents.Trigger) {
+        hasPresentedThisSession = true
+        hasRespondedExplicitly = false
+        activePromptTrigger = trigger
+        presentation = .promptingSheet
+        analytics?.track(
+            PushAnalyticsEvents.softPromptShown,
+            parameters: [
+                PushAnalyticsEvents.Param.trigger: trigger.rawValue,
+                PushAnalyticsEvents.Param.deferralCount: stateStore.deferralCount
+            ]
+        )
+    }
 
     private func applyPushPreferenceEnabled() {
         notificationPreferenceStore.setFavoriteComedianPushAlertsEnabled(true)

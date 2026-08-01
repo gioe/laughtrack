@@ -16,6 +16,7 @@ public struct PushPermissionPromptCadence: Sendable, Equatable {
         public var engagementSignalCount: Int
         public var sessionCountSinceLastDeferral: Int
         public var hasPresentedThisSession: Bool
+        public var requiresEngagementSignalThreshold: Bool
 
         public init(
             now: Date,
@@ -23,7 +24,8 @@ public struct PushPermissionPromptCadence: Sendable, Equatable {
             lastDeferredAt: Date?,
             engagementSignalCount: Int,
             sessionCountSinceLastDeferral: Int,
-            hasPresentedThisSession: Bool
+            hasPresentedThisSession: Bool,
+            requiresEngagementSignalThreshold: Bool = true
         ) {
             self.now = now
             self.deferralCount = deferralCount
@@ -31,6 +33,7 @@ public struct PushPermissionPromptCadence: Sendable, Equatable {
             self.engagementSignalCount = engagementSignalCount
             self.sessionCountSinceLastDeferral = sessionCountSinceLastDeferral
             self.hasPresentedThisSession = hasPresentedThisSession
+            self.requiresEngagementSignalThreshold = requiresEngagementSignalThreshold
         }
     }
 
@@ -73,7 +76,8 @@ public struct PushPermissionPromptCadence: Sendable, Equatable {
         if inputs.deferralCount >= maxDeferrals {
             return .suppressedMaxDeferralsReached
         }
-        if inputs.engagementSignalCount < requiredEngagementSignals {
+        if inputs.requiresEngagementSignalThreshold,
+           inputs.engagementSignalCount < requiredEngagementSignals {
             return .suppressedInsufficientEngagement
         }
         if inputs.deferralCount > 0 {

@@ -49,6 +49,7 @@ public enum PushAnalyticsEvents {
     public enum Trigger: String {
         case engagementMoment = "engagement_moment"
         case onboarding
+        case restoredServerOptIn = "restored_server_opt_in"
         case settingsToggle = "settings_toggle"
     }
 }

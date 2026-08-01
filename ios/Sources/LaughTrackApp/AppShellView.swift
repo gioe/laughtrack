@@ -263,6 +263,12 @@ struct AppShellView: View {
                 _ = await (comedians, podcasts, clubs)
             }
         }
+        .task(id: authenticatedPushReconciliationID) {
+            guard let currentUser = authManager.currentUser else { return }
+            await softPushPromptCoordinator.reconcileAuthenticatedLaunch(
+                serverPushEnabled: currentUser.pushShowNotifications
+            )
+        }
         .sheet(isPresented: $shellState.isLocationPermissionPitchPresented) {
             LocationPermissionPitchView(
                 nearbyLocationController: nearbyLocationController,
@@ -341,6 +347,15 @@ struct AppShellView: View {
             get: { shellState.resolvedSearchPrimitive },
             set: { shellState.setSearchPrimitive($0) }
         )
+    }
+
+    // Include both account identity and the server preference so the launch
+    // reconciliation runs after auth restoration, account changes, and a
+    // refreshed /me preference. The coordinator independently enforces the
+    // process-scoped one-prompt-per-session rule.
+    private var authenticatedPushReconciliationID: String? {
+        guard let currentUser = authManager.currentUser else { return nil }
+        return "\(currentUser.userId):\(currentUser.pushShowNotifications)"
     }
 
     // Project the coordinator's enum-typed presentation state into a
