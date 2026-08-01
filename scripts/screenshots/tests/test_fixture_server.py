@@ -60,7 +60,11 @@ def test_club_highlights_fixture_populates_tonight_and_qualified_performers() ->
     payload = fixture_response("/api/v1/clubs/201/highlights", "http://fixture")
     highlights = payload["data"]
 
-    assert [show["id"] for show in highlights["tonightShows"]] == [101]
+    assert [show["id"] for show in highlights["tonightShows"]] == [101, 106, 107, 108]
+    assert [
+        show["lineup"][0]["name"] for show in highlights["tonightShows"]
+    ] == ["Taylor Tomlinson", "Ali Wong", "Andrew Schulz", "Taylor Tomlinson"]
+    assert highlights["tonightShows"][0]["lineup"][0]["socialData"]["popularity"] == 98
     assert highlights["nextShow"]["id"] == 102
     assert len(highlights["frequentPerformers"]) == 3
     assert [performer["id"] for performer in highlights["frequentPerformers"]] == [
@@ -68,6 +72,11 @@ def test_club_highlights_fixture_populates_tonight_and_qualified_performers() ->
         302,
         303,
     ]
+
+    for show_id in (101, 106, 107):
+        detail = fixture_response(f"/api/v1/shows/{show_id}", "http://fixture")
+        assert detail["data"]["id"] == show_id
+        assert detail["data"]["club"]["id"] == 201
 
 
 def test_pinned_club_show_search_supports_multiple_pages() -> None:

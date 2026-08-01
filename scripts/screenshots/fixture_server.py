@@ -229,14 +229,24 @@ def _social(entity_id: int, handle: str) -> dict:
     return {"id": entity_id, "instagramAccount": handle, "website": f"https://example.invalid/{handle}"}
 
 
-def _lineup(base_url: str) -> dict:
+def _lineup(
+    base_url: str,
+    index: int = 1,
+    name: str = "Taylor Tomlinson",
+    popularity: int = 98,
+    show_count: int = 40,
+) -> dict:
+    entity_id = 301 + index
+    artwork_key = COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)]
+    social_data = _social(entity_id, name.lower().replace(" ", ""))
+    social_data["popularity"] = popularity
     return {
-        "id": 302,
-        "uuid": "fixture-302",
-        "name": "Taylor Tomlinson",
-        "imageUrl": f"{base_url}/artwork/taylor.png",
-        "showCount": 40,
-        "socialData": _social(302, "taylortomlinson"),
+        "id": entity_id,
+        "uuid": f"fixture-{entity_id}",
+        "name": name,
+        "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
+        "showCount": show_count,
+        "socialData": social_data,
         "isFavorite": False,
     }
 
@@ -265,11 +275,13 @@ def _show(
     name: str = "Taylor Tomlinson & Friends",
     hour: int = 20,
     artwork_key: str = "taylor",
+    lineup: list[dict] | None = None,
+    day: int | None = None,
 ) -> dict:
     return {
         "id": show_id,
         "clubId": 201,
-        "date": f"2030-07-{18 if show_id == 101 else 19:02d}T{hour:02d}:00:00-07:00",
+        "date": f"2030-07-{day if day is not None else (18 if show_id == 101 else 19):02d}T{hour:02d}:00:00-07:00",
         "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
         "clubName": "The Comedy Store",
         "clubCity": "West Hollywood",
@@ -279,8 +291,20 @@ def _show(
         "timezone": "America/Los_Angeles",
         "soldOut": False,
         "tickets": [{"price": 40, "purchaseUrl": f"https://example.invalid/tickets/{show_id}", "soldOut": False, "type": "General Admission"}],
-        "lineup": [_lineup(base_url)],
+        "lineup": lineup if lineup is not None else [_lineup(base_url)],
     }
+
+
+def _club_tonight_shows(base_url: str) -> list[dict]:
+    taylor = _lineup(base_url)
+    ali = _lineup(base_url, 0, "Ali Wong", popularity=96, show_count=36)
+    andrew = _lineup(base_url, 2, "Andrew Schulz", popularity=94, show_count=34)
+    return [
+        _show(base_url, 101, "Taylor Tomlinson & Friends", 20, lineup=[taylor], day=18),
+        _show(base_url, 106, "Ali Wong: Live", 19, "ali-wong", lineup=[ali], day=18),
+        _show(base_url, 107, "Andrew Schulz: New Material", 21, "andrew-schulz", lineup=[andrew], day=18),
+        _show(base_url, 108, "Late Night with Taylor", 22, lineup=[taylor], day=18),
+    ]
 
 
 def _podcast_host(base_url: str) -> dict:
@@ -429,7 +453,7 @@ def fixture_response(
     if path == f"{API_PREFIX}clubs/201/highlights":
         return {
             "data": {
-                "tonightShows": [_show(base_url)],
+                "tonightShows": _club_tonight_shows(base_url),
                 "nextShow": _show(base_url, 102, "Comedy Store Showcase", 21),
                 "frequentPerformers": [
                     _comedian(base_url, index, name, mode)
@@ -451,8 +475,14 @@ def fixture_response(
             ],
             "total": result_count,
         }
-    if path == f"{API_PREFIX}shows/101":
-        return {"data": {**_show(base_url), "showPageUrl": "https://example.invalid/show/101", "club": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "address": "8433 Sunset Blvd, West Hollywood, CA", "timezone": "America/Los_Angeles"}, "cta": {"label": "Buy tickets", "isSoldOut": False, "url": "https://example.invalid/tickets/101"}, "description": "A special night of new material and surprise guests."}, "relatedShows": []}
+    show_detail_prefix = f"{API_PREFIX}shows/"
+    if path.startswith(show_detail_prefix) and path.removeprefix(show_detail_prefix).isdigit():
+        show_id = int(path.removeprefix(show_detail_prefix))
+        show = next(
+            (item for item in _club_tonight_shows(base_url) if item["id"] == show_id),
+            _show(base_url, show_id),
+        )
+        return {"data": {**show, "showPageUrl": f"https://example.invalid/show/{show_id}", "club": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "address": "8433 Sunset Blvd, West Hollywood, CA", "timezone": "America/Los_Angeles"}, "cta": {"label": "Buy tickets", "isSoldOut": False, "url": f"https://example.invalid/tickets/{show_id}"}, "description": "A special night of new material and surprise guests."}, "relatedShows": []}
     if path == f"{API_PREFIX}comedians/301":
         return {"data": {"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": f"{base_url}/artwork/ali-wong.png", "socialData": _social(301, "aliwong"), "podcastAppearances": [], "homeLocation": {"city": "San Francisco", "state": "CA", "country": "US"}}}
     if path == f"{API_PREFIX}comedians/301/upcoming-runs":
