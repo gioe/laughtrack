@@ -283,22 +283,27 @@ private struct ClubDetailTonightMarqueeSection: View {
     var body: some View {
         VStack(spacing: -1) {
             Text("Tonight")
-                .font(.system(.subheadline, design: .rounded, weight: .heavy))
-                .tracking(1.4)
+                .font(.system(.headline, design: .rounded, weight: .heavy))
+                .tracking(2)
                 .textCase(.uppercase)
                 .foregroundStyle(ClubVenueMarqueeStyle.paper)
                 .padding(.horizontal, theme.spacing.xl)
                 .padding(.vertical, theme.spacing.sm)
                 .background {
                     ClubDetailMarqueeHeaderShape()
-                        .fill(ClubVenueMarqueeStyle.badgeBackground)
+                        .fill(ClubVenueMarqueeStyle.headerGradient)
                 }
                 .clipShape(
                     ClubDetailMarqueeHeaderShape()
                 )
                 .overlay {
-                    ClubDetailMarqueeHeaderShape()
-                        .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
+                    ZStack {
+                        ClubDetailMarqueeHeaderShape()
+                            .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
+                        ClubDetailMarqueeHeaderShape()
+                            .stroke(Color.white.opacity(0.14), lineWidth: 0.75)
+                            .padding(2)
+                    }
                 }
                 .zIndex(1)
 
@@ -336,7 +341,7 @@ private struct ClubDetailTonightMarqueeSection: View {
             }
             .background {
                 ZStack {
-                    ClubVenueMarqueeStyle.paper
+                    ClubVenueMarqueeStyle.boardGradient
 
                     RoundedRectangle(
                         cornerRadius: ClubVenueMarqueeStyle.bulbCornerRadius,
@@ -357,13 +362,22 @@ private struct ClubDetailTonightMarqueeSection: View {
                 )
             )
             .overlay {
-                RoundedRectangle(
-                    cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
-                    style: .continuous
-                )
-                    .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
+                ZStack {
+                    RoundedRectangle(
+                        cornerRadius: ClubVenueMarqueeStyle.cornerRadius,
+                        style: .continuous
+                    )
+                        .stroke(ClubVenueMarqueeStyle.outline, lineWidth: 1.5)
+                    RoundedRectangle(
+                        cornerRadius: ClubVenueMarqueeStyle.cornerRadius - 2,
+                        style: .continuous
+                    )
+                        .stroke(Color.white.opacity(0.42), lineWidth: 0.75)
+                        .padding(2)
+                }
             }
         }
+        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 5)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailHighlightSection)
     }
@@ -373,17 +387,25 @@ private struct ClubDetailTonightMarqueeSection: View {
 private struct ClubDetailMarqueeHeaderShape: Shape {
     func path(in rect: CGRect) -> Path {
         let radius = min(ClubVenueMarqueeStyle.cornerRadius, rect.height / 2)
+        let crownRise: CGFloat = 4
         var path = Path()
         path.move(to: CGPoint(x: 0, y: rect.maxY))
-        path.addLine(to: CGPoint(x: 0, y: radius))
+        path.addLine(to: CGPoint(x: 0, y: radius + crownRise))
         path.addQuadCurve(
-            to: CGPoint(x: radius, y: 0),
-            control: CGPoint(x: 0, y: 0)
+            to: CGPoint(x: radius, y: crownRise),
+            control: CGPoint(x: 0, y: crownRise)
         )
-        path.addLine(to: CGPoint(x: rect.maxX - radius, y: 0))
         path.addQuadCurve(
-            to: CGPoint(x: rect.maxX, y: radius),
-            control: CGPoint(x: rect.maxX, y: 0)
+            to: CGPoint(x: rect.midX, y: 0),
+            control: CGPoint(x: rect.width * 0.3, y: 0)
+        )
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX - radius, y: crownRise),
+            control: CGPoint(x: rect.width * 0.7, y: 0)
+        )
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: radius + crownRise),
+            control: CGPoint(x: rect.maxX, y: crownRise)
         )
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         path.closeSubpath()
