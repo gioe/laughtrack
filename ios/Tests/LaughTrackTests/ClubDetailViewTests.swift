@@ -304,6 +304,8 @@ struct ClubDetailViewTests {
         #expect(source.contains(".fill(ClubVenueMarqueeStyle.headerGradient)"))
         #expect(source.contains("ClubVenueMarqueeStyle.boardGradient"))
         #expect(source.contains("Color.black.opacity(0.3), radius: 8"))
+        #expect(source.contains(".font(.system(.title3, design: .rounded, weight: .heavy))"))
+        #expect(source.contains(".font(.system(.footnote, design: .monospaced, weight: .semibold))"))
         #expect(source.contains("VStack(spacing: 0)"))
         #expect(source.contains(".zIndex(1)"))
         #expect(source.contains("ClubDetailMarqueeShellShape()"))
