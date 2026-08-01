@@ -5,6 +5,14 @@ import LaughTrackAPIClient
 
 @Suite("Shows list view presentation")
 struct ShowsListViewPresentationTests {
+    @Test("compact pinned lists label date search without an eyebrow")
+    func compactPinnedListsUseClearDateSearchHeading() throws {
+        let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("LaughTrackSectionHeader(title: \"Search other dates\")"))
+        #expect(!source.contains("LaughTrackSectionHeader(eyebrow: \"Calendar\""))
+    }
+
     @Test("show search results use compact ticket row presentation")
     func showSearchResultsUseCompactTicketRowPresentation() throws {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
