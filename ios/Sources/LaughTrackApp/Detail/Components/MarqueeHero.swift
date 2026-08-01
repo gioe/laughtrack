@@ -333,6 +333,22 @@ enum ClubVenueMarqueeStyle {
     static let paper = Color(red: 0.99, green: 0.975, blue: 0.91)
     static let outline = Color.black.opacity(0.72)
     static let badgeBackground = Color(red: 0.16, green: 0.15, blue: 0.14)
+    static let boardGradient = LinearGradient(
+        colors: [
+            Color(red: 1.0, green: 0.99, blue: 0.95),
+            Color(red: 0.96, green: 0.93, blue: 0.82),
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+    static let headerGradient = LinearGradient(
+        colors: [
+            Color(red: 0.23, green: 0.21, blue: 0.19),
+            badgeBackground,
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
     static let bulbColor = Color(red: 1.0, green: 0.74, blue: 0.18).opacity(0.9)
     static let cornerRadius: CGFloat = 12
     static let bulbCornerRadius: CGFloat = 10
