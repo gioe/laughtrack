@@ -3,7 +3,7 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
-/// Reusable shows list scoped to a specific entity — pass the club name to
+/// Reusable shows list scoped to a specific entity — pass the club ID to
 /// lock the list to one venue's shows, or the comedian name to lock it to one
 /// performer's appearances. Owns the `@StateObject<ShowsListModel>` so the
 /// parent detail screen doesn't have to thread the model's lifecycle through
@@ -20,6 +20,7 @@ struct PinnedShowsList: View {
     init(
         apiClient: Client,
         nearbyLocationController: NearbyLocationController,
+        pinnedClubId: Int? = nil,
         pinnedClubName: String? = nil,
         pinnedComedianName: String? = nil
     ) {
@@ -29,6 +30,7 @@ struct PinnedShowsList: View {
         // "Today" default left most comedian/club pages near-empty.
         _model = StateObject(wrappedValue: ShowsListModel(
             nearbyLocationController: nearbyLocationController,
+            pinnedClubId: pinnedClubId,
             pinnedClubName: pinnedClubName,
             pinnedComedianName: pinnedComedianName,
             initialUseDateRange: false,

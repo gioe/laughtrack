@@ -486,6 +486,7 @@ private struct ShowsDateRangeSheet: View {
         guard let entry = await DateRangeDensity.compute(
             preference: effectiveNearbyPreference,
             comedian: model.pinnedComedianName,
+            clubId: model.pinnedClubId,
             club: model.pinnedClubName,
             fromDate: monthStart,
             toDate: lastDayOfMonth,
@@ -511,8 +512,9 @@ private struct ShowsDateRangeSheet: View {
     private var currentSignature: String {
         let pref = effectiveNearbyPreference
         let comedian = model.pinnedComedianName ?? ""
+        let clubId = model.pinnedClubId.map(String.init) ?? ""
         let club = model.pinnedClubName ?? ""
-        return "z:\(pref?.zipCode ?? "")|d:\(pref?.distanceMiles ?? 0)|c:\(comedian)|v:\(club)"
+        return "z:\(pref?.zipCode ?? "")|d:\(pref?.distanceMiles ?? 0)|c:\(comedian)|vi:\(clubId)|v:\(club)"
     }
 }
 
@@ -531,6 +533,7 @@ enum DateRangeDensity {
     static func compute(
         preference: NearbyPreference?,
         comedian: String? = nil,
+        clubId: Int? = nil,
         club: String? = nil,
         fromDate: Date,
         toDate: Date? = nil,
@@ -539,9 +542,11 @@ enum DateRangeDensity {
         calendar: Calendar = .current
     ) async -> [Date: Int]? {
         let trimmedComedian = comedian?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
-        let trimmedClub = club?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+        let trimmedClub = clubId == nil
+            ? club?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+            : nil
 
-        guard preference != nil || trimmedComedian != nil || trimmedClub != nil else {
+        guard preference != nil || trimmedComedian != nil || clubId != nil || trimmedClub != nil else {
             return [:]
         }
 
@@ -569,7 +574,8 @@ enum DateRangeDensity {
                         to: toString,
                         distance: preference?.distanceMiles,
                         comedian: trimmedComedian,
-                        club: trimmedClub
+                        club: trimmedClub,
+                        clubId: clubId
                     ),
                     headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
                 )

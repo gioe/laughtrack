@@ -89,6 +89,7 @@ struct ClubDetailView: View {
                             PinnedShowsList(
                                 apiClient: apiClient,
                                 nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                                pinnedClubId: club.id,
                                 pinnedClubName: club.name
                             )
 

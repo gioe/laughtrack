@@ -70,6 +70,36 @@ struct DateRangeDensityTests {
         #expect(!path.contains("comedian="))
     }
 
+    @Test("compute prefers exact club ID over the display name")
+    func computeForwardsExactClubID() async {
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            var response = HTTPResponse(status: .ok)
+            response.headerFields[.contentType] = "application/json"
+            return (response, HTTPBody("{}"))
+        }
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
+        )
+
+        let result = await DateRangeDensity.compute(
+            preference: nil,
+            clubId: 5,
+            club: "The Stand",
+            fromDate: Date(),
+            now: Date(),
+            apiClient: apiClient
+        )
+
+        #expect(result == [:])
+        #expect(transport.capturedRequests.count == 1)
+        let path = transport.capturedRequests.first?.path ?? ""
+        #expect(path.contains("clubId=5"))
+        #expect(!path.contains("club="))
+        #expect(!path.contains("463"))
+    }
+
     @Test("compute returns empty without hitting the network when preference, comedian, and club are all nil")
     func computeReturnsEmptyWithoutAnyScope() async {
         let transport = StubClientTransport.alwaysFails()

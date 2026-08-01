@@ -120,11 +120,32 @@ enum ClubSortOption: String, CaseIterable, Identifiable {
 struct ShowsListQuery: Hashable {
     let comedian: String
     let club: String
+    let clubId: Int?
     let filters: [String]
     let zip: String
     let dateRange: DateRangeFilter
     let distance: ShowDistanceOption
     let sort: ShowSortOption
+
+    init(
+        comedian: String,
+        club: String,
+        clubId: Int? = nil,
+        filters: [String],
+        zip: String,
+        dateRange: DateRangeFilter,
+        distance: ShowDistanceOption,
+        sort: ShowSortOption
+    ) {
+        self.comedian = comedian
+        self.club = club
+        self.clubId = clubId
+        self.filters = filters
+        self.zip = zip
+        self.dateRange = dateRange
+        self.distance = distance
+        self.sort = sort
+    }
 
     var fromString: String? {
         guard dateRange.isActive else { return nil }
@@ -150,6 +171,7 @@ struct ShowsListQuery: Hashable {
     var hasActiveFilters: Bool {
         !comedian.isEmpty ||
         !club.isEmpty ||
+        clubId != nil ||
         !filters.isEmpty ||
         sanitizedZip != nil ||
         dateRange.isActive ||
@@ -160,6 +182,7 @@ struct ShowsListQuery: Hashable {
         [
             "comedian=\(comedian)",
             "club=\(club)",
+            "clubId=\(clubId.map(String.init) ?? "")",
             "filters=\(filtersParam ?? "")",
             "zip=\(sanitizedZip ?? "")",
             "from=\(fromString ?? "")",

@@ -10,6 +10,35 @@ import LaughTrackCore
 @Suite("Club detail view")
 @MainActor
 struct ClubDetailViewTests {
+    @Test("club pinned shows use exact venue ID instead of a substring name filter")
+    func clubPinnedShowsUseExactVenueID() async throws {
+        let transport = StubClientTransport.alwaysFails()
+        let model = ShowsListModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            ),
+            pinnedClubId: 5,
+            pinnedClubName: "The Stand",
+            initialUseDateRange: false
+        )
+
+        await model.reload(
+            apiClient: Client(
+                serverURL: URL(string: "https://example.com")!,
+                transport: transport
+            )
+        )
+
+        let request = try #require(transport.capturedRequests.last)
+        let path = try #require(request.path)
+        #expect(request.operationID == "searchShows")
+        #expect(path.contains("clubId=5"))
+        #expect(!path.contains("club="))
+        #expect(!path.contains("463"))
+    }
+
     @Test("club detail loads venue data without the redundant related-content search")
     func clubDetailLoadsVenueWithoutRelatedContentSearch() async throws {
         let model = ClubDetailModel(clubId: 201)

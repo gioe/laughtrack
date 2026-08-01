@@ -33,7 +33,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
     @Published private(set) var isResolvingCurrentLocation = false
 
     var isClubPinned: Bool {
-        pinnedClubName != nil
+        pinnedClubId != nil || pinnedClubName != nil
     }
 
     var isComedianPinned: Bool {
@@ -68,6 +68,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
 
     private let nearbyLocationController: NearbyLocationController
     private let pageSize: Int
+    let pinnedClubId: Int?
     let pinnedClubName: String?
     let pinnedComedianName: String?
     private var nearbyStatusCancellable: AnyCancellable?
@@ -76,6 +77,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
 
     init(
         nearbyLocationController: NearbyLocationController,
+        pinnedClubId: Int? = nil,
         pinnedClubName: String? = nil,
         pinnedComedianName: String? = nil,
         initialUseDateRange: Bool = true,
@@ -83,6 +85,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
     ) {
         self.nearbyLocationController = nearbyLocationController
         self.pageSize = max(1, pageSize)
+        self.pinnedClubId = pinnedClubId
         self.pinnedClubName = pinnedClubName
         self.pinnedComedianName = pinnedComedianName
         super.init()
@@ -101,7 +104,10 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
     var requestKey: ShowsListQuery {
         .init(
             comedian: pinnedComedianName ?? comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
-            club: pinnedClubName ?? clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
+            club: pinnedClubId == nil
+                ? (pinnedClubName ?? clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines))
+                : "",
+            clubId: pinnedClubId,
             filters: selectedFilterSlugs.sorted(),
             zip: allowsLocationFiltering && !isShowingNationwideComedianSearch ? (activeNearbyPreference?.zipCode ?? "") : "",
             dateRange: dateRange,
@@ -276,6 +282,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
                         size: pageSize,
                         comedian: query.comedian.nonEmpty,
                         club: query.club.nonEmpty,
+                        clubId: query.clubId,
                         filters: query.filtersParam,
                         distance: query.sanitizedZip == nil ? nil : query.distance.rawValue,
                         sort: query.sort.rawValue
