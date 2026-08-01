@@ -66,7 +66,10 @@ struct ClubDetailView: View {
 
                             if let eveningSummary {
                                 ClubDetailTonightMarqueeSection(
-                                    summary: eveningSummary
+                                    summary: eveningSummary,
+                                    openShow: { showID in
+                                        coordinator.open(.show(showID))
+                                    }
                                 )
                                 .padding(.horizontal, 8)
                             }
@@ -225,12 +228,16 @@ enum ClubDetailHighlightsPresentation {
         }
         let visiblePerformers = Array(rankedPerformers.prefix(3)).map { entry in
             ClubDetailMarqueePerformer(
+                performerID: entry.comedian.id,
+                showID: entry.earliestShow.id,
                 name: entry.comedian.name,
                 localizedStartTime: localizedStartTime(for: entry.earliestShow)
             )
         }
         let performers = visiblePerformers.isEmpty
             ? [ClubDetailMarqueePerformer(
+                performerID: -earliestShow.id,
+                showID: earliestShow.id,
                 name: ShowTitlePresentation.title(for: earliestShow),
                 localizedStartTime: localizedStartTime(for: earliestShow)
             )]
@@ -276,6 +283,8 @@ enum ClubDetailHighlightsPresentation {
 }
 
 struct ClubDetailMarqueePerformer: Equatable {
+    let performerID: Int
+    let showID: Int
     let name: String
     let localizedStartTime: String
 }
@@ -286,6 +295,7 @@ struct ClubDetailEveningSummary: Equatable {
 
 private struct ClubDetailTonightMarqueeSection: View {
     let summary: ClubDetailEveningSummary
+    let openShow: (Int) -> Void
 
     @Environment(\.appTheme) private var theme
 
@@ -313,23 +323,39 @@ private struct ClubDetailTonightMarqueeSection: View {
 
             VStack(spacing: 0) {
                 ForEach(Array(summary.performers.enumerated()), id: \.offset) { index, performer in
-                    HStack(alignment: .firstTextBaseline, spacing: theme.spacing.md) {
-                        Text(performer.name.uppercased())
-                            .font(.system(.headline, design: .rounded, weight: .heavy))
-                            .tracking(0.6)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.72)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    Button {
+                        openShow(performer.showID)
+                    } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: theme.spacing.md) {
+                            Text(performer.name.uppercased())
+                                .font(.system(.headline, design: .rounded, weight: .heavy))
+                                .tracking(0.6)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.72)
+                                .frame(maxWidth: .infinity, alignment: .leading)
 
-                        Text(performer.localizedStartTime.uppercased())
-                            .font(.system(.footnote, design: .monospaced, weight: .semibold))
-                            .tracking(0.4)
-                            .foregroundStyle(Color.black.opacity(0.68))
-                            .fixedSize(horizontal: true, vertical: false)
+                            Text(performer.localizedStartTime.uppercased())
+                                .font(.system(.footnote, design: .monospaced, weight: .semibold))
+                                .tracking(0.4)
+                                .foregroundStyle(Color.black.opacity(0.68))
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                     .foregroundStyle(Color.black)
                     .padding(.horizontal, theme.spacing.xl)
                     .padding(.vertical, theme.spacing.sm)
+                    .accessibilityLabel(
+                        "\(performer.name), \(performer.localizedStartTime)"
+                    )
+                    .accessibilityHint("Opens show details")
+                    .accessibilityIdentifier(
+                        LaughTrackViewTestID.clubDetailMarqueeShowButton(
+                            performer.showID,
+                            performerID: performer.performerID
+                        )
+                    )
 
                     if index < summary.performers.count - 1 {
                         Divider()

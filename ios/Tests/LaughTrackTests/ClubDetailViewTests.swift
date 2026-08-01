@@ -180,6 +180,8 @@ struct ClubDetailViewTests {
 
         #expect(summary.performers == [
             ClubDetailMarqueePerformer(
+                performerID: 101,
+                showID: 302,
                 name: "Headliner",
                 localizedStartTime: ShowFormatting.dateStack(
                     shows[1].date,
@@ -187,6 +189,8 @@ struct ClubDetailViewTests {
                 ).time
             ),
             ClubDetailMarqueePerformer(
+                performerID: 102,
+                showID: 302,
                 name: "Second by ID",
                 localizedStartTime: ShowFormatting.dateStack(
                     shows[1].date,
@@ -194,6 +198,8 @@ struct ClubDetailViewTests {
                 ).time
             ),
             ClubDetailMarqueePerformer(
+                performerID: 103,
+                showID: 303,
                 name: "Third by ID",
                 localizedStartTime: ShowFormatting.dateStack(
                     shows[2].date,
@@ -215,6 +221,8 @@ struct ClubDetailViewTests {
         ))
         #expect(single.performers == [
             ClubDetailMarqueePerformer(
+                performerID: 101,
+                showID: 301,
                 name: "Solo",
                 localizedStartTime: ShowFormatting.dateStack(
                     date,
@@ -238,6 +246,8 @@ struct ClubDetailViewTests {
         ))
         #expect(noLineup.performers == [
             ClubDetailMarqueePerformer(
+                performerID: -302,
+                showID: 302,
                 name: ShowTitlePresentation.title(for: earliest),
                 localizedStartTime: ShowFormatting.dateStack(
                     earliest.date,
@@ -312,6 +322,10 @@ struct ClubDetailViewTests {
         #expect(EntityNavigationTarget.comedian(101).route == .comedianDetail(101))
         #expect(LaughTrackViewTestID.clubDetailHighlightSection == "laughtrack.club-detail.highlight-section")
         #expect(LaughTrackViewTestID.clubDetailHighlightShowButton(301) == "laughtrack.club-detail.highlight-show-301")
+        #expect(
+            LaughTrackViewTestID.clubDetailMarqueeShowButton(301, performerID: 101)
+                == "laughtrack.club-detail.marquee-show-301-performer-101"
+        )
         #expect(LaughTrackViewTestID.clubDetailFrequentPerformersSection == "laughtrack.club-detail.frequent-performers-section")
         #expect(LaughTrackViewTestID.clubDetailPerformerButton(101) == "laughtrack.club-detail.performer-101")
 
@@ -323,6 +337,7 @@ struct ClubDetailViewTests {
         #expect(source.contains("if eveningSummary == nil, let nextShow = highlights.nextShow"))
         #expect(source.contains("featuredShow: .init(title: \"Next up\", show: nextShow)"))
         #expect(source.contains("coordinator.open(.show(nextShow.id))"))
+        #expect(source.contains("coordinator.open(.show(showID))"))
         #expect(source.contains("coordinator.open(.comedian(performer.id))"))
         #expect(source.contains("LaughTrackViewTestID.clubDetailHighlightSection"))
         #expect(source.contains("LaughTrackViewTestID.clubDetailFrequentPerformersSection"))
@@ -336,6 +351,9 @@ struct ClubDetailViewTests {
         #expect(source.contains("ForEach(Array(summary.performers.enumerated())"))
         #expect(source.contains("Text(performer.name.uppercased())"))
         #expect(source.contains("Text(performer.localizedStartTime.uppercased())"))
+        #expect(source.contains("openShow(performer.showID)"))
+        #expect(source.contains("LaughTrackViewTestID.clubDetailMarqueeShowButton("))
+        #expect(source.contains(".accessibilityHint(\"Opens show details\")"))
         #expect(source.contains(".font(.system(.footnote, design: .monospaced, weight: .semibold))"))
         #expect(source.contains("VStack(spacing: 0)"))
         #expect(source.contains(".zIndex(1)"))
