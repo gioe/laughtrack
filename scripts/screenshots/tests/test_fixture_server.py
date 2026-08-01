@@ -70,6 +70,31 @@ def test_club_highlights_fixture_populates_tonight_and_qualified_performers() ->
     ]
 
 
+def test_pinned_club_show_search_supports_multiple_pages() -> None:
+    first = fixture_response(
+        "/api/v1/shows/search",
+        "http://fixture",
+        query={"club": ["The Comedy Store"], "page": ["1"], "size": ["20"]},
+    )
+    second = fixture_response(
+        "/api/v1/shows/search",
+        "http://fixture",
+        query={"club": ["The Comedy Store"], "page": ["2"], "size": ["20"]},
+    )
+    last = fixture_response(
+        "/api/v1/shows/search",
+        "http://fixture",
+        query={"club": ["The Comedy Store"], "page": ["3"], "size": ["20"]},
+    )
+
+    assert first["total"] == second["total"] == last["total"] == 45
+    assert len(first["data"]) == len(second["data"]) == 20
+    assert len(last["data"]) == 5
+    assert {show["id"] for show in first["data"]}.isdisjoint(
+        show["id"] for show in second["data"]
+    )
+
+
 def test_every_mode_declares_the_deterministic_episode_entity() -> None:
     for contract in CONTENT_FIXTURE["modes"].values():
         assert contract["featured_entities"]["episode"] == {
