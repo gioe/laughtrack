@@ -16,12 +16,14 @@ Pins the contract added in TASK-1892:
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from curl_cffi.requests.exceptions import ProxyError
 
 from laughtrack.foundation.infrastructure.http import (
     residential_proxy_egress,
     scraper_proxy_registry,
 )
 from laughtrack.foundation.infrastructure.http.client import HttpClient
+from laughtrack.foundation.utilities.url import URLUtils
 
 
 _ALLOWLISTED = "comedy_mothership"
@@ -154,6 +156,95 @@ class TestFetchHtmlProxyRouting:
 
         _, kwargs = session.get.call_args
         assert kwargs.get("proxies") is None
+
+    @pytest.mark.asyncio
+    async def test_auto_proxy_error_uses_one_direct_playwright_recovery(
+        self, monkeypatch
+    ):
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        url = "https://www.ticketweb.com/event/comedy-night/12345"
+        session = AsyncMock()
+        session.get.side_effect = ProxyError(
+            "CONNECT tunnel failed, response 403"
+        )
+        browser = AsyncMock()
+        browser.fetch_html.return_value = "<html>TicketWeb event</html>"
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=browser,
+        ):
+            result = await HttpClient.fetch_html(
+                session,
+                url,
+                scraper_key=_ALLOWLISTED,
+                direct_js_fallback_on_proxy_error=True,
+            )
+
+        assert result == "<html>TicketWeb event</html>"
+        session.get.assert_awaited_once()
+        _, kwargs = session.get.call_args
+        assert kwargs["proxies"] == {
+            "http": _PROXY_URL,
+            "https": _PROXY_URL,
+        }
+        browser.fetch_html.assert_awaited_once_with(
+            URLUtils.normalize_url(url), proxy_url=None
+        )
+
+    @pytest.mark.asyncio
+    async def test_direct_recovery_failure_returns_none_without_retrying(
+        self, monkeypatch
+    ):
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.side_effect = ProxyError(
+            "CONNECT tunnel failed, response 403"
+        )
+        browser = AsyncMock()
+        browser.fetch_html.side_effect = RuntimeError("direct browser failed")
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=browser,
+        ):
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+            ):
+                result = await HttpClient.fetch_html(
+                    session,
+                    "https://www.ticketweb.com/event/comedy-night/12345",
+                    scraper_key=_ALLOWLISTED,
+                    direct_js_fallback_on_proxy_error=True,
+                    raise_on_failure=True,
+                )
+
+        assert result is None
+        session.get.assert_awaited_once()
+        browser.fetch_html.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_caller_pinned_proxy_error_is_not_bypassed(self):
+        session = AsyncMock()
+        session.get.side_effect = ProxyError(
+            "CONNECT tunnel failed, response 403"
+        )
+        browser = AsyncMock()
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=browser,
+        ):
+            with pytest.raises(ProxyError):
+                await HttpClient.fetch_html(
+                    session,
+                    "https://example.com/page",
+                    proxy_url="http://caller-pinned.example:8080",
+                    direct_js_fallback_on_proxy_error=True,
+                )
+
+        session.get.assert_awaited_once()
+        browser.fetch_html.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_warn_logged_when_proxied_fetch_returns_none(self, monkeypatch):

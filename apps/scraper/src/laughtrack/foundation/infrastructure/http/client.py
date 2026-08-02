@@ -47,6 +47,7 @@ from typing import Any, Dict, Optional, Tuple
 from urllib.parse import quote, unquote, urlparse, urlunparse
 
 from curl_cffi.requests import AsyncSession, Response
+from curl_cffi.requests.exceptions import ProxyError
 
 from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -685,6 +686,7 @@ class HttpClient:
         allow_empty_body: bool = False,
         scraper_key: Optional[str] = None,
         skip_js_fallback: bool = False,
+        direct_js_fallback_on_proxy_error: bool = False,
         **request_kwargs: Any,
     ) -> Optional[str]:
         """
@@ -721,6 +723,13 @@ class HttpClient:
                 server-rendered payload and degrade gracefully on failure
                 (e.g. per-event price enrichment), where a per-call Chromium
                 launch would be pure overhead at scale.
+            direct_js_fallback_on_proxy_error: When True and this call
+                auto-applied the residential proxy, recover from a curl-cffi
+                ``ProxyError`` with one direct Playwright navigation. The
+                recovery deliberately bypasses the proxy and returns ``None``
+                if unavailable or unsuccessful so the caller's retry layer
+                cannot multiply the browser fallback. Caller-pinned proxies
+                and non-proxy failures are never bypassed.
             scraper_key: Identifier of the calling scraper (matches
                 ``BaseScraper.key``).  When provided and ``proxy_url`` is
                 ``None``, the residential-proxy allowlist
@@ -749,17 +758,56 @@ class HttpClient:
         if effective_proxy_url is None and scraper_key is not None:
             effective_proxy_url = HttpClient.resolve_proxy_url(scraper_key)
 
-        html, _response, _fallback_invoked = await HttpClient._fetch_with_fallback(
-            session,
-            url,
-            headers=headers,
-            logger_context=logger_context,
-            proxy_url=effective_proxy_url,
-            raise_on_failure=raise_on_failure,
-            allow_empty_body=allow_empty_body,
-            skip_js_fallback=skip_js_fallback,
-            **request_kwargs,
+        residential_was_auto_applied = (
+            proxy_url is None and effective_proxy_url is not None
         )
+        try:
+            html, _response, _fallback_invoked = await HttpClient._fetch_with_fallback(
+                session,
+                url,
+                headers=headers,
+                logger_context=logger_context,
+                proxy_url=effective_proxy_url,
+                raise_on_failure=raise_on_failure,
+                allow_empty_body=allow_empty_body,
+                skip_js_fallback=skip_js_fallback,
+                **request_kwargs,
+            )
+        except ProxyError as exc:
+            if (
+                not direct_js_fallback_on_proxy_error
+                or not residential_was_auto_applied
+                or skip_js_fallback
+            ):
+                raise
+
+            normalized_url = URLUtils.normalize_url(url)
+            browser = _get_js_browser()
+            if browser is None:
+                Logger.warn(
+                    f"[HttpClient] Direct Playwright recovery unavailable after "
+                    f"residential proxy error for {normalized_url}: {exc}",
+                    logger_context or {},
+                )
+                return None
+
+            diagnostics = current_diagnostics()
+            if diagnostics is not None:
+                diagnostics.record_playwright_fallback()
+            Logger.info(
+                f"[HttpClient] Triggering one direct Playwright recovery for "
+                f"{normalized_url} after residential proxy error",
+                logger_context or {},
+            )
+            try:
+                return await browser.fetch_html(normalized_url, proxy_url=None) or None
+            except Exception as direct_exc:
+                Logger.warn(
+                    f"[HttpClient] Direct Playwright recovery failed for "
+                    f"{normalized_url}: {direct_exc}",
+                    logger_context or {},
+                )
+                return None
 
         # When we auto-applied the residential proxy and still got nothing,
         # surface it so the nightly triage can distinguish "proxy didn't
@@ -768,9 +816,6 @@ class HttpClient:
         # WARN there would falsely surface when no residential proxy was
         # applied. None can mean bot-block, 5xx, 4xx, or empty body — let
         # operators inspect surrounding logs rather than asserting a cause.
-        residential_was_auto_applied = (
-            proxy_url is None and effective_proxy_url is not None
-        )
         if (
             html is None
             and residential_was_auto_applied
