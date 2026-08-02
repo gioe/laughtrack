@@ -53,7 +53,16 @@ def main():
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT c.name, c.has_image
+                SELECT
+                    c.name,
+                    c.has_image,
+                    EXISTS (
+                        SELECT 1
+                        FROM comedian_image_assets a
+                        WHERE a.comedian_id = c.id
+                          AND a.is_active = true
+                          AND a.avatar_path IS NOT NULL
+                    ) AS has_managed_avatar
                 FROM comedians c
                 WHERE c.parent_comedian_id IS NULL
                   AND NOT EXISTS (
@@ -67,6 +76,7 @@ def main():
             rows = cur.fetchall()
     names = [r[0] for r in rows]
     current_state = {r[0]: r[1] for r in rows}
+    managed_avatar_state = {r[0]: r[2] for r in rows}
 
     print(f"Checking {len(names)} canonical comedians against CDN...", file=sys.stderr)
 
@@ -79,8 +89,8 @@ def main():
             if (i + 1) % 500 == 0:
                 print(f"  Checked {i + 1}/{len(names)}...", file=sys.stderr)
 
-    has_image = [n for n, v in results.items() if v]
-    missing = [n for n, v in results.items() if not v]
+    has_image = [n for n, v in results.items() if v or managed_avatar_state[n]]
+    missing = [n for n, v in results.items() if not v and not managed_avatar_state[n]]
 
     # Compute changes
     newly_found = [n for n in has_image if not current_state.get(n)]
@@ -118,7 +128,21 @@ def main():
 
                 if newly_missing:
                     placeholders = ", ".join(["%s"] * len(newly_missing))
-                    wcur.execute(f"UPDATE comedians SET has_image = false WHERE name IN ({placeholders})", tuple(newly_missing))
+                    wcur.execute(
+                        f"""
+                        UPDATE comedians c
+                        SET has_image = false
+                        WHERE c.name IN ({placeholders})
+                          AND NOT EXISTS (
+                              SELECT 1
+                              FROM comedian_image_assets a
+                              WHERE a.comedian_id = c.id
+                                AND a.is_active = true
+                                AND a.avatar_path IS NOT NULL
+                          )
+                        """,
+                        tuple(newly_missing),
+                    )
                     print(f"Updated {wcur.rowcount} rows to has_image=false")
         print("Changes committed to DB.")
     elif args.update:
