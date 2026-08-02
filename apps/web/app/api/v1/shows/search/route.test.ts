@@ -127,13 +127,20 @@ describe("GET /api/v1/shows/search", () => {
 
     it("rejects an invalid clubId", async () => {
         const res = await GET(
-            makeRequestWithQuery("clubId=999999999999999999999999"),
+            makeRequestWithQuery("clubId=2147483648"),
         );
 
         expect(res.status).toBe(400);
         expect(await res.json()).toEqual({
             error: "clubId must be a positive integer",
         });
+        expect(mockGetSearchedShows).not.toHaveBeenCalled();
+    });
+
+    it("rejects non-decimal clubId syntax", async () => {
+        const res = await GET(makeRequestWithQuery("clubId=1e3"));
+
+        expect(res.status).toBe(400);
         expect(mockGetSearchedShows).not.toHaveBeenCalled();
     });
 

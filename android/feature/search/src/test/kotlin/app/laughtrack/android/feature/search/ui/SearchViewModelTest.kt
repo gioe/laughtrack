@@ -311,6 +311,7 @@ class SearchViewModelTest {
             size: Int?,
             comedian: String?,
             club: String?,
+            clubId: Int?,
             filters: String?,
             distance: Int?,
             sort: String?,
@@ -355,6 +356,7 @@ class SearchViewModelTest {
             distance: Int?,
             comedian: String?,
             club: String?,
+            clubId: Int?,
             xTimezone: String?,
         ): Response<Map<String, Int>> = error("Unexpected getShowsDensity call")
 

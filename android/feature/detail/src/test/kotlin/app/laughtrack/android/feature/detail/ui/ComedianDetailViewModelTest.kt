@@ -107,6 +107,7 @@ class ComedianDetailViewModelTest {
             size: Int?,
             comedian: String?,
             club: String?,
+            clubId: Int?,
             filters: String?,
             distance: Int?,
             sort: String?,

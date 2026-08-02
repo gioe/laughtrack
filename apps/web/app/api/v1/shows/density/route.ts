@@ -10,6 +10,7 @@ import { publicReadCacheHeaders } from "@/lib/httpCache";
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
 const MAX_RANGE_DAYS = 90;
+const MAX_DATABASE_INTEGER = 2_147_483_647;
 
 function parseIsoDate(value: string): Date | null {
     if (!ISO_DATE_RE.test(value)) return null;
@@ -63,10 +64,11 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         );
     }
 
-    const numericClubId = clubId === undefined ? undefined : Number(clubId);
     if (
-        numericClubId !== undefined &&
-        (!Number.isSafeInteger(numericClubId) || numericClubId < 1)
+        clubId !== undefined &&
+        (!/^\d+$/.test(clubId) ||
+            Number(clubId) < 1 ||
+            Number(clubId) > MAX_DATABASE_INTEGER)
     ) {
         return NextResponse.json(
             { error: "clubId must be a positive integer" },

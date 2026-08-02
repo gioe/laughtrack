@@ -191,7 +191,7 @@ describe("GET /api/v1/shows/density", () => {
             makeRequest({
                 from: "2026-06-01",
                 to: "2026-06-07",
-                clubId: "0",
+                clubId: "2147483648",
             }),
         );
 
@@ -199,6 +199,19 @@ describe("GET /api/v1/shows/density", () => {
         expect(await res.json()).toEqual({
             error: "clubId must be a positive integer",
         });
+        expect(mockFindShowDensity).not.toHaveBeenCalled();
+    });
+
+    it("rejects non-decimal clubId syntax", async () => {
+        const res = await GET(
+            makeRequest({
+                from: "2026-06-01",
+                to: "2026-06-07",
+                clubId: "1e3",
+            }),
+        );
+
+        expect(res.status).toBe(400);
         expect(mockFindShowDensity).not.toHaveBeenCalled();
     });
 

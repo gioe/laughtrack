@@ -1763,7 +1763,7 @@
             "name": "clubId",
             "in": "query",
             "description": "Filter by exact club ID. Use this for venue detail pages; club-name filtering remains substring-based for discovery.",
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": { "type": "integer", "minimum": 1, "maximum": 2147483647 }
           },
           {
             "name": "filters",
@@ -1879,7 +1879,7 @@
             "name": "clubId",
             "in": "query",
             "description": "Filter density to dates hosted by the exact venue ID. Mutually exclusive with `comedian`.",
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": { "type": "integer", "minimum": 1, "maximum": 2147483647 }
           },
           {
             "name": "X-Timezone",
