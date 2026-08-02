@@ -54,6 +54,7 @@ def main():
             cur.execute(
                 """
                 SELECT
+                    c.id,
                     c.name,
                     c.has_image,
                     EXISTS (
@@ -74,47 +75,78 @@ def main():
                 """
             )
             rows = cur.fetchall()
-    names = [r[0] for r in rows]
-    current_state = {r[0]: r[1] for r in rows}
-    managed_avatar_state = {r[0]: r[2] for r in rows}
+    comedian_names = {r[0]: r[1] for r in rows}
+    current_state = {r[0]: r[2] for r in rows}
+    managed_avatar_state = {r[0]: r[3] for r in rows}
 
-    print(f"Checking {len(names)} canonical comedians against CDN...", file=sys.stderr)
+    print(
+        f"Checking {len(comedian_names)} canonical comedians against CDN...",
+        file=sys.stderr,
+    )
 
-    results: dict[str, bool] = {}
+    results: dict[int, bool] = {}
     with ThreadPoolExecutor(max_workers=20) as executor:
-        futures = {executor.submit(check_image, n): n for n in names}
+        futures = {
+            executor.submit(check_image, name): comedian_id
+            for comedian_id, name in comedian_names.items()
+        }
         for i, f in enumerate(as_completed(futures)):
-            name, has_img = f.result()
-            results[name] = has_img
+            comedian_id = futures[f]
+            _, has_img = f.result()
+            results[comedian_id] = has_img
             if (i + 1) % 500 == 0:
-                print(f"  Checked {i + 1}/{len(names)}...", file=sys.stderr)
+                print(
+                    f"  Checked {i + 1}/{len(comedian_names)}...", file=sys.stderr
+                )
 
-    has_image = [n for n, v in results.items() if v or managed_avatar_state[n]]
-    missing = [n for n, v in results.items() if not v and not managed_avatar_state[n]]
+    has_image = [
+        comedian_id
+        for comedian_id, has_legacy_image in results.items()
+        if has_legacy_image or managed_avatar_state[comedian_id]
+    ]
+    missing = [
+        comedian_id
+        for comedian_id, has_legacy_image in results.items()
+        if not has_legacy_image and not managed_avatar_state[comedian_id]
+    ]
 
     # Compute changes
-    newly_found = [n for n in has_image if not current_state.get(n)]
-    newly_missing = [n for n in missing if current_state.get(n)]
+    newly_found = [
+        comedian_id for comedian_id in has_image if not current_state[comedian_id]
+    ]
+    newly_missing = [
+        comedian_id for comedian_id in missing if current_state[comedian_id]
+    ]
 
-    print(f"\n=== CDN Image Audit ===")
-    print(f"Total checked: {len(names)}")
-    print(f"Has image:     {len(has_image)} ({100 * len(has_image) / len(names):.1f}%)")
-    print(f"Missing:       {len(missing)} ({100 * len(missing) / len(names):.1f}%)")
-    print(f"\nChanges from current DB state:")
+    print("\n=== CDN Image Audit ===")
+    print(f"Total checked: {len(comedian_names)}")
+    print(
+        f"Has image:     {len(has_image)} "
+        f"({100 * len(has_image) / len(comedian_names):.1f}%)"
+    )
+    print(
+        f"Missing:       {len(missing)} "
+        f"({100 * len(missing) / len(comedian_names):.1f}%)"
+    )
+    print("\nChanges from current DB state:")
     print(f"  Newly found (false -> true): {len(newly_found)}")
     print(f"  Newly missing (true -> false): {len(newly_missing)}")
 
     if newly_found:
-        print(f"\n  New images found for:")
-        for n in sorted(newly_found)[:20]:
-            print(f"    + {n}")
+        print("\n  New images found for:")
+        for comedian_id in sorted(
+            newly_found, key=lambda value: comedian_names[value]
+        )[:20]:
+            print(f"    + {comedian_names[comedian_id]}")
         if len(newly_found) > 20:
             print(f"    ... and {len(newly_found) - 20} more")
 
     if newly_missing:
-        print(f"\n  Images removed for:")
-        for n in sorted(newly_missing)[:20]:
-            print(f"    - {n}")
+        print("\n  Images removed for:")
+        for comedian_id in sorted(
+            newly_missing, key=lambda value: comedian_names[value]
+        )[:20]:
+            print(f"    - {comedian_names[comedian_id]}")
         if len(newly_missing) > 20:
             print(f"    ... and {len(newly_missing) - 20} more")
 
@@ -122,9 +154,44 @@ def main():
         with get_transaction() as wconn:
             with wconn.cursor() as wcur:
                 if newly_found:
-                    placeholders = ", ".join(["%s"] * len(newly_found))
-                    wcur.execute(f"UPDATE comedians SET has_image = true WHERE name IN ({placeholders})", tuple(newly_found))
-                    print(f"\nUpdated {wcur.rowcount} rows to has_image=true")
+                    legacy_ids = [
+                        comedian_id
+                        for comedian_id in newly_found
+                        if results[comedian_id]
+                    ]
+                    managed_ids = [
+                        comedian_id
+                        for comedian_id in newly_found
+                        if not results[comedian_id]
+                    ]
+                    updated_count = 0
+                    if legacy_ids:
+                        placeholders = ", ".join(["%s"] * len(legacy_ids))
+                        wcur.execute(
+                            f"UPDATE comedians SET has_image = true "
+                            f"WHERE id IN ({placeholders})",
+                            tuple(legacy_ids),
+                        )
+                        updated_count += wcur.rowcount
+                    if managed_ids:
+                        placeholders = ", ".join(["%s"] * len(managed_ids))
+                        wcur.execute(
+                            f"""
+                            UPDATE comedians c
+                            SET has_image = true
+                            WHERE c.id IN ({placeholders})
+                              AND EXISTS (
+                                  SELECT 1
+                                  FROM comedian_image_assets a
+                                  WHERE a.comedian_id = c.id
+                                    AND a.is_active = true
+                                    AND a.avatar_path IS NOT NULL
+                              )
+                            """,
+                            tuple(managed_ids),
+                        )
+                        updated_count += wcur.rowcount
+                    print(f"\nUpdated {updated_count} rows to has_image=true")
 
                 if newly_missing:
                     placeholders = ", ".join(["%s"] * len(newly_missing))
@@ -132,7 +199,7 @@ def main():
                         f"""
                         UPDATE comedians c
                         SET has_image = false
-                        WHERE c.name IN ({placeholders})
+                        WHERE c.id IN ({placeholders})
                           AND NOT EXISTS (
                               SELECT 1
                               FROM comedian_image_assets a
