@@ -785,7 +785,8 @@ describe("AdminComedianManager", () => {
                         ...comedians[1],
                         id: 3,
                         uuid: "uuid-3",
-                        name: "New Comic",
+                        name: "Managed Image Comic",
+                        activeImageAsset: comedians[0].activeImageAsset,
                         totalShows: 0,
                     },
                 ]}
@@ -797,6 +798,12 @@ describe("AdminComedianManager", () => {
         });
         expect(
             screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
+        ).toBeTruthy();
+        expect(
+            screen.getByRole("heading", {
+                level: 2,
+                name: "Managed Image Comic",
+            }),
         ).toBeTruthy();
         expect(
             screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
@@ -838,7 +845,10 @@ describe("AdminComedianManager", () => {
             target: { value: "none" },
         });
         expect(
-            screen.getByRole("heading", { level: 2, name: "New Comic" }),
+            screen.getByRole("heading", {
+                level: 2,
+                name: "Managed Image Comic",
+            }),
         ).toBeTruthy();
         expect(
             screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),

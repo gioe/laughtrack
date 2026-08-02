@@ -44,6 +44,14 @@ function acceptedPodcastSearchValues(row: AdminComedianListItem) {
         .flatMap((podcast) => [podcast.title, podcast.feedUrl ?? ""]);
 }
 
+function hasRenderableImage(row: AdminComedianListItem) {
+    return Boolean(
+        row.hasImage ||
+            row.activeImageAsset?.avatarPath ||
+            row.activeImageAsset?.avatarUrl,
+    );
+}
+
 function sortRows(rows: AdminComedianListItem[], sort: SortMode) {
     return [...rows].sort((a, b) => {
         if (sort === "name-desc") return compareByName(b, a);
@@ -121,10 +129,11 @@ export default function AdminComedianManager({ comedians }: Props) {
                 ) {
                     return false;
                 }
-                if (imageFilter === "has" && !row.hasImage) {
+                const hasImage = hasRenderableImage(row);
+                if (imageFilter === "has" && !hasImage) {
                     return false;
                 }
-                if (imageFilter === "missing" && row.hasImage) {
+                if (imageFilter === "missing" && hasImage) {
                     return false;
                 }
                 if (
