@@ -159,7 +159,10 @@ class TicketWebScraper(BaseScraper):
 
         if ticket_url:
             try:
-                ticket_html = await self.fetch_html(ticket_url)
+                ticket_html = await self.fetch_html(
+                    ticket_url,
+                    direct_js_fallback_on_proxy_error=True,
+                )
             except Exception as exc:
                 Logger.warn(
                     f"{self._log_prefix}: failed to fetch TicketWeb purchase "

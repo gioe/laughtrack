@@ -317,9 +317,37 @@ async def test_process_events_fetches_ticketweb_html_before_create_show(platform
             shows = await scraper._process_events([event])
 
     assert len(shows) == 1
-    scraper.fetch_html.assert_awaited_once_with(ticketweb_url, timeout=scraper._REQUEST_TIMEOUT)
+    scraper.fetch_html.assert_awaited_once_with(
+        ticketweb_url,
+        timeout=scraper._REQUEST_TIMEOUT,
+        scraper_key="ticketweb",
+        direct_js_fallback_on_proxy_error=True,
+    )
     create_show_event = MockClient.return_value.create_show.call_args[0][0]
     assert create_show_event["_ticketweb_html"] == "<p>No more tickets currently available for purchase.</p>"
+
+
+@pytest.mark.asyncio
+async def test_attach_ticketweb_html_keeps_event_when_recovery_returns_none(
+    platform_club,
+):
+    ticketweb_url = "https://www.ticketweb.com/event/comedy-night-tickets/12345"
+    event = _make_api_event(event_url=ticketweb_url)
+
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+
+    scraper.fetch_html = AsyncMock(return_value=None)
+
+    result = await scraper._attach_ticketweb_html(event)
+
+    assert result is event
+    scraper.fetch_html.assert_awaited_once_with(
+        ticketweb_url,
+        timeout=scraper._REQUEST_TIMEOUT,
+        scraper_key="ticketweb",
+        direct_js_fallback_on_proxy_error=True,
+    )
 
 
 # ------------------------------------------------------------------ #

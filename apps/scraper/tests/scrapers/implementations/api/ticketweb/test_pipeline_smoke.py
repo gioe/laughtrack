@@ -238,6 +238,9 @@ async def test_get_data_detects_ticketweb_page_level_sold_out():
     assert result.event_list[0].ticket_url == ticket_url
     assert result.event_list[0].sold_out is True
     assert scraper.fetch_html.await_args_list[1].args == (ticket_url,)
+    assert scraper.fetch_html.await_args_list[1].kwargs == {
+        "direct_js_fallback_on_proxy_error": True,
+    }
 
 
 @pytest.mark.asyncio
@@ -259,6 +262,31 @@ async def test_get_data_keeps_event_when_ticketweb_purchase_fetch_fails():
 
     assert result.event_list[0].ticket_url == ticket_url
     assert result.event_list[0].sold_out is False
+
+
+@pytest.mark.asyncio
+async def test_get_data_keeps_event_when_direct_recovery_returns_none():
+    """A failed proxy and direct recovery still retain the calendar event."""
+    scraper = TicketWebScraper(_club())
+    scraper.fetch_html = AsyncMock(return_value=_js_calendar_html([
+        ("Comedy Night", "2099-08-02 19:00:00", "/event/comedy-night"),
+    ]))
+    await scraper.collect_scraping_targets()
+
+    ticket_url = "https://www.ticketweb.com/event/comedy-night-tickets/12345"
+    scraper.fetch_html = AsyncMock(side_effect=[
+        _detail_page_html(ticket_url, "onsale"),
+        None,
+    ])
+
+    result = await scraper.get_data("/event/comedy-night")
+
+    assert result.event_list[0].ticket_url == ticket_url
+    assert result.event_list[0].sold_out is False
+    scraper.fetch_html.assert_awaited_with(
+        ticket_url,
+        direct_js_fallback_on_proxy_error=True,
+    )
 
 
 @pytest.mark.asyncio

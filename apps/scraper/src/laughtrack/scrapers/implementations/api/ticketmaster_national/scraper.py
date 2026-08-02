@@ -305,7 +305,12 @@ class TicketmasterNationalScraper(BaseScraper):
             return event
 
         try:
-            html = await self.fetch_html(event_url, timeout=self._REQUEST_TIMEOUT)
+            html = await self.fetch_html(
+                event_url,
+                timeout=self._REQUEST_TIMEOUT,
+                scraper_key="ticketweb",
+                direct_js_fallback_on_proxy_error=True,
+            )
         except Exception as exc:
             Logger.warn(
                 f"{self._log_prefix}: failed to fetch TicketWeb detail HTML for {event_url}: {exc}",
