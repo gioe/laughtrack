@@ -775,6 +775,104 @@ describe("AdminComedianManager", () => {
         expect(headings[1].textContent).toBe("Alias Comic");
     });
 
+    it("filters by image, Instagram, podcast, and show availability", () => {
+        render(
+            <AdminComedianManager
+                comedians={[
+                    comedians[0],
+                    comedians[1],
+                    {
+                        ...comedians[1],
+                        id: 3,
+                        uuid: "uuid-3",
+                        name: "New Comic",
+                        totalShows: 0,
+                    },
+                ]}
+            />,
+        );
+
+        fireEvent.change(screen.getByLabelText("Image"), {
+            target: { value: "has" },
+        });
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
+        ).toBeTruthy();
+        expect(
+            screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeNull();
+
+        fireEvent.change(screen.getByLabelText("Image"), {
+            target: { value: "all" },
+        });
+        fireEvent.change(screen.getByLabelText("Instagram"), {
+            target: { value: "missing" },
+        });
+        expect(
+            screen.queryByRole("heading", {
+                level: 2,
+                name: "Parent Comic",
+            }),
+        ).toBeNull();
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeTruthy();
+
+        fireEvent.change(screen.getByLabelText("Instagram"), {
+            target: { value: "all" },
+        });
+        fireEvent.change(screen.getByLabelText("Podcast"), {
+            target: { value: "pending" },
+        });
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
+        ).toBeTruthy();
+        expect(
+            screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeNull();
+
+        fireEvent.change(screen.getByLabelText("Podcast"), {
+            target: { value: "all" },
+        });
+        fireEvent.change(screen.getByLabelText("Shows"), {
+            target: { value: "none" },
+        });
+        expect(
+            screen.getByRole("heading", { level: 2, name: "New Comic" }),
+        ).toBeTruthy();
+        expect(
+            screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeNull();
+    });
+
+    it("filters aliases separately from canonical and blocked records", () => {
+        render(
+            <AdminComedianManager
+                comedians={[
+                    comedians[0],
+                    {
+                        ...comedians[1],
+                        parent: { id: 1, name: "Parent Comic" },
+                    },
+                ]}
+            />,
+        );
+
+        fireEvent.change(screen.getByLabelText("Record type"), {
+            target: { value: "alias" },
+        });
+
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeTruthy();
+        expect(
+            screen.queryByRole("heading", {
+                level: 2,
+                name: "Parent Comic",
+            }),
+        ).toBeNull();
+    });
+
     it("saves a parent relationship", async () => {
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
@@ -847,7 +945,9 @@ describe("AdminComedianManager", () => {
             expect(summaryValue(parentRow!, "Children")).toBe("Children1");
         });
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Canonical" }));
+        fireEvent.change(screen.getByLabelText("Record type"), {
+            target: { value: "canonical" },
+        });
         expect(
             screen.queryByRole("heading", {
                 level: 2,
@@ -1019,7 +1119,9 @@ describe("AdminComedianManager", () => {
             expect(summaryValue(parentRow!, "Children")).toBe("Children0");
         });
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Canonical" }));
+        fireEvent.change(screen.getByLabelText("Record type"), {
+            target: { value: "canonical" },
+        });
         expect(
             screen.getByRole("heading", {
                 level: 2,
@@ -1777,7 +1879,9 @@ describe("AdminComedianManager", () => {
             />,
         );
         expandAllRows();
-        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
+        fireEvent.change(screen.getByLabelText("Record type"), {
+            target: { value: "blocked" },
+        });
         expandAllRows();
 
         fireEvent.click(
@@ -1815,7 +1919,9 @@ describe("AdminComedianManager", () => {
             />,
         );
         expandAllRows();
-        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
+        fireEvent.change(screen.getByLabelText("Record type"), {
+            target: { value: "blocked" },
+        });
         expandAllRows();
 
         expect(
@@ -1844,7 +1950,7 @@ describe("AdminComedianManager", () => {
         expect(screen.queryByText("No ticket purchase link found.")).toBeNull();
     });
 
-    it("filters to blocked comedians with a checkbox", () => {
+    it("filters comedians by record type", () => {
         render(
             <AdminComedianManager
                 comedians={[
@@ -1861,16 +1967,19 @@ describe("AdminComedianManager", () => {
         );
         expandAllRows();
 
-        expect(screen.queryByRole("combobox", { name: "Blocked" })).toBeNull();
         expect(screen.getByText("Parent Comic")).toBeTruthy();
         expect(screen.getByText("Alias Comic")).toBeTruthy();
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
+        fireEvent.change(screen.getByLabelText("Record type"), {
+            target: { value: "blocked" },
+        });
 
         expect(screen.getByText("Alias Comic")).toBeTruthy();
         expect(screen.queryByText("Parent Comic")).toBeNull();
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
+        fireEvent.change(screen.getByLabelText("Record type"), {
+            target: { value: "all" },
+        });
 
         expect(screen.getByText("Parent Comic")).toBeTruthy();
         expect(screen.getByText("Alias Comic")).toBeTruthy();
@@ -1919,13 +2028,17 @@ describe("AdminComedianManager", () => {
         ).toBeTruthy();
         expect(screen.getAllByText("1-4 of 4 comedians")).toHaveLength(2);
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
+        fireEvent.change(screen.getByLabelText("Record type"), {
+            target: { value: "blocked" },
+        });
         expect(
             screen.getByRole("heading", { level: 2, name: "Blocked Comic" }),
         ).toBeTruthy();
         expect(screen.getAllByText("1-1 of 1 comedians")).toHaveLength(2);
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Canonical" }));
+        fireEvent.change(screen.getByLabelText("Record type"), {
+            target: { value: "canonical" },
+        });
 
         expect(
             screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
@@ -1941,12 +2054,8 @@ describe("AdminComedianManager", () => {
         ).toBeNull();
         expect(screen.getAllByText("1-2 of 2 comedians")).toHaveLength(2);
         expect(
-            (
-                screen.getByRole("checkbox", {
-                    name: "Blocked",
-                }) as HTMLInputElement
-            ).checked,
-        ).toBe(false);
+            (screen.getByLabelText("Record type") as HTMLSelectElement).value,
+        ).toBe("canonical");
 
         expandAllRows();
         const parentRow = screen

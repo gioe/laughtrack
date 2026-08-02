@@ -29,6 +29,11 @@ type SortMode =
     | "popularity-desc"
     | "popularity-asc";
 
+type RecordTypeFilter = "all" | "canonical" | "alias" | "blocked";
+type PresenceFilter = "all" | "has" | "missing";
+type PodcastFilter = "all" | "accepted" | "pending" | "none";
+type ShowFilter = "all" | "has" | "none";
+
 function compareByName(a: AdminComedianListItem, b: AdminComedianListItem) {
     return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
 }
@@ -72,8 +77,12 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [rows, setRows] = useState(comedians);
     const [query, setQuery] = useState("");
     const [sort, setSort] = useState<SortMode>("name-asc");
-    const [blockedOnly, setBlockedOnly] = useState(false);
-    const [canonicalOnly, setCanonicalOnly] = useState(false);
+    const [recordType, setRecordType] = useState<RecordTypeFilter>("all");
+    const [imageFilter, setImageFilter] = useState<PresenceFilter>("all");
+    const [podcastFilter, setPodcastFilter] = useState<PodcastFilter>("all");
+    const [showFilter, setShowFilter] = useState<ShowFilter>("all");
+    const [instagramFilter, setInstagramFilter] =
+        useState<PresenceFilter>("all");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
     const [pendingRowIds, setPendingRowIds] = useState<Set<number>>(
@@ -97,10 +106,57 @@ export default function AdminComedianManager({ comedians }: Props) {
         const normalizedQuery = query.trim().toLowerCase();
         return sortRows(
             rows.filter((row) => {
-                if (blockedOnly && !row.isBlocked) {
+                if (recordType === "blocked" && !row.isBlocked) {
                     return false;
                 }
-                if (canonicalOnly && (row.isBlocked || row.parent !== null)) {
+                if (
+                    recordType === "canonical" &&
+                    (row.isBlocked || row.parent !== null)
+                ) {
+                    return false;
+                }
+                if (
+                    recordType === "alias" &&
+                    (row.isBlocked || row.parent === null)
+                ) {
+                    return false;
+                }
+                if (imageFilter === "has" && !row.hasImage) {
+                    return false;
+                }
+                if (imageFilter === "missing" && row.hasImage) {
+                    return false;
+                }
+                if (
+                    podcastFilter === "accepted" &&
+                    row.attributedPodcasts.length === 0
+                ) {
+                    return false;
+                }
+                if (
+                    podcastFilter === "pending" &&
+                    row.podcastCandidateReviews.length === 0
+                ) {
+                    return false;
+                }
+                if (
+                    podcastFilter === "none" &&
+                    (row.attributedPodcasts.length > 0 ||
+                        row.podcastCandidateReviews.length > 0)
+                ) {
+                    return false;
+                }
+                if (showFilter === "has" && row.totalShows === 0) {
+                    return false;
+                }
+                if (showFilter === "none" && row.totalShows > 0) {
+                    return false;
+                }
+                const hasInstagram = Boolean(row.instagramAccount?.trim());
+                if (instagramFilter === "has" && !hasInstagram) {
+                    return false;
+                }
+                if (instagramFilter === "missing" && hasInstagram) {
                     return false;
                 }
                 if (!normalizedQuery) return true;
@@ -110,7 +166,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                     row.websiteScrapingUrl ?? "",
                     row.blockReason ?? "",
                     row.blockAddedBy ?? "",
-                    ...(canonicalOnly
+                    ...(recordType === "canonical"
                         ? []
                         : (childrenByParentId.get(row.id) ?? []).map(
                               (child) => child.name,
@@ -123,7 +179,17 @@ export default function AdminComedianManager({ comedians }: Props) {
             }),
             sort,
         );
-    }, [blockedOnly, canonicalOnly, childrenByParentId, query, rows, sort]);
+    }, [
+        childrenByParentId,
+        imageFilter,
+        instagramFilter,
+        podcastFilter,
+        query,
+        recordType,
+        rows,
+        showFilter,
+        sort,
+    ]);
 
     const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
     const currentPage = clampAdminPage(page, totalPages);
@@ -132,7 +198,16 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     useEffect(() => {
         setPage(1);
-    }, [blockedOnly, canonicalOnly, pageSize, query, sort]);
+    }, [
+        imageFilter,
+        instagramFilter,
+        pageSize,
+        podcastFilter,
+        query,
+        recordType,
+        showFilter,
+        sort,
+    ]);
 
     useEffect(() => {
         setRows(comedians);
@@ -205,52 +280,78 @@ export default function AdminComedianManager({ comedians }: Props) {
                     onChange={setQuery}
                     placeholder="Name, parent, block reason"
                 />
-                <AdminSelectField
-                    label="Sort"
-                    value={sort}
-                    onChange={setSort}
-                    options={[
-                        { value: "name-asc", label: "Name A-Z" },
-                        { value: "name-desc", label: "Name Z-A" },
-                        { value: "created-desc", label: "Newest added" },
-                        { value: "created-asc", label: "Oldest added" },
-                        {
-                            value: "popularity-desc",
-                            label: "Popularity high-low",
-                        },
-                        {
-                            value: "popularity-asc",
-                            label: "Popularity low-high",
-                        },
-                    ]}
-                />
-                <div className="flex flex-wrap items-center gap-3 self-end">
-                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-strong bg-surface-elevated px-3 font-dmSans text-body font-semibold text-foreground">
-                        <input
-                            type="checkbox"
-                            checked={blockedOnly}
-                            onChange={(event) => {
-                                const checked = event.target.checked;
-                                setBlockedOnly(checked);
-                                if (checked) setCanonicalOnly(false);
-                            }}
-                            className="h-4 w-4 accent-copper-dark"
-                        />
-                        Blocked
-                    </label>
-                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-strong bg-surface-elevated px-3 font-dmSans text-body font-semibold text-foreground">
-                        <input
-                            type="checkbox"
-                            checked={canonicalOnly}
-                            onChange={(event) => {
-                                const checked = event.target.checked;
-                                setCanonicalOnly(checked);
-                                if (checked) setBlockedOnly(false);
-                            }}
-                            className="h-4 w-4 accent-copper-dark"
-                        />
-                        Canonical
-                    </label>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <AdminSelectField
+                        label="Record type"
+                        value={recordType}
+                        onChange={setRecordType}
+                        options={[
+                            { value: "all", label: "All records" },
+                            { value: "canonical", label: "Canonical" },
+                            { value: "alias", label: "Aliases" },
+                            { value: "blocked", label: "Blocked" },
+                        ]}
+                    />
+                    <AdminSelectField
+                        label="Image"
+                        value={imageFilter}
+                        onChange={setImageFilter}
+                        options={[
+                            { value: "all", label: "All images" },
+                            { value: "has", label: "Has image" },
+                            { value: "missing", label: "No image" },
+                        ]}
+                    />
+                    <AdminSelectField
+                        label="Podcast"
+                        value={podcastFilter}
+                        onChange={setPodcastFilter}
+                        options={[
+                            { value: "all", label: "All podcasts" },
+                            { value: "accepted", label: "Accepted podcast" },
+                            { value: "pending", label: "Pending review" },
+                            { value: "none", label: "No podcast" },
+                        ]}
+                    />
+                    <AdminSelectField
+                        label="Shows"
+                        value={showFilter}
+                        onChange={setShowFilter}
+                        options={[
+                            { value: "all", label: "All show counts" },
+                            { value: "has", label: "Has shows" },
+                            { value: "none", label: "No shows" },
+                        ]}
+                    />
+                    <AdminSelectField
+                        label="Instagram"
+                        value={instagramFilter}
+                        onChange={setInstagramFilter}
+                        options={[
+                            { value: "all", label: "All Instagram" },
+                            { value: "has", label: "Has Instagram" },
+                            { value: "missing", label: "No Instagram" },
+                        ]}
+                    />
+                    <AdminSelectField
+                        label="Sort"
+                        value={sort}
+                        onChange={setSort}
+                        options={[
+                            { value: "name-asc", label: "Name A-Z" },
+                            { value: "name-desc", label: "Name Z-A" },
+                            { value: "created-desc", label: "Newest added" },
+                            { value: "created-asc", label: "Oldest added" },
+                            {
+                                value: "popularity-desc",
+                                label: "Popularity high-low",
+                            },
+                            {
+                                value: "popularity-asc",
+                                label: "Popularity low-high",
+                            },
+                        ]}
+                    />
                 </div>
             </AdminToolbar>
             {pagination}
@@ -265,7 +366,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                             row={row}
                             allRows={rows}
                             children={
-                                canonicalOnly
+                                recordType === "canonical"
                                     ? []
                                     : (childrenByParentId.get(row.id) ?? [])
                             }
