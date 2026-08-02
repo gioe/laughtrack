@@ -30,6 +30,9 @@ from laughtrack.infrastructure.config.config_manager import ConfigManager
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
+from laughtrack.scrapers.implementations.api.ticketweb.extractor import (
+    TicketWebExtractor,
+)
 
 
 class TicketmasterClient(BaseApiClient):
@@ -114,6 +117,9 @@ class TicketmasterClient(BaseApiClient):
     def _extract_ticketweb_tickets_from_html(cls, event_url: str, html: Optional[str]) -> List[Ticket]:
         if not html or not cls._is_ticketweb_url(event_url):
             return []
+
+        if TicketWebExtractor.is_event_sold_out(html):
+            return [Ticket(price=None, purchase_url=event_url, sold_out=True, type="General Admission")]
 
         if cls._TICKETWEB_UNAVAILABLE_PATTERN.search(html):
             return [Ticket(price=None, purchase_url=event_url, sold_out=True, type="General Admission")]

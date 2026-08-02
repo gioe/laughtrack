@@ -231,6 +231,29 @@ def test_extract_ticket_data_ticketweb_unavailable_html_marks_sold_out(client):
     assert tickets[0].sold_out is True
 
 
+def test_extract_ticket_data_ticketweb_sold_out_header_marks_sold_out(client):
+    event_url = "https://www.ticketweb.com/event/alfred-robles-tickets/14197274"
+    event_data = {
+        "url": event_url,
+        "sales": {"public": {"startDateTime": "2026-06-14T08:05:00Z"}},
+        "dates": {"status": {"code": "onsale"}},
+        "priceRanges": [{"type": "standard", "min": 25, "max": 25}],
+        "_ticketweb_html": """
+            <div class="bg-bg-error-primary">
+                <div class="text-text-error-primary">Sold Out</div>
+            </div>
+            <div>General Admission $37.17 ($25.00 + $12.17 fees)</div>
+        """,
+    }
+
+    tickets = client._extract_ticket_data_from_api(event_data)
+
+    assert len(tickets) == 1
+    assert tickets[0].purchase_url == event_url
+    assert tickets[0].price is None
+    assert tickets[0].sold_out is True
+
+
 def test_extract_ticket_data_non_ticketweb_zero_price_is_preserved(client):
     """Keep explicit zero from non-TicketWeb API events to avoid broad free-ticket regressions."""
     event_data = {
