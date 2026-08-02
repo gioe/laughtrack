@@ -241,6 +241,27 @@ async def test_get_data_detects_ticketweb_page_level_sold_out():
 
 
 @pytest.mark.asyncio
+async def test_get_data_keeps_event_when_ticketweb_purchase_fetch_fails():
+    """Purchase-page enrichment must not drop an otherwise valid event."""
+    scraper = TicketWebScraper(_club())
+    scraper.fetch_html = AsyncMock(return_value=_js_calendar_html([
+        ("Comedy Night", "2099-08-02 19:00:00", "/event/comedy-night"),
+    ]))
+    await scraper.collect_scraping_targets()
+
+    ticket_url = "https://www.ticketweb.com/event/comedy-night-tickets/12345"
+    scraper.fetch_html = AsyncMock(side_effect=[
+        _detail_page_html(ticket_url, "onsale"),
+        RuntimeError("proxy unavailable"),
+    ])
+
+    result = await scraper.get_data("/event/comedy-night")
+
+    assert result.event_list[0].ticket_url == ticket_url
+    assert result.event_list[0].sold_out is False
+
+
+@pytest.mark.asyncio
 async def test_get_data_extracts_price_from_detail_page():
     """get_data() extracts the low end of the tw-price range into the event."""
     scraper = TicketWebScraper(_club())

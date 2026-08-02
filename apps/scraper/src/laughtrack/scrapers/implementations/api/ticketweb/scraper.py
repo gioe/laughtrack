@@ -158,7 +158,14 @@ class TicketWebScraper(BaseScraper):
             price = TicketWebExtractor.extract_price(html)
 
         if ticket_url:
-            ticket_html = await self.fetch_html(ticket_url)
+            try:
+                ticket_html = await self.fetch_html(ticket_url)
+            except Exception as exc:
+                Logger.warn(
+                    f"{self._log_prefix}: failed to fetch TicketWeb purchase "
+                    f"page for {ticket_url}: {exc}"
+                )
+                ticket_html = None
             if ticket_html:
                 sold_out = sold_out or TicketWebExtractor.is_event_sold_out(
                     ticket_html
