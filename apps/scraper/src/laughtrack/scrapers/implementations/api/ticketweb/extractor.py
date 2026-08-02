@@ -14,6 +14,7 @@ from datetime import datetime
 from html import unescape
 from typing import Dict, List, Optional, Tuple
 
+from bs4 import BeautifulSoup
 from dateutil import parser as dateutil_parser
 
 from laughtrack.core.entities.event.ticketweb import TicketWebEvent
@@ -211,6 +212,23 @@ class TicketWebExtractor:
         sold_out = status_class == "ticketssold"
 
         return ticket_url, sold_out
+
+    @staticmethod
+    def is_event_sold_out(html: str) -> bool:
+        """Return whether TicketWeb renders its event-level Sold Out banner.
+
+        Ticket tiers reuse the ``text-text-error-primary`` class for their own
+        Sold Out labels, while event descriptions can mention past sellouts.
+        Requiring the error-banner ancestor and exact normalized title avoids
+        treating either of those as an overall event sellout.
+        """
+        soup = BeautifulSoup(html or "", "html.parser")
+        return any(
+            status.get_text(" ", strip=True).casefold() == "sold out"
+            for status in soup.select(
+                ".bg-bg-error-primary .text-text-error-primary"
+            )
+        )
 
     @staticmethod
     def extract_price(html: str) -> Optional[float]:

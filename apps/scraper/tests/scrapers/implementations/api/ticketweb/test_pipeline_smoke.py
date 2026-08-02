@@ -215,6 +215,32 @@ async def test_get_data_detects_sold_out():
 
 
 @pytest.mark.asyncio
+async def test_get_data_detects_ticketweb_page_level_sold_out():
+    """get_data() follows the purchase page for its event-level status."""
+    scraper = TicketWebScraper(_club())
+    scraper.fetch_html = AsyncMock(return_value=_js_calendar_html([
+        ("Alfred Robles", "2099-08-01 19:00:00", "/event/alfred-robles"),
+    ]))
+    await scraper.collect_scraping_targets()
+
+    ticket_url = "https://www.ticketweb.com/event/alfred-robles-tickets/14197274"
+    scraper.fetch_html = AsyncMock(side_effect=[
+        _detail_page_html(ticket_url, "onsale"),
+        """
+        <div class="bg-bg-error-primary">
+            <div class="text-text-error-primary">Sold Out</div>
+        </div>
+        """,
+    ])
+
+    result = await scraper.get_data("/event/alfred-robles")
+
+    assert result.event_list[0].ticket_url == ticket_url
+    assert result.event_list[0].sold_out is True
+    assert scraper.fetch_html.await_args_list[1].args == (ticket_url,)
+
+
+@pytest.mark.asyncio
 async def test_get_data_extracts_price_from_detail_page():
     """get_data() extracts the low end of the tw-price range into the event."""
     scraper = TicketWebScraper(_club())

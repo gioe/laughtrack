@@ -157,6 +157,13 @@ class TicketWebScraper(BaseScraper):
             ticket_url, sold_out = TicketWebExtractor.extract_ticket_info(html)
             price = TicketWebExtractor.extract_price(html)
 
+        if ticket_url:
+            ticket_html = await self.fetch_html(ticket_url)
+            if ticket_html:
+                sold_out = sold_out or TicketWebExtractor.is_event_sold_out(
+                    ticket_html
+                )
+
         if not ticket_url:
             Logger.warn(
                 f"{self._log_prefix}: No TicketWeb buy link found on {target}"

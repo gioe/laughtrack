@@ -353,6 +353,27 @@ class TestExtractTicketInfo:
 
         assert ticket_url == "https://www.ticketweb.com/event/buy-btn-aaa"
 
+    def test_ignores_tier_sold_out_and_marketing_copy_without_event_header(self):
+        html = """
+        <div class="event-description">
+            Alfred Robles is known for selling out venues nationwide.
+        </div>
+        <section class="bg-bg-tertiary">
+            <span class="text-text-error-primary">Sold Out</span>
+        </section>
+        """
+
+        assert TicketWebExtractor.is_event_sold_out(html) is False
+
+    def test_detects_event_level_sold_out_header(self):
+        html = """
+        <div class="bg-bg-error-primary">
+            <div class="text-text-error-primary"> Sold Out </div>
+        </div>
+        """
+
+        assert TicketWebExtractor.is_event_sold_out(html) is True
+
 
 # ---------------------------------------------------------------------------
 # extract_price — tw-price span on detail pages
