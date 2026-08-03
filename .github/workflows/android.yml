@@ -107,7 +107,7 @@ jobs:
           arch: x86_64
           # Keep the emulator inside the hosted runner's CPU/memory envelope.
           # The project Gradle heap/workers are also capped by the runner script.
-          cores: 2
+          cores: 1
           ram-size: 2048M
           emulator-build: 15507667 # 36.6.11, the last version proven green here
           # Software rendering avoids the Linux gfxstream crash and the hosted

@@ -1,7 +1,9 @@
 package app.laughtrack.android
 
 import android.Manifest
+import android.content.Context
 import android.os.SystemClock
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,7 +22,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.platform.app.InstrumentationRegistry
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.ApiClientModule
@@ -530,9 +531,17 @@ class AppStoreScreenshotTest {
         }
         // Search and profile fields can retain focus after route changes. Screengrab
         // captures the whole device, so an IME left open on one screen otherwise
-        // contaminates every screenshot that follows it.
+        // contaminates every screenshot that follows it. Hide it through the
+        // activity window: Espresso.closeSoftKeyboard() first requires a focused
+        // root and races slow emulator window transitions before the first capture.
         if (dismissKeyboard) {
-            closeSoftKeyboard()
+            composeRule.runOnIdle {
+                val activity = composeRule.activity
+                val inputMethodManager =
+                    activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                inputMethodManager.hideSoftInputFromWindow(activity.window.decorView.windowToken, 0)
+                activity.currentFocus?.clearFocus()
+            }
         }
         settle()
         imageTracker.awaitIdle(timeoutMs = 30_000)
