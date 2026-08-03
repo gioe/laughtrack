@@ -103,6 +103,7 @@ private val COMEDIAN_TABS = listOf("Shows", "Podcasts")
 @Composable
 fun ComedianDetailScreen(
     id: Int,
+    scopedShowIds: List<Int> = emptyList(),
     onBack: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
     onPlay: (PodcastPlaybackItem) -> Unit = {},
@@ -119,6 +120,7 @@ fun ComedianDetailScreen(
                 val ui = s.value
                 ComedianDetailBody(
                     ui = ui,
+                    scopedShowIds = scopedShowIds,
                     onBack = onBack,
                     isFavorite = favoritesSnapshot.comedianValues[ui.detail.uuid] == true,
                     isFavoritePending = viewModel.isFavoritePending(ui.detail.uuid),
@@ -135,6 +137,7 @@ fun ComedianDetailScreen(
 @Composable
 private fun ComedianDetailBody(
     ui: ComedianDetailUi,
+    scopedShowIds: List<Int>,
     onBack: () -> Unit,
     isFavorite: Boolean,
     isFavoritePending: Boolean,
@@ -169,7 +172,7 @@ private fun ComedianDetailBody(
                 ) {
                     ComedianTabPicker(selectedTab = selectedTab, onSelectTab = { selectedTab = it })
                     when (selectedTab) {
-                        0 -> ComedianShowsTab(ui, onOpenEntity)
+                        0 -> ComedianShowsTab(ui, scopedShowIds, onOpenEntity)
                         else ->
                             ComedianPodcastsTab(
                                 appearances = ui.detail.podcastAppearances,
@@ -493,8 +496,17 @@ private fun ComedianTabPicker(
 @Composable
 private fun ComedianShowsTab(
     ui: ComedianDetailUi,
+    scopedShowIds: List<Int>,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
+    val scopedShows =
+        if (scopedShowIds.isEmpty()) {
+            ui.pinnedShows
+        } else {
+            val showsById = ui.upcomingRuns.flatMap { it.shows }.associateBy { it.id }
+            scopedShowIds.mapNotNull(showsById::get)
+        }
+
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
@@ -503,11 +515,11 @@ private fun ComedianShowsTab(
                 color = LaughTrackColors.AccentStrong,
             )
             Text(
-                "Search shows",
+                if (scopedShowIds.isEmpty()) "Search shows" else "Shows in this alert",
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
                 color = LaughTrackColors.Foreground,
             )
-            Row(
+            if (scopedShowIds.isEmpty()) Row(
                 Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -523,11 +535,13 @@ private fun ComedianShowsTab(
             }
         }
 
-        if (ui.pinnedShows.isEmpty()) {
+        if (scopedShows.isEmpty()) {
             EmptyShowsPanel(
                 title = "No shows yet",
                 message =
-                    if (ui.activeZip != null) {
+                    if (scopedShowIds.isNotEmpty()) {
+                        "These shows are no longer available."
+                    } else if (ui.activeZip != null) {
                         "No shows matched this ZIP code yet. Broaden the radius or clear location filters."
                     } else {
                         "No matching shows are available right now."
@@ -535,11 +549,15 @@ private fun ComedianShowsTab(
             )
         } else {
             Text(
-                "Showing ${ui.pinnedShows.size} of ${ui.pinnedShowsTotal}",
+                if (scopedShowIds.isEmpty()) {
+                    "Showing ${scopedShows.size} of ${ui.pinnedShowsTotal}"
+                } else {
+                    "${scopedShows.size} ${if (scopedShows.size == 1) "show" else "shows"} from this notification"
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = LaughTrackColors.ForegroundMuted,
             )
-            ui.pinnedShows.forEach { show ->
+            scopedShows.forEach { show ->
                 val (title, subtitle) = showRowTitleSubtitle(show.name, show.clubName, show.clubCity)
                 TicketShowRow(
                     title = title,
@@ -583,6 +601,8 @@ private fun ComedianRelatedPanel(
     comedians: List<app.laughtrack.android.core.network.generated.model.ComedianLineup>,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
+    if (comedians.isEmpty()) return
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = LaughTrackColors.SurfaceElevated,
@@ -602,17 +622,13 @@ private fun ComedianRelatedPanel(
                 "Often on the same bill",
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black),
             )
-            if (comedians.isEmpty()) {
-                EmptyTab("No related comedians yet.")
-            } else {
-                comedians.take(6).forEach { comedian ->
-                    ShowRow(
-                        title = comedian.name,
-                        subtitle = comedian.showCount?.let { "$it shared shows" },
-                        imageUrl = comedian.imageUrl,
-                        onClick = { onOpenEntity(AppRoute.ComedianDetail(comedian.id)) },
-                    )
-                }
+            comedians.take(6).forEach { comedian ->
+                ShowRow(
+                    title = comedian.name,
+                    subtitle = comedian.showCount?.let { "$it shared shows" },
+                    imageUrl = comedian.imageUrl,
+                    onClick = { onOpenEntity(AppRoute.ComedianDetail(comedian.id)) },
+                )
             }
         }
     }

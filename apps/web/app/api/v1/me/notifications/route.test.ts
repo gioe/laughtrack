@@ -163,6 +163,7 @@ function notificationRow(overrides: Record<string, unknown> = {}) {
         notificationGroupId: null,
         sentAt: new Date("2026-06-20T12:00:00.000Z"),
         comedian: {
+            id: 101,
             name: "Taylor Tomlinson",
             hasImage: true,
             imageAssets: [
@@ -359,6 +360,10 @@ describe("GET /api/v1/me/notifications", () => {
             body.data.items[0].shows.map((s: { showId: number }) => s.showId),
         ).toEqual([555, 556]);
         expect(body.data.items[0].comedians).toHaveLength(1);
+        expect(body.data.items[0].comedians[0]).toMatchObject({
+            id: 101,
+            showIds: [555, 556],
+        });
     });
 
     it("groups multiple comedians in a run into a digest entry", async () => {
@@ -388,6 +393,7 @@ describe("GET /api/v1/me/notifications", () => {
                 comedianId: "comedian-uuid-2",
                 showId: 556,
                 comedian: {
+                    id: 202,
                     name: "Ian Fidance",
                     hasImage: false,
                     imageAssets: [],
@@ -416,6 +422,12 @@ describe("GET /api/v1/me/notifications", () => {
             body: "The Comedy Store, The Stand",
         });
         expect(body.data.items[0].comedians).toHaveLength(2);
+        expect(body.data.items[0].comedians).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ id: 101, showIds: [555] }),
+                expect.objectContaining({ id: 202, showIds: [556] }),
+            ]),
+        );
         expect(body.data.items[0].shows).toHaveLength(2);
     });
 

@@ -29,7 +29,10 @@ sealed interface AppRoute {
     data class ShowDetail(val id: Int) : AppRoute
 
     @Serializable
-    data class ComedianDetail(val id: Int) : AppRoute
+    data class ComedianDetail(
+        val id: Int,
+        val showIds: List<Int> = emptyList(),
+    ) : AppRoute
 
     @Serializable
     data class ClubDetail(val id: Int) : AppRoute

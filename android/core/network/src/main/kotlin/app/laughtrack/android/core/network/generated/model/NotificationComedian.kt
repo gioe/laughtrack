@@ -23,13 +23,19 @@ import kotlinx.serialization.Contextual
 /**
  * 
  *
+ * @param id Numeric comedian id used by native detail routes.
  * @param comedianId Comedian UUID.
  * @param comedianName Comedian display name.
  * @param comedianImageUrl Avatar image URL, or an empty string when unavailable.
+ * @param showIds Shows from this notification that feature the comedian.
  */
 @Serializable
 
 data class NotificationComedian (
+
+    /* Numeric comedian id used by native detail routes. */
+    @SerialName(value = "id")
+    val id: kotlin.Int,
 
     /* Comedian UUID. */
     @SerialName(value = "comedianId")
@@ -41,7 +47,11 @@ data class NotificationComedian (
 
     /* Avatar image URL, or an empty string when unavailable. */
     @SerialName(value = "comedianImageUrl")
-    val comedianImageUrl: kotlin.String
+    val comedianImageUrl: kotlin.String,
+
+    /* Shows from this notification that feature the comedian. */
+    @SerialName(value = "showIds")
+    val showIds: kotlin.collections.List<kotlin.Int>
 
 ) {
 

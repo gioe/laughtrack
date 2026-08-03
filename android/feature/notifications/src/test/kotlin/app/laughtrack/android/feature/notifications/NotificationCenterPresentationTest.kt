@@ -112,28 +112,50 @@ class NotificationCenterPresentationTest {
     }
 
     @Test
-    fun sortingPreservesUnreadPresentationAndNavigationActions() {
+    fun sortingPreservesUnreadPresentationAndComedianNavigationActions() {
         val unreadShow =
             item(
                 title = "unread-show",
                 isUnread = true,
                 sentAt = "2026-07-15T13:00:00-04:00",
-            ).copy(shows = notificationShows(101))
+                comedianNames = listOf("Taylor Tomlinson"),
+            ).let { item ->
+                item.copy(
+                    shows = notificationShows(101),
+                    comedians = item.comedians.map { it.copy(showIds = listOf(101)) },
+                )
+            }
         val grouped =
             item(
                 title = "grouped",
                 isUnread = false,
                 sentAt = "2026-07-14T13:00:00-04:00",
-            ).copy(shows = notificationShows(201, 202), route = "favorites")
+                comedianNames = listOf("Taylor Tomlinson", "Sam Jay"),
+            ).let { item ->
+                item.copy(
+                    shows = notificationShows(201, 202),
+                    comedians =
+                        item.comedians.mapIndexed { index, comedian ->
+                            comedian.copy(showIds = listOf(201 + index))
+                        },
+                    route = "favorites",
+                )
+            }
         val sorted = NotificationSortOrder.OLDEST.sorted(listOf(unreadShow, grouped))
 
         assertEquals(listOf("grouped", "unread-show"), sorted.map { it.id })
         assertTrue(notificationRowPresentation(sorted.last(), now).isUnread)
         assertFalse(notificationRowPresentation(sorted.first(), now).isUnread)
-        assertEquals(AppRoute.ShowDetail(101), unreadShow.tapRoute())
-        assertEquals(101, unreadShow.analyticsShowId())
-        assertEquals(AppRoute.Favorites(listOf(201, 202)), grouped.tapRoute())
-        assertEquals(0, grouped.analyticsShowId())
+        val firstComedian = unreadShow.comedians.single()
+        val groupedComedians = grouped.comedians
+        assertEquals(AppRoute.ComedianDetail(100, listOf(101)), firstComedian.detailRoute())
+        assertEquals(
+            listOf(
+                AppRoute.ComedianDetail(100, listOf(201)),
+                AppRoute.ComedianDetail(101, listOf(202)),
+            ),
+            groupedComedians.map { it.detailRoute() },
+        )
     }
 
     private fun item(
@@ -151,9 +173,11 @@ class NotificationCenterPresentationTest {
         comedians =
             comedianNames.mapIndexed { index, name ->
                 NotificationComedian(
+                    id = 100 + index,
                     comedianId = "comedian-$index",
                     comedianName = name,
                     comedianImageUrl = "",
+                    showIds = emptyList(),
                 )
             },
         shows = emptyList(),

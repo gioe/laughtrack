@@ -215,8 +215,10 @@ fun AppShell(
                         )
                     }
                     composable<AppRoute.ComedianDetail> { entry ->
+                        val route = entry.toRoute<AppRoute.ComedianDetail>()
                         ComedianDetailScreen(
-                            id = entry.toRoute<AppRoute.ComedianDetail>().id,
+                            id = route.id,
+                            scopedShowIds = route.showIds,
                             onBack = { navController.popBackStack() },
                             onOpenEntity = navController::openEntity,
                             onPlay = { item -> playbackController?.play(item) },

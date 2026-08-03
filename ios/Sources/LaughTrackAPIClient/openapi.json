@@ -3697,11 +3697,17 @@
       },
       "NotificationComedian": {
         "type": "object",
-        "required": ["comedianId", "comedianName", "comedianImageUrl"],
+        "required": ["id", "comedianId", "comedianName", "comedianImageUrl", "showIds"],
         "properties": {
+          "id": { "type": "integer", "description": "Numeric comedian id used by native detail routes." },
           "comedianId": { "type": "string", "description": "Comedian UUID." },
           "comedianName": { "type": "string", "description": "Comedian display name." },
-          "comedianImageUrl": { "type": "string", "description": "Avatar image URL, or an empty string when unavailable." }
+          "comedianImageUrl": { "type": "string", "description": "Avatar image URL, or an empty string when unavailable." },
+          "showIds": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "description": "Shows from this notification that feature the comedian."
+          }
         }
       },
       "NotificationItem": {

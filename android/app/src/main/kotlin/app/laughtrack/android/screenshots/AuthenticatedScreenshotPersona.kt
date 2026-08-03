@@ -30,6 +30,8 @@ import java.time.ZonedDateTime
 object AuthenticatedScreenshotPersona {
     const val COMEDIAN_UUID = "00000000-0000-4000-8000-000000000101"
     const val SECOND_COMEDIAN_UUID = "00000000-0000-4000-8000-000000000102"
+    const val COMEDIAN_ID = 910_001
+    const val SECOND_COMEDIAN_ID = 910_002
     const val SHOW_ID = 910_101
     const val SECOND_SHOW_ID = 910_102
     const val UPCOMING_SAVED_SHOW_ID = 910_103
@@ -211,9 +213,11 @@ object AuthenticatedScreenshotPersona {
                         comedians =
                             listOf(
                                 NotificationComedian(
+                                    id = COMEDIAN_ID,
                                     comedianId = COMEDIAN_UUID,
                                     comedianName = "Taylor Tomlinson",
                                     comedianImageUrl = "",
+                                    showIds = listOf(SHOW_ID),
                                 ),
                             ),
                         shows =
@@ -242,14 +246,18 @@ object AuthenticatedScreenshotPersona {
                         comedians =
                             listOf(
                                 NotificationComedian(
+                                    id = COMEDIAN_ID,
                                     comedianId = COMEDIAN_UUID,
                                     comedianName = "Taylor Tomlinson",
                                     comedianImageUrl = "",
+                                    showIds = listOf(SHOW_ID),
                                 ),
                                 NotificationComedian(
+                                    id = SECOND_COMEDIAN_ID,
                                     comedianId = SECOND_COMEDIAN_UUID,
                                     comedianName = "Sam Jay",
                                     comedianImageUrl = "",
+                                    showIds = listOf(SECOND_SHOW_ID),
                                 ),
                             ),
                         shows =

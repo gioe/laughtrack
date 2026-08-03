@@ -93,57 +93,93 @@ struct NotificationCenterView: View {
             LazyVStack(spacing: theme.spacing.sm) {
                 NotificationSortPicker(selection: $model.sort, openDropdownID: $openDropdownID)
                 ForEach(items) { item in
-                            Button {
-                                switch item.tap {
-                                case .show(let showId):
-                                    analytics?.track(
-                                        NotificationsAnalyticsEvents.cardTapped,
-                                        parameters: [
-                                            NotificationsAnalyticsEvents.Param.showId: showId
-                                        ]
-                                    )
-                                    coordinator.push(.showDetail(showId))
-                                case .favorites(let showIDs):
-                                    analytics?.track(
-                                        NotificationsAnalyticsEvents.cardTapped,
-                                        parameters: [
-                                            NotificationsAnalyticsEvents.Param.showId: 0
-                                        ]
-                                    )
-                                    coordinator.push(.library(showIDs))
-                                }
-                            } label: {
-                                NotificationRow(item: item)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier(LaughTrackViewTestID.notificationRow)
-                        }
+                    NotificationCard(item: item, onOpenComedian: openComedian)
+                        .accessibilityIdentifier(LaughTrackViewTestID.notificationRow)
+                }
             }
             .padding(theme.spacing.lg)
         }
     }
 
-    private func loadLiveNotifications() async {
-            await model.loadIfNeeded(apiClient: apiClient)
-            // Opening the center is the "seen" signal — but only mark seen once
-            // the feed actually loaded. Marking seen after a failed/never-loaded
-            // fetch would stamp the high-water mark and silently clear
-            // notifications the user never got to see. On success, refresh
-            // currentUser so the profile-button badge (driven by /me
-            // notificationsUnreadCount) clears on next render.
-            guard case .loaded = model.phase else { return }
-            // Record the open with the count that was waiting, before mark-seen
-            // zeroes it.
-            analytics?.track(
-                NotificationsAnalyticsEvents.viewed,
-                parameters: [
-                    NotificationsAnalyticsEvents.Param.unreadCount: model.unreadCount
-                ]
-            )
-            if await model.markSeen(apiClient: apiClient) {
-                await authManager.refreshCurrentUser()
-            }
+    private func openComedian(_ comedian: NotificationCenterComedian) {
+        analytics?.track(
+            NotificationsAnalyticsEvents.cardTapped,
+            parameters: [NotificationsAnalyticsEvents.Param.showId: comedian.showIDs.first ?? 0]
+        )
+        coordinator.push(.comedianDetail(comedian.id, showIDs: comedian.showIDs))
     }
+
+    private func loadLiveNotifications() async {
+        await model.loadIfNeeded(apiClient: apiClient)
+        // Opening the center is the "seen" signal — but only mark seen once
+        // the feed actually loaded. Marking seen after a failed/never-loaded
+        // fetch would stamp the high-water mark and silently clear
+        // notifications the user never got to see. On success, refresh
+        // currentUser so the profile-button badge (driven by /me
+        // notificationsUnreadCount) clears on next render.
+        guard case .loaded = model.phase else { return }
+        // Record the open with the count that was waiting, before mark-seen
+        // zeroes it.
+        analytics?.track(
+            NotificationsAnalyticsEvents.viewed,
+            parameters: [
+                NotificationsAnalyticsEvents.Param.unreadCount: model.unreadCount
+            ]
+        )
+        if await model.markSeen(apiClient: apiClient) {
+            await authManager.refreshCurrentUser()
+        }
+    }
+}
+
+private struct NotificationCard: View {
+    let item: NotificationCenterItem
+    let onOpenComedian: (NotificationCenterComedian) -> Void
+
+    @State private var isExpanded = false
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        VStack(spacing: theme.spacing.xs) {
+            if item.comedians.count > 1 {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        isExpanded.toggle()
+                    }
+                } label: {
+                    NotificationRow(item: item, accessory: .expand(isExpanded))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(isExpanded ? "Hide comedians" : "Show comedians")
+
+                if isExpanded {
+                    ForEach(item.comedians) { comedian in
+                        Button {
+                            onOpenComedian(comedian)
+                        } label: {
+                            NotificationComedianOptionRow(comedian: comedian)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            } else if let comedian = item.comedians.first {
+                Button {
+                    onOpenComedian(comedian)
+                } label: {
+                    NotificationRow(item: item, accessory: .navigate)
+                }
+                .buttonStyle(.plain)
+            } else {
+                NotificationRow(item: item, accessory: .none)
+            }
+        }
+    }
+}
+
+private enum NotificationRowAccessory {
+    case navigate
+    case expand(Bool)
+    case none
 }
 
 private struct NotificationSortPicker: View {
@@ -170,6 +206,7 @@ private struct NotificationSortPicker: View {
 
 private struct NotificationRow: View {
     let item: NotificationCenterItem
+    let accessory: NotificationRowAccessory
 
     @Environment(\.appTheme) private var theme
 
@@ -199,10 +236,21 @@ private struct NotificationRow: View {
 
             Spacer(minLength: 0)
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(tokens.colors.textSecondary)
-                .padding(.top, 4)
+            switch accessory {
+            case .navigate:
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(tokens.colors.textSecondary)
+                    .padding(.top, 4)
+            case .expand(let isExpanded):
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(tokens.colors.textSecondary)
+                    .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                    .padding(.top, 4)
+            case .none:
+                EmptyView()
+            }
         }
         .padding(theme.spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -276,6 +324,58 @@ private struct NotificationRow: View {
     private var relativeSentAt: String? {
         guard let sentAt = item.sentAt else { return nil }
         return Self.relativeFormatter.localizedString(for: sentAt, relativeTo: Date())
+    }
+}
+
+private struct NotificationComedianOptionRow: View {
+    let comedian: NotificationCenterComedian
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let tokens = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.sm) {
+            ZStack {
+                Circle().fill(tokens.colors.surfaceMuted)
+                if let imageURL = comedian.imageURL {
+                    CachedAsyncImage(url: imageURL) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        fallback
+                    } error: { _ in
+                        fallback
+                    }
+                } else {
+                    fallback
+                }
+            }
+            .frame(width: 38, height: 38)
+            .clipShape(Circle())
+
+            Text(comedian.name)
+                .font(tokens.typography.body.weight(.semibold))
+                .foregroundStyle(tokens.colors.textPrimary)
+
+            Spacer(minLength: 0)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(tokens.colors.textSecondary)
+        }
+        .padding(.horizontal, theme.spacing.md)
+        .padding(.vertical, theme.spacing.sm)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(tokens.colors.surfaceMuted)
+        )
+        .padding(.leading, theme.spacing.lg)
+    }
+
+    private var fallback: some View {
+        Image(systemName: ArtworkFallbackKind.person.systemImage)
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
     }
 }
 

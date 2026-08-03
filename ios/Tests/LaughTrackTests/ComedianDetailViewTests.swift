@@ -153,6 +153,21 @@ struct ComedianDetailViewTests {
         #expect(labels.contains("4 upcoming shows in 2 cities"))
     }
 
+    @Test("notification show IDs scope and order the comedian detail shows")
+    func notificationShowIDsScopeAndOrderShows() {
+        let runs = [
+            fallbackRun(showIDs: [301, 302]),
+            fallbackRun(showIDs: [303]),
+        ]
+
+        let shows = ComedianNotificationShowsPresentation.shows(
+            from: runs,
+            scopedShowIDs: [303, 301, 999]
+        )
+
+        #expect(shows.map(\.id) == [303, 301])
+    }
+
     @Test("comedian stats omit city count when no city is available")
     func comedianStatsOmitCityCountWhenMissing() {
         let comedian = DemoContent.primaryComedian

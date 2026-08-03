@@ -34,9 +34,11 @@ interface NotificationShow {
 }
 
 interface NotificationComedian {
+    id: number;
     comedianId: string;
     comedianName: string;
     comedianImageUrl: string;
+    showIds: number[];
 }
 
 interface NotificationItem {
@@ -249,6 +251,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             sentAt: true,
             comedian: {
                 select: {
+                    id: true,
                     name: true,
                     hasImage: true,
                     imageAssets: {
@@ -311,7 +314,11 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         >();
         const comediansById = new Map<
             string,
-            { comedian: NotificationComedian; date: Date | null }
+            {
+                comedian: Omit<NotificationComedian, "showIds">;
+                showIds: Set<number>;
+                date: Date | null;
+            }
         >();
 
         for (const row of groupRows) {
@@ -319,7 +326,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             const comedianName = row.comedian?.name ?? "A comedian you follow";
             const showDate = row.show?.date ?? null;
 
-            if (!comediansById.has(row.comedianId)) {
+            if (row.comedian && !comediansById.has(row.comedianId)) {
                 const comedianImageUrl = row.comedian
                     ? buildComedianImageUrls({
                           name: comedianName,
@@ -329,13 +336,16 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     : "";
                 comediansById.set(row.comedianId, {
                     comedian: {
+                        id: row.comedian.id,
                         comedianId: row.comedianId,
                         comedianName,
                         comedianImageUrl,
                     },
+                    showIds: new Set(),
                     date: showDate,
                 });
             }
+            comediansById.get(row.comedianId)?.showIds.add(row.showId);
 
             if (!showsById.has(row.showId)) {
                 const club = row.show?.club;
@@ -364,7 +374,10 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             .map((s) => s.show);
         const comedians = Array.from(comediansById.values())
             .sort(byDateAsc)
-            .map((c) => c.comedian);
+            .map(({ comedian, showIds }) => ({
+                ...comedian,
+                showIds: Array.from(showIds),
+            }));
         const comedianNames = comedians.map((c) => c.comedianName);
         const grouped = shows.length > 1;
         const primary = comedians[0] ?? null;
@@ -373,7 +386,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             id: key,
             title: buildGroupTitle(comedianNames, shows.length),
             // Single-show entry carries the show subtitle; a grouped entry gets a
-            // compact venue summary (the full list is on the Favorites tab).
+            // compact venue summary (clients expose its comedians as destinations).
             body: grouped
                 ? summarizeShowVenues(shows)
                 : (shows[0]?.subtitle ?? ""),

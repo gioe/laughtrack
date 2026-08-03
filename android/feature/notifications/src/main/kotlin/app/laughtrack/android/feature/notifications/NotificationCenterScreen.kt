@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -43,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.NotificationItem
+import app.laughtrack.android.core.network.generated.model.NotificationComedian
 import app.laughtrack.android.core.network.generated.model.NotificationListResponseData
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
@@ -164,7 +167,16 @@ private fun NotificationList(
                 )
             }
             items(sortedItems, key = { it.id }) { item ->
-                NotificationRow(item, now) { onCardTap(item.tapRoute(), item.analyticsShowId()) }
+                NotificationCard(
+                    item = item,
+                    now = now,
+                    onOpenComedian = { comedian ->
+                        onCardTap(
+                            comedian.detailRoute(),
+                            comedian.showIds.firstOrNull() ?: 0,
+                        )
+                    },
+                )
             }
         }
     }
@@ -223,22 +235,49 @@ internal enum class NotificationSortOrder(
 
 internal val DEFAULT_NOTIFICATION_SORT_ORDER = NotificationSortOrder.RECENT
 
-/** A single-show entry opens that show; a grouped entry opens the Favorites tab
- *  (which lists the shows). Mirrors the grouped push's route key. */
-internal fun NotificationItem.tapRoute(): AppRoute =
-    if (route == "favorites") {
-        AppRoute.Favorites(shows.map { it.showId })
-    } else {
-        shows.firstOrNull()?.let { AppRoute.ShowDetail(it.showId) } ?: AppRoute.Favorites()
-    }
+internal fun NotificationComedian.detailRoute(): AppRoute = AppRoute.ComedianDetail(id, showIds)
 
-/** Show id for the tap analytics event; 0 for a grouped (Favorites) tap. */
-internal fun NotificationItem.analyticsShowId(): Int = if (route == "favorites") 0 else shows.firstOrNull()?.showId ?: 0
+@Composable
+private fun NotificationCard(
+    item: NotificationItem,
+    now: ZonedDateTime,
+    onOpenComedian: (NotificationComedian) -> Unit,
+) {
+    var isExpanded by rememberSaveable(item.id) { mutableStateOf(false) }
+    val hasMultipleComedians = item.comedians.size > 1
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        NotificationRow(
+            item = item,
+            now = now,
+            isExpandable = hasMultipleComedians,
+            isExpanded = isExpanded,
+            onClick = {
+                if (hasMultipleComedians) {
+                    isExpanded = !isExpanded
+                } else {
+                    item.comedians.firstOrNull()?.let(onOpenComedian)
+                }
+            },
+        )
+
+        if (hasMultipleComedians && isExpanded) {
+            item.comedians.forEach { comedian ->
+                NotificationComedianOption(
+                    comedian = comedian,
+                    onClick = { onOpenComedian(comedian) },
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun NotificationRow(
     item: NotificationItem,
     now: ZonedDateTime,
+    isExpandable: Boolean,
+    isExpanded: Boolean,
     onClick: () -> Unit,
 ) {
     val presentation = notificationRowPresentation(item, now)
@@ -320,7 +359,54 @@ private fun NotificationRow(
                 }
             }
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                imageVector =
+                    if (isExpandable) {
+                        Icons.Filled.KeyboardArrowDown
+                    } else {
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight
+                    },
+                contentDescription = null,
+                tint = LaughTrackColors.ForegroundMuted,
+                modifier =
+                    Modifier
+                        .size(20.dp)
+                        .rotate(if (isExpandable && isExpanded) 180f else 0f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun NotificationComedianOption(
+    comedian: NotificationComedian,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(start = 28.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = LaughTrackColors.SurfaceMuted,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RemoteImage(
+                url = comedian.comedianImageUrl,
+                contentDescription = null,
+                fallback = RemoteImageFallback.Comedian,
+                modifier = Modifier.size(38.dp).clip(CircleShape),
+            )
+            Text(
+                comedian.comedianName,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = LaughTrackColors.Foreground,
+            )
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 tint = LaughTrackColors.ForegroundMuted,
                 modifier = Modifier.size(20.dp),

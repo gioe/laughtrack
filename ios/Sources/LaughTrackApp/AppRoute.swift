@@ -7,7 +7,7 @@ enum AppRoute: Hashable, Codable {
     case profile
     case notifications
     case showDetail(Int)
-    case comedianDetail(Int)
+    case comedianDetail(Int, showIDs: [Int] = [])
     case clubDetail(Int)
     case podcastDetail(Int)
     case podcastEpisodeDetail(Int)

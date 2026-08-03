@@ -1643,6 +1643,10 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/NotificationComedian`.
         public struct NotificationComedian: Codable, Hashable, Sendable {
+            /// Numeric comedian id used by native detail routes.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationComedian/id`.
+            public var id: Swift.Int
             /// Comedian UUID.
             ///
             /// - Remark: Generated from `#/components/schemas/NotificationComedian/comedianId`.
@@ -1655,25 +1659,37 @@ public enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/NotificationComedian/comedianImageUrl`.
             public var comedianImageUrl: Swift.String
+            /// Shows from this notification that feature the comedian.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationComedian/showIds`.
+            public var showIds: [Swift.Int]
             /// Creates a new `NotificationComedian`.
             ///
             /// - Parameters:
+            ///   - id: Numeric comedian id used by native detail routes.
             ///   - comedianId: Comedian UUID.
             ///   - comedianName: Comedian display name.
             ///   - comedianImageUrl: Avatar image URL, or an empty string when unavailable.
+            ///   - showIds: Shows from this notification that feature the comedian.
             public init(
+                id: Swift.Int,
                 comedianId: Swift.String,
                 comedianName: Swift.String,
-                comedianImageUrl: Swift.String
+                comedianImageUrl: Swift.String,
+                showIds: [Swift.Int]
             ) {
+                self.id = id
                 self.comedianId = comedianId
                 self.comedianName = comedianName
                 self.comedianImageUrl = comedianImageUrl
+                self.showIds = showIds
             }
             public enum CodingKeys: String, CodingKey {
+                case id
                 case comedianId
                 case comedianName
                 case comedianImageUrl
+                case showIds
             }
         }
         /// - Remark: Generated from `#/components/schemas/NotificationItem`.

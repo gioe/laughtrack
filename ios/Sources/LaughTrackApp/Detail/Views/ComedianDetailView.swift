@@ -5,6 +5,7 @@ import LaughTrackCore
 
 struct ComedianDetailView: View {
     let comedianID: Int
+    let scopedShowIDs: [Int]
     let apiClient: Client
 
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
@@ -21,8 +22,9 @@ struct ComedianDetailView: View {
     @State private var activeTab: ComedianDetailTab = .shows
     @State private var activatedTabs: Set<ComedianDetailTab> = [.shows]
 
-    init(comedianID: Int, apiClient: Client) {
+    init(comedianID: Int, scopedShowIDs: [Int] = [], apiClient: Client) {
         self.comedianID = comedianID
+        self.scopedShowIDs = scopedShowIDs
         self.apiClient = apiClient
         _model = StateObject(wrappedValue: ComedianDetailModel(comedianID: comedianID))
     }
@@ -80,11 +82,21 @@ struct ComedianDetailView: View {
 
                             ZStack(alignment: .top) {
                                 VStack(alignment: .leading, spacing: 20) {
-                                    PinnedShowsList(
-                                        apiClient: apiClient,
-                                        nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                                        pinnedComedianName: comedian.name
-                                    )
+                                    if scopedShowIDs.isEmpty {
+                                        PinnedShowsList(
+                                            apiClient: apiClient,
+                                            nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                                            pinnedComedianName: comedian.name
+                                        )
+                                    } else {
+                                        ComedianNotificationShowsPanel(
+                                            shows: ComedianNotificationShowsPresentation.shows(
+                                                from: content.upcomingRuns,
+                                                scopedShowIDs: scopedShowIDs
+                                            ),
+                                            onOpenShow: { showID in coordinator.open(.show(showID)) }
+                                        )
+                                    }
 
                                     ComedianRelatedPanel(
                                         relatedComedians: content.relatedComedians,
@@ -206,6 +218,42 @@ struct ComedianDetailView: View {
             loginModalPresenter.present()
         case .failure(let message):
             feedbackMessage = message
+        }
+    }
+}
+
+enum ComedianNotificationShowsPresentation {
+    static func shows(
+        from runs: [Components.Schemas.UpcomingRun],
+        scopedShowIDs: [Int]
+    ) -> [Components.Schemas.Show] {
+        let showsByID = Dictionary(uniqueKeysWithValues: runs.flatMap(\.shows).map { ($0.id, $0) })
+        return scopedShowIDs.compactMap { showsByID[$0] }
+    }
+}
+
+private struct ComedianNotificationShowsPanel: View {
+    let shows: [Components.Schemas.Show]
+    let onOpenShow: (Int) -> Void
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            LaughTrackSectionHeader(eyebrow: "Notification", title: "Shows in this alert")
+
+            if shows.isEmpty {
+                EmptyCard(message: "These shows are no longer available.")
+            } else {
+                ForEach(shows, id: \.id) { show in
+                    Button {
+                        onOpenShow(show.id)
+                    } label: {
+                        ShowRow(show: show, presentation: .compactTicket)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 }
@@ -472,16 +520,11 @@ struct ComedianRelatedPanel: View {
             currentComedianUUID: currentComedianUUID
         )
 
-        LaughTrackCard(tone: .muted, density: .tight) {
-            VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(eyebrow: "Shared bills", title: "Often on the same bill")
+        if !ranked.isEmpty {
+            LaughTrackCard(tone: .muted, density: .tight) {
+                VStack(alignment: .leading, spacing: 12) {
+                    LaughTrackSectionHeader(eyebrow: "Shared bills", title: "Often on the same bill")
 
-                if ranked.isEmpty {
-                    EmptyCard(
-                        title: "No related comedians yet",
-                        message: "LaughTrack hasn't matched this comedian with shared-bill comedians yet."
-                    )
-                } else {
                     ForEach(ranked, id: \.uuid) { relatedComedian in
                         ComedianLineupRow(
                             comedian: relatedComedian,

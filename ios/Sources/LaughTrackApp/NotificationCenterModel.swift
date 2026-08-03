@@ -115,18 +115,15 @@ enum NotificationSortOption: String, CaseIterable, Identifiable {
 /// `NotificationItem`. The model owns the API mapping so the view stays
 /// rendering-only and the mapping is unit-testable without hosting any SwiftUI.
 struct NotificationCenterItem: Identifiable, Equatable {
-    /// Where tapping the row navigates. A single-show entry opens that show; a
-    /// grouped entry opens the Favorites tab, which lists the entry's shows.
+    /// Where tapping a comedian in the row navigates.
     enum Tap: Equatable {
-        case show(Int)
-        /// Grouped entry → Favorites tab, scoped to these show ids.
-        case favorites([Int])
+        case comedian(Int, showIDs: [Int])
     }
 
     let id: String
     let title: String
     let body: String
-    let tap: Tap
+    let comedians: [NotificationCenterComedian]
     let channels: [String]
     let comedianImageURL: URL?
     /// Soonest show date in the entry; drives the "upcoming show" sort.
@@ -143,6 +140,7 @@ struct NotificationCenterItem: Identifiable, Equatable {
         body = item.body
         channels = item.channels
         comedianImageURL = URL.normalizedExternalURL(item.comedianImageUrl)
+        comedians = item.comedians.map(NotificationCenterComedian.init(comedian:))
 
         // shows are soonest-first per the API contract.
         let showDates = item.shows.map { NotificationCenterItem.parseTimestamp($0.showDate ?? "") }
@@ -158,15 +156,11 @@ struct NotificationCenterItem: Identifiable, Equatable {
         sentAt = NotificationCenterItem.parseTimestamp(item.sentAt)
         isUnread = item.isUnread
 
-        // Grouped entries route to Favorites; single-show entries open the show.
-        // showId is still the older-client fallback but here we prefer `route`.
-        if item.route == "favorites" {
-            tap = .favorites(item.shows.map { $0.showId })
-        } else if let firstShow = item.shows.first {
-            tap = .show(firstShow.showId)
-        } else {
-            tap = .favorites([])
-        }
+    }
+
+    var tap: Tap? {
+        guard comedians.count == 1, let comedian = comedians.first else { return nil }
+        return .comedian(comedian.id, showIDs: comedian.showIDs)
     }
 
     /// Test/preview convenience initializer.
@@ -174,7 +168,7 @@ struct NotificationCenterItem: Identifiable, Equatable {
         id: String,
         title: String,
         body: String,
-        tap: Tap,
+        comedians: [NotificationCenterComedian] = [],
         channels: [String],
         comedianImageURL: URL? = nil,
         showDate: Date? = nil,
@@ -185,7 +179,7 @@ struct NotificationCenterItem: Identifiable, Equatable {
         self.id = id
         self.title = title
         self.body = body
-        self.tap = tap
+        self.comedians = comedians
         self.channels = channels
         self.comedianImageURL = comedianImageURL
         self.showDate = showDate
@@ -199,7 +193,7 @@ struct NotificationCenterItem: Identifiable, Equatable {
             id: id,
             title: title,
             body: body,
-            tap: tap,
+            comedians: comedians,
             channels: channels,
             comedianImageURL: comedianImageURL,
             showDate: showDate,
@@ -216,6 +210,27 @@ struct NotificationCenterItem: Identifiable, Equatable {
 
     static func parseTimestamp(_ raw: String) -> Date? {
         Date.laughTrackISO8601(raw)
+    }
+}
+
+struct NotificationCenterComedian: Identifiable, Equatable {
+    let id: Int
+    let name: String
+    let imageURL: URL?
+    let showIDs: [Int]
+
+    init(id: Int, name: String, imageURL: URL? = nil, showIDs: [Int]) {
+        self.id = id
+        self.name = name
+        self.imageURL = imageURL
+        self.showIDs = showIDs
+    }
+
+    init(comedian: Components.Schemas.NotificationComedian) {
+        id = comedian.id
+        name = comedian.comedianName
+        imageURL = URL.normalizedExternalURL(comedian.comedianImageUrl)
+        showIDs = comedian.showIds
     }
 }
 
