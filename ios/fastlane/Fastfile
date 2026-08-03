@@ -3,6 +3,7 @@ require "fileutils"
 require "json"
 require "open3"
 require "socket"
+require "timeout"
 require "tmpdir"
 
 default_platform(:ios)
@@ -193,7 +194,9 @@ end
 def with_screenshot_fixture_server
   log_path = File.join(Dir.tmpdir, "laughtrack-screenshot-fixture.log")
   pid = Process.spawn(
-    "python3", SCREENSHOT_FIXTURE_SERVER_PATH, "--port", SCREENSHOT_FIXTURE_PORT.to_s,
+    "python3", SCREENSHOT_FIXTURE_SERVER_PATH,
+    "--host", "127.0.0.1",
+    "--port", SCREENSHOT_FIXTURE_PORT.to_s,
     out: log_path, err: [:child, :out],
   )
   ready = false
@@ -202,14 +205,18 @@ def with_screenshot_fixture_server
       UI.user_error!("Screenshot fixture backend exited early:\n#{File.read(log_path)}")
     end
     begin
-      TCPSocket.open("127.0.0.1", SCREENSHOT_FIXTURE_PORT, &:close)
+      Timeout.timeout(0.25) do
+        TCPSocket.open("127.0.0.1", SCREENSHOT_FIXTURE_PORT, &:close)
+      end
       ready = true
       break
-    rescue Errno::ECONNREFUSED
+    rescue SystemCallError, Timeout::Error
       sleep(0.05)
     end
   end
-  UI.user_error!("Screenshot fixture backend did not become ready") unless ready
+  unless ready
+    UI.user_error!("Screenshot fixture backend did not become ready:\n#{File.read(log_path)}")
+  end
   previous_port = ENV["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"]
   ENV["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"] = SCREENSHOT_FIXTURE_PORT.to_s
   yield
