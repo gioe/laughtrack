@@ -168,7 +168,7 @@ cd android
 
 CI (`.github/workflows/android.yml`, path-gated on `android/**`) runs the
 instrumented suites on every push/PR via `reactivecircus/android-emulator-runner`
-(API 34, x86_64, host-rendered `macos-15-intel`): the job targets
+(API 34, x86_64, software-rendered `macos-15-intel`): the job targets
 `:core:ui:connectedDebugAndroidTest` (RemoteImageFallbackTest) and then
 `:app:connectedDebugAndroidTest` explicitly — never project-wide, because
 runner-less modules crash the legacy instrumentation runner. The emulator uses

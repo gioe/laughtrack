@@ -140,6 +140,24 @@ wait_for_online_device() {
   return 1
 }
 
+configure_test_device() {
+  # A cold software-rendered emulator can briefly report system_server as not
+  # responding even after sys.boot_completed=1. Suppress the resulting system
+  # dialog so it cannot steal focus from Compose roots during instrumentation.
+  adb -s "$SERIAL" shell settings put global hide_error_dialogs 1
+  adb -s "$SERIAL" shell settings put secure anr_show_background 0 || true
+  adb -s "$SERIAL" shell am broadcast \
+    -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null || true
+
+  local hide_error_dialogs=""
+  hide_error_dialogs="$(adb -s "$SERIAL" shell settings get global hide_error_dialogs | tr -d '\r')"
+  if [[ "$hide_error_dialogs" != "1" ]]; then
+    echo "Failed to suppress emulator error dialogs (value=${hide_error_dialogs:-unset})" >&2
+    return 1
+  fi
+  echo "Emulator system error dialogs suppressed for instrumentation"
+}
+
 run_suite() {
   local label="$1"
   local task="$2"
@@ -165,6 +183,7 @@ trap on_exit EXIT
 
 adb start-server
 wait_for_online_device "logcat capture"
+configure_test_device
 adb -s "$SERIAL" logcat -c || true
 adb -s "$SERIAL" logcat -v threadtime >"$LOGCAT_FILE" 2>&1 &
 LOGCAT_PID=$!

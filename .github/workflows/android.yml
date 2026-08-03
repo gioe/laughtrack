@@ -107,13 +107,13 @@ jobs:
           arch: x86_64
           # Keep the emulator inside the hosted runner's CPU/memory envelope.
           # The project Gradle heap/workers are also capped by the runner script.
-          cores: 1
+          cores: 2
           ram-size: 2048M
           emulator-build: 15507667 # 36.6.11, the last version proven green here
-          # The isolated Intel macOS runner can use host rendering without the
-          # Linux gfxstream crash. A phone-sized viewport keeps all screenshot
-          # actions visible without the cost of a high-density hardware profile.
-          emulator-options: -no-window -gpu host -skin 390x844 -feature -Vulkan -no-snapshot -noaudio -no-boot-anim -no-metrics
+          # Software rendering avoids the Linux gfxstream crash and the hosted
+          # Mac's non-accelerated "host" renderer. A phone-sized viewport keeps
+          # all screenshot actions visible without a high-density profile.
+          emulator-options: -no-window -gpu software -skin 390x844 -feature -Vulkan -no-snapshot -noaudio -no-boot-anim -no-metrics
           working-directory: android
           # Starting ADB first lets the emulator register immediately instead
           # of racing the action's first sys.boot_completed poll.
