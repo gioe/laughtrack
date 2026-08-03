@@ -9527,6 +9527,14 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/clubs/search/GET/query/includeEmpty`.
                 public var includeEmpty: Swift.String?
+                /// Optional 5-digit US ZIP code used as the search origin
+                ///
+                /// - Remark: Generated from `#/paths/clubs/search/GET/query/zip`.
+                public var zip: Swift.String?
+                /// Radius in miles (1-500, default 25 when zip is provided)
+                ///
+                /// - Remark: Generated from `#/paths/clubs/search/GET/query/distance`.
+                public var distance: Swift.Int?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
@@ -9536,13 +9544,17 @@ public enum Operations {
                 ///   - page: Zero-indexed page number
                 ///   - size:
                 ///   - includeEmpty: Include clubs with no upcoming shows
+                ///   - zip: Optional 5-digit US ZIP code used as the search origin
+                ///   - distance: Radius in miles (1-500, default 25 when zip is provided)
                 public init(
                     club: Swift.String? = nil,
                     sort: Swift.String? = nil,
                     filters: Swift.String? = nil,
                     page: Swift.Int? = nil,
                     size: Swift.Int? = nil,
-                    includeEmpty: Swift.String? = nil
+                    includeEmpty: Swift.String? = nil,
+                    zip: Swift.String? = nil,
+                    distance: Swift.Int? = nil
                 ) {
                     self.club = club
                     self.sort = sort
@@ -9550,6 +9562,8 @@ public enum Operations {
                     self.page = page
                     self.size = size
                     self.includeEmpty = includeEmpty
+                    self.zip = zip
+                    self.distance = distance
                 }
             }
             public var query: Operations.SearchClubs.Input.Query
@@ -9667,7 +9681,7 @@ public enum Operations {
                     self.body = body
                 }
             }
-            /// Invalid X-Timezone header (non-IANA value)
+            /// Invalid ZIP, distance, or X-Timezone header
             ///
             /// - Remark: Generated from `#/paths//clubs/search/get(searchClubs)/responses/400`.
             ///

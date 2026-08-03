@@ -1073,6 +1073,18 @@
             "schema": { "type": "string" }
           },
           {
+            "name": "zip",
+            "in": "query",
+            "description": "Optional 5-digit US ZIP code used as the search origin",
+            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "description": "Radius in miles (1-500, default 25 when zip is provided)",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 500, "default": 25 }
+          },
+          {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
@@ -1089,7 +1101,7 @@
             }
           },
           "400": {
-            "description": "Invalid X-Timezone header (non-IANA value)",
+            "description": "Invalid ZIP, distance, or X-Timezone header",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }

@@ -84,7 +84,7 @@ interface ClubsApi {
      * 
      * Responses:
      *  - 200: Search results
-     *  - 400: Invalid X-Timezone header (non-IANA value)
+     *  - 400: Invalid ZIP, distance, or X-Timezone header
      *  - 429: Rate limit exceeded
      *  - 500: Server error
      *
@@ -94,10 +94,12 @@ interface ClubsApi {
      * @param page Zero-indexed page number (optional)
      * @param size  (optional)
      * @param includeEmpty Include clubs with no upcoming shows (optional)
+     * @param zip Optional 5-digit US ZIP code used as the search origin (optional)
+     * @param distance Radius in miles (1-500, default 25 when zip is provided) (optional, default to 25)
      * @param xTimezone IANA timezone identifier (defaults to UTC) (optional, default to "UTC")
      * @return [ClubSearchResponse]
      */
     @GET("clubs/search")
-    suspend fun searchClubs(@Query("club") club: kotlin.String? = null, @Query("sort") sort: kotlin.String? = null, @Query("filters") filters: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("includeEmpty") includeEmpty: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<ClubSearchResponse>
+    suspend fun searchClubs(@Query("club") club: kotlin.String? = null, @Query("sort") sort: kotlin.String? = null, @Query("filters") filters: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("includeEmpty") includeEmpty: kotlin.String? = null, @Query("zip") zip: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = 25, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<ClubSearchResponse>
 
 }
