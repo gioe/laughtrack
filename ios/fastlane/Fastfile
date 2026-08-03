@@ -339,13 +339,15 @@ platform :ios do
 
   desc "Run the iOS test suite on the pinned iOS 18.x simulator (dodges iOS 26.x HostedView regression — see ios/CLAUDE.md)"
   lane :test do
-    run_tests(
-      scheme: SCHEME,
-      destination: "platform=iOS Simulator,name=#{TEST_SIM_NAME},OS=#{TEST_IOS_VERSION}",
-      clean: false,
-      code_coverage: false,
-      skip_slack: true
-    )
+    with_screenshot_fixture_server do
+      run_tests(
+        scheme: SCHEME,
+        destination: "platform=iOS Simulator,name=#{TEST_SIM_NAME},OS=#{TEST_IOS_VERSION}",
+        clean: false,
+        code_coverage: false,
+        skip_slack: true
+      )
+    end
   end
 
   desc "Watcher: run the iOS test suite against the latest iOS 26.x simulator (expected to fail until Apple fixes the HostedView regression)"
