@@ -88,7 +88,7 @@ struct MarqueeHeroLetterboxTests {
         #expect(comedianBlock.contains("ClubWallHeadshotFrame("))
         #expect(source.contains("enum ClubVenueMarqueeStyle"))
         #expect(source.contains("static let artworkToBoardSpacing: CGFloat = 10"))
-        #expect(source.contains("dash: [0.1, 10]"))
+        #expect(source.contains("dash: [0.1, 12]"))
         #expect(source.contains(".frame(minHeight: 44)"))
         #expect(clubBlock.contains("ClubVenueMarqueeStyle.paper"))
         #expect(clubBlock.contains("ClubVenueMarqueeStyle.bulbStroke"))
