@@ -1,6 +1,5 @@
 package app.laughtrack.android.feature.detail.ui
 
-import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.network.generated.api.ComediansApi
 import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.core.network.generated.model.ComedianDetail
@@ -95,7 +94,6 @@ class ComedianDetailViewModelTest {
         ComedianDetailViewModel(
             repository = ComedianDetailRepository(comediansApi, FakeShowsApi()),
             favoritesRepository = signedOutFavoritesRepository(),
-            homeLocationState = HomeLocationState(),
         )
 
     private class FakeShowsApi : ShowsApi by throwingApi() {

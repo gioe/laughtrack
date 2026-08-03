@@ -5,6 +5,8 @@ import app.laughtrack.android.core.network.generated.api.ComediansApi
 import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import app.laughtrack.android.feature.detail.model.ComedianDetailUi
+import app.laughtrack.android.feature.detail.model.ComedianPinnedShowsPage
+import app.laughtrack.android.feature.detail.model.DEFAULT_COMEDIAN_DISTANCE_MILES
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
@@ -34,7 +36,7 @@ class ComedianDetailRepository(
         id: Int,
         zip: String? = null,
         locationLabel: String? = null,
-        distanceMiles: Int = 25,
+        distanceMiles: Int? = null,
     ): ComedianDetailUi =
         coroutineScope {
             val detailResponse = comediansApi.getComedian(id)
@@ -65,27 +67,53 @@ class ComedianDetailRepository(
             val pinnedShowsDeferred =
                 async {
                     runCatchingCancellable {
-                        showsApi.searchShows(
+                        getPinnedShows(
+                            comedianName = detail.name,
                             zip = zip,
-                            distance = distanceMiles,
-                            comedian = detail.name,
+                            distanceMiles = distanceMiles,
                             page = 0,
-                            size = 20,
-                        ).body()
+                        )
                     }.getOrNull()
                 }
-            val pinnedShowsResponse = pinnedShowsDeferred.await()
+            val pinnedShowsPage = pinnedShowsDeferred.await()
 
             ComedianDetailUi(
                 detail = detail,
                 upcomingRuns = upcomingDeferred.await(),
                 pastShows = pastShowsDeferred.await(),
                 coBill = coBillDeferred.await(),
-                pinnedShows = pinnedShowsResponse?.data.orEmpty(),
-                pinnedShowsTotal = pinnedShowsResponse?.total ?: 0,
+                pinnedShows = pinnedShowsPage?.shows.orEmpty(),
+                pinnedShowsTotal = pinnedShowsPage?.total ?: 0,
+                currentPinnedShowsPage = pinnedShowsPage?.page ?: 0,
                 activeZip = zip,
                 activeLocationLabel = locationLabel,
-                activeDistanceMiles = distanceMiles,
+                activeDistanceMiles = distanceMiles ?: DEFAULT_COMEDIAN_DISTANCE_MILES,
             )
         }
+
+    suspend fun getPinnedShows(
+        comedianName: String,
+        zip: String?,
+        distanceMiles: Int?,
+        page: Int,
+    ): ComedianPinnedShowsPage {
+        val response =
+            showsApi.searchShows(
+                zip = zip,
+                distance = distanceMiles,
+                comedian = comedianName,
+                page = page,
+                size = PINNED_SHOWS_PAGE_SIZE,
+            )
+        val body = response.body() ?: error("Comedian shows unavailable (HTTP ${response.code()})")
+        return ComedianPinnedShowsPage(
+            shows = body.data,
+            total = body.total,
+            page = page,
+        )
+    }
+
+    private companion object {
+        const val PINNED_SHOWS_PAGE_SIZE = 20
+    }
 }

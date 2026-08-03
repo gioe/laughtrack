@@ -45,7 +45,18 @@ data class ComedianDetailUi(
     val coBill: List<ComedianLineup>,
     val pinnedShows: List<Show> = emptyList(),
     val pinnedShowsTotal: Int = 0,
+    val currentPinnedShowsPage: Int = 0,
     val activeZip: String? = null,
     val activeLocationLabel: String? = null,
-    val activeDistanceMiles: Int = 25,
+    val activeDistanceMiles: Int = DEFAULT_COMEDIAN_DISTANCE_MILES,
+) {
+    val canLoadMorePinnedShows: Boolean get() = pinnedShows.size < pinnedShowsTotal
+}
+
+data class ComedianPinnedShowsPage(
+    val shows: List<Show>,
+    val total: Int,
+    val page: Int,
 )
+
+const val DEFAULT_COMEDIAN_DISTANCE_MILES = 25

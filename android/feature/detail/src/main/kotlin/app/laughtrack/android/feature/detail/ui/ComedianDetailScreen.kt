@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -44,6 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,6 +70,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -99,6 +103,8 @@ import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.showRowTitleSubtitle
 
 private val COMEDIAN_TABS = listOf("Shows", "Podcasts")
+private val COMEDIAN_DISTANCE_OPTIONS = listOf(10, 25, 50, 100)
+private const val ZIP_LENGTH = 5
 
 @Composable
 fun ComedianDetailScreen(
@@ -111,6 +117,7 @@ fun ComedianDetailScreen(
 ) {
     LaunchedEffect(id) { viewModel.load(id) }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isLoadingShows by viewModel.isLoadingShows.collectAsStateWithLifecycle()
     val favoritesSnapshot by viewModel.favoritesSnapshot.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize()) {
@@ -127,6 +134,11 @@ fun ComedianDetailScreen(
                     onFavorite = { viewModel.toggleFavorite(ui.detail.uuid) },
                     onOpenEntity = onOpenEntity,
                     onPlay = onPlay,
+                    isLoadingShows = isLoadingShows,
+                    onLocation = viewModel::setLocation,
+                    onClearLocation = viewModel::clearLocation,
+                    onDistance = viewModel::setDistance,
+                    onLoadMoreShows = viewModel::loadMoreShows,
                 )
             }
             else -> DetailLoading(Modifier.fillMaxSize())
@@ -144,6 +156,11 @@ private fun ComedianDetailBody(
     onFavorite: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
     onPlay: (PodcastPlaybackItem) -> Unit,
+    isLoadingShows: Boolean,
+    onLocation: (String?) -> Unit,
+    onClearLocation: () -> Unit,
+    onDistance: (Int) -> Unit,
+    onLoadMoreShows: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     Column(
@@ -172,7 +189,17 @@ private fun ComedianDetailBody(
                 ) {
                     ComedianTabPicker(selectedTab = selectedTab, onSelectTab = { selectedTab = it })
                     when (selectedTab) {
-                        0 -> ComedianShowsTab(ui, scopedShowIds, onOpenEntity)
+                        0 ->
+                            ComedianShowsTab(
+                                ui = ui,
+                                scopedShowIds = scopedShowIds,
+                                isLoadingShows = isLoadingShows,
+                                onLocation = onLocation,
+                                onClearLocation = onClearLocation,
+                                onDistance = onDistance,
+                                onLoadMore = onLoadMoreShows,
+                                onOpenEntity = onOpenEntity,
+                            )
                         else ->
                             ComedianPodcastsTab(
                                 appearances = ui.detail.podcastAppearances,
@@ -497,6 +524,11 @@ private fun ComedianTabPicker(
 private fun ComedianShowsTab(
     ui: ComedianDetailUi,
     scopedShowIds: List<Int>,
+    isLoadingShows: Boolean,
+    onLocation: (String?) -> Unit,
+    onClearLocation: () -> Unit,
+    onDistance: (Int) -> Unit,
+    onLoadMore: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     val scopedShows =
@@ -519,23 +551,33 @@ private fun ComedianShowsTab(
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
                 color = LaughTrackColors.Foreground,
             )
-            if (scopedShowIds.isEmpty()) Row(
-                Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                ComedianFilterPill("${ui.activeDistanceMiles} mi", Icons.Filled.ArrowDropDown)
-                ComedianFilterPill(
-                    ui.activeLocationLabel?.let { "Location $it" }
-                        ?: ui.activeZip?.let { "Location $it" }
-                        ?: "Location",
-                    Icons.Filled.LocationOn,
-                    active = ui.activeZip != null,
-                )
-                ComedianFilterPill("Any date", Icons.Filled.CalendarMonth)
+            if (scopedShowIds.isEmpty()) {
+                Row(
+                    Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    ComedianDistancePill(
+                        distanceMiles = ui.activeDistanceMiles,
+                        onDistance = onDistance,
+                    )
+                    ComedianLocationPill(
+                        zip = ui.activeZip,
+                        locationLabel = ui.activeLocationLabel,
+                        onLocation = onLocation,
+                        onClear = onClearLocation,
+                    )
+                    ComedianFilterPill("Any date", Icons.Filled.CalendarMonth)
+                }
             }
         }
 
-        if (scopedShows.isEmpty()) {
+        if (scopedShows.isEmpty() && isLoadingShows) {
+            Text(
+                "Loading shows…",
+                style = MaterialTheme.typography.bodyMedium,
+                color = LaughTrackColors.ForegroundMuted,
+            )
+        } else if (scopedShows.isEmpty()) {
             EmptyShowsPanel(
                 title = "No shows yet",
                 message =
@@ -570,6 +612,26 @@ private fun ComedianShowsTab(
             }
         }
 
+        if (scopedShowIds.isEmpty() && ui.canLoadMorePinnedShows) {
+            Surface(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(999.dp))
+                        .clickable(enabled = !isLoadingShows, onClick = onLoadMore),
+                color = LaughTrackColors.Surface,
+                shape = RoundedCornerShape(999.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+            ) {
+                Text(
+                    if (isLoadingShows) "Loading…" else "Load more shows",
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                )
+            }
+        }
+
         ComedianRelatedPanel(ui.coBill, onOpenEntity)
     }
 }
@@ -579,8 +641,18 @@ private fun ComedianFilterPill(
     label: String,
     icon: ImageVector,
     active: Boolean = false,
+    onClick: (() -> Unit)? = null,
 ) {
+    val modifier =
+        if (onClick == null) {
+            Modifier
+        } else {
+            Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .clickable(onClick = onClick)
+        }
     Surface(
+        modifier = modifier,
         shape = RoundedCornerShape(999.dp),
         color = if (active) LaughTrackColors.Highlight else LaughTrackColors.Surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
@@ -593,6 +665,96 @@ private fun ComedianFilterPill(
             Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(label, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
         }
+    }
+}
+
+@Composable
+private fun ComedianDistancePill(
+    distanceMiles: Int,
+    onDistance: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        ComedianFilterPill(
+            label = "$distanceMiles mi",
+            icon = Icons.Filled.ArrowDropDown,
+            onClick = { expanded = true },
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            COMEDIAN_DISTANCE_OPTIONS.forEach { miles ->
+                DropdownMenuItem(
+                    text = { Text("$miles mi") },
+                    trailingIcon =
+                        if (miles == distanceMiles) {
+                            { Icon(Icons.Filled.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    onClick = {
+                        expanded = false
+                        onDistance(miles)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ComedianLocationPill(
+    zip: String?,
+    locationLabel: String?,
+    onLocation: (String?) -> Unit,
+    onClear: () -> Unit,
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    ComedianFilterPill(
+        label =
+            locationLabel?.takeIf { it.isNotBlank() }?.let { "Location $it" }
+                ?: zip?.let { "Location $it" }
+                ?: "Location",
+        icon = Icons.Filled.LocationOn,
+        active = zip != null,
+        onClick = { showDialog = true },
+    )
+    if (showDialog) {
+        var zipText by remember(zip) { mutableStateOf(zip.orEmpty()) }
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Filter tour by location") },
+            text = {
+                OutlinedTextField(
+                    value = zipText,
+                    onValueChange = { entry -> zipText = entry.filter(Char::isDigit).take(ZIP_LENGTH) },
+                    label = { Text("ZIP code") },
+                    supportingText = { Text("Enter a 5-digit US ZIP code.") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = zipText.length == ZIP_LENGTH,
+                    onClick = {
+                        onLocation(zipText)
+                        showDialog = false
+                    },
+                ) { Text("Apply") }
+            },
+            dismissButton = {
+                Row {
+                    if (zip != null) {
+                        TextButton(
+                            onClick = {
+                                onClear()
+                                showDialog = false
+                            },
+                        ) { Text("Clear") }
+                    }
+                    TextButton(onClick = { showDialog = false }) { Text("Cancel") }
+                }
+            },
+        )
     }
 }
 
