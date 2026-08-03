@@ -6,6 +6,8 @@ import { auth } from "@/auth";
 import { withRequestMetrics } from "@/lib/metrics";
 import { personalizedReadCacheHeaders } from "@/lib/httpCache";
 
+const DEFAULT_DISTANCE = "25";
+
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "clubs-search");
     if (rl instanceof NextResponse) return rl;
@@ -18,6 +20,32 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const page = sp.get("page");
     const size = sp.get("size") ?? undefined;
     const includeEmpty = sp.get("includeEmpty") ?? undefined;
+    const rawZip = sp.get("zip");
+    const zip = rawZip?.trim() || undefined;
+    const distance = sp.get("distance");
+
+    if (zip && !/^\d{5}$/.test(zip)) {
+        return NextResponse.json(
+            { error: "zip must be a 5-digit US postal code" },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
+
+    if (distance !== null) {
+        const distanceNum = Number(distance);
+        if (
+            !Number.isInteger(distanceNum) ||
+            distanceNum < 1 ||
+            distanceNum > 500
+        ) {
+            return NextResponse.json(
+                {
+                    error: "distance must be an integer between 1 and 500 miles",
+                },
+                { status: 400, headers: rateLimitHeaders(rl) },
+            );
+        }
+    }
 
     const tzResult = readTimezoneHeader(req);
     if (!tzResult.ok) {
@@ -46,6 +74,8 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                         : undefined,
                 size,
                 includeEmpty,
+                zip,
+                distance: zip ? (distance ?? DEFAULT_DISTANCE) : undefined,
             },
             timezone,
             ...(profileId ? { profileId, userId } : {}),
@@ -57,7 +87,15 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 total: result.total,
                 filters: result.filters,
             },
-            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: profileId != null, varyOnTimezone: true }) } },
+            {
+                headers: {
+                    ...rateLimitHeaders(rl),
+                    ...personalizedReadCacheHeaders(req, {
+                        authed: profileId != null,
+                        varyOnTimezone: true,
+                    }),
+                },
+            },
         );
     } catch (error) {
         console.error("GET /api/v1/clubs/search error:", error);

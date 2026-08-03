@@ -115,6 +115,7 @@ export async function findClubsWithCount(
     try {
         const now = new Date();
         const includeEmpty = queryHelper.params.includeEmpty === "true";
+        const zipCodeClause = queryHelper.getZipCodeClause();
         // Collapse multi-location chains to one flagship card in the default
         // browse. Skipped when a specific chain is selected, so all of that
         // chain's locations remain visible.
@@ -131,6 +132,7 @@ export async function findClubsWithCount(
             // clubDiscoveryProfile-backed programming filters are derived from persisted show_type mix.
             ...queryHelper.getClubDiscoveryProfileFiltersClause(),
             ...queryHelper.getChainClause(),
+            ...zipCodeClause,
             ...(!includeEmpty && {
                 shows: { some: { date: { gt: now } } },
             }),
