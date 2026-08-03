@@ -11,10 +11,10 @@ data class SortOption(
     val label: String,
 )
 
-/** Distance radius choices (miles) for the geo-scoped Shows pivot. Mirrors iOS ShowDistanceOption. */
+/** Distance radius choices (miles) for geo-scoped search pivots. */
 val DISTANCE_OPTIONS: List<Int> = listOf(10, 25, 50, 100)
 
-/** Default radius when a ZIP is set but no distance chosen (iOS defaults to "city" = 25). */
+/** Default radius when a ZIP is set but no distance is chosen. */
 const val DEFAULT_DISTANCE_MILES: Int = 25
 
 /**

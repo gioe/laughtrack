@@ -382,6 +382,8 @@ private fun SearchControls(
                 SortPill(pivot = pivot, selected = query.sort, onSort = onSort)
                 if (pivot.isGeoScoped) {
                     LocationPill(zip = query.zip, locationLabel = locationLabel, onZip = onZip)
+                }
+                if (pivot == SearchPivot.SHOWS) {
                     DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
                 }
                 if (pivot.supportsTagFilters) {
@@ -543,7 +545,7 @@ private fun SortPill(
     }
 }
 
-/** Distance dropdown (Shows only) — 10/25/50/100 mi radius applied to the geo search. */
+/** Distance dropdown — 10/25/50/100 mi radius applied to a geo-scoped search. */
 @Composable
 private fun DistancePill(
     distance: Int?,

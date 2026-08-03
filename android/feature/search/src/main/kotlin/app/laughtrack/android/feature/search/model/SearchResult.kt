@@ -50,14 +50,13 @@ fun searchResultSummary(
 }
 
 /**
- * Per-pivot query inputs. [zip]/[distance]/[from]/[to] only apply to the
- * geo-scoped Shows pivot; [text] filters comedians/clubs and is a comedian-name
+ * Per-pivot query inputs. [zip]/[distance] apply to geo-scoped pivots; [from]/[to]
+ * only apply to Shows. [text] filters comedians/clubs and is a comedian-name
  * query for shows, matching iOS unified search; [sort] is the server sort key.
- * [from]/[to] are inclusive YYYY-MM-DD
- * bounds set by the date-range picker (or the Home Tonight / This Week
- * shortcuts). [filters] holds selected tag slugs (joined into the `filters`
- * query param); [homeCity] is the `city|state` token for the comedians
- * home-city filter. Changing any field resets pagination and re-queries.
+ * [from]/[to] are inclusive YYYY-MM-DD bounds set by the date-range picker.
+ * [filters] holds selected tag slugs (joined into the `filters` query param);
+ * [homeCity] is the `city|state` token for the comedians home-city filter.
+ * Changing any field resets pagination and re-queries.
  */
 data class SearchQuery(
     val text: String = "",

@@ -88,7 +88,7 @@ class SearchViewModel
         val state: StateFlow<SearchUiState> = _state.asStateFlow()
 
         private val loadJobs = mutableMapOf<SearchPivot, Job>()
-        private var userEditedLocation = false
+        private val userEditedLocationPivots = mutableSetOf<SearchPivot>()
 
         // Debounce free-text typing so only the settled query hits the API; immediate
         // filters (zip/sort) go through updateQuery directly.
@@ -133,10 +133,10 @@ class SearchViewModel
         /** Set the server sort key for the active pivot (from the sort dropdown). */
         fun setSort(apiValue: String) = updateQuery { it.copy(sort = apiValue) }
 
-        /** Set or clear the Shows ZIP filter. Explicit Search location edits stop Home sync. */
+        /** Set or clear the active geo pivot's ZIP filter. Explicit edits stop its Home sync. */
         fun setZip(zip: String?) {
-            userEditedLocation = true
             val pivot = _state.value.pivot
+            if (pivot.isGeoScoped) userEditedLocationPivots += pivot
             updatePivot(pivot) {
                 it.copy(
                     query = it.query.copy(zip = zip?.takeIf { value -> value.isNotBlank() }),
@@ -147,9 +147,10 @@ class SearchViewModel
             reload(pivot)
         }
 
-        /** Set the geo radius (miles) for the Shows pivot (from the distance dropdown). */
+        /** Set the active geo pivot's radius (miles) from the distance dropdown. */
         fun setDistance(miles: Int) {
-            userEditedLocation = true
+            val pivot = _state.value.pivot
+            if (pivot.isGeoScoped) userEditedLocationPivots += pivot
             updateQuery { it.copy(distance = miles) }
         }
 
@@ -205,29 +206,35 @@ class SearchViewModel
         }
 
         private fun applyHomeLocation(location: HomeLocation?) {
-            if (userEditedLocation) return
-            val pivot = SearchPivot.SHOWS
             val nextZip = location?.zip
             val nextDistance = location?.distanceMiles ?: DEFAULT_DISTANCE_MILES
-            val current = _state.value.states.getValue(pivot)
-            if (
-                current.query.zip == nextZip &&
-                current.query.distance == nextDistance &&
-                current.locationLabel == location?.locationLabel
-            ) {
-                return
-            }
+            var reloadActivePivot = false
 
-            updatePivot(pivot) {
-                it.copy(
-                    query = it.query.copy(zip = nextZip, distance = nextDistance),
-                    locationLabel = location?.locationLabel,
-                    results = PagedList(),
-                    loaded = false,
-                )
-            }
-            if (_state.value.pivot == pivot) {
-                reload(pivot)
+            SearchPivot.entries
+                .filter { it.isGeoScoped && it !in userEditedLocationPivots }
+                .forEach { pivot ->
+                    val current = _state.value.states.getValue(pivot)
+                    if (
+                        current.query.zip == nextZip &&
+                        current.query.distance == nextDistance &&
+                        current.locationLabel == location?.locationLabel
+                    ) {
+                        return@forEach
+                    }
+
+                    updatePivot(pivot) {
+                        it.copy(
+                            query = it.query.copy(zip = nextZip, distance = nextDistance),
+                            locationLabel = location?.locationLabel,
+                            results = PagedList(),
+                            loaded = false,
+                        )
+                    }
+                    reloadActivePivot = reloadActivePivot || _state.value.pivot == pivot
+                }
+
+            if (reloadActivePivot) {
+                reload(_state.value.pivot)
             }
         }
 

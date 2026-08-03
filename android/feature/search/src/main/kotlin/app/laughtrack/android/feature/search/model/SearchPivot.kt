@@ -1,8 +1,8 @@
 package app.laughtrack.android.feature.search.model
 
 /**
- * The four Search pivots, mirroring iOS SearchRootView. Shows is geo-scoped (zip +
- * distance); Comedians/Clubs/Podcasts are nationwide text/filter searches.
+ * The four Search pivots, mirroring iOS SearchRootView. Shows and Clubs are
+ * geo-scoped (zip + distance); Comedians and Podcasts are nationwide searches.
  */
 enum class SearchPivot(
     val label: String,
@@ -18,6 +18,6 @@ enum class SearchPivot(
 ) {
     SHOWS("Shows", isGeoScoped = true),
     COMEDIANS("Comedians", isGeoScoped = false),
-    CLUBS("Clubs", isGeoScoped = false),
+    CLUBS("Clubs", isGeoScoped = true),
     PODCASTS("Podcasts", isGeoScoped = false, supportsTagFilters = false),
 }

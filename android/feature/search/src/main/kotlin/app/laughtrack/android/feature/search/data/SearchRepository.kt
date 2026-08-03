@@ -33,7 +33,7 @@ private fun Set<String>.toFiltersParam(): String? = takeIf { it.isNotEmpty() }?.
 
 /**
  * Wraps the generated search APIs and normalizes each entity into [SearchResult].
- * Shows is geo-scoped (zip/distance); Comedians/Clubs/Podcasts are nationwide.
+ * Shows and Clubs are geo-scoped (zip/distance); Comedians and Podcasts are nationwide.
  * The X-Timezone header is set globally by the network interceptor.
  */
 class SearchRepository
@@ -152,6 +152,8 @@ class SearchRepository
             val response =
                 clubsApi.searchClubs(
                     club = query.text.ifBlank { null },
+                    zip = query.zip,
+                    distance = query.distance,
                     sort = query.sort,
                     filters = query.filters.toFiltersParam(),
                     page = page,
