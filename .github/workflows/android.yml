@@ -114,10 +114,11 @@ jobs:
           cores: 1
           ram-size: 2048M
           emulator-build: 15507667 # 36.6.11, the last version proven green here
-          # swiftshader_indirect is deprecated as of emulator 36.4.9 and its
-          # gfxstream RenderThread segfaulted under the first Compose app test.
-          # The direct software renderer avoids that unstable host path.
-          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -no-metrics
+          # The first Compose app test crashed gfxstream with both indirect
+          # SwiftShader (RenderThread segfault) and direct SwiftShader (lost
+          # ColorBuffer). Let 36.6.11 select its compatibility software backend
+          # and disable unused Vulkan so the headless run stays on GLES.
+          emulator-options: -no-window -gpu software -feature -Vulkan -no-snapshot -noaudio -no-boot-anim -no-metrics
           working-directory: android
           # Starting ADB first lets the emulator register immediately instead
           # of racing the action's first sys.boot_completed poll.
