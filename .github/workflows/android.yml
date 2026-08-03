@@ -105,11 +105,19 @@ jobs:
         working-directory: .
 
       - name: Run connected (instrumented) tests
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
         with:
           api-level: 34
           arch: x86_64
+          # Keep the emulator inside the hosted runner's memory envelope. The
+          # project Gradle heap is also capped by run-instrumented-tests-ci.
+          ram-size: 2048M
+          emulator-build: 15507667 # 36.6.11, the last version proven green here
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
           working-directory: android
+          # Starting ADB first lets the emulator register immediately instead
+          # of racing the action's first sys.boot_completed poll.
+          pre-emulator-launch-script: adb start-server
           # Only modules that declare an AndroidJUnitRunner + androidTest sources
           # are targeted (currently :app with the Hilt-backed AppShellTest +
           # AppStoreScreenshotTest, and :core:ui with RemoteImageFallbackTest from
@@ -119,9 +127,24 @@ jobs:
           # reports "Process crashed" — add modules here explicitly as they gain
           # instrumented suites. Separate invocations so each module's result is
           # attributable in the log even when the other is red.
-          script: |
-            gradle :core:ui:connectedDebugAndroidTest --no-daemon --stacktrace
-            gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace
+          script: ./bin/run-instrumented-tests-ci
+
+      # The emulator action can fail before its custom script starts (AVD
+      # creation or boot timeout). Preserve the same host/device evidence on
+      # that path; test failures also get a pre-cleanup snapshot from the
+      # script's EXIT trap.
+      - name: Capture emulator failure diagnostics
+        if: failure()
+        run: ./bin/run-instrumented-tests-ci --diagnostics-only
+
+      - name: Upload emulator failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-emulator-diagnostics
+          path: ${{ runner.temp }}/android-emulator-diagnostics
+          if-no-files-found: warn
+          retention-days: 14
 
   # Alert on Discord when any job fails on a push to main. Merges to main land
   # via direct fast-forward push, which bypasses required status checks, so these

@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+readonly SERIAL="${ANDROID_SERIAL:-emulator-${EMULATOR_PORT:-5554}}"
+readonly DIAGNOSTICS_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/android-emulator-diagnostics"
+readonly SUMMARY_FILE="$DIAGNOSTICS_DIR/summary.txt"
+readonly LOGCAT_FILE="$DIAGNOSTICS_DIR/logcat.txt"
+readonly FIXTURE_LOG="$DIAGNOSTICS_DIR/screenshot-fixture.txt"
+readonly GRADLE_BIN="${GRADLE_BIN:-gradle}"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+LOGCAT_PID=""
+FIXTURE_PID=""
+
+mkdir -p "$DIAGNOSTICS_DIR"
+
+capture_diagnostics() {
+  local exit_code="${1:-1}"
+  local reason="${2:-failure}"
+
+  # Diagnostics must never mask the failure that triggered them. Commands are
+  # intentionally best-effort because ADB is commonly unavailable on this path.
+  set +e
+  {
+    echo "Android emulator diagnostics"
+    echo "reason=$reason"
+    echo "exit_code=$exit_code"
+    echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "serial=$SERIAL"
+    echo
+
+    echo "=== ADB ==="
+    adb version
+    adb devices -l
+    adb -s "$SERIAL" get-state
+    adb -s "$SERIAL" shell getprop sys.boot_completed
+    adb -s "$SERIAL" shell getprop
+    adb -s "$SERIAL" shell dumpsys activity processes | head -n 500
+    echo
+
+    echo "=== Runner processes ==="
+    ps -eo pid,ppid,%mem,%cpu,rss,vsz,stat,command | head -n 250
+    echo
+
+    echo "=== Runner memory ==="
+    free -h || vm_stat
+    echo
+
+    echo "=== Runner disk ==="
+    df -h
+    echo
+
+    echo "=== Kernel messages ==="
+    sudo -n dmesg --ctime | tail -n 250
+    journalctl -k -n 250 --no-pager
+    echo
+
+    echo "=== Emulator files ==="
+    find /tmp/android-runner "$HOME/.android/avd" -maxdepth 3 -type f \
+      \( -name '*.db' -o -name '*.log' -o -name '*.ini' \) -print
+  } 2>&1 | tee -a "$SUMMARY_FILE"
+
+  if [[ -d /tmp/android-runner ]]; then
+    mkdir -p "$DIAGNOSTICS_DIR/android-runner"
+    cp -R /tmp/android-runner/. "$DIAGNOSTICS_DIR/android-runner/"
+  fi
+  set -e
+}
+
+stop_logcat() {
+  if [[ -n "$LOGCAT_PID" ]]; then
+    kill "$LOGCAT_PID" 2>/dev/null || true
+    wait "$LOGCAT_PID" 2>/dev/null || true
+  fi
+}
+
+stop_fixture_server() {
+  if [[ -n "$FIXTURE_PID" ]]; then
+    kill "$FIXTURE_PID" 2>/dev/null || true
+    wait "$FIXTURE_PID" 2>/dev/null || true
+  fi
+}
+
+start_fixture_server() {
+  python3 "$REPO_ROOT/scripts/screenshots/fixture_server.py" --port 8765 >"$FIXTURE_LOG" 2>&1 &
+  FIXTURE_PID=$!
+
+  for _ in {1..100}; do
+    if ! kill -0 "$FIXTURE_PID" 2>/dev/null; then
+      echo "Screenshot fixture server exited before becoming ready" >&2
+      cat "$FIXTURE_LOG" >&2
+      return 1
+    fi
+    if python3 -c 'import socket; socket.create_connection(("127.0.0.1", 8765), timeout=0.2).close()' 2>/dev/null; then
+      echo "Screenshot fixture server ready on 127.0.0.1:8765"
+      return 0
+    fi
+    sleep 0.05
+  done
+
+  echo "Screenshot fixture server did not become ready" >&2
+  return 1
+}
+
+on_exit() {
+  local exit_code=$?
+  trap - EXIT
+  stop_logcat
+  stop_fixture_server
+  if (( exit_code != 0 )); then
+    capture_diagnostics "$exit_code" "instrumented-test-script"
+  fi
+  exit "$exit_code"
+}
+
+wait_for_online_device() {
+  local label="$1"
+  local deadline=$((SECONDS + 120))
+  local state=""
+  local boot_completed=""
+
+  while (( SECONDS < deadline )); do
+    state="$(adb -s "$SERIAL" get-state 2>/dev/null || true)"
+    boot_completed="$(adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+    if [[ "$state" == "device" && "$boot_completed" == "1" ]]; then
+      echo "ADB ready before $label: $SERIAL is online and boot-complete"
+      return 0
+    fi
+    echo "Waiting for $SERIAL before $label (state=${state:-missing}, boot=${boot_completed:-unset})"
+    sleep 2
+  done
+
+  echo "Timed out waiting for an online, boot-complete emulator before $label" >&2
+  return 1
+}
+
+run_suite() {
+  local label="$1"
+  local task="$2"
+  local -a gradle_args=(
+    --no-daemon
+    --stacktrace
+    --max-workers=2
+    --no-parallel
+    "-Dorg.gradle.jvmargs=-Xmx2g -Dfile.encoding=UTF-8 -XX:+UseParallelGC"
+    -Pkotlin.compiler.execution.strategy=in-process
+  )
+
+  wait_for_online_device "$label"
+  "$GRADLE_BIN" "$task" "${gradle_args[@]}"
+}
+
+if [[ "${1:-}" == "--diagnostics-only" ]]; then
+  capture_diagnostics 1 "post-action-failure"
+  exit 0
+fi
+
+trap on_exit EXIT
+
+adb start-server
+wait_for_online_device "logcat capture"
+adb -s "$SERIAL" logcat -c || true
+adb -s "$SERIAL" logcat -v threadtime >"$LOGCAT_FILE" 2>&1 &
+LOGCAT_PID=$!
+
+run_suite "core UI instrumented tests" :core:ui:connectedDebugAndroidTest
+start_fixture_server
+run_suite "app instrumented tests" :app:connectedDebugAndroidTest
