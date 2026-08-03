@@ -24,6 +24,7 @@ on:
       - "ios/LaughTrack.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
       - "ios/Package.resolved"
       - "ios/project.yml"
+      - "ios/fastlane/Fastfile"
       - "ios/bin/check-pbxproj-sync.sh"
       - "ios/bin/check-ios-libs-pin.sh"
       - "ios/bin/check-openapi-regen-drift.sh"
@@ -38,6 +39,7 @@ on:
       - "ios/LaughTrack.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
       - "ios/Package.resolved"
       - "ios/project.yml"
+      - "ios/fastlane/Fastfile"
       - "ios/bin/check-pbxproj-sync.sh"
       - "ios/bin/check-ios-libs-pin.sh"
       - "ios/bin/check-openapi-regen-drift.sh"
@@ -68,6 +70,7 @@ jobs:
               - 'apps/web/app/api/v1/**/*.ts'
               - 'ios/Sources/**'
               - 'ios/Tests/**'
+              - 'ios/fastlane/Fastfile'
               - '.github/workflows/ios.yml'
             pbxproj:
               - 'ios/Sources/**/*.swift'
