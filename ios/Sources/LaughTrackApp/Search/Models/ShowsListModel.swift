@@ -81,6 +81,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         pinnedClubName: String? = nil,
         pinnedComedianName: String? = nil,
         initialUseDateRange: Bool = true,
+        startsWithNearbyLocation: Bool = true,
         pageSize: Int = 20
     ) {
         self.nearbyLocationController = nearbyLocationController
@@ -90,7 +91,9 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         self.pinnedComedianName = pinnedComedianName
         super.init()
         dateRange.isActive = initialUseDateRange
-        applyNearbyPreference(nearbyLocationController.preference)
+        if startsWithNearbyLocation {
+            applyNearbyPreference(nearbyLocationController.preference)
+        }
         nearbyStatusCancellable = nearbyLocationController.$statusMessage
             .sink { [weak self] message in
                 self?.nearbyStatusMessage = message
@@ -102,16 +105,23 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
     }
 
     var requestKey: ShowsListQuery {
-        .init(
+        let effectiveZip = allowsLocationFiltering && !isShowingNationwideComedianSearch
+            ? (activeNearbyPreference?.zipCode ?? "")
+            : ""
+        let effectiveDistance = NearbyPreferenceStore.validZip(from: effectiveZip) == nil
+            ? ShowDistanceOption.city
+            : distance
+
+        return .init(
             comedian: pinnedComedianName ?? comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
             club: pinnedClubId == nil
                 ? (pinnedClubName ?? clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines))
                 : "",
             clubId: pinnedClubId,
             filters: selectedFilterSlugs.sorted(),
-            zip: allowsLocationFiltering && !isShowingNationwideComedianSearch ? (activeNearbyPreference?.zipCode ?? "") : "",
+            zip: effectiveZip,
             dateRange: dateRange,
-            distance: distance,
+            distance: effectiveDistance,
             sort: sort
         )
     }

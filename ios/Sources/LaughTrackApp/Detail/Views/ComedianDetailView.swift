@@ -86,7 +86,8 @@ struct ComedianDetailView: View {
                                         PinnedShowsList(
                                             apiClient: apiClient,
                                             nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                                            pinnedComedianName: comedian.name
+                                            pinnedComedianName: comedian.name,
+                                            startsNationwide: true
                                         )
                                     } else {
                                         ComedianNotificationShowsPanel(

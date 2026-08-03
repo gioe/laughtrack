@@ -120,6 +120,7 @@
 		72BF34BAEDB969D4243B9611 /* HomeShowsTonightModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082FCD365A9C645637B8FE89 /* HomeShowsTonightModelTests.swift */; };
 		739A95D851F561B8547F9395 /* OpenAPIURLSession in Frameworks */ = {isa = PBXBuildFile; productRef = 61CB6BEBA8E2ACC482982705 /* OpenAPIURLSession */; };
 		73B82A20165EC8C3D1174EEC /* DetailNavigationChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7488519FE0E33B0A18BB456 /* DetailNavigationChrome.swift */; };
+		745319EE1102D9D773F378D4 /* ComedianDetailLocationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C1794B6E1F48736EE790DD /* ComedianDetailLocationTests.swift */; };
 		751A527C1B22183FBA02767E /* ComedianFavoriteStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DFA8DEA5A7A187DDF42A01 /* ComedianFavoriteStoreTests.swift */; };
 		7555ACA836D419CB3DC1F71D /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E72E7220A41EC66002D83923 /* NowPlayingView.swift */; };
 		7953953B4BE7765F645543A0 /* APIMockEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E6C65B9D3165E104240C07E /* APIMockEncoder.swift */; };
@@ -488,6 +489,7 @@
 		72C538B76724132F4A26DCE0 /* TunedForChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunedForChromeTests.swift; sourceTree = "<group>"; };
 		7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFavoritesViewTests.swift; sourceTree = "<group>"; };
 		74568165A0CA8A0DB5CD35AF /* PodcastFavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastFavoriteStore.swift; sourceTree = "<group>"; };
+		74C1794B6E1F48736EE790DD /* ComedianDetailLocationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianDetailLocationTests.swift; sourceTree = "<group>"; };
 		758E99D05CBD4C53BF89DD20 /* LaughTrackNotificationDeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackNotificationDeepLink.swift; sourceTree = "<group>"; };
 		7593C96779BA48EAD4AC7E16 /* StubURLProtocolSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocolSupport.swift; sourceTree = "<group>"; };
 		77792AE6A29CBDA8435461B6 /* LaughTrackNotificationServiceExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LaughTrackNotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -722,6 +724,7 @@
 				0D814E25911EA53326F6AC0E /* ClubFavoriteStoreTests.swift */,
 				E7E9ADC24243532EC17C6E17 /* ClubRowTests.swift */,
 				05FE2AACCAB539C86F608F01 /* ClubsDiscoveryLocationTests.swift */,
+				74C1794B6E1F48736EE790DD /* ComedianDetailLocationTests.swift */,
 				4F6241EF98C5364C9ADF43F1 /* ComedianDetailViewTests.swift */,
 				B7DFA8DEA5A7A187DDF42A01 /* ComedianFavoriteStoreTests.swift */,
 				10BDD51643814940674250AA /* ContentViewNavigationTests.swift */,
@@ -1617,6 +1620,7 @@
 				8FDBE625591FEC3AB6513767 /* ClubFavoriteStoreTests.swift in Sources */,
 				1F1CC060B9835682FC9C8177 /* ClubRowTests.swift in Sources */,
 				477E986FC4145F377566F1C7 /* ClubsDiscoveryLocationTests.swift in Sources */,
+				745319EE1102D9D773F378D4 /* ComedianDetailLocationTests.swift in Sources */,
 				CF2D1462F9F8A2ABF8163B42 /* ComedianDetailViewTests.swift in Sources */,
 				751A527C1B22183FBA02767E /* ComedianFavoriteStoreTests.swift in Sources */,
 				E719E86933DE95517DEC247A /* ContentViewNavigationTests.swift in Sources */,

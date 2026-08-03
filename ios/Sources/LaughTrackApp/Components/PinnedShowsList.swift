@@ -22,7 +22,8 @@ struct PinnedShowsList: View {
         nearbyLocationController: NearbyLocationController,
         pinnedClubId: Int? = nil,
         pinnedClubName: String? = nil,
-        pinnedComedianName: String? = nil
+        pinnedComedianName: String? = nil,
+        startsNationwide: Bool = false
     ) {
         self.apiClient = apiClient
         // Pinned detail views default to "Any date" — the shows endpoint already
@@ -34,6 +35,7 @@ struct PinnedShowsList: View {
             pinnedClubName: pinnedClubName,
             pinnedComedianName: pinnedComedianName,
             initialUseDateRange: false,
+            startsWithNearbyLocation: !startsNationwide,
             pageSize: 5
         ))
     }
