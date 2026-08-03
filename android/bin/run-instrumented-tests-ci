@@ -84,7 +84,11 @@ stop_fixture_server() {
 }
 
 start_fixture_server() {
-  python3 "$REPO_ROOT/scripts/screenshots/fixture_server.py" --port 8765 >"$FIXTURE_LOG" 2>&1 &
+  # HTTPServer resolves its bind address while constructing the server. The
+  # wildcard address can stall on hosted macOS runners whose hostname has no
+  # reverse-DNS entry; Android's 10.0.2.2 alias still reaches host loopback.
+  python3 "$REPO_ROOT/scripts/screenshots/fixture_server.py" \
+    --host 127.0.0.1 --port 8765 >"$FIXTURE_LOG" 2>&1 &
   FIXTURE_PID=$!
 
   for _ in {1..100}; do
