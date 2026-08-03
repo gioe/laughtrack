@@ -109,11 +109,15 @@ jobs:
         with:
           api-level: 34
           arch: x86_64
-          # Keep the emulator inside the hosted runner's memory envelope. The
-          # project Gradle heap is also capped by run-instrumented-tests-ci.
+          # Keep the emulator inside the hosted runner's CPU/memory envelope.
+          # The project Gradle heap/workers are also capped by the runner script.
+          cores: 1
           ram-size: 2048M
           emulator-build: 15507667 # 36.6.11, the last version proven green here
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
+          # swiftshader_indirect is deprecated as of emulator 36.4.9 and its
+          # gfxstream RenderThread segfaulted under the first Compose app test.
+          # The direct software renderer avoids that unstable host path.
+          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -no-metrics
           working-directory: android
           # Starting ADB first lets the emulator register immediately instead
           # of racing the action's first sys.boot_completed poll.
