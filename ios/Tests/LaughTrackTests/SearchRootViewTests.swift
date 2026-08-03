@@ -31,7 +31,7 @@ struct SearchRootViewTests {
             initialUseDateRange: false
         )
         let comediansModel = ComediansDiscoveryModel()
-        let clubsModel = ClubsDiscoveryModel()
+        let clubsModel = makeSearchClubsDiscoveryModel()
         let podcastsModel = PodcastSearchModel(fetcher: RecordingPodcastSearchFetcher())
 
         #expect(model.activePivot == .shows)
@@ -626,7 +626,7 @@ struct SearchRootModelTests {
                 zipLocationResolver: StubZipLocationResolver()
             )
         )
-        let clubsModel = ClubsDiscoveryModel()
+        let clubsModel = makeSearchClubsDiscoveryModel()
         let comediansModel = ComediansDiscoveryModel()
         let podcastsModel = PodcastSearchModel(fetcher: RecordingPodcastSearchFetcher())
 
@@ -713,6 +713,17 @@ struct SearchRootModelTests {
             )
         )
     }
+}
+
+@MainActor
+private func makeSearchClubsDiscoveryModel() -> ClubsDiscoveryModel {
+    ClubsDiscoveryModel(
+        nearbyLocationController: NearbyLocationController(
+            store: NearbyPreferenceStore(),
+            resolver: StubNearbyLocationResolver(),
+            zipLocationResolver: StubZipLocationResolver()
+        )
+    )
 }
 
 @MainActor

@@ -486,7 +486,7 @@ struct EntityDataFlowTests {
         comedians.sort = .alphabetical
         await comedians.reload(apiClient: client, favorites: ComedianFavoriteStore())
 
-        let clubs = ClubsDiscoveryModel()
+        let clubs = makeClubsDiscoveryModel()
         clubs.selectedFilterSlugs = ["independent", "downtown"]
         clubs.sort = .leastPopular
         await clubs.reload(apiClient: client)
@@ -566,7 +566,7 @@ struct EntityDataFlowTests {
 
     @Test("club search decode failures are not shown as connection failures")
     func clubSearchDecodeFailuresClassifyAsDataIssues() async {
-        let model = ClubsDiscoveryModel()
+        let model = makeClubsDiscoveryModel()
         model.searchText = "bad payload"
         let client = Client(
             serverURL: URL(string: "https://test.example.com")!,
@@ -909,6 +909,17 @@ private func testJSONResponse(
 private func queryValue(_ name: String, from path: String?) -> String? {
     guard let path, let components = URLComponents(string: "https://test.example.com\(path)") else { return nil }
     return components.queryItems?.first(where: { $0.name == name })?.value
+}
+
+@MainActor
+private func makeClubsDiscoveryModel() -> ClubsDiscoveryModel {
+    ClubsDiscoveryModel(
+        nearbyLocationController: NearbyLocationController(
+            store: NearbyPreferenceStore(),
+            resolver: StubNearbyLocationResolver(),
+            zipLocationResolver: StubZipLocationResolver()
+        )
+    )
 }
 
 private func makeTrendingComedians(

@@ -80,6 +80,7 @@
 		456B5688FE416997A0B3D6A4 /* LaughTrackNotificationDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758E99D05CBD4C53BF89DD20 /* LaughTrackNotificationDeepLink.swift */; };
 		4585B8D5EB7FB72C80BBAF06 /* DetailHeroLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EDE38E061B529E52A38C3F /* DetailHeroLayoutTests.swift */; };
 		464D53193F4769A1BD73A7A3 /* Demo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE877FF9B9D76AAC6FFCBA7 /* Demo.swift */; };
+		477E986FC4145F377566F1C7 /* ClubsDiscoveryLocationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FE2AACCAB539C86F608F01 /* ClubsDiscoveryLocationTests.swift */; };
 		482009F4977A94B780A09AB4 /* NotificationCenterModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4699C4970EB0AEC9D9D60C /* NotificationCenterModel.swift */; };
 		49078B6AB08B09D806852C93 /* HomeTrendingPodcastsRail.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C4FC3A8EC40E294DA1D06F /* HomeTrendingPodcastsRail.swift */; };
 		497B1B88853BE206736ADEFC /* LibraryFavoritesViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */; };
@@ -396,6 +397,7 @@
 		039D68E0AF3A931C7C2455F6 /* PersistentMainPageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentMainPageCache.swift; sourceTree = "<group>"; };
 		04CFFD13E68CA73C10918B74 /* ComedianOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianOnboardingView.swift; sourceTree = "<group>"; };
 		05DDCB75107CBE67C0FD9CEB /* LoginModalPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginModalPresenter.swift; sourceTree = "<group>"; };
+		05FE2AACCAB539C86F608F01 /* ClubsDiscoveryLocationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubsDiscoveryLocationTests.swift; sourceTree = "<group>"; };
 		082FCD365A9C645637B8FE89 /* HomeShowsTonightModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeShowsTonightModelTests.swift; sourceTree = "<group>"; };
 		08F9F3E06357C17721114066 /* PodcastEpisodeDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastEpisodeDetailViewTests.swift; sourceTree = "<group>"; };
 		0922F9FD8AA0FC38E52DC666 /* ClubFavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubFavoriteStore.swift; sourceTree = "<group>"; };
@@ -719,6 +721,7 @@
 				A6828B86711E4F3F8219EEE5 /* ClubDetailViewTests.swift */,
 				0D814E25911EA53326F6AC0E /* ClubFavoriteStoreTests.swift */,
 				E7E9ADC24243532EC17C6E17 /* ClubRowTests.swift */,
+				05FE2AACCAB539C86F608F01 /* ClubsDiscoveryLocationTests.swift */,
 				4F6241EF98C5364C9ADF43F1 /* ComedianDetailViewTests.swift */,
 				B7DFA8DEA5A7A187DDF42A01 /* ComedianFavoriteStoreTests.swift */,
 				10BDD51643814940674250AA /* ContentViewNavigationTests.swift */,
@@ -1613,6 +1616,7 @@
 				19EC027AFC1CFE299CA2976B /* ClubDetailViewTests.swift in Sources */,
 				8FDBE625591FEC3AB6513767 /* ClubFavoriteStoreTests.swift in Sources */,
 				1F1CC060B9835682FC9C8177 /* ClubRowTests.swift in Sources */,
+				477E986FC4145F377566F1C7 /* ClubsDiscoveryLocationTests.swift in Sources */,
 				CF2D1462F9F8A2ABF8163B42 /* ComedianDetailViewTests.swift in Sources */,
 				751A527C1B22183FBA02767E /* ComedianFavoriteStoreTests.swift in Sources */,
 				E719E86933DE95517DEC247A /* ContentViewNavigationTests.swift in Sources */,

@@ -17,7 +17,7 @@ struct SearchRootView: View {
     @StateObject private var model = SearchRootModel()
     @StateObject private var showsModel: ShowsListModel
     @StateObject private var comediansModel = ComediansDiscoveryModel()
-    @StateObject private var clubsModel = ClubsDiscoveryModel()
+    @StateObject private var clubsModel: ClubsDiscoveryModel
     @StateObject private var podcastsModel: PodcastSearchModel
 
     init(
@@ -41,6 +41,11 @@ struct SearchRootView: View {
             wrappedValue: ShowsListModel(
                 nearbyLocationController: nearbyLocationController,
                 initialUseDateRange: false
+            )
+        )
+        _clubsModel = StateObject(
+            wrappedValue: ClubsDiscoveryModel(
+                nearbyLocationController: nearbyLocationController
             )
         )
         _podcastsModel = StateObject(
@@ -78,14 +83,14 @@ struct SearchRootView: View {
         .modifier(LaughTrackNavigationChrome(background: .clear))
         .task {
             model.activePivot = selectedPrimitive
-            applyDefaultNearbyPreferenceToShows()
+            applyDefaultNearbyPreferenceToSearchModels()
             applyRootQueryToActivePivot()
         }
         .onChange(of: nearbyPreferenceStore.preference) { _ in
-            applyDefaultNearbyPreferenceToShows()
+            applyDefaultNearbyPreferenceToSearchModels()
         }
         .onChange(of: nearbyPreferenceStore.defaultPreference) { _ in
-            applyDefaultNearbyPreferenceToShows()
+            applyDefaultNearbyPreferenceToSearchModels()
         }
         .onChange(of: model.query) { _ in
             applyRootQueryToActivePivot()
@@ -101,7 +106,14 @@ struct SearchRootView: View {
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { request in
             model.applySeed(request.seed)
             selectedPrimitive = request.seed.pivot
-            showsModel.applySearchSeedNearbyPreference(request.seed.nearbyPreference)
+            switch request.seed.pivot {
+            case .shows:
+                showsModel.applySearchSeedNearbyPreference(request.seed.nearbyPreference)
+            case .clubs:
+                clubsModel.applySearchSeedNearbyPreference(request.seed.nearbyPreference)
+            case .comedians, .podcasts:
+                break
+            }
             applyRootQueryToActivePivot()
             searchNavigationBridge.clearRequest(request)
         }
@@ -165,10 +177,10 @@ struct SearchRootView: View {
         )
     }
 
-    private func applyDefaultNearbyPreferenceToShows() {
-        showsModel.applyDefaultNearbyPreference(
-            nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference
-        )
+    private func applyDefaultNearbyPreferenceToSearchModels() {
+        let preference = nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference
+        showsModel.applyDefaultNearbyPreference(preference)
+        clubsModel.applyDefaultNearbyPreference(preference)
     }
 }
 

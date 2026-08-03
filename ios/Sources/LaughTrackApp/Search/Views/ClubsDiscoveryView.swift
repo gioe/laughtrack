@@ -14,6 +14,7 @@ struct ClubsDiscoveryView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
+    @State private var isZipEditorPresented = false
     @State private var isFilterEditorPresented = false
     @State private var openDropdownID: String?
 
@@ -42,12 +43,30 @@ struct ClubsDiscoveryView: View {
 
                 ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
                     PillDropdownTrigger(
+                        id: "clubs-distance",
+                        selected: model.distance,
+                        triggerLabel: { $0.title },
+                        accessibilityLabel: { "Distance \($0.title)" },
+                        openDropdownID: $openDropdownID
+                    )
+
+                    PillDropdownTrigger(
                         id: "clubs-sort",
                         selected: model.sort,
                         triggerLabel: { $0.title },
                         accessibilityLabel: { "Sort \($0.title)" },
                         openDropdownID: $openDropdownID
                     )
+
+                    PillSheetTrigger(
+                        title: locationChipTitle,
+                        systemImage: locationChipSystemImage,
+                        isActive: model.activeNearbyPreference != nil,
+                        accessibilityLabel: "Edit ZIP",
+                        accessibilityHint: locationChipAccessibilityHint
+                    ) {
+                        isZipEditorPresented = true
+                    }
 
                     PillSheetTrigger(
                         title: model.selectedFilterSlugs.count > 0 ? filterCountTitle : "Filters",
@@ -57,6 +76,10 @@ struct ClubsDiscoveryView: View {
                     ) {
                         isFilterEditorPresented = true
                     }
+                }
+
+                if let nearbyStatusMessage = model.nearbyStatusMessage {
+                    InlineStatusMessage(message: nearbyStatusMessage)
                 }
 
                 switch model.phase {
@@ -72,9 +95,7 @@ struct ClubsDiscoveryView: View {
                     if result.items.isEmpty {
                         EmptyCard(
                             title: "No clubs yet",
-                            message: model.searchText.isEmpty
-                                ? "No clubs are available right now."
-                                : "No clubs matched \"\(model.searchText)\"."
+                            message: emptyStateMessage
                         )
                     } else {
                         VStack(alignment: .leading, spacing: theme.spacing.md) {
@@ -115,6 +136,13 @@ struct ClubsDiscoveryView: View {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, cache: pageCache)
         }
+        .sheet(isPresented: $isZipEditorPresented) {
+            LocationFilterSheet(
+                model: model,
+                isPresented: $isZipEditorPresented,
+                subtitle: "Set the location used for nearby clubs."
+            )
+        }
         .sheet(isPresented: $isFilterEditorPresented) {
             SearchFilterModal(
                 filters: currentFilters,
@@ -126,6 +154,17 @@ struct ClubsDiscoveryView: View {
         }
         .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
             GeometryReader { proxy in
+                PillDropdownOverlay(
+                    id: "clubs-distance",
+                    options: ShowDistanceOption.allCases,
+                    selected: $model.distance,
+                    triggerLabel: { $0.title },
+                    optionLabel: { $0.title },
+                    openDropdownID: $openDropdownID,
+                    anchors: anchors,
+                    proxy: proxy
+                )
+
                 PillDropdownOverlay(
                     id: "clubs-sort",
                     options: ClubSortOption.allCases,
@@ -153,6 +192,39 @@ struct ClubsDiscoveryView: View {
     private var filterCountTitle: String {
         let count = model.selectedFilterSlugs.count
         return "\(count) filter\(count == 1 ? "" : "s")"
+    }
+
+    private var locationChipTitle: String {
+        if let activeLocationLabel = model.activeLocationLabel {
+            return "Location \(activeLocationLabel)"
+        }
+
+        let draft = model.zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        return draft.isEmpty ? "Location" : "Location \(draft)"
+    }
+
+    private var locationChipSystemImage: String {
+        guard let source = model.activeNearbyPreference?.source else {
+            return "mappin.and.ellipse"
+        }
+        return source == .geolocated ? "location.fill" : "mappin.and.ellipse"
+    }
+
+    private var locationChipAccessibilityHint: String {
+        guard let source = model.activeNearbyPreference?.source else {
+            return "No location set."
+        }
+        return source == .geolocated ? "Detected from device location." : "Saved manually."
+    }
+
+    private var emptyStateMessage: String {
+        if !model.searchText.isEmpty {
+            return "No clubs matched \"\(model.searchText)\"."
+        }
+        if model.activeNearbyPreference != nil {
+            return "No clubs matched this ZIP code. Broaden the radius or clear the location filter."
+        }
+        return "No clubs are available right now."
     }
 }
 

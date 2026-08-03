@@ -4,14 +4,26 @@ import LaughTrackCore
 import UIKit
 #endif
 
+@MainActor
+protocol SearchLocationFilterModel: ObservableObject {
+    var zipCodeDraft: String { get set }
+    var activeNearbyPreference: NearbyPreference? { get }
+    var nearbyStatusMessage: String? { get }
+    var isResolvingCurrentLocation: Bool { get }
+
+    func applyManualZip() -> Bool
+    func useCurrentLocation() async -> Bool
+    func clearLocation()
+}
+
 /// Sheet used wherever the app asks the user to pick a search location —
-/// search-tab location pill and any future "near me" affordance. Mirrors the
+/// search-tab location pills and any future "near me" affordance. Mirrors the
 /// chrome of `DateRangeFilterSheet`: titled header with close button, content
 /// region in the middle, and a primary/secondary/tertiary `LaughTrackButton`
-/// stack at the bottom. Callers bind the `ShowsListModel` whose nearby
-/// preference state the sheet edits.
-struct LocationFilterSheet: View {
-    @ObservedObject var model: ShowsListModel
+/// stack at the bottom. Callers provide a search model whose location override
+/// remains local to that discovery surface.
+struct LocationFilterSheet<Model: SearchLocationFilterModel>: View {
+    @ObservedObject var model: Model
     @Binding var isPresented: Bool
     var title: String = "Location"
     var subtitle: String = "Set the location used for nearby shows."

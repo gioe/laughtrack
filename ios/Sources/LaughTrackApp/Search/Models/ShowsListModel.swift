@@ -5,7 +5,7 @@ import LaughTrackBridge
 import LaughTrackCore
 
 @MainActor
-final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas.Show>, SearchRootQueryReceivable {
+final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas.Show>, SearchRootQueryReceivable, SearchLocationFilterModel {
     @Published var zipCodeDraft = ""
     @Published var comedianSearchText = ""
     @Published var clubSearchText = ""

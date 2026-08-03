@@ -235,6 +235,37 @@ struct PrimitiveDiscoveryQuery: Hashable {
     }
 }
 
+struct ClubsDiscoveryQuery: Hashable {
+    let text: String
+    let filters: [String]
+    let sort: String
+    let includeEmpty: Bool
+    let zip: String
+    let distance: ShowDistanceOption
+
+    var sanitizedZip: String? {
+        let digits = zip.filter(\.isNumber)
+        guard digits.count == 5 else { return nil }
+        return digits
+    }
+
+    var filtersParam: String? {
+        guard !filters.isEmpty else { return nil }
+        return filters.joined(separator: ",")
+    }
+
+    var cacheKey: String {
+        [
+            "text=\(text)",
+            "filters=\(filtersParam ?? "")",
+            "sort=\(sort)",
+            "includeEmpty=\(includeEmpty)",
+            "zip=\(sanitizedZip ?? "")",
+            "distance=\(sanitizedZip == nil ? "" : String(distance.rawValue))",
+        ].joined(separator: "|")
+    }
+}
+
 struct DiscoveryLoadTaskKey<Query: Hashable>: Hashable {
     let isActive: Bool
     let query: Query
