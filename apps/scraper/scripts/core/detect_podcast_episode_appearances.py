@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
+import time
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -28,6 +30,7 @@ from laughtrack.core.podcast_appearance_auto_acceptance import (
 
 _AUTO_ACCEPT_TITLE_CONFIDENCE = 0.95
 _HOST_ASSOCIATION_TYPES = frozenset({"host", "cohost"})
+_EPISODE_CHUNK_SIZE = 1000
 
 _GUEST_TITLE_RE = re.compile(
     r"\b(with|ft\.?|feat\.?|featuring|guest|welcomes?|interviews?|in conversation with)\b",
@@ -272,6 +275,18 @@ class DetectSummary:
     pending: int = 0
     ignored: int = 0
     written: int = 0
+    episodes_selected: int = 0
+    episodes_scanned: int = 0
+    complete: bool = True
+    budget_exhausted: bool = False
+
+
+def _add_detect_summary(total: DetectSummary, chunk: DetectSummary) -> None:
+    total.candidates += chunk.candidates
+    total.auto_accepted += chunk.auto_accepted
+    total.pending += chunk.pending
+    total.ignored += chunk.ignored
+    total.written += chunk.written
 
 
 def _term_variants(term: str) -> list[str]:
@@ -895,7 +910,13 @@ def detect_podcast_episode_appearances(
     include_aliases: bool,
     auto_accept: bool,
     sources: Optional[list[str]] = None,
+    max_runtime_seconds: Optional[float] = None,
 ) -> DetectSummary:
+    deadline = (
+        time.monotonic() + max_runtime_seconds
+        if max_runtime_seconds is not None
+        else None
+    )
     comedians = load_match_comedians(
         comedian_ids=comedian_ids,
         comedian_names=comedian_names,
@@ -904,13 +925,6 @@ def detect_podcast_episode_appearances(
     episodes = load_episode_inputs(
         episode_ids=episode_ids, sources=sources, limit=episode_limit
     )
-    candidates = detect_episode_candidates(
-        comedians,
-        episodes,
-        include_aliases=include_aliases,
-        auto_accept=auto_accept,
-    )
-    summary = persist_candidates(candidates, dry_run=dry_run)
     # Advance the scan cursor only after a successful full-roster persist. A
     # comedian-subset run (--comedian-id/--comedian-name/--comedian-limit) does
     # not scan an episode against every comedian, so marking it scanned would
@@ -920,9 +934,39 @@ def detect_podcast_episode_appearances(
     # query regression) must NOT drain the backlog by bumping episodes that were
     # never matched against anyone — leave them NULL so the next run re-scans.
     full_roster_scan = comedian_ids is None and comedian_names is None and comedian_limit is None
-    if not dry_run and full_roster_scan and comedians:
-        mark_episodes_scanned([episode.episode_id for episode in episodes])
+    summary = DetectSummary(episodes_selected=len(episodes))
+    for start in range(0, len(episodes), _EPISODE_CHUNK_SIZE):
+        if deadline is not None and time.monotonic() >= deadline:
+            summary.complete = False
+            summary.budget_exhausted = True
+            break
+
+        chunk = episodes[start : start + _EPISODE_CHUNK_SIZE]
+        candidates = detect_episode_candidates(
+            comedians,
+            chunk,
+            include_aliases=include_aliases,
+            auto_accept=auto_accept,
+        )
+        chunk_summary = persist_candidates(candidates, dry_run=dry_run)
+        if not dry_run and full_roster_scan and comedians:
+            mark_episodes_scanned([episode.episode_id for episode in chunk])
+        _add_detect_summary(summary, chunk_summary)
+        summary.episodes_scanned += len(chunk)
+
     return summary
+
+
+def _positive_runtime_seconds(value: str) -> float:
+    try:
+        seconds = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "--max-runtime-seconds must be a number greater than zero"
+        ) from exc
+    if seconds <= 0:
+        raise argparse.ArgumentTypeError("--max-runtime-seconds must be greater than zero")
+    return seconds
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -944,6 +988,16 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--limit", dest="episode_limit", type=int, default=None, help=argparse.SUPPRESS)
     parser.add_argument("--comedian-limit", type=int, default=None)
+    parser.add_argument(
+        "--max-runtime-seconds",
+        type=_positive_runtime_seconds,
+        default=None,
+        help=(
+            "Stop before starting another episode chunk after this many seconds. "
+            "Completed chunks remain persisted and resume ordering leaves unfinished "
+            "episodes first on the next run. Default: no runtime budget."
+        ),
+    )
     parser.add_argument(
         "--source",
         dest="sources",
@@ -972,6 +1026,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         include_aliases=not args.no_aliases,
         auto_accept=not args.review_only,
         sources=args.sources,
+        max_runtime_seconds=args.max_runtime_seconds,
     )
     print(
         {
@@ -980,8 +1035,16 @@ def main(argv: Optional[list[str]] = None) -> int:
             "pending": summary.pending,
             "ignored": summary.ignored,
             "written": summary.written,
+            "episodes_selected": summary.episodes_selected,
+            "episodes_scanned": summary.episodes_scanned,
+            "complete": summary.complete,
+            "budget_exhausted": summary.budget_exhausted,
         }
     )
+    github_output = os.environ.get("GITHUB_OUTPUT")
+    if github_output:
+        with open(github_output, "a", encoding="utf-8") as output:
+            output.write(f"completed={'true' if summary.complete else 'false'}\n")
     return 0
 
 

@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 _repo_root = Path(__file__).resolve().parents[3]
 _src_path = _repo_root / "src"
 for _p in (str(_src_path), str(_repo_root)):
@@ -648,3 +650,135 @@ def test_empty_roster_run_does_not_drain_backlog(monkeypatch):
     )
 
     assert "ids" not in marked
+
+
+def test_runtime_budget_persists_and_marks_only_completed_chunks(monkeypatch):
+    episodes = [
+        _episode(episode_id=episode_id, title="Ari Shaffir on the road")
+        for episode_id in range(1, 6)
+    ]
+    persisted: list[list[int]] = []
+    marked: list[list[int]] = []
+    clock = iter([100.0, 100.0, 111.0])
+
+    monkeypatch.setattr(mod, "_EPISODE_CHUNK_SIZE", 2)
+    monkeypatch.setattr(mod.time, "monotonic", lambda: next(clock))
+    monkeypatch.setattr(
+        mod, "load_match_comedians", lambda **_kw: [mod.MatchComedian(12, "Ari Shaffir", [])]
+    )
+    monkeypatch.setattr(mod, "load_episode_inputs", lambda **_kw: episodes)
+
+    def fake_persist(
+        candidates: list[mod.EpisodeAppearanceCandidate], dry_run: bool
+    ) -> mod.DetectSummary:
+        assert dry_run is False
+        persisted.append([candidate.episode_id for candidate in candidates])
+        return mod.DetectSummary(
+            candidates=len(candidates),
+            auto_accepted=len(candidates),
+            written=len(candidates),
+        )
+
+    monkeypatch.setattr(mod, "persist_candidates", fake_persist)
+    monkeypatch.setattr(mod, "mark_episodes_scanned", lambda ids: marked.append(ids))
+
+    summary = mod.detect_podcast_episode_appearances(
+        dry_run=False,
+        comedian_ids=None,
+        comedian_names=None,
+        episode_ids=None,
+        episode_limit=5,
+        comedian_limit=None,
+        include_aliases=True,
+        auto_accept=True,
+        max_runtime_seconds=10,
+    )
+
+    assert persisted == [[1, 2]]
+    assert marked == [[1, 2]]
+    assert summary.candidates == 2
+    assert summary.written == 2
+    assert summary.episodes_selected == 5
+    assert summary.episodes_scanned == 2
+    assert summary.complete is False
+    assert summary.budget_exhausted is True
+
+
+def test_runtime_budget_reports_complete_when_all_chunks_finish(monkeypatch):
+    episodes = [
+        _episode(episode_id=episode_id, title="Ari Shaffir on the road")
+        for episode_id in range(1, 4)
+    ]
+    persisted: list[list[int]] = []
+    marked: list[list[int]] = []
+    clock = iter([100.0, 100.0, 101.0])
+
+    monkeypatch.setattr(mod, "_EPISODE_CHUNK_SIZE", 2)
+    monkeypatch.setattr(mod.time, "monotonic", lambda: next(clock))
+    monkeypatch.setattr(
+        mod, "load_match_comedians", lambda **_kw: [mod.MatchComedian(12, "Ari Shaffir", [])]
+    )
+    monkeypatch.setattr(mod, "load_episode_inputs", lambda **_kw: episodes)
+
+    def fake_persist(
+        candidates: list[mod.EpisodeAppearanceCandidate], dry_run: bool
+    ) -> mod.DetectSummary:
+        assert dry_run is False
+        persisted.append([candidate.episode_id for candidate in candidates])
+        return mod.DetectSummary(
+            candidates=len(candidates),
+            auto_accepted=len(candidates),
+            written=len(candidates),
+        )
+
+    monkeypatch.setattr(mod, "persist_candidates", fake_persist)
+    monkeypatch.setattr(mod, "mark_episodes_scanned", lambda ids: marked.append(ids))
+
+    summary = mod.detect_podcast_episode_appearances(
+        dry_run=False,
+        comedian_ids=None,
+        comedian_names=None,
+        episode_ids=None,
+        episode_limit=3,
+        comedian_limit=None,
+        include_aliases=True,
+        auto_accept=True,
+        max_runtime_seconds=10,
+    )
+
+    assert persisted == [[1, 2], [3]]
+    assert marked == [[1, 2], [3]]
+    assert summary.candidates == 3
+    assert summary.auto_accepted == 3
+    assert summary.written == 3
+    assert summary.episodes_selected == 3
+    assert summary.episodes_scanned == 3
+    assert summary.complete is True
+    assert summary.budget_exhausted is False
+
+
+def test_main_appends_completion_to_github_output(monkeypatch, tmp_path):
+    output_path = tmp_path / "github-output"
+    calls: dict[str, Any] = {}
+
+    def fake_detect(**kwargs: Any) -> mod.DetectSummary:
+        calls.update(kwargs)
+        return mod.DetectSummary(
+            episodes_selected=5,
+            episodes_scanned=2,
+            complete=False,
+            budget_exhausted=True,
+        )
+
+    monkeypatch.setattr(mod, "detect_podcast_episode_appearances", fake_detect)
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output_path))
+
+    assert mod.main(["--max-runtime-seconds", "12.5"]) == 0
+
+    assert calls["max_runtime_seconds"] == 12.5
+    assert output_path.read_text(encoding="utf-8") == "completed=false\n"
+
+
+def test_runtime_budget_must_be_positive():
+    with pytest.raises(SystemExit):
+        mod._build_parser().parse_args(["--max-runtime-seconds", "0"])
