@@ -126,8 +126,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             }
             // Keep Show Detail tied to the same club fixture on both platforms.
             // ClubDetailView's pinned calendar reuses the shows-search row IDs.
-            tapFirstResult(
-                identifierPrefix: "laughtrack.shows-search.result-",
+            tapResult(
+                element("laughtrack.shows-search.result-101"),
                 detailIdentifier: Identifier.showDetailScreen,
                 description: "show"
             )
@@ -565,12 +565,23 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         detailIdentifier: String,
         description: String
     ) {
-        let result = firstResult(identifierPrefix: identifierPrefix)
-        XCTAssertTrue(result.waitForExistence(timeout: 15), "Expected first \(description) result")
+        tapResult(
+            firstResult(identifierPrefix: identifierPrefix),
+            detailIdentifier: detailIdentifier,
+            description: description
+        )
+    }
+
+    private func tapResult(
+        _ result: XCUIElement,
+        detailIdentifier: String,
+        description: String
+    ) {
+        XCTAssertTrue(result.waitForExistence(timeout: 15), "Expected \(description) result")
         for _ in 0..<3 where !result.isHittable {
             app.swipeUp()
         }
-        XCTAssertTrue(result.isHittable, "Expected first \(description) result to be hittable")
+        XCTAssertTrue(result.isHittable, "Expected \(description) result to be hittable")
         result.tap()
         assertExists(detailIdentifier, message: "Expected \(description) detail")
     }
