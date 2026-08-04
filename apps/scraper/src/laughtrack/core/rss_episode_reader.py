@@ -101,6 +101,30 @@ class RssFeedParseError(RuntimeError):
     """Raised when a feed cannot be parsed as usable RSS/Atom."""
 
 
+class RssSyncBudgetExceeded(RuntimeError):
+    """Raised when an RSS synchronization deadline has been exhausted."""
+
+
+def remaining_budget_seconds(deadline: Optional[float]) -> Optional[float]:
+    if deadline is None:
+        return None
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise RssSyncBudgetExceeded("RSS synchronization time budget exhausted")
+    return remaining
+
+
+def _sleep_with_deadline(delay_seconds: float, deadline: Optional[float]) -> None:
+    remaining = remaining_budget_seconds(deadline)
+    if remaining is None:
+        time.sleep(delay_seconds)
+        return
+    if delay_seconds >= remaining:
+        time.sleep(remaining)
+        raise RssSyncBudgetExceeded("RSS synchronization time budget exhausted during retry backoff")
+    time.sleep(delay_seconds)
+
+
 _UPSERT_EPISODE_SQL = """
     WITH input_values AS (
         SELECT
@@ -382,28 +406,36 @@ def _retry_after_seconds(headers: dict[str, str] | None, attempt: int) -> float:
     return _BASE_RETRY_DELAY_S * (2**attempt)
 
 
-def _fetch_feed(podcast: PodcastRssFeed) -> Any:
+def _fetch_feed(podcast: PodcastRssFeed, *, deadline: Optional[float] = None) -> Any:
     if not podcast.feed_url:
         raise RuntimeError(f"podcast {podcast.podcast_id} has no feed_url")
     for attempt in range(_MAX_RETRIES):
+        remaining = remaining_budget_seconds(deadline)
+        request_timeout = _TIMEOUT_SECONDS if remaining is None else min(_TIMEOUT_SECONDS, remaining)
         try:
             response = requests.get(
                 podcast.feed_url,
                 headers=_conditional_headers(podcast),
-                timeout=_TIMEOUT_SECONDS,
+                timeout=request_timeout,
             )
         except Exception as exc:
+            # A request timeout at the deadline is normal partial completion,
+            # including on the final retry. Do not reclassify it as an
+            # unreachable feed merely because there are no attempts left.
+            remaining_budget_seconds(deadline)
             if attempt + 1 >= _MAX_RETRIES:
                 raise RuntimeError(f"fetch failed for podcast {podcast.podcast_id}: {exc}") from exc
-            time.sleep(_BASE_RETRY_DELAY_S * (2**attempt))
+            _sleep_with_deadline(_BASE_RETRY_DELAY_S * (2**attempt), deadline)
             continue
+
+        remaining_budget_seconds(deadline)
 
         if response.status_code in (429, 500, 502, 503, 504):
             if attempt + 1 >= _MAX_RETRIES:
                 raise RuntimeError(
                     f"HTTP {response.status_code} for podcast {podcast.podcast_id} after {_MAX_RETRIES} attempts"
                 )
-            time.sleep(_retry_after_seconds(response.headers, attempt))
+            _sleep_with_deadline(_retry_after_seconds(response.headers, attempt), deadline)
             continue
         if response.status_code >= 400 and response.status_code != 304:
             raise RuntimeError(f"HTTP {response.status_code} for podcast {podcast.podcast_id}")
@@ -488,21 +520,30 @@ def _episode_from_entry(podcast: PodcastRssFeed, entry: Any) -> Optional[RssEpis
     )
 
 
-def fetch_rss_episodes(podcast: PodcastRssFeed) -> RssFetchResult:
-    response = _fetch_feed(podcast)
+def fetch_rss_episodes(
+    podcast: PodcastRssFeed, *, deadline: Optional[float] = None
+) -> RssFetchResult:
+    response = _fetch_feed(podcast, deadline=deadline)
     etag = _string_or_none(response.headers.get("ETag") or response.headers.get("etag"))
     last_modified = _string_or_none(response.headers.get("Last-Modified") or response.headers.get("last-modified"))
     if response.status_code == 304:
         return RssFetchResult(etag=etag, last_modified=last_modified, not_modified=True)
 
+    remaining_budget_seconds(deadline)
     parsed = feedparser.parse(response.content)
+    remaining_budget_seconds(deadline)
     if parsed.get("bozo") and not parsed.get("entries"):
         raise RssFeedParseError(f"malformed RSS feed for podcast {podcast.podcast_id}: {parsed.get('bozo_exception')}")
     entries = parsed.get("entries") or []
     if not entries and not parsed.get("feed"):
         raise RssFeedParseError(f"malformed RSS feed for podcast {podcast.podcast_id}: no feed metadata")
 
-    episodes = [episode for entry in entries if (episode := _episode_from_entry(podcast, entry)) is not None]
+    episodes: list[RssEpisodeRow] = []
+    for entry in entries:
+        remaining_budget_seconds(deadline)
+        episode = _episode_from_entry(podcast, entry)
+        if episode is not None:
+            episodes.append(episode)
     return RssFetchResult(episodes=episodes, etag=etag, last_modified=last_modified, not_modified=False)
 
 
@@ -651,11 +692,13 @@ def persist_rss_fetch_result(
     fetched: RssFetchResult,
     *,
     dry_run: bool,
+    deadline: Optional[float] = None,
 ) -> RssSyncSummary:
     summary = RssSyncSummary(episodes_seen=len(fetched.episodes), not_modified=fetched.not_modified)
     seen_episode_ids: set[tuple[str, str]] = set()
 
     for episode in fetched.episodes:
+        remaining_budget_seconds(deadline)
         key = (episode.source, episode.source_episode_id)
         if key in seen_episode_ids:
             summary.episodes_skipped += 1
@@ -664,6 +707,7 @@ def persist_rss_fetch_result(
         if dry_run:
             continue
         result = upsert_episode_with_result(conn, episode)
+        remaining_budget_seconds(deadline)
         if result.inserted:
             summary.episodes_inserted += 1
         elif result.changed:
@@ -671,8 +715,10 @@ def persist_rss_fetch_result(
         else:
             summary.episodes_unchanged += 1
 
+    remaining_budget_seconds(deadline)
     if not dry_run:
         record_fetch_success(conn, podcast, fetched)
+        remaining_budget_seconds(deadline)
 
     return summary
 
@@ -682,6 +728,10 @@ def sync_podcast_episodes_from_rss(
     podcast: PodcastRssFeed,
     *,
     dry_run: bool,
+    deadline: Optional[float] = None,
 ) -> RssSyncSummary:
-    fetched = fetch_rss_episodes(podcast)
-    return persist_rss_fetch_result(conn, podcast, fetched, dry_run=dry_run)
+    if deadline is None:
+        fetched = fetch_rss_episodes(podcast)
+        return persist_rss_fetch_result(conn, podcast, fetched, dry_run=dry_run)
+    fetched = fetch_rss_episodes(podcast, deadline=deadline)
+    return persist_rss_fetch_result(conn, podcast, fetched, dry_run=dry_run, deadline=deadline)

@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
@@ -32,6 +34,7 @@ class FeedUnreachableError(RuntimeError):
 
 @dataclass
 class DriverSummary:
+    podcasts_selected: int = 0
     podcasts_scanned: int = 0
     podcasts_failed: int = 0
     episodes_seen: int = 0
@@ -41,6 +44,8 @@ class DriverSummary:
     episodes_skipped: int = 0
     not_modified: int = 0
     podcasts_skipped_unreachable: int = 0
+    completed: bool = True
+    budget_exhausted: bool = False
     per_podcast_errors: list[str] = field(default_factory=list)
 
 
@@ -210,9 +215,21 @@ def _record_unreachable(podcast: reader.PodcastRssFeed) -> None:
         )
 
 
-def _sync_one_podcast(podcast: reader.PodcastRssFeed, *, dry_run: bool) -> reader.RssSyncSummary:
+def _sync_one_podcast(
+    podcast: reader.PodcastRssFeed,
+    *,
+    dry_run: bool,
+    deadline: Optional[float] = None,
+) -> reader.RssSyncSummary:
     try:
-        fetched = reader.fetch_rss_episodes(podcast)
+        if deadline is None:
+            fetched = reader.fetch_rss_episodes(podcast)
+        else:
+            fetched = reader.fetch_rss_episodes(podcast, deadline=deadline)
+    except reader.RssSyncBudgetExceeded:
+        # A deadline is an orderly partial run, not evidence that the feed is
+        # unreachable. Preserve the exception type for the driver.
+        raise
     except Exception as exc:
         # Reachability failures originate here (network/HTTP/parse) — tag them so
         # the driver benches only genuinely unreachable feeds, never a reachable
@@ -220,9 +237,20 @@ def _sync_one_podcast(podcast: reader.PodcastRssFeed, *, dry_run: bool) -> reade
         raise FeedUnreachableError(str(exc)) from exc
     with get_connection(autocommit=False) as conn:
         try:
-            podcast_summary = reader.persist_rss_fetch_result(conn, podcast, fetched, dry_run=dry_run)
+            if deadline is None:
+                podcast_summary = reader.persist_rss_fetch_result(conn, podcast, fetched, dry_run=dry_run)
+            else:
+                podcast_summary = reader.persist_rss_fetch_result(
+                    conn,
+                    podcast,
+                    fetched,
+                    dry_run=dry_run,
+                    deadline=deadline,
+                )
             if not dry_run:
+                reader.remaining_budget_seconds(deadline)
                 _bump_last_synced(conn, podcast.podcast_id)
+                reader.remaining_budget_seconds(deadline)
 
             if dry_run:
                 conn.rollback()
@@ -240,11 +268,14 @@ def sync_podcasts_from_rss(
     limit: Optional[int],
     source: Optional[str],
     podcast_ids: Optional[list[int]] = None,
+    max_runtime_seconds: Optional[float] = None,
 ) -> DriverSummary:
     summary = DriverSummary()
+    deadline = time.monotonic() + max_runtime_seconds if max_runtime_seconds is not None else None
     before_count, podcasts, skipped_unreachable = _load_sync_inputs(
         source=source, podcast_ids=podcast_ids, limit=limit
     )
+    summary.podcasts_selected = len(podcasts)
     summary.podcasts_skipped_unreachable = skipped_unreachable
     print("=== BEFORE ===")
     print(f"PodcastEpisode rows: {before_count}")
@@ -252,10 +283,19 @@ def sync_podcasts_from_rss(
     print(f"Podcasts skipped (unreachable, in cooldown): {skipped_unreachable}")
 
     for podcast in podcasts:
-        summary.podcasts_scanned += 1
         try:
-            podcast_summary = _sync_one_podcast(podcast, dry_run=dry_run)
+            reader.remaining_budget_seconds(deadline)
+            podcast_summary = _sync_one_podcast(podcast, dry_run=dry_run, deadline=deadline)
+        except reader.RssSyncBudgetExceeded as exc:
+            summary.completed = False
+            summary.budget_exhausted = True
+            Logger.info(
+                f"[rss-episode-reader] runtime budget exhausted before completing podcast "
+                f"{podcast.podcast_id}; stopping after {summary.podcasts_scanned} feeds: {exc}"
+            )
+            break
         except Exception as exc:
+            summary.podcasts_scanned += 1
             summary.podcasts_failed += 1
             message = f"podcast {podcast.podcast_id} ({podcast.title}): {exc}"
             summary.per_podcast_errors.append(message)
@@ -266,6 +306,7 @@ def sync_podcasts_from_rss(
                 _record_unreachable(podcast)
             continue
 
+        summary.podcasts_scanned += 1
         summary.episodes_seen += podcast_summary.episodes_seen
         summary.episodes_inserted += podcast_summary.episodes_inserted
         summary.episodes_updated += podcast_summary.episodes_updated
@@ -278,9 +319,11 @@ def sync_podcasts_from_rss(
     if dry_run:
         print("DRY RUN: no database writes applied")
         print(f"PodcastEpisode rows: {before_count}")
-    else:
+    elif summary.completed:
         with get_connection() as conn:
             print(f"PodcastEpisode rows: {_episode_count(conn)}")
+    else:
+        print("PodcastEpisode rows: not counted after runtime budget exhaustion")
 
     return summary
 
@@ -289,6 +332,7 @@ def _print_report(summary: DriverSummary, *, dry_run: bool) -> None:
     prefix = "DRY RUN - " if dry_run else ""
     print(
         f"{prefix}Summary: {summary.podcasts_scanned} podcasts scanned, "
+        f"{summary.podcasts_selected} selected, "
         f"{summary.episodes_seen} episodes seen, "
         f"{summary.episodes_inserted} inserted, "
         f"{summary.episodes_updated} updated, "
@@ -296,7 +340,8 @@ def _print_report(summary: DriverSummary, *, dry_run: bool) -> None:
         f"{summary.episodes_skipped} skipped, "
         f"{summary.not_modified} not modified, "
         f"{summary.podcasts_failed} failures, "
-        f"{summary.podcasts_skipped_unreachable} skipped unreachable"
+        f"{summary.podcasts_skipped_unreachable} skipped unreachable, "
+        f"completed={str(summary.completed).lower()}"
     )
     for error in summary.per_podcast_errors:
         print(f"  error: {error}")
@@ -312,7 +357,31 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--limit", type=int, default=None, help="Max podcasts to scan")
     parser.add_argument("--source", default=None, help="Optional parent podcast source filter")
     parser.add_argument("--podcast-id", dest="podcast_ids", type=int, action="append", default=None)
+    parser.add_argument(
+        "--max-runtime-seconds",
+        type=_positive_runtime_seconds,
+        default=None,
+        help="Stop cleanly after this many seconds, leaving unfinished feeds for the next run",
+    )
     return parser
+
+
+def _positive_runtime_seconds(value: str) -> float:
+    try:
+        seconds = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("--max-runtime-seconds must be a number greater than zero") from exc
+    if seconds <= 0:
+        raise argparse.ArgumentTypeError("--max-runtime-seconds must be greater than zero")
+    return seconds
+
+
+def _append_github_output(summary: DriverSummary) -> None:
+    output_path = os.environ.get("GITHUB_OUTPUT")
+    if not output_path:
+        return
+    with Path(output_path).open("a", encoding="utf-8") as output:
+        output.write(f"completed={str(summary.completed).lower()}\n")
 
 
 def main(argv: Optional[list[str]] = None) -> int:
@@ -326,8 +395,10 @@ def main(argv: Optional[list[str]] = None) -> int:
         limit=args.limit,
         source=args.source,
         podcast_ids=args.podcast_ids,
+        max_runtime_seconds=args.max_runtime_seconds,
     )
     _print_report(summary, dry_run=args.dry_run)
+    _append_github_output(summary)
     return 0
 
 

@@ -658,3 +658,78 @@ def test_reachable_feed_clause_guards_casts_against_malformed_cache_values():
     # Regression guard: the old unguarded form must not creep back in.
     assert "'consecutive_failures')::int, 0)" not in normalized
     assert "'last_failure_at')::timestamptz, 'epoch'" not in normalized
+
+
+def test_fetch_caps_request_timeout_to_remaining_runtime_budget(monkeypatch):
+    calls: list[float] = []
+    monkeypatch.setattr(mod.time, "monotonic", lambda: 100.0)
+
+    def fake_get(_url: str, **kwargs: Any) -> _FakeResponse:
+        calls.append(kwargs["timeout"])
+        return _FakeResponse(status_code=304)
+
+    monkeypatch.setattr(mod.requests, "get", fake_get)
+
+    result = mod.fetch_rss_episodes(_podcast(), deadline=107.5)
+
+    assert result.not_modified is True
+    assert calls == [7.5]
+
+
+def test_final_request_timeout_at_deadline_is_budget_exhaustion_not_fetch_failure(monkeypatch):
+    clock = {"now": 100.0}
+    monkeypatch.setattr(mod, "_MAX_RETRIES", 1)
+    monkeypatch.setattr(mod.time, "monotonic", lambda: clock["now"])
+
+    def fake_get(_url: str, **kwargs: Any) -> _FakeResponse:
+        clock["now"] += kwargs["timeout"]
+        raise TimeoutError("request timed out")
+
+    monkeypatch.setattr(mod.requests, "get", fake_get)
+
+    with pytest.raises(mod.RssSyncBudgetExceeded, match="time budget exhausted"):
+        mod.fetch_rss_episodes(_podcast(), deadline=105.0)
+
+
+def test_persistence_checks_deadline_after_each_episode_write(monkeypatch):
+    conn = _FakeConn()
+    clock = {"now": 100.0}
+    writes: list[str] = []
+    monkeypatch.setattr(mod.time, "monotonic", lambda: clock["now"])
+
+    def episode(guid: str) -> mod.RssEpisodeRow:
+        return mod.RssEpisodeRow(
+            podcast_id=42,
+            source="itunes",
+            source_episode_id=guid,
+            guid=guid,
+            title=guid,
+            description=None,
+            release_date=None,
+            duration_seconds=None,
+            episode_url=None,
+            audio_url=None,
+            external_ids={"rss_guid": guid},
+            evidence={},
+            source_payload={"id": guid},
+        )
+
+    def fake_upsert(_conn: Any, row: mod.RssEpisodeRow) -> mod.EpisodeUpsertResult:
+        writes.append(row.guid or "")
+        clock["now"] += 2.0
+        return mod.EpisodeUpsertResult(episode_id=1, inserted=True, changed=True)
+
+    monkeypatch.setattr(mod, "upsert_episode_with_result", fake_upsert)
+    fetched = mod.RssFetchResult(episodes=[episode("one"), episode("two")])
+
+    with pytest.raises(mod.RssSyncBudgetExceeded, match="time budget exhausted"):
+        mod.persist_rss_fetch_result(
+            conn,
+            _podcast(),
+            fetched,
+            dry_run=False,
+            deadline=101.0,
+        )
+
+    assert writes == ["one"]
+    assert conn.podcast_updates == []

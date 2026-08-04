@@ -133,6 +133,9 @@ def test_driver_confirm_bumps_last_synced_after_success(monkeypatch):
     summary = mod.sync_podcasts_from_rss(dry_run=False, limit=1, source=None)
 
     assert summary.podcasts_scanned == 1
+    assert summary.podcasts_selected == 1
+    assert summary.completed is True
+    assert summary.budget_exhausted is False
     assert summary.episodes_inserted == 1
     assert conn.last_synced_updates == [(42,)]
     assert conn.commits == 1
@@ -202,6 +205,7 @@ def test_load_podcasts_query_skips_feeds_in_reachability_cooldown():
     assert "last_failure_at" in select_sql
     assert mod.reader.UNREACHABLE_FAILURE_THRESHOLD in select_params
     assert mod.reader.UNREACHABLE_COOLDOWN_DAYS in select_params
+    assert "ORDER BY last_synced_at ASC NULLS FIRST, id ASC" in " ".join(select_sql.split())
     # LIMIT is still the final bind param so the rotating batch is preserved.
     assert select_params[-1] == 500
 
@@ -282,3 +286,95 @@ def test_persist_error_does_not_bench_reachable_feed(monkeypatch):
 
     assert summary.podcasts_failed == 1
     assert recorded == []
+
+
+def test_runtime_budget_stops_cleanly_and_next_run_resumes_with_unfinished_feed(monkeypatch):
+    podcasts = [
+        mod.reader.PodcastRssFeed(42, "itunes", "42", "https://example.com/42.xml", "First"),
+        mod.reader.PodcastRssFeed(43, "itunes", "43", "https://example.com/43.xml", "Second"),
+        mod.reader.PodcastRssFeed(44, "itunes", "44", "https://example.com/44.xml", "Third"),
+    ]
+    last_synced: dict[int, float | None] = {podcast.podcast_id: None for podcast in podcasts}
+    clock = {"now": 100.0}
+    exhaust_on_second = {"enabled": True}
+    recorded_unreachable: list[int] = []
+    run_orders: list[list[int]] = []
+
+    monkeypatch.setattr(mod.time, "monotonic", lambda: clock["now"])
+
+    def fake_load_sync_inputs(*, source: Any, podcast_ids: Any, limit: Any) -> Any:
+        del source, podcast_ids
+        ordered = sorted(
+            podcasts,
+            key=lambda podcast: (
+                last_synced[podcast.podcast_id] is not None,
+                last_synced[podcast.podcast_id] or 0,
+                podcast.podcast_id,
+            ),
+        )
+        selected = ordered[:limit]
+        run_orders.append([podcast.podcast_id for podcast in selected])
+        return 7, selected, 0
+
+    def fake_sync_one(podcast: Any, *, dry_run: bool, deadline: float | None = None) -> Any:
+        assert dry_run is False
+        assert deadline is not None
+        if podcast.podcast_id == 43 and exhaust_on_second["enabled"]:
+            exhaust_on_second["enabled"] = False
+            clock["now"] = deadline
+            raise mod.reader.RssSyncBudgetExceeded("test deadline reached")
+        last_synced[podcast.podcast_id] = clock["now"]
+        clock["now"] += 1
+        return mod.reader.RssSyncSummary(episodes_seen=1, episodes_unchanged=1)
+
+    monkeypatch.setattr(mod, "_load_sync_inputs", fake_load_sync_inputs)
+    monkeypatch.setattr(mod, "_sync_one_podcast", fake_sync_one)
+    monkeypatch.setattr(mod, "_record_unreachable", lambda podcast: recorded_unreachable.append(podcast.podcast_id))
+    monkeypatch.setattr(mod, "get_connection", lambda **_kwargs: _FakeConn())
+
+    first = mod.sync_podcasts_from_rss(
+        dry_run=False,
+        limit=2,
+        source=None,
+        max_runtime_seconds=5,
+    )
+
+    assert run_orders[0] == [42, 43]
+    assert first.podcasts_selected == 2
+    assert first.podcasts_scanned == 1
+    assert first.completed is False
+    assert first.budget_exhausted is True
+    assert first.podcasts_failed == 0
+    assert recorded_unreachable == []
+
+    clock["now"] = 200.0
+    second = mod.sync_podcasts_from_rss(
+        dry_run=False,
+        limit=2,
+        source=None,
+        max_runtime_seconds=20,
+    )
+
+    assert run_orders[1] == [43, 44]
+    assert second.podcasts_selected == 2
+    assert second.podcasts_scanned == 2
+    assert second.completed is True
+    assert second.budget_exhausted is False
+    assert recorded_unreachable == []
+
+
+def test_main_appends_partial_completion_to_github_output(monkeypatch, tmp_path):
+    output_path = tmp_path / "github-output"
+    captured: dict[str, Any] = {}
+
+    def fake_sync(**kwargs: Any) -> mod.DriverSummary:
+        captured.update(kwargs)
+        return mod.DriverSummary(podcasts_selected=10, podcasts_scanned=4, completed=False, budget_exhausted=True)
+
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output_path))
+    monkeypatch.setattr(mod, "sync_podcasts_from_rss", fake_sync)
+
+    assert mod.main(["--confirm", "--max-runtime-seconds", "123.5"]) == 0
+
+    assert captured["max_runtime_seconds"] == 123.5
+    assert output_path.read_text(encoding="utf-8") == "completed=false\n"
