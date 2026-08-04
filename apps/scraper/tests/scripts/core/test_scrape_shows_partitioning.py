@@ -287,6 +287,9 @@ def test_workflow_gates_downstream_work_and_records_unique_partitions():
     assert "if-no-files-found: error" in workflow
     assert "pattern: scraper-metrics-${{ github.run_id }}-*" in workflow
     assert "--expected-partitions 3" in workflow
+    merge_step = workflow.split("- name: Publish full scraper metrics snapshot", 1)[1]
+    assert "EMAIL_SMTP_USERNAME: ${{ secrets.EMAIL_SMTP_USERNAME }}" in merge_step
+    assert "ALERT_RECIPIENTS: ${{ secrets.ALERT_RECIPIENTS }}" in merge_step
     assert "github_actions_scraper_pipeline_partition_${{ matrix.partition_index }}_of_2" in workflow
     assert "actions/download-artifact@v8" in workflow
     assert "pipeline-key:" in action
