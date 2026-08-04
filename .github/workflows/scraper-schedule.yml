@@ -3,7 +3,7 @@ name: Scraper pipeline run
 on:
   schedule:
     # Daily at 21:00 UTC (16:00 EST / 17:00 EDT)
-    - cron: '0 21 * * *'
+    - cron: "0 21 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -11,27 +11,15 @@ on:
         type: boolean
         default: false
 
-# Serialize this pipeline against itself: a manual workflow_dispatch during the
-# 90-180min nightly would otherwise run two full concurrent scrapes — doubled
-# load on ticketing hosts (bot-block risk) and corrupted trailing-7-run Grafana
-# baselines. cancel-in-progress: false QUEUES the second run instead of killing a
-# half-finished one; a run cancelled mid-persist writes a partial scraper_runs
-# row that misleads the dropped-to-zero alerts (TASK-3634, audit T2.2). This
-# group intentionally does NOT include scraper-verify.yml, which stays free to
-# run alongside the pipeline.
+# Queue manual and scheduled runs so two partition matrices never overlap.
 concurrency:
   group: scraper-pipeline
   cancel-in-progress: false
 
 jobs:
-  scrape:
+  prepare:
     runs-on: ubuntu-24.04
-    # Raised 120->180 (TASK-3044): with the 817 ticketmaster_comedy venues batched
-    # onto ticketmaster_national (TASK-3042), the remaining ~580 clubs at
-    # MAX_CONCURRENT_CLUBS=12 run in ~40m and ticketmaster_national (appended last)
-    # needs ~40m to persist ~10k shows, so a full run lands well under 180m. The
-    # liveness alert (TASK-3040) catches any future regression past this budget.
-    timeout-minutes: 180
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: apps/scraper
@@ -43,13 +31,6 @@ jobs:
       - name: Set up scraper Python environment
         uses: ./.github/actions/scraper-setup
 
-      # Apply any committed-but-unapplied apps/scraper/migrations/*.sql before the
-      # scrape so the prod migrations_log can never silently drift behind the repo
-      # (TASK-2935). bin/migrate is idempotent, serializes via a pg advisory lock,
-      # and exits non-zero on failure so a bad migration fails the run loudly
-      # instead of letting the scrape proceed against an un-migrated schema.
-      # Migrations must stay idempotent (INSERT ... WHERE NOT EXISTS, guarded
-      # UPDATEs) per convention #186 — they re-run here on every nightly invocation.
       - name: Apply pending scraper migrations
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
@@ -57,8 +38,33 @@ jobs:
           DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
-        run: |
-          python bin/migrate
+        run: python bin/migrate
+
+  scrape_partition:
+    name: Scrape partition ${{ matrix.partition_number }} of 2
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      # Let the other partition finish and retain its result if one child fails.
+      # GitHub's "rerun failed jobs" then resumes only the failed child.
+      fail-fast: false
+      matrix:
+        include:
+          - partition_index: 0
+            partition_number: 1
+          - partition_index: 1
+            partition_number: 2
+    defaults:
+      run:
+        working-directory: apps/scraper
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up scraper Python environment
+        uses: ./.github/actions/scraper-setup
 
       - name: Install system dependencies
         run: |
@@ -66,10 +72,9 @@ jobs:
           sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
 
       - name: Install Playwright browsers
-        run: |
-          playwright install chromium --with-deps
+        run: playwright install chromium --with-deps
 
-      - name: Run scraper
+      - name: Run scraper partition
         id: run_scraper
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
@@ -89,30 +94,93 @@ jobs:
           EVENTBRITE_PRIVATE_TOKEN: ${{ secrets.EVENTBRITE_PRIVATE_TOKEN }}
           SEATENGINE_AUTH_TOKEN: ${{ secrets.SEATENGINE_AUTH_TOKEN }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          # Residential proxy egress for scrapers with use_residential_proxy=true
-          # in the scrapers table. Unset secret = direct egress for everyone
-          # (the registry returns the URL as None, ScraperProxyRegistry never
-          # blocks the run on a missing secret).
           RESIDENTIAL_PROXY_URL: ${{ secrets.RESIDENTIAL_PROXY_URL }}
-          # capsolver key for DataDome/AWS-WAF interactive CAPTCHA solves in
-          # the Playwright fallback. Unset secret = solver disabled, no run
-          # failure (build_default_solver returns None and the solve path is
-          # skipped). DataDome solves additionally require a proxy, so only
-          # proxy-enabled scrapers (tixr) can complete one — proxyless callers
-          # skip the solve up front.
           CAPSOLVER_API_KEY: ${{ secrets.CAPSOLVER_API_KEY }}
-          # Raised 5->12 (TASK-3044). Concurrency only parallelizes the network
-          # fetch — DB writes are serialized by _DB_WRITE_LOCK regardless — and
-          # with Ticketmaster batched onto ticketmaster_national (TASK-3042) the
-          # remaining clubs are mostly distinct domains, so per-domain rate
-          # limiting is unaffected. Read at use-time by _max_concurrent_clubs in
-          # core/services/scraping/__init__.py (default 5).
-          MAX_CONCURRENT_CLUBS: "12"
+          # Two runners at six workers preserve the prior aggregate concurrency of 12.
+          MAX_CONCURRENT_CLUBS: "6"
         run: |
-          python -m scripts.core.scrape_shows --all
+          python -m scripts.core.scrape_shows --all \
+            --partition-index "${{ matrix.partition_index }}" \
+            --partition-count 2
+
+      - name: Upload partition logs
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: scraper-logs-${{ github.run_id }}-partition-${{ matrix.partition_index }}
+          path: apps/scraper/logs/
+          retention-days: 30
+
+      - name: Upload partition metrics
+        uses: actions/upload-artifact@v7
+        if: steps.run_scraper.outcome == 'success'
+        with:
+          name: scraper-metrics-${{ github.run_id }}-partition-${{ matrix.partition_index }}
+          path: |
+            apps/scraper/dashboard.html
+            apps/scraper/metrics/
+          retention-days: 30
+
+      - name: Record partition run
+        if: always()
+        continue-on-error: true
+        uses: ./.github/actions/record-pipeline-run
+        with:
+          pipeline-key: github_actions_scraper_pipeline_partition_${{ matrix.partition_index }}_of_2
+          job-status: ${{ job.status }}
+          database-name: ${{ secrets.DATABASE_NAME }}
+          database-user: ${{ secrets.DATABASE_USER }}
+          database-host: ${{ secrets.DATABASE_HOST }}
+          database-password: ${{ secrets.DATABASE_PASSWORD }}
+          database-port: ${{ secrets.DATABASE_PORT }}
+
+  finalize:
+    name: Finalize completed scraper partitions
+    needs: scrape_partition
+    if: needs.scrape_partition.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: apps/scraper
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up scraper Python environment
+        uses: ./.github/actions/scraper-setup
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+
+      - name: Download completed partition metrics
+        uses: actions/download-artifact@v8
+        with:
+          pattern: scraper-metrics-${{ github.run_id }}-partition-*
+          path: apps/scraper/partition-metrics
+          merge-multiple: false
+
+      - name: Publish full scraper metrics snapshot
+        id: merge_metrics
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        run: |
+          python -m scripts.core.scrape_shows \
+            --merge-partition-metrics partition-metrics \
+            --expected-partitions 2
 
       - name: Revalidate home page cache
-        if: steps.run_scraper.outcome == 'success'
+        if: always() && steps.merge_metrics.outcome == 'success'
         continue-on-error: true
         env:
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
@@ -124,7 +192,7 @@ jobs:
             -d '{"tags": ["home-page-data"]}'
 
       - name: Update popularity scores (comedians, shows, clubs)
-        if: always()
+        if: always() && steps.merge_metrics.outcome == 'success'
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
@@ -132,15 +200,11 @@ jobs:
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          # With no flags the script updates comedians → shows → clubs in the
-          # correct dependency order (shows and clubs both aggregate comedian
-          # popularity via lineups) in a single process.
-          python -m scripts.core.update_popularity
+        run: python -m scripts.core.update_popularity
 
       - name: Backfill club description
         id: enrichment
-        if: always()
+        if: always() && steps.merge_metrics.outcome == 'success'
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
@@ -148,37 +212,21 @@ jobs:
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         run: |
-          # Fills description for any visible club still missing one (sourced
-          # from the club's website LD-JSON / meta tags).  Only re-fetches
-          # clubs that need an update, so nightly re-runs are cheap once the
-          # backfill stabilises.
-          #
-          # --summary-out writes the JSON summary to a dedicated file so the
-          # next step can parse it directly — decoupling the Discord post
-          # from stdout so future Logger lines written after the print can't
-          # silently break JSON parsing (previous tee + tail -n1 approach).
           python -m scripts.core.update_club_enrichment \
             --summary-out enrichment-summary.json
 
       - name: Backfill club timezones
-        if: always()
+        if: always() && steps.merge_metrics.outcome == 'success'
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
           DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
-        run: |
-          # Fills timezone for any visible club still missing one, resolving
-          # from clubs.state then clubs.address. No --geocode flag, so this is
-          # a cheap state/address-only sweep that never touches the Places API
-          # quota — it catches new NULL-tz clubs from every creation path
-          # (Eventbrite organizer mode, national sweeps, discovery upserts).
-          # Re-running is safe: every write is NULL-guarded.
-          python -m scripts.core.backfill_club_timezones
+        run: python -m scripts.core.backfill_club_timezones
 
       - name: Post enrichment summary to Discord
-        if: always()
+        if: always() && steps.merge_metrics.outcome == 'success'
         continue-on-error: true
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -188,13 +236,12 @@ jobs:
             exit 0
           fi
           if [ ! -s enrichment-summary.json ]; then
-            echo "No enrichment summary file (step failed before writing) — skipping"
+            echo "No enrichment summary file — skipping"
             exit 0
           fi
           SUMMARY=$(cat enrichment-summary.json)
           if ! echo "$SUMMARY" | jq empty >/dev/null 2>&1; then
-            echo "Enrichment summary not valid JSON — skipping Discord post"
-            echo "File contents: $SUMMARY"
+            echo "Enrichment summary not valid JSON — skipping"
             exit 0
           fi
           FETCHED=$(echo "$SUMMARY" | jq -r '.fetched // 0')
@@ -207,7 +254,7 @@ jobs:
             -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
 
       - name: Send comedian arrival notifications
-        if: always()
+        if: always() && steps.merge_metrics.outcome == 'success'
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
@@ -225,9 +272,6 @@ jobs:
           APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
           APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
           APNS_BUNDLE_ID: ${{ secrets.APNS_BUNDLE_ID }}
-          # FCM (Android) — mirror of the APNS_* wiring above. When these secrets
-          # are unset, android-platform tokens log push_errors but iOS still
-          # delivers (FcmPushService is only constructed for android sends).
           FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
           FCM_PROJECT_ID: ${{ secrets.FCM_PROJECT_ID }}
         run: |
@@ -237,17 +281,9 @@ jobs:
           fi
           python -m laughtrack.app.cli notify-comedian-arrivals --radius 50 $DRY_RUN_FLAG
 
-      - name: Upload scraper logs
+      - name: Upload full scraper dashboard and metrics
         uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: scraper-logs-${{ github.run_id }}
-          path: apps/scraper/logs/
-          retention-days: 30
-
-      - name: Upload scraper dashboard and metrics
-        uses: actions/upload-artifact@v7
-        if: always()
+        if: always() && steps.merge_metrics.outcome == 'success'
         with:
           name: scraper-dashboard-${{ github.run_id }}
           path: |
@@ -255,7 +291,7 @@ jobs:
             apps/scraper/metrics/
           retention-days: 30
 
-      - name: Record pipeline run
+      - name: Record full pipeline run
         if: always()
         continue-on-error: true
         uses: ./.github/actions/record-pipeline-run
@@ -267,26 +303,44 @@ jobs:
           database-password: ${{ secrets.DATABASE_PASSWORD }}
           database-port: ${{ secrets.DATABASE_PORT }}
 
+  record_failure:
+    name: Record scraper pipeline failure
+    needs: [scrape_partition, finalize]
+    if: always() && (needs.scrape_partition.result != 'success' || needs.finalize.result != 'success')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
       - name: Notify on failure
-        if: failure()
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          echo "::error::Scraper production run failed. Check the logs artifact for details."
-          # Post directly to Discord on a hard job failure. The Grafana
-          # scraper-health alerts only fire off data the pipeline writes WHILE
-          # running, so a pre-scrape failure (migrate/setup) that writes no
-          # scraper_runs row is invisible to them — the migration outage in
-          # TASK-3036 ran 4 nights with only an unwatched GitHub admin email.
-          # The Grafana staleness rule (scraper-health-alerts.yaml rule 4) is the
-          # primary catch within ~26h; this is the immediate same-run signal.
+          echo "::error::Scraper production run failed. Check partition logs for details."
           if [ -z "$DISCORD_WEBHOOK_URL" ]; then
-            echo "DISCORD_WEBHOOK_URL not set — skipping Discord post (GitHub will still email admins)"
             exit 0
           fi
           MSG="🚨 [scraper] Production pipeline run FAILED — ${RUN_URL}"
           curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d "$(jq -nc --arg c "$MSG" '{content: $c}')" \
-            || echo "Discord post failed (non-fatal); GitHub will still email admins"
+            || echo "Discord post failed (non-fatal)"
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+        continue-on-error: true
+
+      - name: Set up scraper Python environment
+        uses: ./.github/actions/scraper-setup
+        continue-on-error: true
+
+      - name: Record failed pipeline run
+        continue-on-error: true
+        uses: ./.github/actions/record-pipeline-run
+        with:
+          job-status: failure
+          database-name: ${{ secrets.DATABASE_NAME }}
+          database-user: ${{ secrets.DATABASE_USER }}
+          database-host: ${{ secrets.DATABASE_HOST }}
+          database-password: ${{ secrets.DATABASE_PASSWORD }}
+          database-port: ${{ secrets.DATABASE_PORT }}
