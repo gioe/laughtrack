@@ -9,6 +9,7 @@ lookups resolve against THIS module's globals, not the package's re-exports.
 
 import asyncio
 import concurrent.futures
+import hashlib
 import json
 import os
 import re
@@ -49,6 +50,46 @@ _TEXT_CHANNEL_BODY_LIMIT = 8000  # soft cap for email/webhook channels; no hard 
 # process can be retuned without restart (matches the SCRAPING_SUCCESS_RATE_THRESHOLD
 # / MAX_CONCURRENT_CLUBS pattern in this module).
 _DEFAULT_CROSS_HOST_REDIRECT_TUPLE_THRESHOLD = 3
+
+
+def _scrape_target_partition_key(target: Club) -> str:
+    """Return a stable, namespace-qualified identity for a scrape target."""
+    production_company_id = getattr(target, "production_company_id", None)
+    if production_company_id is not None:
+        return f"production_company:{production_company_id}"
+
+    source = getattr(target, "active_scraping_source", None) or getattr(
+        target, "scraping_source", None
+    )
+    source_target_id = getattr(source, "source_target_id", None)
+    if getattr(target, "is_synthetic", False) and source_target_id is not None:
+        return f"source_target:{source_target_id}"
+
+    return f"club:{target.id}"
+
+
+def _select_scrape_partition(
+    targets: List[Club], partition_index: int, partition_count: int
+) -> List[Club]:
+    """Select one deterministic, insertion-stable partition of scrape targets."""
+    if partition_count < 1:
+        raise ValueError("partition_count must be at least 1")
+    if partition_index < 0 or partition_index >= partition_count:
+        raise ValueError(
+            f"partition_index must be between 0 and {partition_count - 1}"
+        )
+
+    keyed_targets = sorted(
+        ((_scrape_target_partition_key(target), target) for target in targets),
+        key=lambda item: item[0],
+    )
+    return [
+        target
+        for key, target in keyed_targets
+        if int.from_bytes(hashlib.sha256(key.encode("utf-8")).digest()[:8], "big")
+        % partition_count
+        == partition_index
+    ]
 
 # Per-club persist deadline inside _scrape_clubs_concurrently's scrape_one.
 # Raised from 60s after run 26762966336 (2026-06-01 nightly) lost the persist
@@ -529,8 +570,18 @@ class ScrapingService:
 
         return kept
 
-    def scrape_all_clubs(self) -> List[ClubScrapingResult]:
+    def scrape_all_clubs(
+        self,
+        *,
+        partition_index: Optional[int] = None,
+        partition_count: Optional[int] = None,
+    ) -> List[ClubScrapingResult]:
         Logger.info("Starting scrape of all clubs...")
+        if (partition_index is None) != (partition_count is None):
+            raise ValueError(
+                "partition_index and partition_count must be provided together"
+            )
+        partitioned = partition_index is not None
         clubs = self.club_handler.get_all_clubs()
         source_targets = list(self.club_handler.get_all_source_targets() or [])
         scrape_targets = clubs + source_targets
@@ -542,21 +593,41 @@ class ScrapingService:
         )
         clubs = self._filter_off_season_festivals(clubs)
         scrape_targets = clubs + source_targets
+        if partitioned:
+            assert partition_index is not None and partition_count is not None
+            scrape_targets = _select_scrape_partition(
+                scrape_targets, partition_index, partition_count
+            )
+            Logger.warn(
+                f"Selected scrape partition {partition_index + 1}/{partition_count}: "
+                f"{len(scrape_targets)} club/source target(s)"
+            )
         self._try_validate_scraper_keys(scrape_targets)
         results, summary, db_result = self._scrape_clubs_with_metrics(scrape_targets)
 
         # Scrape production companies after regular clubs
-        pc_results, pc_summary, pc_db_result = self._scrape_production_companies(clubs)
+        pc_results, pc_summary, pc_db_result = self._scrape_production_companies(
+            clubs,
+            partition_index=partition_index,
+            partition_count=partition_count,
+        )
         results.extend(pc_results)
         summary = summary.merge(pc_summary)
         db_result = db_result + pc_db_result
-        self._last_geocoding_result = self._geocode_missing_clubs_after_scrape()
+        if not partitioned:
+            self._last_geocoding_result = self._geocode_missing_clubs_after_scrape()
 
         self._emit_summary(summary)
-        self._check_and_alert(summary)
-        self._send_run_summary(summary, db_result)
-        self.result_processor.process_results(results, db_result)
-        self.club_handler.refresh_club_total_shows()
+        if not partitioned:
+            self._check_and_alert(summary)
+            self._send_run_summary(summary, db_result)
+        self.result_processor.process_results(
+            results,
+            db_result,
+            run_type="scraper_partition" if partitioned else "scraper",
+        )
+        if not partitioned:
+            self.club_handler.refresh_club_total_shows()
         return results
 
     def _geocode_missing_clubs_after_scrape(self) -> ClubGeocodingResult:
@@ -617,7 +688,11 @@ class ScrapingService:
     # --- Production company helpers ---
 
     def _scrape_production_companies(
-        self, clubs: List[Club]
+        self,
+        clubs: List[Club],
+        *,
+        partition_index: Optional[int] = None,
+        partition_count: Optional[int] = None,
     ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary, DatabaseOperationResult]:
         """Scrape all production companies and map shows to venue clubs.
 
@@ -670,6 +745,25 @@ class ScrapingService:
         if not proxy_clubs:
             Logger.info("No production companies eligible for scraping")
             return [], ScrapingRunSummary(), DatabaseOperationResult()
+
+        if partition_index is not None:
+            assert partition_count is not None
+            proxies_by_id = {
+                proxy.production_company_id: (proxy, company)
+                for proxy, company in proxy_clubs
+            }
+            selected_proxies = _select_scrape_partition(
+                [proxy for proxy, _ in proxy_clubs], partition_index, partition_count
+            )
+            proxy_clubs = [
+                proxies_by_id[proxy.production_company_id] for proxy in selected_proxies
+            ]
+            if not proxy_clubs:
+                Logger.info(
+                    f"No production companies assigned to partition "
+                    f"{partition_index + 1}/{partition_count}"
+                )
+                return [], ScrapingRunSummary(), DatabaseOperationResult()
 
         Logger.info(f"Scraping {len(proxy_clubs)} production company(ies)")
 
