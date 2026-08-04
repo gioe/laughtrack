@@ -9,6 +9,9 @@ extract_products parses the show date from the product fullUrl slug
 import json
 import os
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+
+import time_machine
 
 from laughtrack.scrapers.implementations.api.squarespace.extractor import (
     SquarespaceExtractor,
@@ -107,14 +110,21 @@ class TestExtractProducts:
             }
         ]
 
-        events = SquarespaceExtractor.extract_products(
-            items,
-            "https://www.talktothemooncomedyclub.com",
-            timezone_name="America/Chicago",
-        )
+        venue_tz = ZoneInfo("America/Chicago")
+        reference_year = datetime.now(venue_tz).year
+        # Preserve the outer clock's applicable year (including FAKE_NOW sweeps),
+        # then place it before October so the yearless date remains upcoming.
+        with time_machine.travel(f"{reference_year}-07-06T12:00:00Z", tick=False):
+            events = SquarespaceExtractor.extract_products(
+                items,
+                "https://www.talktothemooncomedyclub.com",
+                timezone_name="America/Chicago",
+            )
 
         assert len(events) == 1
-        assert _utc(events[0].start_date_ms).isoformat() == "2026-10-02T02:00:00+00:00"
+        assert _utc(events[0].start_date_ms).isoformat() == (
+            f"{reference_year}-10-02T02:00:00+00:00"
+        )
 
     def test_talk_to_the_moon_skips_lorem_ipsum_template_products(self):
         items = [
