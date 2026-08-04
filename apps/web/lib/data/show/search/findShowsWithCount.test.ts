@@ -70,12 +70,14 @@ function makeHelper(
         userId: string | undefined;
         zip: string | undefined;
         clubId: string | undefined;
+        maxPrice: string | undefined;
     }> = {},
 ) {
     return {
         params: {
             zip: overrides.zip ?? undefined,
             clubId: overrides.clubId ?? undefined,
+            maxPrice: overrides.maxPrice ?? undefined,
         },
         getDateClause: vi.fn(() => ({})),
         getClubNameClause: vi.fn(() => ({})),
@@ -84,6 +86,7 @@ function makeHelper(
         getShowTagsClause: vi.fn(() => ({})),
         getShowTypeClause: vi.fn(() => ({})),
         getFreeShowsClause: vi.fn(() => ({})),
+        getMaxPriceShowsClause: vi.fn(() => ({})),
         getGenericClauses: vi.fn((count: number) => ({
             orderBy: [{ name: "asc" }],
             take: Math.min(10, count),
@@ -863,6 +866,90 @@ describe("findShowsWithCount", () => {
                 },
                 availableShowWhere,
             ]);
+        });
+    });
+
+    describe("maximum price filtering", () => {
+        const purchasableTicketAtOrBelow = (maxPrice: number) => ({
+            tickets: {
+                some: {
+                    price: { lte: maxPrice },
+                    soldOut: false,
+                    AND: [
+                        { purchaseUrl: { not: null } },
+                        { purchaseUrl: { not: "" } },
+                    ],
+                },
+            },
+        });
+
+        it("returns no clause when maxPrice is absent or invalid", () => {
+            for (const maxPrice of [undefined, "", "-1", "unknown"]) {
+                const helper = new QueryHelper({
+                    params: { maxPrice },
+                    timezone: "America/New_York",
+                });
+
+                expect(helper.getMaxPriceShowsClause()).toEqual({});
+            }
+        });
+
+        it.each([
+            ["0", 0],
+            ["25.50", 25.5],
+        ])(
+            "builds a public purchasable ticket predicate for maxPrice=%s",
+            (maxPrice, expectedPrice) => {
+                const helper = new QueryHelper({
+                    params: { maxPrice },
+                    timezone: "America/New_York",
+                });
+
+                expect(helper.getMaxPriceShowsClause()).toEqual(
+                    purchasableTicketAtOrBelow(expectedPrice),
+                );
+            },
+        );
+
+        it("AND-composes maxPrice with the Free filter without replacing either ticket predicate", async () => {
+            let capturedCountWhere!: Record<string, unknown>;
+            mockCount.mockImplementation(
+                (args: { where: Record<string, unknown> }) => {
+                    capturedCountWhere = args.where;
+                    return Promise.resolve(0);
+                },
+            );
+
+            const helper = new QueryHelper({
+                params: { filters: FREE_FILTER_SLUG, maxPrice: "0" },
+                timezone: "America/New_York",
+            });
+            await findShowsWithCount(helper);
+
+            expect(capturedCountWhere.tickets).toEqual({
+                some: { price: 0 },
+            });
+            expect(capturedCountWhere.AND).toEqual([
+                purchasableTicketAtOrBelow(0),
+                availableShowWhere,
+            ]);
+        });
+
+        it("applies the same maxPrice predicate to count and findMany", async () => {
+            const helper = new QueryHelper({
+                params: { maxPrice: "30" },
+                timezone: "America/New_York",
+            });
+
+            await findShowsWithCount(helper);
+
+            const expectedWhere = expect.objectContaining({
+                AND: [purchasableTicketAtOrBelow(30), availableShowWhere],
+            });
+            expect(mockCount).toHaveBeenCalledWith({ where: expectedWhere });
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({ where: expectedWhere }),
+            );
         });
     });
 

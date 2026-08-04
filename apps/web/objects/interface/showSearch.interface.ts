@@ -7,6 +7,7 @@ export interface SearchParams {
     comedian?: string;
     club?: string;
     clubId?: string;
+    maxPrice?: string;
     sort?: string;
     page?: string;
     size?: string;

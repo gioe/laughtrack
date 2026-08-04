@@ -469,6 +469,39 @@ export class QueryHelper {
     }
 
     /**
+     * Prisma `Show.where` fragment for a maximum ticket price. The budget
+     * applies to a ticket the user can actually buy: it must have a known
+     * price, a non-empty public purchase URL, and still be available.
+     *
+     * This fragment is composed through `Show.AND` by findShowsWithCount so it
+     * cannot overwrite the sibling `tickets` relation used by the Free filter.
+     */
+    getMaxPriceShowsClause(): Prisma.ShowWhereInput {
+        const rawMaxPrice = this.params.maxPrice;
+        if (rawMaxPrice === undefined || rawMaxPrice.trim() === "") {
+            return {};
+        }
+
+        const maxPrice = Number(rawMaxPrice);
+        if (!Number.isFinite(maxPrice) || maxPrice < 0) {
+            return {};
+        }
+
+        return {
+            tickets: {
+                some: {
+                    price: { lte: maxPrice },
+                    soldOut: false,
+                    AND: [
+                        { purchaseUrl: { not: null } },
+                        { purchaseUrl: { not: "" } },
+                    ],
+                },
+            },
+        };
+    }
+
+    /**
      * Generates a Prisma query clause for filtering shows based on comedian lineup items.
      * This method constructs a query that matches shows where either:
      * 1. The comedian's name matches the search parameter directly (for parent comedians)

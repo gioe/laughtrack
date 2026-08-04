@@ -38,6 +38,7 @@ export async function findShowsWithCount(
         const dateClause = helper.getDateClause();
         const dateFilter =
             "date" in dateClause ? dateClause : { date: { gte: new Date() } };
+        const maxPriceClause = helper.getMaxPriceShowsClause();
         const searchWhereClause: Prisma.ShowWhereInput = {
             // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
             ...dateFilter,
@@ -67,9 +68,14 @@ export async function findShowsWithCount(
             : searchWhereClause.AND
               ? [searchWhereClause.AND]
               : [];
+        const hasMaxPriceClause = Object.keys(maxPriceClause).length > 0;
         const whereClause: Prisma.ShowWhereInput = {
             ...searchWhereClause,
-            AND: [...searchAndClauses, AVAILABLE_SHOW_WHERE],
+            AND: [
+                ...searchAndClauses,
+                ...(hasMaxPriceClause ? [maxPriceClause] : []),
+                AVAILABLE_SHOW_WHERE,
+            ],
         };
 
         // Sequential awaits instead of a RepeatableRead transaction — slight count/data

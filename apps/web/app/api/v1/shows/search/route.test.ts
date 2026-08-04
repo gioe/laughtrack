@@ -125,10 +125,45 @@ describe("GET /api/v1/shows/search", () => {
         );
     });
 
+    it.each(["0", "25.50"])(
+        "forwards a valid maxPrice of %s to show search",
+        async (maxPrice) => {
+            mockGetSearchedShows.mockResolvedValue({
+                data: [],
+                total: 0,
+                filters: [],
+                zipCapTriggered: false,
+            } as never);
+
+            await GET(makeRequestWithQuery(`maxPrice=${maxPrice}`));
+
+            expect(mockGetSearchedShows).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    params: expect.objectContaining({ maxPrice }),
+                }),
+            );
+        },
+    );
+
+    it.each(["-1", "not-a-number", "", "Infinity"])(
+        "rejects invalid maxPrice %j",
+        async (maxPrice) => {
+            const res = await GET(
+                makeRequestWithQuery(
+                    `maxPrice=${encodeURIComponent(maxPrice)}`,
+                ),
+            );
+
+            expect(res.status).toBe(400);
+            expect(await res.json()).toEqual({
+                error: "maxPrice must be a non-negative number",
+            });
+            expect(mockGetSearchedShows).not.toHaveBeenCalled();
+        },
+    );
+
     it("rejects an invalid clubId", async () => {
-        const res = await GET(
-            makeRequestWithQuery("clubId=2147483648"),
-        );
+        const res = await GET(makeRequestWithQuery("clubId=2147483648"));
 
         expect(res.status).toBe(400);
         expect(await res.json()).toEqual({

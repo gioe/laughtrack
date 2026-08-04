@@ -24,6 +24,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const clubId = sp.get("clubId") ?? undefined;
     const filters = sp.get("filters") ?? undefined;
     const distance = sp.get("distance");
+    const maxPrice = sp.get("maxPrice") ?? undefined;
     const sort = sp.get("sort") ?? undefined;
 
     if (from && (!ISO_DATE_RE.test(from) || isNaN(new Date(from).getTime()))) {
@@ -45,6 +46,20 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         if (isNaN(distanceNum) || distanceNum < 1 || distanceNum > 500) {
             return NextResponse.json(
                 { error: "distance must be a number between 1 and 500 miles" },
+                { status: 400, headers: rateLimitHeaders(rl) },
+            );
+        }
+    }
+
+    if (maxPrice !== undefined) {
+        const maxPriceNum = Number(maxPrice);
+        if (
+            maxPrice.trim() === "" ||
+            !Number.isFinite(maxPriceNum) ||
+            maxPriceNum < 0
+        ) {
+            return NextResponse.json(
+                { error: "maxPrice must be a non-negative number" },
                 { status: 400, headers: rateLimitHeaders(rl) },
             );
         }
@@ -91,6 +106,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 club,
                 clubId,
                 filters,
+                maxPrice,
                 sort,
             },
             timezone,
@@ -106,7 +122,15 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 filters: result.filters,
                 zipCapTriggered: result.zipCapTriggered,
             },
-            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: authCtx !== null, varyOnTimezone: true }) } },
+            {
+                headers: {
+                    ...rateLimitHeaders(rl),
+                    ...personalizedReadCacheHeaders(req, {
+                        authed: authCtx !== null,
+                        varyOnTimezone: true,
+                    }),
+                },
+            },
         );
     } catch (error) {
         console.error("GET /api/v1/shows/search error:", error);
