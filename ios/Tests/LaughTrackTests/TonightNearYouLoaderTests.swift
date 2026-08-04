@@ -283,6 +283,7 @@ private func makeHomeFeedJSON(showsTonight: [LoaderTestShow]) -> String {
         },
         moreNearYou: [],
         trendingThisWeek: [],
+        followedComedianShows: [],
         trendingPodcasts: [],
         popularClubs: []
     )

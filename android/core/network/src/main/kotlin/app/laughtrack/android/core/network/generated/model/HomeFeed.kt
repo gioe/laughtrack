@@ -34,6 +34,7 @@ import kotlinx.serialization.Contextual
  * @param showsTonight 
  * @param moreNearYou Shows near the hero zip beyond the first 3 surfaced in hero.shows.
  * @param trendingThisWeek 
+ * @param followedComedianShows Up to 8 upcoming shows featuring comedians followed by the authenticated profile, excluding shows already represented in higher-priority home-feed sections. Empty for signed-out callers.
  * @param trendingPodcasts Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
  * @param popularClubs 
  */
@@ -60,6 +61,10 @@ data class HomeFeed (
 
     @SerialName(value = "trendingThisWeek")
     val trendingThisWeek: kotlin.collections.List<Show>,
+
+    /* Up to 8 upcoming shows featuring comedians followed by the authenticated profile, excluding shows already represented in higher-priority home-feed sections. Empty for signed-out callers. */
+    @SerialName(value = "followedComedianShows")
+    val followedComedianShows: kotlin.collections.List<Show>,
 
     /* Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts. */
     @SerialName(value = "trendingPodcasts")

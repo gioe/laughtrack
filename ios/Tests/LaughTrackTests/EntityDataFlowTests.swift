@@ -827,6 +827,7 @@ private struct RawShowRailTransport: ClientTransport {
             ],
             moreNearYou: [],
             trendingThisWeek: [],
+            followedComedianShows: [],
             trendingPodcasts: [],
             popularClubs: []
         )

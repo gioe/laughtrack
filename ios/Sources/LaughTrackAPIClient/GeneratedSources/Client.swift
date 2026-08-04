@@ -4417,9 +4417,9 @@ public struct Client: APIProtocol {
             }
         )
     }
-    /// Composite home-screen feed (hero + six curated sections)
+    /// Composite home-screen feed with curated and personalized sections
     ///
-    /// Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by session profile zipCode and Vercel geo-IP, so shared CDN caching is disabled.
+    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, and followedComedianShows for authenticated profiles. Signed-out callers receive an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
     ///
     /// - Remark: HTTP `GET /home/feed`.
     /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.

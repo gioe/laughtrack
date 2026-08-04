@@ -189,9 +189,9 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows/{id}`.
     /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
     func getShow(_ input: Operations.GetShow.Input) async throws -> Operations.GetShow.Output
-    /// Composite home-screen feed (hero + six curated sections)
+    /// Composite home-screen feed with curated and personalized sections
     ///
-    /// Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by session profile zipCode and Vercel geo-IP, so shared CDN caching is disabled.
+    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, and followedComedianShows for authenticated profiles. Signed-out callers receive an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
     ///
     /// - Remark: HTTP `GET /home/feed`.
     /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.
@@ -671,9 +671,9 @@ extension APIProtocol {
             headers: headers
         ))
     }
-    /// Composite home-screen feed (hero + six curated sections)
+    /// Composite home-screen feed with curated and personalized sections
     ///
-    /// Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by session profile zipCode and Vercel geo-IP, so shared CDN caching is disabled.
+    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, and followedComedianShows for authenticated profiles. Signed-out callers receive an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
     ///
     /// - Remark: HTTP `GET /home/feed`.
     /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.
@@ -4317,6 +4317,10 @@ public enum Components {
             public var moreNearYou: [Components.Schemas.Show]
             /// - Remark: Generated from `#/components/schemas/HomeFeed/trendingThisWeek`.
             public var trendingThisWeek: [Components.Schemas.Show]
+            /// Up to 8 upcoming shows featuring comedians followed by the authenticated profile, excluding shows already represented in higher-priority home-feed sections. Empty for signed-out callers.
+            ///
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/followedComedianShows`.
+            public var followedComedianShows: [Components.Schemas.Show]
             /// Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
             ///
             /// - Remark: Generated from `#/components/schemas/HomeFeed/trendingPodcasts`.
@@ -4332,6 +4336,7 @@ public enum Components {
             ///   - showsTonight:
             ///   - moreNearYou: Shows near the hero zip beyond the first 3 surfaced in hero.shows.
             ///   - trendingThisWeek:
+            ///   - followedComedianShows: Up to 8 upcoming shows featuring comedians followed by the authenticated profile, excluding shows already represented in higher-priority home-feed sections. Empty for signed-out callers.
             ///   - trendingPodcasts: Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
             ///   - popularClubs:
             public init(
@@ -4341,6 +4346,7 @@ public enum Components {
                 showsTonight: [Components.Schemas.Show],
                 moreNearYou: [Components.Schemas.Show],
                 trendingThisWeek: [Components.Schemas.Show],
+                followedComedianShows: [Components.Schemas.Show],
                 trendingPodcasts: [Components.Schemas.HomeFeedPodcast],
                 popularClubs: [Components.Schemas.ClubListItem]
             ) {
@@ -4350,6 +4356,7 @@ public enum Components {
                 self.showsTonight = showsTonight
                 self.moreNearYou = moreNearYou
                 self.trendingThisWeek = trendingThisWeek
+                self.followedComedianShows = followedComedianShows
                 self.trendingPodcasts = trendingPodcasts
                 self.popularClubs = popularClubs
             }
@@ -4360,6 +4367,7 @@ public enum Components {
                 case showsTonight
                 case moreNearYou
                 case trendingThisWeek
+                case followedComedianShows
                 case trendingPodcasts
                 case popularClubs
             }
@@ -13493,9 +13501,9 @@ public enum Operations {
             }
         }
     }
-    /// Composite home-screen feed (hero + six curated sections)
+    /// Composite home-screen feed with curated and personalized sections
     ///
-    /// Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by session profile zipCode and Vercel geo-IP, so shared CDN caching is disabled.
+    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, and followedComedianShows for authenticated profiles. Signed-out callers receive an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
     ///
     /// - Remark: HTTP `GET /home/feed`.
     /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.

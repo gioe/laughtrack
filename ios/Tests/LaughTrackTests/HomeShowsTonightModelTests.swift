@@ -189,6 +189,7 @@ private func makeHomeFeedJSON() -> String {
         showsTonight: [],
         moreNearYou: [],
         trendingThisWeek: [],
+        followedComedianShows: [],
         trendingPodcasts: [],
         popularClubs: []
     )
@@ -239,6 +240,7 @@ private struct MockHomeShowsTonightTransport: ClientTransport {
             showsTonight: Array(feedShows.prefix(4)),
             moreNearYou: [],
             trendingThisWeek: feedShows + Array(feedShows.prefix(1)),
+            followedComedianShows: [],
             trendingPodcasts: [],
             popularClubs: []
         )
@@ -295,6 +297,7 @@ private struct MockThisWeekHomeFeedTransport: ClientTransport {
             showsTonight: [show(id: 900)],
             moreNearYou: [show(id: 902), show(id: 904), show(id: 900)],
             trendingThisWeek: [show(id: 900), show(id: 901), show(id: 902), show(id: 903)],
+            followedComedianShows: [],
             trendingPodcasts: [],
             popularClubs: []
         )

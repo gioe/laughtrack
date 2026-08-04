@@ -92,6 +92,7 @@ class PersistentHomeFeedCacheTest {
             showsTonight = emptyList(),
             moreNearYou = emptyList(),
             trendingThisWeek = emptyList(),
+            followedComedianShows = emptyList(),
             trendingPodcasts = emptyList(),
             popularClubs = emptyList(),
         )

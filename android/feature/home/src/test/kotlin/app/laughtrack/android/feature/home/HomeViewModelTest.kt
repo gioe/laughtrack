@@ -423,6 +423,7 @@ class HomeViewModelTest {
             showsTonight = listOf(heroShow, tonightShow),
             moreNearYou = emptyList(),
             trendingThisWeek = listOf(weekShow),
+            followedComedianShows = emptyList(),
             trendingPodcasts = listOf(podcast()),
             popularClubs = listOf(club()),
         )
