@@ -16,14 +16,26 @@ export async function getFavoriteComedianShows(
                 some: {
                     comedian: {
                         visible: true,
-                        favoriteComedians: {
-                            some: { profileId },
-                        },
+                        OR: [
+                            {
+                                favoriteComedians: {
+                                    some: { profileId },
+                                },
+                            },
+                            {
+                                parentComedian: {
+                                    visible: true,
+                                    favoriteComedians: {
+                                        some: { profileId },
+                                    },
+                                },
+                            },
+                        ],
                     },
                 },
             },
         },
-        [{ popularity: "desc" }, { date: "asc" }],
+        [{ popularity: "desc" }, { date: "asc" }, { id: "asc" }],
         8,
     );
 }

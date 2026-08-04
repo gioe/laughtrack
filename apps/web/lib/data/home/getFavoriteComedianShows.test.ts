@@ -26,7 +26,7 @@ describe("getFavoriteComedianShows", () => {
         expect(mockFindShowsForHome).not.toHaveBeenCalled();
     });
 
-    it("finds upcoming visible shows whose lineup includes a favorited comedian", async () => {
+    it("finds upcoming visible shows whose lineup includes a favorited canonical comedian", async () => {
         const shows = [{ id: 7, name: "Favorite Comic Night" }];
         mockFindShowsForHome.mockResolvedValue(shows as never);
 
@@ -42,14 +42,28 @@ describe("getFavoriteComedianShows", () => {
                     some: {
                         comedian: {
                             visible: true,
-                            favoriteComedians: {
-                                some: { profileId: "profile-1" },
-                            },
+                            OR: [
+                                {
+                                    favoriteComedians: {
+                                        some: { profileId: "profile-1" },
+                                    },
+                                },
+                                {
+                                    parentComedian: {
+                                        visible: true,
+                                        favoriteComedians: {
+                                            some: {
+                                                profileId: "profile-1",
+                                            },
+                                        },
+                                    },
+                                },
+                            ],
                         },
                     },
                 },
             },
-            [{ popularity: "desc" }, { date: "asc" }],
+            [{ popularity: "desc" }, { date: "asc" }, { id: "asc" }],
             8,
         );
     });
