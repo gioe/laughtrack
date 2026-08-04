@@ -11,11 +11,13 @@ import LaughTrackBridge
 @Suite("Favorites view content")
 @MainActor
 struct LibraryFavoritesViewTests {
-    @Test("signed-in favorites view renders saved comedians and favorite shows")
+    @Test("signed-in Library renders all live favorite stores and followed shows")
     func signedInLibraryLoadsSavedFavorites() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
             name: "library-favorites"
         )
+        let clubFavorites = ClubFavoriteStore()
+        let podcastFavorites = PodcastFavoriteStore()
         let favorites = ComedianFavoriteStore()
         let apiClient = makeClient(
             response: .success(
@@ -38,6 +40,8 @@ struct LibraryFavoritesViewTests {
         // is already populated by the time LibraryView appears in production. Mirror
         // that by loading directly before checking the Library presentation contract.
         await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
+        await clubFavorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
+        await podcastFavorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
         let model = HomeFavoriteShowsModel()
         await model.refresh(
             apiClient: apiClient,
@@ -47,9 +51,11 @@ struct LibraryFavoritesViewTests {
             persistentCache: nil
         )
 
-        #expect(LibraryView.title == "Favorites")
+        #expect(LibraryView.title == "Library")
         #expect(favorites.savedFavoriteComedians.map(\.name) == ["Taylor Tomlinson"])
         #expect(favorites.savedFavoriteComedians.map(\.showCount) == [5])
+        #expect(clubFavorites.savedFavoriteClubs.map(\.name) == ["The Stand"])
+        #expect(podcastFavorites.savedFavoritePodcasts.map(\.title) == ["Good One"])
 
         guard case .success(let shows) = model.phase else {
             Issue.record("Expected success phase, got \(model.phase)")
@@ -58,11 +64,12 @@ struct LibraryFavoritesViewTests {
         #expect(shows.map(\.name) == ["Taylor Tomlinson at The Stand"])
     }
 
-    @Test("favorites tab owns the favorite touring rail copy")
+    @Test("Library owns the followed-show rail copy")
     func favoritesTabOwnsFavoriteTouringRailCopy() throws {
         let source = try String(contentsOf: libraryViewSourceURL(), encoding: .utf8)
 
-        #expect(source.contains("Your favorites are touring"))
+        #expect(source.contains("LibrarySection.fromFollows.title"))
+        #expect(source.contains("Upcoming shows from comedians you follow."))
         #expect(!source.contains("Upcoming after tonight from comedians you saved."))
         #expect(!source.contains("Loading favorite shows"))
         #expect(!source.contains("No favorite shows yet"))
@@ -77,37 +84,16 @@ struct LibraryFavoritesViewTests {
         #expect(!source.contains("LaughTrackCard {"))
     }
 
-    @Test("favorites primitive filter only includes supported favorite content")
-    func favoritesPrimitiveFilterOnlyIncludesSupportedContent() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
-            name: "favorites-filter"
-        )
-        let favorites = ComedianFavoriteStore()
-        let apiClient = makeClient(
-            response: .success(
-                .init(
-                    data: [
-                        .init(
-                            id: 101,
-                            uuid: "comedian-uuid-1",
-                            name: "Taylor Tomlinson",
-                            imageUrl: "https://example.com/taylor.png",
-                            socialData: .init(id: 101),
-                            showCount: 5,
-                            isFavorite: true
-                        )
-                    ]
-                )
-            )
-        )
-        await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
+    @Test("saved rows keep detail navigation separate from removal")
+    func savedRowsHaveSeparatePrimaryAndSecondaryActions() throws {
+        let source = try String(contentsOf: savedFavoritesSectionSourceURL(), encoding: .utf8)
 
-        #expect(LibraryFavoritesPresentation.includes(.shows, selectedPrimitive: nil))
-        #expect(LibraryFavoritesPresentation.includes(.comedians, selectedPrimitive: nil))
-        #expect(!LibraryFavoritesPresentation.includes(.clubs, selectedPrimitive: nil))
-        #expect(!LibraryFavoritesPresentation.includes(.podcasts, selectedPrimitive: nil))
-        #expect(!LibraryFavoritesPresentation.includes(.clubs, selectedPrimitive: .clubs))
-        #expect(!LibraryFavoritesPresentation.includes(.podcasts, selectedPrimitive: .podcasts))
+        #expect(source.contains("action: { coordinator.open(.comedian(comedian.id)) }"))
+        #expect(source.contains("action: { coordinator.open(.club(club.id)) }"))
+        #expect(source.contains("action: { coordinator.open(.podcast(podcast.id)) }"))
+        #expect(source.contains("FavoriteButton("))
+        #expect(source.contains("currentValue: true"))
+        #expect(!source.contains("coordinator.push("))
     }
 
     @Test("signed-out favorites view shows sign-in CTA and skips the favorites fetch")
@@ -116,7 +102,7 @@ struct LibraryFavoritesViewTests {
         let recorder = FavoritesRequestRecorder()
 
         #expect(authManager.currentSession == nil)
-        #expect(LibraryView.signedOutPromptTitle == "Sign in to see your favorites")
+        #expect(LibraryView.signedOutPromptTitle == "Sign in to build your Library")
         #expect(recorder.getFavoritesCalls == 0)
     }
 
@@ -285,6 +271,24 @@ private struct MockLibraryFavoritesTransport: ClientTransport {
                     HTTPBody(try encoder.encode(Self.favoriteShowsResponse))
                 )
             }
+            if operationID == "getFavoriteClubs" {
+                return (
+                    HTTPResponse(
+                        status: .ok,
+                        headerFields: [.contentType: "application/json"]
+                    ),
+                    HTTPBody(try encoder.encode(Self.favoriteClubsResponse))
+                )
+            }
+            if operationID == "getFavoritePodcasts" {
+                return (
+                    HTTPResponse(
+                        status: .ok,
+                        headerFields: [.contentType: "application/json"]
+                    ),
+                    HTTPBody(try encoder.encode(Self.favoritePodcastsResponse))
+                )
+            }
         case .recorder(let recorder):
             if operationID == "getFavorites" {
                 recorder.getFavoritesCalls += 1
@@ -335,5 +339,29 @@ private struct MockLibraryFavoritesTransport: ClientTransport {
             filters: [],
             zipCapTriggered: false
         )
+    }
+
+    private static var favoriteClubsResponse: Components.Schemas.FavoriteClubListResponse {
+        .init(data: [
+            .init(
+                id: 202,
+                name: "The Stand",
+                imageUrl: "https://example.com/the-stand.png",
+                isFavorite: true
+            ),
+        ])
+    }
+
+    private static var favoritePodcastsResponse: Components.Schemas.FavoritePodcastListResponse {
+        .init(data: [
+            .init(
+                id: 303,
+                title: "Good One",
+                authorName: "Vulture",
+                imageUrl: "https://example.com/good-one.png",
+                episodeCount: 248,
+                isFavorite: true
+            ),
+        ])
     }
 }

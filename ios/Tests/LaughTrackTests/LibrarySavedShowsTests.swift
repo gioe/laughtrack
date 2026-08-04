@@ -3,19 +3,19 @@ import Testing
 
 @Suite("Library saved shows")
 struct LibrarySavedShowsTests {
-    @Test("authenticated Library renders distinct saved-show periods")
+    @Test("authenticated Library renders plans and history from saved-show periods")
     func rendersUpcomingAndPastSavedShows() throws {
         let source = try librarySource()
 
-        #expect(source.contains(#"title: "Upcoming saved shows""#))
-        #expect(source.contains(#"title: "Past saved shows""#))
+        #expect(source.contains("section: .nextUp"))
+        #expect(source.contains("section: .history"))
         #expect(source.contains("period: .upcoming"))
         #expect(source.contains("period: .past"))
         #expect(source.contains("savedShows.upcomingPage?.shows"))
         #expect(source.contains("savedShows.pastPage?.shows"))
         #expect(source.contains("savedShows.loadSavedShows("))
         #expect(source.contains("ShowsListSkeleton(rowCount: 2)"))
-        #expect(source.contains("LaughTrackStateView("))
+        #expect(source.contains("case .empty:\n                        EmptyView()"))
         #expect(source.contains("case .failure(let failure):"))
     }
 
@@ -29,31 +29,36 @@ struct LibrarySavedShowsTests {
         #expect(source.contains(#".accessibilityLabel("Open \(ShowTitlePresentation.title(for: show))")"#))
     }
 
-    @Test("favorite-comedian shows retain inferred touring copy")
+    @Test("plans, follows, Saved, and History retain canonical priority")
     func favoriteComedianShowsRemainDistinct() throws {
         let source = try librarySource()
+        let sectionsStart = try #require(source.range(of: "private struct FavoritePrimitiveSections"))
+        let sectionsEnd = try #require(source.range(of: "private struct SavedShowsSection"))
+        let sections = source[sectionsStart.lowerBound..<sectionsEnd.lowerBound]
 
-        let upcoming = try #require(source.range(of: #"title: "Upcoming saved shows""#))
-        let past = try #require(source.range(of: #"title: "Past saved shows""#))
-        let inferred = try #require(source.range(of: #"title: "Your favorites are touring""#))
+        let nextUp = try #require(sections.range(of: "section: .nextUp"))
+        let follows = try #require(sections.range(of: "FavoriteShowsSection("))
+        let saved = try #require(sections.range(of: "SavedFavoritesSection("))
+        let history = try #require(sections.range(of: "section: .history"))
 
-        #expect(upcoming.lowerBound < past.lowerBound)
-        #expect(past.lowerBound < inferred.lowerBound)
+        #expect(nextUp.lowerBound < follows.lowerBound)
+        #expect(follows.lowerBound < saved.lowerBound)
+        #expect(saved.lowerBound < history.lowerBound)
         #expect(source.contains("Upcoming shows from comedians you follow."))
     }
 
     @Test("signed-out Library does not load account-bound saved shows")
     func signedOutLibraryHasNoSavedShowState() throws {
         let source = try librarySource()
-        let guestStart = try #require(source.range(of: "private struct GuestFavoritesPreview"))
+        let guestStart = try #require(source.range(of: "private struct LibraryEmptyState"))
         let guestSource = source[guestStart.lowerBound...]
 
         #expect(source.contains("} else if authManager.currentSession != nil {"))
-        #expect(source.contains("} else {\n                    GuestFavoritesPreview()"))
+        #expect(source.contains("requiresSignIn: true"))
         #expect(!guestSource.contains("SavedShowStore"))
         #expect(!guestSource.contains("loadSavedShows"))
-        #expect(!guestSource.contains("Upcoming saved shows"))
-        #expect(!guestSource.contains("Past saved shows"))
+        #expect(guestSource.contains("Shows near me"))
+        #expect(guestSource.contains("Follow comedians"))
     }
 
     @Test("authenticated screenshot persona covers both saved-show periods")
