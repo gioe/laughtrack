@@ -12,6 +12,7 @@ struct HomeFollowedComedianShowsRail: View {
     let cache: DataCache<LaughTrackCacheKey>
     let persistentCache: PersistentMainPageCache
 
+    @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
     @StateObject private var model = HomeFollowedComedianShowsModel()
@@ -22,6 +23,10 @@ struct HomeFollowedComedianShowsRail: View {
 
     private var distanceMiles: Int? {
         nearbyPreferenceStore.preference?.distanceMiles
+    }
+
+    private var sessionDiscriminator: String? {
+        authManager.currentSession.map { String($0.signedInAt.timeIntervalSinceReferenceDate) }
     }
 
     var body: some View {
@@ -48,11 +53,20 @@ struct HomeFollowedComedianShowsRail: View {
                 }
             }
         }
-        .task(id: model.requestKey(for: zipCode, distanceMiles: distanceMiles)) {
+        .task(id: model.requestKey(
+            for: zipCode,
+            distanceMiles: distanceMiles,
+            sessionDiscriminator: sessionDiscriminator
+        )) {
+            guard let sessionDiscriminator else {
+                model.hideForSignedOutSession()
+                return
+            }
             await model.refresh(
                 apiClient: apiClient,
                 zipCode: zipCode,
                 distanceMiles: distanceMiles,
+                sessionDiscriminator: sessionDiscriminator,
                 cache: cache,
                 persistentCache: persistentCache
             )
@@ -67,32 +81,32 @@ final class HomeFollowedComedianShowsModel: ObservableObject {
     private var loadedRequestKey: String?
     private var loadedAt: Date?
 
-    func requestKey(for zipCode: String?, distanceMiles: Int? = nil) -> String {
-        HomeFeedRequest.requestKey(zipCode: zipCode, distanceMiles: distanceMiles)
+    func requestKey(
+        for zipCode: String?,
+        distanceMiles: Int? = nil,
+        sessionDiscriminator: String? = nil
+    ) -> String {
+        "\(sessionDiscriminator ?? "signed-out")|\(HomeFeedRequest.requestKey(zipCode: zipCode, distanceMiles: distanceMiles))"
     }
 
     func refresh(
         apiClient: Client,
         zipCode: String?,
         distanceMiles: Int? = nil,
+        sessionDiscriminator: String? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
         persistentCache: PersistentMainPageCache?,
         coalescer: HomeFeedRequestCoalescer = .shared
     ) async {
-        let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles)
+        let requestKey = requestKey(
+            for: zipCode,
+            distanceMiles: distanceMiles,
+            sessionDiscriminator: sessionDiscriminator
+        )
         if loadedRequestKey == requestKey,
            case .success = phase,
            isLoadedValueFresh(cacheTTL: cacheTTL) {
-            return
-        }
-
-        if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
-            .homeFeed(zipCode: zipCode, distanceMiles: distanceMiles),
-            from: cache,
-            persistentCache: persistentCache
-        ) {
-            apply(feed: cachedFeed, requestKey: requestKey)
             return
         }
 
@@ -119,6 +133,12 @@ final class HomeFollowedComedianShowsModel: ObservableObject {
         case .failure(let failure):
             phase = .failure(failure)
         }
+    }
+
+    func hideForSignedOutSession() {
+        phase = .success([])
+        loadedRequestKey = nil
+        loadedAt = nil
     }
 
     static func railItems(from feed: Components.Schemas.HomeFeed) -> [Components.Schemas.Show] {

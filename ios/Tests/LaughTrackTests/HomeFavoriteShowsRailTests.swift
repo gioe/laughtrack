@@ -72,6 +72,55 @@ struct HomeFavoriteShowsRailTests {
         #expect(shows.isEmpty)
     }
 
+    @Test("personalized feed identity follows the authenticated session")
+    func personalizedFeedIdentityFollowsAuthenticatedSession() {
+        let model = HomeFollowedComedianShowsModel()
+
+        let first = model.requestKey(
+            for: "10012",
+            distanceMiles: 25,
+            sessionDiscriminator: "session-a"
+        )
+        let second = model.requestKey(
+            for: "10012",
+            distanceMiles: 25,
+            sessionDiscriminator: "session-b"
+        )
+
+        #expect(first != second)
+    }
+
+    @Test("personalized rail bypasses an unscoped cached home feed")
+    func personalizedRailBypassesUnscopedCachedHomeFeed() async throws {
+        let cache = DataCache<LaughTrackCacheKey>()
+        await cache.set(
+            homeFeed(followedComedianShows: [favoriteShow]),
+            forKey: .homeFeed(zipCode: "10012", distanceMiles: 25)
+        )
+        let apiClient = makeClient(
+            favoriteResponse: .init(data: []),
+            showResponses: [:],
+            homeFeed: homeFeed(followedComedianShows: [])
+        )
+        let model = HomeFollowedComedianShowsModel()
+
+        await model.refresh(
+            apiClient: apiClient,
+            zipCode: "10012",
+            distanceMiles: 25,
+            sessionDiscriminator: "session-b",
+            cache: cache,
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
+        )
+
+        guard case let .success(shows) = model.phase else {
+            Issue.record("Expected .success phase, got \(model.phase)")
+            return
+        }
+        #expect(shows.isEmpty)
+    }
+
     // TASK-1921 pilot for the model-layer test pattern under the iOS 26
     // accessibility-tree wiring regression. The original test asserted via
     // host.requireView / requireText / requireLabel after mounting HomeView
