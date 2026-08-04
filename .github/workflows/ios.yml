@@ -161,13 +161,103 @@ jobs:
       - name: Install fastlane dependencies
         run: cd ios && bundle install
 
+      - name: Select an available iOS 26.x simulator
+        id: ios26_simulator
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import subprocess
+          import sys
+
+          result = subprocess.run(
+              ["xcrun", "simctl", "list", "devices", "available", "-j"],
+              check=False,
+              capture_output=True,
+              text=True,
+          )
+          if result.returncode != 0:
+              print("::error::Unable to read the available simulator inventory")
+              if result.stderr.strip():
+                  print(result.stderr.strip())
+              sys.exit(1)
+
+          try:
+              inventory = json.loads(result.stdout)
+          except json.JSONDecodeError as error:
+              print(f"::error::Invalid simulator inventory JSON: {error}")
+              sys.exit(1)
+
+          runtime_pattern = re.compile(r"\.SimRuntime\.iOS-(\d+(?:-\d+)*)$")
+
+          def runtime_version(identifier):
+              match = runtime_pattern.search(identifier)
+              if match is None:
+                  return None
+              return tuple(int(component) for component in match.group(1).split("-"))
+
+          def version_label(version):
+              return ".".join(str(component) for component in version)
+
+          runtime_rows = []
+          candidates = []
+          for identifier, devices in inventory.get("devices", {}).items():
+              version = runtime_version(identifier)
+              if version is None:
+                  continue
+
+              available_devices = [
+                  device
+                  for device in devices
+                  if device.get("isAvailable", True)
+              ]
+              iphone_devices = [
+                  device
+                  for device in available_devices
+                  if device.get("name", "").startswith("iPhone ")
+              ]
+              runtime_rows.append((version, iphone_devices))
+              if version[0] == 26:
+                  candidates.extend(
+                      (version, device["name"], device["udid"])
+                      for device in iphone_devices
+                      if device.get("udid")
+                  )
+
+          if not candidates:
+              print("::error::No available iPhone simulator is installed on an iOS 26.x runtime")
+              print("Installed available iOS simulator inventory:")
+              if not runtime_rows:
+                  print("  (no available iOS simulator runtimes)")
+              for version, devices in sorted(runtime_rows, key=lambda row: row[0], reverse=True):
+                  names = ", ".join(sorted({device["name"] for device in devices}))
+                  print(f"  iOS {version_label(version)}: {names or '(no available iPhones)'}")
+              sys.exit(1)
+
+          version, name, udid = max(candidates, key=lambda candidate: candidate)
+          label = f"iOS {version_label(version)} / {name} ({udid})"
+          print(f"Selected watcher simulator: {label}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              print(f"udid={udid}", file=output)
+              print(f"label={label}", file=output)
+          PY
+
       - name: Run tests on the iOS 26.x simulator (watcher)
-        run: cd ios && bundle exec fastlane test_ios26_watch
+        run: |
+          cd ios
+          bundle exec fastlane scan \
+            --scheme LaughTrack \
+            --destination "platform=iOS Simulator,id=${IOS26_SIMULATOR_UDID}" \
+            --clean false \
+            --code_coverage false \
+            --skip_slack true
         # Same showBuildSettings headroom as sim-tests-ios-18 above. Without it
         # the watcher died in fastlane startup (3s base timeout, 4 retries) on
         # 4 of 5 runs on 2026-07-08 — infra noise that makes the watcher's
         # green-transition signal (the drop-the-18.x-pin cue) unreadable.
         env:
+          IOS26_SIMULATOR_UDID: ${{ steps.ios26_simulator.outputs.udid }}
           FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "30"
           FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "6"
 
