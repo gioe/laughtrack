@@ -81,7 +81,7 @@ def main() -> int:
     run_id = _env("GITHUB_RUN_ID")
     run_attempt = _env("GITHUB_RUN_ATTEMPT", "1")
     status = (args.status or _env("GITHUB_JOB_STATUS") or "unknown").lower()
-    if status not in {"success", "failure", "cancelled", "skipped"}:
+    if status not in {"success", "partial", "failure", "cancelled", "skipped"}:
         status = "failure"
 
     if not run_id:

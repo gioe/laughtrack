@@ -31,10 +31,13 @@ jobs:
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         run: |
-          # The driver orders by last_synced_at ASC NULLS FIRST. A bounded
-          # batch keeps the scheduled workflow inside its timeout while still
-          # rotating through the full feed set across repeated runs.
-          python -m scripts.core.sync_podcast_episodes_from_rss --confirm --limit 500
+          # The driver orders by last_synced_at ASC NULLS FIRST. The count cap
+          # bounds work while the runtime cap guarantees enough job time remains
+          # for appearance detection, artifacts, and pipeline recording.
+          python -m scripts.core.sync_podcast_episodes_from_rss \
+            --confirm \
+            --limit 500 \
+            --max-runtime-seconds 2400
 
       - name: Detect podcast episode appearances
         id: detect_appearances
@@ -49,7 +52,8 @@ jobs:
           # scanned first) and bumps each scanned episode's appearances_detected_at.
           # A bounded batch keeps the load query inside Neon's statement_timeout
           # (30s, set on the detector connection in connection.py) while still
-          # rotating through the full episode backlog across runs.
+          # rotating through the full episode backlog across runs. The runtime
+          # cap leaves cleanup margin under the job's 60-minute timeout.
           #
           # Limit sized empirically (TASK-2528): the binding cost is client-side
           # row transfer of the wide description/source_payload columns, not
@@ -59,7 +63,9 @@ jobs:
           # safety margin under the 30s timeout while draining the backlog in
           # ~16 nights (vs ~81 at 2k). Never-scanned episodes sort first, so
           # steady-state new episodes are always covered.
-          python -m scripts.core.detect_podcast_episode_appearances --episode-limit 10000
+          python -m scripts.core.detect_podcast_episode_appearances \
+            --episode-limit 10000 \
+            --max-runtime-seconds 600
 
       - name: Upload podcast sync logs
         uses: actions/upload-artifact@v7
@@ -74,7 +80,14 @@ jobs:
         continue-on-error: true
         uses: ./.github/actions/record-pipeline-run
         with:
-          job-status: ${{ job.status }}
+          # A budget stop is healthy resumable progress, but it is not a complete
+          # success. Preserve real job failures/cancellations; otherwise record
+          # partial until both bounded stages report their selected work complete.
+          job-status: >-
+            ${{ job.status != 'success' && job.status ||
+                (steps.rss_sync.outputs.completed == 'true' &&
+                 steps.detect_appearances.outputs.completed == 'true' &&
+                 'success' || 'partial') }}
           database-name: ${{ secrets.DATABASE_NAME }}
           database-user: ${{ secrets.DATABASE_USER }}
           database-host: ${{ secrets.DATABASE_HOST }}
