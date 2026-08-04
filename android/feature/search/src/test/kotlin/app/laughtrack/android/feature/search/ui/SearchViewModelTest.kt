@@ -200,6 +200,31 @@ class SearchViewModelTest {
         }
 
     @Test
+    fun show_entity_edit_reloads_after_switching_pivots_before_debounce() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+
+            viewModel.onComedianChange("Atsuko")
+            viewModel.selectPivot(SearchPivot.COMEDIANS)
+            advanceTimeBy(301)
+
+            // The debounce is skipped while another pivot is active, but the
+            // edited Shows state remains stale and reloads on return.
+            assertEquals(1, showsApi.searchCalls)
+            viewModel.selectPivot(SearchPivot.SHOWS)
+            advanceUntilIdle()
+
+            assertEquals(2, showsApi.searchCalls)
+            assertEquals("Atsuko", showsApi.lastComedian)
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
     fun shows_send_explicit_comedian_club_filters_and_maximum_price() =
         runTest {
             val showsApi = SuspendingShowsApi()

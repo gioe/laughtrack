@@ -41,7 +41,8 @@ class ShowSearchPresentationTest {
         assertTrue(screen.contains("ShowResultsPresentation.CALENDAR"))
         assertTrue(screen.contains("density = pivotState.showDensity"))
         assertTrue(screen.contains("onSelectDate = viewModel::selectShowCalendarDate"))
-        assertTrue(calendar.contains("selected location, comedian, or club"))
+        assertTrue(calendar.contains("broad guide to dates with shows"))
+        assertTrue(calendar.contains("Price and format filters apply after you pick a day"))
     }
 
     @Test

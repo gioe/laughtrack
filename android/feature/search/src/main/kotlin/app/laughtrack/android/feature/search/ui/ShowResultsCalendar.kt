@@ -85,7 +85,7 @@ internal fun ShowResultsCalendar(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                "Dots show dates with events for the selected location, comedian, or club.",
+                "Dots are a broad guide to dates with shows. Price and format filters apply after you pick a day.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

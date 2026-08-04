@@ -155,7 +155,10 @@ class SearchViewModel
         /** Free-text edit: reflected in the field immediately, but the query is debounced. */
         fun onTextChange(text: String) {
             val pivot = _state.value.pivot
-            updatePivot(pivot) { it.copy(query = it.query.copy(text = text)) }
+            // Mark the pivot stale immediately. If the user changes pivots before
+            // the debounce fires, returning here must not reuse results for the
+            // previous text value.
+            updatePivot(pivot) { it.copy(query = it.query.copy(text = text), loaded = false) }
             textChanges.tryEmit(pivot)
         }
 
@@ -639,6 +642,10 @@ class SearchViewModel
 
         private fun updateShowQueryWithoutReload(transform: (SearchQuery) -> SearchQuery) {
             updatePivotQuery(SearchPivot.SHOWS, transform)
+            // The shared debounce intentionally reloads only the active pivot.
+            // Retain the current rows while typing, but make a pivot round-trip
+            // trigger a fresh query even when the debounce event was superseded.
+            updatePivot(SearchPivot.SHOWS) { it.copy(loaded = false) }
         }
 
         private fun reloadShowsIfActive() {
