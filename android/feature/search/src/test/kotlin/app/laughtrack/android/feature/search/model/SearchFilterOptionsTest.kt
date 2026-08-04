@@ -46,4 +46,14 @@ class SearchFilterOptionsTest {
         assertEquals(listOf(10, 25, 50, 100), DISTANCE_OPTIONS)
         assertEquals(25, DEFAULT_DISTANCE_MILES)
     }
+
+    @Test
+    fun show_explorer_options_use_canonical_api_values() {
+        assertEquals(listOf("standup", "improv", "open_mic"), ShowFormatOption.entries.map { it.slug })
+        assertEquals(listOf(null, 20, 40, 60, 100), ShowMaximumPriceOption.entries.map { it.apiValue })
+        assertEquals(
+            listOf(ShowResultsPresentation.AGENDA, ShowResultsPresentation.CALENDAR),
+            ShowResultsPresentation.entries,
+        )
+    }
 }

@@ -51,8 +51,10 @@ fun searchResultSummary(
 
 /**
  * Per-pivot query inputs. [zip]/[distance] apply to geo-scoped pivots; [from]/[to]
- * only apply to Shows. [text] filters comedians/clubs and is a comedian-name
- * query for shows, matching iOS unified search; [sort] is the server sort key.
+ * only apply to Shows. [text] is retained for the Comedians, Clubs, and Podcasts
+ * pivots; Shows instead use the explicit optional [comedian] and [club]
+ * constraints. [sort] is the server sort key and [maxPrice] is the greatest
+ * acceptable public ticket price for Shows.
  * [from]/[to] are inclusive YYYY-MM-DD bounds set by the date-range picker.
  * [filters] holds selected tag slugs (joined into the `filters` query param);
  * [homeCity] is the `city|state` token for the comedians home-city filter.
@@ -60,11 +62,52 @@ fun searchResultSummary(
  */
 data class SearchQuery(
     val text: String = "",
+    val comedian: String = "",
+    val club: String = "",
     val sort: String? = null,
     val zip: String? = null,
     val distance: Int? = null,
     val from: String? = null,
     val to: String? = null,
     val filters: Set<String> = emptySet(),
+    val maxPrice: Int? = null,
     val homeCity: String? = null,
+)
+
+/**
+ * Complete, transport-independent state needed to seed the Shows explorer.
+ * TASK-3884 can carry this value across navigation without reconstructing
+ * individual filters from presentation labels.
+ */
+data class ShowSearchSeed(
+    val comedian: String = "",
+    val club: String = "",
+    val zip: String? = null,
+    val locationLabel: String? = null,
+    val distance: Int = DEFAULT_DISTANCE_MILES,
+    val from: String? = null,
+    val to: String? = null,
+    val filters: Set<String> = emptySet(),
+    val maxPrice: Int? = null,
+    val resultsPresentation: ShowResultsPresentation = ShowResultsPresentation.AGENDA,
+)
+
+/** Typed identity for a removable show constraint. */
+sealed interface ShowActiveConstraintKind {
+    data object Location : ShowActiveConstraintKind
+
+    data object Date : ShowActiveConstraintKind
+
+    data class Filter(val slug: String) : ShowActiveConstraintKind
+
+    data object MaximumPrice : ShowActiveConstraintKind
+
+    data object Comedian : ShowActiveConstraintKind
+
+    data object Club : ShowActiveConstraintKind
+}
+
+data class ShowActiveConstraint(
+    val kind: ShowActiveConstraintKind,
+    val label: String,
 )

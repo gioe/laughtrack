@@ -57,6 +57,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,6 +79,12 @@ import app.laughtrack.android.feature.search.model.DISTANCE_OPTIONS
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchQuery
 import app.laughtrack.android.feature.search.model.SearchSort
+import app.laughtrack.android.feature.search.model.ShowActiveConstraint
+import app.laughtrack.android.feature.search.model.ShowActiveConstraintKind
+import app.laughtrack.android.feature.search.model.ShowDateShortcut
+import app.laughtrack.android.feature.search.model.ShowFormatOption
+import app.laughtrack.android.feature.search.model.ShowMaximumPriceOption
+import app.laughtrack.android.feature.search.model.ShowResultsPresentation
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -174,15 +181,48 @@ fun SearchScreen(
                         filters = pivotState.filters,
                         homeCityFilters = pivotState.homeCityFilters,
                         total = pivotState.results.total,
+                        activeShowConstraints =
+                            if (state.pivot == SearchPivot.SHOWS) {
+                                viewModel.activeShowConstraints()
+                            } else {
+                                emptyList()
+                            },
                         onText = viewModel::onTextChange,
+                        onComedian = viewModel::onComedianChange,
+                        onClub = viewModel::onClubChange,
                         onZip = viewModel::setZip,
                         onSort = viewModel::setSort,
                         onDistance = viewModel::setDistance,
                         onDateRange = viewModel::setDateRange,
+                        onDateShortcut = viewModel::applyDateShortcut,
+                        onMaximumPrice = viewModel::setMaximumPrice,
                         onToggleFilter = viewModel::toggleFilter,
                         onClearFilters = viewModel::clearFilters,
+                        onRemoveShowConstraint = viewModel::removeShowConstraint,
+                        onClearShowConstraints = viewModel::clearAllShowConstraints,
                         onHomeCity = viewModel::setHomeCity,
                     )
+                }
+
+                if (state.pivot == SearchPivot.SHOWS) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        ShowResultsPresentationPicker(
+                            selected = pivotState.resultsPresentation,
+                            onSelect = viewModel::setResultsPresentation,
+                        )
+                    }
+                    if (pivotState.resultsPresentation == ShowResultsPresentation.CALENDAR) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            ShowResultsCalendar(
+                                selectedDateIso = pivotState.query.from,
+                                density = pivotState.showDensity,
+                                densityLoading = pivotState.isDensityLoading,
+                                densityError = pivotState.densityError,
+                                onDisplayedMonthChange = viewModel::loadShowDensity,
+                                onSelectDate = viewModel::selectShowCalendarDate,
+                            )
+                        }
+                    }
                 }
 
                 val results = pivotState.results
@@ -215,7 +255,11 @@ fun SearchScreen(
                                 onSetFavorite = favoritesViewModel::setFavorite,
                             )
                         resultsContent(
-                            pivot = state.pivot,
+                            presentation =
+                                SearchResultsPresentationSpec(
+                                    pivot = state.pivot,
+                                    showPresentation = pivotState.resultsPresentation,
+                                ),
                             results = results,
                             loadMore = loadMore,
                             onOpen = onOpen,
@@ -349,15 +393,44 @@ private fun SearchControls(
     filters: List<Filter>,
     homeCityFilters: List<HomeCityFilter>,
     total: Int,
+    activeShowConstraints: List<ShowActiveConstraint>,
     onText: (String) -> Unit,
+    onComedian: (String) -> Unit,
+    onClub: (String) -> Unit,
     onZip: (String) -> Unit,
     onSort: (String) -> Unit,
     onDistance: (Int) -> Unit,
     onDateRange: (String?, String?) -> Unit,
+    onDateShortcut: (ShowDateShortcut) -> Unit,
+    onMaximumPrice: (ShowMaximumPriceOption) -> Unit,
     onToggleFilter: (String) -> Unit,
     onClearFilters: () -> Unit,
+    onRemoveShowConstraint: (ShowActiveConstraintKind) -> Unit,
+    onClearShowConstraints: () -> Unit,
     onHomeCity: (String?) -> Unit,
 ) {
+    if (pivot == SearchPivot.SHOWS) {
+        ShowSearchControls(
+            query = query,
+            locationLabel = locationLabel,
+            filters = filters,
+            total = total,
+            activeConstraints = activeShowConstraints,
+            onComedian = onComedian,
+            onClub = onClub,
+            onZip = onZip,
+            onSort = onSort,
+            onDistance = onDistance,
+            onDateRange = onDateRange,
+            onDateShortcut = onDateShortcut,
+            onMaximumPrice = onMaximumPrice,
+            onToggleFilter = onToggleFilter,
+            onRemoveConstraint = onRemoveShowConstraint,
+            onClearAll = onClearShowConstraints,
+        )
+        return
+    }
+
     Surface(
         color = LaughTrackColors.SurfaceElevated,
         shape = RoundedCornerShape(14.dp),
@@ -392,9 +465,6 @@ private fun SearchControls(
                 if (pivot.isGeoScoped) {
                     LocationPill(zip = query.zip, locationLabel = locationLabel, onZip = onZip)
                 }
-                if (pivot == SearchPivot.SHOWS) {
-                    DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
-                }
                 if (pivot.supportsTagFilters) {
                     TagFilterPill(
                         available = filters,
@@ -414,6 +484,220 @@ private fun SearchControls(
             }
         }
     }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun ShowSearchControls(
+    query: SearchQuery,
+    locationLabel: String?,
+    filters: List<Filter>,
+    total: Int,
+    activeConstraints: List<ShowActiveConstraint>,
+    onComedian: (String) -> Unit,
+    onClub: (String) -> Unit,
+    onZip: (String) -> Unit,
+    onSort: (String) -> Unit,
+    onDistance: (Int) -> Unit,
+    onDateRange: (String?, String?) -> Unit,
+    onDateShortcut: (ShowDateShortcut) -> Unit,
+    onMaximumPrice: (ShowMaximumPriceOption) -> Unit,
+    onToggleFilter: (String) -> Unit,
+    onRemoveConstraint: (ShowActiveConstraintKind) -> Unit,
+    onClearAll: () -> Unit,
+) {
+    var optionalSearchExpanded by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(query.comedian, query.club) {
+        if (query.comedian.isNotBlank() || query.club.isNotBlank()) optionalSearchExpanded = true
+    }
+    val primarySlugs = ShowFormatOption.entries.mapTo(mutableSetOf("free")) { it.slug }
+    val secondaryFilters = filters.filterNot { it.slug in primarySlugs }
+
+    Surface(
+        color = LaughTrackColors.SurfaceElevated,
+        shape = RoundedCornerShape(14.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(14.dp)),
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(
+                    "EXPLORE SHOWS",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = LaughTrackColors.AccentStrong,
+                    letterSpacing = androidx.compose.ui.unit.TextUnit.Unspecified,
+                )
+                Text(
+                    "Start with what matters",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                )
+                Text(
+                    "Choose a date, place, price, or kind of comedy. Add a comedian or club only when you want one.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ShowDateShortcut.entries.forEach { shortcut ->
+                    ShowFacetChip(
+                        label = shortcut.label,
+                        selected = isShowDateShortcutSelected(query, shortcut),
+                        onClick = { onDateShortcut(shortcut) },
+                    )
+                }
+                LocationPill(zip = query.zip, locationLabel = locationLabel, onZip = onZip)
+                DistancePill(distance = query.distance, onDistance = onDistance)
+                DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
+                ShowFacetChip(
+                    label = "Free",
+                    selected = "free" in query.filters,
+                    onClick = { onToggleFilter("free") },
+                )
+                MaximumPricePill(selected = query.maxPrice, onSelect = onMaximumPrice)
+                ShowFormatOption.entries.forEach { format ->
+                    ShowFacetChip(
+                        label = format.label,
+                        selected = format.slug in query.filters,
+                        onClick = { onToggleFilter(format.slug) },
+                    )
+                }
+                if (secondaryFilters.isNotEmpty()) {
+                    TagFilterPill(
+                        available = secondaryFilters,
+                        selected = query.filters.intersect(secondaryFilters.mapTo(mutableSetOf()) { it.slug }),
+                        total = total,
+                        onToggle = onToggleFilter,
+                        onClear = {
+                            query.filters
+                                .intersect(secondaryFilters.mapTo(mutableSetOf()) { it.slug })
+                                .forEach(onToggleFilter)
+                        },
+                        label = "More filters",
+                    )
+                }
+                SortPill(pivot = SearchPivot.SHOWS, selected = query.sort, onSort = onSort)
+            }
+
+            FilterPillButton(
+                label = if (optionalSearchExpanded) "Hide comedian and club" else "Add comedian or club",
+                active = query.comedian.isNotBlank() || query.club.isNotBlank(),
+                onClick = { optionalSearchExpanded = !optionalSearchExpanded },
+            )
+            if (optionalSearchExpanded) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = query.comedian,
+                        onValueChange = onComedian,
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        label = { Text("Comedian (optional)") },
+                        placeholder = { Text("Mark Normand, Atsuko Okatsuka…") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                    )
+                    OutlinedTextField(
+                        value = query.club,
+                        onValueChange = onClub,
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        label = { Text("Club (optional)") },
+                        placeholder = { Text("Comedy Cellar, The Stand…") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                    )
+                }
+            }
+
+            if (activeConstraints.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Filtered by",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TextButton(onClick = onClearAll) { Text("Clear all") }
+                }
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    activeConstraints.forEach { constraint ->
+                        FilterChip(
+                            selected = true,
+                            onClick = { onRemoveConstraint(constraint.kind) },
+                            label = { Text(constraint.label) },
+                            trailingIcon = { Text("×", fontWeight = FontWeight.Bold) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShowFacetChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    FilterChip(selected = selected, onClick = onClick, label = { Text(label) })
+}
+
+@Composable
+private fun MaximumPricePill(
+    selected: Int?,
+    onSelect: (ShowMaximumPriceOption) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedOption = ShowMaximumPriceOption.fromApiValue(selected)
+    Box {
+        FilterPillButton(
+            label = if (selectedOption == ShowMaximumPriceOption.ANY) "Max price" else selectedOption.label,
+            active = selectedOption != ShowMaximumPriceOption.ANY,
+            onClick = { expanded = true },
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            ShowMaximumPriceOption.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.label) },
+                    trailingIcon =
+                        if (option == selectedOption) {
+                            { Icon(Icons.Filled.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    onClick = {
+                        expanded = false
+                        onSelect(option)
+                    },
+                )
+            }
+        }
+    }
+}
+
+private fun isShowDateShortcutSelected(
+    query: SearchQuery,
+    shortcut: ShowDateShortcut,
+): Boolean {
+    val (from, to) = showDateRangeForShortcut(shortcut)
+    return query.from == from && query.to == to
 }
 
 /**
@@ -637,11 +921,12 @@ private fun TagFilterPill(
     total: Int,
     onToggle: (String) -> Unit,
     onClear: () -> Unit,
+    label: String = "Filters",
 ) {
     var showSheet by remember { mutableStateOf(false) }
     val count = selected.size
     FilterPillButton(
-        label = if (count > 0) "Filters ($count)" else "Filters",
+        label = if (count > 0) "$label ($count)" else label,
         active = count > 0,
         onClick = { showSheet = true },
     )
@@ -739,6 +1024,32 @@ private fun HomeCityPill(
                     },
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ShowResultsPresentationPicker(
+    selected: ShowResultsPresentation,
+    onSelect: (ShowResultsPresentation) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            "View results",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ShowResultsPresentation.entries.forEach { presentation ->
+            PrimitiveChip(
+                title = presentation.label,
+                selected = presentation == selected,
+                enabled = true,
+                onClick = { onSelect(presentation) },
+            )
         }
     }
 }

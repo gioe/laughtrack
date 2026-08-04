@@ -17,6 +17,49 @@ val DISTANCE_OPTIONS: List<Int> = listOf(10, 25, 50, 100)
 /** Default radius when a ZIP is set but no distance is chosen. */
 const val DEFAULT_DISTANCE_MILES: Int = 25
 
+/** Stable show-format facets understood by the shows search endpoint. */
+enum class ShowFormatOption(
+    val slug: String,
+    val label: String,
+) {
+    STAND_UP("standup", "Stand-up"),
+    IMPROV("improv", "Improv"),
+    OPEN_MIC("open_mic", "Open mic"),
+}
+
+/** Direct maximum-price choices for show exploration. */
+enum class ShowMaximumPriceOption(
+    val apiValue: Int?,
+    val label: String,
+) {
+    ANY(null, "Any price"),
+    TWENTY(20, "Up to $20"),
+    FORTY(40, "Up to $40"),
+    SIXTY(60, "Up to $60"),
+    HUNDRED(100, "Up to $100"),
+    ;
+
+    companion object {
+        fun fromApiValue(value: Int?): ShowMaximumPriceOption = entries.firstOrNull { it.apiValue == value } ?: ANY
+    }
+}
+
+/** The two first-class ways to browse show results. */
+enum class ShowResultsPresentation(
+    val label: String,
+) {
+    AGENDA("Agenda"),
+    CALENDAR("Calendar"),
+}
+
+/** Direct date shortcuts shown ahead of the full date-range picker. */
+enum class ShowDateShortcut(
+    val label: String,
+) {
+    TONIGHT("Tonight"),
+    THIS_WEEKEND("This Weekend"),
+}
+
 /**
  * Per-pivot sort vocabularies and their defaults. The first entry in each list is
  * the server's implicit default sort for that entity type, so it doubles as the

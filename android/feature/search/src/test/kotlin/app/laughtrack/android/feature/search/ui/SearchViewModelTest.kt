@@ -13,6 +13,11 @@ import app.laughtrack.android.core.testing.throwingApi
 import app.laughtrack.android.feature.search.data.SearchRepository
 import app.laughtrack.android.feature.search.model.DEFAULT_DISTANCE_MILES
 import app.laughtrack.android.feature.search.model.SearchPivot
+import app.laughtrack.android.feature.search.model.ShowActiveConstraintKind
+import app.laughtrack.android.feature.search.model.ShowDateShortcut
+import app.laughtrack.android.feature.search.model.ShowMaximumPriceOption
+import app.laughtrack.android.feature.search.model.ShowResultsPresentation
+import app.laughtrack.android.feature.search.model.ShowSearchSeed
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,6 +34,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
+import java.math.BigDecimal
+import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
@@ -167,7 +174,7 @@ class SearchViewModelTest {
         }
 
     @Test
-    fun text_edits_are_debounced_into_a_single_reload() =
+    fun explicit_show_entity_edits_are_debounced_into_a_single_reload() =
         runTest {
             val showsApi = SuspendingShowsApi()
             val viewModel = viewModel(showsApi)
@@ -176,9 +183,9 @@ class SearchViewModelTest {
             advanceUntilIdle()
             check(showsApi.searchCalls == 1)
 
-            viewModel.onTextChange("st")
-            viewModel.onTextChange("stand")
-            viewModel.onTextChange("stand up")
+            viewModel.onComedianChange("at")
+            viewModel.onComedianChange("atsu")
+            viewModel.onComedianChange("Atsuko")
             advanceTimeBy(299)
 
             // Still inside the debounce window: no reload has fired yet.
@@ -193,7 +200,7 @@ class SearchViewModelTest {
         }
 
     @Test
-    fun shows_text_queries_comedian_name_like_ios_unified_search() =
+    fun shows_send_explicit_comedian_club_filters_and_maximum_price() =
         runTest {
             val showsApi = SuspendingShowsApi()
             val viewModel = viewModel(showsApi)
@@ -201,11 +208,190 @@ class SearchViewModelTest {
             showsApi.completeLatestSearch()
             advanceUntilIdle()
 
-            viewModel.onTextChange("Atsuko")
+            viewModel.onComedianChange("Atsuko")
+            viewModel.onClubChange("The Stand")
+            viewModel.toggleFilter("improv")
+            viewModel.setMaximumPrice(ShowMaximumPriceOption.FORTY)
             advanceUntilIdle()
 
             assertEquals("Atsuko", showsApi.lastComedian)
-            assertNull(showsApi.lastClub)
+            assertEquals("The Stand", showsApi.lastClub)
+            assertEquals("improv", showsApi.lastFilters)
+            assertEquals(BigDecimal(40), showsApi.lastMaxPrice)
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun show_seed_round_trips_and_constraints_remove_or_clear_together() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+
+            val seed =
+                ShowSearchSeed(
+                    comedian = "Atsuko",
+                    club = "The Stand",
+                    zip = "10012",
+                    locationLabel = "New York, NY",
+                    distance = 50,
+                    from = "2026-08-07",
+                    to = "2026-08-09",
+                    filters = setOf("free", "open_mic"),
+                    maxPrice = 40,
+                    resultsPresentation = ShowResultsPresentation.CALENDAR,
+                )
+
+            viewModel.applyShowSearchSeed(seed)
+            assertEquals(seed, viewModel.showSearchSeed())
+            val constraints = viewModel.activeShowConstraints()
+            assertTrue(constraints.any { it.kind == ShowActiveConstraintKind.Location })
+            assertTrue(constraints.any { it.kind == ShowActiveConstraintKind.Date })
+            assertTrue(constraints.any { it.kind == ShowActiveConstraintKind.Comedian })
+            assertTrue(constraints.any { it.kind == ShowActiveConstraintKind.Club })
+            assertTrue(constraints.any { it.kind == ShowActiveConstraintKind.MaximumPrice })
+            assertTrue(constraints.any { it.kind == ShowActiveConstraintKind.Filter("free") })
+
+            viewModel.removeShowConstraint(ShowActiveConstraintKind.Filter("free"))
+            assertTrue("free" !in viewModel.showSearchSeed().filters)
+
+            viewModel.clearAllShowConstraints()
+            val cleared = viewModel.showSearchSeed()
+            assertEquals(ShowSearchSeed(), cleared)
+            assertTrue(viewModel.activeShowConstraints().isEmpty())
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun successful_density_populates_the_requested_month() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+
+            viewModel.loadShowDensity("2026-09-19")
+            advanceUntilIdle()
+            showsApi.completeLatestDensity(mapOf("2026-09-12" to 4))
+            advanceUntilIdle()
+
+            val shows = viewModel.state.value.states.getValue(SearchPivot.SHOWS)
+            assertEquals("2026-09-01", shows.densityMonthStart)
+            assertEquals(mapOf("2026-09-12" to 4), shows.showDensity)
+            assertTrue(!shows.isDensityLoading)
+            assertNull(shows.densityError)
+        }
+
+    @Test
+    fun calendar_selection_sets_one_exact_day_and_reloads_once() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+
+            viewModel.setSort("price_desc")
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+            val callsBeforeSelection = showsApi.searchCalls
+
+            viewModel.selectShowCalendarDate("2026-09-12")
+            advanceUntilIdle()
+
+            val query = viewModel.state.value.states.getValue(SearchPivot.SHOWS).query
+            assertEquals("2026-09-12", query.from)
+            assertEquals("2026-09-12", query.to)
+            assertEquals("date_asc", query.sort)
+            assertEquals(callsBeforeSelection + 1, showsApi.searchCalls)
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun shortcuts_are_deterministic_and_presentation_changes_do_not_reload() =
+        runTest {
+            assertEquals(
+                "2026-08-04" to "2026-08-04",
+                showDateRangeForShortcut(ShowDateShortcut.TONIGHT, LocalDate.parse("2026-08-04")),
+            )
+            assertEquals(
+                "2026-08-07" to "2026-08-09",
+                showDateRangeForShortcut(ShowDateShortcut.THIS_WEEKEND, LocalDate.parse("2026-08-04")),
+            )
+            assertEquals(
+                "2026-08-08" to "2026-08-09",
+                showDateRangeForShortcut(ShowDateShortcut.THIS_WEEKEND, LocalDate.parse("2026-08-08")),
+            )
+
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            assertEquals(1, showsApi.searchCalls)
+
+            viewModel.setResultsPresentation(ShowResultsPresentation.CALENDAR)
+            advanceUntilIdle()
+
+            assertEquals(1, showsApi.searchCalls)
+            assertEquals(ShowResultsPresentation.CALENDAR, viewModel.state.value.current.resultsPresentation)
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun density_uses_explicit_scope_and_discards_a_stale_response() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+
+            viewModel.applyShowSearchSeed(
+                ShowSearchSeed(comedian = "Atsuko", zip = "10012", distance = 50),
+            )
+            viewModel.loadShowDensity("2026-08-15")
+            advanceUntilIdle()
+            assertEquals("2026-08-01", showsApi.lastDensityFrom)
+            assertEquals("2026-08-31", showsApi.lastDensityTo)
+            assertEquals("Atsuko", showsApi.lastDensityComedian)
+            assertEquals("10012", showsApi.lastDensityZip)
+
+            viewModel.onComedianChange("Ali Wong")
+            showsApi.completeLatestDensity(mapOf("2026-08-10" to 3))
+            advanceUntilIdle()
+
+            assertTrue(viewModel.state.value.states.getValue(SearchPivot.SHOWS).showDensity.isEmpty())
+            assertNull(viewModel.state.value.states.getValue(SearchPivot.SHOWS).densityMonthStart)
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun density_falls_back_to_location_when_both_entity_constraints_are_active() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+
+            viewModel.applyShowSearchSeed(
+                ShowSearchSeed(comedian = "Atsuko", club = "The Stand", zip = "10012"),
+            )
+            viewModel.loadShowDensity("2026-08-01")
+            advanceUntilIdle()
+
+            assertNull(showsApi.lastDensityComedian)
+            assertNull(showsApi.lastDensityClub)
+            showsApi.completeLatestDensity(emptyMap())
             showsApi.completeLatestSearch()
             advanceUntilIdle()
         }
@@ -301,7 +487,15 @@ class SearchViewModelTest {
         var lastDistance: Int? = null
         var lastComedian: String? = null
         var lastClub: String? = null
+        var lastFilters: String? = null
+        var lastMaxPrice: BigDecimal? = null
+        var lastDensityFrom: String? = null
+        var lastDensityTo: String? = null
+        var lastDensityZip: String? = null
+        var lastDensityComedian: String? = null
+        var lastDensityClub: String? = null
         private val pendingSearches = mutableListOf<CompletableDeferred<Response<ShowSearchResponse>>>()
+        private val pendingDensities = mutableListOf<CompletableDeferred<Response<Map<String, Int>>>>()
 
         override suspend fun searchShows(
             zip: String?,
@@ -324,6 +518,8 @@ class SearchViewModelTest {
             lastDistance = distance
             lastComedian = comedian
             lastClub = club
+            lastFilters = filters
+            lastMaxPrice = maxPrice
             val pending = CompletableDeferred<Response<ShowSearchResponse>>()
             pendingSearches += pending
             return pending.await()
@@ -359,7 +555,20 @@ class SearchViewModelTest {
             club: String?,
             clubId: Int?,
             xTimezone: String?,
-        ): Response<Map<String, Int>> = error("Unexpected getShowsDensity call")
+        ): Response<Map<String, Int>> {
+            lastDensityZip = zip
+            lastDensityFrom = from
+            lastDensityTo = to
+            lastDensityComedian = comedian
+            lastDensityClub = club
+            val pending = CompletableDeferred<Response<Map<String, Int>>>()
+            pendingDensities += pending
+            return pending.await()
+        }
+
+        fun completeLatestDensity(density: Map<String, Int>) {
+            pendingDensities.last().complete(Response.success(density))
+        }
 
         override suspend fun listShows(
             zip: String,

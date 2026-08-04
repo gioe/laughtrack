@@ -55,7 +55,13 @@ import app.laughtrack.android.feature.search.model.PagedList
 import app.laughtrack.android.feature.search.model.SearchFavoriteTarget
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchResult
+import app.laughtrack.android.feature.search.model.ShowResultsPresentation
 import app.laughtrack.android.feature.search.model.searchResultSummary
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.Locale
 
 /** Paging state + trigger for [resultsContent]'s load-more footer. */
 internal data class LoadMoreState(
@@ -70,13 +76,19 @@ internal data class SearchResultFavorites(
     val onSetFavorite: (SearchFavoriteTarget, Boolean) -> Unit,
 )
 
+internal data class SearchResultsPresentationSpec(
+    val pivot: SearchPivot,
+    val showPresentation: ShowResultsPresentation = ShowResultsPresentation.AGENDA,
+)
+
 internal fun LazyGridScope.resultsContent(
-    pivot: SearchPivot,
+    presentation: SearchResultsPresentationSpec,
     results: PagedList<SearchResult>,
     loadMore: LoadMoreState,
     onOpen: (AppRoute) -> Unit,
     favorites: SearchResultFavorites,
 ) {
+    val pivot = presentation.pivot
     item(span = { GridItemSpan(maxLineSpan) }) {
         Text(
             searchResultSummary(loaded = results.items.size, total = results.total),
@@ -85,18 +97,77 @@ internal fun LazyGridScope.resultsContent(
             modifier = Modifier.padding(horizontal = 2.dp).padding(top = 2.dp),
         )
     }
-    // route is the row's entity identity (SearchResult has no id field); stringified
-    // because lazy-layout keys must be Bundle-saveable and AppRoute is not Parcelable.
-    items(results.items, key = { it.route.toString() }) { result ->
-        SearchResultItem(
-            pivot = pivot,
-            result = result,
-            favorites = favorites,
-            onOpen = onOpen,
-        )
+    if (pivot == SearchPivot.SHOWS && presentation.showPresentation == ShowResultsPresentation.AGENDA) {
+        showAgendaSections(results.items).forEach { section ->
+            item(key = "show-day-${section.key}", span = { GridItemSpan(maxLineSpan) }) {
+                Text(
+                    section.label,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp, start = 2.dp),
+                )
+            }
+            items(section.shows, key = { it.route.toString() }) { result ->
+                SearchResultItem(
+                    pivot = pivot,
+                    result = result,
+                    favorites = favorites,
+                    onOpen = onOpen,
+                )
+            }
+        }
+    } else {
+        // route is the row's entity identity (SearchResult has no id field); stringified
+        // because lazy-layout keys must be Bundle-saveable and AppRoute is not Parcelable.
+        items(results.items, key = { it.route.toString() }) { result ->
+            SearchResultItem(
+                pivot = pivot,
+                result = result,
+                favorites = favorites,
+                onOpen = onOpen,
+            )
+        }
     }
     loadMoreContent(loadMore)
 }
+
+internal data class ShowAgendaSection(
+    val key: String,
+    val label: String,
+    val shows: List<SearchResult>,
+)
+
+private val AGENDA_DAY_FORMAT = DateTimeFormatter.ofPattern("EEEE, MMMM d", Locale.US)
+
+/** Groups show rows by their venue-local calendar day and orders rows chronologically. */
+internal fun showAgendaSections(shows: List<SearchResult>): List<ShowAgendaSection> =
+    shows
+        .groupBy(::showVenueDate)
+        .entries
+        .sortedWith(compareBy(nullsLast()) { it.key })
+        .map { (day, rows) ->
+            ShowAgendaSection(
+                key = day?.toString() ?: "unknown",
+                label = day?.format(AGENDA_DAY_FORMAT) ?: "Upcoming shows",
+                shows = rows.sortedBy(::showInstantSortKey),
+            )
+        }
+
+private fun showVenueDate(result: SearchResult): java.time.LocalDate? {
+    val dateTime = result.showDate ?: return null
+    return try {
+        val parsed = OffsetDateTime.parse(dateTime)
+        val zone = result.showTimezone?.let { runCatching { ZoneId.of(it) }.getOrNull() }
+        if (zone != null) parsed.toInstant().atZone(zone).toLocalDate() else parsed.toLocalDate()
+    } catch (_: DateTimeParseException) {
+        runCatching { java.time.LocalDate.parse(dateTime.take(10)) }.getOrNull()
+    }
+}
+
+private fun showInstantSortKey(result: SearchResult): String =
+    result.showDate?.let { value ->
+        runCatching { OffsetDateTime.parse(value).toInstant().toString() }.getOrDefault(value)
+    }.orEmpty()
 
 @Composable
 private fun SearchResultItem(

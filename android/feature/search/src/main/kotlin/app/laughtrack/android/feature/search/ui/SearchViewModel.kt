@@ -17,7 +17,15 @@ import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchQuery
 import app.laughtrack.android.feature.search.model.SearchResult
 import app.laughtrack.android.feature.search.model.SearchSort
+import app.laughtrack.android.feature.search.model.ShowActiveConstraint
+import app.laughtrack.android.feature.search.model.ShowActiveConstraintKind
+import app.laughtrack.android.feature.search.model.ShowDateShortcut
+import app.laughtrack.android.feature.search.model.ShowFormatOption
+import app.laughtrack.android.feature.search.model.ShowMaximumPriceOption
+import app.laughtrack.android.feature.search.model.ShowResultsPresentation
+import app.laughtrack.android.feature.search.model.ShowSearchSeed
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +34,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
 
 /** Per-pivot search state, retained when switching tabs (mirrors iOS per-pivot models). */
@@ -39,7 +52,35 @@ data class PivotState(
     val filters: List<Filter> = emptyList(),
     /** Comedian home-city facets echoed by the last successful response (comedians only). */
     val homeCityFilters: List<HomeCityFilter> = emptyList(),
+    /** Show-results presentation is local UI state and never changes the API query. */
+    val resultsPresentation: ShowResultsPresentation = ShowResultsPresentation.AGENDA,
+    /** ISO date -> show count for the currently displayed calendar month. */
+    val showDensity: Map<String, Int> = emptyMap(),
+    val densityMonthStart: String? = null,
+    val isDensityLoading: Boolean = false,
+    val densityError: String? = null,
 )
+
+/** Deterministic shortcut calculation shared by the ViewModel and focused tests. */
+internal fun showDateRangeForShortcut(
+    shortcut: ShowDateShortcut,
+    today: LocalDate = LocalDate.now(),
+): Pair<String, String> {
+    val range =
+        when (shortcut) {
+            ShowDateShortcut.TONIGHT -> today to today
+            ShowDateShortcut.THIS_WEEKEND -> {
+                val start =
+                    when (today.dayOfWeek) {
+                        DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY -> today
+                        else -> today.with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
+                    }
+                val end = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+                start to end
+            }
+        }
+    return range.first.toString() to range.second.toString()
+}
 
 /**
  * Seeds each pivot with its server-default sort. Geo pivots inherit the Home
@@ -74,6 +115,7 @@ data class SearchUiState(
 }
 
 @HiltViewModel
+@OptIn(FlowPreview::class)
 class SearchViewModel
     @Inject
     constructor(
@@ -88,6 +130,8 @@ class SearchViewModel
         val state: StateFlow<SearchUiState> = _state.asStateFlow()
 
         private val loadJobs = mutableMapOf<SearchPivot, Job>()
+        private var densityJob: Job? = null
+        private val densityCache = mutableMapOf<ShowDensityCacheKey, Map<String, Int>>()
         private val userEditedLocationPivots = mutableSetOf<SearchPivot>()
 
         // Debounce free-text typing so only the settled query hits the API; immediate
@@ -115,6 +159,18 @@ class SearchViewModel
             textChanges.tryEmit(pivot)
         }
 
+        /** Explicit optional comedian constraint for the Shows explorer. */
+        fun onComedianChange(comedian: String) {
+            updateShowQueryWithoutReload { it.copy(comedian = comedian) }
+            textChanges.tryEmit(SearchPivot.SHOWS)
+        }
+
+        /** Explicit optional club constraint for the Shows explorer. */
+        fun onClubChange(club: String) {
+            updateShowQueryWithoutReload { it.copy(club = club) }
+            textChanges.tryEmit(SearchPivot.SHOWS)
+        }
+
         fun selectPivot(pivot: SearchPivot) {
             _state.update { it.copy(pivot = pivot) }
             val pivotState = _state.value.states.getValue(pivot)
@@ -126,7 +182,7 @@ class SearchViewModel
         /** Any query/filter/sort edit resets pagination and re-queries from page 1. */
         fun updateQuery(transform: (SearchQuery) -> SearchQuery) {
             val pivot = _state.value.pivot
-            updatePivot(pivot) { it.copy(query = transform(it.query)) }
+            updatePivotQuery(pivot, transform)
             reload(pivot)
         }
 
@@ -138,10 +194,15 @@ class SearchViewModel
             val pivot = _state.value.pivot
             if (pivot.isGeoScoped) userEditedLocationPivots += pivot
             updatePivot(pivot) {
+                val nextQuery = it.query.copy(zip = zip?.takeIf { value -> value.isNotBlank() })
                 it.copy(
-                    query = it.query.copy(zip = zip?.takeIf { value -> value.isNotBlank() }),
+                    query = nextQuery,
                     // A manually entered ZIP no longer has a trustworthy resolved city label.
                     locationLabel = null,
+                    showDensity = emptyMap(),
+                    densityMonthStart = null,
+                    isDensityLoading = false,
+                    densityError = null,
                 )
             }
             reload(pivot)
@@ -163,6 +224,29 @@ class SearchViewModel
             to: String?,
         ) = updateQuery { it.copy(from = from, to = to) }
 
+        fun setMaximumPrice(option: ShowMaximumPriceOption) = updateQuery { it.copy(maxPrice = option.apiValue) }
+
+        /** Applies a direct date shortcut and restores chronological ordering. */
+        fun applyDateShortcut(
+            shortcut: ShowDateShortcut,
+            today: LocalDate = LocalDate.now(),
+        ) {
+            val (from, to) = showDateRangeForShortcut(shortcut, today)
+            updateQuery { it.copy(from = from, to = to, sort = SearchSort.defaultFor(SearchPivot.SHOWS)) }
+        }
+
+        /** Calendar selection is one exact-date query mutation and one reload. */
+        fun selectShowCalendarDate(isoDate: String) {
+            val day = runCatching { LocalDate.parse(isoDate).toString() }.getOrNull() ?: return
+            updateQuery {
+                it.copy(
+                    from = day,
+                    to = day,
+                    sort = SearchSort.defaultFor(SearchPivot.SHOWS),
+                )
+            }
+        }
+
         /** Toggle a tag slug in/out of the active pivot's selected filters. */
         fun toggleFilter(slug: String) =
             updateQuery { query ->
@@ -171,6 +255,230 @@ class SearchViewModel
 
         /** Clear all selected tag filters on the active pivot. */
         fun clearFilters() = updateQuery { it.copy(filters = emptySet()) }
+
+        /** Export every selected Shows constraint and its local presentation. */
+        fun showSearchSeed(): ShowSearchSeed {
+            val shows = _state.value.states.getValue(SearchPivot.SHOWS)
+            return ShowSearchSeed(
+                comedian = shows.query.comedian,
+                club = shows.query.club,
+                zip = shows.query.zip,
+                locationLabel = shows.locationLabel,
+                distance = shows.query.distance ?: DEFAULT_DISTANCE_MILES,
+                from = shows.query.from,
+                to = shows.query.to,
+                filters = shows.query.filters,
+                maxPrice = shows.query.maxPrice,
+                resultsPresentation = shows.resultsPresentation,
+            )
+        }
+
+        /** Replace stale Shows state with an externally supplied faceted seed. */
+        fun applyShowSearchSeed(seed: ShowSearchSeed) {
+            userEditedLocationPivots += SearchPivot.SHOWS
+            updatePivot(SearchPivot.SHOWS) { current ->
+                current.copy(
+                    query =
+                        current.query.copy(
+                            text = "",
+                            comedian = seed.comedian,
+                            club = seed.club,
+                            zip = seed.zip,
+                            distance = seed.distance,
+                            from = seed.from,
+                            to = seed.to,
+                            filters = seed.filters,
+                            maxPrice = seed.maxPrice,
+                            sort = SearchSort.defaultFor(SearchPivot.SHOWS),
+                        ),
+                    locationLabel = seed.locationLabel,
+                    resultsPresentation = seed.resultsPresentation,
+                    showDensity = emptyMap(),
+                    densityMonthStart = null,
+                    isDensityLoading = false,
+                    densityError = null,
+                    loaded = false,
+                    results = PagedList(),
+                )
+            }
+            reloadShowsIfActive()
+        }
+
+        /** Human-readable, individually removable constraints in stable display order. */
+        fun activeShowConstraints(): List<ShowActiveConstraint> {
+            val shows = _state.value.states.getValue(SearchPivot.SHOWS)
+            val query = shows.query
+            val namesBySlug = shows.filters.associate { it.slug to it.name }
+            return buildList {
+                query.zip?.let { zip ->
+                    val place = shows.locationLabel?.takeIf(String::isNotBlank) ?: "ZIP $zip"
+                    add(
+                        ShowActiveConstraint(
+                            ShowActiveConstraintKind.Location,
+                            "$place · ${query.distance ?: DEFAULT_DISTANCE_MILES} mi",
+                        ),
+                    )
+                }
+                if (query.from != null || query.to != null) {
+                    add(
+                        ShowActiveConstraint(
+                            ShowActiveConstraintKind.Date,
+                            showDateConstraintLabel(query.from, query.to),
+                        ),
+                    )
+                }
+                query.filters.sorted().forEach { slug ->
+                    val fixedLabel =
+                        when (slug) {
+                            "free" -> "Free"
+                            else -> ShowFormatOption.entries.firstOrNull { it.slug == slug }?.label
+                        }
+                    add(
+                        ShowActiveConstraint(
+                            ShowActiveConstraintKind.Filter(slug),
+                            namesBySlug[slug]
+                                ?: fixedLabel
+                                ?: slug.replace('-', ' ').replace('_', ' ').replaceFirstChar(Char::uppercase),
+                        ),
+                    )
+                }
+                ShowMaximumPriceOption.fromApiValue(query.maxPrice)
+                    .takeUnless { it == ShowMaximumPriceOption.ANY }
+                    ?.let { add(ShowActiveConstraint(ShowActiveConstraintKind.MaximumPrice, it.label)) }
+                query.comedian.trim().takeIf(String::isNotEmpty)?.let {
+                    add(ShowActiveConstraint(ShowActiveConstraintKind.Comedian, "Comedian: $it"))
+                }
+                query.club.trim().takeIf(String::isNotEmpty)?.let {
+                    add(ShowActiveConstraint(ShowActiveConstraintKind.Club, "Club: $it"))
+                }
+            }
+        }
+
+        fun removeShowConstraint(kind: ShowActiveConstraintKind) {
+            if (kind == ShowActiveConstraintKind.Location) userEditedLocationPivots += SearchPivot.SHOWS
+            updatePivot(SearchPivot.SHOWS) { current ->
+                val query =
+                    when (kind) {
+                        ShowActiveConstraintKind.Location ->
+                            current.query.copy(zip = null, distance = DEFAULT_DISTANCE_MILES)
+                        ShowActiveConstraintKind.Date -> current.query.copy(from = null, to = null)
+                        is ShowActiveConstraintKind.Filter ->
+                            current.query.copy(filters = current.query.filters - kind.slug)
+                        ShowActiveConstraintKind.MaximumPrice -> current.query.copy(maxPrice = null)
+                        ShowActiveConstraintKind.Comedian -> current.query.copy(comedian = "")
+                        ShowActiveConstraintKind.Club -> current.query.copy(club = "")
+                    }
+                val densityScopeChanged = showDensityScope(current.query) != showDensityScope(query)
+                current.copy(
+                    query = query,
+                    locationLabel = if (kind == ShowActiveConstraintKind.Location) null else current.locationLabel,
+                    showDensity = if (densityScopeChanged) emptyMap() else current.showDensity,
+                    densityMonthStart = if (densityScopeChanged) null else current.densityMonthStart,
+                    isDensityLoading = if (densityScopeChanged) false else current.isDensityLoading,
+                    densityError = if (densityScopeChanged) null else current.densityError,
+                )
+            }
+            reloadShowsIfActive()
+        }
+
+        fun clearAllShowConstraints() {
+            userEditedLocationPivots += SearchPivot.SHOWS
+            updatePivot(SearchPivot.SHOWS) { current ->
+                current.copy(
+                    query =
+                        current.query.copy(
+                            text = "",
+                            comedian = "",
+                            club = "",
+                            zip = null,
+                            distance = DEFAULT_DISTANCE_MILES,
+                            from = null,
+                            to = null,
+                            filters = emptySet(),
+                            maxPrice = null,
+                            sort = SearchSort.defaultFor(SearchPivot.SHOWS),
+                        ),
+                    locationLabel = null,
+                    resultsPresentation = ShowResultsPresentation.AGENDA,
+                    showDensity = emptyMap(),
+                    densityMonthStart = null,
+                    isDensityLoading = false,
+                    densityError = null,
+                )
+            }
+            reloadShowsIfActive()
+        }
+
+        /** Presentation changes are local and deliberately do not reload results. */
+        fun setResultsPresentation(presentation: ShowResultsPresentation) {
+            updatePivot(SearchPivot.SHOWS) { it.copy(resultsPresentation = presentation) }
+        }
+
+        /** Load density for the month containing an ISO YYYY-MM-DD value. */
+        fun loadShowDensity(monthStart: String) {
+            val month = runCatching { LocalDate.parse(monthStart).withDayOfMonth(1) }.getOrNull()
+            if (month == null) {
+                updatePivot(SearchPivot.SHOWS) {
+                    it.copy(isDensityLoading = false, densityError = "Invalid calendar month")
+                }
+                return
+            }
+            val query = _state.value.states.getValue(SearchPivot.SHOWS).query
+            val scope = showDensityScope(query)
+            val normalizedMonth = month.toString()
+            val key = ShowDensityCacheKey(scope, normalizedMonth)
+            densityCache[key]?.let { cached ->
+                updatePivot(SearchPivot.SHOWS) {
+                    it.copy(
+                        showDensity = cached,
+                        densityMonthStart = normalizedMonth,
+                        isDensityLoading = false,
+                        densityError = null,
+                    )
+                }
+                return
+            }
+
+            densityJob?.cancel()
+            updatePivot(SearchPivot.SHOWS) {
+                it.copy(
+                    isDensityLoading = true,
+                    densityError = null,
+                    densityMonthStart = normalizedMonth,
+                )
+            }
+            densityJob =
+                viewModelScope.launch {
+                    val monthEnd = month.with(TemporalAdjusters.lastDayOfMonth()).toString()
+                    runCatchingCancellable { repository.showDensity(query, normalizedMonth, monthEnd) }
+                        .onSuccess { density ->
+                            densityCache[key] = density
+                            val current = _state.value.states.getValue(SearchPivot.SHOWS)
+                            if (
+                                showDensityScope(current.query) == scope &&
+                                current.densityMonthStart == normalizedMonth
+                            ) {
+                                updatePivot(SearchPivot.SHOWS) {
+                                    it.copy(showDensity = density, isDensityLoading = false, densityError = null)
+                                }
+                            }
+                        }
+                        .onFailure { error ->
+                            val current = _state.value.states.getValue(SearchPivot.SHOWS)
+                            if (
+                                showDensityScope(current.query) == scope &&
+                                current.densityMonthStart == normalizedMonth
+                            ) {
+                                updatePivot(SearchPivot.SHOWS) {
+                                    it.copy(
+                                        isDensityLoading = false,
+                                        densityError = error.message ?: "Calendar unavailable",
+                                    )
+                                }
+                            }
+                        }
+                }
+        }
 
         /** Set (or clear, with null) the comedians home-city `city|state` token. */
         fun setHomeCity(value: String?) = updateQuery { it.copy(homeCity = value) }
@@ -228,6 +536,10 @@ class SearchViewModel
                             locationLabel = location?.locationLabel,
                             results = PagedList(),
                             loaded = false,
+                            showDensity = emptyMap(),
+                            densityMonthStart = null,
+                            isDensityLoading = false,
+                            densityError = null,
                         )
                     }
                     reloadActivePivot = reloadActivePivot || _state.value.pivot == pivot
@@ -244,7 +556,10 @@ class SearchViewModel
             // browse-load that fires when a pivot tab is first opened. Logged here,
             // before the network call, so failed searches are counted too.
             val query = _state.value.states.getValue(pivot).query
-            if (query.text.isNotBlank()) {
+            val hasExplicitShowEntity =
+                pivot == SearchPivot.SHOWS &&
+                    (query.comedian.isNotBlank() || query.club.isNotBlank())
+            if (query.text.isNotBlank() || hasExplicitShowEntity) {
                 analytics.logEvent(
                     AnalyticsEvents.Search.PERFORMED,
                     mapOf(AnalyticsEvents.Search.Param.PIVOT to pivot.name.lowercase()),
@@ -303,7 +618,75 @@ class SearchViewModel
             }
         }
 
+        private fun updatePivotQuery(
+            pivot: SearchPivot,
+            transform: (SearchQuery) -> SearchQuery,
+        ) {
+            updatePivot(pivot) { current ->
+                val query = transform(current.query)
+                val densityScopeChanged =
+                    pivot == SearchPivot.SHOWS &&
+                        showDensityScope(current.query) != showDensityScope(query)
+                current.copy(
+                    query = query,
+                    showDensity = if (densityScopeChanged) emptyMap() else current.showDensity,
+                    densityMonthStart = if (densityScopeChanged) null else current.densityMonthStart,
+                    isDensityLoading = if (densityScopeChanged) false else current.isDensityLoading,
+                    densityError = if (densityScopeChanged) null else current.densityError,
+                )
+            }
+        }
+
+        private fun updateShowQueryWithoutReload(transform: (SearchQuery) -> SearchQuery) {
+            updatePivotQuery(SearchPivot.SHOWS, transform)
+        }
+
+        private fun reloadShowsIfActive() {
+            if (_state.value.pivot == SearchPivot.SHOWS) {
+                reload(SearchPivot.SHOWS)
+            } else {
+                updatePivot(SearchPivot.SHOWS) { it.copy(loaded = false, results = PagedList()) }
+            }
+        }
+
         private companion object {
             const val TEXT_DEBOUNCE_MS = 300L
         }
     }
+
+private data class ShowDensityScope(
+    val zip: String?,
+    val distance: Int?,
+    val comedian: String,
+    val club: String,
+)
+
+private data class ShowDensityCacheKey(
+    val scope: ShowDensityScope,
+    val monthStart: String,
+)
+
+private fun showDensityScope(query: SearchQuery): ShowDensityScope =
+    ShowDensityScope(
+        zip = query.zip,
+        distance = query.distance,
+        comedian = query.comedian.trim(),
+        club = query.club.trim(),
+    )
+
+private val SHOW_CONSTRAINT_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+
+private fun showDateConstraintLabel(
+    from: String?,
+    to: String?,
+): String {
+    fun pretty(value: String): String =
+        runCatching { LocalDate.parse(value).format(SHOW_CONSTRAINT_DATE_FORMATTER) }.getOrDefault(value)
+    return when {
+        from != null && to != null && from == to -> pretty(from)
+        from != null && to != null -> "${pretty(from)} – ${pretty(to)}"
+        from != null -> "From ${pretty(from)}"
+        to != null -> "Until ${pretty(to)}"
+        else -> "Any date"
+    }
+}

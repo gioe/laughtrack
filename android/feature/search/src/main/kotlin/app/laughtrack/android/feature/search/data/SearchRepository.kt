@@ -69,8 +69,10 @@ class SearchRepository
                     to = query.to,
                     distance = query.distance,
                     sort = query.sort,
-                    comedian = query.text.ifBlank { null },
+                    comedian = query.comedian.ifBlank { null },
+                    club = query.club.ifBlank { null },
                     filters = query.filters.toFiltersParam(),
+                    maxPrice = query.maxPrice?.toBigDecimal(),
                     page = page,
                     size = size,
                 )
@@ -215,6 +217,33 @@ class SearchRepository
                     },
                 total = body.total,
             )
+        }
+
+        /**
+         * Fetches per-day counts for a calendar month. The density endpoint can
+         * mirror location and explicit entity constraints, but not show-format,
+         * Free, or maximum-price constraints.
+         */
+        suspend fun showDensity(
+            query: SearchQuery,
+            from: String,
+            to: String,
+        ): Map<String, Int> {
+            // Density accepts either comedian or club, not both. When the result
+            // query combines them, keep the calendar useful with broader
+            // location-only dots instead of issuing a guaranteed HTTP 400.
+            val hasComedian = query.comedian.isNotBlank()
+            val hasClub = query.club.isNotBlank()
+            val response =
+                showsApi.getShowsDensity(
+                    zip = query.zip,
+                    from = from,
+                    to = to,
+                    distance = query.distance,
+                    comedian = query.comedian.takeIf { hasComedian && !hasClub },
+                    club = query.club.takeIf { hasClub && !hasComedian },
+                )
+            return response.body() ?: error("Show density failed (HTTP ${response.code()})")
         }
 
         private companion object {

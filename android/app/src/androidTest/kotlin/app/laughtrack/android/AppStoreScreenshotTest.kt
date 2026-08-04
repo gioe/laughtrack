@@ -213,27 +213,27 @@ class AppStoreScreenshotTest {
             }
         }
 
-        // 01 — Near Me. The location controls live behind the header row's bottom
-        // sheet (TASK-3624): open it via the chevron's stable contentDescription
-        // (the row title varies with the server-inferred area), trigger
-        // use-device-location so the fake resolver (90028) drives the Discover
-        // feed, then wait for the LA feed.
-        waitFor(hasContentDescription("Edit location"))
-        composeRule.onNodeWithContentDescription("Edit location").performClick()
-        waitFor(hasText("Use my location"))
-        composeRule.onNodeWithText("Use my location").performClick()
-        waitFor(
-            hasText("Near Los Angeles", substring = true) or hasText("90028", substring = true),
-            timeoutMs = 30_000,
-        )
-        if (capture("01_NearMe")) return
+        // 01 — Near Me. Focused verification runs that begin in Search do not
+        // depend on Discover's location setup, so keep that prerequisite scoped
+        // to complete runs and explicit Near Me captures.
+        if (selectedScenarioIds == null || "01_NearMe" in selectedScenarioIds.orEmpty()) {
+            waitFor(hasContentDescription("Edit location"))
+            composeRule.onNodeWithContentDescription("Edit location").performClick()
+            waitFor(hasText("Use my location"))
+            composeRule.onNodeWithText("Use my location").performClick()
+            waitFor(
+                hasText("Near Los Angeles", substring = true) or hasText("90028", substring = true),
+                timeoutMs = 30_000,
+            )
+            if (capture("01_NearMe")) return
+        }
 
         // 02 — Search / Shows (the default pivot). The Search tab's contentDescription
         // lives on the icon, which NavigationBarItem merges under its label Text — so
         // it only resolves in the unmerged tree. Clicking the icon node still triggers
         // the item's onClick.
         composeRule.onNode(hasContentDescription("Search"), useUnmergedTree = true).performClick()
-        waitFor(hasText("Search nearby comedy"), timeoutMs = 30_000)
+        waitFor(hasText("Start with what matters"), timeoutMs = 30_000)
         waitForResults()
         assertFixtureResultCount()
         if (capture("02_SearchShows")) return
