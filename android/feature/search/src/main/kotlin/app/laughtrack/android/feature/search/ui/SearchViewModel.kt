@@ -8,6 +8,8 @@ import app.laughtrack.android.core.data.location.HomeLocation
 import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.navigation.SearchDestination
+import app.laughtrack.android.core.navigation.SearchLaunchRequest
 import app.laughtrack.android.core.network.generated.model.Filter
 import app.laughtrack.android.core.network.generated.model.HomeCityFilter
 import app.laughtrack.android.feature.search.data.SearchRepository
@@ -179,6 +181,29 @@ class SearchViewModel
             val pivotState = _state.value.states.getValue(pivot)
             if (pivot.isAvailable && !pivotState.loaded) {
                 reload(pivot)
+            }
+        }
+
+        /** Consume one Discover/Library request without retaining navigation args. */
+        fun applySearchLaunchRequest(request: SearchLaunchRequest) {
+            val pivot = request.destination.toSearchPivot()
+            if (pivot == SearchPivot.SHOWS) {
+                _state.update { it.copy(pivot = SearchPivot.SHOWS) }
+                applyShowSearchSeed(
+                    ShowSearchSeed(
+                        comedian = request.comedian,
+                        club = request.club,
+                        zip = request.zip,
+                        locationLabel = request.locationLabel,
+                        distance = request.distanceMiles ?: DEFAULT_DISTANCE_MILES,
+                        from = request.from,
+                        to = request.to,
+                        filters = request.filters,
+                        maxPrice = request.maxPrice,
+                    ),
+                )
+            } else {
+                selectPivot(pivot)
             }
         }
 
@@ -659,6 +684,14 @@ class SearchViewModel
         private companion object {
             const val TEXT_DEBOUNCE_MS = 300L
         }
+    }
+
+internal fun SearchDestination.toSearchPivot(): SearchPivot =
+    when (this) {
+        SearchDestination.SHOWS -> SearchPivot.SHOWS
+        SearchDestination.COMEDIANS -> SearchPivot.COMEDIANS
+        SearchDestination.CLUBS -> SearchPivot.CLUBS
+        SearchDestination.PODCASTS -> SearchPivot.PODCASTS
     }
 
 private data class ShowDensityScope(

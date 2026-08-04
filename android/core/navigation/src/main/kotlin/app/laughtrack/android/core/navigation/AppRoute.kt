@@ -52,3 +52,31 @@ sealed interface AppRoute {
     @Serializable
     data object NotificationCenter : AppRoute
 }
+
+/** Search section selected by a one-shot cross-feature launch request. */
+enum class SearchDestination {
+    SHOWS,
+    COMEDIANS,
+    CLUBS,
+    PODCASTS,
+}
+
+/**
+ * Transport-neutral constraints carried from suggestion surfaces into Search.
+ *
+ * This deliberately is not part of [AppRoute.Search]: Search remains a stable
+ * tab root, while the app shell consumes each request exactly once. That keeps
+ * returning from details from reapplying the original filters over user edits.
+ */
+data class SearchLaunchRequest(
+    val destination: SearchDestination,
+    val comedian: String = "",
+    val club: String = "",
+    val zip: String? = null,
+    val locationLabel: String? = null,
+    val distanceMiles: Int? = null,
+    val from: String? = null,
+    val to: String? = null,
+    val filters: Set<String> = emptySet(),
+    val maxPrice: Int? = null,
+)

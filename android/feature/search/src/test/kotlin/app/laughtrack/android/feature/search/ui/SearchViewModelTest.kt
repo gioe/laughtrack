@@ -3,6 +3,8 @@ package app.laughtrack.android.feature.search.ui
 import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.location.HomeLocation
 import app.laughtrack.android.core.data.location.HomeLocationState
+import app.laughtrack.android.core.navigation.SearchDestination
+import app.laughtrack.android.core.navigation.SearchLaunchRequest
 import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.core.network.generated.model.Filter
 import app.laughtrack.android.core.network.generated.model.Show
@@ -287,6 +289,49 @@ class SearchViewModelTest {
             val cleared = viewModel.showSearchSeed()
             assertEquals(ShowSearchSeed(), cleared)
             assertTrue(viewModel.activeShowConstraints().isEmpty())
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun launch_request_selects_shows_and_replaces_stale_constraints() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+
+            viewModel.onComedianChange("stale comedian")
+            viewModel.toggleFilter("improv")
+            viewModel.selectPivot(SearchPivot.COMEDIANS)
+            viewModel.applySearchLaunchRequest(
+                SearchLaunchRequest(
+                    destination = SearchDestination.SHOWS,
+                    zip = "10001",
+                    locationLabel = "New York, NY",
+                    distanceMiles = 50,
+                    from = "2026-08-07",
+                    to = "2026-08-09",
+                    filters = setOf("open_mic"),
+                ),
+            )
+
+            assertEquals(SearchPivot.SHOWS, viewModel.state.value.pivot)
+            assertEquals(
+                ShowSearchSeed(
+                    zip = "10001",
+                    locationLabel = "New York, NY",
+                    distance = 50,
+                    from = "2026-08-07",
+                    to = "2026-08-09",
+                    filters = setOf("open_mic"),
+                ),
+                viewModel.showSearchSeed(),
+            )
+            assertEquals(SearchPivot.CLUBS, SearchDestination.CLUBS.toSearchPivot())
+
             advanceUntilIdle()
             showsApi.completeLatestSearch()
             advanceUntilIdle()

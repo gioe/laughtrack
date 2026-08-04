@@ -45,6 +45,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.AppTab
+import app.laughtrack.android.core.navigation.SearchDestination
+import app.laughtrack.android.core.navigation.SearchLaunchRequest
 import app.laughtrack.android.core.playback.NowPlayingScreen
 import app.laughtrack.android.core.playback.PodcastMiniPlayer
 import app.laughtrack.android.core.playback.PodcastPlaybackController
@@ -63,7 +65,6 @@ import app.laughtrack.android.feature.notifications.NotificationCenterScreen
 import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingScreen
 import app.laughtrack.android.feature.profile.LoginPromptSheet
 import app.laughtrack.android.feature.profile.ProfileScreen
-import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.ui.SearchScreen
 import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
 import kotlin.reflect.KClass
@@ -89,7 +90,7 @@ fun AppShell(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     var pendingExternalClubId by remember { mutableStateOf<Int?>(null) }
-    var pendingSearchPivot by remember { mutableStateOf<SearchPivot?>(null) }
+    var pendingSearchRequest by remember { mutableStateOf<SearchLaunchRequest?>(null) }
     val usesOpaqueCanvas = AppShellBackgrounds.usesOpaqueCanvas(currentDestination)
     val topAppBarContainerColor = if (usesOpaqueCanvas) LaughTrackColors.Canvas else Color.Transparent
 
@@ -151,13 +152,20 @@ fun AppShell(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     composable<AppRoute.Discover> {
-                        HomeScreen(onOpenEntity = navController::openEntity)
+                        HomeScreen(
+                            signedIn = signedIn,
+                            onOpenEntity = navController::openEntity,
+                            onOpenSearch = { request ->
+                                pendingSearchRequest = request
+                                navController.switchTab(AppTab.SEARCH)
+                            },
+                        )
                     }
                     composable<AppRoute.Search> {
                         SearchScreen(
                             onOpenEntity = navController::openEntity,
-                            requestedPivot = pendingSearchPivot,
-                            onRequestedPivotConsumed = { pendingSearchPivot = null },
+                            requestedSearch = pendingSearchRequest,
+                            onRequestedSearchConsumed = { pendingSearchRequest = null },
                         )
                     }
                     composable<AppRoute.Favorites> { entry ->
@@ -174,7 +182,7 @@ fun AppShell(
                                     navController.openEntity(destination.toAppRoute())
                                 },
                                 onOpenSearch = { seed ->
-                                    pendingSearchPivot = seed.toSearchPivot()
+                                    pendingSearchRequest = seed.toSearchRequest()
                                     navController.switchTab(AppTab.SEARCH)
                                 },
                             )
@@ -192,7 +200,7 @@ fun AppShell(
                                     navController.openEntity(destination.toAppRoute())
                                 },
                                 onOpenSearch = { seed ->
-                                    pendingSearchPivot = seed.toSearchPivot()
+                                    pendingSearchRequest = seed.toSearchRequest()
                                     navController.switchTab(AppTab.SEARCH)
                                 },
                             )
@@ -393,12 +401,12 @@ private fun LibrarySavedDestination.toAppRoute(): AppRoute =
         is LibrarySavedDestination.Podcast -> AppRoute.PodcastDetail(id)
     }
 
-private fun LibrarySearchSeed.toSearchPivot(): SearchPivot =
+private fun LibrarySearchSeed.toSearchRequest(): SearchLaunchRequest =
     when (this) {
-        LibrarySearchSeed.SHOWS -> SearchPivot.SHOWS
-        LibrarySearchSeed.COMEDIANS -> SearchPivot.COMEDIANS
-        LibrarySearchSeed.CLUBS -> SearchPivot.CLUBS
-        LibrarySearchSeed.PODCASTS -> SearchPivot.PODCASTS
+        LibrarySearchSeed.SHOWS -> SearchLaunchRequest(SearchDestination.SHOWS)
+        LibrarySearchSeed.COMEDIANS -> SearchLaunchRequest(SearchDestination.COMEDIANS)
+        LibrarySearchSeed.CLUBS -> SearchLaunchRequest(SearchDestination.CLUBS)
+        LibrarySearchSeed.PODCASTS -> SearchLaunchRequest(SearchDestination.PODCASTS)
     }
 
 /**

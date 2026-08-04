@@ -112,6 +112,36 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun followed_comedian_shows_are_exposed_without_sold_out_rows() {
+        val available = show(40, "Followed favorite")
+        val soldOut = show(41, "Sold out favorite").copy(soldOut = true)
+        val state =
+            HomeUiState(
+                feed = UiState.Success(homeFeed().copy(followedComedianShows = listOf(available, soldOut))),
+            )
+
+        assertEquals(listOf(40), state.followedComedianShows.map { it.id })
+    }
+
+    @Test
+    fun personalized_rows_only_mount_for_the_current_signed_in_session() =
+        runTest {
+            val personalized = homeFeed().copy(followedComedianShows = listOf(show(40, "Followed favorite")))
+            val viewModel = viewModel(FakeHomeFeedRepository(feed = personalized))
+            advanceUntilIdle()
+
+            assertTrue(viewModel.state.value.followedComedianShows.isEmpty())
+
+            viewModel.onAuthStateChanged(signedIn = true)
+            advanceUntilIdle()
+            assertEquals(listOf(40), viewModel.state.value.followedComedianShows.map { it.id })
+
+            viewModel.onAuthStateChanged(signedIn = false)
+            advanceUntilIdle()
+            assertTrue(viewModel.state.value.followedComedianShows.isEmpty())
+        }
+
+    @Test
     fun cached_feed_survives_network_failure() =
         runTest {
             // Cache holds a prior snapshot; the network always fails. The user keeps

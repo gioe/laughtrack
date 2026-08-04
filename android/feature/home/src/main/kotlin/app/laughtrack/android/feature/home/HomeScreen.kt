@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -35,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -50,6 +52,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.navigation.SearchDestination
+import app.laughtrack.android.core.navigation.SearchLaunchRequest
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
@@ -70,16 +74,26 @@ import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import app.laughtrack.android.feature.home.ui.HomeUiState
 import app.laughtrack.android.feature.home.ui.HomeViewModel
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
 /** Discover/Home surface backed by the composite home feed endpoint. */
 @Composable
 fun HomeScreen(
     onOpenEntity: (AppRoute) -> Unit,
+    onOpenSearch: (SearchLaunchRequest) -> Unit,
+    signedIn: Boolean = false,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(signedIn) {
+        viewModel.onAuthStateChanged(signedIn)
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize().statusBarsPadding()) {
@@ -88,7 +102,9 @@ fun HomeScreen(
                 is UiState.Success ->
                     HomeContent(
                         state = state,
+                        listState = listState,
                         onOpenEntity = onOpenEntity,
+                        onOpenSearch = onOpenSearch,
                         onManualZip = viewModel::setManualZip,
                         onUseLocation = viewModel::useDeviceLocation,
                         onSetDistance = viewModel::setDistance,
@@ -103,7 +119,9 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     state: HomeUiState,
+    listState: LazyListState,
     onOpenEntity: (AppRoute) -> Unit,
+    onOpenSearch: (SearchLaunchRequest) -> Unit,
     onManualZip: (String) -> Unit,
     onUseLocation: () -> Unit,
     onSetDistance: (Int) -> Unit,
@@ -115,13 +133,14 @@ private fun HomeContent(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
+            state = listState,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item {
+            item(key = "discover-header") {
                 DiscoverHeader(onOpenEntity = onOpenEntity)
             }
-            item {
+            item(key = "location") {
                 LocationHeader(
                     title = state.locationTitle,
                     subtitle = state.locationSubtitle,
@@ -139,29 +158,176 @@ private fun HomeContent(
                     onClearLocation = onClearLocation,
                 )
             }
-            item {
+            item(key = "explore-by") {
+                ExploreByIdeas(
+                    ideas = homeDiscoveryIdeas(state),
+                    onOpenSearch = onOpenSearch,
+                )
+            }
+            item(key = "tonight") {
                 ShowsTonightRail(
                     shows = state.showsTonight,
                     onOpenEntity = onOpenEntity,
+                    onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.TONIGHT, state)) },
                 )
             }
-            item {
+            item(key = "best-this-week") {
                 ShowListRail(
                     eyebrow = "Coming Up",
                     title = "Best shows this week",
                     emptyMessage = "No upcoming shows are listed near you this week.",
                     shows = state.trendingThisWeek,
                     onOpenEntity = onOpenEntity,
+                    onOpenSearch = {
+                        onOpenSearch(homeRailSearchRequest(HomeExpandableRail.BEST_THIS_WEEK, state))
+                    },
                 )
             }
-            item {
-                ComedianRail(state.comedians, onOpenEntity)
+            if (state.followedComedianShows.isNotEmpty()) {
+                item(key = "followed-comedian-shows") {
+                    ShowListRail(
+                        eyebrow = "For You",
+                        title = "Because you follow them",
+                        emptyMessage = "",
+                        shows = state.followedComedianShows,
+                        onOpenEntity = onOpenEntity,
+                        onOpenSearch = null,
+                    )
+                }
             }
-            item {
-                ClubRail(state.clubs, onOpenEntity)
+            item(key = "comedians") {
+                ComedianRail(
+                    state.comedians,
+                    onOpenEntity,
+                    onOpenSearch = {
+                        onOpenSearch(homeRailSearchRequest(HomeExpandableRail.COMEDIANS, state))
+                    },
+                )
             }
-            item {
-                PodcastRail(state.podcasts, onOpenEntity)
+            item(key = "clubs") {
+                ClubRail(
+                    state.clubs,
+                    onOpenEntity,
+                    onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.CLUBS, state)) },
+                )
+            }
+            item(key = "podcasts") {
+                PodcastRail(
+                    state.podcasts,
+                    onOpenEntity,
+                    onOpenSearch = {
+                        onOpenSearch(homeRailSearchRequest(HomeExpandableRail.PODCASTS, state))
+                    },
+                )
+            }
+        }
+    }
+}
+
+internal data class HomeDiscoveryIdea(
+    val title: String,
+    val subtitle: String,
+    val request: SearchLaunchRequest,
+)
+
+internal enum class HomeExpandableRail {
+    TONIGHT,
+    BEST_THIS_WEEK,
+    COMEDIANS,
+    CLUBS,
+    PODCASTS,
+}
+
+internal fun homeDiscoveryIdeas(
+    state: HomeUiState,
+    today: LocalDate = LocalDate.now(),
+): List<HomeDiscoveryIdea> {
+    val weekendStart =
+        when (today.dayOfWeek) {
+            DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY -> today
+            else -> today.with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
+        }
+    val weekendEnd = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+    return listOf(
+        HomeDiscoveryIdea("Tonight", "Comedy happening now", state.showSearch(today, today)),
+        HomeDiscoveryIdea("This weekend", "Friday through Sunday", state.showSearch(weekendStart, weekendEnd)),
+        HomeDiscoveryIdea("Free shows", "No-cover comedy", state.showSearch(filters = setOf("free"))),
+        HomeDiscoveryIdea("Open mics", "See new local acts", state.showSearch(filters = setOf("open_mic"))),
+    )
+}
+
+internal fun homeRailSearchRequest(
+    rail: HomeExpandableRail,
+    state: HomeUiState,
+    today: LocalDate = LocalDate.now(),
+): SearchLaunchRequest =
+    when (rail) {
+        HomeExpandableRail.TONIGHT -> state.showSearch(today, today)
+        HomeExpandableRail.BEST_THIS_WEEK -> state.showSearch(today, today.plusDays(7))
+        HomeExpandableRail.COMEDIANS -> SearchLaunchRequest(SearchDestination.COMEDIANS)
+        HomeExpandableRail.CLUBS ->
+            SearchLaunchRequest(
+                destination = SearchDestination.CLUBS,
+                zip = state.activeZip,
+                locationLabel = state.activeLocationLabel,
+                distanceMiles = state.distanceMiles,
+            )
+        HomeExpandableRail.PODCASTS -> SearchLaunchRequest(SearchDestination.PODCASTS)
+    }
+
+private fun HomeUiState.showSearch(
+    from: LocalDate? = null,
+    to: LocalDate? = null,
+    filters: Set<String> = emptySet(),
+): SearchLaunchRequest =
+    SearchLaunchRequest(
+        destination = SearchDestination.SHOWS,
+        zip = activeZip,
+        locationLabel = activeLocationLabel,
+        distanceMiles = distanceMiles,
+        from = from?.toString(),
+        to = to?.toString(),
+        filters = filters,
+    )
+
+@Composable
+private fun ExploreByIdeas(
+    ideas: List<HomeDiscoveryIdea>,
+    onOpenSearch: (SearchLaunchRequest) -> Unit,
+) {
+    FeedRailCard(title = "Explore by", emptyMessage = "", itemCount = ideas.size) {
+        ideas.chunked(2).forEach { rowIdeas ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                rowIdeas.forEach { idea ->
+                    Surface(
+                        color = LaughTrackColors.Surface,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .height(72.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onOpenSearch(idea.request) }
+                                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(12.dp)),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(idea.title, style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                idea.subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -171,6 +337,7 @@ private fun HomeContent(
 private fun ShowsTonightRail(
     shows: List<Show>,
     onOpenEntity: (AppRoute) -> Unit,
+    onOpenSearch: () -> Unit,
 ) {
     FeedRailCard(
         title = null,
@@ -178,7 +345,7 @@ private fun ShowsTonightRail(
         itemCount = shows.size,
     ) {
         TonightCarousel(shows = shows, onOpenEntity = onOpenEntity)
-        SeeMoreButton(onClick = { onOpenEntity(AppRoute.Search) })
+        SeeAllButton(onClick = onOpenSearch)
     }
 }
 
@@ -189,6 +356,7 @@ private fun ShowListRail(
     emptyMessage: String,
     shows: List<Show>,
     onOpenEntity: (AppRoute) -> Unit,
+    onOpenSearch: (() -> Unit)?,
 ) {
     FeedRailCard(eyebrow = eyebrow, title = title, emptyMessage = emptyMessage, itemCount = shows.size) {
         shows.forEach { show ->
@@ -197,7 +365,7 @@ private fun ShowListRail(
                 onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
             )
         }
-        SeeMoreButton(onClick = { onOpenEntity(AppRoute.Search) })
+        onOpenSearch?.let { SeeAllButton(onClick = it) }
     }
 }
 
@@ -205,6 +373,7 @@ private fun ShowListRail(
 private fun ComedianRail(
     comedians: List<ComedianListItem>,
     onOpenEntity: (AppRoute) -> Unit,
+    onOpenSearch: () -> Unit,
 ) {
     FeedRailCard(title = "Comedians to watch", emptyMessage = "No comedians found.", itemCount = comedians.size) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -219,6 +388,7 @@ private fun ComedianRail(
                 )
             }
         }
+        SeeAllButton(onClick = onOpenSearch)
     }
 }
 
@@ -226,6 +396,7 @@ private fun ComedianRail(
 private fun ClubRail(
     clubs: List<ClubListItem>,
     onOpenEntity: (AppRoute) -> Unit,
+    onOpenSearch: () -> Unit,
 ) {
     FeedRailCard(title = "Popular clubs", emptyMessage = "No clubs found.", itemCount = clubs.size) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -240,6 +411,7 @@ private fun ClubRail(
                 )
             }
         }
+        SeeAllButton(onClick = onOpenSearch)
     }
 }
 
@@ -247,6 +419,7 @@ private fun ClubRail(
 private fun PodcastRail(
     podcasts: List<HomeFeedPodcast>,
     onOpenEntity: (AppRoute) -> Unit,
+    onOpenSearch: () -> Unit,
 ) {
     FeedRailCard(title = "Comedy podcasts", emptyMessage = "No podcasts found.", itemCount = podcasts.size) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -261,6 +434,7 @@ private fun PodcastRail(
                 )
             }
         }
+        SeeAllButton(onClick = onOpenSearch)
     }
 }
 
@@ -630,7 +804,7 @@ private fun ShowTitleOnlyBlock(show: Show) {
 }
 
 @Composable
-private fun SeeMoreButton(onClick: () -> Unit) {
+private fun SeeAllButton(onClick: () -> Unit) {
     Surface(
         color = LaughTrackColors.Surface,
         shape = RoundedCornerShape(999.dp),
@@ -648,7 +822,7 @@ private fun SeeMoreButton(onClick: () -> Unit) {
         ) {
             Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("See more", style = MaterialTheme.typography.labelLarge)
+            Text("See all", style = MaterialTheme.typography.labelLarge)
         }
     }
 }

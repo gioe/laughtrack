@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.navigation.SearchLaunchRequest
 import app.laughtrack.android.core.network.generated.model.Filter
 import app.laughtrack.android.core.network.generated.model.HomeCityFilter
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
@@ -127,8 +128,8 @@ internal fun searchAdaptiveLayoutSpec(availableWidth: Dp): SearchAdaptiveLayoutS
 fun SearchScreen(
     onOpenEntity: (AppRoute) -> Unit,
     modifier: Modifier = Modifier,
-    requestedPivot: SearchPivot? = null,
-    onRequestedPivotConsumed: () -> Unit = {},
+    requestedSearch: SearchLaunchRequest? = null,
+    onRequestedSearchConsumed: () -> Unit = {},
     viewModel: SearchViewModel = hiltViewModel(),
     favoritesViewModel: SearchFavoritesViewModel = hiltViewModel(),
 ) {
@@ -136,10 +137,10 @@ fun SearchScreen(
     val favorites by favoritesViewModel.snapshot.collectAsStateWithLifecycle()
     val pivotState = state.current
 
-    LaunchedEffect(requestedPivot) {
-        requestedPivot?.let { pivot ->
-            viewModel.selectPivot(pivot)
-            onRequestedPivotConsumed()
+    LaunchedEffect(requestedSearch) {
+        requestedSearch?.let { request ->
+            viewModel.applySearchLaunchRequest(request)
+            onRequestedSearchConsumed()
         }
     }
 

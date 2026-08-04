@@ -2,6 +2,7 @@ package app.laughtrack.android.feature.home.data
 
 import app.laughtrack.android.core.network.generated.model.HomeFeed
 import app.laughtrack.android.core.network.generated.model.HomeFeedHero
+import app.laughtrack.android.core.network.generated.model.Show
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -82,6 +83,21 @@ class PersistentHomeFeedCacheTest {
 
             assertEquals(emptyFeed(), loaded)
             assertTrue("a valid current-schema entry must survive a read", entryFile.exists())
+        }
+
+    @Test
+    fun personalized_followed_shows_are_never_persisted() =
+        runTest {
+            val (cache, _) = newCache()
+            val personalized =
+                emptyFeed().copy(
+                    followedComedianShows =
+                        listOf(Show(id = 7, clubId = 9, date = "2026-08-07T20:00:00-04:00", imageUrl = "")),
+                )
+
+            cache.set(zip = null, distance = null, feed = personalized)
+
+            assertTrue(cache.get(zip = null, distance = null)!!.followedComedianShows.isEmpty())
         }
 
     private fun emptyFeed(): HomeFeed =

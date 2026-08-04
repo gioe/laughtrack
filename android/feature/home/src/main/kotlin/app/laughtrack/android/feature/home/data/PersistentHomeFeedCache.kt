@@ -48,7 +48,10 @@ class PersistentHomeFeedCache internal constructor(
                     file.delete()
                     null
                 } else {
-                    json.decodeFromString<HomeFeed>(entry.feedJson)
+                    // Personalized rows are account-scoped while cache keys are not.
+                    // Never return them from disk, including entries written by an
+                    // older app version before this policy existed.
+                    json.decodeFromString<HomeFeed>(entry.feedJson).withoutFollowedShows()
                 }
             }.onFailure {
                 // Corrupt/undecodable entry (e.g. model drift without a SCHEMA_VERSION
@@ -69,7 +72,7 @@ class PersistentHomeFeedCache internal constructor(
                 Entry(
                     schemaVersion = SCHEMA_VERSION,
                     expiresAtMillis = System.currentTimeMillis() + CACHE_TTL_MILLIS,
-                    feedJson = json.encodeToString(feed),
+                    feedJson = json.encodeToString(feed.withoutFollowedShows()),
                 )
             fileFor(zip, distance).writeText(json.encodeToString(entry))
         }
@@ -86,7 +89,7 @@ class PersistentHomeFeedCache internal constructor(
 
     private companion object {
         const val CACHE_TTL_MILLIS = 60L * 60L * 1000L
-        const val SCHEMA_VERSION = "home-feed-v1"
+        const val SCHEMA_VERSION = "home-feed-v2"
         val json = Serializer.kotlinxSerializationJson
     }
 
@@ -97,3 +100,5 @@ class PersistentHomeFeedCache internal constructor(
         val feedJson: String,
     )
 }
+
+private fun HomeFeed.withoutFollowedShows(): HomeFeed = copy(followedComedianShows = emptyList())

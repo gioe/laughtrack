@@ -88,6 +88,9 @@ data class HomeUiState(
                     .filterNot(::isSoldOut)
             }.orEmpty()
 
+    val followedComedianShows: List<Show>
+        get() = loadedFeed?.followedComedianShows.orEmpty().filterNot(::isSoldOut)
+
     val comedians: List<ComedianListItem>
         get() = loadedFeed?.let { dedupeComedians(it.comediansNearYou + it.trendingComedians) }.orEmpty()
 
@@ -115,6 +118,7 @@ class HomeViewModel
 
         /** The geo radius currently driving the feed, in miles. */
         private var currentDistance: Int = HomeFeedRepository.DEFAULT_DISTANCE_MILES
+        private var currentSignedIn = false
         private var loadJob: Job? = null
 
         init {
@@ -141,6 +145,20 @@ class HomeViewModel
 
         fun retry() {
             load(currentZip)
+        }
+
+        /** Strip account-scoped content immediately, then refresh for the new session. */
+        fun onAuthStateChanged(signedIn: Boolean) {
+            if (!signedIn) {
+                _state.update { snapshot ->
+                    val feed = (snapshot.feed as? UiState.Success<HomeFeed>)?.value
+                    if (feed == null) snapshot else snapshot.copy(feed = UiState.Success(feed.withoutFollowedShows()))
+                }
+            }
+            if (signedIn != currentSignedIn) {
+                currentSignedIn = signedIn
+                load(currentZip)
+            }
         }
 
         /** Apply a user-typed ZIP once it is a full 5 digits, and reload the feed. */
@@ -205,9 +223,10 @@ class HomeViewModel
                     runCatchingCancellable { repository.getHomeFeed(zip, distance) }
                         .onSuccess { feed ->
                             cache.set(zip, distance, feed)
+                            val visibleFeed = if (currentSignedIn) feed else feed.withoutFollowedShows()
                             _state.value =
                                 HomeUiState(
-                                    feed = UiState.Success(feed),
+                                    feed = UiState.Success(visibleFeed),
                                     zip = zip,
                                     distanceMiles = distance,
                                 )
@@ -236,6 +255,8 @@ private fun dedupeShows(shows: List<Show>): List<Show> {
     val seen = mutableSetOf<Int>()
     return shows.filter { show -> seen.add(show.id) }
 }
+
+private fun HomeFeed.withoutFollowedShows(): HomeFeed = copy(followedComedianShows = emptyList())
 
 private fun isSoldOut(show: Show): Boolean {
     if (show.soldOut == true) return true
