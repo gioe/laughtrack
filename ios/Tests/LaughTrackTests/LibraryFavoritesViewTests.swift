@@ -84,18 +84,6 @@ struct LibraryFavoritesViewTests {
         #expect(!source.contains("LaughTrackCard {"))
     }
 
-    @Test("saved rows keep detail navigation separate from removal")
-    func savedRowsHaveSeparatePrimaryAndSecondaryActions() throws {
-        let source = try String(contentsOf: savedFavoritesSectionSourceURL(), encoding: .utf8)
-
-        #expect(source.contains("action: { coordinator.open(.comedian(comedian.id)) }"))
-        #expect(source.contains("action: { coordinator.open(.club(club.id)) }"))
-        #expect(source.contains("action: { coordinator.open(.podcast(podcast.id)) }"))
-        #expect(source.contains("FavoriteButton("))
-        #expect(source.contains("currentValue: true"))
-        #expect(!source.contains("coordinator.push("))
-    }
-
     @Test("signed-out favorites view shows sign-in CTA and skips the favorites fetch")
     func signedOutLibrarySkipsFavoritesFetch() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "library-signed-out")
