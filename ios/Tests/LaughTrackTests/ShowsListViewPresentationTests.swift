@@ -63,6 +63,49 @@ struct ShowsListViewPresentationTests {
         #expect(source.contains("DateRangeDensity.compute("))
     }
 
+    @Test("external date facets synchronize the calendar without a reciprocal observer")
+    func externalDateFacetsSynchronizeCalendarWithoutReciprocalObserver() throws {
+        let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
+        let calendarBlock = try sourceBlock(
+            in: source,
+            from: "private struct ShowResultsCalendarView: View",
+            to: "private var mergedShowsByDate: [Date: Int]"
+        )
+
+        #expect(calendarBlock.contains("selection: .single(calendarSelection)"))
+        #expect(calendarBlock.contains(".onChange(of: model.dateRange)"))
+        #expect(calendarBlock.contains(".id(MonthCalendarView.monthStart(for: selectedDate))"))
+        #expect(!calendarBlock.contains(".onChange(of: selectedDate)"))
+    }
+
+    @Test("date sync maps external ranges and calendar taps in separate directions")
+    func dateSyncMapsExternalRangesAndCalendarTaps() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let now = try #require(calendar.date(from: DateComponents(year: 2030, month: 4, day: 2, hour: 18)))
+        let weekendStart = try #require(calendar.date(from: DateComponents(year: 2030, month: 4, day: 5, hour: 20)))
+        let weekendEnd = try #require(calendar.date(from: DateComponents(year: 2030, month: 4, day: 7, hour: 23)))
+        let tappedDate = try #require(calendar.date(from: DateComponents(year: 2030, month: 5, day: 9, hour: 21)))
+
+        let externalSelection = ShowCalendarDateSync.selectedDate(
+            for: DateRangeFilter(from: weekendStart, to: weekendEnd, isActive: true),
+            now: now,
+            calendar: calendar
+        )
+        let inactiveSelection = ShowCalendarDateSync.selectedDate(
+            for: DateRangeFilter(from: weekendStart, to: weekendEnd, isActive: false),
+            now: now,
+            calendar: calendar
+        )
+        let tappedRange = ShowCalendarDateSync.exactDateRange(for: tappedDate, calendar: calendar)
+
+        #expect(externalSelection == calendar.startOfDay(for: weekendStart))
+        #expect(inactiveSelection == calendar.startOfDay(for: now))
+        #expect(tappedRange.from == calendar.startOfDay(for: tappedDate))
+        #expect(tappedRange.to == tappedRange.from)
+        #expect(tappedRange.isActive)
+    }
+
     @Test("agenda groups shows by day and sorts days and start times")
     func agendaGroupsAndSortsShows() throws {
         var calendar = Calendar(identifier: .gregorian)

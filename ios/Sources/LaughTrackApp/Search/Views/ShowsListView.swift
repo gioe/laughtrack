@@ -52,6 +52,24 @@ enum ShowAgenda {
     }
 }
 
+enum ShowCalendarDateSync {
+    static func selectedDate(
+        for dateRange: DateRangeFilter,
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) -> Date {
+        calendar.startOfDay(for: dateRange.isActive ? dateRange.from : now)
+    }
+
+    static func exactDateRange(
+        for selectedDate: Date,
+        calendar: Calendar = .current
+    ) -> DateRangeFilter {
+        let day = calendar.startOfDay(for: selectedDate)
+        return DateRangeFilter(from: day, to: day, isActive: true)
+    }
+}
+
 struct ShowsListView: View {
     let apiClient: Client
     @ObservedObject var model: ShowsListModel
@@ -689,9 +707,7 @@ private struct ShowResultsCalendarView: View {
     init(model: ShowsListModel, apiClient: Client) {
         self.model = model
         self.apiClient = apiClient
-        let calendar = Calendar.current
-        let initialDate = model.dateRange.isActive ? model.dateRange.from : Date()
-        _selectedDate = State(initialValue: calendar.startOfDay(for: initialDate))
+        _selectedDate = State(initialValue: ShowCalendarDateSync.selectedDate(for: model.dateRange))
     }
 
     var body: some View {
@@ -701,22 +717,34 @@ private struct ShowResultsCalendarView: View {
                 .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
 
             MonthCalendarView(
-                selection: .single($selectedDate),
+                selection: .single(calendarSelection),
                 showsByDate: mergedShowsByDate,
                 minimumDate: Calendar.current.startOfDay(for: Date()),
                 onDisplayedMonthChange: { monthStart in
                     Task { await loadDensity(for: monthStart) }
                 }
             )
+            .id(MonthCalendarView.monthStart(for: selectedDate))
         }
         .padding(theme.spacing.md)
         .background(theme.laughTrackTokens.colors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .onChange(of: selectedDate) { newDate in
-            let day = Calendar.current.startOfDay(for: newDate)
-            model.dateRange = DateRangeFilter(from: day, to: day, isActive: true)
-            model.sort = .earliest
+        .onChange(of: model.dateRange) { newDateRange in
+            let synchronizedDate = ShowCalendarDateSync.selectedDate(for: newDateRange)
+            guard !Calendar.current.isDate(selectedDate, inSameDayAs: synchronizedDate) else { return }
+            selectedDate = synchronizedDate
         }
+    }
+
+    private var calendarSelection: Binding<Date> {
+        Binding(
+            get: { selectedDate },
+            set: { newDate in
+                selectedDate = Calendar.current.startOfDay(for: newDate)
+                model.dateRange = ShowCalendarDateSync.exactDateRange(for: newDate)
+                model.sort = .earliest
+            }
+        )
     }
 
     private var mergedShowsByDate: [Date: Int] {
