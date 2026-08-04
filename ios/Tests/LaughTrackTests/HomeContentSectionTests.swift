@@ -1,6 +1,7 @@
 import Testing
 import Foundation
 import LaughTrackAPIClient
+import LaughTrackCore
 @testable import LaughTrackApp
 
 @Suite("Home content sections")
@@ -9,6 +10,7 @@ struct HomeContentSectionTests {
     func unfilteredHomeLeadsWithShowRailsBeforeComediansAndClubs() {
         #expect(HomeContentSection.sections(for: nil) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
             .comedians,
             .clubs,
@@ -20,11 +22,58 @@ struct HomeContentSectionTests {
     func homePrimitiveFiltersRenderOnlyMatchingContentSection() {
         #expect(HomeContentSection.sections(for: .shows) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
         ])
         #expect(HomeContentSection.sections(for: .comedians) == [.comedians])
         #expect(HomeContentSection.sections(for: .clubs) == [.clubs])
         #expect(HomeContentSection.sections(for: .podcasts) == [.podcasts])
+    }
+
+    @Test("first viewport offers property-based discovery ideas")
+    func firstViewportOffersPropertyBasedDiscoveryIdeas() {
+        #expect(HomeDiscoveryIdea.allCases == [.tonight, .thisWeekend, .freeShows, .openMics])
+
+        let nearby = NearbyPreference(
+            zipCode: "10012",
+            source: .manual,
+            distanceMiles: 25
+        )
+        #expect(HomeDiscoveryIdea.tonight.searchSeed(nearbyPreference: nearby).shortcut == "Tonight")
+        #expect(HomeDiscoveryIdea.thisWeekend.searchSeed(nearbyPreference: nearby).shortcut == "This Weekend")
+        #expect(HomeDiscoveryIdea.freeShows.searchSeed(nearbyPreference: nearby).showSearch?.filterSlugs == ["free"])
+        #expect(HomeDiscoveryIdea.openMics.searchSeed(nearbyPreference: nearby).showSearch?.filterSlugs == ["open_mic"])
+    }
+
+    @Test("discover section anchors retain the nearest section at the viewport top")
+    func discoverSectionAnchorsRetainNearestSectionAtViewportTop() {
+        #expect(HomeScrollRetention.visibleSection(from: [
+            .showsTonight: -280,
+            .followedComedianShows: -12,
+            .thisWeek: 220,
+        ]) == .followedComedianShows)
+        #expect(HomeScrollRetention.restorableSection(
+            .clubs,
+            among: HomeContentSection.sections(for: nil)
+        ) == .clubs)
+        #expect(HomeScrollRetention.restorableSection(
+            .clubs,
+            among: HomeContentSection.sections(for: .shows)
+        ) == .showsTonight)
+    }
+
+    @Test("expandable Discover rails expose See all and typed Search handoff")
+    func expandableDiscoverRailsExposeSeeAllAndTypedSearchHandoff() throws {
+        let source = try homeSourceText()
+
+        #expect(source.contains("LaughTrackButton(\"See all\""))
+        #expect(source.components(separatedBy: "actionTitle: \"See all\"").count - 1 == 3)
+        #expect(source.contains(".discoverEntity(.comedians)"))
+        #expect(source.contains("nearbyPreference: nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference"))
+        #expect(source.contains(".discoverEntity(.podcasts)"))
+        #expect(source.contains("HomeDiscoveryIdeas("))
+        #expect(source.contains("ScrollViewReader"))
+        #expect(source.contains("proxy.scrollTo(section, anchor: .top)"))
     }
 
     @Test("home show hero omits footer actions")
@@ -500,6 +549,7 @@ struct HomeContentSectionTests {
             "Views/Rails/HomeShowsTonightRail.swift",
             "Models/HomeShowsTonightModel.swift",
             "Models/HomeFavoriteShowsModel.swift",
+            "Views/Rails/HomeFollowedComedianShowsRail.swift",
             "Views/Rails/HomeTrendingComediansRail.swift",
             "Models/HomeTrendingComediansModel.swift",
             "Views/Rails/HomePopularClubsRail.swift",

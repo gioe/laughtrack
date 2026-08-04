@@ -9,6 +9,7 @@ import LaughTrackCore
 struct HomePopularClubsRail: View {
     let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    let searchNavigationBridge: SearchNavigationBridge
     let cache: DataCache<LaughTrackCacheKey>
     let persistentCache: PersistentMainPageCache
 
@@ -30,7 +31,16 @@ struct HomePopularClubsRail: View {
             eyebrow: "Hot Rooms",
             title: "Popular local clubs",
             subtitle: nil,
-            accessibilityIdentifier: LaughTrackViewTestID.homePopularClubsRail
+            accessibilityIdentifier: LaughTrackViewTestID.homePopularClubsRail,
+            actionTitle: "See all",
+            action: {
+                searchNavigationBridge.openSearch(
+                    .discoverEntity(
+                        .clubs,
+                        nearbyPreference: nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference
+                    )
+                )
+            }
         ) {
             switch model.phase {
             case .idle, .loading:

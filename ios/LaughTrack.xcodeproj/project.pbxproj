@@ -77,6 +77,7 @@
 		41F25FA51A32EFBC75B3B7B7 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013C30ED4B343F94BCD7B193 /* ProfileView.swift */; };
 		42424F768696DC2F72FF6B9E /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
 		42948B2081B792A228764B2B /* Urbanist-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E2E7AB5CA9C2E0408809D7A3 /* Urbanist-Bold.ttf */; };
+		44286858D7372089A4CD13B2 /* HomeFollowedComedianShowsRail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77FBAABC0BB51031A0B490A8 /* HomeFollowedComedianShowsRail.swift */; };
 		456B5688FE416997A0B3D6A4 /* LaughTrackNotificationDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758E99D05CBD4C53BF89DD20 /* LaughTrackNotificationDeepLink.swift */; };
 		4585B8D5EB7FB72C80BBAF06 /* DetailHeroLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EDE38E061B529E52A38C3F /* DetailHeroLayoutTests.swift */; };
 		464D53193F4769A1BD73A7A3 /* Demo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE877FF9B9D76AAC6FFCBA7 /* Demo.swift */; };
@@ -495,6 +496,7 @@
 		77792AE6A29CBDA8435461B6 /* LaughTrackNotificationServiceExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LaughTrackNotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		77EAD0A4974F22EDC6366889 /* LibrarySavedShowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySavedShowsTests.swift; sourceTree = "<group>"; };
 		77FB1D59ADDFE8101352E823 /* ExternalLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalLinkRouter.swift; sourceTree = "<group>"; };
+		77FBAABC0BB51031A0B490A8 /* HomeFollowedComedianShowsRail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeFollowedComedianShowsRail.swift; sourceTree = "<group>"; };
 		787B72EABFD79CFD44CEF1A1 /* ComediansDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryModel.swift; sourceTree = "<group>"; };
 		795D45DA517B38F8AE1861D2 /* PodcastEpisodeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastEpisodeDetailView.swift; sourceTree = "<group>"; };
 		7A6667B928C06BDF139513D4 /* PushPermissionTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionTestSupport.swift; sourceTree = "<group>"; };
@@ -863,6 +865,7 @@
 		35BF87B951D93834A6E54DF5 /* Rails */ = {
 			isa = PBXGroup;
 			children = (
+				77FBAABC0BB51031A0B490A8 /* HomeFollowedComedianShowsRail.swift */,
 				2625CAC9B9C8E2AD5F933E5A /* HomePopularClubsRail.swift */,
 				BEAB8F92109BD36BD15A9176 /* HomeRailChrome.swift */,
 				A2BCCF24080DE8BCBFB68233 /* HomeShowsTonightRail.swift */,
@@ -1466,6 +1469,7 @@
 				CF5C6C3A8C12A2BAFC1FBFD3 /* FavoriteButton.swift in Sources */,
 				CC678D33FEDB41B15E7E7353 /* HomeFavoriteShowsModel.swift in Sources */,
 				5AFDB082808517D1D6ACEEA0 /* HomeFeedRequestCoalescer.swift in Sources */,
+				44286858D7372089A4CD13B2 /* HomeFollowedComedianShowsRail.swift in Sources */,
 				89BFD541C02ACD9553C3DE4E /* HomeLocationEditor.swift in Sources */,
 				1E899D8DBDF3BF68BB3BB8DB /* HomePopularClubsModel.swift in Sources */,
 				2B973F9F3B4D89268D9ACE05 /* HomePopularClubsRail.swift in Sources */,

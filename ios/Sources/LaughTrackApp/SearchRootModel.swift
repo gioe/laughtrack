@@ -70,6 +70,18 @@ final class SearchRootModel: ObservableObject {
             self.nearbyPreference = nearbyPreference
             self.showSearch = showSearch
         }
+
+        static func discoverEntity(
+            _ pivot: Pivot,
+            nearbyPreference: NearbyPreference? = nil
+        ) -> Self {
+            Self(
+                pivot: pivot,
+                query: "",
+                shortcut: nil,
+                nearbyPreference: pivot == .clubs ? nearbyPreference : nil
+            )
+        }
     }
 
     func applySeed(_ seed: Seed) {

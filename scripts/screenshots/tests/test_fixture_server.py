@@ -56,6 +56,13 @@ def test_default_mode_preserves_fallback_focused_contract() -> None:
     assert [club["showCount"] for club in clubs["data"]] == [120, 110, 100, 90, 80]
 
 
+def test_home_feed_includes_personalized_followed_comedian_shows() -> None:
+    home = fixture_response("/api/v1/home/feed", "http://fixture")["data"]
+
+    assert [show["id"] for show in home["followedComedianShows"]] == [104]
+    assert home["followedComedianShows"][0]["name"] == "Late Night at The Store"
+
+
 def test_club_highlights_fixture_populates_tonight_and_qualified_performers() -> None:
     payload = fixture_response("/api/v1/clubs/201/highlights", "http://fixture")
     highlights = payload["data"]

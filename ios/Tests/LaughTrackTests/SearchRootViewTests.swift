@@ -498,6 +498,37 @@ struct SearchRootModelTests {
         #expect(bridge.request?.seed == seed)
     }
 
+    @Test("Discover entity seeds preserve only applicable constraints")
+    func discoverEntitySeedsPreserveOnlyApplicableConstraints() {
+        let nearby = NearbyPreference(
+            zipCode: "10012",
+            source: .manual,
+            distanceMiles: 50
+        )
+
+        let comedians = SearchRootModel.Seed.discoverEntity(
+            .comedians,
+            nearbyPreference: nearby
+        )
+        let clubs = SearchRootModel.Seed.discoverEntity(
+            .clubs,
+            nearbyPreference: nearby
+        )
+        let podcasts = SearchRootModel.Seed.discoverEntity(
+            .podcasts,
+            nearbyPreference: nearby
+        )
+
+        #expect(comedians == .init(pivot: .comedians, query: "", shortcut: nil))
+        #expect(clubs == .init(
+            pivot: .clubs,
+            query: "",
+            shortcut: nil,
+            nearbyPreference: nearby
+        ))
+        #expect(podcasts == .init(pivot: .podcasts, query: "", shortcut: nil))
+    }
+
     @Test("home search bridge consumes seed requests once")
     func homeSearchBridgeConsumesSeedRequestsOnce() async throws {
         let bridge = SearchNavigationBridge()

@@ -6,8 +6,9 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
-enum HomeContentSection: Equatable {
+enum HomeContentSection: Hashable {
     case showsTonight
+    case followedComedianShows
     case thisWeek
     case comedians
     case clubs
@@ -16,7 +17,7 @@ enum HomeContentSection: Equatable {
     static func sections(for primitive: SearchRootModel.Pivot?) -> [HomeContentSection] {
         switch primitive {
         case .shows:
-            return [.showsTonight, .thisWeek]
+            return [.showsTonight, .followedComedianShows, .thisWeek]
         case .comedians:
             return [.comedians]
         case .clubs:
@@ -24,8 +25,113 @@ enum HomeContentSection: Equatable {
         case .podcasts:
             return [.podcasts]
         default:
-            return [.showsTonight, .thisWeek, .comedians, .clubs, .podcasts]
+            return [.showsTonight, .followedComedianShows, .thisWeek, .comedians, .clubs, .podcasts]
         }
+    }
+}
+
+enum HomeDiscoveryIdea: String, CaseIterable, Identifiable {
+    case tonight
+    case thisWeekend
+    case freeShows
+    case openMics
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .tonight: return "Tonight"
+        case .thisWeekend: return "This weekend"
+        case .freeShows: return "Free shows"
+        case .openMics: return "Open mics"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .tonight: return "What is on nearby"
+        case .thisWeekend: return "Plan a night out"
+        case .freeShows: return "Comedy without a cover"
+        case .openMics: return "See who is coming up"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .tonight: return "moon.stars.fill"
+        case .thisWeekend: return "calendar"
+        case .freeShows: return "ticket.fill"
+        case .openMics: return "mic.fill"
+        }
+    }
+
+    func searchSeed(nearbyPreference: NearbyPreference?) -> SearchRootModel.Seed {
+        switch self {
+        case .tonight:
+            return .init(
+                pivot: .shows,
+                query: "",
+                shortcut: "Tonight",
+                nearbyPreference: nearbyPreference
+            )
+        case .thisWeekend:
+            return .init(
+                pivot: .shows,
+                query: "",
+                shortcut: "This Weekend",
+                nearbyPreference: nearbyPreference
+            )
+        case .freeShows:
+            return .init(
+                pivot: .shows,
+                query: "",
+                shortcut: nil,
+                nearbyPreference: nearbyPreference,
+                showSearch: ShowSearchSeed(filterSlugs: ["free"])
+            )
+        case .openMics:
+            return .init(
+                pivot: .shows,
+                query: "",
+                shortcut: nil,
+                nearbyPreference: nearbyPreference,
+                showSearch: ShowSearchSeed(filterSlugs: ["open_mic"])
+            )
+        }
+    }
+}
+
+enum HomeScrollRetention {
+    static func visibleSection(
+        from offsets: [HomeContentSection: CGFloat],
+        threshold: CGFloat = 24
+    ) -> HomeContentSection? {
+        let passed = offsets.filter { $0.value <= threshold }
+        if let nearestPassed = passed.max(by: { $0.value < $1.value }) {
+            return nearestPassed.key
+        }
+        return offsets.min(by: { $0.value < $1.value })?.key
+    }
+
+    static func restorableSection(
+        _ retainedSection: HomeContentSection?,
+        among sections: [HomeContentSection]
+    ) -> HomeContentSection? {
+        guard let retainedSection, sections.contains(retainedSection) else {
+            return sections.first
+        }
+        return retainedSection
+    }
+}
+
+private struct HomeSectionOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: [HomeContentSection: CGFloat] = [:]
+
+    static func reduce(
+        value: inout [HomeContentSection: CGFloat],
+        nextValue: () -> [HomeContentSection: CGFloat]
+    ) {
+        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
     }
 }
 
@@ -111,6 +217,8 @@ struct HomeView: View {
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
+    @State private var retainedSection: HomeContentSection?
+    @State private var hasAppeared = false
 
     init(
         apiClient: Client,
@@ -129,20 +237,46 @@ struct HomeView: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        ScrollView {
-            VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
-                HomeDiscoverHeader(
-                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
-                    profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
-                    currentUser: authManager.currentUser
-                )
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
+                    HomeDiscoverHeader(
+                        nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                        nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+                        profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
+                        currentUser: authManager.currentUser
+                    )
 
-                contentSections
+                    if selectedPrimitive == nil || selectedPrimitive == .shows {
+                        HomeDiscoveryIdeas(
+                            nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+                            searchNavigationBridge: searchNavigationBridge
+                        )
+                    }
+
+                    contentSections
+                }
+                .padding(.horizontal, theme.spacing.lg)
+                .padding(.top, theme.spacing.sm)
+                .padding(.bottom, laughTrack.browseDensity.heroPadding)
             }
-            .padding(.horizontal, theme.spacing.lg)
-            .padding(.top, theme.spacing.sm)
-            .padding(.bottom, laughTrack.browseDensity.heroPadding)
+            .coordinateSpace(name: "laughtrack.home.scroll")
+            .onPreferenceChange(HomeSectionOffsetPreferenceKey.self) { offsets in
+                if let visibleSection = HomeScrollRetention.visibleSection(from: offsets) {
+                    retainedSection = visibleSection
+                }
+            }
+            .onAppear {
+                defer { hasAppeared = true }
+                guard hasAppeared else { return }
+                let sections = HomeContentSection.sections(for: selectedPrimitive)
+                guard let section = HomeScrollRetention.restorableSection(retainedSection, among: sections) else {
+                    return
+                }
+                DispatchQueue.main.async {
+                    proxy.scrollTo(section, anchor: .top)
+                }
+            }
         }
         .rootScrollBottomClearance(
             theme: theme,
@@ -176,9 +310,28 @@ struct HomeView: View {
     @ViewBuilder
     private var contentSections: some View {
         ForEach(HomeContentSection.sections(for: selectedPrimitive), id: \.self) { section in
+            sectionContent(section)
+                .id(section)
+                .background {
+                    GeometryReader { proxy in
+                        Color.clear.preference(
+                            key: HomeSectionOffsetPreferenceKey.self,
+                            value: [
+                                section: proxy.frame(in: .named("laughtrack.home.scroll")).minY,
+                            ]
+                        )
+                    }
+                }
+        }
+    }
+
+    @ViewBuilder
+    private func sectionContent(_ section: HomeContentSection) -> some View {
             switch section {
             case .showsTonight:
                 showsSection(.showsTonight)
+            case .followedComedianShows:
+                followedComedianShowsSection
             case .thisWeek:
                 showsSection(.thisWeek)
             case .comedians:
@@ -188,7 +341,15 @@ struct HomeView: View {
             case .podcasts:
                 podcastsSection
             }
-        }
+    }
+
+    private var followedComedianShowsSection: some View {
+        HomeFollowedComedianShowsRail(
+            apiClient: apiClient,
+            nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
+            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
+        )
     }
 
     private func showsSection(_ railKind: HomeShowRailKind) -> some View {
@@ -207,6 +368,7 @@ struct HomeView: View {
         HomeTrendingComediansRail(
             apiClient: apiClient,
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
         )
@@ -216,6 +378,7 @@ struct HomeView: View {
         HomePopularClubsRail(
             apiClient: apiClient,
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
         )
@@ -225,9 +388,82 @@ struct HomeView: View {
         HomeTrendingPodcastsRail(
             apiClient: apiClient,
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
         )
+    }
+}
+
+private struct HomeDiscoveryIdeas: View {
+    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    let searchNavigationBridge: SearchNavigationBridge
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            Text("Explore by")
+                .font(laughTrack.typography.metadata.weight(.heavy))
+                .tracking(1.5)
+                .textCase(.uppercase)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+
+            LazyVGrid(columns: columns, spacing: theme.spacing.sm) {
+                ForEach(HomeDiscoveryIdea.allCases) { idea in
+                    Button {
+                        searchNavigationBridge.openSearch(
+                            idea.searchSeed(nearbyPreference: nearbyPreference)
+                        )
+                    } label: {
+                        HStack(spacing: theme.spacing.sm) {
+                            Image(systemName: idea.systemImage)
+                                .font(.body.weight(.bold))
+                                .foregroundStyle(laughTrack.colors.accentStrong)
+                                .frame(width: 24)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(idea.title)
+                                    .font(laughTrack.typography.body.weight(.bold))
+                                    .foregroundStyle(laughTrack.colors.textPrimary)
+                                    .lineLimit(1)
+
+                                Text(idea.subtitle)
+                                    .font(.caption2)
+                                    .foregroundStyle(laughTrack.colors.textSecondary)
+                                    .lineLimit(1)
+                            }
+
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, theme.spacing.sm)
+                        .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+                        .background(laughTrack.colors.surfaceElevated.opacity(0.78))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(laughTrack.colors.accentMuted.opacity(0.34), lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(idea.title), \(idea.subtitle)")
+                    .accessibilityIdentifier("laughtrack.home.idea.\(idea.rawValue)")
+                }
+            }
+        }
+    }
+
+    private var nearbyPreference: NearbyPreference? {
+        nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference
+    }
+
+    private var columns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: theme.spacing.sm),
+            GridItem(.flexible(), spacing: theme.spacing.sm),
+        ]
     }
 }
 

@@ -111,7 +111,7 @@ struct HomeShowsTonightRail: View {
             }
         }
 
-        LaughTrackButton("See more", systemImage: "magnifyingglass", tone: .secondary, density: .compact) {
+        LaughTrackButton("See all", systemImage: "magnifyingglass", tone: .secondary, density: .compact) {
             searchNavigationBridge.openSearch(
                 HomeShowsTonightModel.seeMoreSearchSeed(
                     railKind: railKind,

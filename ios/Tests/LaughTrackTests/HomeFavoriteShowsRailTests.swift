@@ -11,6 +11,67 @@ import LaughTrackCore
 @Suite("Home favorite shows rail")
 @MainActor
 struct HomeFavoriteShowsRailTests {
+    @Test("followed-comedian rail is fail-soft, compact, and detail-linked")
+    func followedComedianRailPresentationContract() throws {
+        let source = try String(contentsOf: followedComedianRailSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("if case .success(let shows) = model.phase, !shows.isEmpty"))
+        #expect(source.contains("ShowRow(show: show, presentation: .compactTicket)"))
+        #expect(source.contains("coordinator.open(.show(show.id))"))
+        #expect(!source.contains("LaughTrackButton(\"See"))
+        #expect(!source.contains("FailureCard("))
+        #expect(!source.contains("ShowsListSkeleton("))
+    }
+
+    @Test("followed-comedian rail consumes the personalized home-feed section")
+    func followedComedianRailConsumesHomeFeedSection() async throws {
+        let apiClient = makeClient(
+            favoriteResponse: .init(data: []),
+            showResponses: [:],
+            homeFeed: homeFeed(followedComedianShows: [favoriteShow])
+        )
+        let model = HomeFollowedComedianShowsModel()
+
+        await model.refresh(
+            apiClient: apiClient,
+            zipCode: "10012",
+            distanceMiles: 25,
+            cache: nil,
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
+        )
+
+        guard case let .success(shows) = model.phase else {
+            Issue.record("Expected .success phase, got \(model.phase)")
+            return
+        }
+        #expect(shows.map(\.id) == [favoriteShow.id])
+    }
+
+    @Test("an empty followed-comedian feed remains an omittable successful rail")
+    func emptyFollowedComedianFeedIsOmittable() async throws {
+        let apiClient = makeClient(
+            favoriteResponse: .init(data: []),
+            showResponses: [:],
+            homeFeed: homeFeed(followedComedianShows: [])
+        )
+        let model = HomeFollowedComedianShowsModel()
+
+        await model.refresh(
+            apiClient: apiClient,
+            zipCode: nil,
+            cache: nil,
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
+        )
+
+        guard case let .success(shows) = model.phase else {
+            Issue.record("Expected .success phase, got \(model.phase)")
+            return
+        }
+        #expect(shows.isEmpty)
+    }
+
     // TASK-1921 pilot for the model-layer test pattern under the iOS 26
     // accessibility-tree wiring regression. The original test asserted via
     // host.requireView / requireText / requireLabel after mounting HomeView
@@ -89,15 +150,41 @@ struct HomeFavoriteShowsRailTests {
 
     private func makeClient(
         favoriteResponse: Components.Schemas.FavoriteListResponse,
-        showResponses: [String: Components.Schemas.ShowSearchResponse]
+        showResponses: [String: Components.Schemas.ShowSearchResponse],
+        homeFeed: Components.Schemas.HomeFeed? = nil
     ) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
             configuration: .laughTrack,
             transport: MockHomeFavoriteShowsTransport(
                 favoriteResponse: favoriteResponse,
-                showResponses: showResponses
+                showResponses: showResponses,
+                homeFeed: homeFeed ?? self.homeFeed(followedComedianShows: [])
             )
+        )
+    }
+
+    private func followedComedianRailSourceURL(filePath: String = #filePath) -> URL {
+        URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/LaughTrackApp/Home/Views/Rails/HomeFollowedComedianShowsRail.swift")
+    }
+
+    private func homeFeed(
+        followedComedianShows: [Components.Schemas.Show]
+    ) -> Components.Schemas.HomeFeed {
+        .init(
+            hero: .init(zipCode: nil, city: nil, state: nil, shows: []),
+            trendingComedians: [],
+            comediansNearYou: [],
+            showsTonight: [],
+            moreNearYou: [],
+            trendingThisWeek: [],
+            followedComedianShows: followedComedianShows,
+            trendingPodcasts: [],
+            popularClubs: []
         )
     }
 
@@ -147,6 +234,7 @@ struct HomeFavoriteShowsRailTests {
 private struct MockHomeFavoriteShowsTransport: ClientTransport {
     let favoriteResponse: Components.Schemas.FavoriteListResponse
     let showResponses: [String: Components.Schemas.ShowSearchResponse]
+    let homeFeed: Components.Schemas.HomeFeed
 
     func send(
         _ request: HTTPRequest,
@@ -165,7 +253,7 @@ private struct MockHomeFavoriteShowsTransport: ClientTransport {
         case "getHomeFeed":
             return (
                 HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
-                HTTPBody(try encoder.encode(Components.Schemas.HomeFeedResponse(data: emptyHomeFeed)))
+                HTTPBody(try encoder.encode(Components.Schemas.HomeFeedResponse(data: homeFeed)))
             )
         case "searchShows":
             let name = request.url?.queryItems["comedian"] ?? ""
@@ -184,19 +272,6 @@ private struct MockHomeFavoriteShowsTransport: ClientTransport {
         }
     }
 
-    private var emptyHomeFeed: Components.Schemas.HomeFeed {
-        .init(
-            hero: .init(zipCode: nil, city: nil, state: nil, shows: []),
-            trendingComedians: [],
-            comediansNearYou: [],
-            showsTonight: [],
-            moreNearYou: [],
-            trendingThisWeek: [],
-            followedComedianShows: [],
-            trendingPodcasts: [],
-            popularClubs: []
-        )
-    }
 }
 
 private extension URL {

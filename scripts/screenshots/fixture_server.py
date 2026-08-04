@@ -423,6 +423,7 @@ def fixture_response(
             "showsTonight": [primary],
             "moreNearYou": nearby or [_show(base_url, 102, "Comedy Store Showcase", 21)],
             "trendingThisWeek": [_show(base_url, 103, "Best of Los Angeles", 22)],
+            "followedComedianShows": [_show(base_url, 104, "Late Night at The Store", 23)],
             "trendingPodcasts": [{"id": 401, "slug": "joe-rogan-experience", "title": "The Joe Rogan Experience", "episodeCount": 2520, "authorName": "Joe Rogan", "imageUrl": f"{base_url}/artwork/joe-rogan.png"}],
             "popularClubs": [{"id": 201, "address": "8433 Sunset Blvd, West Hollywood, CA", "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "activeComedianCount": 120, "zipCode": "90069"}],
         }}

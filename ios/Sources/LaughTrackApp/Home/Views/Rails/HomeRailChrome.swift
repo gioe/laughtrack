@@ -114,6 +114,9 @@ struct HomeDiscoverRailCard<Content: View>: View {
     let title: String?
     let subtitle: String?
     let accessibilityIdentifier: String?
+    let actionTitle: String?
+    let actionAccessibilityIdentifier: String?
+    let action: (() -> Void)?
     @ViewBuilder let content: Content
 
     @Environment(\.appTheme) private var theme
@@ -124,6 +127,9 @@ struct HomeDiscoverRailCard<Content: View>: View {
         title: String? = nil,
         subtitle: String? = nil,
         accessibilityIdentifier: String? = nil,
+        actionTitle: String? = nil,
+        actionAccessibilityIdentifier: String? = nil,
+        action: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.variant = variant
@@ -131,6 +137,9 @@ struct HomeDiscoverRailCard<Content: View>: View {
         self.title = title
         self.subtitle = subtitle
         self.accessibilityIdentifier = accessibilityIdentifier
+        self.actionTitle = actionTitle
+        self.actionAccessibilityIdentifier = actionAccessibilityIdentifier
+        self.action = action
         self.content = content()
     }
 
@@ -142,7 +151,10 @@ struct HomeDiscoverRailCard<Content: View>: View {
                 HomeDiscoverSectionHeader(
                     eyebrow: eyebrow,
                     title: title,
-                    subtitle: subtitle
+                    subtitle: subtitle,
+                    actionTitle: actionTitle,
+                    actionAccessibilityIdentifier: actionAccessibilityIdentifier,
+                    action: action
                 )
                 .modifier(HomeRailAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
             }
@@ -214,6 +226,9 @@ private struct HomeDiscoverSectionHeader: View {
     let eyebrow: String?
     let title: String
     let subtitle: String?
+    let actionTitle: String?
+    let actionAccessibilityIdentifier: String?
+    let action: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
 
@@ -240,15 +255,31 @@ private struct HomeDiscoverSectionHeader: View {
 
                 Spacer(minLength: 0)
 
-                HStack(spacing: 4) {
-                    ForEach(0..<5, id: \.self) { index in
-                        Circle()
-                            .fill(laughTrack.colors.accentStrong.opacity(0.85 - Double(index) * 0.11))
-                            .frame(width: 4, height: 4)
-                            .shadow(color: laughTrack.colors.accentStrong.opacity(0.34), radius: 4)
+                if let actionTitle, let action {
+                    Button(action: action) {
+                        HStack(spacing: 4) {
+                            Text(actionTitle)
+                            Image(systemName: "chevron.right")
+                                .font(.caption2.weight(.bold))
+                        }
+                        .font(laughTrack.typography.metadata.weight(.bold))
+                        .foregroundStyle(laughTrack.colors.accentStrong)
                     }
+                    .buttonStyle(.plain)
+                    .modifier(HomeRailAccessibilityIdentifierModifier(
+                        identifier: actionAccessibilityIdentifier
+                    ))
+                } else {
+                    HStack(spacing: 4) {
+                        ForEach(0..<5, id: \.self) { index in
+                            Circle()
+                                .fill(laughTrack.colors.accentStrong.opacity(0.85 - Double(index) * 0.11))
+                                .frame(width: 4, height: 4)
+                                .shadow(color: laughTrack.colors.accentStrong.opacity(0.34), radius: 4)
+                        }
+                    }
+                    .accessibilityHidden(true)
                 }
-                .accessibilityHidden(true)
             }
 
             if let subtitle {

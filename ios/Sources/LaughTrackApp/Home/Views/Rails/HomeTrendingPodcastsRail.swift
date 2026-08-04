@@ -9,6 +9,7 @@ import LaughTrackCore
 struct HomeTrendingPodcastsRail: View {
     let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    let searchNavigationBridge: SearchNavigationBridge
     let cache: DataCache<LaughTrackCacheKey>
     let persistentCache: PersistentMainPageCache
 
@@ -30,7 +31,11 @@ struct HomeTrendingPodcastsRail: View {
             eyebrow: "Funny listening",
             title: "Popular comedy podcasts",
             subtitle: nil,
-            accessibilityIdentifier: LaughTrackViewTestID.homeTrendingPodcastsRail
+            accessibilityIdentifier: LaughTrackViewTestID.homeTrendingPodcastsRail,
+            actionTitle: "See all",
+            action: {
+                searchNavigationBridge.openSearch(.discoverEntity(.podcasts))
+            }
         ) {
             switch model.phase {
             case .idle, .loading:
