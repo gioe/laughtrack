@@ -207,6 +207,7 @@ struct ContentViewNavigationTests {
         #expect(!shellState.showsLocationHeader)
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
             .comedians,
             .clubs,
@@ -235,6 +236,7 @@ struct ContentViewNavigationTests {
         #expect(shellState.selectedPrimitive == .shows)
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
         ])
     }
@@ -326,6 +328,7 @@ struct ContentViewNavigationTests {
     func homeRemovesSearchEntryRail() async throws {
         #expect(HomeContentSection.sections(for: nil) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
             .comedians,
             .clubs,
@@ -333,6 +336,7 @@ struct ContentViewNavigationTests {
         ])
         #expect(HomeContentSection.sections(for: .shows) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
         ])
         #expect(HomeContentSection.sections(for: .comedians) == [.comedians])

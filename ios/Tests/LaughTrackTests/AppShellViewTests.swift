@@ -89,6 +89,7 @@ struct AppShellViewTests {
         #expect(!shellState.showsLocationHeader)
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
             .comedians,
             .clubs,
@@ -116,6 +117,7 @@ struct AppShellViewTests {
         #expect(preference.state == "NY")
         #expect(HomeContentSection.sections(for: nil) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
             .comedians,
             .clubs,
@@ -123,6 +125,7 @@ struct AppShellViewTests {
         ])
         #expect(HomeContentSection.sections(for: .shows) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
         ])
     }
@@ -138,6 +141,7 @@ struct AppShellViewTests {
         // rails and no search-pivot affordance.
         #expect(HomeContentSection.sections(for: nil) == [
             .showsTonight,
+            .followedComedianShows,
             .thisWeek,
             .comedians,
             .clubs,
