@@ -12,7 +12,7 @@ enum AppTab: Hashable, CaseIterable {
         case .search:
             return "Search"
         case .favorites:
-            return "Favorites"
+            return "Library"
         }
     }
 }

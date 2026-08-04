@@ -100,7 +100,7 @@ struct AppShellView: View {
     let signedOutMessage: String?
     let favorites: ComedianFavoriteStore
     let initialTab: AppTab
-    /// Scopes the Favorites "touring" section to a notification's shows (empty = all).
+    /// Scopes the Library "touring" section to a notification's shows (empty = all).
     let scopedFavoriteShowIDs: [Int]
     @ObservedObject var shellState: AppShellState
     let onInitialHomeLoadComplete: (() -> Void)?
@@ -164,17 +164,6 @@ struct AppShellView: View {
         LaughTrackAtmosphereBackground()
     }
 
-    private var showFavoritesTab: Bool {
-#if DEBUG
-        if ProcessInfo.processInfo.environment[UITestLaunchArgs.forceComparisonScreens] == "1"
-            || AuthenticatedScreenshotPersona.active != nil {
-            return true
-        }
-#endif
-        guard authManager.currentSession != nil else { return false }
-        return !favorites.savedFavoriteComedians.isEmpty
-    }
-
     private func tabContent(safeAreaTop: CGFloat) -> some View {
         TabView(selection: selectedTabBinding) {
             ZStack {
@@ -208,22 +197,15 @@ struct AppShellView: View {
             .tabItem { Label("Search", systemImage: "magnifyingglass") }
             .tag(AppTab.search)
 
-            if showFavoritesTab {
-                LibraryView(
-                    apiClient: apiClient,
-                    selectedPrimitive: shellState.selectedPrimitive,
-                    scopedShowIDs: scopedFavoriteShowIDs,
-                    searchNavigationBridge: searchNavigationBridge,
-                    screenshotPersona: AuthenticatedScreenshotPersona.active
-                )
-                    .tabItem { Label("Favorites", systemImage: "heart.fill") }
-                    .tag(AppTab.favorites)
-            }
-        }
-        .onChange(of: showFavoritesTab) { isVisible in
-            if !isVisible, shellState.selectedTab == .favorites {
-                shellState.selectTab(.nearMe)
-            }
+            LibraryView(
+                apiClient: apiClient,
+                selectedPrimitive: shellState.selectedPrimitive,
+                scopedShowIDs: scopedFavoriteShowIDs,
+                searchNavigationBridge: searchNavigationBridge,
+                screenshotPersona: AuthenticatedScreenshotPersona.active
+            )
+                .tabItem { Label("Library", systemImage: "heart.fill") }
+                .tag(AppTab.favorites)
         }
         .environmentObject(favorites)
         .tint(podcastPlayer.accentColorOverride ?? theme.colors.primary)
@@ -382,7 +364,9 @@ struct AppShellView: View {
         HStack(spacing: theme.spacing.sm) {
             accountHeaderButton
 
-            primitiveFilterScroller
+            if shellState.selectedTab == .search {
+                primitiveFilterScroller
+            }
         }
         .padding(.horizontal, theme.spacing.lg)
         .padding(.top, AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: safeAreaTop, theme: theme))
@@ -636,10 +620,9 @@ struct AppShellView: View {
         }
     }
 
-    // Marquee-themed primitive filter pills. The same component renders in
-    // both Search (mode switcher) and Home/Favorites (optional category filter)
-    // contexts — clear fill, dashed bulb-ring border that echoes the poster
-    // frames on the home rails. Selected state lights up the ring + glow.
+    // Marquee-themed primitive filter pills for Search's entity mode switcher.
+    // The clear fill and dashed bulb-ring border echo the poster frames on the
+    // home rails. Selected state lights up the ring + glow.
     private func primitiveFilterLabel(for primitive: SearchRootModel.Pivot) -> some View {
         let tokens = theme.laughTrackTokens
         let isSelected = primitive == shellState.selectedPrimitive

@@ -20,7 +20,7 @@ struct AppShellViewTests {
     @Test("shell renders three top-level tabs and keeps account out of the tab bar")
     func shellRendersTabs() async throws {
         #expect(AppTab.allCases == [.nearMe, .search, .favorites])
-        #expect(AppTab.allCases.map(\.title) == ["Discover", "Search", "Favorites"])
+        #expect(AppTab.allCases.map(\.title) == ["Discover", "Search", "Library"])
         #expect(AppRoute.nearMe.shellTab == .nearMe)
         #expect(AppRoute.search.shellTab == .search)
         #expect(AppRoute.library([]).shellTab == .favorites)
@@ -36,7 +36,28 @@ struct AppShellViewTests {
         #expect(shellState.selectedTab == .search)
         #expect(shellState.resolvedSearchPrimitive == .shows)
         #expect(!shellState.showsLocationHeader)
-        #expect(AppTab.allCases.map(\.title) == ["Discover", "Search", "Favorites"])
+        #expect(AppTab.allCases.map(\.title) == ["Discover", "Search", "Library"])
+    }
+
+    @Test("Library remains a stable tab across authentication and favorite changes")
+    func libraryRemainsAStableTab() throws {
+        let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("LibraryView("))
+        #expect(source.contains(".tabItem { Label(\"Library\", systemImage: \"heart.fill\") }"))
+        #expect(!source.contains("private var showFavoritesTab"))
+        #expect(!source.contains("if showFavoritesTab"))
+        #expect(!source.contains(".onChange(of: showFavoritesTab)"))
+    }
+
+    @Test("shell entity pivots render only on Search")
+    func shellEntityPivotsRenderOnlyOnSearch() throws {
+        let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains(
+            "if shellState.selectedTab == .search {\n                primitiveFilterScroller\n            }"
+        ))
+        #expect(!source.contains("Home/Favorites (optional category filter)"))
     }
 
     @Test("debug soft-push launch override presents the prompt sheet")
