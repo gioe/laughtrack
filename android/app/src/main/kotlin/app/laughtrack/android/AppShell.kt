@@ -402,12 +402,16 @@ private fun LibrarySavedDestination.toAppRoute(): AppRoute =
     }
 
 private fun LibrarySearchSeed.toSearchRequest(): SearchLaunchRequest =
-    when (this) {
-        LibrarySearchSeed.SHOWS -> SearchLaunchRequest(SearchDestination.SHOWS)
-        LibrarySearchSeed.COMEDIANS -> SearchLaunchRequest(SearchDestination.COMEDIANS)
-        LibrarySearchSeed.CLUBS -> SearchLaunchRequest(SearchDestination.CLUBS)
-        LibrarySearchSeed.PODCASTS -> SearchLaunchRequest(SearchDestination.PODCASTS)
-    }
+    SearchLaunchRequest(
+        destination =
+            when (this) {
+                LibrarySearchSeed.SHOWS -> SearchDestination.SHOWS
+                LibrarySearchSeed.COMEDIANS -> SearchDestination.COMEDIANS
+                LibrarySearchSeed.CLUBS -> SearchDestination.CLUBS
+                LibrarySearchSeed.PODCASTS -> SearchDestination.PODCASTS
+            },
+        inheritCurrentLocation = nearMe,
+    )
 
 /**
  * Switch bottom-nav tabs: pop to the graph start (saving each tab's state),

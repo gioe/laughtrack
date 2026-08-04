@@ -70,6 +70,8 @@ enum class SearchDestination {
  */
 data class SearchLaunchRequest(
     val destination: SearchDestination,
+    /** Keep the destination's current Home-derived location instead of replacing it. */
+    val inheritCurrentLocation: Boolean = false,
     val comedian: String = "",
     val club: String = "",
     val zip: String? = null,

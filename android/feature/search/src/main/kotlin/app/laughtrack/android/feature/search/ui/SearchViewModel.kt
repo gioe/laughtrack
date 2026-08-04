@@ -187,15 +187,27 @@ class SearchViewModel
         /** Consume one Discover/Library request without retaining navigation args. */
         fun applySearchLaunchRequest(request: SearchLaunchRequest) {
             val pivot = request.destination.toSearchPivot()
+            val current = _state.value.states.getValue(pivot)
+            val zip = if (request.inheritCurrentLocation) current.query.zip else request.zip
+            val distance =
+                if (request.inheritCurrentLocation) {
+                    current.query.distance ?: DEFAULT_DISTANCE_MILES
+                } else {
+                    request.distanceMiles ?: DEFAULT_DISTANCE_MILES
+                }
+            val locationLabel =
+                if (request.inheritCurrentLocation) current.locationLabel else request.locationLabel
+            if (pivot.isGeoScoped) userEditedLocationPivots += pivot
+
             if (pivot == SearchPivot.SHOWS) {
                 _state.update { it.copy(pivot = SearchPivot.SHOWS) }
                 applyShowSearchSeed(
                     ShowSearchSeed(
                         comedian = request.comedian,
                         club = request.club,
-                        zip = request.zip,
-                        locationLabel = request.locationLabel,
-                        distance = request.distanceMiles ?: DEFAULT_DISTANCE_MILES,
+                        zip = zip,
+                        locationLabel = locationLabel,
+                        distance = distance,
                         from = request.from,
                         to = request.to,
                         filters = request.filters,
@@ -203,6 +215,27 @@ class SearchViewModel
                     ),
                 )
             } else {
+                updatePivot(pivot) { previous ->
+                    previous.copy(
+                        query =
+                            previous.query.copy(
+                                text = "",
+                                comedian = "",
+                                club = "",
+                                sort = SearchSort.defaultFor(pivot),
+                                zip = if (pivot.isGeoScoped) zip else null,
+                                distance = if (pivot.isGeoScoped) distance else null,
+                                from = null,
+                                to = null,
+                                filters = request.filters,
+                                maxPrice = null,
+                                homeCity = null,
+                            ),
+                        results = PagedList(),
+                        loaded = false,
+                        locationLabel = if (pivot.isGeoScoped) locationLabel else null,
+                    )
+                }
                 selectPivot(pivot)
             }
         }

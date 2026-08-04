@@ -338,6 +338,62 @@ class SearchViewModelTest {
         }
 
     @Test
+    fun launch_request_applies_club_location_and_clears_stale_entity_text() =
+        runTest {
+            val viewModel = viewModel(SuspendingShowsApi())
+            advanceUntilIdle()
+
+            viewModel.selectPivot(SearchPivot.COMEDIANS)
+            viewModel.onTextChange("stale comedian query")
+            viewModel.applySearchLaunchRequest(SearchLaunchRequest(SearchDestination.COMEDIANS))
+            assertEquals("", viewModel.state.value.current.query.text)
+
+            viewModel.applySearchLaunchRequest(
+                SearchLaunchRequest(
+                    destination = SearchDestination.CLUBS,
+                    zip = "90028",
+                    locationLabel = "Los Angeles, CA",
+                    distanceMiles = 50,
+                ),
+            )
+
+            assertEquals(SearchPivot.CLUBS, viewModel.state.value.pivot)
+            assertEquals("90028", viewModel.state.value.current.query.zip)
+            assertEquals(50, viewModel.state.value.current.query.distance)
+            assertEquals("Los Angeles, CA", viewModel.state.value.current.locationLabel)
+        }
+
+    @Test
+    fun library_near_me_request_preserves_home_derived_location() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel =
+                viewModel(
+                    showsApi,
+                    homeLocation = HomeLocation("60614", 50, "Chicago, IL"),
+                )
+            advanceUntilIdle()
+
+            viewModel.applySearchLaunchRequest(
+                SearchLaunchRequest(
+                    destination = SearchDestination.SHOWS,
+                    inheritCurrentLocation = true,
+                    filters = setOf("free"),
+                ),
+            )
+
+            val seed = viewModel.showSearchSeed()
+            assertEquals("60614", seed.zip)
+            assertEquals(50, seed.distance)
+            assertEquals("Chicago, IL", seed.locationLabel)
+            assertEquals(setOf("free"), seed.filters)
+
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
     fun successful_density_populates_the_requested_month() =
         runTest {
             val showsApi = SuspendingShowsApi()
@@ -535,7 +591,7 @@ class SearchViewModelTest {
         homeLocation: HomeLocation? = null,
         homeLocationState: HomeLocationState =
             HomeLocationState().apply {
-                homeLocation?.let { update(it.zip, it.distanceMiles) }
+                homeLocation?.let { update(it.zip, it.distanceMiles, it.locationLabel) }
             },
     ): SearchViewModel =
         SearchViewModel(
