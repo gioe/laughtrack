@@ -86,25 +86,15 @@ class LibrarySavedShowsTest {
         }
 
     @Test
-    fun savedShowSectionsPrecedeTheExplicitlyInferredTouringSection() {
-        val orderedTitles =
-            SavedShowLibrarySection.entries.map { it.presentation.title } +
-                AuthenticatedLibrarySection.entries.map { it.presentation.title }
-
+    fun savedShowCollectionsBookendTheCanonicalLibraryHierarchy() {
         assertEquals(
             listOf(
-                "Upcoming saved shows",
-                "Past saved shows",
-                "Your favorites are touring",
-                "Saved comedians",
-                "Saved clubs",
-                "Saved podcasts",
+                "Next Up",
+                "From Your Follows",
+                "Saved",
+                "History",
             ),
-            orderedTitles,
-        )
-        assertEquals(
-            listOf(SavedShowPeriod.UPCOMING, SavedShowPeriod.PAST),
-            SavedShowLibrarySection.entries.map { it.period },
+            LibrarySection.entries.map { it.presentation.title },
         )
     }
 
@@ -112,6 +102,13 @@ class LibrarySavedShowsTest {
     fun collectionPresentationDistinguishesLoadingEmptyErrorAndContent() {
         val show = show(id = 51)
 
+        assertEquals(
+            SavedShowCollectionPresentationState.Loading,
+            savedShowCollectionState(
+                collection = SavedShowsCollection(),
+                initialRefreshComplete = false,
+            ),
+        )
         assertEquals(
             SavedShowCollectionPresentationState.Loading,
             savedShowCollectionState(SavedShowsCollection(isLoading = true)),

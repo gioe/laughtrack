@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -93,6 +94,19 @@ class LibraryViewModelTest {
 
             assertTrue(viewModel.snapshot.value.comedians.isEmpty())
             assertTrue(viewModel.snapshot.value.comedianValues.isEmpty())
+        }
+
+    @Test
+    fun initialRefreshCompletionPreventsPrematureEmptyPresentation() =
+        runTest {
+            val viewModel = LibraryViewModel(signedOutFavoritesRepository(FakeFavoritesApi()))
+
+            assertFalse(viewModel.initialRefreshComplete.value)
+
+            viewModel.refresh(signedIn = true)
+            advanceUntilIdle()
+
+            assertTrue(viewModel.initialRefreshComplete.value)
         }
 
     /** Activates the WhileSubscribed stateIn so the ViewModel mirrors the repository. */

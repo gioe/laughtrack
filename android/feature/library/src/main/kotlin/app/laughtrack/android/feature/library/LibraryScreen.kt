@@ -1,22 +1,30 @@
 package app.laughtrack.android.feature.library
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -52,38 +61,94 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
+private val LibraryMaxWidth = 760.dp
+
 internal data class LibrarySectionPresentation(
     val eyebrow: String,
     val title: String,
     val subtitle: String,
 )
 
-internal enum class SavedShowLibrarySection(
-    val period: SavedShowPeriod,
+internal enum class LibrarySection(
     val presentation: LibrarySectionPresentation,
-    val emptyMessage: String,
 ) {
-    UPCOMING(
-        period = SavedShowPeriod.UPCOMING,
-        presentation =
-            LibrarySectionPresentation(
-                eyebrow = "Saved shows",
-                title = "Upcoming saved shows",
-                subtitle = "Shows you want to catch next.",
-            ),
-        emptyMessage = "Save an upcoming show and it will appear here.",
+    NEXT_UP(
+        LibrarySectionPresentation(
+            eyebrow = "Plans",
+            title = "Next Up",
+            subtitle = "The shows you chose are always first.",
+        ),
     ),
-    PAST(
-        period = SavedShowPeriod.PAST,
-        presentation =
-            LibrarySectionPresentation(
-                eyebrow = "Saved history",
-                title = "Past saved shows",
-                subtitle = "A record of shows you saved.",
-            ),
-        emptyMessage = "Past saved shows will collect here.",
+    FROM_FOLLOWS(
+        LibrarySectionPresentation(
+            eyebrow = "Following",
+            title = "From Your Follows",
+            subtitle = "Upcoming shows from comedians you follow.",
+        ),
+    ),
+    SAVED(
+        LibrarySectionPresentation(
+            eyebrow = "Your collection",
+            title = "Saved",
+            subtitle = "Comedians, clubs, and podcasts you want to keep close.",
+        ),
+    ),
+    HISTORY(
+        LibrarySectionPresentation(
+            eyebrow = "Past plans",
+            title = "History",
+            subtitle = "Past shows you saved.",
+        ),
     ),
 }
+
+internal enum class LibraryGroupResolution {
+    LOADING,
+    CONTENT,
+    EMPTY,
+    FAILURE,
+}
+
+internal data class LibraryContentState(
+    val nextUp: LibraryGroupResolution,
+    val fromFollows: LibraryGroupResolution,
+    val saved: LibraryGroupResolution,
+    val history: LibraryGroupResolution,
+) {
+    val isFullyEmpty: Boolean
+        get() =
+            listOf(nextUp, fromFollows, saved, history)
+                .all { it == LibraryGroupResolution.EMPTY }
+}
+
+/** One-shot Search requests emitted by the Library empty state. */
+enum class LibrarySearchSeed(
+    val label: String,
+    val nearMe: Boolean = false,
+) {
+    SHOWS("Shows near me", nearMe = true),
+    COMEDIANS("Follow comedians"),
+    CLUBS("Save clubs"),
+    PODCASTS("Save podcasts"),
+}
+
+/** Detail destinations emitted by rows in the unified Saved collection. */
+sealed interface LibrarySavedDestination {
+    data class Comedian(val id: Int) : LibrarySavedDestination
+
+    data class Club(val id: Int) : LibrarySavedDestination
+
+    data class Podcast(val id: Int) : LibrarySavedDestination
+}
+
+internal fun savedComedianDestination(comedian: ComedianSearchItem): LibrarySavedDestination =
+    LibrarySavedDestination.Comedian(comedian.id)
+
+internal fun savedClubDestination(club: FavoriteClubItem): LibrarySavedDestination =
+    LibrarySavedDestination.Club(club.id)
+
+internal fun savedPodcastDestination(podcast: FavoritePodcastItem): LibrarySavedDestination =
+    LibrarySavedDestination.Podcast(podcast.id)
 
 internal sealed interface SavedShowCollectionPresentationState {
     data object Loading : SavedShowCollectionPresentationState
@@ -99,7 +164,10 @@ internal sealed interface SavedShowCollectionPresentationState {
     ) : SavedShowCollectionPresentationState
 }
 
-internal fun savedShowCollectionState(collection: SavedShowsCollection): SavedShowCollectionPresentationState =
+internal fun savedShowCollectionState(
+    collection: SavedShowsCollection,
+    initialRefreshComplete: Boolean = true,
+): SavedShowCollectionPresentationState =
     when {
         collection.shows.isNotEmpty() ->
             SavedShowCollectionPresentationState.Content(
@@ -107,57 +175,83 @@ internal fun savedShowCollectionState(collection: SavedShowsCollection): SavedSh
                 isRefreshing = collection.isLoading,
                 errorMessage = collection.errorMessage,
             )
-        collection.isLoading -> SavedShowCollectionPresentationState.Loading
         collection.errorMessage != null ->
             SavedShowCollectionPresentationState.Error(collection.errorMessage.orEmpty())
+        collection.isLoading || !initialRefreshComplete -> SavedShowCollectionPresentationState.Loading
         else -> SavedShowCollectionPresentationState.Empty
     }
 
 internal fun savedShowNavigationId(show: Show): Int = show.id
 
-internal enum class AuthenticatedLibrarySection(
-    val presentation: LibrarySectionPresentation,
-) {
-    TOURING(
-        LibrarySectionPresentation(
-            eyebrow = "Favorites",
-            title = "Your favorites are touring",
-            subtitle = "Upcoming shows from comedians you follow.",
-        ),
-    ),
-    COMEDIANS(
-        LibrarySectionPresentation(
-            eyebrow = "Comedians",
-            title = "Saved comedians",
-            subtitle = "We'll keep their nearby dates in one place.",
-        ),
-    ),
-    CLUBS(
-        LibrarySectionPresentation(
-            eyebrow = "Clubs",
-            title = "Saved clubs",
-            subtitle = "Keep favorite venue calendars close.",
-        ),
-    ),
-    PODCASTS(
-        LibrarySectionPresentation(
-            eyebrow = "Podcasts",
-            title = "Saved podcasts",
-            subtitle = "Find new episodes faster.",
-        ),
-    ),
-}
+internal fun libraryContentState(
+    snapshot: FavoritesSnapshot,
+    savedShowsSnapshot: SavedShowsSnapshot,
+    initialRefreshComplete: Boolean,
+): LibraryContentState =
+    LibraryContentState(
+        nextUp =
+            savedShowResolution(
+                savedShowsSnapshot.upcoming,
+                initialRefreshComplete,
+            ),
+        fromFollows =
+            favoriteResolution(
+                hasContent = snapshot.shows.isNotEmpty(),
+                snapshot = snapshot,
+                initialRefreshComplete = initialRefreshComplete,
+            ),
+        saved =
+            favoriteResolution(
+                hasContent =
+                    snapshot.comedians.isNotEmpty() ||
+                        snapshot.clubs.isNotEmpty() ||
+                        snapshot.podcasts.isNotEmpty(),
+                snapshot = snapshot,
+                initialRefreshComplete = initialRefreshComplete,
+            ),
+        history =
+            savedShowResolution(
+                savedShowsSnapshot.past,
+                initialRefreshComplete,
+            ),
+    )
+
+private fun savedShowResolution(
+    collection: SavedShowsCollection,
+    initialRefreshComplete: Boolean,
+): LibraryGroupResolution =
+    when (savedShowCollectionState(collection, initialRefreshComplete)) {
+        SavedShowCollectionPresentationState.Loading -> LibraryGroupResolution.LOADING
+        is SavedShowCollectionPresentationState.Error -> LibraryGroupResolution.FAILURE
+        SavedShowCollectionPresentationState.Empty -> LibraryGroupResolution.EMPTY
+        is SavedShowCollectionPresentationState.Content -> LibraryGroupResolution.CONTENT
+    }
+
+private fun favoriteResolution(
+    hasContent: Boolean,
+    snapshot: FavoritesSnapshot,
+    initialRefreshComplete: Boolean,
+): LibraryGroupResolution =
+    when {
+        hasContent -> LibraryGroupResolution.CONTENT
+        snapshot.errorMessage != null -> LibraryGroupResolution.FAILURE
+        snapshot.isLoading || !initialRefreshComplete -> LibraryGroupResolution.LOADING
+        else -> LibraryGroupResolution.EMPTY
+    }
 
 @Composable
 fun LibraryScreen(
     signedIn: Boolean,
     onOpenProfile: () -> Unit,
     onOpenShow: (Int) -> Unit = {},
+    onOpenSaved: (LibrarySavedDestination) -> Unit = {},
+    onOpenSearch: (LibrarySearchSeed) -> Unit = {},
     scopedShowIds: List<Int> = emptyList(),
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val snapshot by viewModel.snapshot.collectAsState()
     val savedShowsSnapshot by viewModel.savedShowsSnapshot.collectAsState()
+    val initialRefreshComplete by viewModel.initialRefreshComplete.collectAsState()
     val message by viewModel.message.collectAsState()
 
     LaunchedEffect(signedIn) {
@@ -169,9 +263,12 @@ fun LibraryScreen(
         snapshot = snapshot,
         savedShowsSnapshot = savedShowsSnapshot,
         message = message,
+        initialRefreshComplete = initialRefreshComplete,
         scopedShowIds = scopedShowIds,
         onOpenProfile = onOpenProfile,
         onOpenShow = onOpenShow,
+        onOpenSaved = onOpenSaved,
+        onOpenSearch = onOpenSearch,
         onRetrySavedShows = viewModel::refreshSavedShows,
         onClearMessage = viewModel::clearMessage,
         onToggleComedian = viewModel::toggleComedian,
@@ -180,7 +277,7 @@ fun LibraryScreen(
     )
 }
 
-/** Render the real library UI from deterministic state without creating a Hilt ViewModel. */
+/** Render the real Library UI from deterministic state without creating a Hilt ViewModel. */
 @Composable
 fun LibraryScreen(
     signedIn: Boolean,
@@ -188,6 +285,9 @@ fun LibraryScreen(
     snapshotOverride: FavoritesSnapshot,
     savedShowsSnapshotOverride: SavedShowsSnapshot = SavedShowsSnapshot(),
     onOpenShow: (Int) -> Unit = {},
+    onOpenSaved: (LibrarySavedDestination) -> Unit = {},
+    onOpenSearch: (LibrarySearchSeed) -> Unit = {},
+    initialRefreshComplete: Boolean = true,
     scopedShowIds: List<Int> = emptyList(),
 ) {
     LibraryContent(
@@ -195,9 +295,12 @@ fun LibraryScreen(
         snapshot = snapshotOverride,
         savedShowsSnapshot = savedShowsSnapshotOverride,
         message = null,
+        initialRefreshComplete = initialRefreshComplete,
         scopedShowIds = scopedShowIds,
         onOpenProfile = onOpenProfile,
         onOpenShow = onOpenShow,
+        onOpenSaved = onOpenSaved,
+        onOpenSearch = onOpenSearch,
         onRetrySavedShows = {},
         onClearMessage = {},
         onToggleComedian = {},
@@ -212,55 +315,63 @@ private fun LibraryContent(
     snapshot: FavoritesSnapshot,
     savedShowsSnapshot: SavedShowsSnapshot,
     message: String?,
+    initialRefreshComplete: Boolean,
     scopedShowIds: List<Int>,
     onOpenProfile: () -> Unit,
     onOpenShow: (Int) -> Unit,
+    onOpenSaved: (LibrarySavedDestination) -> Unit,
+    onOpenSearch: (LibrarySearchSeed) -> Unit,
     onRetrySavedShows: (SavedShowPeriod) -> Unit,
     onClearMessage: () -> Unit,
     onToggleComedian: (String) -> Unit,
     onToggleClub: (Int) -> Unit,
     onTogglePodcast: (Int) -> Unit,
 ) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(
-            "Favorites",
-            style = MaterialTheme.typography.headlineLarge,
-            color = LaughTrackColors.Foreground,
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = LibraryMaxWidth)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                "Library",
+                style = MaterialTheme.typography.headlineLarge,
+                color = LaughTrackColors.Foreground,
+            )
 
-        if (message != null) {
-            AssistChip(
-                onClick = onClearMessage,
-                label = { Text(message.orEmpty()) },
-            )
-        }
-        if (snapshot.errorMessage != null) {
-            AssistChip(
-                onClick = {},
-                label = { Text(snapshot.errorMessage.orEmpty()) },
-            )
-        }
+            if (message != null) {
+                AssistChip(
+                    onClick = onClearMessage,
+                    label = { Text(message) },
+                )
+            }
 
-        if (signedIn) {
-            SignedInLibrary(
-                snapshot = snapshot,
-                savedShowsSnapshot = savedShowsSnapshot,
-                scopedShowIds = scopedShowIds,
-                onOpenShow = onOpenShow,
-                onRetrySavedShows = onRetrySavedShows,
-                onToggleComedian = onToggleComedian,
-                onToggleClub = onToggleClub,
-                onTogglePodcast = onTogglePodcast,
-            )
-        } else {
-            GuestLibraryPreview(onOpenProfile)
+            if (signedIn) {
+                SignedInLibrary(
+                    snapshot = snapshot,
+                    savedShowsSnapshot = savedShowsSnapshot,
+                    initialRefreshComplete = initialRefreshComplete,
+                    scopedShowIds = scopedShowIds,
+                    onOpenShow = onOpenShow,
+                    onOpenSaved = onOpenSaved,
+                    onOpenSearch = onOpenSearch,
+                    onRetrySavedShows = onRetrySavedShows,
+                    onToggleComedian = onToggleComedian,
+                    onToggleClub = onToggleClub,
+                    onTogglePodcast = onTogglePodcast,
+                )
+            } else {
+                LibraryEmptyState(
+                    requiresSignIn = true,
+                    onOpenSearch = onOpenSearch,
+                    onOpenProfile = onOpenProfile,
+                )
+            }
         }
     }
 }
@@ -269,111 +380,88 @@ private fun LibraryContent(
 private fun SignedInLibrary(
     snapshot: FavoritesSnapshot,
     savedShowsSnapshot: SavedShowsSnapshot,
+    initialRefreshComplete: Boolean,
     scopedShowIds: List<Int>,
     onOpenShow: (Int) -> Unit,
+    onOpenSaved: (LibrarySavedDestination) -> Unit,
+    onOpenSearch: (LibrarySearchSeed) -> Unit,
     onRetrySavedShows: (SavedShowPeriod) -> Unit,
     onToggleComedian: (String) -> Unit,
     onToggleClub: (Int) -> Unit,
     onTogglePodcast: (Int) -> Unit,
 ) {
-    if (snapshot.isLoading) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            CircularProgressIndicator()
-        }
-    }
+    val contentState = libraryContentState(snapshot, savedShowsSnapshot, initialRefreshComplete)
 
-    SavedShowLibrarySection.entries.forEach { section ->
-        val collection =
-            when (section.period) {
-                SavedShowPeriod.UPCOMING -> savedShowsSnapshot.upcoming
-                SavedShowPeriod.PAST -> savedShowsSnapshot.past
-            }
-        SavedShowsSection(
-            section = section,
-            collection = collection,
-            onOpenShow = onOpenShow,
-            onRetry = { onRetrySavedShows(section.period) },
-        )
-    }
-
-    TouringFavoritesSection(snapshot = snapshot, scopedShowIds = scopedShowIds)
-
-    FavoriteSection(AuthenticatedLibrarySection.COMEDIANS.presentation) {
-        if (snapshot.comedians.isEmpty()) {
-            EmptyText("Favorite comedians to build your library.")
-        } else {
-            snapshot.comedians.forEach { comedian ->
-                FavoriteRow(
-                    title = comedian.name,
-                    subtitle = "${comedian.showCount} upcoming shows",
-                    isFavorite = snapshot.comedianValues[comedian.uuid] ?: true,
-                    onToggle = { onToggleComedian(comedian.uuid) },
+    LibrarySection.entries.forEach { section ->
+        when (section) {
+            LibrarySection.NEXT_UP ->
+                SavedShowsSection(
+                    section = section,
+                    collection = savedShowsSnapshot.upcoming,
+                    initialRefreshComplete = initialRefreshComplete,
+                    onOpenShow = onOpenShow,
+                    onRetry = { onRetrySavedShows(SavedShowPeriod.UPCOMING) },
                 )
-            }
+            LibrarySection.FROM_FOLLOWS ->
+                FromFollowsSection(
+                    snapshot = snapshot,
+                    resolution = contentState.fromFollows,
+                    scopedShowIds = scopedShowIds,
+                    onOpenShow = onOpenShow,
+                )
+            LibrarySection.SAVED ->
+                SavedEntitiesSection(
+                    snapshot = snapshot,
+                    resolution = contentState.saved,
+                    onOpenSaved = onOpenSaved,
+                    onToggleComedian = onToggleComedian,
+                    onToggleClub = onToggleClub,
+                    onTogglePodcast = onTogglePodcast,
+                )
+            LibrarySection.HISTORY ->
+                SavedShowsSection(
+                    section = section,
+                    collection = savedShowsSnapshot.past,
+                    initialRefreshComplete = initialRefreshComplete,
+                    onOpenShow = onOpenShow,
+                    onRetry = { onRetrySavedShows(SavedShowPeriod.PAST) },
+                )
         }
     }
 
-    FavoriteSection(AuthenticatedLibrarySection.CLUBS.presentation) {
-        if (snapshot.clubs.isEmpty()) {
-            EmptyText("Favorite clubs to keep their calendars close.")
-        } else {
-            snapshot.clubs.forEach { club ->
-                ClubRow(club, snapshot.clubValues[club.id] ?: true) { onToggleClub(club.id) }
-            }
-        }
-    }
-
-    FavoriteSection(AuthenticatedLibrarySection.PODCASTS.presentation) {
-        if (snapshot.podcasts.isEmpty()) {
-            EmptyText("Favorite podcasts to find new episodes faster.")
-        } else {
-            snapshot.podcasts.forEach { podcast ->
-                PodcastRow(podcast, snapshot.podcastValues[podcast.id] ?: true) {
-                    onTogglePodcast(podcast.id)
-                }
-            }
-        }
+    if (contentState.isFullyEmpty) {
+        LibraryEmptyState(
+            requiresSignIn = false,
+            onOpenSearch = onOpenSearch,
+            onOpenProfile = null,
+        )
     }
 }
 
 @Composable
 private fun SavedShowsSection(
-    section: SavedShowLibrarySection,
+    section: LibrarySection,
     collection: SavedShowsCollection,
+    initialRefreshComplete: Boolean,
     onOpenShow: (Int) -> Unit,
     onRetry: () -> Unit,
 ) {
-    FavoriteSection(section.presentation) {
-        when (val state = savedShowCollectionState(collection)) {
-            SavedShowCollectionPresentationState.Loading ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    CircularProgressIndicator()
-                }
+    val state = savedShowCollectionState(collection, initialRefreshComplete)
+    if (state == SavedShowCollectionPresentationState.Empty) return
 
+    FavoriteSection(section.presentation) {
+        when (state) {
+            SavedShowCollectionPresentationState.Loading -> LoadingRow()
             is SavedShowCollectionPresentationState.Error -> {
                 EmptyText(state.message)
-                TextButton(onClick = onRetry) { Text("Retry") }
+                TextButton(onClick = onRetry) { Text("Retry ${section.presentation.title.lowercase()}") }
             }
-
-            SavedShowCollectionPresentationState.Empty -> EmptyText(section.emptyMessage)
+            SavedShowCollectionPresentationState.Empty -> Unit
             is SavedShowCollectionPresentationState.Content -> {
-                if (state.isRefreshing) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-                state.errorMessage?.let { message ->
-                    EmptyText(message)
-                    TextButton(onClick = onRetry) { Text("Retry") }
+                if (state.isRefreshing) LoadingRow()
+                state.errorMessage?.let { error ->
+                    EmptyText(error)
+                    TextButton(onClick = onRetry) { Text("Retry ${section.presentation.title.lowercase()}") }
                 }
                 state.shows.forEach { show ->
                     SavedShowRow(show = show, onOpenShow = onOpenShow)
@@ -408,82 +496,150 @@ internal fun savedShowPriceLabel(prices: List<BigDecimal>?): String? {
 }
 
 @Composable
-private fun TouringFavoritesSection(
+private fun FromFollowsSection(
     snapshot: FavoritesSnapshot,
+    resolution: LibraryGroupResolution,
     scopedShowIds: List<Int>,
+    onOpenShow: (Int) -> Unit,
 ) {
-    // A notification tap arrives with showIds — scope the touring section to just
-    // those shows until the user chooses "Show all favorites".
+    if (resolution == LibraryGroupResolution.EMPTY) return
+
     var showAll by remember { mutableStateOf(false) }
     val isScoped = scopedShowIds.isNotEmpty() && !showAll
-    val touringShows =
+    val shows =
         if (isScoped) {
             val scoped = scopedShowIds.toSet()
             snapshot.shows.filter { it.id in scoped }
         } else {
-            snapshot.shows
+            snapshot.shows.take(4)
         }
-    val groupedShows = touringShows.groupByFavoriteComedian(snapshot.comedians)
-
     val presentation =
-        AuthenticatedLibrarySection.TOURING.presentation.let { touringPresentation ->
-            if (isScoped) touringPresentation.copy(title = "From your notification") else touringPresentation
-        }
-    FavoriteSection(presentation) {
         if (isScoped) {
-            TextButton(onClick = { showAll = true }) { Text("Show all favorites") }
-        }
-        if (groupedShows.isEmpty()) {
-            EmptyText(
-                if (isScoped) {
-                    "Those shows aren't in your upcoming favorites right now."
-                } else {
-                    "Shows from saved comedians will appear here."
-                },
-            )
+            LibrarySection.FROM_FOLLOWS.presentation.copy(title = "From Your Notification")
         } else {
-            groupedShows.forEach { (comedianName, shows) ->
-                Text(
-                    comedianName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = LaughTrackColors.Foreground,
+            LibrarySection.FROM_FOLLOWS.presentation
+        }
+
+    FavoriteSection(presentation) {
+        when (resolution) {
+            LibraryGroupResolution.LOADING -> LoadingRow()
+            LibraryGroupResolution.FAILURE ->
+                EmptyText(
+                    snapshot.errorMessage ?: "Couldn’t load shows from your follows.",
                 )
-                shows.take(4).forEach { show -> ShowRow(show) }
+            LibraryGroupResolution.EMPTY -> Unit
+            LibraryGroupResolution.CONTENT -> {
+                if (isScoped) {
+                    TextButton(onClick = { showAll = true }) { Text("Show all follows") }
+                }
+                if (shows.isEmpty()) {
+                    EmptyText("Those shows aren’t in your upcoming follows right now.")
+                } else {
+                    shows.forEach { show ->
+                        ShowRow(show = show, onOpenShow = onOpenShow)
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun GuestLibraryPreview(onOpenProfile: () -> Unit) {
-    FavoriteSection(title = "Comedy near your saved location") {
-        listOf(
-            "Tonight at Sample Club One" to "Headliner, feature, host",
-            "Tomorrow at Sample Club Two" to "A touring comic near you",
-            "Saturday at Sample Club Three" to "New saved dates land here",
-        ).forEach { (title, subtitle) ->
-            FavoriteRow(title = title, subtitle = subtitle, isFavorite = false, onToggle = null)
+private fun SavedEntitiesSection(
+    snapshot: FavoritesSnapshot,
+    resolution: LibraryGroupResolution,
+    onOpenSaved: (LibrarySavedDestination) -> Unit,
+    onToggleComedian: (String) -> Unit,
+    onToggleClub: (Int) -> Unit,
+    onTogglePodcast: (Int) -> Unit,
+) {
+    if (resolution == LibraryGroupResolution.EMPTY) return
+
+    FavoriteSection(LibrarySection.SAVED.presentation) {
+        when (resolution) {
+            LibraryGroupResolution.LOADING -> LoadingRow()
+            LibraryGroupResolution.FAILURE -> EmptyText(snapshot.errorMessage ?: "Couldn’t load your saved collection.")
+            LibraryGroupResolution.EMPTY -> Unit
+            LibraryGroupResolution.CONTENT -> {
+                if (snapshot.comedians.isNotEmpty()) {
+                    SavedGroupTitle("Comedians")
+                    snapshot.comedians.forEach { comedian ->
+                        FavoriteRow(
+                            title = comedian.name,
+                            subtitle = "${comedian.showCount} upcoming shows",
+                            onOpen = { onOpenSaved(savedComedianDestination(comedian)) },
+                            onRemove = { onToggleComedian(comedian.uuid) },
+                        )
+                    }
+                }
+                if (snapshot.clubs.isNotEmpty()) {
+                    SavedGroupTitle("Clubs")
+                    snapshot.clubs.forEach { club ->
+                        ClubRow(
+                            club = club,
+                            onOpen = { onOpenSaved(savedClubDestination(club)) },
+                            onRemove = { onToggleClub(club.id) },
+                        )
+                    }
+                }
+                if (snapshot.podcasts.isNotEmpty()) {
+                    SavedGroupTitle("Podcasts")
+                    snapshot.podcasts.forEach { podcast ->
+                        PodcastRow(
+                            podcast = podcast,
+                            onOpen = { onOpenSaved(savedPodcastDestination(podcast)) },
+                            onRemove = { onTogglePodcast(podcast.id) },
+                        )
+                    }
+                }
+            }
         }
-    }
-    FavoriteSection(title = "Saved comedians") {
-        listOf("Comedian One", "Comedian Two", "Comedian Three").forEach { name ->
-            FavoriteRow(title = name, subtitle = "Sign in to save", isFavorite = false, onToggle = null)
-        }
-    }
-    Button(onClick = onOpenProfile, modifier = Modifier.fillMaxWidth()) {
-        Text("Sign in to see your favorites")
     }
 }
 
 @Composable
-private fun FavoriteSection(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit,
-) = FavoriteSection(
-    presentation = LibrarySectionPresentation(eyebrow = "", title = title, subtitle = ""),
-    content = content,
-)
+private fun LibraryEmptyState(
+    requiresSignIn: Boolean,
+    onOpenSearch: (LibrarySearchSeed) -> Unit,
+    onOpenProfile: (() -> Unit)?,
+) {
+    FavoriteSection(
+        LibrarySectionPresentation(
+            eyebrow = "Make it yours",
+            title = if (requiresSignIn) "Sign in to build your Library" else "Start your Library",
+            subtitle = "",
+        ),
+    ) {
+        EmptyText(
+            if (requiresSignIn) {
+                "Explore now, then sign in from Profile to keep plans and follows with your account."
+            } else {
+                "Save a show or follow a comedian, club, or podcast. Your plans and favorites will collect here."
+            },
+        )
+        LibrarySearchSeed.entries.chunked(2).forEach { seeds ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                seeds.forEach { seed ->
+                    OutlinedButton(
+                        onClick = { onOpenSearch(seed) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(seed.label, maxLines = 2)
+                    }
+                }
+                if (seeds.size == 1) Spacer(Modifier.weight(1f))
+            }
+        }
+        if (onOpenProfile != null) {
+            Button(onClick = onOpenProfile, modifier = Modifier.fillMaxWidth()) {
+                Text("Open Profile to sign in")
+            }
+        }
+    }
+}
 
 @Composable
 private fun FavoriteSection(
@@ -492,14 +648,12 @@ private fun FavoriteSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            if (presentation.eyebrow.isNotBlank()) {
-                Text(
-                    presentation.eyebrow.uppercase(Locale.US),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = LaughTrackColors.AccentStrong,
-                )
-            }
+            Text(
+                presentation.eyebrow.uppercase(Locale.US),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = LaughTrackColors.AccentStrong,
+            )
             Text(
                 presentation.title,
                 style = MaterialTheme.typography.titleLarge,
@@ -537,44 +691,61 @@ private fun FavoriteSection(
 private fun FavoriteRow(
     title: String,
     subtitle: String,
-    isFavorite: Boolean,
-    onToggle: (() -> Unit)?,
+    onOpen: () -> Unit,
+    onRemove: (() -> Unit)?,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        Row(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable(onClick = onOpen)
+                    .padding(vertical = 8.dp, horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        if (onToggle != null) {
-            TextButton(onClick = onToggle) {
-                Text(if (isFavorite) "Favorited" else "Favorite")
-            }
+        if (onRemove != null) {
+            TextButton(onClick = onRemove) { Text("Remove") }
         }
     }
 }
 
 @Composable
-private fun ShowRow(show: Show) {
+private fun ShowRow(
+    show: Show,
+    onOpenShow: (Int) -> Unit,
+) {
     FavoriteRow(
         title = show.name ?: show.clubName ?: "Comedy show",
         subtitle = favoriteShowSubtitle(show),
-        isFavorite = true,
-        onToggle = null,
+        onOpen = { onOpenShow(show.id) },
+        onRemove = null,
     )
 }
 
@@ -617,29 +788,49 @@ private fun formatFavoriteShowDate(
 @Composable
 private fun ClubRow(
     club: FavoriteClubItem,
-    isFavorite: Boolean,
-    onToggle: () -> Unit,
+    onOpen: () -> Unit,
+    onRemove: () -> Unit,
 ) {
     FavoriteRow(
         title = club.name,
-        subtitle = "Club",
-        isFavorite = isFavorite,
-        onToggle = onToggle,
+        subtitle = "Saved club",
+        onOpen = onOpen,
+        onRemove = onRemove,
     )
 }
 
 @Composable
 private fun PodcastRow(
     podcast: FavoritePodcastItem,
-    isFavorite: Boolean,
-    onToggle: () -> Unit,
+    onOpen: () -> Unit,
+    onRemove: () -> Unit,
 ) {
     FavoriteRow(
         title = podcast.title,
-        subtitle = "${podcast.episodeCount} episodes",
-        isFavorite = isFavorite,
-        onToggle = onToggle,
+        subtitle = podcast.authorName ?: "${podcast.episodeCount} episodes",
+        onOpen = onOpen,
+        onRemove = onRemove,
     )
+}
+
+@Composable
+private fun SavedGroupTitle(title: String) {
+    Text(
+        text = title.uppercase(Locale.US),
+        style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun LoadingRow() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        CircularProgressIndicator()
+    }
 }
 
 @Composable
@@ -649,17 +840,4 @@ private fun EmptyText(text: String) {
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-}
-
-private fun List<Show>.groupByFavoriteComedian(comedians: List<ComedianSearchItem>): Map<String, List<Show>> {
-    val namesByUuid = comedians.associate { it.uuid to it.name }
-    val groups = linkedMapOf<String, MutableList<Show>>()
-    forEach { show ->
-        val matchingName =
-            show.lineup
-                ?.firstNotNullOfOrNull { lineup -> namesByUuid[lineup.uuid] }
-                ?: "Favorite comedians"
-        groups.getOrPut(matchingName) { mutableListOf() }.add(show)
-    }
-    return groups
 }

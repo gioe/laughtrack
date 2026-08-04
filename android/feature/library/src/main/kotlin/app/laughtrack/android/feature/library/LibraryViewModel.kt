@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
 internal interface LibrarySavedShowsSource {
@@ -71,6 +72,9 @@ class LibraryViewModel internal constructor(
 
     val savedShowsSnapshot: StateFlow<SavedShowsSnapshot> = savedShowsSource.snapshot
 
+    private val _initialRefreshComplete = MutableStateFlow(false)
+    val initialRefreshComplete: StateFlow<Boolean> = _initialRefreshComplete.asStateFlow()
+
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
@@ -79,11 +83,19 @@ class LibraryViewModel internal constructor(
             if (!signedIn) {
                 favoritesRepository.resetSignedOut()
                 savedShowsSource.resetSignedOut()
+                _initialRefreshComplete.value = true
                 return@launch
             }
-            favoritesRepository.refreshSignedInFavorites()
-            savedShowsSource.refresh(SavedShowPeriod.UPCOMING)
-            savedShowsSource.refresh(SavedShowPeriod.PAST)
+            _initialRefreshComplete.value = false
+            try {
+                supervisorScope {
+                    launch { savedShowsSource.refresh(SavedShowPeriod.UPCOMING) }
+                    launch { favoritesRepository.refreshSignedInFavorites() }
+                    launch { savedShowsSource.refresh(SavedShowPeriod.PAST) }
+                }
+            } finally {
+                _initialRefreshComplete.value = true
+            }
         }
     }
 
