@@ -120,12 +120,21 @@ internal fun searchAdaptiveLayoutSpec(availableWidth: Dp): SearchAdaptiveLayoutS
 fun SearchScreen(
     onOpenEntity: (AppRoute) -> Unit,
     modifier: Modifier = Modifier,
+    requestedPivot: SearchPivot? = null,
+    onRequestedPivotConsumed: () -> Unit = {},
     viewModel: SearchViewModel = hiltViewModel(),
     favoritesViewModel: SearchFavoritesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val favorites by favoritesViewModel.snapshot.collectAsStateWithLifecycle()
     val pivotState = state.current
+
+    LaunchedEffect(requestedPivot) {
+        requestedPivot?.let { pivot ->
+            viewModel.selectPivot(pivot)
+            onRequestedPivotConsumed()
+        }
+    }
 
     BoxWithConstraints(
         modifier =

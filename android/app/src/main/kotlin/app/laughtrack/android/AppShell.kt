@@ -56,11 +56,14 @@ import app.laughtrack.android.feature.detail.ui.PodcastDetailScreen
 import app.laughtrack.android.feature.detail.ui.PodcastEpisodeDetailScreen
 import app.laughtrack.android.feature.detail.ui.ShowDetailScreen
 import app.laughtrack.android.feature.home.HomeScreen
+import app.laughtrack.android.feature.library.LibrarySavedDestination
 import app.laughtrack.android.feature.library.LibraryScreen
+import app.laughtrack.android.feature.library.LibrarySearchSeed
 import app.laughtrack.android.feature.notifications.NotificationCenterScreen
 import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingScreen
 import app.laughtrack.android.feature.profile.LoginPromptSheet
 import app.laughtrack.android.feature.profile.ProfileScreen
+import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.ui.SearchScreen
 import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
 import kotlin.reflect.KClass
@@ -86,6 +89,7 @@ fun AppShell(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     var pendingExternalClubId by remember { mutableStateOf<Int?>(null) }
+    var pendingSearchPivot by remember { mutableStateOf<SearchPivot?>(null) }
     val usesOpaqueCanvas = AppShellBackgrounds.usesOpaqueCanvas(currentDestination)
     val topAppBarContainerColor = if (usesOpaqueCanvas) LaughTrackColors.Canvas else Color.Transparent
 
@@ -150,7 +154,11 @@ fun AppShell(
                         HomeScreen(onOpenEntity = navController::openEntity)
                     }
                     composable<AppRoute.Search> {
-                        SearchScreen(onOpenEntity = navController::openEntity)
+                        SearchScreen(
+                            onOpenEntity = navController::openEntity,
+                            requestedPivot = pendingSearchPivot,
+                            onRequestedPivotConsumed = { pendingSearchPivot = null },
+                        )
                     }
                     composable<AppRoute.Favorites> { entry ->
                         val scopedShowIds = entry.toRoute<AppRoute.Favorites>().showIds
@@ -162,6 +170,13 @@ fun AppShell(
                                 onOpenShow = { showId ->
                                     navController.openEntity(AppRoute.ShowDetail(showId))
                                 },
+                                onOpenSaved = { destination ->
+                                    navController.openEntity(destination.toAppRoute())
+                                },
+                                onOpenSearch = { seed ->
+                                    pendingSearchPivot = seed.toSearchPivot()
+                                    navController.switchTab(AppTab.SEARCH)
+                                },
                             )
                         } else {
                             LibraryScreen(
@@ -172,6 +187,13 @@ fun AppShell(
                                 savedShowsSnapshotOverride = screenshotPersona.savedShowsSnapshot,
                                 onOpenShow = { showId ->
                                     navController.openEntity(AppRoute.ShowDetail(showId))
+                                },
+                                onOpenSaved = { destination ->
+                                    navController.openEntity(destination.toAppRoute())
+                                },
+                                onOpenSearch = { seed ->
+                                    pendingSearchPivot = seed.toSearchPivot()
+                                    navController.switchTab(AppTab.SEARCH)
                                 },
                             )
                         }
@@ -363,6 +385,21 @@ private val AppTab.icon: ImageVector
             AppTab.SEARCH -> Icons.Filled.Search
             AppTab.FAVORITES -> Icons.Filled.Favorite
         }
+
+private fun LibrarySavedDestination.toAppRoute(): AppRoute =
+    when (this) {
+        is LibrarySavedDestination.Comedian -> AppRoute.ComedianDetail(id)
+        is LibrarySavedDestination.Club -> AppRoute.ClubDetail(id)
+        is LibrarySavedDestination.Podcast -> AppRoute.PodcastDetail(id)
+    }
+
+private fun LibrarySearchSeed.toSearchPivot(): SearchPivot =
+    when (this) {
+        LibrarySearchSeed.SHOWS -> SearchPivot.SHOWS
+        LibrarySearchSeed.COMEDIANS -> SearchPivot.COMEDIANS
+        LibrarySearchSeed.CLUBS -> SearchPivot.CLUBS
+        LibrarySearchSeed.PODCASTS -> SearchPivot.PODCASTS
+    }
 
 /**
  * Switch bottom-nav tabs: pop to the graph start (saving each tab's state),
