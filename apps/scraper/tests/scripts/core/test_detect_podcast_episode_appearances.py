@@ -652,21 +652,30 @@ def test_empty_roster_run_does_not_drain_backlog(monkeypatch):
     assert "ids" not in marked
 
 
-def test_runtime_budget_persists_and_marks_only_completed_chunks(monkeypatch):
+def test_runtime_budget_persists_and_marks_only_episodes_completed_within_chunk(monkeypatch):
     episodes = [
-        _episode(episode_id=episode_id, title="Ari Shaffir on the road")
+        _episode(episode_id=episode_id, title=f"Ari Shaffir on the road {episode_id}")
         for episode_id in range(1, 6)
     ]
     persisted: list[list[int]] = []
     marked: list[list[int]] = []
-    clock = iter([100.0, 100.0, 111.0])
+    clock = {"now": 100.0}
+    normalized_text_matches = mod._normalized_text_matches
 
-    monkeypatch.setattr(mod, "_EPISODE_CHUNK_SIZE", 2)
-    monkeypatch.setattr(mod.time, "monotonic", lambda: next(clock))
+    monkeypatch.setattr(mod, "_EPISODE_CHUNK_SIZE", 1000)
+    monkeypatch.setattr(mod.time, "monotonic", lambda: clock["now"])
     monkeypatch.setattr(
         mod, "load_match_comedians", lambda **_kw: [mod.MatchComedian(12, "Ari Shaffir", [])]
     )
     monkeypatch.setattr(mod, "load_episode_inputs", lambda **_kw: episodes)
+
+    def advance_budget_during_third_episode(*args: Any, **kwargs: Any):
+        matches = normalized_text_matches(*args, **kwargs)
+        if args[0].endswith(" 3"):
+            clock["now"] = 111.0
+        return matches
+
+    monkeypatch.setattr(mod, "_normalized_text_matches", advance_budget_during_third_episode)
 
     def fake_persist(
         candidates: list[mod.EpisodeAppearanceCandidate], dry_run: bool
@@ -711,10 +720,10 @@ def test_runtime_budget_reports_complete_when_all_chunks_finish(monkeypatch):
     ]
     persisted: list[list[int]] = []
     marked: list[list[int]] = []
-    clock = iter([100.0, 100.0, 101.0])
+    clock = {"now": 100.0}
 
     monkeypatch.setattr(mod, "_EPISODE_CHUNK_SIZE", 2)
-    monkeypatch.setattr(mod.time, "monotonic", lambda: next(clock))
+    monkeypatch.setattr(mod.time, "monotonic", lambda: clock["now"])
     monkeypatch.setattr(
         mod, "load_match_comedians", lambda **_kw: [mod.MatchComedian(12, "Ari Shaffir", [])]
     )

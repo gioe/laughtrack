@@ -536,6 +536,8 @@ def _normalized_text_matches(
     text: str,
     terms_by_normalized: dict[str, list[tuple[MatchComedian, MatchTerm]]],
     max_term_words: int,
+    *,
+    deadline: Optional[float] = None,
 ) -> list[tuple[MatchComedian, MatchTerm]]:
     words = normalize_match_text(text).split()
     if not words:
@@ -543,6 +545,8 @@ def _normalized_text_matches(
     matches: list[tuple[MatchComedian, MatchTerm]] = []
     seen: set[tuple[int, str]] = set()
     for start in range(len(words)):
+        if deadline is not None and time.monotonic() >= deadline:
+            break
         for size in range(1, max_term_words + 1):
             end = start + size
             if end > len(words):
@@ -563,17 +567,28 @@ def detect_episode_candidates(
     *,
     include_aliases: bool = True,
     auto_accept: bool = True,
+    deadline: Optional[float] = None,
+    completed_episode_ids: Optional[list[int]] = None,
 ) -> list[EpisodeAppearanceCandidate]:
     candidates: list[EpisodeAppearanceCandidate] = []
-    terms_by_comedian_id = {
-        comedian.comedian_id: build_match_terms(comedian, include_aliases=include_aliases)
-        for comedian in comedians
-    }
+
+    def budget_exhausted() -> bool:
+        return deadline is not None and time.monotonic() >= deadline
+
+    terms_by_comedian_id: dict[int, list[MatchTerm]] = {}
+    for comedian in comedians:
+        if budget_exhausted():
+            return candidates
+        terms_by_comedian_id[comedian.comedian_id] = build_match_terms(
+            comedian, include_aliases=include_aliases
+        )
     comedians_by_id = {comedian.comedian_id: comedian for comedian in comedians}
     comedians_by_normalized_name: dict[str, list[MatchComedian]] = defaultdict(list)
     terms_by_normalized: dict[str, list[tuple[MatchComedian, MatchTerm]]] = defaultdict(list)
     max_term_words = 1
     for comedian in comedians:
+        if budget_exhausted():
+            return candidates
         normalized_name = normalize_match_text(comedian.name)
         if normalized_name:
             comedians_by_normalized_name[normalized_name].append(comedian)
@@ -582,13 +597,28 @@ def detect_episode_candidates(
             max_term_words = max(max_term_words, len(term.normalized.split()))
 
     for episode in episodes:
+        if budget_exhausted():
+            break
+        candidate_count_before_episode = len(candidates)
         text_matches_by_comedian_id: dict[int, list[tuple[str, str, MatchTerm]]] = defaultdict(list)
         for source_field, text in (("title", episode.title), ("description", episode.description or "")):
-            for comedian, term in _normalized_text_matches(text, terms_by_normalized, max_term_words):
+            if budget_exhausted():
+                break
+            for comedian, term in _normalized_text_matches(
+                text,
+                terms_by_normalized,
+                max_term_words,
+                deadline=deadline,
+            ):
                 text_matches_by_comedian_id[comedian.comedian_id].append((source_field, term.raw, term))
+        if budget_exhausted():
+            del candidates[candidate_count_before_episode:]
+            break
 
         person_matches_by_comedian_id: dict[int, dict[str, Any]] = {}
         for person in _person_entries(episode.source_payload):
+            if budget_exhausted():
+                break
             if not _person_role_is_guest(str(person.get("role") or "")):
                 continue
             person_name = str(person.get("name") or "").strip()
@@ -596,12 +626,17 @@ def detect_episode_candidates(
                 continue
             for comedian in comedians_by_normalized_name.get(normalize_match_text(person_name), []):
                 person_matches_by_comedian_id[comedian.comedian_id] = person
+        if budget_exhausted():
+            del candidates[candidate_count_before_episode:]
+            break
 
         episode_comedian_ids = set(text_matches_by_comedian_id)
         episode_comedian_ids.update(person_matches_by_comedian_id)
         episode_comedian_ids.update(episode.host_comedian_ids)
 
         for comedian_id in episode_comedian_ids:
+            if budget_exhausted():
+                break
             comedian = comedians_by_id.get(comedian_id)
             if comedian is None:
                 continue
@@ -690,6 +725,11 @@ def detect_episode_candidates(
                     best = candidate
             if best is not None:
                 candidates.append(best)
+        if budget_exhausted():
+            del candidates[candidate_count_before_episode:]
+            break
+        if completed_episode_ids is not None:
+            completed_episode_ids.append(episode.episode_id)
     candidates.sort(key=lambda c: (c.episode_id, c.comedian_id, -c.confidence))
     return candidates
 
@@ -942,17 +982,26 @@ def detect_podcast_episode_appearances(
             break
 
         chunk = episodes[start : start + _EPISODE_CHUNK_SIZE]
+        completed_episode_ids: list[int] = []
         candidates = detect_episode_candidates(
             comedians,
             chunk,
             include_aliases=include_aliases,
             auto_accept=auto_accept,
+            deadline=deadline,
+            completed_episode_ids=completed_episode_ids,
         )
-        chunk_summary = persist_candidates(candidates, dry_run=dry_run)
-        if not dry_run and full_roster_scan and comedians:
-            mark_episodes_scanned([episode.episode_id for episode in chunk])
-        _add_detect_summary(summary, chunk_summary)
-        summary.episodes_scanned += len(chunk)
+        if completed_episode_ids:
+            chunk_summary = persist_candidates(candidates, dry_run=dry_run)
+            if not dry_run and full_roster_scan and comedians:
+                mark_episodes_scanned(completed_episode_ids)
+            _add_detect_summary(summary, chunk_summary)
+            summary.episodes_scanned += len(completed_episode_ids)
+
+        if len(completed_episode_ids) < len(chunk):
+            summary.complete = False
+            summary.budget_exhausted = True
+            break
 
     return summary
 
