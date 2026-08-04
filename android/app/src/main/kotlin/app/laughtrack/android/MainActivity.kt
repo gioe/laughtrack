@@ -68,7 +68,6 @@ class MainActivity : ComponentActivity() {
 
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
     private val signedIn = mutableStateOf(false)
-    private val hasFavorites = mutableStateOf(false)
     private val showLoginPrompt = mutableStateOf(false)
     private val sessionRestoreCompleted = mutableStateOf(false)
     private val hasResolvedFirstEntryChoice = mutableStateOf(false)
@@ -125,7 +124,6 @@ class MainActivity : ComponentActivity() {
                                 pendingRoute = pendingRoute,
                                 onRouteConsumed = { pendingRoute = null },
                                 signedIn = signedIn.value,
-                                hasFavorites = hasFavorites.value,
                                 playbackController = playbackController,
                                 showLoginPrompt = showLoginPrompt.value,
                                 onLoginPromptDismiss = { loginPromptController.dismiss() },
@@ -182,20 +180,14 @@ class MainActivity : ComponentActivity() {
                     hasResolvedFirstEntryChoice.value = true
                     loginPromptController.dismiss()
                 }
-                // Load (or clear) favorites at the shell level so the Favorites tab's
-                // visibility is known before the user ever visits it — mirrors iOS
-                // AppShellView's auth-keyed favorites task.
+                // Keep the shared Library snapshot aligned with auth so its content is
+                // ready whenever the permanent Library destination is opened.
                 if (isSignedIn) {
                     favoritesRepository.refreshSignedInFavorites()
                 } else {
                     favoritesRepository.resetSignedOut()
                     currentUserState.reset()
                 }
-            }
-        }
-        lifecycleScope.launch {
-            favoritesRepository.snapshot.collectLatest {
-                hasFavorites.value = it.comedians.isNotEmpty()
             }
         }
         lifecycleScope.launch { refreshSignedInUser() }

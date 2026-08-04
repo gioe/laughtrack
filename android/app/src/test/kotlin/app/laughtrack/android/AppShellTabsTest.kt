@@ -2,38 +2,39 @@ package app.laughtrack.android
 
 import app.laughtrack.android.core.navigation.AppTab
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Favorites bottom-tab visibility, mirroring iOS AppShellView.showFavoritesTab:
- * the tab is exposed only for a signed-in user who has at least one favorite.
+ * The shell's top-level information architecture is stable across authentication
+ * and Library-content changes. Entity pivots remain owned by SearchScreen rather
+ * than being promoted into the shared shell.
  */
 class AppShellTabsTest {
-    @Test
-    fun favorites_tab_hidden_for_logged_out_user() {
-        assertFalse(AppShellTabs.showsFavoritesTab(signedIn = false, hasFavorites = false))
-        // Logged out, even if a stale snapshot still reports favorites.
-        assertFalse(AppShellTabs.showsFavoritesTab(signedIn = false, hasFavorites = true))
+    private val expectedTabs = listOf(AppTab.DISCOVER, AppTab.SEARCH, AppTab.FAVORITES)
 
-        val tabs = AppShellTabs.visibleTabs(signedIn = false, hasFavorites = false)
-        assertEquals(listOf(AppTab.DISCOVER, AppTab.SEARCH), tabs)
+    @Test
+    fun signed_out_shell_has_permanent_three_tab_hierarchy() {
+        assertEquals(expectedTabs, AppShellTabs.visibleTabs)
     }
 
     @Test
-    fun favorites_tab_hidden_for_logged_in_user_without_favorites() {
-        assertFalse(AppShellTabs.showsFavoritesTab(signedIn = true, hasFavorites = false))
-
-        val tabs = AppShellTabs.visibleTabs(signedIn = true, hasFavorites = false)
-        assertEquals(listOf(AppTab.DISCOVER, AppTab.SEARCH), tabs)
+    fun signed_in_empty_library_has_permanent_three_tab_hierarchy() {
+        assertEquals(expectedTabs, AppShellTabs.visibleTabs)
     }
 
     @Test
-    fun favorites_tab_shown_for_logged_in_user_with_favorites() {
-        assertTrue(AppShellTabs.showsFavoritesTab(signedIn = true, hasFavorites = true))
+    fun signed_in_populated_library_has_permanent_three_tab_hierarchy() {
+        assertEquals(expectedTabs, AppShellTabs.visibleTabs)
+    }
 
-        val tabs = AppShellTabs.visibleTabs(signedIn = true, hasFavorites = true)
-        assertEquals(listOf(AppTab.DISCOVER, AppTab.SEARCH, AppTab.FAVORITES), tabs)
+    @Test
+    fun top_level_labels_match_the_information_architecture() {
+        assertEquals("Library", AppTab.FAVORITES.label)
+        assertEquals("Search", AppTab.SEARCH.label)
+    }
+
+    @Test
+    fun search_is_the_only_top_level_entity_pivot_owner() {
+        assertEquals(listOf(AppTab.SEARCH), AppTab.entries.filter(AppTab::ownsEntityPivots))
     }
 }

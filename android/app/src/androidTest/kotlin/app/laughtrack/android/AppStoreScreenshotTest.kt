@@ -204,7 +204,6 @@ class AppStoreScreenshotTest {
                     AppShell(
                         navController = navController,
                         signedIn = screenshotPersona != null,
-                        hasFavorites = screenshotPersona != null,
                         playbackController = playbackController,
                         showLoginPrompt = showLoginPrompt,
                         onLoginPromptDismiss = { showLoginPrompt = false },
