@@ -22,6 +22,7 @@ struct SearchRootViewTests {
         let showsBlock = source[showsStart.lowerBound..<comediansStart.lowerBound]
         #expect(!showsBlock.contains("unifiedSearchText"))
         #expect(!showsBlock.contains("unifiedSearchPrompt"))
+        #expect(source.contains("showsModel.applySearchSeed(request.seed.showSearch ?? ShowSearchSeed())"))
     }
 
     @Test("search results select list and grid compositions from width class")
@@ -767,6 +768,29 @@ struct SearchRootModelTests {
         #expect(showsModel.activeConstraints(availableFilters: []).isEmpty)
         #expect(showsModel.comedianSearchText.isEmpty)
         #expect(showsModel.clubSearchText.isEmpty)
+        #expect(showsModel.maximumPrice == .any)
+        #expect(showsModel.resultsPresentation == .agenda)
+    }
+
+    @Test("default external show seed clears stale faceted state")
+    func defaultExternalShowSeedClearsStaleFacetedState() async throws {
+        let showsModel = makeShowsListModel(
+            name: "default-external-seed",
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
+        )
+        showsModel.comedianSearchText = "Atsuko"
+        showsModel.clubSearchText = "The Stand"
+        showsModel.dateRange.isActive = true
+        showsModel.selectedFilterSlugs = ["free", "improv"]
+        showsModel.maximumPrice = .forty
+        showsModel.resultsPresentation = .calendar
+
+        showsModel.applySearchSeed(ShowSearchSeed())
+
+        #expect(showsModel.comedianSearchText.isEmpty)
+        #expect(showsModel.clubSearchText.isEmpty)
+        #expect(!showsModel.dateRange.isActive)
+        #expect(showsModel.selectedFilterSlugs.isEmpty)
         #expect(showsModel.maximumPrice == .any)
         #expect(showsModel.resultsPresentation == .agenda)
     }

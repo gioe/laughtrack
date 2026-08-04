@@ -111,7 +111,7 @@ struct SearchRootView: View {
             switch request.seed.pivot {
             case .shows:
                 showsModel.applySearchSeedNearbyPreference(request.seed.nearbyPreference)
-                showsModel.applySearchSeed(request.seed.showSearch)
+                showsModel.applySearchSeed(request.seed.showSearch ?? ShowSearchSeed())
                 model.applyShortcutFilters(to: showsModel)
             case .clubs:
                 clubsModel.applySearchSeedNearbyPreference(request.seed.nearbyPreference)
