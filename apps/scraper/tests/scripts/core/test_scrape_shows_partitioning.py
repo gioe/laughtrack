@@ -28,6 +28,7 @@ from laughtrack.core.services.scraping.service import (  # noqa: E402
     _scrape_target_partition_key,
     _select_scrape_partition,
 )
+from laughtrack.core.services.metrics import MetricsService  # noqa: E402
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult  # noqa: E402
 from scripts.core import scrape_shows as mod  # noqa: E402
 
@@ -119,6 +120,48 @@ def test_merge_requires_every_partition_and_publishes_one_full_snapshot(tmp_path
     assert merged.success_rate == pytest.approx(12 / 13 * 100)
 
 
+def test_partition_metrics_defer_email_until_full_snapshot_is_finalized(tmp_path):
+    with patch.object(MetricsService, "__init__", lambda self: None):
+        metrics_service = MetricsService()
+    metrics_service._aggregator = MagicMock()
+    metrics_service._generate_and_save_dashboard = MagicMock()
+    metrics_service._process_latest_session_and_email = MagicMock()
+
+    metrics_service.end_session(
+        [], DatabaseOperationResult(), run_type="scraper_partition"
+    )
+
+    metrics_service._process_latest_session_and_email.assert_not_called()
+
+    for index, snapshot in enumerate(
+        [
+            _snapshot("2026-08-04T10:00:00+00:00", scraped=1, saved=1, clubs=1),
+            _snapshot("2026-08-04T10:01:00+00:00", scraped=1, saved=1, clubs=1),
+        ]
+    ):
+        directory = tmp_path / f"partition-{index}" / "metrics"
+        directory.mkdir(parents=True)
+        (directory / f"metrics_{index}.json").write_text(
+            json.dumps(snapshot.to_full_json()), encoding="utf-8"
+        )
+
+    metrics_service._render_and_save_dashboard = MagicMock()
+    metrics_service._persist_snapshot_json = MagicMock()
+    metrics_service._persist_snapshot_postgres = MagicMock(return_value=True)
+    club_service = SimpleNamespace(
+        club_handler=SimpleNamespace(refresh_club_total_shows=MagicMock())
+    )
+    with patch.object(mod, "geocode_missing_clubs"):
+        mod._finalize_partition_metrics(
+            tmp_path,
+            expected_partitions=2,
+            metrics_service=metrics_service,
+            club_service=club_service,
+        )
+
+    metrics_service._process_latest_session_and_email.assert_called_once_with()
+
+
 def test_partition_run_uses_non_health_metrics_and_defers_global_side_effects():
     with patch.object(ScrapingService, "__init__", lambda self: None):
         service = ScrapingService()
@@ -140,17 +183,49 @@ def test_partition_run_uses_non_health_metrics_and_defers_global_side_effects():
             service,
             "_scrape_production_companies",
             return_value=([], ScrapingRunSummary(), DatabaseOperationResult()),
-        ),
+        ) as scrape_production_companies,
         patch.object(service, "_emit_summary"),
         patch.object(service, "_check_and_alert") as check_alert,
         patch.object(service, "_send_run_summary") as send_summary,
         patch.object(service, "_geocode_missing_clubs_after_scrape") as geocode,
     ):
-        service.scrape_all_clubs(partition_index=0, partition_count=1)
+        service.scrape_all_clubs(
+            partition_index=0,
+            partition_count=1,
+            include_production_companies=False,
+        )
 
     assert service.result_processor.process_results.call_args.kwargs["run_type"] == "scraper_partition"
     check_alert.assert_not_called()
     send_summary.assert_not_called()
+    geocode.assert_not_called()
+    scrape_production_companies.assert_not_called()
+    service.club_handler.refresh_club_total_shows.assert_not_called()
+
+
+def test_production_company_phase_runs_after_venues_and_defers_global_side_effects():
+    with patch.object(ScrapingService, "__init__", lambda self: None):
+        service = ScrapingService()
+    club = _target(10)
+    club.club_type = "club"
+    service.club_handler = MagicMock()
+    service.club_handler.get_all_clubs.return_value = [club]
+    service._result_processor = MagicMock()
+
+    with (
+        patch.object(service, "_filter_off_season_festivals", return_value=[club]),
+        patch.object(
+            service,
+            "_scrape_production_companies",
+            return_value=([], ScrapingRunSummary(), DatabaseOperationResult()),
+        ) as scrape_production_companies,
+        patch.object(service, "_emit_summary"),
+        patch.object(service, "_geocode_missing_clubs_after_scrape") as geocode,
+    ):
+        service.scrape_all_production_companies()
+
+    scrape_production_companies.assert_called_once_with([club])
+    assert service.result_processor.process_results.call_args.kwargs["run_type"] == "scraper_partition"
     geocode.assert_not_called()
     service.club_handler.refresh_club_total_shows.assert_not_called()
 
@@ -204,8 +279,14 @@ def test_workflow_gates_downstream_work_and_records_unique_partitions():
 
     assert "fail-fast: false" in workflow
     assert "needs: scrape_partition" in workflow
-    assert "if: needs.scrape_partition.result == 'success'" in workflow
+    assert "needs: [scrape_partition, scrape_production_companies]" in workflow
+    assert "needs.scrape_production_companies.result == 'success'" in workflow
     assert 'MAX_CONCURRENT_CLUBS: "6"' in workflow
+    assert "--skip-production-companies" in workflow
+    assert "--production-companies-only" in workflow
+    assert "if-no-files-found: error" in workflow
+    assert "pattern: scraper-metrics-${{ github.run_id }}-*" in workflow
+    assert "--expected-partitions 3" in workflow
     assert "github_actions_scraper_pipeline_partition_${{ matrix.partition_index }}_of_2" in workflow
     assert "actions/download-artifact@v8" in workflow
     assert "pipeline-key:" in action

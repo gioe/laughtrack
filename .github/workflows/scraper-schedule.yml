@@ -101,11 +101,13 @@ jobs:
         run: |
           python -m scripts.core.scrape_shows --all \
             --partition-index "${{ matrix.partition_index }}" \
-            --partition-count 2
+            --partition-count 2 \
+            --skip-production-companies
 
       - name: Upload partition logs
         uses: actions/upload-artifact@v7
         if: always()
+        continue-on-error: true
         with:
           name: scraper-logs-${{ github.run_id }}-partition-${{ matrix.partition_index }}
           path: apps/scraper/logs/
@@ -119,6 +121,7 @@ jobs:
           path: |
             apps/scraper/dashboard.html
             apps/scraper/metrics/
+          if-no-files-found: error
           retention-days: 30
 
       - name: Record partition run
@@ -134,10 +137,95 @@ jobs:
           database-password: ${{ secrets.DATABASE_PASSWORD }}
           database-port: ${{ secrets.DATABASE_PORT }}
 
-  finalize:
-    name: Finalize completed scraper partitions
+  scrape_production_companies:
+    name: Scrape production-company feeds
     needs: scrape_partition
     if: needs.scrape_partition.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: apps/scraper
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up scraper Python environment
+        uses: ./.github/actions/scraper-setup
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+
+      - name: Run production-company scrapers
+        id: run_scraper
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          EMAIL_SMTP_SERVER: ${{ secrets.EMAIL_SMTP_SERVER }}
+          EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+          EMAIL_SMTP_USERNAME: ${{ secrets.EMAIL_SMTP_USERNAME }}
+          EMAIL_SMTP_PASSWORD: ${{ secrets.EMAIL_SMTP_PASSWORD }}
+          EMAIL_SMTP_USE_TLS: ${{ secrets.EMAIL_SMTP_USE_TLS }}
+          EMAIL_FROM_EMAIL: ${{ secrets.EMAIL_FROM_EMAIL }}
+          EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
+          ALERT_RECIPIENTS: ${{ secrets.ALERT_RECIPIENTS }}
+          TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
+          EVENTBRITE_PRIVATE_TOKEN: ${{ secrets.EVENTBRITE_PRIVATE_TOKEN }}
+          SEATENGINE_AUTH_TOKEN: ${{ secrets.SEATENGINE_AUTH_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RESIDENTIAL_PROXY_URL: ${{ secrets.RESIDENTIAL_PROXY_URL }}
+          CAPSOLVER_API_KEY: ${{ secrets.CAPSOLVER_API_KEY }}
+          MAX_CONCURRENT_CLUBS: "6"
+        run: python -m scripts.core.scrape_shows --production-companies-only
+
+      - name: Upload production-company logs
+        uses: actions/upload-artifact@v7
+        if: always()
+        continue-on-error: true
+        with:
+          name: scraper-logs-${{ github.run_id }}-production-companies
+          path: apps/scraper/logs/
+          retention-days: 30
+
+      - name: Upload production-company metrics
+        uses: actions/upload-artifact@v7
+        if: steps.run_scraper.outcome == 'success'
+        with:
+          name: scraper-metrics-${{ github.run_id }}-production-companies
+          path: |
+            apps/scraper/dashboard.html
+            apps/scraper/metrics/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record production-company phase
+        if: always()
+        continue-on-error: true
+        uses: ./.github/actions/record-pipeline-run
+        with:
+          pipeline-key: github_actions_scraper_pipeline_production_companies
+          job-status: ${{ job.status }}
+          database-name: ${{ secrets.DATABASE_NAME }}
+          database-user: ${{ secrets.DATABASE_USER }}
+          database-host: ${{ secrets.DATABASE_HOST }}
+          database-password: ${{ secrets.DATABASE_PASSWORD }}
+          database-port: ${{ secrets.DATABASE_PORT }}
+
+  finalize:
+    name: Finalize completed scraper partitions
+    needs: [scrape_partition, scrape_production_companies]
+    if: >-
+      needs.scrape_partition.result == 'success' &&
+      needs.scrape_production_companies.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     defaults:
@@ -162,7 +250,7 @@ jobs:
       - name: Download completed partition metrics
         uses: actions/download-artifact@v8
         with:
-          pattern: scraper-metrics-${{ github.run_id }}-partition-*
+          pattern: scraper-metrics-${{ github.run_id }}-*
           path: apps/scraper/partition-metrics
           merge-multiple: false
 
@@ -177,7 +265,7 @@ jobs:
         run: |
           python -m scripts.core.scrape_shows \
             --merge-partition-metrics partition-metrics \
-            --expected-partitions 2
+            --expected-partitions 3
 
       - name: Revalidate home page cache
         if: always() && steps.merge_metrics.outcome == 'success'
@@ -305,8 +393,12 @@ jobs:
 
   record_failure:
     name: Record scraper pipeline failure
-    needs: [scrape_partition, finalize]
-    if: always() && (needs.scrape_partition.result != 'success' || needs.finalize.result != 'success')
+    needs: [scrape_partition, scrape_production_companies, finalize]
+    if: >-
+      always() &&
+      (needs.scrape_partition.result != 'success' ||
+      needs.scrape_production_companies.result != 'success' ||
+      needs.finalize.result != 'success')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 

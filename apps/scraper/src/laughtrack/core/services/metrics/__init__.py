@@ -49,7 +49,10 @@ class MetricsService:
     ) -> None:
         session: ScrapingSessionResult = self._aggregator.aggregate(club_results or [])
         self._generate_and_save_dashboard(session, db_operations, run_type=run_type)
-        self._process_latest_session_and_email()
+        if run_type == "scraper_partition":
+            Logger.info("Partition metrics persisted; deferring session email until aggregation")
+        else:
+            self._process_latest_session_and_email()
 
     # ----------------- Internal orchestration helpers -----------------
     def _process_latest_session_and_email(self) -> bool:

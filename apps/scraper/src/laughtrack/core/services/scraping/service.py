@@ -575,6 +575,7 @@ class ScrapingService:
         *,
         partition_index: Optional[int] = None,
         partition_count: Optional[int] = None,
+        include_production_companies: bool = True,
     ) -> List[ClubScrapingResult]:
         Logger.info("Starting scrape of all clubs...")
         if (partition_index is None) != (partition_count is None):
@@ -605,15 +606,18 @@ class ScrapingService:
         self._try_validate_scraper_keys(scrape_targets)
         results, summary, db_result = self._scrape_clubs_with_metrics(scrape_targets)
 
-        # Scrape production companies after regular clubs
-        pc_results, pc_summary, pc_db_result = self._scrape_production_companies(
-            clubs,
-            partition_index=partition_index,
-            partition_count=partition_count,
-        )
-        results.extend(pc_results)
-        summary = summary.merge(pc_summary)
-        db_result = db_result + pc_db_result
+        # Keep this optional so CI can enforce a global phase boundary: every
+        # direct venue partition must finish before organizer feeds can update
+        # overlapping show rows and their producer attribution.
+        if include_production_companies:
+            pc_results, pc_summary, pc_db_result = self._scrape_production_companies(
+                clubs,
+                partition_index=partition_index,
+                partition_count=partition_count,
+            )
+            results.extend(pc_results)
+            summary = summary.merge(pc_summary)
+            db_result = db_result + pc_db_result
         if not partitioned:
             self._last_geocoding_result = self._geocode_missing_clubs_after_scrape()
 
@@ -628,6 +632,26 @@ class ScrapingService:
         )
         if not partitioned:
             self.club_handler.refresh_club_total_shows()
+        return results
+
+    def scrape_all_production_companies(self) -> List[ClubScrapingResult]:
+        """Scrape organizer feeds as a resumable post-venue CI phase.
+
+        The scheduled workflow calls this only after every regular target
+        partition completes. Keeping it in a separate process preserves the
+        historical direct-venues-before-organizers write order across runners.
+        Global alerts, geocoding, and club totals remain deferred until the
+        workflow aggregates all phase snapshots.
+        """
+        Logger.info("Starting scrape of all production companies...")
+        clubs = self._filter_off_season_festivals(self.club_handler.get_all_clubs())
+        results, summary, db_result = self._scrape_production_companies(clubs)
+        self._emit_summary(summary)
+        self.result_processor.process_results(
+            results,
+            db_result,
+            run_type="scraper_partition",
+        )
         return results
 
     def _geocode_missing_clubs_after_scrape(self) -> ClubGeocodingResult:

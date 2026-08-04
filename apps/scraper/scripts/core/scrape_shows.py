@@ -121,6 +121,7 @@ def _finalize_partition_metrics(
     metrics_service._persist_snapshot_json(snapshot)
     if not metrics_service._persist_snapshot_postgres(snapshot):
         raise RuntimeError("Failed to persist merged scraper metrics snapshot")
+    metrics_service._process_latest_session_and_email()
     club_service.club_handler.refresh_club_total_shows()
     try:
         result = geocode_missing_clubs()
@@ -156,6 +157,11 @@ Examples:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--all", action="store_true", help="Scrape all configured clubs")
     group.add_argument(
+        "--production-companies-only",
+        action="store_true",
+        help="Scrape production-company feeds after regular target partitions",
+    )
+    group.add_argument(
         "--merge-partition-metrics",
         type=Path,
         help="Merge completed partition metrics under this directory into one full run",
@@ -178,6 +184,11 @@ Examples:
 
     parser.add_argument("--partition-index", type=int, help="Zero-based partition to scrape")
     parser.add_argument("--partition-count", type=int, help="Total deterministic scrape partitions")
+    parser.add_argument(
+        "--skip-production-companies",
+        action="store_true",
+        help="Exclude production-company feeds from an --all scrape",
+    )
     parser.add_argument(
         "--expected-partitions",
         type=int,
@@ -206,6 +217,8 @@ Examples:
             parser.error("--merge-partition-metrics requires --expected-partitions >= 1")
     elif args.expected_partitions is not None:
         parser.error("--expected-partitions requires --merge-partition-metrics")
+    if args.skip_production_companies and not partition_args_present:
+        parser.error("--skip-production-companies requires a partitioned --all run")
 
     # Ensure console logging is configured before any logger is created/used
     # Defaults are WARNING to keep noise low; enable INFO/DEBUG when requested.
@@ -232,6 +245,7 @@ Examples:
     maintenance_only = args.merge_partition_metrics is not None
     will_scrape = (
         args.all
+        or args.production_companies_only
         or args.club_id
         or args.club
         or args.scraper_type
@@ -278,12 +292,18 @@ Examples:
             performed_primary = True
         elif args.all:
             if args.partition_index is None:
-                scrape_results = scraping_service.scrape_all_clubs()
+                scrape_results = scraping_service.scrape_all_clubs(
+                    include_production_companies=not args.skip_production_companies
+                )
             else:
                 scrape_results = scraping_service.scrape_all_clubs(
                     partition_index=args.partition_index,
                     partition_count=args.partition_count,
+                    include_production_companies=not args.skip_production_companies,
                 )
+            performed_primary = True
+        elif args.production_companies_only:
+            scrape_results = scraping_service.scrape_all_production_companies()
             performed_primary = True
         elif args.club_id:
             scrape_results = scraping_service.scrape_single_club(club_id=args.club_id); performed_primary = True
