@@ -75,7 +75,12 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         try runScenario("02_SearchShows") {
             relaunch(route: "search:0")
             assertFirstResult(identifierPrefix: "laughtrack.shows-search.result-", description: "show")
-            try captureSearch("02_SearchShows", resultIdentifierPrefix: "laughtrack.shows-search.result-", description: "show")
+            try captureSearch(
+                "02_SearchShows",
+                screenIdentifier: "laughtrack.shows-search.screen",
+                resultIdentifierPrefix: "laughtrack.shows-search.result-",
+                description: "show"
+            )
         }
 
         try runScenario("03_SearchComedians") {
@@ -470,12 +475,13 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
     private func captureSearch(
         _ name: String,
+        screenIdentifier: String = "laughtrack.search.field",
         resultIdentifierPrefix: String,
         description: String
     ) throws {
         try capture(
             name,
-            screen: identified("laughtrack.search.field", as: "Search screen"),
+            screen: identified(screenIdentifier, as: "Search screen"),
             content: [
                 prefixed(resultIdentifierPrefix, as: "loaded \(description) result"),
                 noLoadingLabels(["Loading \(description)s"]),

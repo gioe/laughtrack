@@ -12,6 +12,18 @@ import LaughTrackCore
 @Suite("Search root")
 @MainActor
 struct SearchRootViewTests {
+    @Test("shows pivot omits the global text field and mounts explicit show constraints")
+    func showsPivotOmitsGlobalTextField() throws {
+        let source = try String(contentsOf: searchRootViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("if model.activePivot != .shows"))
+        let showsStart = try #require(source.range(of: "case .shows:\n            ShowsListView("))
+        let comediansStart = try #require(source[showsStart.upperBound...].range(of: "case .comedians:"))
+        let showsBlock = source[showsStart.lowerBound..<comediansStart.lowerBound]
+        #expect(!showsBlock.contains("unifiedSearchText"))
+        #expect(!showsBlock.contains("unifiedSearchPrompt"))
+    }
+
     @Test("search results select list and grid compositions from width class")
     func searchResultsSelectAdaptiveComposition() {
         #expect(SearchResultsComposition.resolve(horizontalSizeClass: .compact) == .compactList)
@@ -38,7 +50,7 @@ struct SearchRootViewTests {
         #expect(model.query == "")
         #expect(model.selectedShortcut == "Near Me")
         #expect(SearchRootModel.Pivot.allCases == [.shows, .comedians, .clubs, .podcasts])
-        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search shows")
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Filter shows")
         #expect(SearchRootModel.Pivot.podcasts.queryPrompt == "Search podcast titles")
         #expect(ShowDistanceOption.allCases.map(\.title) == ["10 mi", "25 mi", "50 mi", "100 mi"])
         #expect(ShowSortOption.allCases.map(\.title) == ["Earliest", "Latest", "Low price", "High price"])
@@ -196,14 +208,13 @@ struct SearchRootViewTests {
         #expect(result.navigationTarget?.route == .podcastDetail(42))
     }
 
-    @Test("shows search reload debounces typed root queries before issuing transport calls")
-    func showsSearchReloadDebouncesTypedRootQuery() async throws {
+    @Test("shows search sends explicit entity, format, and maximum-price constraints")
+    func showsSearchSendsExplicitConstraints() async throws {
         let transport = StubClientTransport.alwaysFails()
         let apiClient = Client(
             serverURL: URL(string: "https://example.com")!,
             transport: transport
         )
-        let model = SearchRootModel()
         let showsModel = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
@@ -213,8 +224,10 @@ struct SearchRootViewTests {
             initialUseDateRange: false
         )
 
-        model.query = "Atsuko"
-        model.applyQuery(to: showsModel)
+        showsModel.comedianSearchText = "Atsuko"
+        showsModel.clubSearchText = "The Stand"
+        showsModel.selectedFilterSlugs = ["improv"]
+        showsModel.maximumPrice = .forty
         let reloadTask = Task {
             await showsModel.reload(apiClient: apiClient)
         }
@@ -227,6 +240,9 @@ struct SearchRootViewTests {
         let request = try #require(transport.capturedRequests.last)
         #expect(request.operationID == "searchShows")
         #expect(searchRootQueryValue("comedian", from: request.path) == "Atsuko")
+        #expect(searchRootQueryValue("club", from: request.path) == "The Stand")
+        #expect(searchRootQueryValue("filters", from: request.path) == "improv")
+        #expect(searchRootQueryValue("maxPrice", from: request.path) == "40.0")
     }
 
     @Test("shows list compact mode hides full search and filter chrome")
@@ -264,6 +280,14 @@ struct SearchRootViewTests {
             )
         )
         #expect(model.dateRange.isActive)
+    }
+
+    private func searchRootViewSourceURL(filePath: String = #filePath) -> URL {
+        URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/LaughTrackApp/SearchRootView.swift")
     }
 }
 
@@ -443,8 +467,8 @@ struct SearchRootModelTests {
 
     @Test("search model exposes compact prompt copy")
     func searchModelExposesCompactPromptCopy() async throws {
-        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search shows")
-        #expect(SearchRootModel.Pivot.shows.queryHelpText == "Start with nearby shows, then pivot into clubs or comedian profiles without leaving Search.")
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Filter shows")
+        #expect(SearchRootModel.Pivot.shows.queryHelpText == "Browse by date, place, price, format, comedian, or club.")
     }
 
     @Test("search seeds update pivot query and shortcut")
@@ -504,7 +528,7 @@ struct SearchRootModelTests {
         #expect(model.activePivot == .shows)
         #expect(showsModel.dateRange.isActive)
         #expect(showsModel.dateRange.from == calendar.startOfDay(for: now))
-        #expect(showsModel.dateRange.to == calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)))
+        #expect(showsModel.dateRange.to == calendar.startOfDay(for: now))
     }
 
     @Test("shows discovery model can start with date filtering disabled for search root")
@@ -664,7 +688,7 @@ struct SearchRootModelTests {
             clubsModel: clubsModel,
             podcastsModel: podcastsModel
         )
-        #expect(showsModel.comedianSearchText == "Mark Normand")
+        #expect(showsModel.comedianSearchText == "")
         #expect(showsModel.clubSearchText == "")
 
         model.query = "WTF"
@@ -676,12 +700,11 @@ struct SearchRootModelTests {
             podcastsModel: podcastsModel
         )
         #expect(podcastsModel.searchText == "WTF")
-        #expect(showsModel.comedianSearchText == "Mark Normand")
+        #expect(showsModel.comedianSearchText == "")
     }
 
-    @Test("shows root query maps to comedian search for now")
-    func showsRootQueryMapsToComedianSearch() async throws {
-        let model = SearchRootModel()
+    @Test("show search seed round-trips all faceted state")
+    func showSearchSeedRoundTripsFacetedState() async throws {
         let showsModel = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
@@ -690,12 +713,62 @@ struct SearchRootModelTests {
             )
         )
 
-        showsModel.clubSearchText = "Comedy Cellar"
-        model.query = "Mark Normand"
-        model.applyQuery(to: showsModel)
+        let dateRange = DateRangeFilter(
+            from: Date(timeIntervalSince1970: 1_800_000_000),
+            to: Date(timeIntervalSince1970: 1_800_086_400),
+            isActive: true
+        )
+        let seed = ShowSearchSeed(
+            comedian: "Atsuko Okatsuka",
+            club: "The Stand",
+            dateRange: dateRange,
+            filterSlugs: ["free", "open_mic"],
+            maximumPrice: .sixty,
+            distance: .regional,
+            resultsPresentation: .calendar
+        )
 
-        #expect(showsModel.comedianSearchText == "Mark Normand")
-        #expect(showsModel.clubSearchText == "")
+        showsModel.applySearchSeed(seed)
+
+        #expect(showsModel.comedianSearchText == "Atsuko Okatsuka")
+        #expect(showsModel.clubSearchText == "The Stand")
+        #expect(showsModel.selectedFilterSlugs == ["free", "open_mic"])
+        #expect(showsModel.maximumPrice == .sixty)
+        #expect(showsModel.distance == .regional)
+        #expect(showsModel.resultsPresentation == .calendar)
+        #expect(showsModel.makeSearchSeed() == seed)
+    }
+
+    @Test("show constraints are removable and clear together")
+    func showConstraintsAreRemovableAndClearTogether() async throws {
+        let showsModel = makeShowsListModel(
+            name: "constraint-clear",
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
+        )
+        showsModel.zipCodeDraft = "10012"
+        #expect(showsModel.applyManualZip())
+        showsModel.comedianSearchText = "Atsuko"
+        showsModel.clubSearchText = "The Stand"
+        showsModel.dateRange.isActive = true
+        showsModel.selectedFilterSlugs = ["free", "improv"]
+        showsModel.maximumPrice = .forty
+        showsModel.resultsPresentation = .calendar
+
+        let labels = showsModel.activeConstraints(availableFilters: []).map(\.label)
+        #expect(labels.contains("Comedian: Atsuko"))
+        #expect(labels.contains("Free"))
+        #expect(labels.contains("Improv"))
+        #expect(labels.contains("Up to $40"))
+
+        showsModel.removeConstraint(.filter("free"))
+        #expect(!showsModel.selectedFilterSlugs.contains("free"))
+
+        showsModel.clearAllFilters()
+        #expect(showsModel.activeConstraints(availableFilters: []).isEmpty)
+        #expect(showsModel.comedianSearchText.isEmpty)
+        #expect(showsModel.clubSearchText.isEmpty)
+        #expect(showsModel.maximumPrice == .any)
+        #expect(showsModel.resultsPresentation == .agenda)
     }
 
     private func makeShowsListModel(

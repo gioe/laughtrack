@@ -23,14 +23,63 @@ struct ShowsListViewPresentationTests {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
         let rowBlock = try sourceBlock(
             in: source,
-            from: "let standoutShowID = ShowsListStandout.resolveID(in: result.items)",
+            from: "private func showRows(_ shows: [Components.Schemas.Show], standoutShowID: Int?)",
             to: ".accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))"
         )
 
         #expect(rowBlock.contains("ShowRow("))
-        #expect(rowBlock.contains("let standoutShowID = ShowsListStandout.resolveID(in: result.items)"))
         #expect(rowBlock.contains("show.id == standoutShowID ? .compactTicketProminent : .compactTicket"))
         #expect(rowBlock.contains("AdaptiveSearchResults(spacing: theme.spacing.md)"))
+    }
+
+    @Test("show explorer exposes primary facets before optional entity search")
+    func showExplorerExposesPrimaryFacetsFirst() throws {
+        let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
+        let filters = try sourceBlock(
+            in: source,
+            from: "private struct ShowFiltersPanel: View",
+            to: "private struct ShowResultsCalendarView: View"
+        )
+
+        for label in ["Tonight", "This Weekend", "Location", "Max price", "Free"] {
+            #expect(filters.contains(label), "Missing directly discoverable facet: \(label)")
+        }
+        #expect(filters.contains("id: \"shows-distance\""))
+        #expect(filters.contains("systemImage: \"calendar\""))
+        #expect(ShowFormatOption.allCases.map(\.title) == ["Stand-up", "Improv", "Open mic"])
+        #expect(source.contains("Comedian (optional)"))
+        #expect(source.contains("Club (optional)"))
+        #expect(source.range(of: "ShowFiltersPanel(")!.lowerBound < source.range(of: "Comedian (optional)")!.lowerBound)
+    }
+
+    @Test("show results default to a grouped agenda and offer density calendar")
+    func showResultsOfferAgendaAndDensityCalendar() throws {
+        let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
+
+        #expect(ShowResultsPresentation.allCases == [.agenda, .calendar])
+        #expect(source.contains("Picker(\"Results view\", selection: $model.resultsPresentation)"))
+        #expect(source.contains("ShowAgenda.sections(from: shows)"))
+        #expect(source.contains("MonthCalendarView("))
+        #expect(source.contains("DateRangeDensity.compute("))
+    }
+
+    @Test("agenda groups shows by day and sorts days and start times")
+    func agendaGroupsAndSortsShows() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let dayOne = try #require(calendar.date(from: DateComponents(year: 2030, month: 4, day: 2)))
+        let dayTwo = try #require(calendar.date(from: DateComponents(year: 2030, month: 4, day: 3)))
+        let shows = [
+            makeShow(id: 3, date: dayTwo.addingTimeInterval(72_000)),
+            makeShow(id: 2, date: dayOne.addingTimeInterval(72_000)),
+            makeShow(id: 1, date: dayOne.addingTimeInterval(64_800)),
+        ]
+
+        let sections = ShowAgenda.sections(from: shows, calendar: calendar)
+
+        #expect(sections.map(\.day) == [dayOne, dayTwo])
+        #expect(sections[0].shows.map(\.id) == [1, 2])
+        #expect(sections[1].shows.map(\.id) == [3])
     }
 
     @Test("standout resolver picks the single highest positive popularity score")
@@ -80,11 +129,15 @@ struct ShowsListViewPresentationTests {
         case missingEnd(String)
     }
 
-    private func makeShow(id: Int, popularityScore: Double?) -> Components.Schemas.Show {
+    private func makeShow(
+        id: Int,
+        date: Date = Date(timeIntervalSince1970: 1_710_000_000),
+        popularityScore: Double? = nil
+    ) -> Components.Schemas.Show {
         Components.Schemas.Show(
             id: id,
             clubId: 20,
-            date: Date(timeIntervalSince1970: 1_710_000_000),
+            date: date,
             name: "Show \(id)",
             popularityScore: popularityScore,
             imageUrl: "https://example.com/show-\(id).jpg"

@@ -60,13 +60,15 @@ struct SearchRootView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
-                SearchField(
-                    title: "Search",
-                    prompt: model.activePivot.queryPrompt,
-                    text: $model.query,
-                    showsTitle: false,
-                    accessibilityIdentifier: LaughTrackViewTestID.searchRootField
-                )
+                if model.activePivot != .shows {
+                    SearchField(
+                        title: "Search",
+                        prompt: model.activePivot.queryPrompt,
+                        text: $model.query,
+                        showsTitle: false,
+                        accessibilityIdentifier: LaughTrackViewTestID.searchRootField
+                    )
+                }
 
                 activeSearchScreenWithDependencies
             }
@@ -109,6 +111,8 @@ struct SearchRootView: View {
             switch request.seed.pivot {
             case .shows:
                 showsModel.applySearchSeedNearbyPreference(request.seed.nearbyPreference)
+                showsModel.applySearchSeed(request.seed.showSearch)
+                model.applyShortcutFilters(to: showsModel)
             case .clubs:
                 clubsModel.applySearchSeedNearbyPreference(request.seed.nearbyPreference)
             case .comedians, .podcasts:
@@ -132,9 +136,6 @@ struct SearchRootView: View {
             ShowsListView(
                 apiClient: apiClient,
                 model: showsModel,
-                unifiedSearchText: $model.query,
-                unifiedSearchPrompt: model.activePivot.queryPrompt,
-                displaysSearchFields: false,
                 isActive: isActive
             )
         case .comedians:
@@ -168,7 +169,6 @@ struct SearchRootView: View {
     }
 
     private func applyRootQueryToActivePivot() {
-        model.applyShortcutFilters(to: showsModel)
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,

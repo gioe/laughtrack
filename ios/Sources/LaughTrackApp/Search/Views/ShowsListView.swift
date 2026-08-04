@@ -34,11 +34,27 @@ enum ShowsListStandout {
     }
 }
 
+struct ShowAgendaSection: Identifiable, Equatable {
+    let day: Date
+    let shows: [Components.Schemas.Show]
+
+    var id: Date { day }
+}
+
+enum ShowAgenda {
+    static func sections(
+        from shows: [Components.Schemas.Show],
+        calendar: Calendar = .current
+    ) -> [ShowAgendaSection] {
+        Dictionary(grouping: shows) { calendar.startOfDay(for: $0.date) }
+            .map { ShowAgendaSection(day: $0.key, shows: $0.value.sorted { $0.date < $1.date }) }
+            .sorted { $0.day < $1.day }
+    }
+}
+
 struct ShowsListView: View {
     let apiClient: Client
     @ObservedObject var model: ShowsListModel
-    var unifiedSearchText: Binding<String>?
-    var unifiedSearchPrompt: String?
     var displaysSearchFields = true
     var compactMode = false
     var isActive = true
@@ -49,6 +65,7 @@ struct ShowsListView: View {
     @State private var isZipEditorPresented = false
     @State private var isFilterEditorPresented = false
     @State private var isDateEditorPresented = false
+    @State private var isOptionalSearchExpanded = false
     @State private var openDropdownID: String?
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
@@ -64,33 +81,6 @@ struct ShowsListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
-                if chrome.showsSearchFields {
-                    if let unifiedSearchText {
-                        SearchField(
-                            title: "Search",
-                            prompt: unifiedSearchPrompt ?? "Search shows",
-                            text: unifiedSearchText,
-                            showsTitle: false
-                        )
-                    } else {
-                        if !model.isComedianPinned {
-                            SearchField(
-                                title: "Comedian",
-                                prompt: "Mark Normand, Atsuko Okatsuka…",
-                                text: $model.comedianSearchText
-                            )
-                        }
-
-                        if !model.isClubPinned {
-                            SearchField(
-                                title: "Club",
-                                prompt: "Comedy Cellar, The Stand…",
-                                text: $model.clubSearchText
-                            )
-                        }
-                    }
-                }
-
                 ShowFiltersPanel(
                     model: model,
                     filters: currentFilters,
@@ -101,6 +91,41 @@ struct ShowsListView: View {
                     openDropdownID: $openDropdownID,
                     compactMode: compactMode
                 )
+
+                if chrome.showsSearchFields {
+                    DisclosureGroup(isExpanded: $isOptionalSearchExpanded) {
+                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                            if !model.isComedianPinned {
+                                SearchField(
+                                    title: "Comedian (optional)",
+                                    prompt: "Mark Normand, Atsuko Okatsuka…",
+                                    text: $model.comedianSearchText
+                                )
+                            }
+
+                            if !model.isClubPinned {
+                                SearchField(
+                                    title: "Club (optional)",
+                                    prompt: "Comedy Cellar, The Stand…",
+                                    text: $model.clubSearchText
+                                )
+                            }
+                        }
+                        .padding(.top, theme.spacing.sm)
+                    } label: {
+                        Label("Add comedian or club", systemImage: "magnifyingglass")
+                            .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
+                            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+                    }
+                }
+
+                if !activeConstraints.isEmpty {
+                    ShowActiveConstraintsView(
+                        constraints: activeConstraints,
+                        remove: model.removeConstraint,
+                        clearAll: model.clearAllFilters
+                    )
+                }
 
                 if let message = nationwideComedianSearchMessage {
                     Text(message)
@@ -161,20 +186,22 @@ struct ShowsListView: View {
                                 .disabled(model.isLoadingMore)
                             }
 
-                            let standoutShowID = ShowsListStandout.resolveID(in: result.items)
-                            AdaptiveSearchResults(spacing: theme.spacing.md) {
-                                ForEach(result.items, id: \.id) { show in
-                                    Button {
-                                        coordinator.open(.show(show.id))
-                                    } label: {
-                                        ShowRow(
-                                            show: show,
-                                            presentation: show.id == standoutShowID ? .compactTicketProminent : .compactTicket
-                                        )
+                            if compactMode {
+                                showRows(result.items, standoutShowID: ShowsListStandout.resolveID(in: result.items))
+                            } else {
+                                Picker("Results view", selection: $model.resultsPresentation) {
+                                    ForEach(ShowResultsPresentation.allCases) { presentation in
+                                        Text(presentation.title).tag(presentation)
                                     }
-                                    .buttonStyle(.plain)
-                                    .accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))
                                 }
+                                .pickerStyle(.segmented)
+                                .accessibilityLabel("Show results presentation")
+
+                                if model.resultsPresentation == .calendar {
+                                    ShowResultsCalendarView(model: model, apiClient: apiClient)
+                                }
+
+                                agendaRows(result.items)
                             }
 
                             if let paginationFailure = model.paginationFailure {
@@ -202,7 +229,7 @@ struct ShowsListView: View {
         }
         .sheet(isPresented: $isFilterEditorPresented) {
             SearchFilterModal(
-                filters: currentFilters,
+                filters: secondaryFilters,
                 total: currentTotal,
                 selectedSlugs: $model.selectedFilterSlugs,
                 isPresented: $isFilterEditorPresented
@@ -235,6 +262,17 @@ struct ShowsListView: View {
                     anchors: anchors,
                     proxy: proxy
                 )
+
+                PillDropdownOverlay(
+                    id: "shows-max-price",
+                    options: ShowMaximumPriceOption.allCases,
+                    selected: $model.maximumPrice,
+                    triggerLabel: { $0 == .any ? "Max price" : $0.title },
+                    optionLabel: { $0.title },
+                    openDropdownID: $openDropdownID,
+                    anchors: anchors,
+                    proxy: proxy
+                )
             }
         }
     }
@@ -244,9 +282,56 @@ struct ShowsListView: View {
         return result.filters
     }
 
+    @ViewBuilder
+    private func agendaRows(_ shows: [Components.Schemas.Show]) -> some View {
+        let standoutShowID = ShowsListStandout.resolveID(in: shows)
+        ForEach(ShowAgenda.sections(from: shows)) { section in
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                Text(Self.agendaDateFormatter.string(from: section.day))
+                    .font(theme.laughTrackTokens.typography.sectionTitle)
+                    .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                showRows(section.shows, standoutShowID: standoutShowID)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func showRows(_ shows: [Components.Schemas.Show], standoutShowID: Int?) -> some View {
+        AdaptiveSearchResults(spacing: theme.spacing.md) {
+            ForEach(shows, id: \.id) { show in
+                Button {
+                    coordinator.open(.show(show.id))
+                } label: {
+                    ShowRow(
+                        show: show,
+                        presentation: show.id == standoutShowID ? .compactTicketProminent : .compactTicket
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))
+            }
+        }
+    }
+
+    private static let agendaDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.setLocalizedDateFormatFromTemplate("EEEE, MMMM d")
+        return formatter
+    }()
+
     private var currentTotal: Int {
         guard case .success(let result) = model.phase else { return 0 }
         return result.total
+    }
+
+    private var secondaryFilters: [Components.Schemas.Filter] {
+        let primarySlugs = Set(ShowFormatOption.allCases.map(\.rawValue)).union(["free"])
+        return currentFilters.filter { !primarySlugs.contains($0.slug) }
+    }
+
+    private var activeConstraints: [ShowActiveConstraint] {
+        model.activeConstraints(availableFilters: currentFilters)
     }
 
     private var nationwideComedianSearchMessage: String? {
@@ -325,6 +410,44 @@ enum ShowsListEmptyMessage {
     }
 }
 
+private struct ShowActiveConstraintsView: View {
+    @Environment(\.appTheme) private var theme
+
+    let constraints: [ShowActiveConstraint]
+    let remove: (ShowActiveConstraintKind) -> Void
+    let clearAll: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            HStack {
+                Text("Filtered by")
+                    .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
+                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                Spacer(minLength: 0)
+                Button("Clear all", action: clearAll)
+                    .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
+                    .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+            }
+
+            ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
+                ForEach(constraints) { constraint in
+                    Button {
+                        remove(constraint.kind)
+                    } label: {
+                        LaughTrackBrowseChip(
+                            constraint.label,
+                            systemImage: "xmark",
+                            tone: .accent
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Remove \(constraint.label) filter")
+                }
+            }
+        }
+    }
+}
+
 private struct ShowFiltersPanel: View {
     @Environment(\.appTheme) private var theme
 
@@ -345,9 +468,53 @@ private struct ShowFiltersPanel: View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
             if compactMode {
                 LaughTrackSectionHeader(title: "Search dates")
+            } else {
+                VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                    Text("EXPLORE SHOWS")
+                        .font(theme.laughTrackTokens.typography.eyebrow)
+                        .tracking(1.8)
+                        .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+                        .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
+                    Text("Start with what matters")
+                        .font(theme.laughTrackTokens.typography.sectionTitle)
+                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+                    Text("Choose a date, place, price, or kind of comedy. Add a comedian or club only when you want one.")
+                        .font(theme.laughTrackTokens.typography.metadata)
+                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                }
             }
 
             ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
+                if !compactMode {
+                    facetButton(
+                        title: "Tonight",
+                        systemImage: "moon.stars",
+                        isSelected: isTonightSelected
+                    ) {
+                        model.applyDateShortcut("Tonight")
+                    }
+
+                    facetButton(
+                        title: "This Weekend",
+                        systemImage: "sparkles",
+                        isSelected: isWeekendSelected
+                    ) {
+                        model.applyDateShortcut("This Weekend")
+                    }
+                }
+
+                if model.allowsLocationFiltering {
+                    PillSheetTrigger(
+                        title: zipChipTitle,
+                        systemImage: zipChipSystemImage,
+                        isActive: model.activeNearbyPreference != nil,
+                        accessibilityLabel: "Edit location",
+                        accessibilityHint: zipChipAccessibilityHint
+                    ) {
+                        isZipEditorPresented = true
+                    }
+                }
+
                 if model.allowsLocationFiltering {
                     PillDropdownTrigger(
                         id: "shows-distance",
@@ -356,28 +523,6 @@ private struct ShowFiltersPanel: View {
                         accessibilityLabel: { "Distance \($0.title)" },
                         openDropdownID: $openDropdownID
                     )
-                }
-
-                if chrome.showsSortControl {
-                    PillDropdownTrigger(
-                        id: "shows-sort",
-                        selected: model.sort,
-                        triggerLabel: { $0.title },
-                        accessibilityLabel: { "Sort \($0.title)" },
-                        openDropdownID: $openDropdownID
-                    )
-                }
-
-                if model.allowsLocationFiltering {
-                    PillSheetTrigger(
-                        title: zipChipTitle,
-                        systemImage: zipChipSystemImage,
-                        isActive: model.activeNearbyPreference != nil,
-                        accessibilityLabel: "Edit ZIP",
-                        accessibilityHint: zipChipAccessibilityHint
-                    ) {
-                        isZipEditorPresented = true
-                    }
                 }
 
                 PillSheetTrigger(
@@ -389,14 +534,50 @@ private struct ShowFiltersPanel: View {
                 }
 
                 if chrome.showsFilterControl {
-                    PillSheetTrigger(
-                        title: activeFilterCount > 0 ? filterCountTitle : "Filters",
-                        systemImage: "line.3.horizontal.decrease",
-                        isActive: activeFilterCount > 0,
-                        accessibilityLabel: "Filter results"
+                    facetButton(
+                        title: "Free",
+                        systemImage: "ticket",
+                        isSelected: model.selectedFilterSlugs.contains("free")
                     ) {
-                        isFilterEditorPresented = true
+                        toggleFilter("free")
                     }
+
+                    PillDropdownTrigger(
+                        id: "shows-max-price",
+                        selected: model.maximumPrice,
+                        triggerLabel: { $0 == .any ? "Max price" : $0.title },
+                        accessibilityLabel: { $0 == .any ? "Maximum price" : $0.title },
+                        openDropdownID: $openDropdownID
+                    )
+
+                    ForEach(ShowFormatOption.allCases) { format in
+                        facetButton(
+                            title: format.title,
+                            systemImage: formatSystemImage(format),
+                            isSelected: model.selectedFilterSlugs.contains(format.rawValue)
+                        ) {
+                            toggleFilter(format.rawValue)
+                        }
+                    }
+
+                    if !secondaryFilters.isEmpty {
+                        PillSheetTrigger(
+                            title: secondaryFilterCount > 0 ? secondaryFilterCountTitle : "More filters",
+                            systemImage: "line.3.horizontal.decrease",
+                            isActive: secondaryFilterCount > 0,
+                            accessibilityLabel: "More show filters"
+                        ) {
+                            isFilterEditorPresented = true
+                        }
+                    }
+
+                    PillDropdownTrigger(
+                        id: "shows-sort",
+                        selected: model.sort,
+                        triggerLabel: { $0.title },
+                        accessibilityLabel: { "Sort \($0.title)" },
+                        openDropdownID: $openDropdownID
+                    )
                 }
             }
 
@@ -429,14 +610,152 @@ private struct ShowFiltersPanel: View {
         return source == .geolocated ? "Detected from device location." : "Saved manually."
     }
 
-    private var activeFilterCount: Int {
-        model.selectedFilterSlugs.count
+    private var secondaryFilters: [Components.Schemas.Filter] {
+        let primarySlugs = Set(ShowFormatOption.allCases.map(\.rawValue)).union(["free"])
+        return filters.filter { !primarySlugs.contains($0.slug) }
     }
 
-    private var filterCountTitle: String {
-        "\(activeFilterCount) filter\(activeFilterCount == 1 ? "" : "s")"
+    private var secondaryFilterCount: Int {
+        Set(secondaryFilters.map(\.slug)).intersection(model.selectedFilterSlugs).count
     }
 
+    private var secondaryFilterCountTitle: String {
+        "\(secondaryFilterCount) more"
+    }
+
+    private var isTonightSelected: Bool {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return model.dateRange.isActive &&
+            calendar.isDate(model.dateRange.from, inSameDayAs: today) &&
+            calendar.isDate(model.dateRange.to, inSameDayAs: today)
+    }
+
+    private var isWeekendSelected: Bool {
+        guard model.dateRange.isActive else { return false }
+        let calendar = Calendar.current
+        return calendar.component(.weekday, from: model.dateRange.to) == 1 &&
+            calendar.dateComponents([.day], from: model.dateRange.from, to: model.dateRange.to).day.map { (0...2).contains($0) } == true
+    }
+
+    private func toggleFilter(_ slug: String) {
+        if model.selectedFilterSlugs.contains(slug) {
+            model.selectedFilterSlugs.remove(slug)
+        } else {
+            model.selectedFilterSlugs.insert(slug)
+        }
+    }
+
+    private func formatSystemImage(_ format: ShowFormatOption) -> String {
+        switch format {
+        case .standUp:
+            return "microphone"
+        case .improv:
+            return "theatermasks"
+        case .openMic:
+            return "person.wave.2"
+        }
+    }
+
+    private func facetButton(
+        title: String,
+        systemImage: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            LaughTrackBrowseChip(
+                title,
+                systemImage: systemImage,
+                tone: isSelected ? .accent : .neutral
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+}
+
+private struct ShowResultsCalendarView: View {
+    @Environment(\.appTheme) private var theme
+
+    @ObservedObject var model: ShowsListModel
+    let apiClient: Client
+
+    @State private var selectedDate: Date
+    @State private var cacheState = DateRangeDensityCacheState()
+
+    init(model: ShowsListModel, apiClient: Client) {
+        self.model = model
+        self.apiClient = apiClient
+        let calendar = Calendar.current
+        let initialDate = model.dateRange.isActive ? model.dateRange.from : Date()
+        _selectedDate = State(initialValue: calendar.startOfDay(for: initialDate))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            Text("Dots show dates with events for the selected location, comedian, or club.")
+                .font(theme.laughTrackTokens.typography.metadata)
+                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+
+            MonthCalendarView(
+                selection: .single($selectedDate),
+                showsByDate: mergedShowsByDate,
+                minimumDate: Calendar.current.startOfDay(for: Date()),
+                onDisplayedMonthChange: { monthStart in
+                    Task { await loadDensity(for: monthStart) }
+                }
+            )
+        }
+        .padding(theme.spacing.md)
+        .background(theme.laughTrackTokens.colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .onChange(of: selectedDate) { newDate in
+            let day = Calendar.current.startOfDay(for: newDate)
+            model.dateRange = DateRangeFilter(from: day, to: day, isActive: true)
+            model.sort = .earliest
+        }
+    }
+
+    private var mergedShowsByDate: [Date: Int] {
+        cacheState.entries.values.reduce(into: [:]) { result, entry in
+            result.merge(entry) { _, new in new }
+        }
+    }
+
+    private func loadDensity(for monthStart: Date) async {
+        let query = model.requestKey
+        let signature = densitySignature(query)
+        guard cacheState.needsFetch(monthStart: monthStart, signature: signature) else { return }
+
+        let calendar = Calendar.current
+        guard let nextMonth = calendar.date(byAdding: .month, value: 1, to: monthStart),
+              let monthEnd = calendar.date(byAdding: .day, value: -1, to: nextMonth)
+        else { return }
+
+        guard let entry = await DateRangeDensity.compute(
+            preference: effectiveNearbyPreference,
+            comedian: query.comedian.nonEmpty,
+            clubId: query.clubId,
+            club: query.club.nonEmpty,
+            fromDate: monthStart,
+            toDate: monthEnd,
+            now: Date(),
+            apiClient: apiClient
+        ) else { return }
+
+        cacheState.storeIfSignatureMatches(entry, forMonthStart: monthStart, signature: signature)
+    }
+
+    private var effectiveNearbyPreference: NearbyPreference? {
+        model.allowsLocationFiltering ? model.activeNearbyPreference : nil
+    }
+
+    private func densitySignature(_ query: ShowsListQuery) -> String {
+        "z:\(query.sanitizedZip ?? "")|d:\(query.distance.rawValue)|c:\(query.comedian)|vi:\(query.clubId.map(String.init) ?? "")|v:\(query.club)"
+    }
 }
 
 private struct ShowsDateRangeSheet: View {
@@ -483,11 +802,12 @@ private struct ShowsDateRangeSheet: View {
               let lastDayOfMonth = calendar.date(byAdding: .day, value: -1, to: nextMonthStart)
         else { return }
 
+        let query = model.requestKey
         guard let entry = await DateRangeDensity.compute(
             preference: effectiveNearbyPreference,
-            comedian: model.pinnedComedianName,
-            clubId: model.pinnedClubId,
-            club: model.pinnedClubName,
+            comedian: query.comedian.nonEmpty,
+            clubId: query.clubId,
+            club: query.club.nonEmpty,
             fromDate: monthStart,
             toDate: lastDayOfMonth,
             now: Date(),
@@ -510,10 +830,11 @@ private struct ShowsDateRangeSheet: View {
     }
 
     private var currentSignature: String {
+        let query = model.requestKey
         let pref = effectiveNearbyPreference
-        let comedian = model.pinnedComedianName ?? ""
-        let clubId = model.pinnedClubId.map(String.init) ?? ""
-        let club = model.pinnedClubName ?? ""
+        let comedian = query.comedian
+        let clubId = query.clubId.map(String.init) ?? ""
+        let club = query.club
         return "z:\(pref?.zipCode ?? "")|d:\(pref?.distanceMiles ?? 0)|c:\(comedian)|vi:\(clubId)|v:\(club)"
     }
 }

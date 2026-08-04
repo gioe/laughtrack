@@ -22,7 +22,7 @@ final class SearchRootModel: ObservableObject {
         var queryPrompt: String {
             switch self {
             case .shows:
-                return "Search shows"
+                return "Filter shows"
             case .comedians:
                 return "Search comedian names"
             case .clubs:
@@ -35,7 +35,7 @@ final class SearchRootModel: ObservableObject {
         var queryHelpText: String {
             switch self {
             case .shows:
-                return "Start with nearby shows, then pivot into clubs or comedian profiles without leaving Search."
+                return "Browse by date, place, price, format, comedian, or club."
             case .comedians:
                 return "Follow a comic's trail across upcoming dates and saved favorites."
             case .clubs:
@@ -55,17 +55,20 @@ final class SearchRootModel: ObservableObject {
         let query: String
         let shortcut: String?
         let nearbyPreference: NearbyPreference?
+        let showSearch: ShowSearchSeed?
 
         init(
             pivot: Pivot,
             query: String,
             shortcut: String?,
-            nearbyPreference: NearbyPreference? = nil
+            nearbyPreference: NearbyPreference? = nil,
+            showSearch: ShowSearchSeed? = nil
         ) {
             self.pivot = pivot
             self.query = query
             self.shortcut = shortcut
             self.nearbyPreference = nearbyPreference
+            self.showSearch = showSearch
         }
     }
 
@@ -82,13 +85,9 @@ final class SearchRootModel: ObservableObject {
     ) {
         switch selectedShortcut {
         case "Tonight":
-            let start = calendar.startOfDay(for: now)
-            showsModel.dateRange = DateRangeFilter(
-                from: start,
-                to: calendar.date(byAdding: .day, value: 1, to: start) ?? start,
-                isActive: true
-            )
-            showsModel.sort = .earliest
+            showsModel.applyDateShortcut("Tonight", now: now, calendar: calendar)
+        case "This Weekend":
+            showsModel.applyDateShortcut("This Weekend", now: now, calendar: calendar)
         case "This Week":
             let start = calendar.startOfDay(for: now)
             showsModel.dateRange = DateRangeFilter(
@@ -117,7 +116,7 @@ final class SearchRootModel: ObservableObject {
     ) {
         switch activePivot {
         case .shows:
-            applyQuery(to: showsModel)
+            break
         case .comedians:
             applyQuery(to: comediansModel)
         case .clubs:

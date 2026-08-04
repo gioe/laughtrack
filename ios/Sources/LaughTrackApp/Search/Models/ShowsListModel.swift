@@ -4,8 +4,24 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
+enum ShowActiveConstraintKind: Hashable {
+    case location
+    case date
+    case filter(String)
+    case maximumPrice
+    case comedian
+    case club
+}
+
+struct ShowActiveConstraint: Identifiable, Equatable {
+    let kind: ShowActiveConstraintKind
+    let label: String
+
+    var id: ShowActiveConstraintKind { kind }
+}
+
 @MainActor
-final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas.Show>, SearchRootQueryReceivable, SearchLocationFilterModel {
+final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas.Show>, SearchLocationFilterModel {
     @Published var zipCodeDraft = ""
     @Published var comedianSearchText = ""
     @Published var clubSearchText = ""
@@ -14,6 +30,8 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         return DateRangeFilter(from: today, to: today, isActive: true)
     }()
     @Published var selectedFilterSlugs: Set<String> = []
+    @Published var maximumPrice: ShowMaximumPriceOption = .any
+    @Published var resultsPresentation: ShowResultsPresentation = .agenda
     @Published var distance: ShowDistanceOption = .city {
         didSet {
             guard let activeNearbyPreference, activeNearbyPreference.distanceMiles != distance.rawValue else { return }
@@ -122,6 +140,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
             zip: effectiveZip,
             dateRange: dateRange,
             distance: effectiveDistance,
+            maximumPrice: maximumPrice.apiValue,
             sort: sort
         )
     }
@@ -173,15 +192,6 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         max(1, (max(0, total) + pageSize - 1) / pageSize)
     }
 
-    func applySearchRootQuery(_ query: String) {
-        // The unified root currently treats show search as a comedian-name query.
-        // Venue-name discovery remains explicit in the Clubs pivot.
-        // When a comedian is pinned, ignore root queries — the pinned name wins.
-        guard pinnedComedianName == nil else { return }
-        comedianSearchText = query
-        clubSearchText = pinnedClubName ?? ""
-    }
-
     func applySearchSeedNearbyPreference(_ preference: NearbyPreference?) {
         guard let preference, allowsLocationFiltering else { return }
         hasSearchLocalLocationOverride = true
@@ -189,6 +199,72 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         zipCodeDraft = preference.zipCode
         distance = .from(distanceMiles: preference.distanceMiles)
         nearbyStatusMessage = nil
+    }
+
+    func applySearchSeed(_ seed: ShowSearchSeed?) {
+        guard let seed else { return }
+        if pinnedComedianName == nil {
+            comedianSearchText = seed.comedian
+        }
+        if pinnedClubId == nil, pinnedClubName == nil {
+            clubSearchText = seed.club
+        }
+        if let dateRange = seed.dateRange {
+            self.dateRange = dateRange
+        } else {
+            self.dateRange.isActive = false
+        }
+        selectedFilterSlugs = seed.filterSlugs
+        maximumPrice = seed.maximumPrice
+        if let distance = seed.distance {
+            self.distance = distance
+        }
+        resultsPresentation = seed.resultsPresentation
+    }
+
+    func makeSearchSeed() -> ShowSearchSeed {
+        ShowSearchSeed(
+            comedian: pinnedComedianName ?? comedianSearchText,
+            club: pinnedClubName ?? clubSearchText,
+            dateRange: dateRange.isActive ? dateRange : nil,
+            filterSlugs: selectedFilterSlugs,
+            maximumPrice: maximumPrice,
+            distance: distance,
+            resultsPresentation: resultsPresentation
+        )
+    }
+
+    func applyDateShortcut(
+        _ shortcut: String,
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) {
+        let today = calendar.startOfDay(for: now)
+        switch shortcut {
+        case "Tonight":
+            dateRange = DateRangeFilter(
+                from: today,
+                to: today,
+                isActive: true
+            )
+        case "This Weekend":
+            let weekday = calendar.component(.weekday, from: today)
+            let daysFromFriday: Int
+            switch weekday {
+            case 1:
+                daysFromFriday = -2
+            case 7:
+                daysFromFriday = -1
+            default:
+                daysFromFriday = (6 - weekday + 7) % 7
+            }
+            let friday = calendar.date(byAdding: .day, value: daysFromFriday, to: today) ?? today
+            let sunday = calendar.date(byAdding: .day, value: 2, to: friday) ?? friday
+            dateRange = DateRangeFilter(from: max(today, friday), to: sunday, isActive: true)
+        default:
+            break
+        }
+        sort = .earliest
     }
 
     func applyDefaultNearbyPreference(_ preference: NearbyPreference?) {
@@ -224,6 +300,60 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         dateRange.isActive = false
         distance = .city
         selectedFilterSlugs = []
+        maximumPrice = .any
+        sort = .earliest
+        resultsPresentation = .agenda
+        if pinnedComedianName == nil {
+            comedianSearchText = ""
+        }
+        if pinnedClubId == nil, pinnedClubName == nil {
+            clubSearchText = ""
+        }
+    }
+
+    func activeConstraints(availableFilters: [Components.Schemas.Filter]) -> [ShowActiveConstraint] {
+        var constraints: [ShowActiveConstraint] = []
+        if let activeLocationLabel {
+            constraints.append(.init(kind: .location, label: "\(activeLocationLabel) · \(distance.title)"))
+        }
+        if dateRange.isActive {
+            constraints.append(.init(kind: .date, label: dateRange.pillLabel()))
+        }
+
+        let namesBySlug = Dictionary(uniqueKeysWithValues: availableFilters.map { ($0.slug, $0.name) })
+        for slug in selectedFilterSlugs.sorted() {
+            let fallback = ShowFormatOption(rawValue: slug)?.title ?? slug.replacingOccurrences(of: "-", with: " ").capitalized
+            constraints.append(.init(kind: .filter(slug), label: namesBySlug[slug] ?? fallback))
+        }
+        if maximumPrice != .any {
+            constraints.append(.init(kind: .maximumPrice, label: maximumPrice.title))
+        }
+        let comedian = comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if pinnedComedianName == nil, !comedian.isEmpty {
+            constraints.append(.init(kind: .comedian, label: "Comedian: \(comedian)"))
+        }
+        let club = clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if pinnedClubId == nil, pinnedClubName == nil, !club.isEmpty {
+            constraints.append(.init(kind: .club, label: "Club: \(club)"))
+        }
+        return constraints
+    }
+
+    func removeConstraint(_ kind: ShowActiveConstraintKind) {
+        switch kind {
+        case .location:
+            clearLocation()
+        case .date:
+            dateRange.isActive = false
+        case .filter(let slug):
+            selectedFilterSlugs.remove(slug)
+        case .maximumPrice:
+            maximumPrice = .any
+        case .comedian:
+            if pinnedComedianName == nil { comedianSearchText = "" }
+        case .club:
+            if pinnedClubId == nil, pinnedClubName == nil { clubSearchText = "" }
+        }
     }
 
     func applyManualZip() -> Bool {
@@ -295,6 +425,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
                         clubId: query.clubId,
                         filters: query.filtersParam,
                         distance: query.sanitizedZip == nil ? nil : query.distance.rawValue,
+                        maxPrice: query.maximumPrice,
                         sort: query.sort.rawValue
                     ),
                     headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)

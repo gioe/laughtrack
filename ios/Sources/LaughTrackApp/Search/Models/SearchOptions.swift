@@ -39,6 +39,106 @@ enum ShowSortOption: String, CaseIterable, Identifiable {
     }
 }
 
+enum ShowMaximumPriceOption: String, CaseIterable, Identifiable {
+    case any
+    case twenty
+    case forty
+    case sixty
+    case hundred
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .any:
+            return "Any price"
+        case .twenty:
+            return "Up to $20"
+        case .forty:
+            return "Up to $40"
+        case .sixty:
+            return "Up to $60"
+        case .hundred:
+            return "Up to $100"
+        }
+    }
+
+    var apiValue: Double? {
+        switch self {
+        case .any:
+            return nil
+        case .twenty:
+            return 20
+        case .forty:
+            return 40
+        case .sixty:
+            return 60
+        case .hundred:
+            return 100
+        }
+    }
+
+    static func from(apiValue: Double?) -> Self {
+        guard let apiValue else { return .any }
+        return allCases.first(where: { $0.apiValue == apiValue }) ?? .any
+    }
+}
+
+enum ShowFormatOption: String, CaseIterable, Identifiable {
+    case standUp = "standup"
+    case improv
+    case openMic = "open_mic"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .standUp:
+            return "Stand-up"
+        case .improv:
+            return "Improv"
+        case .openMic:
+            return "Open mic"
+        }
+    }
+}
+
+enum ShowResultsPresentation: String, CaseIterable, Identifiable {
+    case agenda
+    case calendar
+
+    var id: String { rawValue }
+    var title: String { rawValue.capitalized }
+}
+
+struct ShowSearchSeed: Equatable {
+    var comedian: String
+    var club: String
+    var dateRange: DateRangeFilter?
+    var filterSlugs: Set<String>
+    var maximumPrice: ShowMaximumPriceOption
+    var distance: ShowDistanceOption?
+    var resultsPresentation: ShowResultsPresentation
+
+    init(
+        comedian: String = "",
+        club: String = "",
+        dateRange: DateRangeFilter? = nil,
+        filterSlugs: Set<String> = [],
+        maximumPrice: ShowMaximumPriceOption = .any,
+        distance: ShowDistanceOption? = nil,
+        resultsPresentation: ShowResultsPresentation = .agenda
+    ) {
+        self.comedian = comedian
+        self.club = club
+        self.dateRange = dateRange
+        self.filterSlugs = filterSlugs
+        self.maximumPrice = maximumPrice
+        self.distance = distance
+        self.resultsPresentation = resultsPresentation
+    }
+}
+
 enum PrimitiveSortOption: String, CaseIterable, Identifiable {
     case mostPopular = "popularity_desc"
     case leastPopular = "popularity_asc"
@@ -125,6 +225,7 @@ struct ShowsListQuery: Hashable {
     let zip: String
     let dateRange: DateRangeFilter
     let distance: ShowDistanceOption
+    let maximumPrice: Double?
     let sort: ShowSortOption
 
     init(
@@ -135,6 +236,7 @@ struct ShowsListQuery: Hashable {
         zip: String,
         dateRange: DateRangeFilter,
         distance: ShowDistanceOption,
+        maximumPrice: Double? = nil,
         sort: ShowSortOption
     ) {
         self.comedian = comedian
@@ -144,6 +246,7 @@ struct ShowsListQuery: Hashable {
         self.zip = zip
         self.dateRange = dateRange
         self.distance = distance
+        self.maximumPrice = maximumPrice
         self.sort = sort
     }
 
@@ -175,6 +278,7 @@ struct ShowsListQuery: Hashable {
         !filters.isEmpty ||
         sanitizedZip != nil ||
         dateRange.isActive ||
+        maximumPrice != nil ||
         sort != .earliest
     }
 
@@ -188,6 +292,7 @@ struct ShowsListQuery: Hashable {
             "from=\(fromString ?? "")",
             "to=\(toString ?? "")",
             "distance=\(distance.rawValue)",
+            "maxPrice=\(maximumPrice.map { String(format: "%.2f", $0) } ?? "")",
             "sort=\(sort.rawValue)",
         ].joined(separator: "|")
     }
