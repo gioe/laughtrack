@@ -10,6 +10,8 @@ import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getTrendingPodcasts } from "@/lib/data/home/getTrendingPodcasts";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
+import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
+import { PROFILE_MISSING, resolveAuth } from "@/lib/auth/resolveAuth";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
@@ -67,7 +69,12 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const timezone = tzResult.timezone;
 
     try {
-        const session = await auth();
+        const [session, rawAuthCtx] = await Promise.all([
+            auth(),
+            resolveAuth(req),
+        ]);
+        const authCtx = rawAuthCtx === PROFILE_MISSING ? null : rawAuthCtx;
+        const profileId = authCtx?.profileId ?? null;
         const sessionZip = session?.profile?.zipCode ?? null;
         // Query ?zip= beats the session profile's stored zip; this lets
         // signed-out callers ask about a location and lets signed-in callers
@@ -88,6 +95,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             showsNearZip,
             trendingThisWeek,
             trendingPodcasts,
+            followedComedianShowCandidates,
         ] = await Promise.all([
             zipCode
                 ? getTrendingComedians(8, 0, {
@@ -143,10 +151,23 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             getTrendingPodcasts(zipCode, undefined, distanceMiles).catch(
                 logSectionError("getTrendingPodcasts"),
             ),
+            profileId
+                ? getFavoriteComedianShows(profileId).catch(
+                      logSectionError("getFavoriteComedianShows"),
+                  )
+                : Promise.resolve([]),
         ]);
 
         const heroShows = showsNearZip.slice(0, HERO_SHOW_COUNT);
         const moreNearYou = showsNearZip.slice(HERO_SHOW_COUNT);
+        const higherPriorityShowIds = new Set(
+            [...showsNearZip, ...showsTonight, ...trendingThisWeek].map(
+                (show) => show.id,
+            ),
+        );
+        const followedComedianShows = followedComedianShowCandidates.filter(
+            (show) => !higherPriorityShowIds.has(show.id),
+        );
 
         return NextResponse.json(
             {
@@ -162,6 +183,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     showsTonight,
                     moreNearYou,
                     trendingThisWeek,
+                    followedComedianShows,
                     trendingPodcasts,
                     popularClubs,
                 },

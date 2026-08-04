@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 vi.mock("@/auth", () => ({
     auth: vi.fn(),
 }));
+vi.mock("@/lib/auth/resolveAuth", () => ({
+    resolveAuth: vi.fn(),
+    PROFILE_MISSING: "PROFILE_MISSING",
+}));
 vi.mock("@/lib/rateLimit", () => ({
     applyPublicReadRateLimit: vi.fn(() =>
         Promise.resolve({
@@ -42,9 +46,13 @@ vi.mock("@/lib/data/home/getTrendingShowsThisWeek", () => ({
 vi.mock("@/lib/data/home/getTrendingPodcasts", () => ({
     getTrendingPodcasts: vi.fn(),
 }));
+vi.mock("@/lib/data/home/getFavoriteComedianShows", () => ({
+    getFavoriteComedianShows: vi.fn(),
+}));
 
 import { GET } from "./route";
 import { auth } from "@/auth";
+import { PROFILE_MISSING, resolveAuth } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
@@ -55,6 +63,7 @@ import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getTrendingPodcasts } from "@/lib/data/home/getTrendingPodcasts";
+import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
 import {
     RATE_LIMIT_SENTINEL_HEADER,
     RATE_LIMIT_SENTINEL_HEADERS,
@@ -62,6 +71,7 @@ import {
 } from "@/test/rateLimitSentinel";
 
 const mockAuth = vi.mocked(auth);
+const mockResolveAuth = vi.mocked(resolveAuth);
 const mockApplyPublicReadRateLimit = vi.mocked(applyPublicReadRateLimit);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 const mockGetHeroContext = vi.mocked(getHeroContext);
@@ -73,6 +83,7 @@ const mockGetShowsTonight = vi.mocked(getShowsTonight);
 const mockGetShowsNearZip = vi.mocked(getShowsNearZip);
 const mockGetTrendingShowsThisWeek = vi.mocked(getTrendingShowsThisWeek);
 const mockGetTrendingPodcasts = vi.mocked(getTrendingPodcasts);
+const mockGetFavoriteComedianShows = vi.mocked(getFavoriteComedianShows);
 
 function makeRequest(
     params: Record<string, string> = {},
@@ -94,12 +105,14 @@ function primeHappyPath() {
     mockGetShowsNearZip.mockResolvedValue([]);
     mockGetTrendingShowsThisWeek.mockResolvedValue([]);
     mockGetTrendingPodcasts.mockResolvedValue([]);
+    mockGetFavoriteComedianShows.mockResolvedValue([]);
 }
 
 beforeEach(() => {
     vi.clearAllMocks();
     mockRateLimitHeaders.mockReturnValue(RATE_LIMIT_SENTINEL_HEADERS);
     mockAuth.mockResolvedValue(null as never);
+    mockResolveAuth.mockResolvedValue(null);
     mockGetHeroContext.mockResolvedValue({
         zipCode: null,
         city: null,
@@ -375,6 +388,115 @@ describe("GET /api/v1/home/feed", () => {
                 body.data.hero.shows.map((s: { id: number }) => s.id),
             ).toEqual([1, 2]);
             expect(body.data.moreNearYou).toEqual([]);
+        });
+    });
+
+    describe("followedComedianShows", () => {
+        it("returns followed-comedian shows for a native bearer-authenticated profile", async () => {
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-1",
+                userId: "user-1",
+            });
+            mockGetFavoriteComedianShows.mockResolvedValue([
+                { id: 41, name: "Favorite Comic Night" },
+            ] as never);
+
+            const res = await GET(
+                makeRequest({}, { Authorization: "Bearer native-token" }),
+            );
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockResolveAuth).toHaveBeenCalledWith(
+                expect.any(NextRequest),
+            );
+            expect(mockGetFavoriteComedianShows).toHaveBeenCalledWith(
+                "profile-1",
+            );
+            expect(body.data.followedComedianShows).toEqual([
+                { id: 41, name: "Favorite Comic Night" },
+            ]);
+        });
+
+        it("deduplicates shows already present in higher-priority show sections", async () => {
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-1",
+                userId: "user-1",
+            });
+            mockGetHeroContext.mockResolvedValue({
+                zipCode: "10001",
+                city: "New York",
+                state: "NY",
+            });
+            mockGetShowsNearZip.mockResolvedValue([
+                { id: 1 },
+                { id: 2 },
+            ] as never);
+            mockGetShowsTonight.mockResolvedValue([{ id: 3 }] as never);
+            mockGetTrendingShowsThisWeek.mockResolvedValue([
+                { id: 4 },
+            ] as never);
+            mockGetFavoriteComedianShows.mockResolvedValue([
+                { id: 1 },
+                { id: 2 },
+                { id: 3 },
+                { id: 4 },
+                { id: 9 },
+            ] as never);
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(body.data.followedComedianShows).toEqual([{ id: 9 }]);
+        });
+
+        it("returns an empty section for signed-out users without querying favorites", async () => {
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockGetFavoriteComedianShows).not.toHaveBeenCalled();
+            expect(body.data.followedComedianShows).toEqual([]);
+        });
+
+        it("returns an empty section when the authenticated profile has no matching shows", async () => {
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-1",
+                userId: "user-1",
+            });
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(mockGetFavoriteComedianShows).toHaveBeenCalledWith(
+                "profile-1",
+            );
+            expect(body.data.followedComedianShows).toEqual([]);
+        });
+
+        it("treats an authenticated user without a profile as signed out", async () => {
+            mockResolveAuth.mockResolvedValue(PROFILE_MISSING);
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockGetFavoriteComedianShows).not.toHaveBeenCalled();
+            expect(body.data.followedComedianShows).toEqual([]);
+        });
+
+        it("isolates followed-comedian query failures to an empty section", async () => {
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-1",
+                userId: "user-1",
+            });
+            mockGetFavoriteComedianShows.mockRejectedValue(new Error("boom"));
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.data.followedComedianShows).toEqual([]);
         });
     });
 
