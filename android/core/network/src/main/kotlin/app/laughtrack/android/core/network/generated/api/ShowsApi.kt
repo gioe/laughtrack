@@ -93,11 +93,12 @@ interface ShowsApi {
      * @param clubId Filter by exact club ID. Use this for venue detail pages; club-name filtering remains substring-based for discovery. (optional)
      * @param filters JSON-encoded filter object (optional)
      * @param distance Radius in miles (1-500, defaults to 25 when zip provided) (optional)
+     * @param maxPrice Maximum price of an available public purchase option. Shows with only unknown-price tickets are excluded when set. (optional)
      * @param sort  (optional)
      * @param xTimezone IANA timezone identifier (defaults to UTC) (optional, default to "UTC")
      * @return [ShowSearchResponse]
      */
     @GET("shows/search")
-    suspend fun searchShows(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Query("clubId") clubId: kotlin.Int? = null, @Query("filters") filters: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("sort") sort: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<ShowSearchResponse>
+    suspend fun searchShows(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Query("clubId") clubId: kotlin.Int? = null, @Query("filters") filters: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("maxPrice") maxPrice: java.math.BigDecimal? = null, @Query("sort") sort: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<ShowSearchResponse>
 
 }

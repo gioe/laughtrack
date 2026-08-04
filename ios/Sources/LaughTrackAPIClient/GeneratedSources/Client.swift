@@ -3936,6 +3936,13 @@ public struct Client: APIProtocol {
                     in: &request,
                     style: .form,
                     explode: true,
+                    name: "maxPrice",
+                    value: input.query.maxPrice
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
                     name: "sort",
                     value: input.query.sort
                 )

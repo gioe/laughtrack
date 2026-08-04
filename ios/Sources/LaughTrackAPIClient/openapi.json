@@ -1790,6 +1790,12 @@
             "schema": { "type": "integer", "minimum": 1, "maximum": 500 }
           },
           {
+            "name": "maxPrice",
+            "in": "query",
+            "description": "Maximum price of an available public purchase option. Shows with only unknown-price tickets are excluded when set.",
+            "schema": { "type": "number", "minimum": 0 }
+          },
+          {
             "name": "sort",
             "in": "query",
             "schema": { "type": "string" }

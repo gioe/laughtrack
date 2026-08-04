@@ -12438,6 +12438,10 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/shows/search/GET/query/distance`.
                 public var distance: Swift.Int?
+                /// Maximum price of an available public purchase option. Shows with only unknown-price tickets are excluded when set.
+                ///
+                /// - Remark: Generated from `#/paths/shows/search/GET/query/maxPrice`.
+                public var maxPrice: Swift.Double?
                 /// - Remark: Generated from `#/paths/shows/search/GET/query/sort`.
                 public var sort: Swift.String?
                 /// Creates a new `Query`.
@@ -12453,6 +12457,7 @@ public enum Operations {
                 ///   - clubId: Filter by exact club ID. Use this for venue detail pages; club-name filtering remains substring-based for discovery.
                 ///   - filters: JSON-encoded filter object
                 ///   - distance: Radius in miles (1-500, defaults to 25 when zip provided)
+                ///   - maxPrice: Maximum price of an available public purchase option. Shows with only unknown-price tickets are excluded when set.
                 ///   - sort:
                 public init(
                     zip: Swift.String? = nil,
@@ -12465,6 +12470,7 @@ public enum Operations {
                     clubId: Swift.Int? = nil,
                     filters: Swift.String? = nil,
                     distance: Swift.Int? = nil,
+                    maxPrice: Swift.Double? = nil,
                     sort: Swift.String? = nil
                 ) {
                     self.zip = zip
@@ -12477,6 +12483,7 @@ public enum Operations {
                     self.clubId = clubId
                     self.filters = filters
                     self.distance = distance
+                    self.maxPrice = maxPrice
                     self.sort = sort
                 }
             }

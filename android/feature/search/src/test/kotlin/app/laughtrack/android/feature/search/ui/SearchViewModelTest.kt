@@ -314,6 +314,7 @@ class SearchViewModelTest {
             clubId: Int?,
             filters: String?,
             distance: Int?,
+            maxPrice: java.math.BigDecimal?,
             sort: String?,
             xTimezone: String?,
         ): Response<ShowSearchResponse> {
