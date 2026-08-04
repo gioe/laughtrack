@@ -98,6 +98,10 @@ public struct NotificationPreferences: Codable, Equatable {
 
 @MainActor
 public final class NotificationPreferenceStore: ObservableObject {
+    /// Shared with the UI-test reset path so mock authenticated personas cannot
+    /// leak a server-backed push opt-in into the next application launch.
+    public nonisolated static let storageKey = "laughtrack.notifications.preferences"
+
     @Published public private(set) var preferences: NotificationPreferences
 
     private let appStateStorage: AppStateStorageProtocol
@@ -145,7 +149,7 @@ public final class NotificationPreferenceStore: ObservableObject {
     }
 
     private enum StorageKey {
-        static let preferences = "laughtrack.notifications.preferences"
+        static let preferences = NotificationPreferenceStore.storageKey
     }
 }
 

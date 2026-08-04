@@ -111,6 +111,10 @@ struct LaughTrackApp: App {
         defaults.removeObject(forKey: "laughtrack.discovery.home-nearby-prompt-dismissed")
         defaults.removeObject(forKey: "laughtrack.auth.session-metadata")
         defaults.removeObject(forKey: FirstEntryAuthChoiceStore.storageKey)
+        // Authenticated screenshot personas reconcile their server-backed push
+        // opt-in into this store. Clear it with the rest of the UI-test state so
+        // a later cadence test is not permanently suppressed by that mock user.
+        defaults.removeObject(forKey: NotificationPreferenceStore.storageKey)
         // Soft push-prompt cadence state (deferralCount, lastDeferredAt,
         // postOnboardingFavoriteCount, sessionCountSinceLastDeferral). Reset so
         // the soft-prompt test_sim suite starts deterministically from a fresh
