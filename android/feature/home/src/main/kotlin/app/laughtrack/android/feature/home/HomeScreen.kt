@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -78,6 +79,9 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
+
+/** Stable semantics anchor for instrumented Discover scroll-restoration coverage. */
+const val HOME_DISCOVER_LIST_TEST_TAG = "homeDiscoverList"
 
 /** Discover/Home surface backed by the composite home feed endpoint. */
 @Composable
@@ -132,7 +136,7 @@ private fun HomeContent(
         modifier = modifier.fillMaxSize(),
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().testTag(HOME_DISCOVER_LIST_TEST_TAG),
             state = listState,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
