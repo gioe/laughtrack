@@ -224,7 +224,7 @@ def test_dirty_explicit_checkout_rejects_additional_capture_time_changes(
     assert "checkout_unchanged" not in provenance
 
 
-def test_generates_17_scenario_labeled_sheets_in_profile_order(tmp_path: Path, monkeypatch) -> None:
+def test_generates_18_scenario_labeled_sheets_in_profile_order(tmp_path: Path, monkeypatch) -> None:
     groups = []
     for scenario in SCENARIO_IDS:
         groups.append({
