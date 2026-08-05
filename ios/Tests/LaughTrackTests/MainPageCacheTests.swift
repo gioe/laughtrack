@@ -144,6 +144,42 @@ struct MainPageCacheTests {
         #expect(cached?.showsTonight.map(\.id) == [707])
     }
 
+    @Test("memory and persistent home feed caches retain only public rails")
+    func homeFeedCachesRetainOnlyPublicRails() async throws {
+        let directory = try temporaryDirectory()
+        let persistentCache = PersistentMainPageCache(directory: directory)
+        let cache = DataCache<LaughTrackCacheKey>()
+        let key = LaughTrackCacheKey.homeFeed(zipCode: "10801", distanceMiles: 25)
+        let personalizedFeed = homeFeed(showID: 733, followedShowIDs: [734])
+
+        await MainPageCache.set(
+            personalizedFeed,
+            forKey: key,
+            in: cache,
+            persistentCache: persistentCache
+        )
+
+        let memoryValue: Components.Schemas.HomeFeed? = await cache.get(forKey: key)
+        let diskValue = await PersistentMainPageCache(directory: directory).getHomeFeed(
+            zipCode: "10801",
+            distanceMiles: 25
+        )
+        #expect(memoryValue?.showsTonight.map(\.id) == [733])
+        #expect(memoryValue?.followedComedianShows.isEmpty == true)
+        #expect(diskValue?.showsTonight.map(\.id) == [733])
+        #expect(diskValue?.followedComedianShows.isEmpty == true)
+
+        // Defensive reads also sanitize a raw value written outside MainPageCache.
+        await cache.set(personalizedFeed, forKey: key)
+        let sanitizedRead: Components.Schemas.HomeFeed? = await MainPageCache.get(
+            key,
+            from: cache,
+            persistentCache: persistentCache
+        )
+        #expect(sanitizedRead?.showsTonight.map(\.id) == [733])
+        #expect(sanitizedRead?.followedComedianShows.isEmpty == true)
+    }
+
     @Test("home feed persistent cache expires entries")
     func persistentHomeFeedCacheExpiresEntries() async throws {
         let directory = try temporaryDirectory()
@@ -289,6 +325,115 @@ struct HomeFeedLoadCoalescingTests {
 
         #expect(transport.requestCount == 1)
     }
+
+    @Test("anonymous cache is reusable while sign-in refreshes personalized content")
+    func anonymousCacheDoesNotSatisfyAuthenticatedPersonalization() async {
+        let zipCode = uniqueCacheKey("test-anonymous-to-authenticated")
+        let cache = DataCache<LaughTrackCacheKey>()
+        let key = LaughTrackCacheKey.homeFeed(zipCode: zipCode, distanceMiles: 25)
+        await MainPageCache.set(
+            homeFeed(showID: 740),
+            forKey: key,
+            in: cache,
+            persistentCache: nil
+        )
+
+        let transport = CountingHomeFeedTransport(
+            result: .success(homeFeed(showID: 741, followedShowIDs: [742]))
+        )
+        let followedModel = HomeFollowedComedianShowsModel()
+        await followedModel.refresh(
+            apiClient: makeClient(transport),
+            zipCode: zipCode,
+            distanceMiles: 25,
+            sessionDiscriminator: "account-a|session-1",
+            cache: cache,
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
+        )
+
+        guard case .success(let followedShows) = followedModel.phase else {
+            Issue.record("Expected authenticated followed shows to load")
+            return
+        }
+        #expect(followedShows.map(\.id) == [742])
+        #expect(transport.requestCount == 1)
+
+        let cached: Components.Schemas.HomeFeed? = await cache.get(forKey: key)
+        #expect(cached?.showsTonight.map(\.id) == [741])
+        #expect(cached?.followedComedianShows.isEmpty == true)
+
+        let publicTransport = CountingHomeFeedTransport(
+            result: .failure(URLError(.notConnectedToInternet))
+        )
+        let publicModel = HomeShowsTonightModel()
+        await publicModel.refresh(
+            apiClient: makeClient(publicTransport),
+            zipCode: zipCode,
+            distanceMiles: 25,
+            cache: cache,
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
+        )
+        guard case .success(let publicShows) = publicModel.phase else {
+            Issue.record("Expected public rails to reuse the sanitized cache")
+            return
+        }
+        #expect(publicShows.map(\.id) == [741])
+        #expect(publicTransport.requestCount == 0)
+    }
+
+    @Test("account switches do not coalesce personalized home feed requests")
+    func accountSwitchDoesNotCoalescePersonalizedRequests() async {
+        let zipCode = uniqueCacheKey("test-account-switch")
+        let cache = DataCache<LaughTrackCacheKey>()
+        let coalescer = HomeFeedRequestCoalescer()
+        let accountATransport = CountingHomeFeedTransport(
+            result: .success(homeFeed(showID: 750, followedShowIDs: [751])),
+            responseDelay: .milliseconds(100)
+        )
+        let accountBTransport = CountingHomeFeedTransport(
+            result: .success(homeFeed(showID: 760, followedShowIDs: [761])),
+            responseDelay: .milliseconds(100)
+        )
+        let accountAModel = HomeFollowedComedianShowsModel()
+        let accountBModel = HomeFollowedComedianShowsModel()
+
+        async let accountARefresh: Void = accountAModel.refresh(
+            apiClient: makeClient(accountATransport),
+            zipCode: zipCode,
+            distanceMiles: 25,
+            sessionDiscriminator: "account-a|session-1",
+            cache: cache,
+            persistentCache: nil,
+            coalescer: coalescer
+        )
+        async let accountBRefresh: Void = accountBModel.refresh(
+            apiClient: makeClient(accountBTransport),
+            zipCode: zipCode,
+            distanceMiles: 25,
+            sessionDiscriminator: "account-b|session-1",
+            cache: cache,
+            persistentCache: nil,
+            coalescer: coalescer
+        )
+        _ = await (accountARefresh, accountBRefresh)
+
+        guard case .success(let accountAShows) = accountAModel.phase,
+              case .success(let accountBShows) = accountBModel.phase else {
+            Issue.record("Expected both account-scoped personalized loads to succeed")
+            return
+        }
+        #expect(accountAShows.map(\.id) == [751])
+        #expect(accountBShows.map(\.id) == [761])
+        #expect(accountATransport.requestCount == 1)
+        #expect(accountBTransport.requestCount == 1)
+
+        let cached: Components.Schemas.HomeFeed? = await cache.get(
+            forKey: .homeFeed(zipCode: zipCode, distanceMiles: 25)
+        )
+        #expect(cached?.followedComedianShows.isEmpty == true)
+    }
 }
 
 private func temporaryDirectory() throws -> URL {
@@ -310,7 +455,10 @@ private func makeClient(_ transport: ClientTransport) -> Client {
     )
 }
 
-private func homeFeed(showID: Int) -> Components.Schemas.HomeFeed {
+private func homeFeed(
+    showID: Int,
+    followedShowIDs: [Int] = []
+) -> Components.Schemas.HomeFeed {
     .init(
         hero: .init(
             zipCode: "10012",
@@ -323,7 +471,7 @@ private func homeFeed(showID: Int) -> Components.Schemas.HomeFeed {
         showsTonight: [homeShow(id: showID)],
         moreNearYou: [],
         trendingThisWeek: [],
-        followedComedianShows: [],
+        followedComedianShows: followedShowIDs.map(homeShow),
         trendingPodcasts: [],
         popularClubs: []
     )
