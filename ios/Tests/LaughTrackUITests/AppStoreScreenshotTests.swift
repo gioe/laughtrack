@@ -389,6 +389,11 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         try runScenario("15_AuthenticatedFavorites") {
             relaunch(route: "favorites:0", authenticatedPersona: true)
             assertExists("laughtrack.favorites-tab.screen", message: "Expected authenticated Favorites screen")
+            let savedShow = app.staticTexts["Taylor Tomlinson Live"].firstMatch
+            XCTAssertTrue(
+                scrollElementIntoView(savedShow, in: app, maxDrags: 4),
+                "Expected saved favorite show to be visible before capture"
+            )
             try capture(
                 "15_AuthenticatedFavorites",
                 screen: identified("laughtrack.favorites-tab.screen", as: "authenticated Favorites screen"),

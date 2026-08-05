@@ -5,6 +5,8 @@ import json
 import threading
 import urllib.error
 import urllib.request
+from datetime import date, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -14,8 +16,12 @@ from scripts.screenshots.fixture_server import (
     CONTENT_FIXTURE,
     CURATED_MODE,
     DEFAULT_MODE,
+    EPISODE_RELEASE_DATE,
     FALLBACK_MODE,
     FixtureServer,
+    PRIMARY_SHOW_DATE,
+    REVIEW_ANCHOR_DATE,
+    SECONDARY_SHOW_DATE,
     artwork_png,
     fixture_mode_fingerprint,
     fixture_response,
@@ -28,6 +34,7 @@ SEARCH_PATHS = (
     "/api/v1/clubs/search",
     "/api/v1/podcasts/search",
 )
+CATALOG_PATH = Path(__file__).resolve().parents[3] / "screenshots" / "catalog.json"
 
 
 @pytest.fixture
@@ -70,6 +77,96 @@ def test_default_mode_uses_curated_artwork_for_every_shipping_profile() -> None:
         assert payload["total"] == 12
 
 
+def test_shipping_profiles_share_storefront_narrative() -> None:
+    catalog = json.loads(CATALOG_PATH.read_text())
+    catalog_fixture = catalog["content_fixture"]
+    shipping_profile_ids = {
+        profile["id"] for profile in catalog["profiles"] if profile["shipping"]
+    }
+    shipping_modes = {
+        profile_id: catalog_fixture["profile_modes"][profile_id]
+        for profile_id in shipping_profile_ids
+    }
+    shipping_contracts = [
+        catalog_fixture["modes"][mode] for mode in shipping_modes.values()
+    ]
+
+    assert catalog_fixture == CONTENT_FIXTURE
+    assert shipping_profile_ids == {
+        "ios_phone",
+        "android_phone",
+        "android_small_tablet",
+        "android_large_tablet",
+    }
+    assert FALLBACK_MODE not in shipping_modes.values()
+    assert {contract["result_count"] for contract in shipping_contracts} == {12}
+    assert {
+        json.dumps(contract["featured_entities"], sort_keys=True)
+        for contract in shipping_contracts
+    } == {
+        json.dumps(
+            CONTENT_FIXTURE["modes"][CURATED_MODE]["featured_entities"],
+            sort_keys=True,
+        )
+    }
+    assert all(
+        contract["featured_entities"]["show"] == {
+            "id": 101,
+            "name": "Taylor Tomlinson & Friends",
+            "headliner": "Taylor Tomlinson",
+        }
+        for contract in shipping_contracts
+    )
+
+
+def test_fixture_dates_are_plausible_and_deterministic() -> None:
+    review_anchor = date.fromisoformat(CONTENT_FIXTURE["review_anchor_date"])
+    assert REVIEW_ANCHOR_DATE == review_anchor
+    assert PRIMARY_SHOW_DATE == date(2026, 8, 14)
+    assert SECONDARY_SHOW_DATE == date(2026, 8, 15)
+    assert EPISODE_RELEASE_DATE == date(2026, 8, 1)
+
+    payloads = {}
+    for mode, contract in CONTENT_FIXTURE["modes"].items():
+        first = fixture_response("/api/v1/shows/search", "http://fixture", mode)
+        repeated = fixture_response("/api/v1/shows/search", "http://fixture", mode)
+        assert first == repeated
+        payloads[mode] = first
+
+        contract_dates = {
+            key: datetime.fromisoformat(value)
+            for key, value in contract["dates"].items()
+        }
+        shows_by_id = {show["id"]: show for show in first["data"]}
+        assert (
+            datetime.fromisoformat(shows_by_id[101]["date"])
+            == contract_dates["primary_show"]
+        )
+        assert (
+            datetime.fromisoformat(shows_by_id[102]["date"])
+            == contract_dates["secondary_show"]
+        )
+        assert 0 < (contract_dates["primary_show"].date() - review_anchor).days <= 30
+        assert 0 < (contract_dates["secondary_show"].date() - review_anchor).days <= 30
+        assert all(
+            review_anchor
+            < datetime.fromisoformat(show["date"]).date()
+            <= review_anchor + timedelta(days=30)
+            for show in first["data"]
+        )
+
+        episode = fixture_response(
+            "/api/v1/podcast-episodes/501", "http://fixture", mode
+        )["episode"]
+        release_date = date.fromisoformat(episode["releaseDate"])
+        assert release_date == EPISODE_RELEASE_DATE
+        assert review_anchor - timedelta(days=30) <= release_date <= review_anchor
+
+    assert [show["date"] for show in payloads[CURATED_MODE]["data"][:5]] == [
+        show["date"] for show in payloads[FALLBACK_MODE]["data"]
+    ]
+
+
 def test_fallback_focused_mode_remains_available_for_targeted_verification() -> None:
     contract = CONTENT_FIXTURE["modes"][FALLBACK_MODE]
     referenced_artwork: set[str] = set()
@@ -96,11 +193,11 @@ def test_club_highlights_fixture_populates_tonight_and_qualified_performers() ->
     payload = fixture_response("/api/v1/clubs/201/highlights", "http://fixture")
     highlights = payload["data"]
 
-    assert [show["id"] for show in highlights["tonightShows"]] == [106, 101, 107, 108]
+    assert [show["id"] for show in highlights["tonightShows"]] == [101, 106, 107, 108]
     assert [
         show["lineup"][0]["name"] for show in highlights["tonightShows"]
-    ] == ["Ali Wong", "Taylor Tomlinson", "Andrew Schulz", "Taylor Tomlinson"]
-    assert highlights["tonightShows"][1]["lineup"][0]["socialData"]["popularity"] == 98
+    ] == ["Taylor Tomlinson", "Ali Wong", "Andrew Schulz", "Taylor Tomlinson"]
+    assert highlights["tonightShows"][0]["lineup"][0]["socialData"]["popularity"] == 98
     assert highlights["nextShow"]["id"] == 102
     assert highlights["nextShow"]["lineup"] == []
     assert highlights["nextShow"]["imageUrl"].endswith("/artwork/show-friends.png")

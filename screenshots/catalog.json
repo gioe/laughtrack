@@ -3,6 +3,7 @@
   "content_fixture": {
     "id": "native-screenshot-v3",
     "default_mode": "curated",
+    "review_anchor_date": "2026-08-05",
     "profile_modes": {
       "ios_phone": "curated",
       "ios_large_tablet": "curated",
@@ -141,8 +142,8 @@
           "episode": { "id": 501, "name": "#2520 - A Night of Comedy" }
         },
         "dates": {
-          "primary_show": "2030-07-18T20:00:00-07:00",
-          "secondary_show": "2030-07-19T21:00:00-07:00"
+          "primary_show": "2026-08-14T20:00:00-07:00",
+          "secondary_show": "2026-08-15T21:00:00-07:00"
         },
         "artwork": {
           "required_keys": ["ali-wong", "taylor", "comedy-store", "show-friends", "joe-rogan"],
@@ -160,8 +161,8 @@
           "episode": { "id": 501, "name": "#2520 - A Night of Comedy" }
         },
         "dates": {
-          "primary_show": "2030-07-18T20:00:00-07:00",
-          "secondary_show": "2030-07-19T21:00:00-07:00"
+          "primary_show": "2026-08-14T20:00:00-07:00",
+          "secondary_show": "2026-08-15T21:00:00-07:00"
         },
         "artwork": {
           "required_keys": [

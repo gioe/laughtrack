@@ -8,12 +8,19 @@ import hashlib
 import json
 import struct
 import threading
+from datetime import date, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 
 ASSET_ROOT = Path(__file__).with_name("assets")
+REVIEW_ANCHOR_DATE = date(2026, 8, 5)
+PRIMARY_SHOW_DATE = date(2026, 8, 14)
+SECONDARY_SHOW_DATE = date(2026, 8, 15)
+EPISODE_RELEASE_DATE = REVIEW_ANCHOR_DATE - timedelta(days=4)
+PRIMARY_SHOW_DATETIME = f"{PRIMARY_SHOW_DATE.isoformat()}T20:00:00-07:00"
+SECONDARY_SHOW_DATETIME = f"{SECONDARY_SHOW_DATE.isoformat()}T21:00:00-07:00"
 ARTWORK_ASSETS = {
     "ali-wong": {
         "filename": "ali-wong.png",
@@ -133,6 +140,7 @@ ARTWORK_ASSETS = {
 CONTENT_FIXTURE = {
     "id": "native-screenshot-v3",
     "default_mode": "curated",
+    "review_anchor_date": REVIEW_ANCHOR_DATE.isoformat(),
     "profile_modes": {
         "ios_phone": "curated",
         "ios_large_tablet": "curated",
@@ -162,8 +170,8 @@ CONTENT_FIXTURE = {
                 "episode": {"id": 501, "name": "#2520 - A Night of Comedy"},
             },
             "dates": {
-                "primary_show": "2030-07-18T20:00:00-07:00",
-                "secondary_show": "2030-07-19T21:00:00-07:00",
+                "primary_show": PRIMARY_SHOW_DATETIME,
+                "secondary_show": SECONDARY_SHOW_DATETIME,
             },
             "artwork": {
                 "required_keys": [
@@ -191,8 +199,8 @@ CONTENT_FIXTURE = {
                 "episode": {"id": 501, "name": "#2520 - A Night of Comedy"},
             },
             "dates": {
-                "primary_show": "2030-07-18T20:00:00-07:00",
-                "secondary_show": "2030-07-19T21:00:00-07:00",
+                "primary_show": PRIMARY_SHOW_DATETIME,
+                "secondary_show": SECONDARY_SHOW_DATETIME,
             },
             "artwork": {
                 "required_keys": [
@@ -413,13 +421,16 @@ def _show(
     hour: int = 20,
     artwork_key: str = "show-friends",
     lineup: list[dict] | None = None,
-    day: int | None = None,
+    show_date: date | None = None,
     mode: str = DEFAULT_MODE,
 ) -> dict:
+    resolved_date = show_date or (
+        PRIMARY_SHOW_DATE if show_id == 101 else SECONDARY_SHOW_DATE
+    )
     return {
         "id": show_id,
         "clubId": 201,
-        "date": f"2030-07-{day if day is not None else (18 if show_id == 101 else 19):02d}T{hour:02d}:00:00-07:00",
+        "date": f"{resolved_date.isoformat()}T{hour:02d}:00:00-07:00",
         "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
         "clubName": "The Comedy Store",
         "clubCity": "West Hollywood",
@@ -441,10 +452,46 @@ def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
         SHOW_ARTWORK if mode == CURATED_MODE else ["show-friends"] * 4
     )
     tonight = [
-        _show(base_url, 106, "Ali Wong: Live", 19, tonight_artwork[0], lineup=[ali], day=18, mode=mode),
-        _show(base_url, 101, "Taylor Tomlinson & Friends", 20, tonight_artwork[1], lineup=[taylor], day=18, mode=mode),
-        _show(base_url, 107, "Andrew Schulz: New Material", 21, tonight_artwork[2], lineup=[andrew], day=18, mode=mode),
-        _show(base_url, 108, "Late Night with Taylor", 22, tonight_artwork[3], lineup=[taylor], day=18, mode=mode),
+        _show(
+            base_url,
+            101,
+            "Taylor Tomlinson & Friends",
+            20,
+            tonight_artwork[0],
+            lineup=[taylor],
+            show_date=PRIMARY_SHOW_DATE,
+            mode=mode,
+        ),
+        _show(
+            base_url,
+            106,
+            "Ali Wong: Live",
+            19,
+            tonight_artwork[1],
+            lineup=[ali],
+            show_date=PRIMARY_SHOW_DATE,
+            mode=mode,
+        ),
+        _show(
+            base_url,
+            107,
+            "Andrew Schulz: New Material",
+            21,
+            tonight_artwork[2],
+            lineup=[andrew],
+            show_date=PRIMARY_SHOW_DATE,
+            mode=mode,
+        ),
+        _show(
+            base_url,
+            108,
+            "Late Night with Taylor",
+            22,
+            tonight_artwork[3],
+            lineup=[taylor],
+            show_date=PRIMARY_SHOW_DATE,
+            mode=mode,
+        ),
     ]
     later = []
     reserved_ids = {show["id"] for show in tonight}
@@ -469,13 +516,13 @@ def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
                 base_url,
                 show_id,
                 SHOW_NAMES[index % len(SHOW_NAMES)],
-                SHOW_HOURS[index % len(SHOW_HOURS)],
+                SHOW_HOURS[(index + 1) % len(SHOW_HOURS)],
                 "show-friends" if mode == FALLBACK_MODE else SHOW_ARTWORK[index % len(SHOW_ARTWORK)],
                 # Keep one deterministic, lineup-unannounced showcase so the
                 # shipping screenshot matrix exercises dedicated show artwork
                 # instead of always preferring a comedian headshot.
                 lineup=[] if index == 0 else [lineup],
-                day=19 + index // 5,
+                show_date=SECONDARY_SHOW_DATE + timedelta(days=index // 5),
                 mode=mode,
             )
         )
@@ -486,7 +533,7 @@ def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
 def _club_tonight_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
     return [
         show for show in _club_shows(base_url, mode)
-        if show["date"].startswith("2030-07-18")
+        if show["date"].startswith(PRIMARY_SHOW_DATE.isoformat())
     ]
 
 
@@ -520,7 +567,7 @@ def _podcast_episode(base_url: str) -> dict:
         "id": 501,
         "title": "#2520 - A Night of Comedy",
         "description": "A conversation about stand-up, new material, and life on the road.",
-        "releaseDate": "2030-07-01",
+        "releaseDate": EPISODE_RELEASE_DATE.isoformat(),
         "durationSeconds": 8940,
         "episodeUrl": "https://example.invalid/episodes/501",
         "audioUrl": "https://example.invalid/audio/501.mp3",

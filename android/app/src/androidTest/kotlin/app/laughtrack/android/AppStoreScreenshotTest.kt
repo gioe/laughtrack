@@ -274,9 +274,13 @@ class AppStoreScreenshotTest {
         // 06 — Show detail. Match iOS by opening the first upcoming show from
         // the selected club's calendar rather than returning to global Shows.
         waitFor(hasTestTag(CLUB_SHOW_ROW_TEST_TAG), timeoutMs = 30_000)
-        composeRule.onAllNodes(hasTestTag(CLUB_SHOW_ROW_TEST_TAG)).onFirst().performScrollTo().performClick()
+        composeRule
+            .onNode(hasTestTag(CLUB_SHOW_ROW_TEST_TAG) and hasText("Taylor Tomlinson & Friends"))
+            .performScrollTo()
+            .performClick()
         waitFor(hasContentDescription("Home"), timeoutMs = 20_000)
         waitForDetail()
+        waitFor(hasText("TAYLOR TOMLINSON & FRIENDS"), timeoutMs = 20_000)
         if (capture("06_ShowDetail")) return
         goBackToClubDetail()
         goBack()
@@ -358,7 +362,8 @@ class AppStoreScreenshotTest {
         }
 
         navigate(navController, AppRoute.Favorites())
-        waitFor(hasText("Taylor Tomlinson"))
+        waitFor(hasText("Taylor Tomlinson Live"))
+        composeRule.onNodeWithText("Taylor Tomlinson Live").performScrollTo()
         if (capture("15_AuthenticatedFavorites")) return
 
         navigate(navController, AppRoute.Profile)
