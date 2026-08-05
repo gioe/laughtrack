@@ -23,6 +23,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.test.platform.app.InstrumentationRegistry
+import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.ApiClientModule
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
@@ -52,6 +53,7 @@ import org.junit.Test
 import tools.fastlane.screengrab.Screengrab
 import tools.fastlane.screengrab.UiAutomatorScreenshotStrategy
 import tools.fastlane.screengrab.locale.LocaleTestRule
+import javax.inject.Inject
 
 /**
  * Captures the complete comparison screenshot set, mirroring the iOS
@@ -110,6 +112,12 @@ class AppStoreScreenshotTest {
         val selected = selectedScenarioIds ?: return@lazy null
         screenshotExecutionOrder.lastOrNull { it in selected }
     }
+    private val capturesNearMe: Boolean by lazy {
+        selectedScenarioIds == null || "01_NearMe" in selectedScenarioIds.orEmpty()
+    }
+
+    @Inject
+    lateinit var homeLocationState: HomeLocationState
 
     @BindValue
     @JvmField
@@ -150,6 +158,13 @@ class AppStoreScreenshotTest {
         // test activity). The FakeHomeLocationResolver still short-circuits GPS and
         // returns 90028 — the grant only keeps the in-app permission check happy.
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        // Screengrab's host-side cleanup cannot delete app-private files on
+        // current Android releases. Clear the directory from inside the target
+        // process so a focused run never pulls a screenshot left by an earlier
+        // complete-matrix capture.
+        check(instrumentation.targetContext.getDir("screengrab", Context.MODE_PRIVATE).deleteRecursively()) {
+            "Unable to clear stale app-private Screengrab screenshots"
+        }
         fixtureMode =
             if (instrumentation.targetContext.resources.configuration.smallestScreenWidthDp >= 600) {
                 "asset-rich"
@@ -213,20 +228,23 @@ class AppStoreScreenshotTest {
             }
         }
 
-        // 01 — Near Me. The location controls live behind the header row's bottom
-        // sheet (TASK-3624): open it via the chevron's stable contentDescription
-        // (the row title varies with the server-inferred area), trigger
-        // use-device-location so the fake resolver (90028) drives the Discover
-        // feed, then wait for the LA feed.
-        waitFor(hasContentDescription("Edit location"))
-        composeRule.onNodeWithContentDescription("Edit location").performClick()
-        waitFor(hasText("Use my location"))
-        composeRule.onNodeWithText("Use my location").performClick()
-        waitFor(
-            hasText("Near Los Angeles", substring = true) or hasText("90028", substring = true),
-            timeoutMs = 30_000,
-        )
-        if (capture("01_NearMe")) return
+        if (capturesNearMe) {
+            // 01 — Near Me. The complete matrix keeps driving the real location
+            // controls in canonical order before Search. Focused runs that omit
+            // this scenario instead wait on the shared state below, avoiding a
+            // dependency on unrelated Discover layout and semantics.
+            waitFor(hasContentDescription("Edit location"))
+            composeRule.onNodeWithContentDescription("Edit location").performClick()
+            waitFor(hasText("Use my location"))
+            composeRule.onNodeWithText("Use my location").performClick()
+            waitFor(
+                hasText("Near Los Angeles", substring = true) or hasText("90028", substring = true),
+                timeoutMs = 30_000,
+            )
+            if (capture("01_NearMe")) return
+        } else {
+            waitForCanonicalHomeLocation()
+        }
 
         // 02 — Search / Shows (the default pivot). The Search tab's contentDescription
         // lives on the icon, which NavigationBarItem merges under its label Text — so
@@ -422,6 +440,16 @@ class AppStoreScreenshotTest {
 
     private fun assertFixtureResultCount() {
         waitFor(hasText("Showing $fixtureResultCount results"), timeoutMs = 15_000)
+    }
+
+    private fun waitForCanonicalHomeLocation() {
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            homeLocationState.location.value?.let { location ->
+                location.zip == "90028" &&
+                    location.distanceMiles == 25 &&
+                    location.locationLabel == "Los Angeles, CA"
+            } == true
+        }
     }
 
     private fun configureFixture(mode: String): Int {
