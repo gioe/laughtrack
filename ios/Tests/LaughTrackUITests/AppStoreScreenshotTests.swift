@@ -77,8 +77,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             "Expected the This Week rail beyond the first Discover rail"
         )
         XCTAssertTrue(
-            waitUntilVisible(retainedSectionAnchor, in: homeScreen, timeout: 2),
-            "Expected the retained This Week anchor to remain tappable"
+            scrollElementIntoView(retainedSectionAnchor, in: homeScreen, maxDrags: 2),
+            "Expected the retained This Week anchor to become tappable"
         )
 
         retainedSectionAnchor.tap()
@@ -713,6 +713,51 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
         return sectionMarker.frame.minY <= retentionThresholdY
             && sectionMarker.frame.maxY >= viewport.frame.minY
+    }
+
+    private func scrollElementIntoView(
+        _ element: XCUIElement,
+        in viewport: XCUIElement,
+        maxDrags: Int
+    ) -> Bool {
+        guard element.waitForExistence(timeout: 5) else { return false }
+
+        for _ in 0..<maxDrags {
+            if element.isHittable && viewport.frame.intersects(element.frame) {
+                return true
+            }
+
+            let frame = element.frame
+            guard !frame.isNull, !frame.isInfinite else { return false }
+
+            let distance = frame.midY - viewport.frame.midY
+            let normalizedDistance = min(max(abs(distance) / app.frame.height, 0.15), 0.5)
+            let startY = distance > 0 ? 0.75 : 0.25
+            let endY = distance > 0
+                ? startY - normalizedDistance
+                : startY + normalizedDistance
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY))
+            start.press(
+                forDuration: 0.05,
+                thenDragTo: end,
+                withVelocity: .slow,
+                thenHoldForDuration: 0.25
+            )
+
+            let expectation = XCTNSPredicateExpectation(
+                predicate: NSPredicate { object, _ in
+                    guard let element = object as? XCUIElement else { return false }
+                    return element.isHittable && viewport.frame.intersects(element.frame)
+                },
+                object: element
+            )
+            if XCTWaiter.wait(for: [expectation], timeout: 2) == .completed {
+                return true
+            }
+        }
+
+        return element.isHittable && viewport.frame.intersects(element.frame)
     }
 
     private func element(_ identifier: String) -> XCUIElement {
