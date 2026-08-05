@@ -39,9 +39,14 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             selectedScenarioIDs = app.launchArguments[index + 1].split(separator: ",").map(String.init)
         }
         let port = ProcessInfo.processInfo.environment["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"] ?? "8765"
-        let fixtureMode = UIDevice.current.userInterfaceIdiom == .pad
-            ? "asset-rich"
-            : "fallback-focused"
+        let fixtureMode: String
+        if let index = app.launchArguments.firstIndex(of: "-ScreenshotFixtureMode"),
+           app.launchArguments.indices.contains(index + 1)
+        {
+            fixtureMode = app.launchArguments[index + 1]
+        } else {
+            fixtureMode = "curated"
+        }
         configureFixture(mode: fixtureMode, port: port)
         app.launchEnvironment["LAUGHTRACK_API_BASE_URL"] = "http://127.0.0.1:\(port)"
         app.launchEnvironment["LAUGHTRACK_SCREENSHOT_FIXTURE_MODE"] = fixtureMode

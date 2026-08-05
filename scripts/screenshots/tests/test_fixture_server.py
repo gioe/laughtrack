@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import threading
 import urllib.error
@@ -8,8 +9,12 @@ import urllib.request
 import pytest
 
 from scripts.screenshots.fixture_server import (
+    ARTWORK_ASSETS,
+    ASSET_ROOT,
     CONTENT_FIXTURE,
+    CURATED_MODE,
     DEFAULT_MODE,
+    FALLBACK_MODE,
     FixtureServer,
     artwork_png,
     fixture_mode_fingerprint,
@@ -43,17 +48,41 @@ def get_json(url: str) -> dict:
         return json.loads(response.read())
 
 
-def test_default_mode_preserves_fallback_focused_contract() -> None:
+def artwork_keys(value: object) -> set[str]:
+    if isinstance(value, dict):
+        return set().union(*(artwork_keys(item) for item in value.values()))
+    if isinstance(value, list):
+        return set().union(*(artwork_keys(item) for item in value))
+    if isinstance(value, str) and value.startswith("http://fixture/artwork/"):
+        return {value.rsplit("/", 1)[-1].removesuffix(".png")}
+    return set()
+
+
+def test_default_mode_uses_curated_artwork_for_every_shipping_profile() -> None:
     contract = CONTENT_FIXTURE["modes"][DEFAULT_MODE]
 
-    assert DEFAULT_MODE == "fallback-focused"
-    assert contract["result_count"] == 5
+    assert DEFAULT_MODE == CURATED_MODE
+    assert set(CONTENT_FIXTURE["profile_modes"].values()) == {CURATED_MODE}
+    assert contract["result_count"] == 12
     for path in SEARCH_PATHS:
         payload = fixture_response(path, "http://fixture")
+        assert len(payload["data"]) == 12
+        assert payload["total"] == 12
+
+
+def test_fallback_focused_mode_remains_available_for_targeted_verification() -> None:
+    contract = CONTENT_FIXTURE["modes"][FALLBACK_MODE]
+    referenced_artwork: set[str] = set()
+
+    assert FALLBACK_MODE not in CONTENT_FIXTURE["profile_modes"].values()
+    assert contract["result_count"] == 5
+    assert contract["artwork"]["fallback_policy"]
+    for path in SEARCH_PATHS:
+        payload = fixture_response(path, "http://fixture", FALLBACK_MODE)
         assert len(payload["data"]) == 5
         assert payload["total"] == 5
-    clubs = fixture_response("/api/v1/clubs/search", "http://fixture")
-    assert [club["showCount"] for club in clubs["data"]] == [120, 110, 100, 90, 80]
+        referenced_artwork.update(artwork_keys(payload))
+    assert referenced_artwork == set(contract["artwork"]["required_keys"])
 
 
 def test_home_feed_includes_personalized_followed_comedian_shows() -> None:
@@ -73,6 +102,8 @@ def test_club_highlights_fixture_populates_tonight_and_qualified_performers() ->
     ] == ["Ali Wong", "Taylor Tomlinson", "Andrew Schulz", "Taylor Tomlinson"]
     assert highlights["tonightShows"][1]["lineup"][0]["socialData"]["popularity"] == 98
     assert highlights["nextShow"]["id"] == 102
+    assert highlights["nextShow"]["lineup"] == []
+    assert highlights["nextShow"]["imageUrl"].endswith("/artwork/show-friends.png")
     assert len(highlights["frequentPerformers"]) == 3
     assert [performer["id"] for performer in highlights["frequentPerformers"]] == [
         301,
@@ -163,16 +194,16 @@ def test_episode_detail_is_served_at_the_exact_native_api_path(
     assert response["episode"]["id"] == 501
 
 
-def test_asset_rich_mode_populates_dense_search_results_with_distinct_artwork() -> None:
-    contract = CONTENT_FIXTURE["modes"]["asset-rich"]
-    artwork_urls: set[str] = set()
+def test_curated_mode_populates_dense_search_results_with_distinct_artwork() -> None:
+    contract = CONTENT_FIXTURE["modes"][CURATED_MODE]
+    referenced_artwork: set[str] = set()
 
     assert contract["result_count"] == 12
     for path in SEARCH_PATHS:
-        payload = fixture_response(path, "http://fixture", "asset-rich")
+        payload = fixture_response(path, "http://fixture", CURATED_MODE)
         assert len(payload["data"]) == 12
         assert payload["total"] == 12
-        artwork_urls.update(item["imageUrl"] for item in payload["data"])
+        referenced_artwork.update(artwork_keys(payload))
 
     required = set(contract["artwork"]["required_keys"])
     assert required == {
@@ -180,34 +211,59 @@ def test_asset_rich_mode_populates_dense_search_results_with_distinct_artwork() 
         for category in contract["artwork"]["categories"].values()
         for key in category
     }
-    assert required.issubset({url.rsplit("/", 1)[-1].removesuffix(".png") for url in artwork_urls})
+    assert required == referenced_artwork
     assert len({artwork_png(key) for key in required}) == len(required)
     assert all(artwork_png(key).startswith(b"\x89PNG\r\n\x1a\n") for key in required)
 
 
+def test_curated_artwork_contract_matches_bundled_checksummed_files() -> None:
+    declared_files = {metadata["filename"] for metadata in ARTWORK_ASSETS.values()}
+
+    assert set(ASSET_ROOT.glob("*.png")) == {
+        ASSET_ROOT / filename for filename in declared_files
+    }
+    assert set(CONTENT_FIXTURE["artwork"]["assets"]) == set(ARTWORK_ASSETS)
+    for key, metadata in ARTWORK_ASSETS.items():
+        body = artwork_png(key)
+        assert hashlib.sha256(body).hexdigest() == metadata["sha256"]
+        assert metadata["width"] == metadata["height"] == 640
+
+
+def test_artwork_endpoint_serves_bundled_bytes_and_rejects_unknown_keys(
+    fixture_server: str,
+) -> None:
+    with urllib.request.urlopen(f"{fixture_server}/artwork/ali-wong.png") as response:
+        assert response.headers.get_content_type() == "image/png"
+        assert response.read() == artwork_png("ali-wong")
+
+    with pytest.raises(urllib.error.HTTPError) as error:
+        urllib.request.urlopen(f"{fixture_server}/artwork/not-declared.png")
+    assert error.value.code == 404
+
+
 def test_mode_fingerprints_are_stable_and_distinct() -> None:
-    fallback = fixture_mode_fingerprint("fallback-focused")
-    asset_rich = fixture_mode_fingerprint("asset-rich")
+    fallback = fixture_mode_fingerprint(FALLBACK_MODE)
+    curated = fixture_mode_fingerprint(CURATED_MODE)
 
     assert len(fallback) == 64
-    assert len(asset_rich) == 64
-    assert fallback == fixture_mode_fingerprint("fallback-focused")
-    assert asset_rich == fixture_mode_fingerprint("asset-rich")
-    assert fallback != asset_rich
+    assert len(curated) == 64
+    assert fallback == fixture_mode_fingerprint(FALLBACK_MODE)
+    assert curated == fixture_mode_fingerprint(CURATED_MODE)
+    assert fallback != curated
 
 
 def test_control_endpoint_configures_server_mode(fixture_server: str) -> None:
-    assert get_json(f"{fixture_server}/fixture/status")["mode"] == "fallback-focused"
+    assert get_json(f"{fixture_server}/fixture/status")["mode"] == CURATED_MODE
 
-    configured = get_json(f"{fixture_server}/fixture/configure?mode=asset-rich")
+    configured = get_json(f"{fixture_server}/fixture/configure?mode={FALLBACK_MODE}")
     assert configured == {
-        "mode": "asset-rich",
-        "result_count": 12,
-        "fingerprint": fixture_mode_fingerprint("asset-rich"),
-        "required_assets": CONTENT_FIXTURE["modes"]["asset-rich"]["artwork"]["required_keys"],
+        "mode": FALLBACK_MODE,
+        "result_count": 5,
+        "fingerprint": fixture_mode_fingerprint(FALLBACK_MODE),
+        "required_assets": CONTENT_FIXTURE["modes"][FALLBACK_MODE]["artwork"]["required_keys"],
     }
     assert get_json(f"{fixture_server}/fixture/status") == configured
-    assert len(get_json(f"{fixture_server}/api/v1/shows/search")["data"]) == 12
+    assert len(get_json(f"{fixture_server}/api/v1/shows/search")["data"]) == 5
 
 
 def test_control_endpoint_rejects_unknown_mode_without_changing_state(fixture_server: str) -> None:
@@ -215,4 +271,4 @@ def test_control_endpoint_rejects_unknown_mode_without_changing_state(fixture_se
         get_json(f"{fixture_server}/fixture/configure?mode=unknown")
 
     assert error.value.code == 400
-    assert get_json(f"{fixture_server}/fixture/status")["mode"] == "fallback-focused"
+    assert get_json(f"{fixture_server}/fixture/status")["mode"] == CURATED_MODE

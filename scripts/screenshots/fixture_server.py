@@ -8,24 +8,147 @@ import hashlib
 import json
 import struct
 import threading
-import zlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 
+ASSET_ROOT = Path(__file__).with_name("assets")
+ARTWORK_ASSETS = {
+    "ali-wong": {
+        "filename": "ali-wong.png",
+        "sha256": "c8faad8bb8ddd35d3c87560f2a64230d5e543759945973d92d65ff252d614eb9",
+        "width": 640,
+        "height": 640,
+        "category": "portrait",
+    },
+    "taylor": {
+        "filename": "taylor.png",
+        "sha256": "aa37df5099d8f9a76d1d2211a64b2787dde28406ef0e0de60e9035956bc63b95",
+        "width": 640,
+        "height": 640,
+        "category": "portrait",
+    },
+    "andrew-schulz": {
+        "filename": "andrew-schulz.png",
+        "sha256": "202e6f120b06949529a56069ad2f745928e59dd36d727a765cf0e05f2d70457a",
+        "width": 640,
+        "height": 640,
+        "category": "portrait",
+    },
+    "josh-johnson": {
+        "filename": "josh-johnson.png",
+        "sha256": "5f0c670b8b29a0d2a7342fc2e7cb8f616cc281c0a795fc2b852068145ae8e234",
+        "width": 640,
+        "height": 640,
+        "category": "portrait",
+    },
+    "comedy-store": {
+        "filename": "comedy-store.png",
+        "sha256": "edfc64bba48f2d1be44a82a9ce049ba24e9af3cbe0f070af0cd578d54db53ba0",
+        "width": 640,
+        "height": 640,
+        "category": "club_logo",
+    },
+    "comedy-cellar": {
+        "filename": "comedy-cellar.png",
+        "sha256": "87846444689214e43d194b3f23010af3eb074ec276c223255d434b1a15fb81f2",
+        "width": 640,
+        "height": 640,
+        "category": "club_logo",
+    },
+    "the-stand": {
+        "filename": "the-stand.png",
+        "sha256": "1543f166b908c517ca1fd3546e4cb6519b702682bfaf6db74d866a5ca08a7b9b",
+        "width": 640,
+        "height": 640,
+        "category": "club_logo",
+    },
+    "hollywood-improv": {
+        "filename": "hollywood-improv.png",
+        "sha256": "774042f4ea3b95b071a2c1e2f905db20421e0833daf5df755622a29e33dc4f54",
+        "width": 640,
+        "height": 640,
+        "category": "club_logo",
+    },
+    "show-friends": {
+        "filename": "show-friends.png",
+        "sha256": "b85510b1d88372f3a6ed37fcb2bec076f976e2e56ebad8b371f234c98c95bdbd",
+        "width": 640,
+        "height": 640,
+        "category": "show_art",
+    },
+    "show-showcase": {
+        "filename": "show-showcase.png",
+        "sha256": "5a2c78b624508138bf267fc9dbbfe6875eaeeeca70ef45529cf724f91a028df6",
+        "width": 640,
+        "height": 640,
+        "category": "show_art",
+    },
+    "show-best-of-la": {
+        "filename": "show-best-of-la.png",
+        "sha256": "b4c52e8fee6c1beeb2e2e54526cc1dd0bc10c1dede5274dde8752320c02cb996",
+        "width": 640,
+        "height": 640,
+        "category": "show_art",
+    },
+    "show-late-night": {
+        "filename": "show-late-night.png",
+        "sha256": "4e34b3dc5bf098ec1cc81f7c5c6c7cc3e8ff218793c44cce95a57fab428dabaa",
+        "width": 640,
+        "height": 640,
+        "category": "show_art",
+    },
+    "joe-rogan": {
+        "filename": "joe-rogan.png",
+        "sha256": "3affdd8a23299aa8973cf340eb12bdbc1ff71c343632931bf3bbfebacd4d8226",
+        "width": 640,
+        "height": 640,
+        "category": "podcast_art",
+    },
+    "conan": {
+        "filename": "conan.png",
+        "sha256": "a27bdd937115eca586060cd633014f5124977f8542057323e08435a7c97bd227",
+        "width": 640,
+        "height": 640,
+        "category": "podcast_art",
+    },
+    "jtrain": {
+        "filename": "jtrain.png",
+        "sha256": "d5e5e50be89b449bb65c7c89f5cf821ebdd748a1b465b983772140068799f925",
+        "width": 640,
+        "height": 640,
+        "category": "podcast_art",
+    },
+    "wtf": {
+        "filename": "wtf.png",
+        "sha256": "cdd18b18f4d81cc28b789ac2d14fb2db7e97df07b0e3a32f20f598aed95b6b9d",
+        "width": 640,
+        "height": 640,
+        "category": "podcast_art",
+    },
+}
+
+
 CONTENT_FIXTURE = {
-    "id": "native-screenshot-v2",
-    "default_mode": "fallback-focused",
+    "id": "native-screenshot-v3",
+    "default_mode": "curated",
     "profile_modes": {
-        "ios_phone": "fallback-focused",
-        "ios_large_tablet": "asset-rich",
-        "android_phone": "fallback-focused",
-        "android_small_tablet": "asset-rich",
-        "android_large_tablet": "asset-rich",
+        "ios_phone": "curated",
+        "ios_large_tablet": "curated",
+        "android_phone": "curated",
+        "android_small_tablet": "curated",
+        "android_large_tablet": "curated",
+    },
+    "artwork": {
+        "root": "scripts/screenshots/assets",
+        "provenance": "Original fictional illustrations generated for LaughTrack; no third-party logos or celebrity likenesses.",
+        "license": "Project fixture artwork; redistribution permitted with this repository.",
+        "assets": ARTWORK_ASSETS,
     },
     "modes": {
         "fallback-focused": {
-            "id": "native-screenshot-v1",
+            "id": "native-screenshot-fallback-focused-v2",
             "result_count": 5,
             "featured_entities": {
                 "club": {"id": 201, "name": "The Comedy Store"},
@@ -43,12 +166,18 @@ CONTENT_FIXTURE = {
                 "secondary_show": "2030-07-19T21:00:00-07:00",
             },
             "artwork": {
-                "required_keys": ["taylor", "comedy-store", "ali-wong", "joe-rogan"],
+                "required_keys": [
+                    "ali-wong",
+                    "taylor",
+                    "comedy-store",
+                    "show-friends",
+                    "joe-rogan",
+                ],
                 "fallback_policy": "Authenticated screenshot persona omits remote artwork and uses each platform's branded fallback.",
             },
         },
-        "asset-rich": {
-            "id": "native-screenshot-asset-rich-v1",
+        "curated": {
+            "id": "native-screenshot-curated-v1",
             "result_count": 12,
             "featured_entities": {
                 "club": {"id": 201, "name": "The Comedy Store"},
@@ -75,6 +204,10 @@ CONTENT_FIXTURE = {
                     "comedy-cellar",
                     "the-stand",
                     "hollywood-improv",
+                    "show-friends",
+                    "show-showcase",
+                    "show-best-of-la",
+                    "show-late-night",
                     "joe-rogan",
                     "conan",
                     "jtrain",
@@ -88,6 +221,12 @@ CONTENT_FIXTURE = {
                         "the-stand",
                         "hollywood-improv",
                     ],
+                    "show_art": [
+                        "show-friends",
+                        "show-showcase",
+                        "show-best-of-la",
+                        "show-late-night",
+                    ],
                     "podcast_art": ["joe-rogan", "conan", "jtrain", "wtf"],
                 },
             },
@@ -97,20 +236,8 @@ CONTENT_FIXTURE = {
 
 API_PREFIX = "/api/v1/"
 DEFAULT_MODE = CONTENT_FIXTURE["default_mode"]
-ARTWORK_COLORS = {
-    "taylor": ((118, 48, 91), (221, 103, 47)),
-    "comedy-store": ((42, 42, 42), (207, 75, 40)),
-    "ali-wong": ((181, 76, 119), (237, 181, 73)),
-    "joe-rogan": ((167, 54, 29), (35, 35, 35)),
-    "andrew-schulz": ((24, 87, 116), (111, 204, 184)),
-    "josh-johnson": ((88, 55, 119), (226, 147, 74)),
-    "comedy-cellar": ((67, 38, 29), (207, 169, 91)),
-    "the-stand": ((24, 63, 45), (102, 190, 113)),
-    "hollywood-improv": ((40, 55, 110), (204, 84, 104)),
-    "conan": ((186, 82, 38), (242, 187, 73)),
-    "jtrain": ((43, 92, 108), (126, 195, 181)),
-    "wtf": ((77, 55, 45), (211, 127, 62)),
-}
+CURATED_MODE = "curated"
+FALLBACK_MODE = "fallback-focused"
 
 COMEDIAN_NAMES = [
     "Ali Wong",
@@ -127,6 +254,7 @@ COMEDIAN_NAMES = [
     "Michelle Wolf",
 ]
 COMEDIAN_ARTWORK = ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"]
+FALLBACK_COMEDIAN_ARTWORK = ["ali-wong", "taylor"]
 CLUB_NAMES = [
     "The Comedy Store",
     "Comedy Cellar",
@@ -157,6 +285,7 @@ PODCAST_TITLES = [
     "Working It Out",
 ]
 PODCAST_ARTWORK = ["joe-rogan", "conan", "jtrain", "wtf"]
+SHOW_ARTWORK = ["show-friends", "show-showcase", "show-best-of-la", "show-late-night"]
 SHOW_NAMES = [
     "Taylor Tomlinson & Friends",
     "Comedy Store Showcase",
@@ -174,27 +303,26 @@ SHOW_NAMES = [
 SHOW_HOURS = [20, 21, 22, 23, 19]
 
 
-def _png_chunk(kind: bytes, data: bytes) -> bytes:
-    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
+def _png_dimensions(body: bytes) -> tuple[int, int]:
+    if not body.startswith(b"\x89PNG\r\n\x1a\n") or body[12:16] != b"IHDR":
+        raise ValueError("artwork is not a PNG with an IHDR header")
+    return struct.unpack(">II", body[16:24])
 
 
-def artwork_png(key: str, size: int = 640) -> bytes:
-    """Return a deterministic square gradient PNG without third-party dependencies."""
-    start, end = ARTWORK_COLORS.get(key, ((55, 55, 55), (221, 103, 47)))
-    rows = bytearray()
-    denominator = max(size - 1, 1)
-    for y in range(size):
-        rows.append(0)
-        ratio = y / denominator
-        color = tuple(round(a + (b - a) * ratio) for a, b in zip(start, end))
-        rows.extend(bytes(color) * size)
-    ihdr = struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0)
-    return (
-        b"\x89PNG\r\n\x1a\n"
-        + _png_chunk(b"IHDR", ihdr)
-        + _png_chunk(b"IDAT", zlib.compress(bytes(rows), level=9))
-        + _png_chunk(b"IEND", b"")
-    )
+def artwork_png(key: str) -> bytes:
+    """Return one checksummed bundled artwork asset, rejecting unknown keys."""
+    try:
+        metadata = ARTWORK_ASSETS[key]
+    except KeyError as exc:
+        raise KeyError(f"unknown artwork key: {key}") from exc
+
+    body = (ASSET_ROOT / metadata["filename"]).read_bytes()
+    digest = hashlib.sha256(body).hexdigest()
+    if digest != metadata["sha256"]:
+        raise ValueError(f"artwork checksum mismatch for {key}")
+    if _png_dimensions(body) != (metadata["width"], metadata["height"]):
+        raise ValueError(f"artwork dimensions mismatch for {key}")
+    return body
 
 
 def fixture_contract(mode: str = DEFAULT_MODE) -> dict:
@@ -207,8 +335,13 @@ def fixture_contract(mode: str = DEFAULT_MODE) -> dict:
 
 def fixture_mode_fingerprint(mode: str = DEFAULT_MODE) -> str:
     """Return a stable fingerprint for the selected fixture mode."""
+    contract = fixture_contract(mode)
+    assets = {
+        key: ARTWORK_ASSETS[key]
+        for key in contract["artwork"]["required_keys"]
+    }
     encoded = json.dumps(
-        fixture_contract(mode),
+        {"contract": contract, "assets": assets},
         sort_keys=True,
         separators=(",", ":"),
     ).encode()
@@ -235,9 +368,13 @@ def _lineup(
     name: str = "Taylor Tomlinson",
     popularity: int = 98,
     show_count: int = 40,
+    mode: str = DEFAULT_MODE,
 ) -> dict:
     entity_id = 301 + index
-    artwork_key = COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)]
+    artwork_pool = (
+        FALLBACK_COMEDIAN_ARTWORK if mode == FALLBACK_MODE else COMEDIAN_ARTWORK
+    )
+    artwork_key = artwork_pool[index % len(artwork_pool)]
     social_data = _social(entity_id, name.lower().replace(" ", ""))
     social_data["popularity"] = popularity
     return {
@@ -255,7 +392,7 @@ def _comedian(base_url: str, index: int, name: str, mode: str = DEFAULT_MODE) ->
     entity_id = 301 + index
     artwork_key = (
         ("ali-wong" if index == 0 else "taylor")
-        if mode == DEFAULT_MODE
+        if mode == FALLBACK_MODE
         else COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)]
     )
     return {
@@ -274,9 +411,10 @@ def _show(
     show_id: int = 101,
     name: str = "Taylor Tomlinson & Friends",
     hour: int = 20,
-    artwork_key: str = "taylor",
+    artwork_key: str = "show-friends",
     lineup: list[dict] | None = None,
     day: int | None = None,
+    mode: str = DEFAULT_MODE,
 ) -> dict:
     return {
         "id": show_id,
@@ -291,19 +429,22 @@ def _show(
         "timezone": "America/Los_Angeles",
         "soldOut": False,
         "tickets": [{"price": 40, "purchaseUrl": f"https://example.invalid/tickets/{show_id}", "soldOut": False, "type": "General Admission"}],
-        "lineup": lineup if lineup is not None else [_lineup(base_url)],
+        "lineup": lineup if lineup is not None else [_lineup(base_url, mode=mode)],
     }
 
 
 def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
-    taylor = _lineup(base_url)
-    ali = _lineup(base_url, 0, "Ali Wong", popularity=96, show_count=36)
-    andrew = _lineup(base_url, 2, "Andrew Schulz", popularity=94, show_count=34)
+    taylor = _lineup(base_url, mode=mode)
+    ali = _lineup(base_url, 0, "Ali Wong", popularity=96, show_count=36, mode=mode)
+    andrew = _lineup(base_url, 2, "Andrew Schulz", popularity=94, show_count=34, mode=mode)
+    tonight_artwork = (
+        SHOW_ARTWORK if mode == CURATED_MODE else ["show-friends"] * 4
+    )
     tonight = [
-        _show(base_url, 106, "Ali Wong: Live", 19, "ali-wong", lineup=[ali], day=18),
-        _show(base_url, 101, "Taylor Tomlinson & Friends", 20, lineup=[taylor], day=18),
-        _show(base_url, 107, "Andrew Schulz: New Material", 21, "andrew-schulz", lineup=[andrew], day=18),
-        _show(base_url, 108, "Late Night with Taylor", 22, lineup=[taylor], day=18),
+        _show(base_url, 106, "Ali Wong: Live", 19, tonight_artwork[0], lineup=[ali], day=18, mode=mode),
+        _show(base_url, 101, "Taylor Tomlinson & Friends", 20, tonight_artwork[1], lineup=[taylor], day=18, mode=mode),
+        _show(base_url, 107, "Andrew Schulz: New Material", 21, tonight_artwork[2], lineup=[andrew], day=18, mode=mode),
+        _show(base_url, 108, "Late Night with Taylor", 22, tonight_artwork[3], lineup=[taylor], day=18, mode=mode),
     ]
     later = []
     reserved_ids = {show["id"] for show in tonight}
@@ -321,6 +462,7 @@ def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
             comedian_name,
             popularity=90 - comedian_index,
             show_count=32 - comedian_index,
+            mode=mode,
         )
         later.append(
             _show(
@@ -328,9 +470,13 @@ def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
                 show_id,
                 SHOW_NAMES[index % len(SHOW_NAMES)],
                 SHOW_HOURS[index % len(SHOW_HOURS)],
-                "taylor" if mode == DEFAULT_MODE else COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)],
-                lineup=[lineup],
+                "show-friends" if mode == FALLBACK_MODE else SHOW_ARTWORK[index % len(SHOW_ARTWORK)],
+                # Keep one deterministic, lineup-unannounced showcase so the
+                # shipping screenshot matrix exercises dedicated show artwork
+                # instead of always preferring a comedian headshot.
+                lineup=[] if index == 0 else [lineup],
                 day=19 + index // 5,
+                mode=mode,
             )
         )
         show_id += 1
@@ -404,15 +550,20 @@ def fixture_response(
     """Return the canonical payload for an API path and optional pagination query."""
     result_count = fixture_contract(mode)["result_count"]
     if path == f"{API_PREFIX}home/feed":
-        primary = _show(base_url)
-        nearby_count = 1 if mode == DEFAULT_MODE else min(result_count - 1, 4)
+        primary = _show(base_url, mode=mode)
+        nearby_count = 1 if mode == FALLBACK_MODE else min(result_count - 1, 4)
         nearby = [
             _show(
                 base_url,
                 102 + index,
                 SHOW_NAMES[1 + index],
                 SHOW_HOURS[(index + 1) % len(SHOW_HOURS)],
-                COMEDIAN_ARTWORK[(index + 1) % len(COMEDIAN_ARTWORK)],
+                (
+                    "show-friends"
+                    if mode == FALLBACK_MODE
+                    else SHOW_ARTWORK[(index + 1) % len(SHOW_ARTWORK)]
+                ),
+                mode=mode,
             )
             for index in range(nearby_count)
         ]
@@ -421,9 +572,27 @@ def fixture_response(
             "trendingComedians": [{"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": f"{base_url}/artwork/ali-wong.png", "socialData": _social(301, "aliwong"), "showCount": 28}],
             "comediansNearYou": [],
             "showsTonight": [primary],
-            "moreNearYou": nearby or [_show(base_url, 102, "Comedy Store Showcase", 21)],
-            "trendingThisWeek": [_show(base_url, 103, "Best of Los Angeles", 22)],
-            "followedComedianShows": [_show(base_url, 104, "Late Night at The Store", 23)],
+            "moreNearYou": nearby or [_show(base_url, 102, "Comedy Store Showcase", 21, mode=mode)],
+            "trendingThisWeek": [
+                _show(
+                    base_url,
+                    103,
+                    "Best of Los Angeles",
+                    22,
+                    "show-friends" if mode == FALLBACK_MODE else "show-best-of-la",
+                    mode=mode,
+                )
+            ],
+            "followedComedianShows": [
+                _show(
+                    base_url,
+                    104,
+                    "Late Night at The Store",
+                    23,
+                    "show-friends" if mode == FALLBACK_MODE else "show-late-night",
+                    mode=mode,
+                )
+            ],
             "trendingPodcasts": [{"id": 401, "slug": "joe-rogan-experience", "title": "The Joe Rogan Experience", "episodeCount": 2520, "authorName": "Joe Rogan", "imageUrl": f"{base_url}/artwork/joe-rogan.png"}],
             "popularClubs": [{"id": 201, "address": "8433 Sunset Blvd, West Hollywood, CA", "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "activeComedianCount": 120, "zipCode": "90069"}],
         }}
@@ -452,10 +621,10 @@ def fixture_response(
             {
                 "id": 201 + index,
                 "name": name,
-                "imageUrl": f"{base_url}/artwork/{'comedy-store' if mode == DEFAULT_MODE else CLUB_ARTWORK[index % len(CLUB_ARTWORK)]}.png",
+                "imageUrl": f"{base_url}/artwork/{'comedy-store' if mode == FALLBACK_MODE else CLUB_ARTWORK[index % len(CLUB_ARTWORK)]}.png",
                 "address": "8433 Sunset Blvd",
                 "zipCode": "90069",
-                "showCount": 120 - index * (10 if mode == DEFAULT_MODE else 5),
+                "showCount": 120 - index * (10 if mode == FALLBACK_MODE else 5),
                 "activeComedianCount": 80 - index,
                 "city": "West Hollywood",
                 "state": "CA",
@@ -472,7 +641,7 @@ def fixture_response(
                 "episodeCount": 2520 - index * 100,
                 "hosts": [_podcast_host(base_url)],
                 "authorName": "Comedy Podcast Network",
-                "imageUrl": f"{base_url}/artwork/{'joe-rogan' if mode == DEFAULT_MODE else PODCAST_ARTWORK[index % len(PODCAST_ARTWORK)]}.png",
+                "imageUrl": f"{base_url}/artwork/{'joe-rogan' if mode == FALLBACK_MODE else PODCAST_ARTWORK[index % len(PODCAST_ARTWORK)]}.png",
                 "description": "Stand-up conversations and new episodes every week.",
                 "isFavorite": False,
             }
@@ -501,13 +670,13 @@ def fixture_response(
         show_id = int(path.removeprefix(show_detail_prefix))
         show = next(
             (item for item in _club_shows(base_url, mode) if item["id"] == show_id),
-            _show(base_url, show_id),
+            _show(base_url, show_id, mode=mode),
         )
         return {"data": {**show, "showPageUrl": f"https://example.invalid/show/{show_id}", "club": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "address": "8433 Sunset Blvd, West Hollywood, CA", "timezone": "America/Los_Angeles"}, "cta": {"label": "Buy tickets", "isSoldOut": False, "url": f"https://example.invalid/tickets/{show_id}"}, "description": "A special night of new material and surprise guests."}, "relatedShows": []}
     if path == f"{API_PREFIX}comedians/301":
         return {"data": {"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": f"{base_url}/artwork/ali-wong.png", "socialData": _social(301, "aliwong"), "podcastAppearances": [], "homeLocation": {"city": "San Francisco", "state": "CA", "country": "US"}}}
     if path == f"{API_PREFIX}comedians/301/upcoming-runs":
-        return {"data": [{"clubId": 201, "clubName": "The Comedy Store", "clubImageUrl": f"{base_url}/artwork/comedy-store.png", "shows": [_show(base_url, 106, "Ali Wong: Live", 20)]}]}
+        return {"data": [{"clubId": 201, "clubName": "The Comedy Store", "clubImageUrl": f"{base_url}/artwork/comedy-store.png", "shows": [_show(base_url, 106, "Ali Wong: Live", 20, mode=mode)]}]}
     if path in {f"{API_PREFIX}comedians/301/co-bill", f"{API_PREFIX}comedians/past-shows"}:
         return {"data": [], **({"total": 0} if path.endswith("past-shows") else {})}
     if path == f"{API_PREFIX}podcasts/401":
@@ -586,7 +755,12 @@ class FixtureHandler(BaseHTTPRequestHandler):
             self._write_json(200, summary)
             return
         if path.startswith("/artwork/") and path.endswith(".png"):
-            self._write(200, artwork_png(path.rsplit("/", 1)[-1][:-4]), "image/png")
+            try:
+                body = artwork_png(path.rsplit("/", 1)[-1][:-4])
+            except KeyError:
+                self._write(404, b'{"error":"artwork not found"}', "application/json")
+                return
+            self._write(200, body, "image/png")
             return
         host = self.headers.get("Host", f"127.0.0.1:{self.server.server_port}")
         payload = fixture_response(

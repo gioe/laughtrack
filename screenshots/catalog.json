@@ -1,18 +1,137 @@
 {
   "schema_version": 1,
   "content_fixture": {
-    "id": "native-screenshot-v2",
-    "default_mode": "fallback-focused",
+    "id": "native-screenshot-v3",
+    "default_mode": "curated",
     "profile_modes": {
-      "ios_phone": "fallback-focused",
-      "ios_large_tablet": "asset-rich",
-      "android_phone": "fallback-focused",
-      "android_small_tablet": "asset-rich",
-      "android_large_tablet": "asset-rich"
+      "ios_phone": "curated",
+      "ios_large_tablet": "curated",
+      "android_phone": "curated",
+      "android_small_tablet": "curated",
+      "android_large_tablet": "curated"
+    },
+    "artwork": {
+      "root": "scripts/screenshots/assets",
+      "provenance": "Original fictional illustrations generated for LaughTrack; no third-party logos or celebrity likenesses.",
+      "license": "Project fixture artwork; redistribution permitted with this repository.",
+      "assets": {
+        "ali-wong": {
+          "filename": "ali-wong.png",
+          "sha256": "c8faad8bb8ddd35d3c87560f2a64230d5e543759945973d92d65ff252d614eb9",
+          "width": 640,
+          "height": 640,
+          "category": "portrait"
+        },
+        "taylor": {
+          "filename": "taylor.png",
+          "sha256": "aa37df5099d8f9a76d1d2211a64b2787dde28406ef0e0de60e9035956bc63b95",
+          "width": 640,
+          "height": 640,
+          "category": "portrait"
+        },
+        "andrew-schulz": {
+          "filename": "andrew-schulz.png",
+          "sha256": "202e6f120b06949529a56069ad2f745928e59dd36d727a765cf0e05f2d70457a",
+          "width": 640,
+          "height": 640,
+          "category": "portrait"
+        },
+        "josh-johnson": {
+          "filename": "josh-johnson.png",
+          "sha256": "5f0c670b8b29a0d2a7342fc2e7cb8f616cc281c0a795fc2b852068145ae8e234",
+          "width": 640,
+          "height": 640,
+          "category": "portrait"
+        },
+        "comedy-store": {
+          "filename": "comedy-store.png",
+          "sha256": "edfc64bba48f2d1be44a82a9ce049ba24e9af3cbe0f070af0cd578d54db53ba0",
+          "width": 640,
+          "height": 640,
+          "category": "club_logo"
+        },
+        "comedy-cellar": {
+          "filename": "comedy-cellar.png",
+          "sha256": "87846444689214e43d194b3f23010af3eb074ec276c223255d434b1a15fb81f2",
+          "width": 640,
+          "height": 640,
+          "category": "club_logo"
+        },
+        "the-stand": {
+          "filename": "the-stand.png",
+          "sha256": "1543f166b908c517ca1fd3546e4cb6519b702682bfaf6db74d866a5ca08a7b9b",
+          "width": 640,
+          "height": 640,
+          "category": "club_logo"
+        },
+        "hollywood-improv": {
+          "filename": "hollywood-improv.png",
+          "sha256": "774042f4ea3b95b071a2c1e2f905db20421e0833daf5df755622a29e33dc4f54",
+          "width": 640,
+          "height": 640,
+          "category": "club_logo"
+        },
+        "show-friends": {
+          "filename": "show-friends.png",
+          "sha256": "b85510b1d88372f3a6ed37fcb2bec076f976e2e56ebad8b371f234c98c95bdbd",
+          "width": 640,
+          "height": 640,
+          "category": "show_art"
+        },
+        "show-showcase": {
+          "filename": "show-showcase.png",
+          "sha256": "5a2c78b624508138bf267fc9dbbfe6875eaeeeca70ef45529cf724f91a028df6",
+          "width": 640,
+          "height": 640,
+          "category": "show_art"
+        },
+        "show-best-of-la": {
+          "filename": "show-best-of-la.png",
+          "sha256": "b4c52e8fee6c1beeb2e2e54526cc1dd0bc10c1dede5274dde8752320c02cb996",
+          "width": 640,
+          "height": 640,
+          "category": "show_art"
+        },
+        "show-late-night": {
+          "filename": "show-late-night.png",
+          "sha256": "4e34b3dc5bf098ec1cc81f7c5c6c7cc3e8ff218793c44cce95a57fab428dabaa",
+          "width": 640,
+          "height": 640,
+          "category": "show_art"
+        },
+        "joe-rogan": {
+          "filename": "joe-rogan.png",
+          "sha256": "3affdd8a23299aa8973cf340eb12bdbc1ff71c343632931bf3bbfebacd4d8226",
+          "width": 640,
+          "height": 640,
+          "category": "podcast_art"
+        },
+        "conan": {
+          "filename": "conan.png",
+          "sha256": "a27bdd937115eca586060cd633014f5124977f8542057323e08435a7c97bd227",
+          "width": 640,
+          "height": 640,
+          "category": "podcast_art"
+        },
+        "jtrain": {
+          "filename": "jtrain.png",
+          "sha256": "d5e5e50be89b449bb65c7c89f5cf821ebdd748a1b465b983772140068799f925",
+          "width": 640,
+          "height": 640,
+          "category": "podcast_art"
+        },
+        "wtf": {
+          "filename": "wtf.png",
+          "sha256": "cdd18b18f4d81cc28b789ac2d14fb2db7e97df07b0e3a32f20f598aed95b6b9d",
+          "width": 640,
+          "height": 640,
+          "category": "podcast_art"
+        }
+      }
     },
     "modes": {
       "fallback-focused": {
-        "id": "native-screenshot-v1",
+        "id": "native-screenshot-fallback-focused-v2",
         "result_count": 5,
         "featured_entities": {
           "club": { "id": 201, "name": "The Comedy Store" },
@@ -26,12 +145,12 @@
           "secondary_show": "2030-07-19T21:00:00-07:00"
         },
         "artwork": {
-          "required_keys": ["taylor", "comedy-store", "ali-wong", "joe-rogan"],
+          "required_keys": ["ali-wong", "taylor", "comedy-store", "show-friends", "joe-rogan"],
           "fallback_policy": "Authenticated screenshot persona omits remote artwork and uses each platform's branded fallback."
         }
       },
-      "asset-rich": {
-        "id": "native-screenshot-asset-rich-v1",
+      "curated": {
+        "id": "native-screenshot-curated-v1",
         "result_count": 12,
         "featured_entities": {
           "club": { "id": 201, "name": "The Comedy Store" },
@@ -48,11 +167,13 @@
           "required_keys": [
             "ali-wong", "taylor", "andrew-schulz", "josh-johnson",
             "comedy-store", "comedy-cellar", "the-stand", "hollywood-improv",
+            "show-friends", "show-showcase", "show-best-of-la", "show-late-night",
             "joe-rogan", "conan", "jtrain", "wtf"
           ],
           "categories": {
             "portraits": ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"],
             "club_logos": ["comedy-store", "comedy-cellar", "the-stand", "hollywood-improv"],
+            "show_art": ["show-friends", "show-showcase", "show-best-of-la", "show-late-night"],
             "podcast_art": ["joe-rogan", "conan", "jtrain", "wtf"]
           }
         }

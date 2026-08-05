@@ -14,8 +14,10 @@ metadata to App Store Connect or Google Play.
 
 Each native lane starts the hermetic backend in `fixture_server.py` and points
 its app at that local server for the duration of the capture. The fixture pins
-result counts, featured entities, dates, narrative content, and generated
-artwork across both platforms. Its declared contract lives in
+result counts, featured entities, dates, narrative content, and bundled curated
+artwork across both platforms. The redistributable PNGs live under
+`scripts/screenshots/assets/`; no capture downloads remote artwork. The fixture's
+declared contract lives in
 `screenshots/catalog.json`, and every completed run manifest records the
 contract fingerprint so fixture drift is rejected during collection/export.
 
@@ -33,6 +35,29 @@ android/bin/lane verify_screenshots \
   scenarios:02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts \
   run_root:/tmp/laughtrack-android-search-verification
 ```
+
+Complete and ordinary targeted captures use each selected profile's catalog
+fixture mode; every shipping profile is required to use `curated`. To inspect
+the native branded artwork fallbacks without changing a shipping capture, pass
+the explicit verification-only override:
+
+```bash
+ios/bin/lane verify_screenshots \
+  profiles:ios_phone \
+  scenarios:02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts \
+  fixture_mode:fallback-focused \
+  run_root:/tmp/laughtrack-ios-fallback-verification
+
+android/bin/lane verify_screenshots \
+  profiles:android_phone \
+  scenarios:02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts \
+  fixture_mode:fallback-focused \
+  run_root:/tmp/laughtrack-android-fallback-verification
+```
+
+The lanes reject unknown overrides against the modes declared in the catalog.
+The complete `screenshots` lanes do not expose a fixture override, so fallback
+verification cannot accidentally become storefront input.
 
 To verify the episode-detail capture specifically, select its prerequisite and
 the detail scenario in canonical order:
@@ -61,8 +86,9 @@ Both native lanes persist successful captures in a content-addressed cache by
 profile. An unchanged run materializes every validated profile without building
 or launching native tests. Cache keys hash the current contents of each
 platform's render-affecting app and UI-test sources, the shared catalog and
-fixture server, that profile's adapter configuration, and a normalized native
-environment identity. The iOS identity records the active Xcode version/build
+fixture server, every nested curated artwork asset, that profile's adapter
+configuration, and a normalized native environment identity. The iOS identity
+records the active Xcode version/build
 and the selected simulator runtime identifier/version/build. The Android
 identity records the JDK version/vendor/VM/architecture, installed Build Tools
 package/revision, and selected AVD system-image package/revision/API/tag/ABI.

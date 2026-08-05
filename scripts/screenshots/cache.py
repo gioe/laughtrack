@@ -27,7 +27,11 @@ except ModuleNotFoundError:  # Direct execution: python scripts/screenshots/cach
 CACHE_SCHEMA_VERSION = 2
 CAPTURE_PROVENANCE_SCHEMA_VERSION = 1
 PROVENANCE_FILENAME = ".screenshot-cache-provenance.json"
-SHARED_INPUTS = ("screenshots/catalog.json", "scripts/screenshots/fixture_server.py")
+SHARED_INPUTS = (
+    "screenshots/catalog.json",
+    "scripts/screenshots/fixture_server.py",
+    "scripts/screenshots/assets",
+)
 PLATFORM_ROOTS = {"ios": "ios", "android": "android"}
 EXCLUDED_PARTS = {
     ".git",
@@ -154,7 +158,7 @@ def prune_derived_data_caches(
 
 def _is_render_input(path: str, platform: str) -> bool:
     candidate = Path(path)
-    if path in SHARED_INPUTS:
+    if any(path == shared or path.startswith(f"{shared}/") for shared in SHARED_INPUTS):
         return True
     if not candidate.parts or candidate.parts[0] != PLATFORM_ROOTS[platform]:
         return False

@@ -122,22 +122,24 @@ def test_checked_in_catalog_matches_shared_content_fixture(catalog: dict) -> Non
     )
 
     assert catalog["content_fixture"] == CONTENT_FIXTURE
-    assert CONTENT_FIXTURE["default_mode"] == "fallback-focused"
+    assert CONTENT_FIXTURE["default_mode"] == "curated"
     assert CONTENT_FIXTURE["profile_modes"] == {
-        "ios_phone": "fallback-focused",
-        "ios_large_tablet": "asset-rich",
-        "android_phone": "fallback-focused",
-        "android_small_tablet": "asset-rich",
-        "android_large_tablet": "asset-rich",
+        "ios_phone": "curated",
+        "ios_large_tablet": "curated",
+        "android_phone": "curated",
+        "android_small_tablet": "curated",
+        "android_large_tablet": "curated",
     }
     fallback = CONTENT_FIXTURE["modes"]["fallback-focused"]
-    asset_rich = CONTENT_FIXTURE["modes"]["asset-rich"]
+    curated = CONTENT_FIXTURE["modes"]["curated"]
     assert fallback["result_count"] == 5
-    assert asset_rich["result_count"] == 12
-    assert fixture_mode_fingerprint("fallback-focused") != fixture_mode_fingerprint("asset-rich")
-    assert len(fixture_response("/api/v1/shows/search", "http://fixture")["data"]) == 5
-    assert len(fixture_response("/api/v1/comedians/search", "http://fixture")["data"]) == 5
-    suggestions = fixture_response("/api/v1/comedians/suggestions", "http://fixture")
+    assert curated["result_count"] == 12
+    assert fixture_mode_fingerprint("fallback-focused") != fixture_mode_fingerprint("curated")
+    assert len(fixture_response("/api/v1/shows/search", "http://fixture")["data"]) == 12
+    assert len(fixture_response("/api/v1/comedians/search", "http://fixture")["data"]) == 12
+    suggestions = fixture_response(
+        "/api/v1/comedians/suggestions", "http://fixture", "fallback-focused"
+    )
     assert [comedian["name"] for comedian in suggestions["data"]] == [
         "Ali Wong",
         "Taylor Tomlinson",
@@ -145,9 +147,15 @@ def test_checked_in_catalog_matches_shared_content_fixture(catalog: dict) -> Non
         "Josh Johnson",
         "Trevor Noah",
     ]
-    assert len(fixture_response("/api/v1/clubs/search", "http://fixture")["data"]) == 5
-    assert len(fixture_response("/api/v1/podcasts/search", "http://fixture")["data"]) == 5
-    club_shows = fixture_response("/api/v1/clubs/201/shows", "http://fixture")
+    assert len(
+        fixture_response("/api/v1/clubs/search", "http://fixture", "fallback-focused")["data"]
+    ) == 5
+    assert len(
+        fixture_response("/api/v1/podcasts/search", "http://fixture", "fallback-focused")["data"]
+    ) == 5
+    club_shows = fixture_response(
+        "/api/v1/clubs/201/shows", "http://fixture", "fallback-focused"
+    )
     assert len(club_shows["data"]) == fallback["result_count"]
     assert club_shows["total"] == fallback["result_count"]
 
@@ -157,9 +165,9 @@ def test_checked_in_catalog_matches_shared_content_fixture(catalog: dict) -> Non
         "/api/v1/clubs/search",
         "/api/v1/podcasts/search",
     ):
-        response = fixture_response(path, "http://fixture", "asset-rich")
-        assert len(response["data"]) == asset_rich["result_count"]
-        assert response["total"] == asset_rich["result_count"]
+        response = fixture_response(path, "http://fixture", "curated")
+        assert len(response["data"]) == curated["result_count"]
+        assert response["total"] == curated["result_count"]
 
 
 def test_manifest_rejects_content_fixture_drift(tmp_path: Path, catalog: dict, completed_run: dict) -> None:

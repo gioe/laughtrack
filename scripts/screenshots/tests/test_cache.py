@@ -42,12 +42,15 @@ def _make_repo(tmp_path: Path) -> Path:
     (repo / "android").mkdir()
     (repo / "docs").mkdir()
     (repo / "screenshots").mkdir()
-    (repo / "scripts" / "screenshots").mkdir(parents=True)
+    (repo / "scripts" / "screenshots" / "assets" / "portraits").mkdir(parents=True)
     (repo / "ios" / "App.swift").write_text("ios one\n", encoding="utf-8")
     (repo / "android" / "App.kt").write_text("android one\n", encoding="utf-8")
     (repo / "docs" / "screenshots.md").write_text("docs one\n", encoding="utf-8")
     shutil.copy2(CATALOG_PATH, repo / "screenshots" / "catalog.json")
     (repo / "scripts" / "screenshots" / "fixture_server.py").write_text("FIXTURE = 1\n", encoding="utf-8")
+    (repo / "scripts" / "screenshots" / "assets" / "portraits" / "fixture.png").write_bytes(
+        b"curated fixture artwork one\n"
+    )
     _git(repo, "init", "-q")
     _git(repo, "config", "user.email", "tests@example.com")
     _git(repo, "config", "user.name", "Screenshot Cache Tests")
@@ -312,6 +315,50 @@ def test_relevant_modified_untracked_deleted_and_profile_config_inputs_change_ke
     assert len({base, executable, modified, untracked, deleted, configured}) == 6
     assert {item["path"]: item["state"] for item in inputs}["ios/App.swift"] == "deleted"
     assert {item["path"] for item in inputs} >= {"ios/NewView.swift", "screenshots/catalog.json"}
+
+
+def test_nested_curated_artwork_change_invalidates_both_platform_profile_keys(
+    tmp_path: Path,
+) -> None:
+    repo = _make_repo(tmp_path)
+    artwork = repo / "scripts" / "screenshots" / "assets" / "portraits" / "fixture.png"
+    baseline = {
+        platform: profile_cache_key(
+            repo_root=repo,
+            platform=platform,
+            profile_id=profile_id,
+            profile_config={"device": "A"},
+            native_environment=_environment(platform),
+        )[0]
+        for platform, profile_id in (
+            ("ios", "ios_phone"),
+            ("android", "android_phone"),
+        )
+    }
+
+    artwork.write_bytes(b"curated fixture artwork two\n")
+
+    changed = {}
+    inputs_by_platform = {}
+    for platform, profile_id in (
+        ("ios", "ios_phone"),
+        ("android", "android_phone"),
+    ):
+        changed[platform], inputs_by_platform[platform] = profile_cache_key(
+            repo_root=repo,
+            platform=platform,
+            profile_id=profile_id,
+            profile_config={"device": "A"},
+            native_environment=_environment(platform),
+        )
+
+    relative_artwork = "scripts/screenshots/assets/portraits/fixture.png"
+    assert changed["ios"] != baseline["ios"]
+    assert changed["android"] != baseline["android"]
+    assert all(
+        relative_artwork in {item["path"] for item in inputs}
+        for inputs in inputs_by_platform.values()
+    )
 
 
 def test_store_rejects_inputs_that_changed_after_planning(tmp_path: Path) -> None:

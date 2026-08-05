@@ -166,11 +166,9 @@ class AppStoreScreenshotTest {
             "Unable to clear stale app-private Screengrab screenshots"
         }
         fixtureMode =
-            if (instrumentation.targetContext.resources.configuration.smallestScreenWidthDp >= 600) {
-                "asset-rich"
-            } else {
-                "fallback-focused"
-            }
+            InstrumentationRegistry.getArguments().getString("screenshotFixtureMode")
+                ?.takeIf(String::isNotBlank)
+                ?: "curated"
         fixtureResultCount = configureFixture(fixtureMode)
         // Screengrab enters demo mode after the fastlane preflight. Reset it once
         // here before applying the canonical chrome: Android 15 otherwise adds a

@@ -63,6 +63,9 @@ ANDROID_SCREENSHOT_PROFILE_SETTINGS = {
 
 def load_android_screenshot_collection
   catalog = JSON.parse(File.read(SCREENSHOT_CATALOG_PATH))
+  content_fixture = catalog.fetch("content_fixture")
+  fixture_modes = content_fixture.fetch("modes").keys
+  profile_modes = content_fixture.fetch("profile_modes")
   scenario_ids = catalog.fetch("scenarios").map { |scenario| scenario.fetch("id") }
   profiles = catalog.fetch("profiles").select { |profile| profile.fetch("platform") == "android" }
   profile_ids = profiles.map { |profile| profile.fetch("id") }
@@ -74,12 +77,25 @@ def load_android_screenshot_collection
     raise "Screenshot catalog Android profiles #{profile_ids.inspect} do not match adapter profiles " \
           "#{ANDROID_SCREENSHOT_PROFILE_SETTINGS.keys.inspect}"
   end
+  profiles.each do |profile|
+    profile_id = profile.fetch("id")
+    fixture_mode = profile_modes.fetch(profile_id)
+    unless fixture_modes.include?(fixture_mode)
+      raise "Screenshot catalog profile #{profile_id} uses unknown fixture mode #{fixture_mode.inspect}"
+    end
+    if profile.fetch("shipping") && fixture_mode != "curated"
+      raise "Shipping screenshot profile #{profile_id} must use curated fixture mode"
+    end
+  end
 
   {
     scenario_ids: scenario_ids.freeze,
+    fixture_modes: fixture_modes.freeze,
     profiles: profiles.map do |profile|
+      profile_id = profile.fetch("id")
       ANDROID_SCREENSHOT_PROFILE_SETTINGS.fetch(profile.fetch("id")).merge(
-        id: profile.fetch("id"),
+        id: profile_id,
+        fixture_mode: profile_modes.fetch(profile_id),
       ).freeze
     end.freeze,
   }.freeze
@@ -89,6 +105,7 @@ end
 
 ANDROID_SCREENSHOT_COLLECTION = load_android_screenshot_collection
 SCREENSHOT_PROFILES = ANDROID_SCREENSHOT_COLLECTION.fetch(:profiles)
+ANDROID_SCREENSHOT_FIXTURE_MODES = ANDROID_SCREENSHOT_COLLECTION.fetch(:fixture_modes)
 
 def selected_screenshot_values!(raw_value, canonical_values, label)
   values = raw_value.to_s.split(",").map(&:strip).reject(&:empty?)
@@ -99,6 +116,19 @@ def selected_screenshot_values!(raw_value, canonical_values, label)
   expected = canonical_values.select { |value| values.include?(value) }
   UI.user_error!("Screenshot #{label} must follow canonical order: #{expected.join(',')}") unless values == expected
   values
+end
+
+def android_screenshot_fixture_mode!(profile, raw_override = nil)
+  override = raw_override.to_s.strip
+  return profile.fetch(:fixture_mode) if override.empty?
+
+  unless ANDROID_SCREENSHOT_FIXTURE_MODES.include?(override)
+    UI.user_error!(
+      "Unknown screenshot fixture_mode #{override.inspect}; expected " \
+      "#{ANDROID_SCREENSHOT_FIXTURE_MODES.join(', ')}",
+    )
+  end
+  override
 end
 
 def android_screenshot_profile_config
@@ -428,7 +458,7 @@ def configure_screenshot_emulator(adb, serial, profile)
   { size: original_size, density: original_density }
 end
 
-def capture_screenshot_profile(adb, serial, profile, output_directory, scenario_ids: nil)
+def capture_screenshot_profile(adb, serial, profile, output_directory, scenario_ids: nil, fixture_mode: nil)
   original = configure_screenshot_emulator(adb, serial, profile)
   begin
     options = {
@@ -438,7 +468,11 @@ def capture_screenshot_profile(adb, serial, profile, output_directory, scenario_
       device_type: profile[:device_type],
       output_directory: output_directory,
     }
-    options[:launch_arguments] = ["screenshotScenarios #{scenario_ids.join(',')}"] if scenario_ids
+    launch_arguments = [
+      "screenshotFixtureMode #{android_screenshot_fixture_mode!(profile, fixture_mode)}",
+    ]
+    launch_arguments << "screenshotScenarios #{scenario_ids.join(',')}" if scenario_ids
+    options[:launch_arguments] = launch_arguments
     capture_android_screenshots(**options)
   ensure
     restore_screenshot_emulator(adb, serial, original)
@@ -710,6 +744,7 @@ platform :android do
       "scenarios",
     )
     profiles = SCREENSHOT_PROFILES.select { |profile| profile_ids.include?(profile.fetch(:id)) }
+    fixture_mode = options[:fixture_mode].to_s.strip
     run_root = File.expand_path(options[:run_root] || "android/build/targeted-screenshots/run", REPO_ROOT)
     capture_root = "#{run_root}-capture"
     native_target = android_screenshot_native_target
@@ -728,6 +763,7 @@ platform :android do
             profile,
             capture_root,
             scenario_ids: scenario_ids,
+            fixture_mode: fixture_mode,
           )
           validate_screenshot_profile!(capture_root, profile, scenario_ids)
         end

@@ -48,6 +48,9 @@ IOS_SCREENSHOT_PROFILE_SETTINGS = {
 
 def load_ios_screenshot_collection
   catalog = JSON.parse(File.read(SCREENSHOT_CATALOG_PATH))
+  content_fixture = catalog.fetch("content_fixture")
+  fixture_modes = content_fixture.fetch("modes").keys
+  profile_modes = content_fixture.fetch("profile_modes")
   scenario_ids = catalog.fetch("scenarios").map { |scenario| scenario.fetch("id") }
   profiles = catalog.fetch("profiles").select { |profile| profile.fetch("platform") == "ios" }
   profile_ids = profiles.map { |profile| profile.fetch("id") }
@@ -59,12 +62,25 @@ def load_ios_screenshot_collection
     raise "Screenshot catalog iOS profiles #{profile_ids.inspect} do not match adapter profiles " \
           "#{IOS_SCREENSHOT_PROFILE_SETTINGS.keys.inspect}"
   end
+  profiles.each do |profile|
+    profile_id = profile.fetch("id")
+    fixture_mode = profile_modes.fetch(profile_id)
+    unless fixture_modes.include?(fixture_mode)
+      raise "Screenshot catalog profile #{profile_id} uses unknown fixture mode #{fixture_mode.inspect}"
+    end
+    if profile.fetch("shipping") && fixture_mode != "curated"
+      raise "Shipping screenshot profile #{profile_id} must use curated fixture mode"
+    end
+  end
 
   {
     scenario_ids: scenario_ids.freeze,
+    fixture_modes: fixture_modes.freeze,
     profiles: profiles.map do |profile|
+      profile_id = profile.fetch("id")
       IOS_SCREENSHOT_PROFILE_SETTINGS.fetch(profile.fetch("id")).merge(
-        id: profile.fetch("id"),
+        id: profile_id,
+        fixture_mode: profile_modes.fetch(profile_id),
       ).freeze
     end.freeze,
   }.freeze
@@ -75,6 +91,7 @@ end
 IOS_SCREENSHOT_COLLECTION = load_ios_screenshot_collection
 CANONICAL_IOS_SCREENSHOT_IDS = IOS_SCREENSHOT_COLLECTION.fetch(:scenario_ids)
 IOS_SCREENSHOT_PROFILES = IOS_SCREENSHOT_COLLECTION.fetch(:profiles)
+IOS_SCREENSHOT_FIXTURE_MODES = IOS_SCREENSHOT_COLLECTION.fetch(:fixture_modes)
 
 def selected_screenshot_values!(raw_value, canonical_values, label)
   values = raw_value.to_s.split(",").map(&:strip).reject(&:empty?)
@@ -85,6 +102,28 @@ def selected_screenshot_values!(raw_value, canonical_values, label)
   expected = canonical_values.select { |value| values.include?(value) }
   UI.user_error!("Screenshot #{label} must follow canonical order: #{expected.join(',')}") unless values == expected
   values
+end
+
+def ios_screenshot_fixture_mode!(profiles, raw_override = nil)
+  override = raw_override.to_s.strip
+  unless override.empty?
+    unless IOS_SCREENSHOT_FIXTURE_MODES.include?(override)
+      UI.user_error!(
+        "Unknown screenshot fixture_mode #{override.inspect}; expected " \
+        "#{IOS_SCREENSHOT_FIXTURE_MODES.join(', ')}",
+      )
+    end
+    return override
+  end
+
+  profile_modes = profiles.map { |profile| profile.fetch(:fixture_mode) }.uniq
+  if profile_modes.length != 1
+    UI.user_error!(
+      "Selected iOS profiles use different fixture modes #{profile_modes.join(', ')}; " \
+      "pass fixture_mode:<mode> explicitly",
+    )
+  end
+  profile_modes.fetch(0)
 end
 
 def ios_screenshot_profile_config
@@ -569,6 +608,7 @@ platform :ios do
       build_duration = 0.0
       capture_duration = 0.0
       unless pending_profiles.empty?
+        fixture_mode = ios_screenshot_fixture_mode!(pending_profiles)
         with_screenshot_fixture_server do
           boot_screenshot_simulator(native_target, pending_profiles.first.fetch(:device_name))
           patch_snapshot_destination_for_18_3_1
@@ -602,6 +642,7 @@ platform :ios do
             devices: pending_profiles.map { |profile| profile.fetch(:device_name) },
             ios_version: native_target.fetch(:version),
             clear_previous_screenshots: false,
+            launch_arguments: ["-UITestMockMode -ScreenshotFixtureMode #{fixture_mode}"],
           )
           capture_duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - capture_started_at
           pending_profiles.each do |profile|
@@ -633,6 +674,7 @@ platform :ios do
     )
     scenario_ids = selected_screenshot_values!(options[:scenarios], CANONICAL_IOS_SCREENSHOT_IDS, "scenarios")
     profiles = IOS_SCREENSHOT_PROFILES.select { |profile| profile_ids.include?(profile.fetch(:id)) }
+    fixture_mode = ios_screenshot_fixture_mode!(profiles, options[:fixture_mode])
     run_root = File.expand_path(options[:run_root] || "ios/build/targeted-screenshots/run", REPO_ROOT)
 
     Dir.mktmpdir("laughtrack-ios-targeted-screenshots") do |tmpdir|
@@ -663,7 +705,10 @@ platform :ios do
           devices: profiles.map { |profile| profile.fetch(:device_name) },
           ios_version: native_target.fetch(:version),
           clear_previous_screenshots: true,
-          launch_arguments: ["-UITestMockMode -ScreenshotScenarios #{scenario_ids.join(',')}"],
+          launch_arguments: [
+            "-UITestMockMode -ScreenshotScenarios #{scenario_ids.join(',')} " \
+            "-ScreenshotFixtureMode #{fixture_mode}",
+          ],
         )
       end
 

@@ -202,7 +202,7 @@ def test_targeted_mode_captures_selected_subset_without_projecting_storefront(
         assert capture["launch_arguments"] == [
             "-UITestMockMode -ScreenshotScenarios "
             "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts,"
-            "10_PodcastEpisodeDetail",
+            "10_PodcastEpisodeDetail -ScreenshotFixtureMode curated",
         ]
     else:
         assert capture["scenario_ids"] == collect["scenario_ids"]
