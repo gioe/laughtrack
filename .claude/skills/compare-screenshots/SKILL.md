@@ -15,11 +15,11 @@ Run from the repository root. Confirm these prerequisites before starting:
 test -x ios/bin/lane
 test -f android/Gemfile
 test -x scripts/screenshots/regenerate-comparisons
-xcrun simctl list devices booted
-adb devices
+xcrun simctl list devices available
+emulator -list-avds
 ```
 
-Require at least one booted iOS simulator and one authorized Android emulator/device. If either is missing, stop and tell the user exactly what must be started. Do not analyze an existing set as though it were newly generated.
+Require at least one compatible installed iOS simulator and one local Android AVD. The canonical capture lanes boot or reuse their configured devices themselves; a device does not need to be running before regeneration starts. If either platform has no usable local device definition, stop and tell the user exactly what must be installed. Do not analyze an existing set as though it were newly generated.
 
 Create persistent run directories and record an RFC 3339 freshness boundary immediately before capture:
 
@@ -32,7 +32,7 @@ CAPTURE_STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 Keep this directory until the audit is complete. The regeneration command writes
 normalized manifests and their declared images below the corresponding run roots,
-plus 17 labeled cross-platform sheets under `scenario-sheets/` and the
+plus one labeled cross-platform sheet per catalog scenario under `scenario-sheets/` and the
 delta-aware `comparison.json` and `checkout-provenance.json` at the comparison
 root.
 
@@ -40,7 +40,7 @@ root.
 
 Use the repository's single capture-only entry point. It runs the iOS and Android
 lanes sequentially, supplies the resilient Xcode build-settings timeout, validates
-both manifests, generates all 17 scenario sheets, and compares decoded pixels
+both manifests, generates every catalog scenario sheet, and compares decoded pixels
 with the persistent reviewed baseline:
 
 ```bash
