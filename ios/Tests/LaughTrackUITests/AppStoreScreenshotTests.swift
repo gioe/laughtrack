@@ -60,6 +60,61 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         try generateScreenshots()
     }
 
+    func testDiscoverRestoresScrolledSectionAfterSeededSearchAndShowDetail() {
+        let homeScreen = app.scrollViews["laughtrack.home.screen"].firstMatch
+        XCTAssertTrue(homeScreen.waitForExistence(timeout: 15), "Expected Discover to load")
+
+        let retainedSectionMarker = app.staticTexts
+            .matching(identifier: "laughtrack.home.this-week-rail")
+            .firstMatch
+        let retainedSectionAnchor = element("laughtrack.home.this-week-see-more-button")
+        XCTAssertTrue(
+            scrollSectionToRetentionThreshold(
+                retainedSectionMarker,
+                in: homeScreen,
+                maxDrags: 4
+            ),
+            "Expected the This Week rail beyond the first Discover rail"
+        )
+        XCTAssertTrue(
+            waitUntilVisible(retainedSectionAnchor, in: homeScreen, timeout: 2),
+            "Expected the retained This Week anchor to remain tappable"
+        )
+
+        retainedSectionAnchor.tap()
+        XCTAssertTrue(
+            element("laughtrack.shows-search.screen").waitForExistence(timeout: 15),
+            "Expected the This Week action to open seeded show Search"
+        )
+
+        let discoverTab = app.tabBars.buttons["Discover"]
+        XCTAssertTrue(discoverTab.waitForExistence(timeout: 5), "Expected the Discover tab")
+        discoverTab.tap()
+        XCTAssertTrue(
+            waitUntilVisible(retainedSectionMarker, in: homeScreen, timeout: 10),
+            "Expected Discover to restore the This Week section after returning from Search"
+        )
+
+        let fixtureShow = element("laughtrack.home.shows-tonight-103")
+        XCTAssertTrue(
+            waitUntilVisible(fixtureShow, in: homeScreen, timeout: 5),
+            "Expected the fixture-backed This Week show"
+        )
+        fixtureShow.tap()
+        XCTAssertTrue(
+            element(Identifier.showDetailScreen).waitForExistence(timeout: 15),
+            "Expected fixture show detail"
+        )
+
+        let backButton = app.buttons["Back"]
+        XCTAssertTrue(backButton.waitForExistence(timeout: 5), "Expected show-detail Back button")
+        backButton.tap()
+        XCTAssertTrue(
+            waitUntilVisible(retainedSectionMarker, in: homeScreen, timeout: 10),
+            "Expected Discover to restore the This Week section after returning from show detail"
+        )
+    }
+
     private func generateScreenshots() throws {
         try runScenario("01_NearMe") {
             try capture(
@@ -606,6 +661,58 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
     private func assertExists(_ identifier: String, message: String) {
         XCTAssertTrue(element(identifier).waitForExistence(timeout: 15), message)
+    }
+
+    private func waitUntilVisible(
+        _ element: XCUIElement,
+        in viewport: XCUIElement,
+        timeout: TimeInterval
+    ) -> Bool {
+        let expectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate { object, _ in
+                guard let element = object as? XCUIElement, element.exists else {
+                    return false
+                }
+                let frame = element.frame
+                return !frame.isNull && !frame.isInfinite && frame.intersects(viewport.frame)
+            },
+            object: element
+        )
+        return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
+    }
+
+    private func scrollSectionToRetentionThreshold(
+        _ sectionMarker: XCUIElement,
+        in viewport: XCUIElement,
+        maxDrags: Int
+    ) -> Bool {
+        guard sectionMarker.waitForExistence(timeout: 15) else { return false }
+
+        // HomeScrollRetention records a section once its top is within 24 points
+        // of the viewport; aim slightly above that boundary to absorb gesture rounding.
+        let retentionThresholdY = viewport.frame.minY + 24
+        let targetY = viewport.frame.minY + 10
+        for _ in 0..<maxDrags {
+            if sectionMarker.frame.minY <= retentionThresholdY {
+                return sectionMarker.frame.maxY >= viewport.frame.minY
+            }
+
+            let distance = sectionMarker.frame.minY - targetY
+            let normalizedDistance = min(distance / app.frame.height, 0.5)
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+            let end = app.coordinate(
+                withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75 - normalizedDistance)
+            )
+            start.press(
+                forDuration: 0.05,
+                thenDragTo: end,
+                withVelocity: .slow,
+                thenHoldForDuration: 0.25
+            )
+        }
+
+        return sectionMarker.frame.minY <= retentionThresholdY
+            && sectionMarker.frame.maxY >= viewport.frame.minY
     }
 
     private func element(_ identifier: String) -> XCUIElement {
