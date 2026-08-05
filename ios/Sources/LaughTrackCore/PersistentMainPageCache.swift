@@ -1,6 +1,15 @@
 import Foundation
 import LaughTrackAPIClient
 
+public extension Components.Schemas.HomeFeed {
+    /// The location-scoped portion that is safe to reuse across accounts.
+    var publicCacheSlice: Self {
+        var feed = self
+        feed.followedComedianShows = []
+        return feed
+    }
+}
+
 public actor PersistentMainPageCache {
     public struct CachedValue<Value: Sendable>: Sendable {
         public let value: Value
@@ -72,7 +81,11 @@ public actor PersistentMainPageCache {
         distanceMiles: Int? = nil,
         ttl: TimeInterval
     ) {
-        set(feed, fileName: homeFeedFileName(zipCode: zipCode, distanceMiles: distanceMiles), ttl: ttl)
+        set(
+            feed.publicCacheSlice,
+            fileName: homeFeedFileName(zipCode: zipCode, distanceMiles: distanceMiles),
+            ttl: ttl
+        )
     }
 
     public func getHomeFeed(zipCode: String?, distanceMiles: Int? = nil) -> Components.Schemas.HomeFeed? {
@@ -83,7 +96,13 @@ public actor PersistentMainPageCache {
         zipCode: String?,
         distanceMiles: Int? = nil
     ) -> CachedValue<Components.Schemas.HomeFeed>? {
-        get(fileName: homeFeedFileName(zipCode: zipCode, distanceMiles: distanceMiles))
+        guard let cached: CachedValue<Components.Schemas.HomeFeed> = get(
+            fileName: homeFeedFileName(zipCode: zipCode, distanceMiles: distanceMiles)
+        ) else { return nil }
+        return CachedValue(
+            value: cached.value.publicCacheSlice,
+            expiresAt: cached.expiresAt
+        )
     }
 
     public func setFavoriteShows(_ shows: [Components.Schemas.Show], requestKey: String, ttl: TimeInterval) {

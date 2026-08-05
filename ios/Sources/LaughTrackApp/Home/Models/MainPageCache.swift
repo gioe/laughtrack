@@ -15,6 +15,9 @@ enum MainPageCache {
         persistentCache: PersistentMainPageCache?
     ) async -> Value? {
         if let cached: Value = await cache?.get(forKey: key) {
+            if let homeFeed = cached as? Components.Schemas.HomeFeed {
+                return homeFeed.publicCacheSlice as? Value
+            }
             return cached
         }
 
@@ -46,22 +49,23 @@ enum MainPageCache {
         ttl: TimeInterval = defaultTTL,
         persistentCache: PersistentMainPageCache?
     ) async {
-        await cache?.set(value, forKey: key, ttl: ttl)
-
         switch key {
         case .homeFeed(let zipCode, let distanceMiles):
             guard let homeFeed = value as? Components.Schemas.HomeFeed else { return }
+            let publicFeed = homeFeed.publicCacheSlice
+            await cache?.set(publicFeed, forKey: key, ttl: ttl)
             await persistentCache?.setHomeFeed(
-                homeFeed,
+                publicFeed,
                 zipCode: zipCode,
                 distanceMiles: distanceMiles,
                 ttl: ttl
             )
         case .favoriteShows(let requestKey):
+            await cache?.set(value, forKey: key, ttl: ttl)
             guard let shows = value as? [Components.Schemas.Show] else { return }
             await persistentCache?.setFavoriteShows(shows, requestKey: requestKey, ttl: ttl)
         default:
-            return
+            await cache?.set(value, forKey: key, ttl: ttl)
         }
     }
 

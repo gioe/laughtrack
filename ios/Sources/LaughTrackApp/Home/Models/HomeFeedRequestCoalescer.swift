@@ -34,14 +34,21 @@ actor HomeFeedRequestCoalescer {
 }
 
 enum HomeFeedRequest {
-    static func requestKey(zipCode: String?, distanceMiles: Int?) -> String {
-        "\(zipCode ?? "")|\(distanceMiles.map(String.init) ?? "")"
+    static func requestKey(
+        zipCode: String?,
+        distanceMiles: Int?,
+        sessionDiscriminator: String? = nil
+    ) -> String {
+        let locationKey = "\(zipCode ?? "")|\(distanceMiles.map(String.init) ?? "")"
+        guard let sessionDiscriminator else { return locationKey }
+        return "\(sessionDiscriminator)|\(locationKey)"
     }
 
     static func load(
         apiClient: Client,
         zipCode: String?,
         distanceMiles: Int?,
+        sessionDiscriminator: String? = nil,
         cache: DataCache<LaughTrackCacheKey>?,
         cacheTTL: TimeInterval,
         badParamsMessage: String,
@@ -52,7 +59,11 @@ enum HomeFeedRequest {
         persistentCache: PersistentMainPageCache?,
         coalescer: HomeFeedRequestCoalescer
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
-        await coalescer.load(requestKey: requestKey(zipCode: zipCode, distanceMiles: distanceMiles)) {
+        await coalescer.load(requestKey: requestKey(
+            zipCode: zipCode,
+            distanceMiles: distanceMiles,
+            sessionDiscriminator: sessionDiscriminator
+        )) {
             await fetch(
                 apiClient: apiClient,
                 zipCode: zipCode,

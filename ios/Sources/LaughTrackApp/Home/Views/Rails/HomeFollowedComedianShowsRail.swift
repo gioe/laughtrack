@@ -26,7 +26,9 @@ struct HomeFollowedComedianShowsRail: View {
     }
 
     private var sessionDiscriminator: String? {
-        authManager.currentSession.map { String($0.signedInAt.timeIntervalSinceReferenceDate) }
+        guard let userId = authManager.currentUser?.userId,
+              let session = authManager.currentSession else { return nil }
+        return "\(userId)|\(session.signedInAt.timeIntervalSinceReferenceDate)"
     }
 
     var body: some View {
@@ -115,6 +117,7 @@ final class HomeFollowedComedianShowsModel: ObservableObject {
             apiClient: apiClient,
             zipCode: zipCode,
             distanceMiles: distanceMiles,
+            sessionDiscriminator: sessionDiscriminator,
             cache: cache,
             cacheTTL: cacheTTL,
             badParamsMessage: "LaughTrack could not load followed-comedian shows.",
