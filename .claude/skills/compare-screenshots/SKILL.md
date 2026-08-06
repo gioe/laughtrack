@@ -87,11 +87,17 @@ Android 10-inch, then Android 7-inch. The iPad profile renders native geometry
 for comparison but is not a shipping target; the production iOS app is
 iPhone-only.
 
+Use the checkout-local `scripts/screenshots/comparison.py` entry point. It is
+available in scoped Tusk worktrees and resolves the catalog and helper modules
+from the active checkout. Do not invoke a copy from a runtime-specific skill
+directory or reach back to the primary checkout.
+
 ```bash
 REVIEWED_BASELINE="apps/screenshot-comparisons/reviewed-baseline.json"
-python3 .claude/skills/compare-screenshots/scripts/validate_pairs.py \
+python3 scripts/screenshots/comparison.py \
   --ios-manifest "$IOS_RUN_ROOT/manifest.json" \
   --android-manifest "$ANDROID_RUN_ROOT/manifest.json" \
+  --catalog screenshots/catalog.json \
   --fresh-since "$CAPTURE_STARTED_AT" \
   --baseline "$REVIEWED_BASELINE" \
   --sheet-dir "$SCREENSHOT_RUN_ROOT/scenario-sheets" \
@@ -158,9 +164,10 @@ Only after every required sheet and any suspect originals have been reviewed,
 write the complete current corpus as the next reviewed baseline:
 
 ```bash
-python3 .claude/skills/compare-screenshots/scripts/validate_pairs.py \
+python3 scripts/screenshots/comparison.py \
   --ios-manifest "$IOS_RUN_ROOT/manifest.json" \
   --android-manifest "$ANDROID_RUN_ROOT/manifest.json" \
+  --catalog screenshots/catalog.json \
   --fresh-since "$CAPTURE_STARTED_AT" \
   --write-baseline "$REVIEWED_BASELINE" \
   --reviewed-by "<reviewer identity>" \

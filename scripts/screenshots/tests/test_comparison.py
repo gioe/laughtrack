@@ -20,6 +20,54 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 REGENERATE_SCRIPT = REPO_ROOT / "scripts" / "screenshots" / "regenerate-comparisons"
 
 
+def test_documented_validator_is_sparse_safe_and_reads_local_catalog(
+    tmp_path: Path,
+) -> None:
+    skill = (
+        REPO_ROOT / ".claude" / "skills" / "compare-screenshots" / "SKILL.md"
+    ).read_text()
+    assert skill.count("python3 scripts/screenshots/comparison.py") == 2
+    assert "skills/compare-screenshots/scripts/validate_pairs.py" not in skill
+
+    checkout = tmp_path / "sparse-checkout"
+    script_dir = checkout / "scripts" / "screenshots"
+    script_dir.mkdir(parents=True)
+    for helper in ("comparison.py", "manifest.py"):
+        shutil.copy2(REPO_ROOT / "scripts" / "screenshots" / helper, script_dir / helper)
+    catalog = checkout / "screenshots" / "catalog.json"
+    catalog.parent.mkdir()
+    catalog.write_text(json.dumps({"schema_version": 999}), encoding="utf-8")
+
+    assert not (checkout / ".agents").exists()
+    assert not (checkout / ".claude").exists()
+    help_result = subprocess.run(
+        ["python3", "scripts/screenshots/comparison.py", "--help"],
+        cwd=checkout,
+        capture_output=True,
+        text=True,
+    )
+    assert help_result.returncode == 0, help_result.stderr
+
+    validation_result = subprocess.run(
+        [
+            "python3",
+            "scripts/screenshots/comparison.py",
+            "--ios-manifest",
+            "runs/ios/manifest.json",
+            "--android-manifest",
+            "runs/android/manifest.json",
+            "--catalog",
+            "screenshots/catalog.json",
+        ],
+        cwd=checkout,
+        capture_output=True,
+        text=True,
+    )
+    assert validation_result.returncode == 1
+    assert "catalog.schema_version must be 1" in validation_result.stderr
+    assert "manifest.json: cannot read JSON" not in validation_result.stderr
+
+
 def _executable(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
