@@ -7,7 +7,9 @@ import android.view.inputmethod.InputMethodManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
@@ -115,6 +117,11 @@ class AppStoreScreenshotTest {
     private val capturesNearMe: Boolean by lazy {
         selectedScenarioIds == null || "01_NearMe" in selectedScenarioIds.orEmpty()
     }
+    private val indeterminateLoadingIndicator =
+        SemanticsMatcher.expectValue(
+            SemanticsProperties.ProgressBarRangeInfo,
+            ProgressBarRangeInfo.Indeterminate,
+        )
 
     @Inject
     lateinit var homeLocationState: HomeLocationState
@@ -546,6 +553,59 @@ class AppStoreScreenshotTest {
         }
     }
 
+    /** Require transient loading UI to remain absent before saving a screenshot. */
+    private fun waitForCaptureLoadingToClear(
+        name: String,
+        timeoutMs: Long = 30_000,
+        stableMs: Long = 750,
+    ) {
+        var clearSince = 0L
+        try {
+            composeRule.waitUntil(timeoutMillis = timeoutMs) {
+                val now = SystemClock.uptimeMillis()
+                if (indeterminateLoadingNodes().isNotEmpty()) {
+                    clearSince = 0L
+                    false
+                } else {
+                    if (clearSince == 0L) clearSince = now
+                    now - clearSince >= stableMs
+                }
+            }
+        } catch (cause: ComposeTimeoutException) {
+            throw AssertionError(captureLoadingDiagnostic(name, timeoutMs), cause)
+        }
+
+        check(indeterminateLoadingNodes().isEmpty()) {
+            captureLoadingDiagnostic(name, stableMs)
+        }
+    }
+
+    private fun indeterminateLoadingNodes() =
+        composeRule
+            .onAllNodes(indeterminateLoadingIndicator, useUnmergedTree = true)
+            .fetchSemanticsNodes()
+
+    private fun captureLoadingDiagnostic(
+        name: String,
+        waitedMs: Long,
+    ): String {
+        val survivingNodes = indeterminateLoadingNodes()
+        val details = survivingNodes.take(3).joinToString(separator = "\n") { it.toString() }
+        return buildString {
+            append("Refusing to capture '")
+            append(name)
+            append("': ")
+            append(survivingNodes.size)
+            append(" indeterminate loading indicator(s) survived the ")
+            append(waitedMs)
+            append(" ms readiness gate")
+            if (details.isNotEmpty()) {
+                append(":\n")
+                append(details)
+            }
+        }
+    }
+
     /** Let animations/recomposition quiesce before capturing a frame. */
     private fun settle() {
         composeRule.waitForIdle()
@@ -580,6 +640,7 @@ class AppStoreScreenshotTest {
         // Give that final frame time to land before asking screengrab to capture.
         android.os.SystemClock.sleep(250)
         settle()
+        waitForCaptureLoadingToClear(name)
         Screengrab.screenshot(name)
         return lastSelectedScenarioId == name
     }
