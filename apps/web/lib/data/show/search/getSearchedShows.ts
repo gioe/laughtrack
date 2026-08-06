@@ -18,10 +18,11 @@ interface ShowSearchResponse {
     zipCapTriggered: boolean;
 }
 
-// Synthetic Tag-style FilterDTO for the Free filter. No `tags` row backs it —
-// see FREE_FILTER_SLUG. Negative id keeps it visibly distinct from real Tag
-// IDs (Postgres serial starts at 1) so a downstream consumer that mistakes a
-// FilterDTO for a Tag fails loudly instead of silently joining nothing.
+// Synthetic Tag-style FilterDTO for the Free filter. This is authoritative for
+// the reserved FREE_FILTER_SLUG even if legacy data contains a Tag with the
+// same slug. Negative id keeps it visibly distinct from real Tag IDs (Postgres
+// serial starts at 1) so a downstream consumer that mistakes a FilterDTO for a
+// Tag fails loudly instead of silently joining nothing.
 const FREE_FILTER_ID = -1;
 const FREE_FILTER_NAME = "Free";
 
@@ -43,9 +44,10 @@ export async function getSearchedShows(
             selected: isFreeFilterSelected(requestData.params.filters),
         };
 
-        const filters = [freeFilter, ...tagFilters].sort((a, b) =>
-            a.name.localeCompare(b.name),
-        );
+        const filters = [
+            freeFilter,
+            ...tagFilters.filter((filter) => filter.slug !== FREE_FILTER_SLUG),
+        ].sort((a, b) => a.name.localeCompare(b.name));
 
         return {
             total: showsWithCount.totalCount,

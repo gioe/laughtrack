@@ -89,6 +89,46 @@ describe("getSearchedShows — synthetic Free filter (TASK-2141)", () => {
         expect(free?.selected).toBe(false);
     });
 
+    it("deduplicates a database-backed Free filter", async () => {
+        mockGetFilters.mockResolvedValue([
+            { id: 1, slug: "weekly", name: "Weekly", selected: false },
+            {
+                id: 9,
+                slug: FREE_FILTER_SLUG,
+                name: "Free",
+                selected: false,
+            },
+            { id: 2, slug: "open-mic", name: "Open Mic", selected: true },
+        ]);
+
+        const response = await getSearchedShows(
+            buildRequest(`open-mic,${FREE_FILTER_SLUG}`),
+        );
+
+        expect(
+            response.filters.filter(
+                (filter) => filter.slug === FREE_FILTER_SLUG,
+            ),
+        ).toEqual([
+            {
+                id: -1,
+                slug: FREE_FILTER_SLUG,
+                name: "Free",
+                selected: true,
+            },
+        ]);
+        expect(response.filters).toEqual([
+            {
+                id: -1,
+                slug: FREE_FILTER_SLUG,
+                name: "Free",
+                selected: true,
+            },
+            { id: 2, slug: "open-mic", name: "Open Mic", selected: true },
+            { id: 1, slug: "weekly", name: "Weekly", selected: false },
+        ]);
+    });
+
     it("merges the synthetic Free filter with real tag filters and sorts alphabetically by name", async () => {
         mockGetFilters.mockResolvedValue([
             { id: 1, slug: "weekly", name: "Weekly" },
