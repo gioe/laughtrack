@@ -357,6 +357,31 @@ describe("getPodcastEpisodeDiscovery", () => {
             ),
         ).toEqual([99, 2, 4, 6]);
 
+        const feedScopedGuids = [
+            candidate(7, { episodeGuid: "episode-1" }),
+            candidate(8, { episodeGuid: "episode-1" }),
+        ];
+        expect(
+            rankPodcastEpisodeDiscoveryCandidates(feedScopedGuids, 2),
+        ).toHaveLength(2);
+
+        const crossProviderAudioDuplicate = [
+            candidate(12, {
+                episodeGuid: "shared-provider-guid",
+                audioUrl: "https://cdn.example.com/shared-provider.mp3",
+            }),
+            candidate(13, {
+                episodeGuid: "shared-provider-guid",
+                audioUrl: "https://cdn.example.com/shared-provider.mp3",
+            }),
+        ];
+        expect(
+            rankPodcastEpisodeDiscoveryCandidates(
+                crossProviderAudioDuplicate,
+                2,
+            ),
+        ).toHaveLength(1);
+
         const sameTimestampDistinctEpisodes = [
             candidate(10, { episodeGuid: "distinct-a" }),
             candidate(11, {

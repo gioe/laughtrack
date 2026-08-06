@@ -246,21 +246,28 @@ function logicalPodcastKey(
     return `catalog:${normalizedValue(candidate.podcastTitle)}|${normalizedValue(candidate.podcastAuthorName ?? "")}`;
 }
 
-function logicalEpisodeKey(
+function logicalEpisodeKeys(
     candidate: PodcastEpisodeDiscoveryCandidate,
-): string {
+): string[] {
+    const keys: string[] = [];
     if (candidate.episodeGuid?.trim()) {
-        return `guid:${normalizedValue(candidate.episodeGuid)}`;
+        keys.push(
+            `guid:${logicalPodcastKey(candidate)}|${normalizedValue(candidate.episodeGuid)}`,
+        );
     }
     if (candidate.audioUrl?.trim()) {
-        return `audio:${normalizedUrl(candidate.audioUrl)}`;
+        keys.push(`audio:${normalizedUrl(candidate.audioUrl)}`);
     }
-    return [
-        "fallback",
-        logicalPodcastKey(candidate),
-        candidate.releaseDate.getTime(),
-        normalizedEpisodeTitle(candidate.episodeTitle),
-    ].join("|");
+    return keys.length > 0
+        ? keys
+        : [
+              [
+                  "fallback",
+                  logicalPodcastKey(candidate),
+                  candidate.releaseDate.getTime(),
+                  normalizedEpisodeTitle(candidate.episodeTitle),
+              ].join("|"),
+          ];
 }
 
 function compareCandidates(
@@ -299,9 +306,9 @@ export function rankPodcastEpisodeDiscoveryCandidates(
     const selected: PodcastEpisodeDiscoveryCandidate[] = [];
 
     for (const candidate of [...candidates].sort(compareCandidates)) {
-        const episodeKey = logicalEpisodeKey(candidate);
-        if (seenEpisodes.has(episodeKey)) continue;
-        seenEpisodes.add(episodeKey);
+        const episodeKeys = logicalEpisodeKeys(candidate);
+        if (episodeKeys.some((key) => seenEpisodes.has(key))) continue;
+        for (const key of episodeKeys) seenEpisodes.add(key);
 
         const podcastKey = logicalPodcastKey(candidate);
         const podcastCount = podcastCounts.get(podcastKey) ?? 0;
