@@ -163,20 +163,40 @@ struct AppShellViewTests {
         #expect(!source.contains(".background(theme.laughTrackTokens.colors.canvas.opacity(0.97))"))
     }
 
-    @Test("primitive filter reveals the selected chip while preserving marquee styling")
-    func primitiveFilterRevealsSelectedChip() throws {
+    @Test("primitive filter maps every category to a stable scroll target")
+    func primitiveFilterMapsEveryCategoryToStableScrollTarget() throws {
         let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
 
+        #expect(PrimitiveFilterScrollLayout.scrollTarget(for: .shows) == .primitive("shows"))
+        #expect(PrimitiveFilterScrollLayout.scrollTarget(for: .comedians) == .primitive("comedians"))
+        #expect(PrimitiveFilterScrollLayout.scrollTarget(for: .clubs) == .primitive("clubs"))
+        #expect(PrimitiveFilterScrollLayout.scrollTarget(for: .podcasts) == .trailingInset)
         #expect(source.contains("ScrollViewReader { proxy in"))
-        #expect(source.contains(".id(primitive.id)"))
+        #expect(source.contains(".id(PrimitiveFilterScrollLayout.pillTarget(for: primitive))"))
+        #expect(source.contains(".id(PrimitiveFilterScrollTarget.trailingInset)"))
         #expect(source.contains("scrollToSelectedPrimitive(using: proxy, animated: false)"))
         #expect(source.contains(".onChange(of: shellState.selectedPrimitive)"))
         #expect(source.contains("scrollToSelectedPrimitive(using: proxy, animated: true)"))
-        #expect(source.contains("proxy.scrollTo(primitive.id, anchor: .trailing)"))
+        #expect(source.contains("proxy.scrollTo(target, anchor: .trailing)"))
         #expect(source.contains(".font(.system(size: 12, weight: .heavy, design: .rounded))"))
         #expect(source.contains(".tracking(1.4)"))
         #expect(source.contains("Capsule()"))
         #expect(source.contains("dash: [0.5, 5]"))
+    }
+
+    @Test("podcasts trailing anchor uses a bounded layout spacer")
+    func podcastsTrailingAnchorUsesBoundedLayoutSpacer() throws {
+        let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
+        let theme = LaughTrackTheme()
+
+        #expect(
+            PrimitiveFilterScrollLayout.trailingInsetWidth(theme: theme) ==
+                theme.spacing.xxxl + theme.spacing.sm
+        )
+        #expect(source.contains(
+            "width: PrimitiveFilterScrollLayout.trailingInsetWidth(theme: theme)"
+        ))
+        #expect(source.contains("height: 1"))
     }
 
     @Test("generic page backgrounds inherit the shell atmosphere")

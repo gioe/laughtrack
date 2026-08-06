@@ -615,7 +615,7 @@ struct AppShellView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(primitive.title)
                 .accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterButton(primitive.rawValue))
-                .id(primitive.id)
+                .id(PrimitiveFilterScrollLayout.pillTarget(for: primitive))
             }
         }
     }
@@ -664,9 +664,19 @@ struct AppShellView: View {
     private var primitiveFilterScroller: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
-                primitiveFilterRow
-                    .padding(.horizontal, 1)
-                    .padding(.vertical, 1)
+                HStack(spacing: theme.spacing.xs) {
+                    primitiveFilterRow
+
+                    Color.clear
+                        .frame(
+                            width: PrimitiveFilterScrollLayout.trailingInsetWidth(theme: theme),
+                            height: 1
+                        )
+                        .id(PrimitiveFilterScrollTarget.trailingInset)
+                        .accessibilityHidden(true)
+                }
+                .padding(.horizontal, 1)
+                .padding(.vertical, 1)
             }
             .onAppear {
                 scrollToSelectedPrimitive(using: proxy, animated: false)
@@ -681,13 +691,38 @@ struct AppShellView: View {
 
     private func scrollToSelectedPrimitive(using proxy: ScrollViewProxy, animated: Bool) {
         guard let primitive = shellState.selectedPrimitive else { return }
+        let target = PrimitiveFilterScrollLayout.scrollTarget(for: primitive)
 
         if animated {
             withAnimation(.easeInOut(duration: 0.2)) {
-                proxy.scrollTo(primitive.id, anchor: .trailing)
+                proxy.scrollTo(target, anchor: .trailing)
             }
         } else {
-            proxy.scrollTo(primitive.id, anchor: .trailing)
+            proxy.scrollTo(target, anchor: .trailing)
+        }
+    }
+}
+
+enum PrimitiveFilterScrollTarget: Hashable {
+    case primitive(String)
+    case trailingInset
+}
+
+enum PrimitiveFilterScrollLayout {
+    static func trailingInsetWidth(theme: AppThemeProtocol) -> CGFloat {
+        theme.spacing.xxxl + theme.spacing.sm
+    }
+
+    static func pillTarget(for primitive: SearchRootModel.Pivot) -> PrimitiveFilterScrollTarget {
+        .primitive(primitive.id)
+    }
+
+    static func scrollTarget(for primitive: SearchRootModel.Pivot) -> PrimitiveFilterScrollTarget {
+        switch primitive {
+        case .shows, .comedians, .clubs:
+            return pillTarget(for: primitive)
+        case .podcasts:
+            return .trailingInset
         }
     }
 }
