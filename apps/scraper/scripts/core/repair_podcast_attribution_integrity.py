@@ -142,7 +142,14 @@ _OWNERSHIP_REVIEWS_SQL = """
     FROM podcast_candidate_reviews r
     LEFT JOIN podcasts p ON p.id = r.podcast_id
     WHERE r.candidate_status IN ('accepted', 'pending')
-      AND (r.comedian_id = ANY(%s::int[]) OR r.podcast_id = ANY(%s::int[]))
+      AND (
+          r.comedian_id = ANY(%s::int[])
+          OR r.podcast_id = ANY(%s::int[])
+          OR (
+              r.candidate_status = 'pending'
+              AND r.evidence @? '$.attribution_integrity_repair[*].absorbed_row ? (@.status == "accepted")'
+          )
+      )
 """
 
 _APPEARANCE_REVIEWS_SQL = """
@@ -154,7 +161,14 @@ _APPEARANCE_REVIEWS_SQL = """
     FROM episode_appearance_reviews r
     LEFT JOIN podcast_episodes pe ON pe.id = r.episode_id
     WHERE r.candidate_status IN ('accepted', 'pending')
-      AND (r.comedian_id = ANY(%s::int[]) OR pe.podcast_id = ANY(%s::int[]))
+      AND (
+          r.comedian_id = ANY(%s::int[])
+          OR pe.podcast_id = ANY(%s::int[])
+          OR (
+              r.candidate_status = 'pending'
+              AND r.evidence @? '$.attribution_integrity_repair[*].absorbed_row ? (@.status == "accepted")'
+          )
+      )
 """
 
 _OWNERSHIP_REVIEW_EXPORT_SQL = """
@@ -256,6 +270,15 @@ _VERIFY_SQL = """
     WHERE cp.review_status = 'accepted'
       AND cp.association_type IN ('host', 'cohost')
       AND NOT (cp.evidence ? 'task_3908_re_review')
+    UNION ALL
+    SELECT 'absorbed_acceptance_not_accepted', COUNT(*)::bigint
+    FROM (
+        SELECT candidate_status, evidence FROM podcast_candidate_reviews
+        UNION ALL
+        SELECT candidate_status, evidence FROM episode_appearance_reviews
+    ) reviews
+    WHERE reviews.candidate_status = 'pending'
+      AND reviews.evidence @? '$.attribution_integrity_repair[*].absorbed_row ? (@.status == "accepted")'
 """
 
 
@@ -303,6 +326,7 @@ class RepairSummary:
     canonicalized: dict[str, int] = field(default_factory=dict)
     absorbed: dict[str, int] = field(default_factory=dict)
     blocked: dict[str, int] = field(default_factory=dict)
+    promoted: dict[str, int] = field(default_factory=dict)
     unchanged: dict[str, int] = field(default_factory=dict)
     re_reviewed_accept: int = 0
     re_reviewed_reject: int = 0
@@ -370,6 +394,31 @@ def _unique_key(row: AttributionRow, canonical_id: int) -> tuple[Any, ...]:
     return (canonical_id, row.source, row.source_identity)
 
 
+def _absorbed_accepted_decision(evidence: dict[str, Any]) -> bool:
+    history = evidence.get("attribution_integrity_repair", [])
+    if not isinstance(history, list):
+        return False
+    return any(
+        isinstance(entry, dict)
+        and isinstance(entry.get("absorbed_row"), dict)
+        and entry["absorbed_row"].get("status") == "accepted"
+        for entry in history
+    )
+
+
+def _effective_status(row: AttributionRow) -> str:
+    if row.status == "pending" and _absorbed_accepted_decision(row.evidence):
+        return "accepted"
+    return row.status
+
+
+def _survivor_key(item: tuple[AttributionRow, Resolution]) -> tuple[int, int, int]:
+    row, resolution = item
+    status_rank = {"accepted": 0, "pending": 1}.get(_effective_status(row), 2)
+    alias_rank = int(row.comedian_id != resolution.canonical_id)
+    return status_rank, alias_rank, row.row_id
+
+
 def plan_repairs(
     rows: Iterable[AttributionRow],
     resolutions: dict[int, Resolution],
@@ -400,17 +449,20 @@ def plan_repairs(
         )
 
     for group in eligible_groups.values():
-        canonical_rows = [item for item in group if item[0].comedian_id == item[1].canonical_id]
-        survivor_row, survivor_resolution = min(
-            canonical_rows or group,
-            key=lambda item: item[0].row_id,
-        )
+        survivor_row, survivor_resolution = min(group, key=_survivor_key)
         if survivor_row.comedian_id != survivor_resolution.canonical_id:
             actions[survivor_row.row_id] = RepairAction(
                 "canonicalize",
                 survivor_row,
                 survivor_resolution.canonical_id,
                 "alias resolved to eligible canonical comedian",
+            )
+        elif _effective_status(survivor_row) != survivor_row.status:
+            actions[survivor_row.row_id] = RepairAction(
+                "promote",
+                survivor_row,
+                survivor_resolution.canonical_id,
+                "restore accepted decision preserved in absorbed review evidence",
             )
         else:
             actions[survivor_row.row_id] = RepairAction(
@@ -695,6 +747,28 @@ def _persist_canonicalize(cur: Any, action: RepairAction) -> None:
     )
 
 
+def _persist_promote(cur: Any, action: RepairAction) -> None:
+    row = action.row
+    if row.table not in {"podcast_candidate_reviews", "episode_appearance_reviews"}:
+        raise ValueError(f"cannot promote status for {row.table}")
+    evidence = _with_repair_evidence(
+        row.evidence,
+        action="restored_accepted_status",
+        reason=action.reason,
+        row=row,
+        canonical_id=action.canonical_id,
+    )
+    cur.execute(
+        f"""
+        UPDATE {row.table}
+        SET candidate_status = 'accepted', evidence = %s::jsonb,
+            reviewed_at = NOW(), reviewed_by = 'task-3908-repair', updated_at = NOW()
+        WHERE id = %s
+        """,
+        (json.dumps(evidence, sort_keys=True), row.row_id),
+    )
+
+
 def _persist_absorb(
     cur: Any,
     action: RepairAction,
@@ -872,6 +946,7 @@ def repair(
                     "block": "blocked",
                     "canonicalize": "canonicalized",
                     "absorb": "absorbed",
+                    "promote": "promoted",
                     "unchanged": "unchanged",
                 }[action.kind]
                 summary.bump(bucket, table)
@@ -898,6 +973,8 @@ def repair(
                     for action in actions:
                         if action.kind == "canonicalize":
                             _persist_canonicalize(cur, action)
+                        elif action.kind == "promote":
+                            _persist_promote(cur, action)
 
             verification = verify(conn)
             if any(verification.values()):

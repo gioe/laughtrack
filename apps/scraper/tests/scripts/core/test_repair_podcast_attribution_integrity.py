@@ -43,6 +43,7 @@ def _row(
     source_identity: str = "feed-10",
     target_id: int | None = None,
     active_podcast_deny: bool = False,
+    status: str = "accepted",
 ) -> mod.AttributionRow:
     return mod.AttributionRow(
         table=table,
@@ -51,7 +52,7 @@ def _row(
         podcast_id=podcast_id,
         source=source,
         role="host" if "podcast" in table else "guest",
-        status="accepted",
+        status=status,
         confidence=0.95,
         evidence={"source": row_id},
         reviewed_by="reviewer",
@@ -142,6 +143,85 @@ def test_plan_keeps_distinct_appearance_sources_but_merges_review_identity_confl
         "unchanged",
     ]
     assert [action.kind for action in review_actions] == ["absorb", "unchanged"]
+
+
+def test_plan_preserves_accepted_alias_over_canonical_pending_conflict():
+    accepted_alias = _row(
+        3,
+        20,
+        table="episode_appearance_reviews",
+        source_identity="episode-10",
+        target_id=55,
+        status="accepted",
+    )
+    canonical_pending = _row(
+        4,
+        30,
+        table="episode_appearance_reviews",
+        source_identity="episode-10",
+        target_id=55,
+        status="pending",
+    )
+    resolutions = {
+        20: _resolution(20, 30),
+        30: _resolution(30, 30),
+    }
+
+    actions = mod.plan_repairs([accepted_alias, canonical_pending], resolutions)
+
+    assert actions[0].kind == "canonicalize"
+    assert actions[1].kind == "absorb"
+    assert actions[1].survivor_id == 3
+
+
+def test_plan_restores_pending_status_from_absorbed_accepted_evidence():
+    pending = _row(
+        4,
+        30,
+        table="episode_appearance_reviews",
+        source_identity="episode-10",
+        target_id=55,
+        status="pending",
+    )
+    pending = mod.AttributionRow(
+        **{
+            **pending.__dict__,
+            "evidence": {
+                "attribution_integrity_repair": [
+                    {"absorbed_row": {"status": "accepted", "row_id": 3}}
+                ]
+            },
+        }
+    )
+
+    actions = mod.plan_repairs([pending], {30: _resolution(30, 30)})
+
+    assert actions[0].kind == "promote"
+
+
+def test_plan_does_not_restore_explicitly_rejected_absorbed_acceptance():
+    rejected = _row(
+        4,
+        30,
+        table="episode_appearance_reviews",
+        source_identity="episode-10",
+        target_id=55,
+        status="rejected",
+    )
+    rejected = mod.AttributionRow(
+        **{
+            **rejected.__dict__,
+            "evidence": {
+                "attribution_integrity_repair": [
+                    {"absorbed_row": {"status": "accepted", "row_id": 3}}
+                ]
+            },
+        }
+    )
+
+    actions = mod.plan_repairs([rejected], {30: _resolution(30, 30)})
+
+    assert actions[0].kind == "unchanged"
 
 
 def test_plan_blocks_hidden_denied_missing_and_active_podcast_rows():
@@ -383,3 +463,4 @@ def test_sql_contract_covers_active_denies_normalized_names_and_all_four_tables(
         "episode_appearance_reviews",
     ):
         assert table in mod._VERIFY_SQL
+    assert "absorbed_acceptance_not_accepted" in mod._VERIFY_SQL
