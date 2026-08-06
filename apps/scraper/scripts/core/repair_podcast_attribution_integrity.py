@@ -639,6 +639,41 @@ def _persist_blocked_review_batch(
 
 def _persist_canonicalize(cur: Any, action: RepairAction) -> None:
     row = action.row
+    conflict_specs = {
+        "comedian_podcasts": (
+            "podcast_id = %s AND association_type = %s AND source = %s",
+            (row.podcast_id, row.role, row.source),
+            "review_status <> 'accepted'",
+        ),
+        "episode_appearances": (
+            "episode_id = %s AND source = %s",
+            (row.target_id, row.source),
+            "review_status <> 'accepted'",
+        ),
+        "podcast_candidate_reviews": (
+            "source = %s AND source_podcast_id = %s",
+            (row.source, row.source_identity),
+            "candidate_status NOT IN ('accepted', 'pending')",
+        ),
+        "episode_appearance_reviews": (
+            "source = %s AND source_episode_id = %s",
+            (row.source, row.source_identity),
+            "candidate_status NOT IN ('accepted', 'pending')",
+        ),
+    }
+    key_sql, key_params, inactive_sql = conflict_specs[row.table]
+    cur.execute(
+        f"""
+        DELETE FROM {row.table}
+        WHERE comedian_id = %s
+          AND {key_sql}
+          AND id <> %s
+          AND {inactive_sql}
+        RETURNING to_jsonb({row.table}.*)
+        """,
+        (action.canonical_id, *key_params, row.row_id),
+    )
+    displaced_conflicts = [result[0] for result in cur.fetchall()]
     evidence = _with_repair_evidence(
         row.evidence,
         action="canonicalized",
@@ -646,6 +681,10 @@ def _persist_canonicalize(cur: Any, action: RepairAction) -> None:
         row=row,
         canonical_id=action.canonical_id,
     )
+    if displaced_conflicts:
+        evidence["attribution_integrity_repair"][-1]["displaced_inactive_conflicts"] = (
+            _jsonable(displaced_conflicts)
+        )
     cur.execute(
         f"""
         UPDATE {row.table}

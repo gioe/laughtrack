@@ -205,6 +205,8 @@ class _FakeCursor:
             self.rows = list(self.conn.ownership_rows)
         elif normalized.startswith("WITH RECURSIVE relevant_ids"):
             self.rows = list(self.conn.verify_rows)
+        elif normalized.startswith("DELETE FROM episode_appearance_reviews"):
+            self.rows = [(row,) for row in self.conn.displaced_rows]
         else:
             self.rows = []
 
@@ -216,6 +218,7 @@ class _FakeConn:
     def __init__(self, ownership_rows: list[tuple[Any, ...]]) -> None:
         self.ownership_rows = ownership_rows
         self.verify_rows: list[tuple[Any, ...]] = []
+        self.displaced_rows: list[dict[str, Any]] = []
         self.executed: list[tuple[str, Any]] = []
 
     def cursor(self) -> _FakeCursor:
@@ -325,6 +328,47 @@ def test_export_and_verify_report_are_repeatable(tmp_path):
         "appearance_invalid": 0,
         "ownership_missing_re_review": 0,
     }
+
+
+def test_canonicalize_preserves_and_displaces_inactive_unique_conflict():
+    conn = _FakeConn([])
+    conn.displaced_rows = [
+        {
+            "id": 44,
+            "comedian_id": 30,
+            "candidate_status": "rejected",
+            "evidence": {"prior": True},
+        }
+    ]
+    row = _row(
+        3,
+        20,
+        table="episode_appearance_reviews",
+        source_identity="episode-10",
+        target_id=55,
+    )
+
+    with conn.cursor() as cur:
+        mod._persist_canonicalize(
+            cur,
+            mod.RepairAction(
+                "canonicalize",
+                row,
+                30,
+                "alias resolved to eligible canonical comedian",
+            ),
+        )
+
+    delete_sql, delete_params = conn.executed[0]
+    assert delete_sql.startswith("DELETE FROM episode_appearance_reviews")
+    assert delete_params == (30, "podcast_index", "episode-10", 3)
+    update_params = conn.executed[1][1]
+    evidence = json.loads(update_params[1])
+    displaced = evidence["attribution_integrity_repair"][0][
+        "displaced_inactive_conflicts"
+    ]
+    assert displaced[0]["id"] == 44
+    assert displaced[0]["evidence"] == {"prior": True}
 
 
 def test_sql_contract_covers_active_denies_normalized_names_and_all_four_tables():
