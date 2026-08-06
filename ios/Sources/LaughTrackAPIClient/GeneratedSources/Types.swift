@@ -191,7 +191,7 @@ public protocol APIProtocol: Sendable {
     func getShow(_ input: Operations.GetShow.Input) async throws -> Operations.GetShow.Output
     /// Composite home-screen feed with curated and personalized sections
     ///
-    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, and followedComedianShows for authenticated profiles. Signed-out callers receive an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
+    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, optional podcast episode recommendations, and followedComedianShows for authenticated profiles. Signed-out callers receive anonymous episode discovery and an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
     ///
     /// - Remark: HTTP `GET /home/feed`.
     /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.
@@ -673,7 +673,7 @@ extension APIProtocol {
     }
     /// Composite home-screen feed with curated and personalized sections
     ///
-    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, and followedComedianShows for authenticated profiles. Signed-out callers receive an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
+    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, optional podcast episode recommendations, and followedComedianShows for authenticated profiles. Signed-out callers receive anonymous episode discovery and an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
     ///
     /// - Remark: HTTP `GET /home/feed`.
     /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.
@@ -4299,6 +4299,196 @@ public enum Components {
                 case episodeCount
             }
         }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodePodcast`.
+        public struct HomeFeedPodcastEpisodePodcast: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodePodcast/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodePodcast/slug`.
+            public var slug: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodePodcast/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodePodcast/imageUrl`.
+            public var imageUrl: Swift.String?
+            /// Creates a new `HomeFeedPodcastEpisodePodcast`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - slug:
+            ///   - title:
+            ///   - imageUrl:
+            public init(
+                id: Swift.Int,
+                slug: Swift.String,
+                title: Swift.String,
+                imageUrl: Swift.String? = nil
+            ) {
+                self.id = id
+                self.slug = slug
+                self.title = title
+                self.imageUrl = imageUrl
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case slug
+                case title
+                case imageUrl
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeComedian`.
+        public struct HomeFeedPodcastEpisodeComedian: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeComedian/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeComedian/uuid`.
+            public var uuid: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeComedian/name`.
+            public var name: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeComedian/imageUrl`.
+            public var imageUrl: Swift.String
+            /// Creates a new `HomeFeedPodcastEpisodeComedian`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - uuid:
+            ///   - name:
+            ///   - imageUrl:
+            public init(
+                id: Swift.Int,
+                uuid: Swift.String,
+                name: Swift.String,
+                imageUrl: Swift.String
+            ) {
+                self.id = id
+                self.uuid = uuid
+                self.name = name
+                self.imageUrl = imageUrl
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case uuid
+                case name
+                case imageUrl
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeRecommendation`.
+        public struct HomeFeedPodcastEpisodeRecommendation: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeRecommendation/reason`.
+            @frozen public enum ReasonPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case followedComedian = "followed_comedian"
+                case favoritePodcast = "favorite_podcast"
+                case guestAppearance = "guest_appearance"
+                case popularComedian = "popular_comedian"
+                case recentEpisode = "recent_episode"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeRecommendation/reason`.
+            public var reason: Components.Schemas.HomeFeedPodcastEpisodeRecommendation.ReasonPayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeRecommendation/comedian`.
+            public var comedian: Components.Schemas.HomeFeedPodcastEpisodeComedian
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeRecommendation/appearanceRole`.
+            @frozen public enum AppearanceRolePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case host = "host"
+                case cohost = "cohost"
+                case guest = "guest"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeRecommendation/appearanceRole`.
+            public var appearanceRole: Components.Schemas.HomeFeedPodcastEpisodeRecommendation.AppearanceRolePayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeRecommendation/followedComedian`.
+            public var followedComedian: Swift.Bool
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisodeRecommendation/favoritePodcast`.
+            public var favoritePodcast: Swift.Bool
+            /// Creates a new `HomeFeedPodcastEpisodeRecommendation`.
+            ///
+            /// - Parameters:
+            ///   - reason:
+            ///   - comedian:
+            ///   - appearanceRole:
+            ///   - followedComedian:
+            ///   - favoritePodcast:
+            public init(
+                reason: Components.Schemas.HomeFeedPodcastEpisodeRecommendation.ReasonPayload,
+                comedian: Components.Schemas.HomeFeedPodcastEpisodeComedian,
+                appearanceRole: Components.Schemas.HomeFeedPodcastEpisodeRecommendation.AppearanceRolePayload,
+                followedComedian: Swift.Bool,
+                favoritePodcast: Swift.Bool
+            ) {
+                self.reason = reason
+                self.comedian = comedian
+                self.appearanceRole = appearanceRole
+                self.followedComedian = followedComedian
+                self.favoritePodcast = favoritePodcast
+            }
+            public enum CodingKeys: String, CodingKey {
+                case reason
+                case comedian
+                case appearanceRole
+                case followedComedian
+                case favoritePodcast
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode`.
+        public struct HomeFeedPodcastEpisode: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode/description`.
+            public var description: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode/releaseDate`.
+            public var releaseDate: Foundation.Date
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode/durationSeconds`.
+            public var durationSeconds: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode/episodeUrl`.
+            public var episodeUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode/audioUrl`.
+            public var audioUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode/podcast`.
+            public var podcast: Components.Schemas.HomeFeedPodcastEpisodePodcast
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcastEpisode/recommendation`.
+            public var recommendation: Components.Schemas.HomeFeedPodcastEpisodeRecommendation
+            /// Creates a new `HomeFeedPodcastEpisode`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - title:
+            ///   - description:
+            ///   - releaseDate:
+            ///   - durationSeconds:
+            ///   - episodeUrl:
+            ///   - audioUrl:
+            ///   - podcast:
+            ///   - recommendation:
+            public init(
+                id: Swift.Int,
+                title: Swift.String,
+                description: Swift.String? = nil,
+                releaseDate: Foundation.Date,
+                durationSeconds: Swift.Int? = nil,
+                episodeUrl: Swift.String? = nil,
+                audioUrl: Swift.String? = nil,
+                podcast: Components.Schemas.HomeFeedPodcastEpisodePodcast,
+                recommendation: Components.Schemas.HomeFeedPodcastEpisodeRecommendation
+            ) {
+                self.id = id
+                self.title = title
+                self.description = description
+                self.releaseDate = releaseDate
+                self.durationSeconds = durationSeconds
+                self.episodeUrl = episodeUrl
+                self.audioUrl = audioUrl
+                self.podcast = podcast
+                self.recommendation = recommendation
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case title
+                case description
+                case releaseDate
+                case durationSeconds
+                case episodeUrl
+                case audioUrl
+                case podcast
+                case recommendation
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/HomeFeed`.
         public struct HomeFeed: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/HomeFeed/hero`.
@@ -4321,6 +4511,10 @@ public enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/HomeFeed/followedComedianShows`.
             public var followedComedianShows: [Components.Schemas.Show]
+            /// Optional fresh episode recommendations ranked from comedian follows, podcast favorites, appearance role, comedian popularity, and recency. Older clients and stale cached payloads may omit this field.
+            ///
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/podcastEpisodes`.
+            public var podcastEpisodes: [Components.Schemas.HomeFeedPodcastEpisode]?
             /// Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
             ///
             /// - Remark: Generated from `#/components/schemas/HomeFeed/trendingPodcasts`.
@@ -4337,6 +4531,7 @@ public enum Components {
             ///   - moreNearYou: Shows near the hero zip beyond the first 3 surfaced in hero.shows.
             ///   - trendingThisWeek:
             ///   - followedComedianShows: Up to 8 upcoming shows featuring comedians followed by the authenticated profile, excluding shows already represented in higher-priority home-feed sections. Empty for signed-out callers.
+            ///   - podcastEpisodes: Optional fresh episode recommendations ranked from comedian follows, podcast favorites, appearance role, comedian popularity, and recency. Older clients and stale cached payloads may omit this field.
             ///   - trendingPodcasts: Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
             ///   - popularClubs:
             public init(
@@ -4347,6 +4542,7 @@ public enum Components {
                 moreNearYou: [Components.Schemas.Show],
                 trendingThisWeek: [Components.Schemas.Show],
                 followedComedianShows: [Components.Schemas.Show],
+                podcastEpisodes: [Components.Schemas.HomeFeedPodcastEpisode]? = nil,
                 trendingPodcasts: [Components.Schemas.HomeFeedPodcast],
                 popularClubs: [Components.Schemas.ClubListItem]
             ) {
@@ -4357,6 +4553,7 @@ public enum Components {
                 self.moreNearYou = moreNearYou
                 self.trendingThisWeek = trendingThisWeek
                 self.followedComedianShows = followedComedianShows
+                self.podcastEpisodes = podcastEpisodes
                 self.trendingPodcasts = trendingPodcasts
                 self.popularClubs = popularClubs
             }
@@ -4368,6 +4565,7 @@ public enum Components {
                 case moreNearYou
                 case trendingThisWeek
                 case followedComedianShows
+                case podcastEpisodes
                 case trendingPodcasts
                 case popularClubs
             }
@@ -13503,7 +13701,7 @@ public enum Operations {
     }
     /// Composite home-screen feed with curated and personalized sections
     ///
-    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, and followedComedianShows for authenticated profiles. Signed-out callers receive an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
+    /// Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, optional podcast episode recommendations, and followedComedianShows for authenticated profiles. Signed-out callers receive anonymous episode discovery and an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.
     ///
     /// - Remark: HTTP `GET /home/feed`.
     /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.

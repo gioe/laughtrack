@@ -2016,7 +2016,7 @@
       "get": {
         "operationId": "getHomeFeed",
         "summary": "Composite home-screen feed with curated and personalized sections",
-        "description": "Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, and followedComedianShows for authenticated profiles. Signed-out callers receive an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.",
+        "description": "Returns hero context (zip/city/state + up to 3 near-you shows), curated discovery arrays, optional podcast episode recommendations, and followedComedianShows for authenticated profiles. Signed-out callers receive anonymous episode discovery and an empty followedComedianShows array. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by profile, session zipCode, and Vercel geo-IP, so shared CDN caching is disabled.",
         "tags": ["home"],
         "security": [{ "bearerAuth": [] }, {}],
         "parameters": [
@@ -4522,6 +4522,86 @@
           "episodeCount": { "type": "integer" }
         }
       },
+      "HomeFeedPodcastEpisodePodcast": {
+        "type": "object",
+        "required": ["id", "slug", "title", "imageUrl"],
+        "properties": {
+          "id": { "type": "integer" },
+          "slug": { "type": "string" },
+          "title": { "type": "string" },
+          "imageUrl": { "type": ["string", "null"] }
+        }
+      },
+      "HomeFeedPodcastEpisodeComedian": {
+        "type": "object",
+        "required": ["id", "uuid", "name", "imageUrl"],
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" }
+        }
+      },
+      "HomeFeedPodcastEpisodeRecommendation": {
+        "type": "object",
+        "required": [
+          "reason",
+          "comedian",
+          "appearanceRole",
+          "followedComedian",
+          "favoritePodcast"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "followed_comedian",
+              "favorite_podcast",
+              "guest_appearance",
+              "popular_comedian",
+              "recent_episode"
+            ]
+          },
+          "comedian": {
+            "$ref": "#/components/schemas/HomeFeedPodcastEpisodeComedian"
+          },
+          "appearanceRole": {
+            "type": "string",
+            "enum": ["host", "cohost", "guest"]
+          },
+          "followedComedian": { "type": "boolean" },
+          "favoritePodcast": { "type": "boolean" }
+        }
+      },
+      "HomeFeedPodcastEpisode": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "releaseDate",
+          "durationSeconds",
+          "episodeUrl",
+          "audioUrl",
+          "podcast",
+          "recommendation"
+        ],
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "description": { "type": ["string", "null"] },
+          "releaseDate": { "type": "string", "format": "date-time" },
+          "durationSeconds": { "type": ["integer", "null"] },
+          "episodeUrl": { "type": ["string", "null"] },
+          "audioUrl": { "type": ["string", "null"] },
+          "podcast": {
+            "$ref": "#/components/schemas/HomeFeedPodcastEpisodePodcast"
+          },
+          "recommendation": {
+            "$ref": "#/components/schemas/HomeFeedPodcastEpisodeRecommendation"
+          }
+        }
+      },
       "HomeFeed": {
         "type": "object",
         "required": [
@@ -4563,6 +4643,13 @@
             "type": "array",
             "description": "Up to 8 upcoming shows featuring comedians followed by the authenticated profile, excluding shows already represented in higher-priority home-feed sections. Empty for signed-out callers.",
             "items": { "$ref": "#/components/schemas/Show" }
+          },
+          "podcastEpisodes": {
+            "type": "array",
+            "description": "Optional fresh episode recommendations ranked from comedian follows, podcast favorites, appearance role, comedian popularity, and recency. Older clients and stale cached payloads may omit this field.",
+            "items": {
+              "$ref": "#/components/schemas/HomeFeedPodcastEpisode"
+            }
           },
           "trendingPodcasts": {
             "type": "array",

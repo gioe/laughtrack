@@ -19,6 +19,7 @@ import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeedHero
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisode
 import app.laughtrack.android.core.network.generated.model.Show
 
 import kotlinx.serialization.Serializable
@@ -37,6 +38,7 @@ import kotlinx.serialization.Contextual
  * @param followedComedianShows Up to 8 upcoming shows featuring comedians followed by the authenticated profile, excluding shows already represented in higher-priority home-feed sections. Empty for signed-out callers.
  * @param trendingPodcasts Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
  * @param popularClubs 
+ * @param podcastEpisodes Optional fresh episode recommendations ranked from comedian follows, podcast favorites, appearance role, comedian popularity, and recency. Older clients and stale cached payloads may omit this field.
  */
 @Serializable
 
@@ -71,7 +73,11 @@ data class HomeFeed (
     val trendingPodcasts: kotlin.collections.List<HomeFeedPodcast>,
 
     @SerialName(value = "popularClubs")
-    val popularClubs: kotlin.collections.List<ClubListItem>
+    val popularClubs: kotlin.collections.List<ClubListItem>,
+
+    /* Optional fresh episode recommendations ranked from comedian follows, podcast favorites, appearance role, comedian popularity, and recency. Older clients and stale cached payloads may omit this field. */
+    @SerialName(value = "podcastEpisodes")
+    val podcastEpisodes: kotlin.collections.List<HomeFeedPodcastEpisode>? = null
 
 ) {
 
