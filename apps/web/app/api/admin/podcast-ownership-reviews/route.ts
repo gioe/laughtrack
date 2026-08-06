@@ -2,6 +2,10 @@ import { writeAdminActionAudit } from "@/lib/admin/audit";
 import { listPodcastHostshipReviews } from "@/lib/admin/podcastHostshipReviews";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
+import {
+    preserveCanonicalComedianProvenance,
+    resolvePodcastAttributionComedian,
+} from "@/lib/data/podcast/resolvePodcastAttributionComedian";
 import { Prisma } from "@prisma/client";
 import crypto from "crypto";
 import { revalidateTag } from "next/cache";
@@ -448,7 +452,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     }
 
     const { podcastId, hostComedianIds, cohostComedianIds } = parsed.data;
-    const selectedRoleRows = [
+    const requestedRoleRows = [
         ...hostComedianIds.map((comedianId) => ({
             comedianId,
             associationType: "host",
@@ -458,13 +462,13 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             associationType: "cohost",
         })),
     ] as const;
-    const selectedComedianIds = selectedRoleRows.map((row) => row.comedianId);
+    const requestedComedianIds = requestedRoleRows.map((row) => row.comedianId);
     const denyListed =
-        parsed.data.denyListed ?? selectedComedianIds.length === 0;
+        parsed.data.denyListed ?? requestedComedianIds.length === 0;
     const reason = parsed.data.reason?.trim() || null;
     const decisionReason =
         reason ?? (denyListed ? "No accepted host after review" : null);
-    if (denyListed && selectedComedianIds.length > 0) {
+    if (denyListed && requestedComedianIds.length > 0) {
         return NextResponse.json(
             { error: "A deny-listed podcast cannot also have hosts" },
             { status: 400 },
@@ -486,29 +490,73 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             });
             if (!podcast) return null;
 
-            const selectedComedians = await Promise.all(
-                selectedComedianIds.map((comedianId) =>
-                    tx.comedian.findUnique({
-                        where: { id: comedianId },
-                        select: { id: true, name: true, uuid: true },
-                    }),
-                ),
+            const resolvedRoleRows = [];
+            for (const requestedRole of requestedRoleRows) {
+                const resolution = await resolvePodcastAttributionComedian(
+                    tx,
+                    requestedRole.comedianId,
+                );
+                if (!resolution.ok) {
+                    return {
+                        ineligibleHost: true,
+                        reason: resolution.reason,
+                        podcast,
+                    };
+                }
+                resolvedRoleRows.push({ requestedRole, resolution });
+            }
+
+            const canonicalRoleMap = new Map<
+                string,
+                (typeof resolvedRoleRows)[number] & {
+                    requestedComedianIds: number[];
+                    resolutions: Array<
+                        (typeof resolvedRoleRows)[number]["resolution"]
+                    >;
+                }
+            >();
+            for (const row of resolvedRoleRows) {
+                const key = `${row.resolution.comedian.id}:${row.requestedRole.associationType}`;
+                const existing = canonicalRoleMap.get(key);
+                if (existing) {
+                    existing.requestedComedianIds.push(
+                        row.requestedRole.comedianId,
+                    );
+                    existing.resolutions.push(row.resolution);
+                    continue;
+                }
+                canonicalRoleMap.set(key, {
+                    ...row,
+                    requestedComedianIds: [row.requestedRole.comedianId],
+                    resolutions: [row.resolution],
+                });
+            }
+            const selectedRoleRows = [...canonicalRoleMap.values()].map(
+                (row) => ({
+                    comedianId: row.resolution.comedian.id,
+                    associationType: row.requestedRole.associationType,
+                    requestedComedianIds: row.requestedComedianIds,
+                    resolutions: row.resolutions,
+                }),
             );
-            if (selectedComedians.some((comedian) => !comedian)) {
-                return { missingHost: true, podcast };
+            const canonicalRoleByComedian = new Map<number, string>();
+            for (const row of selectedRoleRows) {
+                const existingRole = canonicalRoleByComedian.get(
+                    row.comedianId,
+                );
+                if (existingRole && existingRole !== row.associationType) {
+                    return { canonicalRoleConflict: true, podcast };
+                }
+                canonicalRoleByComedian.set(
+                    row.comedianId,
+                    row.associationType,
+                );
             }
             const comedianById = new Map(
-                selectedComedians
-                    .filter(
-                        (
-                            comedian,
-                        ): comedian is {
-                            id: number;
-                            name: string;
-                            uuid: string;
-                        } => Boolean(comedian),
-                    )
-                    .map((comedian) => [comedian.id, comedian]),
+                resolvedRoleRows.map((row) => [
+                    row.resolution.comedian.id,
+                    row.resolution.comedian,
+                ]),
             );
 
             const beforeCandidates = await tx.podcastCandidateReview.findMany({
@@ -579,27 +627,29 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
 
             const reviewedAt = new Date();
 
-            if (selectedComedianIds.length > 0) {
+            if (selectedRoleRows.length > 0) {
                 for (const selectedRole of selectedRoleRows) {
-                    await tx.podcastCandidateReview.updateMany({
-                        where: {
-                            podcastId,
-                            candidateStatus: "pending",
-                            comedianId: selectedRole.comedianId,
-                        },
-                        data: {
-                            candidateStatus: "accepted",
-                            associationType: selectedRole.associationType,
-                            reviewedAt,
-                            reviewedBy: profileId,
-                        },
-                    });
+                    for (const requestedComedianId of selectedRole.requestedComedianIds) {
+                        await tx.podcastCandidateReview.updateMany({
+                            where: {
+                                podcastId,
+                                candidateStatus: "pending",
+                                comedianId: requestedComedianId,
+                            },
+                            data: {
+                                candidateStatus: "accepted",
+                                associationType: selectedRole.associationType,
+                                reviewedAt,
+                                reviewedBy: profileId,
+                            },
+                        });
+                    }
                 }
                 await tx.podcastCandidateReview.updateMany({
                     where: {
                         podcastId,
                         candidateStatus: "pending",
-                        comedianId: { notIn: selectedComedianIds },
+                        comedianId: { notIn: requestedComedianIds },
                     },
                     data: {
                         candidateStatus: "rejected",
@@ -638,18 +688,23 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             const hostships = [];
             for (const selectedRole of selectedRoleRows) {
                 const hostCandidate =
-                    beforeCandidates.find(
-                        (candidate) =>
-                            candidate.comedianId === selectedRole.comedianId,
+                    beforeCandidates.find((candidate) =>
+                        selectedRole.requestedComedianIds.includes(
+                            candidate.comedianId,
+                        ),
                     ) ?? null;
                 const hostSource = hostCandidate?.source ?? "manual";
                 const hostConfidence = hostCandidate?.confidence ?? 1;
-                const hostEvidence = hostCandidate
+                const originalHostEvidence = hostCandidate
                     ? jsonForWrite(hostCandidate.evidence)
                     : {
                           adminAdded: true,
                           reason,
                       };
+                const hostEvidence = preserveCanonicalComedianProvenance(
+                    originalHostEvidence,
+                    selectedRole.resolutions,
+                );
                 hostships.push(
                     await tx.comedianPodcast.upsert({
                         where: {
@@ -719,7 +774,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             await writeAdminActionAudit(tx, {
                 actorProfileId: profileId,
                 action:
-                    selectedComedianIds.length > 0
+                    selectedRoleRows.length > 0
                         ? "podcast_hostship_review.approve"
                         : denyListed
                           ? "podcast_hostship_review.deny_list"
@@ -735,8 +790,9 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                 },
                 after: {
                     podcast,
-                    hosts: hostComedianIds
-                        .map((id) => comedianById.get(id))
+                    hosts: selectedRoleRows
+                        .filter((row) => row.associationType === "host")
+                        .map((row) => comedianById.get(row.comedianId))
                         .filter(
                             (
                                 comedian,
@@ -746,8 +802,9 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                                 uuid: string;
                             } => Boolean(comedian),
                         ),
-                    cohosts: cohostComedianIds
-                        .map((id) => comedianById.get(id))
+                    cohosts: selectedRoleRows
+                        .filter((row) => row.associationType === "cohost")
+                        .map((row) => comedianById.get(row.comedianId))
                         .filter(
                             (
                                 comedian,
@@ -757,6 +814,14 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                                 uuid: string;
                             } => Boolean(comedian),
                         ),
+                    attributionResolutions: selectedRoleRows.map((row) => ({
+                        associationType: row.associationType,
+                        canonicalComedianId: row.comedianId,
+                        requestedComedianIds: row.requestedComedianIds,
+                        aliasPaths: row.resolutions.map(
+                            (resolution) => resolution.aliasPath,
+                        ),
+                    })),
                     hostships: hostships.map(hostshipSnapshot),
                     denyListEntry,
                 },
@@ -771,10 +836,21 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                 { status: 404 },
             );
         }
-        if ("missingHost" in result) {
+        if ("ineligibleHost" in result) {
             return NextResponse.json(
-                { error: "Host comedian not found" },
+                {
+                    error: "Host comedian is not eligible for podcast attribution",
+                    reason: result.reason,
+                },
                 { status: 422 },
+            );
+        }
+        if ("canonicalRoleConflict" in result) {
+            return NextResponse.json(
+                {
+                    error: "A canonical comedian cannot be both host and co-host",
+                },
+                { status: 400 },
             );
         }
 
@@ -865,11 +941,23 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
 
     try {
         const result = await db.$transaction(async (tx) => {
-            const comedian = await tx.comedian.findUnique({
-                where: { id: parsed.data.comedianId },
-                select: { id: true, name: true, uuid: true },
-            });
-            if (!comedian) return null;
+            const resolution = await resolvePodcastAttributionComedian(
+                tx,
+                parsed.data.comedianId,
+            );
+            if (!resolution.ok) {
+                return { ineligibleComedian: true, reason: resolution.reason };
+            }
+            const comedian = resolution.comedian;
+            const manualEvidence = preserveCanonicalComedianProvenance(
+                {
+                    provider: source,
+                    feedUrl,
+                    adminAdded: true,
+                    reason,
+                },
+                resolution,
+            );
 
             const podcast = await tx.podcast.upsert({
                 where: {
@@ -888,12 +976,7 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                     websiteUrl: parsedFeed.websiteUrl,
                     imageUrl: parsedFeed.imageUrl,
                     description: parsedFeed.description,
-                    evidence: {
-                        provider: source,
-                        feedUrl,
-                        adminAdded: true,
-                        reason,
-                    },
+                    evidence: manualEvidence,
                     sourcePayload: {
                         channelTitle: parsedFeed.title,
                         fetchedAt: new Date().toISOString(),
@@ -906,12 +989,7 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                     websiteUrl: parsedFeed.websiteUrl,
                     imageUrl: parsedFeed.imageUrl,
                     description: parsedFeed.description,
-                    evidence: {
-                        provider: source,
-                        feedUrl,
-                        adminAdded: true,
-                        reason,
-                    },
+                    evidence: manualEvidence,
                     sourcePayload: {
                         channelTitle: parsedFeed.title,
                         fetchedAt: new Date().toISOString(),
@@ -926,14 +1004,31 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
             });
 
             const reviewedAt = new Date();
+            const aliasComedianIds = resolution.aliasPath.filter(
+                (comedianId) => comedianId !== comedian.id,
+            );
             await tx.comedianPodcast.deleteMany({
-                where: {
-                    comedianId: comedian.id,
-                    podcastId: podcast.id,
-                    associationType: "host",
-                    source: { not: source },
-                    reviewStatus: "accepted",
-                },
+                where:
+                    aliasComedianIds.length > 0
+                        ? {
+                              podcastId: podcast.id,
+                              associationType: "host",
+                              reviewStatus: "accepted",
+                              OR: [
+                                  {
+                                      comedianId: comedian.id,
+                                      source: { not: source },
+                                  },
+                                  { comedianId: { in: aliasComedianIds } },
+                              ],
+                          }
+                        : {
+                              comedianId: comedian.id,
+                              podcastId: podcast.id,
+                              associationType: "host",
+                              source: { not: source },
+                              reviewStatus: "accepted",
+                          },
             });
             await tx.comedianPodcast.upsert({
                 where: {
@@ -951,24 +1046,14 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                     source,
                     reviewStatus: "accepted",
                     confidence: 1,
-                    evidence: {
-                        provider: source,
-                        feedUrl,
-                        adminAdded: true,
-                        reason,
-                    },
+                    evidence: manualEvidence,
                     reviewedAt,
                     reviewedBy: profileId,
                 },
                 update: {
                     reviewStatus: "accepted",
                     confidence: 1,
-                    evidence: {
-                        provider: source,
-                        feedUrl,
-                        adminAdded: true,
-                        reason,
-                    },
+                    evidence: manualEvidence,
                     reviewedAt,
                     reviewedBy: profileId,
                 },
@@ -995,10 +1080,13 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
             };
         });
 
-        if (!result) {
+        if ("ineligibleComedian" in result) {
             return NextResponse.json(
-                { error: "Comedian not found" },
-                { status: 404 },
+                {
+                    error: "Comedian is not eligible for podcast attribution",
+                    reason: result.reason,
+                },
+                { status: 422 },
             );
         }
 

@@ -18,6 +18,11 @@ for _path in (_root / "src", _root):
         sys.path.insert(0, str(_path))
 
 from laughtrack.adapters.db import get_connection, get_transaction
+from laughtrack.core.podcast_attribution_integrity import (
+    CanonicalComedianResolution,
+    preserve_canonical_comedian_provenance,
+    resolve_canonical_comedian,
+)
 
 _DECISION_ACCEPT = "accept"
 _DECISION_REJECT = "reject"
@@ -262,7 +267,9 @@ def _apply(
 
     candidates = _load_candidates(include_resolved=True)
     candidates_by_id = {str(c.candidate_id): c for c in candidates}
-    planned: list[tuple[DecisionRow, AppearanceCandidate]] = []
+    planned: list[
+        tuple[DecisionRow, AppearanceCandidate, Optional[CanonicalComedianResolution]]
+    ] = []
     decided_rows: dict[str, int] = {}
 
     for decision in decisions:
@@ -308,22 +315,52 @@ def _apply(
             )
             summary.errored += 1
             continue
-        planned.append((decision, candidate))
+        planned.append((decision, candidate, None))
 
-    summary.accepted = sum(1 for decision, _ in planned if decision.decision == _DECISION_ACCEPT)
-    summary.rejected = sum(1 for decision, _ in planned if decision.decision == _DECISION_REJECT)
-    summary.ignored = sum(1 for decision, _ in planned if decision.decision == _DECISION_IGNORE)
-    summary.appearances_written = summary.accepted
+    if errors:
+        return summary, errors
+
+    resolved_planned = []
+    with get_connection() as conn:
+        for decision, candidate, _ in planned:
+            resolution = None
+            if decision.decision == _DECISION_ACCEPT:
+                resolution, resolution_error = resolve_canonical_comedian(
+                    conn, candidate.comedian_id
+                )
+                if resolution_error:
+                    errors.append(
+                        ApplyError(
+                            decision.row_number,
+                            f"candidate {candidate.candidate_id} cannot be accepted: {resolution_error}",
+                        )
+                    )
+                    summary.errored += 1
+            resolved_planned.append((decision, candidate, resolution))
+    planned = resolved_planned
+
+    summary.accepted = sum(
+        1 for decision, _, _ in planned if decision.decision == _DECISION_ACCEPT
+    )
+    summary.rejected = sum(
+        1 for decision, _, _ in planned if decision.decision == _DECISION_REJECT
+    )
+    summary.ignored = sum(
+        1 for decision, _, _ in planned if decision.decision == _DECISION_IGNORE
+    )
+    summary.appearances_written = summary.accepted if not errors else 0
 
     if dry_run or errors:
         return summary, errors
 
     with transaction_factory() as conn:
-        for decision, candidate in planned:
+        for decision, candidate, resolution in planned:
             status = _DECISION_TO_STATUS[decision.decision]
             evidence = dict(candidate.evidence)
             if decision.review_reason:
                 evidence["review_reason"] = decision.review_reason
+            if resolution:
+                evidence = preserve_canonical_comedian_provenance(evidence, resolution)
             evidence_json = json.dumps(evidence, sort_keys=True)
             with conn.cursor() as cur:
                 cur.execute(
@@ -341,7 +378,7 @@ def _apply(
                     cur.execute(
                         _UPSERT_APPEARANCE_SQL,
                         (
-                            candidate.comedian_id,
+                            resolution.comedian_id if resolution else candidate.comedian_id,
                             candidate.episode_id,
                             candidate.source,
                             candidate.appearance_role,

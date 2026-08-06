@@ -35,6 +35,12 @@ class _FakeCursor:
             if params and not params[0]:
                 rows = [row for row in rows if row[6] == "pending"]
             self._last_result = rows
+        elif normalized.startswith("SELECT id, name, parent_comedian_id, visible"):
+            row = self._conn.comedian_rows.get(int(params[0]))
+            self._last_result = [row] if row is not None else []
+        elif normalized.startswith("SELECT EXISTS") and "comedian_deny_list" in normalized:
+            normalized_name = " ".join(str(params[0]).replace("\u00a0", " ").split()).lower()
+            self._last_result = [(normalized_name in self._conn.denied_names,)]
         elif normalized.startswith("UPDATE episode_appearance_reviews"):
             status, role, confidence, evidence_json, reviewer, candidate_id = params
             self._conn.review_updates.append(
@@ -57,10 +63,24 @@ class _FakeCursor:
     def fetchall(self) -> list[tuple[Any, ...]]:
         return self._last_result
 
+    def fetchone(self) -> tuple[Any, ...] | None:
+        return self._last_result[0] if self._last_result else None
+
 
 class _FakeConn:
-    def __init__(self, review_rows: list[tuple[Any, ...]]) -> None:
+    def __init__(
+        self,
+        review_rows: list[tuple[Any, ...]],
+        *,
+        comedian_rows: dict[int, tuple[Any, ...]] | None = None,
+        denied_names: set[str] | None = None,
+    ) -> None:
         self.review_rows = review_rows
+        self.comedian_rows = {
+            int(row[1]): (int(row[1]), str(row[2]), None, True) for row in review_rows
+        }
+        self.comedian_rows.update(comedian_rows or {})
+        self.denied_names = {name.lower() for name in (denied_names or set())}
         self.review_updates: list[dict[str, Any]] = []
         self.appearance_writes: list[Any] = []
         self.executed: list[tuple[str, Any]] = []
@@ -262,3 +282,151 @@ def test_apply_validates_decisions_candidates_duplicates_and_resolved_status(mon
     assert any("unknown decision 'maybe'" in msg for msg in messages)
     assert any("already decided in row 2" in msg for msg in messages)
     assert conn.review_updates == []
+
+
+def test_apply_accept_resolves_alias_and_preserves_provenance(monkeypatch, tmp_path):
+    conn = _FakeConn(
+        [_review_row(candidate_id=1, comedian_id=12)],
+        comedian_rows={
+            12: (12, "Ari S.", 77, False),
+            77: (77, "Ari Shaffir", None, True),
+        },
+    )
+    _install_fakes(monkeypatch, conn)
+    input_path = tmp_path / "review.csv"
+    _write_decisions(input_path, [{"candidate_id": "1", "decision": "accept"}])
+
+    summary, errors = mod._apply(
+        decisions_path=input_path,
+        dry_run=False,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert errors == []
+    assert summary.appearances_written == 1
+    assert conn.appearance_writes[0][0] == 77
+    assert conn.review_updates[0]["evidence"]["canonical_comedian_resolution"] == {
+        "requested_comedian_id": 12,
+        "canonical_comedian_id": 77,
+        "alias_path": [12, 77],
+    }
+
+
+def test_apply_ignore_allows_hidden_comedian_without_resolution(monkeypatch, tmp_path):
+    conn = _FakeConn(
+        [_review_row(candidate_id=1)],
+        comedian_rows={12: (12, "Ari Shaffir", None, False)},
+    )
+    _install_fakes(monkeypatch, conn)
+    input_path = tmp_path / "review.csv"
+    _write_decisions(input_path, [{"candidate_id": "1", "decision": "ignore"}])
+
+    summary, errors = mod._apply(
+        decisions_path=input_path,
+        dry_run=False,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert errors == []
+    assert summary.ignored == 1
+    assert conn.review_updates[0]["candidate_status"] == "ignored"
+
+
+def test_apply_accept_preflight_rejects_ineligible_batch_atomically(monkeypatch, tmp_path):
+    conn = _FakeConn(
+        [
+            _review_row(candidate_id=1, comedian_id=12),
+            _review_row(candidate_id=2, comedian_id=13, source_episode_id="ep-6"),
+        ],
+        comedian_rows={
+            12: (12, "Ari Shaffir", None, True),
+            13: (13, "Denied\u00a0Comic", None, True),
+        },
+        denied_names={"denied comic"},
+    )
+    _install_fakes(monkeypatch, conn)
+    input_path = tmp_path / "review.csv"
+    _write_decisions(
+        input_path,
+        [
+            {"candidate_id": "1", "decision": "accept"},
+            {"candidate_id": "2", "decision": "accept"},
+        ],
+    )
+
+    summary, errors = mod._apply(
+        decisions_path=input_path,
+        dry_run=False,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert summary.errored == 1
+    assert summary.appearances_written == 0
+    assert "deny-listed" in errors[0].message
+    assert conn.review_updates == []
+    assert conn.appearance_writes == []
+    assert conn.commits == 0
+
+
+def test_apply_accept_dry_run_rejects_hidden_canonical_without_writes(monkeypatch, tmp_path):
+    conn = _FakeConn(
+        [_review_row(candidate_id=1)],
+        comedian_rows={12: (12, "Ari Shaffir", None, False)},
+    )
+    _install_fakes(monkeypatch, conn)
+    input_path = tmp_path / "review.csv"
+    _write_decisions(input_path, [{"candidate_id": "1", "decision": "accept"}])
+
+    summary, errors = mod._apply(
+        decisions_path=input_path,
+        dry_run=True,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert summary.errored == 1
+    assert summary.appearances_written == 0
+    assert "hidden" in errors[0].message
+    assert conn.review_updates == []
+    assert conn.appearance_writes == []
+
+
+def test_apply_accept_rejects_missing_parent_and_alias_cycle(monkeypatch, tmp_path):
+    input_path = tmp_path / "review.csv"
+    _write_decisions(input_path, [{"candidate_id": "1", "decision": "accept"}])
+
+    missing_conn = _FakeConn(
+        [_review_row(candidate_id=1)],
+        comedian_rows={12: (12, "Ari Alias", 999, False)},
+    )
+    _install_fakes(monkeypatch, missing_conn)
+    missing_summary, missing_errors = mod._apply(
+        decisions_path=input_path,
+        dry_run=True,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert missing_summary.errored == 1
+    assert "not found" in missing_errors[0].message
+
+    cycle_conn = _FakeConn(
+        [_review_row(candidate_id=1)],
+        comedian_rows={
+            12: (12, "Ari Alias", 77, False),
+            77: (77, "Ari Other Alias", 12, False),
+        },
+    )
+    _install_fakes(monkeypatch, cycle_conn)
+    cycle_summary, cycle_errors = mod._apply(
+        decisions_path=input_path,
+        dry_run=True,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert cycle_summary.errored == 1
+    assert "cycle" in cycle_errors[0].message

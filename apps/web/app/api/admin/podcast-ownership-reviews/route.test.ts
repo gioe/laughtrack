@@ -237,12 +237,16 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
             id: 42,
             name: "Jane Comic",
             uuid: "comedian-uuid",
+            visible: true,
+            parentComedianId: null,
             popularity: 74,
         };
         const cohost = {
             id: 77,
             name: "Co Host",
             uuid: "comedian-uuid-77",
+            visible: true,
+            parentComedianId: null,
             popularity: 31,
         };
         const candidate = {
@@ -328,6 +332,7 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
                     upsert: denyListUpsert,
                     updateMany: denyListUpdateMany,
                 },
+                $queryRaw: vi.fn().mockResolvedValue([]),
                 adminActionAudit: { create: auditCreate },
             } as never),
         );
@@ -439,6 +444,196 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
             "podcast-detail-data-v2",
         );
         expect(mocks.revalidateTag).toHaveBeenCalledWith("jane-show");
+    });
+
+    it("collapses alias and canonical selections into one canonical host with complete provenance", async () => {
+        const podcast = {
+            id: 99,
+            slug: "canonical-show",
+            title: "Canonical Show",
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            feedUrl: "https://pod.example/feed.xml",
+        };
+        const alias = {
+            id: 42,
+            name: "Stage Name",
+            uuid: "alias-42",
+            visible: true,
+            parentComedianId: 43,
+        };
+        const canonical = {
+            id: 43,
+            name: "Canonical Comic",
+            uuid: "canonical-43",
+            visible: true,
+            parentComedianId: null,
+        };
+        const candidate = {
+            id: 12,
+            comedianId: 42,
+            podcastId: 99,
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            candidateStatus: "pending",
+            associationType: "host",
+            confidence: 0.91,
+            evidence: { matched_name: "Stage Name" },
+            reviewedAt: null,
+            reviewedBy: null,
+            comedian: alias,
+            podcast,
+        };
+        const comedianFindUnique = vi
+            .fn()
+            .mockResolvedValueOnce(alias)
+            .mockResolvedValueOnce(canonical)
+            .mockResolvedValueOnce(canonical);
+        const candidateUpdateMany = vi.fn();
+        const hostshipDeleteMany = vi.fn();
+        const hostshipUpsert = vi.fn().mockResolvedValue({
+            id: 88,
+            comedianId: 43,
+            podcastId: 99,
+            associationType: "host",
+            source: "podcast-index",
+            reviewStatus: "accepted",
+            confidence: 0.91,
+            evidence: {},
+            reviewedAt: new Date("2026-05-18T12:00:00Z"),
+            reviewedBy: "profile-1",
+        });
+        const auditCreate = vi.fn();
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                podcast: { findUnique: vi.fn().mockResolvedValue(podcast) },
+                comedian: { findUnique: comedianFindUnique },
+                podcastCandidateReview: {
+                    findMany: vi.fn().mockResolvedValue([candidate]),
+                    updateMany: candidateUpdateMany,
+                },
+                comedianPodcast: {
+                    findMany: vi.fn().mockResolvedValue([]),
+                    deleteMany: hostshipDeleteMany,
+                    upsert: hostshipUpsert,
+                },
+                podcastDenyList: {
+                    findMany: vi.fn().mockResolvedValue([]),
+                    upsert: vi.fn(),
+                    updateMany: vi.fn(),
+                },
+                $queryRaw: vi.fn().mockResolvedValue([]),
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await POST(
+            makeRequest({
+                podcastId: 99,
+                hostComedianIds: [42, 43],
+                cohostComedianIds: [],
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(hostshipUpsert).toHaveBeenCalledTimes(1);
+        expect(hostshipUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                create: expect.objectContaining({
+                    comedianId: 43,
+                    evidence: {
+                        matched_name: "Stage Name",
+                        canonicalComedianResolution: {
+                            canonicalComedianId: 43,
+                            requests: [
+                                {
+                                    requestedComedianId: 42,
+                                    aliasPath: [42, 43],
+                                },
+                                {
+                                    requestedComedianId: 43,
+                                    aliasPath: [43],
+                                },
+                            ],
+                        },
+                    },
+                }),
+            }),
+        );
+        expect(candidateUpdateMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({ comedianId: 42 }),
+            }),
+        );
+        expect(candidateUpdateMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({ comedianId: 43 }),
+            }),
+        );
+        expect(hostshipDeleteMany).toHaveBeenCalledWith({
+            where: {
+                podcastId: 99,
+                reviewStatus: "accepted",
+                associationType: { in: ["host", "cohost"] },
+            },
+        });
+        expect(auditCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                after: expect.objectContaining({
+                    attributionResolutions: [
+                        {
+                            associationType: "host",
+                            canonicalComedianId: 43,
+                            requestedComedianIds: [42, 43],
+                            aliasPaths: [[42, 43], [43]],
+                        },
+                    ],
+                }),
+            }),
+        });
+    });
+
+    it("rejects a hidden canonical host before mutating review state", async () => {
+        const candidateUpdateMany = vi.fn();
+        const hostshipUpsert = vi.fn();
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                podcast: {
+                    findUnique: vi.fn().mockResolvedValue({
+                        id: 99,
+                        slug: "hidden-show",
+                        title: "Hidden Show",
+                        source: "manual",
+                        sourcePodcastId: "99",
+                        feedUrl: null,
+                    }),
+                },
+                comedian: {
+                    findUnique: vi.fn().mockResolvedValue({
+                        id: 42,
+                        name: "Hidden Comic",
+                        uuid: "hidden-42",
+                        visible: false,
+                        parentComedianId: null,
+                    }),
+                },
+                podcastCandidateReview: {
+                    updateMany: candidateUpdateMany,
+                },
+                comedianPodcast: { upsert: hostshipUpsert },
+                $queryRaw: vi.fn(),
+            } as never),
+        );
+
+        const res = await POST(
+            makeRequest({ podcastId: 99, hostComedianIds: [42] }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(422);
+        expect(body.reason).toBe("hidden");
+        expect(candidateUpdateMany).not.toHaveBeenCalled();
+        expect(hostshipUpsert).not.toHaveBeenCalled();
     });
 
     it("deny-lists a podcast by rejecting pending candidates and accepted hostships", async () => {
@@ -786,6 +981,8 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
             id: 42,
             name: "Jane Comic",
             uuid: "comedian-uuid",
+            visible: true,
+            parentComedianId: null,
         };
         const podcast = {
             id: 99,
@@ -799,7 +996,10 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
         const comedianFindUnique = vi.fn().mockResolvedValue(comedian);
         const comedianPodcastDeleteMany = vi.fn();
         const comedianPodcastUpsert = vi.fn();
-        const episodeQueryRaw = vi.fn().mockResolvedValue([{ id: 123 }]);
+        const episodeQueryRaw = vi
+            .fn()
+            .mockResolvedValueOnce([])
+            .mockResolvedValue([{ id: 123 }]);
         mockTransaction.mockImplementation(async (callback) =>
             callback({
                 podcast: {
@@ -855,8 +1055,8 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                 reviewStatus: "accepted",
             },
         });
-        expect(episodeQueryRaw).toHaveBeenCalledTimes(1);
-        const episodeQuery = episodeQueryRaw.mock.calls[0]?.[0] as {
+        expect(episodeQueryRaw).toHaveBeenCalledTimes(2);
+        const episodeQuery = episodeQueryRaw.mock.calls[1]?.[0] as {
             strings: string[];
             values: unknown[];
         };
@@ -884,6 +1084,158 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
         expect(mocks.revalidateTag).toHaveBeenCalledWith(
             "manual-jane-feed-manual-rss-abc",
         );
+    });
+
+    it("canonicalizes a manual RSS alias and removes accepted links across its full alias path", async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                text: async () =>
+                    "<rss><channel><title>Alias Feed</title></channel></rss>",
+            }),
+        );
+        const alias = {
+            id: 42,
+            name: "Stage Name",
+            uuid: "alias-42",
+            visible: true,
+            parentComedianId: 41,
+        };
+        const middleAlias = {
+            id: 41,
+            name: "Middle Name",
+            uuid: "alias-41",
+            visible: false,
+            parentComedianId: 40,
+        };
+        const canonical = {
+            id: 40,
+            name: "Canonical Comic",
+            uuid: "canonical-40",
+            visible: true,
+            parentComedianId: null,
+        };
+        const comedianFindUnique = vi
+            .fn()
+            .mockResolvedValueOnce(alias)
+            .mockResolvedValueOnce(middleAlias)
+            .mockResolvedValueOnce(canonical);
+        const podcast = {
+            id: 99,
+            slug: "alias-feed-manual-rss-abc",
+            title: "Alias Feed",
+            feedUrl: "https://feeds.example.com/alias.xml",
+        };
+        const podcastUpsert = vi.fn().mockResolvedValue(podcast);
+        const podcastUpdate = vi.fn();
+        const hostshipDeleteMany = vi.fn();
+        const hostshipUpsert = vi.fn();
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                podcast: {
+                    upsert: podcastUpsert,
+                    update: podcastUpdate,
+                },
+                comedian: { findUnique: comedianFindUnique },
+                comedianPodcast: {
+                    deleteMany: hostshipDeleteMany,
+                    upsert: hostshipUpsert,
+                },
+                $queryRaw: vi.fn().mockResolvedValue([]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 42,
+                feedUrl: "https://feeds.example.com/alias.xml",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.comedian).toEqual({
+            id: 40,
+            name: "Canonical Comic",
+            uuid: "canonical-40",
+        });
+        expect(hostshipDeleteMany).toHaveBeenCalledWith({
+            where: {
+                podcastId: 99,
+                associationType: "host",
+                reviewStatus: "accepted",
+                OR: [
+                    {
+                        comedianId: 40,
+                        source: { not: "manual_rss" },
+                    },
+                    { comedianId: { in: [42, 41] } },
+                ],
+            },
+        });
+        expect(hostshipUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                create: expect.objectContaining({
+                    comedianId: 40,
+                    evidence: expect.objectContaining({
+                        canonicalComedianResolution: {
+                            canonicalComedianId: 40,
+                            requests: [
+                                {
+                                    requestedComedianId: 42,
+                                    aliasPath: [42, 41, 40],
+                                },
+                            ],
+                        },
+                    }),
+                }),
+            }),
+        );
+        expect(podcastUpdate).toHaveBeenCalledWith({
+            where: { id: 99 },
+            data: { lastSyncedAt: expect.any(Date) },
+        });
+    });
+
+    it("rejects a deny-listed canonical comedian during manual RSS acceptance", async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                text: async () =>
+                    "<rss><channel><title>Denied Feed</title></channel></rss>",
+            }),
+        );
+        const podcastUpsert = vi.fn();
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: {
+                    findUnique: vi.fn().mockResolvedValue({
+                        id: 42,
+                        name: "Denied Comic",
+                        uuid: "denied-42",
+                        visible: true,
+                        parentComedianId: null,
+                    }),
+                },
+                podcast: { upsert: podcastUpsert },
+                $queryRaw: vi.fn().mockResolvedValue([{ denied: true }]),
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 42,
+                feedUrl: "https://feeds.example.com/denied.xml",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(422);
+        expect(body.reason).toBe("deny_listed");
+        expect(podcastUpsert).not.toHaveBeenCalled();
     });
 
     it("keeps a second host association when refreshing an existing feed fails", async () => {
@@ -919,12 +1271,15 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                     id: 84,
                     name: "Second Host",
                     uuid: "second-host-uuid",
+                    visible: true,
+                    parentComedianId: null,
                 }),
             },
             comedianPodcast: {
                 deleteMany: vi.fn(),
                 upsert: comedianPodcastUpsert,
             },
+            $queryRaw: vi.fn().mockResolvedValue([]),
             adminActionAudit: { create: vi.fn() },
         };
         mockTransaction
@@ -1055,12 +1410,15 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                         id: 84,
                         name: "Second Host",
                         uuid: "second-host-uuid",
+                        visible: true,
+                        parentComedianId: null,
                     }),
                 },
                 comedianPodcast: {
                     deleteMany: vi.fn(),
                     upsert: vi.fn(),
                 },
+                $queryRaw: vi.fn().mockResolvedValue([]),
                 adminActionAudit: { create: vi.fn() },
             };
             const secondTransaction = {
@@ -1192,6 +1550,8 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
             id: 42,
             name: "Jane Comic",
             uuid: "comedian-uuid",
+            visible: true,
+            parentComedianId: null,
         };
         const podcast = {
             id: 99,
@@ -1214,6 +1574,7 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                     upsert: comedianPodcastUpsert,
                 },
                 podcastEpisode: { upsert: episodeUpsert },
+                $queryRaw: vi.fn().mockResolvedValue([]),
                 adminActionAudit: { create: auditCreate },
             } as never),
         );

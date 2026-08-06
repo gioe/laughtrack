@@ -6,6 +6,11 @@ import {
     buildComedianImageAssetUrl,
     buildComedianImageUrls,
 } from "@/lib/data/comedian/imageAssets";
+import {
+    preserveCanonicalComedianProvenance,
+    resolvePodcastAttributionComedian,
+    type ResolvedPodcastAttributionComedian,
+} from "@/lib/data/podcast/resolvePodcastAttributionComedian";
 import type { Prisma } from "@prisma/client";
 import { resolveInstagramFollowerCount } from "@/lib/instagram/instagramFollowerResolver";
 import { recalculatePopularityForInstagramFollowers } from "@/lib/popularity/comedianPopularity";
@@ -694,8 +699,29 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                         "reason" in parsed.data
                             ? parsed.data.reason?.trim() || null
                             : null;
+                    let attributionResolution: ResolvedPodcastAttributionComedian | null =
+                        null;
 
                     if (parsed.data.action === "podcast-review-accept-host") {
+                        const resolution =
+                            await resolvePodcastAttributionComedian(
+                                tx,
+                                before.id,
+                            );
+                        if (!resolution.ok) {
+                            return {
+                                error: "Comedian is not eligible for podcast attribution",
+                                status: 422,
+                                reason: resolution.reason,
+                            };
+                        }
+                        attributionResolution = resolution;
+                        const canonicalComedianId = resolution.comedian.id;
+                        const ownershipEvidence =
+                            preserveCanonicalComedianProvenance(
+                                review.evidence === null ? {} : review.evidence,
+                                resolution,
+                            );
                         await tx.podcastCandidateReview.update({
                             where: { id: review.id },
                             data: {
@@ -705,45 +731,63 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                                 reviewedBy: profileId,
                             },
                         });
+                        const aliasComedianIds = resolution.aliasPath.filter(
+                            (comedianId) => comedianId !== canonicalComedianId,
+                        );
                         await tx.comedianPodcast.deleteMany({
-                            where: {
-                                comedianId: before.id,
-                                podcastId: review.podcastId,
-                                associationType: "host",
-                                source: { not: review.source },
-                                reviewStatus: "accepted",
-                            },
+                            where:
+                                aliasComedianIds.length > 0
+                                    ? {
+                                          podcastId: review.podcastId,
+                                          associationType: "host",
+                                          reviewStatus: "accepted",
+                                          OR: [
+                                              {
+                                                  comedianId:
+                                                      canonicalComedianId,
+                                                  source: {
+                                                      not: review.source,
+                                                  },
+                                              },
+                                              {
+                                                  comedianId: {
+                                                      in: aliasComedianIds,
+                                                  },
+                                              },
+                                          ],
+                                      }
+                                    : {
+                                          comedianId: canonicalComedianId,
+                                          podcastId: review.podcastId,
+                                          associationType: "host",
+                                          source: { not: review.source },
+                                          reviewStatus: "accepted",
+                                      },
                         });
                         await tx.comedianPodcast.upsert({
                             where: {
                                 comedianId_podcastId_associationType_source: {
-                                    comedianId: before.id,
+                                    comedianId: canonicalComedianId,
                                     podcastId: review.podcastId,
                                     associationType: "host",
                                     source: review.source,
                                 },
                             },
                             create: {
-                                comedianId: before.id,
+                                comedianId: canonicalComedianId,
                                 podcastId: review.podcastId,
                                 associationType: "host",
                                 source: review.source,
                                 reviewStatus: "accepted",
                                 confidence: review.confidence,
-                                evidence:
-                                    review.evidence === null
-                                        ? {}
-                                        : review.evidence,
+                                evidence: ownershipEvidence,
                                 reviewedAt,
                                 reviewedBy: profileId,
                             },
                             update: {
                                 reviewStatus: "accepted",
                                 confidence: review.confidence,
-                                evidence:
-                                    review.evidence === null
-                                        ? {}
-                                        : review.evidence,
+                                evidence: ownershipEvidence,
                                 reviewedAt,
                                 reviewedBy: profileId,
                             },
@@ -826,6 +870,10 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                         after: {
                             comedian: snapshotForAudit(after),
                             podcastId: review.podcastId,
+                            attributionComedian:
+                                attributionResolution?.comedian ?? null,
+                            attributionAliasPath:
+                                attributionResolution?.aliasPath ?? null,
                         },
                     });
 
@@ -835,6 +883,8 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                     );
                     return {
                         comedian: serializeComedian(after, denyListEntry),
+                        attributionComedian:
+                            attributionResolution?.comedian ?? null,
                         name: after.name,
                     };
                 }
@@ -994,13 +1044,24 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
 
         if ("error" in result) {
             return NextResponse.json(
-                { error: result.error },
+                {
+                    error: result.error,
+                    ...("reason" in result && result.reason
+                        ? { reason: result.reason }
+                        : {}),
+                },
                 { status: result.status },
             );
         }
 
         revalidateComedianSurfaces(result.name);
-        return NextResponse.json({ ok: true, comedian: result.comedian });
+        return NextResponse.json({
+            ok: true,
+            comedian: result.comedian,
+            ...("attributionComedian" in result && result.attributionComedian
+                ? { attributionComedian: result.attributionComedian }
+                : {}),
+        });
     } catch (error) {
         console.error("Admin comedians PATCH failed:", error);
         return NextResponse.json({ error: "Update failed" }, { status: 500 });

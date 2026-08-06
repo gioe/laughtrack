@@ -275,6 +275,13 @@ describe("PATCH /api/admin/comedians", () => {
         const findUnique = vi
             .fn()
             .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce({
+                id: 2,
+                name: "Alias Comic",
+                uuid: "uuid-2",
+                visible: true,
+                parentComedianId: null,
+            })
             .mockResolvedValueOnce(
                 makeComedian({
                     comedianPodcasts: [
@@ -313,7 +320,7 @@ describe("PATCH /api/admin/comedians", () => {
                 feedUrl: null,
             },
         });
-        const txQueryRaw = vi.fn().mockResolvedValueOnce([]);
+        const txQueryRaw = vi.fn().mockResolvedValue([]);
         mockTransaction.mockImplementation(async (callback) =>
             callback({
                 comedian: { findUnique },
@@ -367,6 +374,206 @@ describe("PATCH /api/admin/comedians", () => {
                 }),
             }),
         );
+    });
+
+    it("accepts an alias review on the canonical comedian and reports both identities", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const before = makeComedian({
+            id: 2,
+            name: "Stage Name",
+            uuid: "alias-2",
+            parentComedianId: 1,
+            parentComedian: { id: 1, name: "Canonical Comic" },
+        });
+        const after = makeComedian({
+            id: 2,
+            name: "Stage Name",
+            uuid: "alias-2",
+            parentComedianId: 1,
+            parentComedian: { id: 1, name: "Canonical Comic" },
+        });
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(before)
+            .mockResolvedValueOnce({
+                id: 2,
+                name: "Stage Name",
+                uuid: "alias-2",
+                visible: true,
+                parentComedianId: 1,
+            })
+            .mockResolvedValueOnce({
+                id: 1,
+                name: "Canonical Comic",
+                uuid: "canonical-1",
+                visible: true,
+                parentComedianId: null,
+            })
+            .mockResolvedValueOnce(after);
+        const reviewFindUnique = vi.fn().mockResolvedValue({
+            id: 1001,
+            comedianId: 2,
+            podcastId: 99,
+            source: "itunes",
+            sourcePodcastId: "1503236243",
+            candidateStatus: "pending",
+            associationType: "host",
+            confidence: 0.97,
+            evidence: { matched_name: "Stage Name" },
+            podcast: {
+                id: 99,
+                slug: "canonical-show",
+                title: "Canonical Show",
+                source: "itunes",
+                sourcePodcastId: "1503236243",
+                feedUrl: null,
+            },
+        });
+        const candidateUpdate = vi.fn();
+        const hostshipDeleteMany = vi.fn();
+        const hostshipUpsert = vi.fn();
+        const auditCreate = vi.fn();
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique },
+                comedianPodcast: {
+                    deleteMany: hostshipDeleteMany,
+                    upsert: hostshipUpsert,
+                },
+                podcastCandidateReview: {
+                    findUnique: reviewFindUnique,
+                    update: candidateUpdate,
+                },
+                podcastDenyList: { upsert: vi.fn() },
+                $queryRaw: vi.fn().mockResolvedValue([]),
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await PATCH(
+            makeRequest({
+                action: "podcast-review-accept-host",
+                comedianId: 2,
+                candidateReviewId: 1001,
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.comedian.id).toBe(2);
+        expect(body.attributionComedian).toEqual({
+            id: 1,
+            name: "Canonical Comic",
+            uuid: "canonical-1",
+        });
+        expect(hostshipDeleteMany).toHaveBeenCalledWith({
+            where: {
+                podcastId: 99,
+                associationType: "host",
+                reviewStatus: "accepted",
+                OR: [
+                    {
+                        comedianId: 1,
+                        source: { not: "itunes" },
+                    },
+                    { comedianId: { in: [2] } },
+                ],
+            },
+        });
+        expect(hostshipUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                create: expect.objectContaining({
+                    comedianId: 1,
+                    evidence: {
+                        matched_name: "Stage Name",
+                        canonicalComedianResolution: {
+                            canonicalComedianId: 1,
+                            requests: [
+                                {
+                                    requestedComedianId: 2,
+                                    aliasPath: [2, 1],
+                                },
+                            ],
+                        },
+                    },
+                }),
+            }),
+        );
+        expect(auditCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                after: expect.objectContaining({
+                    attributionComedian: {
+                        id: 1,
+                        name: "Canonical Comic",
+                        uuid: "canonical-1",
+                    },
+                    attributionAliasPath: [2, 1],
+                }),
+            }),
+        });
+    });
+
+    it("rejects a deny-listed canonical comedian before accepting its review", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce({
+                id: 2,
+                name: "Denied Comic",
+                uuid: "uuid-2",
+                visible: true,
+                parentComedianId: null,
+            });
+        const candidateUpdate = vi.fn();
+        const hostshipUpsert = vi.fn();
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique },
+                comedianPodcast: {
+                    deleteMany: vi.fn(),
+                    upsert: hostshipUpsert,
+                },
+                podcastCandidateReview: {
+                    findUnique: vi.fn().mockResolvedValue({
+                        id: 1001,
+                        comedianId: 2,
+                        podcastId: 99,
+                        source: "itunes",
+                        sourcePodcastId: "1503236243",
+                        candidateStatus: "pending",
+                        associationType: "host",
+                        confidence: 0.97,
+                        evidence: {},
+                        podcast: {
+                            id: 99,
+                            slug: "denied-show",
+                            title: "Denied Show",
+                            source: "itunes",
+                            sourcePodcastId: "1503236243",
+                            feedUrl: null,
+                        },
+                    }),
+                    update: candidateUpdate,
+                },
+                $queryRaw: vi.fn().mockResolvedValue([{ denied: true }]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PATCH(
+            makeRequest({
+                action: "podcast-review-accept-host",
+                comedianId: 2,
+                candidateReviewId: 1001,
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(422);
+        expect(body.reason).toBe("deny_listed");
+        expect(candidateUpdate).not.toHaveBeenCalled();
+        expect(hostshipUpsert).not.toHaveBeenCalled();
     });
 });
 
