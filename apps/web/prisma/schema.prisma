@@ -673,6 +673,7 @@ model UserProfile {
   savedShows                   SavedShow[]
   pushTokens                   UserPushToken[]
   discoveryImpressions         DiscoveryImpressionEvent[]
+  updatedDiscoveryRailPolicies DiscoveryRailPlatformPolicy[] @relation("DiscoveryRailPolicyUpdater")
   ticketPurchaseClicks         TicketPurchaseClickEvent[]
   user                         User                       @relation(fields: [userid], references: [id])
 
@@ -717,6 +718,53 @@ model AdminActionAudit {
   @@index([action, createdAt])
   @@index([createdAt])
   @@map("admin_action_audits")
+}
+
+model DiscoveryRailCatalog {
+  key                String                     @id
+  label              String
+  contentKind        String                     @map("content_kind")
+  requiresAuth       Boolean                    @default(false) @map("requires_auth")
+  supportedPlatforms Json                       @default("[]") @map("supported_platforms")
+  catalogVersion     Int                        @default(1) @map("catalog_version")
+  createdAt          DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+  policyEntries      DiscoveryRailPolicyEntry[]
+
+  @@index([catalogVersion])
+  @@map("discovery_rail_catalog")
+}
+
+model DiscoveryRailPlatformPolicy {
+  platform           String                     @id
+  policyVersion      Int                        @default(1) @map("policy_version")
+  catalogVersion     Int                        @default(1) @map("catalog_version")
+  cycleCadenceHours  Int                        @default(24) @map("cycle_cadence_hours")
+  updatedByProfileId String?                    @map("updated_by_profile_id")
+  createdAt          DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+  updatedByProfile   UserProfile?               @relation("DiscoveryRailPolicyUpdater", fields: [updatedByProfileId], references: [id], onDelete: SetNull)
+  entries            DiscoveryRailPolicyEntry[]
+
+  @@index([updatedByProfileId])
+  @@map("discovery_rail_platform_policies")
+}
+
+model DiscoveryRailPolicyEntry {
+  platform     String
+  railKey      String                      @map("rail_key")
+  enabled      Boolean                     @default(true)
+  position     Int
+  rotationPool String?                     @map("rotation_pool")
+  weight       Int                         @default(1)
+  policy       DiscoveryRailPlatformPolicy @relation(fields: [platform], references: [platform], onDelete: Cascade)
+  rail         DiscoveryRailCatalog        @relation(fields: [railKey], references: [key], onDelete: Restrict)
+
+  @@id([platform, railKey])
+  @@index([platform, enabled, position])
+  @@index([platform, rotationPool, enabled])
+  @@index([railKey])
+  @@map("discovery_rail_policy_entries")
 }
 
 model Account {

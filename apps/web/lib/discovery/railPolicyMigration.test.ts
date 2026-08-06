@@ -1,0 +1,299 @@
+import { PGlite } from "@electric-sql/pglite";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const WEB_ROOT = resolve(HERE, "../..");
+const MIGRATION_SQL = readFileSync(
+    resolve(
+        WEB_ROOT,
+        "prisma/migrations/20260806193000_add_discovery_rail_policies/migration.sql",
+    ),
+    "utf8",
+);
+const SCHEMA_TEXT = readFileSync(
+    resolve(WEB_ROOT, "prisma/schema.prisma"),
+    "utf8",
+);
+
+const BASE_SCHEMA_SQL = `
+    CREATE TABLE user_profiles (id TEXT PRIMARY KEY);
+`;
+
+type PolicyRow = {
+    platform: string;
+    policy_version: number;
+    catalog_version: number;
+    cycle_cadence_hours: number;
+};
+
+type CatalogRow = {
+    key: string;
+    label: string;
+    content_kind: string;
+    requires_auth: boolean;
+    supported_platforms: string[];
+    catalog_version: number;
+};
+
+type EntryRow = {
+    platform: string;
+    rail_key: string;
+    enabled: boolean;
+    position: number;
+    rotation_pool: string | null;
+    weight: number;
+};
+
+describe("Discover rail policy migration", () => {
+    let db: PGlite;
+
+    beforeAll(async () => {
+        db = new PGlite();
+        await db.exec(BASE_SCHEMA_SQL);
+        await db.exec(MIGRATION_SQL);
+    });
+
+    afterAll(async () => {
+        await db.close();
+    });
+
+    it("keeps the Prisma models synchronized with the normalized tables", () => {
+        expect(SCHEMA_TEXT).toContain("model DiscoveryRailCatalog");
+        expect(SCHEMA_TEXT).toContain("model DiscoveryRailPlatformPolicy");
+        expect(SCHEMA_TEXT).toContain("model DiscoveryRailPolicyEntry");
+        expect(SCHEMA_TEXT).toContain(
+            '@@map("discovery_rail_platform_policies")',
+        );
+        expect(SCHEMA_TEXT).toContain('@@map("discovery_rail_policy_entries")');
+    });
+
+    it("seeds independent version-one platform policies", async () => {
+        const result = await db.query<PolicyRow>(`
+            SELECT platform, policy_version, catalog_version, cycle_cadence_hours
+            FROM discovery_rail_platform_policies
+            ORDER BY platform
+        `);
+
+        expect(result.rows).toEqual([
+            {
+                platform: "android",
+                policy_version: 1,
+                catalog_version: 1,
+                cycle_cadence_hours: 24,
+            },
+            {
+                platform: "ios",
+                policy_version: 1,
+                catalog_version: 1,
+                cycle_cadence_hours: 24,
+            },
+            {
+                platform: "web",
+                policy_version: 1,
+                catalog_version: 1,
+                cycle_cadence_hours: 24,
+            },
+        ]);
+    });
+
+    it("seeds versioned catalog metadata for the supported clients", async () => {
+        const result = await db.query<CatalogRow>(`
+            SELECT key, label, content_kind, requires_auth,
+                   supported_platforms, catalog_version
+            FROM discovery_rail_catalog
+            ORDER BY key
+        `);
+
+        expect(result.rows).toEqual([
+            {
+                key: "followed_comedian_shows",
+                label: "Shows from followed comedians",
+                content_kind: "show",
+                requires_auth: true,
+                supported_platforms: ["web", "ios", "android"],
+                catalog_version: 1,
+            },
+            {
+                key: "nearby_shows",
+                label: "Nearby shows",
+                content_kind: "show",
+                requires_auth: false,
+                supported_platforms: ["web"],
+                catalog_version: 1,
+            },
+            {
+                key: "popular_clubs",
+                label: "Popular clubs",
+                content_kind: "club",
+                requires_auth: false,
+                supported_platforms: ["web", "ios", "android"],
+                catalog_version: 1,
+            },
+            {
+                key: "shows_tonight",
+                label: "Shows tonight",
+                content_kind: "show",
+                requires_auth: false,
+                supported_platforms: ["web", "ios", "android"],
+                catalog_version: 1,
+            },
+            {
+                key: "trending_comedians",
+                label: "Trending comedians",
+                content_kind: "comedian",
+                requires_auth: false,
+                supported_platforms: ["web", "ios", "android"],
+                catalog_version: 1,
+            },
+            {
+                key: "trending_podcasts",
+                label: "Trending podcasts",
+                content_kind: "podcast",
+                requires_auth: false,
+                supported_platforms: ["ios", "android"],
+                catalog_version: 1,
+            },
+            {
+                key: "trending_this_week",
+                label: "Trending this week",
+                content_kind: "show",
+                requires_auth: false,
+                supported_platforms: ["web", "ios", "android"],
+                catalog_version: 1,
+            },
+        ]);
+    });
+
+    it("seeds the exact current fixed rail order for every platform", async () => {
+        const catalog = await db.query<{ key: string }>(`
+            SELECT key FROM discovery_rail_catalog ORDER BY key
+        `);
+        const result = await db.query<EntryRow>(`
+            SELECT platform, rail_key, enabled, position, rotation_pool, weight
+            FROM discovery_rail_policy_entries
+            ORDER BY platform, position
+        `);
+        const entriesFor = (platform: string) =>
+            result.rows.filter((entry) => entry.platform === platform);
+        const keysFor = (platform: string) =>
+            entriesFor(platform).map((entry) => entry.rail_key);
+
+        expect(catalog.rows.map((rail) => rail.key)).toEqual([
+            "followed_comedian_shows",
+            "nearby_shows",
+            "popular_clubs",
+            "shows_tonight",
+            "trending_comedians",
+            "trending_podcasts",
+            "trending_this_week",
+        ]);
+
+        expect(keysFor("web")).toEqual([
+            "followed_comedian_shows",
+            "trending_comedians",
+            "shows_tonight",
+            "nearby_shows",
+            "trending_this_week",
+            "popular_clubs",
+        ]);
+        expect(keysFor("ios")).toEqual([
+            "shows_tonight",
+            "followed_comedian_shows",
+            "trending_this_week",
+            "trending_comedians",
+            "popular_clubs",
+            "trending_podcasts",
+        ]);
+        expect(keysFor("android")).toEqual([
+            "shows_tonight",
+            "trending_this_week",
+            "followed_comedian_shows",
+            "trending_comedians",
+            "popular_clubs",
+            "trending_podcasts",
+        ]);
+        for (const platform of ["web", "ios", "android"]) {
+            expect(entriesFor(platform).map((entry) => entry.position)).toEqual(
+                [0, 1, 2, 3, 4, 5],
+            );
+        }
+        expect(result.rows).toHaveLength(18);
+        expect(result.rows.every((entry) => entry.enabled)).toBe(true);
+        expect(result.rows.every((entry) => entry.rotation_pool === null)).toBe(
+            true,
+        );
+        expect(result.rows.every((entry) => entry.weight === 1)).toBe(true);
+    });
+
+    it("enforces platforms, catalog keys, positions, weights, and fixed-position uniqueness", async () => {
+        await expect(
+            db.query(`
+                INSERT INTO discovery_rail_platform_policies (platform)
+                VALUES ('desktop')
+            `),
+        ).rejects.toThrow();
+        await expect(
+            db.query(`
+                INSERT INTO discovery_rail_policy_entries
+                    (platform, rail_key, enabled, position, weight)
+                VALUES ('web', 'unknown_rail', true, 20, 1)
+            `),
+        ).rejects.toThrow();
+        await expect(
+            db.query(`
+                UPDATE discovery_rail_policy_entries
+                SET position = -1
+                WHERE platform = 'web' AND rail_key = 'shows_tonight'
+            `),
+        ).rejects.toThrow();
+        await expect(
+            db.query(`
+                UPDATE discovery_rail_policy_entries
+                SET weight = 101
+                WHERE platform = 'web' AND rail_key = 'shows_tonight'
+            `),
+        ).rejects.toThrow();
+        await expect(
+            db.query(`
+                UPDATE discovery_rail_policy_entries
+                SET position = 0
+                WHERE platform = 'web' AND rail_key = 'shows_tonight'
+            `),
+        ).rejects.toThrow();
+
+        const indexes = await db.query<{ indexname: string }>(`
+            SELECT indexname
+            FROM pg_indexes
+            WHERE tablename = 'discovery_rail_policy_entries'
+        `);
+        expect(indexes.rows.map((row) => row.indexname)).toContain(
+            "discovery_rail_policy_entries_fixed_position_key",
+        );
+    });
+
+    it("cascades policy entries but restricts deletion of cataloged rails in use", async () => {
+        await expect(
+            db.query(
+                "DELETE FROM discovery_rail_catalog WHERE key = 'shows_tonight'",
+            ),
+        ).rejects.toThrow();
+
+        await db.exec("BEGIN");
+        try {
+            await db.query(
+                "DELETE FROM discovery_rail_platform_policies WHERE platform = 'android'",
+            );
+            const remaining = await db.query<{ count: string }>(`
+                SELECT COUNT(*)::text AS count
+                FROM discovery_rail_policy_entries
+                WHERE platform = 'android'
+            `);
+            expect(remaining.rows[0].count).toBe("0");
+        } finally {
+            await db.exec("ROLLBACK");
+        }
+    });
+});

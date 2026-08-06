@@ -4,6 +4,7 @@ export const PGLITE_TEST_FILES = [
     "lib/data/home/getTrendingComedians.test.ts",
     "lib/discovery/favoriteGrowth.test.ts",
     "lib/discovery/features.test.ts",
+    "lib/discovery/railPolicyMigration.test.ts",
     "prisma/adminActionAudit.test.ts",
     "prisma/discoveryEventsMigration.test.ts",
     "prisma/podcastEpisodeUniqueRelease.test.ts",
