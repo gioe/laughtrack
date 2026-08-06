@@ -28,6 +28,11 @@ def test_documented_validator_is_sparse_safe_and_reads_local_catalog(
     ).read_text()
     assert skill.count("python3 scripts/screenshots/comparison.py") == 2
     assert "skills/compare-screenshots/scripts/validate_pairs.py" not in skill
+    tusk_config = json.loads((REPO_ROOT / "tusk" / "config.json").read_text())
+    assert (
+        "scripts/screenshots/comparison.py"
+        in tusk_config["scope"]["sparse_always_include"]
+    )
 
     checkout = tmp_path / "sparse-checkout"
     script_dir = checkout / "scripts" / "screenshots"
