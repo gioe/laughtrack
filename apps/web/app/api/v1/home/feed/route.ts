@@ -9,6 +9,7 @@ import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getTrendingPodcasts } from "@/lib/data/home/getTrendingPodcasts";
+import { getPodcastEpisodeDiscovery } from "@/lib/data/home/getPodcastEpisodeDiscovery";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
 import { PROFILE_MISSING, resolveAuth } from "@/lib/auth/resolveAuth";
@@ -94,6 +95,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             showsTonight,
             showsNearZip,
             trendingThisWeek,
+            podcastEpisodes,
             trendingPodcasts,
             followedComedianShowCandidates,
         ] = await Promise.all([
@@ -148,6 +150,9 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 : getTrendingShowsThisWeek(timezone).catch(
                       logSectionError("getTrendingShowsThisWeek"),
                   ),
+            getPodcastEpisodeDiscovery(profileId).catch(
+                logSectionError("getPodcastEpisodeDiscovery"),
+            ),
             getTrendingPodcasts(zipCode, undefined, distanceMiles).catch(
                 logSectionError("getTrendingPodcasts"),
             ),
@@ -184,6 +189,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     moreNearYou,
                     trendingThisWeek,
                     followedComedianShows,
+                    podcastEpisodes,
                     trendingPodcasts,
                     popularClubs,
                 },

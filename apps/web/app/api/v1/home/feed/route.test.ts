@@ -46,6 +46,9 @@ vi.mock("@/lib/data/home/getTrendingShowsThisWeek", () => ({
 vi.mock("@/lib/data/home/getTrendingPodcasts", () => ({
     getTrendingPodcasts: vi.fn(),
 }));
+vi.mock("@/lib/data/home/getPodcastEpisodeDiscovery", () => ({
+    getPodcastEpisodeDiscovery: vi.fn(),
+}));
 vi.mock("@/lib/data/home/getFavoriteComedianShows", () => ({
     getFavoriteComedianShows: vi.fn(),
 }));
@@ -63,6 +66,7 @@ import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getTrendingPodcasts } from "@/lib/data/home/getTrendingPodcasts";
+import { getPodcastEpisodeDiscovery } from "@/lib/data/home/getPodcastEpisodeDiscovery";
 import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
 import {
     RATE_LIMIT_SENTINEL_HEADER,
@@ -83,6 +87,7 @@ const mockGetShowsTonight = vi.mocked(getShowsTonight);
 const mockGetShowsNearZip = vi.mocked(getShowsNearZip);
 const mockGetTrendingShowsThisWeek = vi.mocked(getTrendingShowsThisWeek);
 const mockGetTrendingPodcasts = vi.mocked(getTrendingPodcasts);
+const mockGetPodcastEpisodeDiscovery = vi.mocked(getPodcastEpisodeDiscovery);
 const mockGetFavoriteComedianShows = vi.mocked(getFavoriteComedianShows);
 
 function makeRequest(
@@ -105,6 +110,7 @@ function primeHappyPath() {
     mockGetShowsNearZip.mockResolvedValue([]);
     mockGetTrendingShowsThisWeek.mockResolvedValue([]);
     mockGetTrendingPodcasts.mockResolvedValue([]);
+    mockGetPodcastEpisodeDiscovery.mockResolvedValue([]);
     mockGetFavoriteComedianShows.mockResolvedValue([]);
 }
 
@@ -540,6 +546,93 @@ describe("GET /api/v1/home/feed", () => {
                 undefined,
                 25,
             );
+        });
+    });
+
+    describe("podcast episode discovery", () => {
+        const recommendation = {
+            id: 101,
+            title: "A Fresh Episode",
+            description: null,
+            releaseDate: "2026-08-06T12:00:00.000Z",
+            durationSeconds: 3600,
+            episodeUrl: "https://example.com/episodes/101",
+            audioUrl: "https://cdn.example.com/episodes/101.mp3",
+            podcast: {
+                id: 42,
+                slug: "good-one",
+                title: "Good One",
+                imageUrl: "https://cdn.example.com/good-one.jpg",
+            },
+            recommendation: {
+                reason: "followed_comedian",
+                comedian: {
+                    id: 7,
+                    uuid: "comedian-7",
+                    name: "Example Comic",
+                    imageUrl: "https://cdn.example.com/comic.jpg",
+                },
+                appearanceRole: "guest",
+                followedComedian: true,
+                favoritePodcast: false,
+            },
+        };
+
+        it("returns personalized episodes and retains trending podcasts for authenticated callers", async () => {
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-1",
+                userId: "user-1",
+            });
+            mockGetPodcastEpisodeDiscovery.mockResolvedValue([
+                recommendation,
+            ] as never);
+            mockGetTrendingPodcasts.mockResolvedValue([
+                { id: 42, title: "Good One" },
+            ] as never);
+
+            const res = await GET(
+                makeRequest({}, { Authorization: "Bearer native-token" }),
+            );
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockGetPodcastEpisodeDiscovery).toHaveBeenCalledWith(
+                "profile-1",
+            );
+            expect(body.data.podcastEpisodes).toEqual([recommendation]);
+            expect(body.data.trendingPodcasts).toEqual([
+                { id: 42, title: "Good One" },
+            ]);
+        });
+
+        it("returns anonymous episode discovery and retains trending podcasts", async () => {
+            mockGetPodcastEpisodeDiscovery.mockResolvedValue([
+                recommendation,
+            ] as never);
+            mockGetTrendingPodcasts.mockResolvedValue([
+                { id: 42, title: "Good One" },
+            ] as never);
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockGetPodcastEpisodeDiscovery).toHaveBeenCalledWith(null);
+            expect(body.data.podcastEpisodes).toEqual([recommendation]);
+            expect(body.data.trendingPodcasts).toEqual([
+                { id: 42, title: "Good One" },
+            ]);
+        });
+
+        it("isolates discovery failures to an empty episode section", async () => {
+            mockGetPodcastEpisodeDiscovery.mockRejectedValue(new Error("boom"));
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.data.podcastEpisodes).toEqual([]);
+            expect(body.data.trendingPodcasts).toEqual([]);
         });
     });
 
