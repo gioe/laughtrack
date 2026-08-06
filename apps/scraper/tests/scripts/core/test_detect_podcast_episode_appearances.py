@@ -119,9 +119,12 @@ def test_comedian_query_uses_canonical_non_denied_comedians_and_aliases():
     query = mod._GET_MATCH_COMEDIANS_SQL
 
     assert "c.parent_comedian_id IS NULL" in query
+    assert "c.visible" in query
     assert "comedian_deny_list" in query
     assert "NOT EXISTS" in query
-    assert "LOWER(BTRIM(d.name)) = LOWER(BTRIM(c.name))" in query
+    assert "REPLACE(d.name, CHR(160), ' ')" in query
+    assert "REPLACE(c.name, CHR(160), ' ')" in query
+    assert "REGEXP_REPLACE" in query
     assert "a.parent_comedian_id = c.id" in query
 
 
@@ -132,9 +135,29 @@ def test_episode_query_scans_only_accepted_podcast_relationships():
     assert "EXISTS" in id_query
     assert "accepted_cp.podcast_id = p.id" in id_query
     assert "accepted_cp.review_status = 'accepted'" in id_query
+    assert "accepted_cp.association_type IN ('host', 'cohost', 'owner')" in id_query
+    assert "JOIN comedians accepted_c ON accepted_c.id = accepted_cp.comedian_id" in id_query
+    assert "accepted_c.parent_comedian_id IS NULL" in id_query
+    assert "accepted_c.visible" in id_query
+    assert "comedian_deny_list accepted_d" in id_query
+
+    assert "FROM podcast_deny_list pdl" in id_query
+    assert "pdl.restored_at IS NULL" in id_query
+    assert "pdl.podcast_id = p.id" in id_query
+    assert "pdl.source = p.source AND pdl.source_podcast_id = p.source_podcast_id" in id_query
+    assert "pdl.feed_url = COALESCE(p.feed_url, p.source_payload ->> 'feed_url')" in id_query
 
     hydrate_query = mod._GET_EPISODES_SQL
     assert "p.author_name AS podcast_author" in hydrate_query
+    assert "host_c.id = cp.comedian_id" in hydrate_query
+    assert "host_c.parent_comedian_id IS NULL" in hydrate_query
+    assert "host_c.visible" in hydrate_query
+    assert "comedian_deny_list host_d" in hydrate_query
+    assert "FROM podcast_deny_list pdl" in hydrate_query
+    assert "pdl.restored_at IS NULL" in hydrate_query
+    assert "pdl.podcast_id = p.id" in hydrate_query
+    assert "pdl.source = p.source AND pdl.source_podcast_id = p.source_podcast_id" in hydrate_query
+    assert "pdl.feed_url = COALESCE(p.feed_url, p.source_payload ->> 'feed_url')" in hydrate_query
     # Phase 2 is bounded to the Phase-1 id set rather than re-scanning the backlog.
     assert "pe.id = ANY(%s::int[])" in hydrate_query
 

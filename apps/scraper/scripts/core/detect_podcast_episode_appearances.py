@@ -51,11 +51,13 @@ _GET_MATCH_COMEDIANS_SQL = """
     LEFT JOIN comedians a ON a.parent_comedian_id = c.id
         AND NULLIF(BTRIM(a.name), '') IS NOT NULL
     WHERE c.parent_comedian_id IS NULL
+      AND c.visible
       AND NULLIF(BTRIM(c.name), '') IS NOT NULL
       AND NOT EXISTS (
           SELECT 1
           FROM comedian_deny_list d
-          WHERE LOWER(BTRIM(d.name)) = LOWER(BTRIM(c.name))
+          WHERE LOWER(BTRIM(REGEXP_REPLACE(REPLACE(d.name, CHR(160), ' '), '[[:space:]]+', ' ', 'g'))) =
+                LOWER(BTRIM(REGEXP_REPLACE(REPLACE(c.name, CHR(160), ' '), '[[:space:]]+', ' ', 'g')))
       )
       {extra_filter}
     GROUP BY c.id, c.name
@@ -79,11 +81,31 @@ _GET_EPISODE_IDS_SQL = """
     SELECT pe.id, pe.podcast_id
     FROM podcast_episodes pe
     JOIN podcasts p ON p.id = pe.podcast_id
-    WHERE EXISTS (
+    WHERE NOT EXISTS (
+          SELECT 1
+          FROM podcast_deny_list pdl
+          WHERE pdl.restored_at IS NULL
+            AND (
+                pdl.podcast_id = p.id
+                OR (pdl.source = p.source AND pdl.source_podcast_id = p.source_podcast_id)
+                OR pdl.feed_url = COALESCE(p.feed_url, p.source_payload ->> 'feed_url')
+            )
+      )
+      AND EXISTS (
           SELECT 1
           FROM comedian_podcasts accepted_cp
+          JOIN comedians accepted_c ON accepted_c.id = accepted_cp.comedian_id
           WHERE accepted_cp.podcast_id = p.id
             AND accepted_cp.review_status = 'accepted'
+            AND accepted_cp.association_type IN ('host', 'cohost', 'owner')
+            AND accepted_c.parent_comedian_id IS NULL
+            AND accepted_c.visible
+            AND NOT EXISTS (
+                SELECT 1
+                FROM comedian_deny_list accepted_d
+                WHERE LOWER(BTRIM(REGEXP_REPLACE(REPLACE(accepted_d.name, CHR(160), ' '), '[[:space:]]+', ' ', 'g'))) =
+                      LOWER(BTRIM(REGEXP_REPLACE(REPLACE(accepted_c.name, CHR(160), ' '), '[[:space:]]+', ' ', 'g')))
+            )
       )
       {extra_filter}
     ORDER BY pe.appearances_detected_at ASC NULLS FIRST, pe.release_date DESC NULLS LAST, pe.id DESC
@@ -118,7 +140,30 @@ _GET_EPISODES_SQL = """
     LEFT JOIN comedian_podcasts cp ON cp.podcast_id = p.id
         AND cp.review_status = 'accepted'
         AND cp.association_type IN ('host', 'cohost', 'owner')
+        AND EXISTS (
+            SELECT 1
+            FROM comedians host_c
+            WHERE host_c.id = cp.comedian_id
+              AND host_c.parent_comedian_id IS NULL
+              AND host_c.visible
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM comedian_deny_list host_d
+                  WHERE LOWER(BTRIM(REGEXP_REPLACE(REPLACE(host_d.name, CHR(160), ' '), '[[:space:]]+', ' ', 'g'))) =
+                        LOWER(BTRIM(REGEXP_REPLACE(REPLACE(host_c.name, CHR(160), ' '), '[[:space:]]+', ' ', 'g')))
+              )
+        )
     WHERE pe.id = ANY(%s::int[])
+      AND NOT EXISTS (
+          SELECT 1
+          FROM podcast_deny_list pdl
+          WHERE pdl.restored_at IS NULL
+            AND (
+                pdl.podcast_id = p.id
+                OR (pdl.source = p.source AND pdl.source_podcast_id = p.source_podcast_id)
+                OR pdl.feed_url = COALESCE(p.feed_url, p.source_payload ->> 'feed_url')
+            )
+      )
     GROUP BY pe.id, pe.podcast_id, pe.source, pe.source_episode_id, p.title, p.author_name,
         pe.title, pe.description, pe.episode_url, pe.source_payload
     ORDER BY pe.appearances_detected_at ASC NULLS FIRST, pe.release_date DESC NULLS LAST, pe.id DESC
