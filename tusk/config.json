@@ -176,7 +176,9 @@
       "ios/Sources/LaughTrackAPIClient/openapi.json",
       "screenshots/catalog.json",
       "scripts/screenshots/export.py",
-      "scripts/screenshots/comparison.py"
+      "scripts/screenshots/comparison.py",
+      "scripts/screenshots/manifest.py",
+      "scripts/screenshots/fixture_server.py"
     ],
     "sparse_always_cone": [
       "ios/Sources",

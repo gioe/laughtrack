@@ -29,19 +29,23 @@ def test_documented_validator_is_sparse_safe_and_reads_local_catalog(
     assert skill.count("python3 scripts/screenshots/comparison.py") == 2
     assert "skills/compare-screenshots/scripts/validate_pairs.py" not in skill
     tusk_config = json.loads((REPO_ROOT / "tusk" / "config.json").read_text())
-    assert (
-        "scripts/screenshots/comparison.py"
-        in tusk_config["scope"]["sparse_always_include"]
-    )
+    sparse_paths = set(tusk_config["scope"]["sparse_always_include"])
+    assert {
+        "scripts/screenshots/comparison.py",
+        "scripts/screenshots/manifest.py",
+        "scripts/screenshots/fixture_server.py",
+    } <= sparse_paths
 
     checkout = tmp_path / "sparse-checkout"
     script_dir = checkout / "scripts" / "screenshots"
     script_dir.mkdir(parents=True)
-    for helper in ("comparison.py", "manifest.py"):
+    for helper in ("comparison.py", "manifest.py", "fixture_server.py"):
         shutil.copy2(REPO_ROOT / "scripts" / "screenshots" / helper, script_dir / helper)
     catalog = checkout / "screenshots" / "catalog.json"
     catalog.parent.mkdir()
-    catalog.write_text(json.dumps({"schema_version": 999}), encoding="utf-8")
+    local_catalog = json.loads((REPO_ROOT / "screenshots" / "catalog.json").read_text())
+    local_catalog["scenarios"][0]["timezone"] = ""
+    catalog.write_text(json.dumps(local_catalog), encoding="utf-8")
 
     assert not (checkout / ".agents").exists()
     assert not (checkout / ".claude").exists()
@@ -69,7 +73,7 @@ def test_documented_validator_is_sparse_safe_and_reads_local_catalog(
         text=True,
     )
     assert validation_result.returncode == 1
-    assert "catalog.schema_version must be 1" in validation_result.stderr
+    assert "catalog.scenarios[0].timezone must be a non-empty string" in validation_result.stderr
     assert "manifest.json: cannot read JSON" not in validation_result.stderr
 
 
