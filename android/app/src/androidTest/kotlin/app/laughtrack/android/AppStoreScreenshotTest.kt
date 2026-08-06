@@ -494,10 +494,10 @@ class AppStoreScreenshotTest {
             val now = android.os.SystemClock.uptimeMillis()
             val ready =
                 isOnboardingScreenshotReady(
-                    fixtureNamePresent = hasNode(hasText("Ali Wong")),
-                    fixtureDetailsPresent = hasNode(hasText("28 upcoming shows")),
-                    passControlPresent = hasNode(hasText("Pass")),
-                    followControlPresent = hasNode(hasText("Follow")),
+                    fixtureNamePresent = hasNode(hasText("ALI WONG")),
+                    fixturePortraitPresent = hasNode(hasContentDescription("Ali Wong")),
+                    passControlPresent = hasNode(hasContentDescription("Pass")),
+                    followControlPresent = hasNode(hasContentDescription("Follow")),
                     loadingPresent = hasNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)),
                     emptyStatePresent = hasNode(hasText("No more cards in this deal.")),
                 )

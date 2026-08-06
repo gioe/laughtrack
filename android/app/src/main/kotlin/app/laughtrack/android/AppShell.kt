@@ -458,7 +458,6 @@ internal object AppShellChrome {
     val topAppBarRoutes: Set<KClass<out AppRoute>> =
         setOf(
             AppRoute.Favorites::class,
-            AppRoute.ComedianOnboarding::class,
             AppRoute.Profile::class,
         )
 
@@ -473,6 +472,7 @@ internal object AppShellChrome {
     /** Routes that own their whole screen and render no shell bar at all. */
     val fullScreenRoutes: Set<KClass<out AppRoute>> =
         setOf(
+            AppRoute.ComedianOnboarding::class,
             AppRoute.ShowDetail::class,
             AppRoute.ComedianDetail::class,
             AppRoute.ClubDetail::class,

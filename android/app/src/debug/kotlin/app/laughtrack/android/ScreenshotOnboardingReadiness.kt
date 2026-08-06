@@ -8,14 +8,14 @@ package app.laughtrack.android
  */
 fun isOnboardingScreenshotReady(
     fixtureNamePresent: Boolean,
-    fixtureDetailsPresent: Boolean,
+    fixturePortraitPresent: Boolean,
     passControlPresent: Boolean,
     followControlPresent: Boolean,
     loadingPresent: Boolean,
     emptyStatePresent: Boolean,
 ): Boolean =
     fixtureNamePresent &&
-        fixtureDetailsPresent &&
+        fixturePortraitPresent &&
         passControlPresent &&
         followControlPresent &&
         !loadingPresent &&

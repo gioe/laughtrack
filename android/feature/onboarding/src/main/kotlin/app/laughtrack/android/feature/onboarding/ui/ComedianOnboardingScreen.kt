@@ -4,7 +4,10 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -19,21 +22,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,30 +56,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
+import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import kotlin.math.roundToInt
 
 internal enum class ComedianOnboardingLayoutMode {
     Compact,
     Expanded,
-}
-
-internal enum class OnboardingActionPlacement {
-    BelowCard,
-    BesideCard,
 }
 
 internal data class ComedianOnboardingLayoutSpec(
@@ -82,15 +93,14 @@ internal data class ComedianOnboardingLayoutSpec(
     val horizontalPadding: Dp,
     val sectionSpacing: Dp,
     val cardMaxWidth: Dp,
-    val portraitHeight: Dp,
-    val actionPlacement: OnboardingActionPlacement,
+    val posterSize: Dp,
     val actionSpacing: Dp,
 )
 
 private val ONBOARDING_EXPANDED_BREAKPOINT = 600.dp
 private val ONBOARDING_WIDE_BREAKPOINT = 800.dp
-private val ONBOARDING_SEVEN_INCH_CONTENT_MAX_WIDTH = 720.dp
-private val ONBOARDING_EXPANDED_CONTENT_MAX_WIDTH = 960.dp
+private val ONBOARDING_SEVEN_INCH_CONTENT_MAX_WIDTH = 560.dp
+private val ONBOARDING_EXPANDED_CONTENT_MAX_WIDTH = 620.dp
 
 internal fun comedianOnboardingLayoutSpec(availableWidth: Dp): ComedianOnboardingLayoutSpec {
     if (availableWidth < ONBOARDING_EXPANDED_BREAKPOINT) {
@@ -100,9 +110,8 @@ internal fun comedianOnboardingLayoutSpec(availableWidth: Dp): ComedianOnboardin
             horizontalPadding = 16.dp,
             sectionSpacing = 14.dp,
             cardMaxWidth = Dp.Infinity,
-            portraitHeight = 260.dp,
-            actionPlacement = OnboardingActionPlacement.BelowCard,
-            actionSpacing = 12.dp,
+            posterSize = 220.dp,
+            actionSpacing = 22.dp,
         )
     }
 
@@ -111,12 +120,11 @@ internal fun comedianOnboardingLayoutSpec(availableWidth: Dp): ComedianOnboardin
         mode = ComedianOnboardingLayoutMode.Expanded,
         contentMaxWidth =
             if (isWide) ONBOARDING_EXPANDED_CONTENT_MAX_WIDTH else ONBOARDING_SEVEN_INCH_CONTENT_MAX_WIDTH,
-        horizontalPadding = if (isWide) 32.dp else 16.dp,
-        sectionSpacing = if (isWide) 24.dp else 18.dp,
-        cardMaxWidth = if (isWide) 400.dp else 360.dp,
-        portraitHeight = if (isWide) 300.dp else 280.dp,
-        actionPlacement = OnboardingActionPlacement.BesideCard,
-        actionSpacing = if (isWide) 18.dp else 16.dp,
+        horizontalPadding = if (isWide) 32.dp else 24.dp,
+        sectionSpacing = if (isWide) 20.dp else 18.dp,
+        cardMaxWidth = if (isWide) 520.dp else 480.dp,
+        posterSize = if (isWide) 260.dp else 240.dp,
+        actionSpacing = if (isWide) 28.dp else 24.dp,
     )
 }
 
@@ -171,7 +179,6 @@ fun ComedianOnboardingScreen(
         containerColor = Color.Transparent,
         bottomBar = {
             ContinueBar(
-                favoriteCount = state.favoriteCount,
                 isSaving = state.isSaving,
                 onContinue = viewModel::continueOnboarding,
             )
@@ -190,29 +197,17 @@ fun ComedianOnboardingScreen(
                     .fillMaxSize()
                     .padding(horizontal = layoutSpec.horizontalPadding, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(layoutSpec.sectionSpacing),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    "Pick comedians to follow",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
+                OnboardingMarqueeHeader(
+                    favoriteCount = state.favoriteCount,
+                    isSaving = state.isSaving,
+                    onSkip = viewModel::continueOnboarding,
                 )
-                Text(
-                    "Swipe through suggestions or search by name. " +
-                        "Three favorites gives LaughTrack enough signal for better alerts.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                FavoriteProgress(state.favoriteCount)
                 SearchBox(
                     query = state.searchQuery,
                     isSearchMode = state.isSearchMode,
                     onQuery = viewModel::search,
-                )
-                NotificationToggles(
-                    emailEnabled = state.emailAlertsEnabled,
-                    pushEnabled = state.pushAlertsEnabled,
-                    onEmail = viewModel::setEmailAlertsEnabled,
-                    onPush = viewModel::setPushAlertsEnabled,
                 )
                 state.errorMessage?.let {
                     Text(it, color = MaterialTheme.colorScheme.error)
@@ -247,26 +242,74 @@ fun ComedianOnboardingScreen(
 }
 
 @Composable
+private fun OnboardingMarqueeHeader(
+    favoriteCount: Int,
+    isSaving: Boolean,
+    onSkip: () -> Unit,
+) {
+    Box(Modifier.fillMaxWidth()) {
+        TextButton(
+            onClick = onSkip,
+            enabled = !isSaving,
+            modifier = Modifier.align(Alignment.TopEnd),
+        ) {
+            Text("Skip")
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(top = 34.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                "WELCOME TO LAUGHTRACK",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 2.2.sp,
+                color = LaughTrackColors.AccentStrong,
+            )
+            Text(
+                "PICK COMEDIANS TO FOLLOW",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 0.4.sp,
+                textAlign = TextAlign.Center,
+                color = LaughTrackColors.Foreground,
+            )
+            Text(
+                "Swipe right to follow, left to pass — or search for anyone. " +
+                    "Aim for 3 so LaughTrack can surface better show alerts.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = LaughTrackColors.ForegroundMuted,
+                modifier = Modifier.widthIn(max = 520.dp),
+            )
+            FavoriteProgress(favoriteCount)
+        }
+    }
+}
+
+@Composable
 private fun FavoriteProgress(favoriteCount: Int) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         repeat(3) { index ->
+            val isSelected = index < favoriteCount
             Box(
                 Modifier
-                    .size(12.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(
-                        if (index < favoriteCount) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        },
+                    .size(if (isSelected) 10.dp else 9.dp)
+                    .clip(CircleShape)
+                    .background(if (isSelected) LaughTrackColors.AccentStrong else LaughTrackColors.SurfaceElevated)
+                    .border(
+                        width = 1.dp,
+                        color = if (isSelected) LaughTrackColors.AccentStrong else LaughTrackColors.BorderSubtle,
+                        shape = CircleShape,
                     ),
             )
         }
         Text(
             "$favoriteCount/3 selected",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.labelMedium,
+            color = LaughTrackColors.AccentStrong,
         )
     }
 }
@@ -280,7 +323,7 @@ private fun SearchBox(
     OutlinedTextField(
         value = query,
         onValueChange = onQuery,
-        label = { Text("Search comedians") },
+        placeholder = { Text("Search comedians") },
         singleLine = true,
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         trailingIcon = {
@@ -289,28 +332,8 @@ private fun SearchBox(
             }
         },
         modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
     )
-}
-
-@Composable
-private fun NotificationToggles(
-    emailEnabled: Boolean,
-    pushEnabled: Boolean,
-    onEmail: (Boolean) -> Unit,
-    onPush: (Boolean) -> Unit,
-) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        FilterChip(
-            selected = emailEnabled,
-            onClick = { onEmail(!emailEnabled) },
-            label = { Text("Email alerts") },
-        )
-        FilterChip(
-            selected = pushEnabled,
-            onClick = { onPush(!pushEnabled) },
-            label = { Text("Push alerts") },
-        )
-    }
 }
 
 @Composable
@@ -337,69 +360,38 @@ private fun SwipeDeck(
         return
     }
 
-    when (layoutSpec.actionPlacement) {
-        OnboardingActionPlacement.BelowCard ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                OnboardingComedianCard(
-                    comedian = top,
-                    isFavorite = favorites[top.uuid] == true,
-                    portraitHeight = layoutSpec.portraitHeight,
-                    cardMaxWidth = layoutSpec.cardMaxWidth,
-                    onFavorite = { onFavorite(top.uuid) },
-                    onPass = { onPass(top.uuid) },
-                )
-                DeckActions(
-                    canRewind = canRewind,
-                    placement = layoutSpec.actionPlacement,
-                    spacing = layoutSpec.actionSpacing,
-                    onRewind = onRewind,
-                    onPass = { onPass(top.uuid) },
-                    onFavorite = { onFavorite(top.uuid) },
-                )
-            }
-        OnboardingActionPlacement.BesideCard ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.Top,
-            ) {
-                OnboardingComedianCard(
-                    comedian = top,
-                    isFavorite = favorites[top.uuid] == true,
-                    portraitHeight = layoutSpec.portraitHeight,
-                    cardMaxWidth = layoutSpec.cardMaxWidth,
-                    onFavorite = { onFavorite(top.uuid) },
-                    onPass = { onPass(top.uuid) },
-                )
-                Spacer(Modifier.width(layoutSpec.actionSpacing))
-                DeckActions(
-                    canRewind = canRewind,
-                    placement = layoutSpec.actionPlacement,
-                    spacing = 12.dp,
-                    onRewind = onRewind,
-                    onPass = { onPass(top.uuid) },
-                    onFavorite = { onFavorite(top.uuid) },
-                )
-            }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        OnboardingComedianCard(
+            comedian = top,
+            posterSize = layoutSpec.posterSize,
+            cardMaxWidth = layoutSpec.cardMaxWidth,
+            onFavorite = { onFavorite(top.uuid) },
+            onPass = { onPass(top.uuid) },
+        )
+        DeckActions(
+            canRewind = canRewind,
+            spacing = layoutSpec.actionSpacing,
+            onRewind = onRewind,
+            onPass = { onPass(top.uuid) },
+            onFavorite = { onFavorite(top.uuid) },
+        )
     }
 }
 
 @Composable
 private fun OnboardingComedianCard(
     comedian: ComedianSearchItem,
-    isFavorite: Boolean,
-    portraitHeight: Dp,
+    posterSize: Dp,
     cardMaxWidth: Dp,
     onFavorite: () -> Unit,
     onPass: () -> Unit,
 ) {
     ComedianCard(
         comedian = comedian,
-        isFavorite = isFavorite,
-        portraitHeight = portraitHeight,
+        posterSize = posterSize,
         onFavorite = onFavorite,
         onPass = onPass,
         modifier = Modifier.widthIn(max = cardMaxWidth).fillMaxWidth(),
@@ -409,31 +401,74 @@ private fun OnboardingComedianCard(
 @Composable
 private fun DeckActions(
     canRewind: Boolean,
-    placement: OnboardingActionPlacement,
     spacing: Dp,
     onRewind: () -> Unit,
     onPass: () -> Unit,
     onFavorite: () -> Unit,
 ) {
-    val actionModifier =
-        if (placement == OnboardingActionPlacement.BesideCard) {
-            Modifier.width(128.dp)
-        } else {
-            Modifier
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(spacing),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CircularDeckAction(
+            contentDescription = "Pass",
+            size = 58.dp,
+            containerColor = LaughTrackColors.SurfaceElevated,
+            contentColor = LaughTrackColors.ForegroundMuted,
+            onClick = onPass,
+        ) {
+            Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(28.dp))
         }
-    val content: @Composable () -> Unit = {
-        OutlinedButton(modifier = actionModifier, onClick = onRewind, enabled = canRewind) { Text("Rewind") }
-        OutlinedButton(modifier = actionModifier, onClick = onPass) { Text("Pass") }
-        Button(modifier = actionModifier, onClick = onFavorite) {
-            Icon(Icons.Filled.Favorite, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Follow")
+        CircularDeckAction(
+            contentDescription = "Rewind",
+            size = 44.dp,
+            containerColor = LaughTrackColors.SurfaceElevated,
+            contentColor = LaughTrackColors.ForegroundMuted,
+            enabled = canRewind,
+            onClick = onRewind,
+        ) {
+            Icon(Icons.Filled.Replay, contentDescription = null, modifier = Modifier.size(21.dp))
+        }
+        CircularDeckAction(
+            contentDescription = "Follow",
+            size = 64.dp,
+            containerColor = LaughTrackColors.AccentStrong,
+            contentColor = LaughTrackColors.Foreground,
+            onClick = onFavorite,
+        ) {
+            Icon(Icons.Filled.Favorite, contentDescription = null, modifier = Modifier.size(28.dp))
         }
     }
-    if (placement == OnboardingActionPlacement.BesideCard) {
-        Column(verticalArrangement = Arrangement.spacedBy(spacing), content = { content() })
-    } else {
-        Row(horizontalArrangement = Arrangement.spacedBy(spacing), content = { content() })
+}
+
+@Composable
+private fun CircularDeckAction(
+    contentDescription: String,
+    size: Dp,
+    containerColor: Color,
+    contentColor: Color,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier =
+            Modifier
+                .size(size)
+                .alpha(if (enabled) 1f else 0.4f)
+                .clip(CircleShape)
+                .background(containerColor)
+                .border(1.dp, LaughTrackColors.BorderSubtle, CircleShape)
+                .semantics { this.contentDescription = contentDescription },
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalContentColor provides contentColor,
+                content = content,
+            )
+        }
     }
 }
 
@@ -461,10 +496,9 @@ private fun SearchResults(
 @Composable
 private fun ComedianCard(
     comedian: ComedianSearchItem,
-    isFavorite: Boolean,
     onFavorite: () -> Unit,
     onPass: () -> Unit,
-    portraitHeight: Dp,
+    posterSize: Dp,
     modifier: Modifier = Modifier,
 ) {
     var dragOffset by remember(comedian.uuid) { mutableFloatStateOf(0f) }
@@ -486,30 +520,69 @@ private fun ComedianCard(
                         },
                     )
                 },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+        colors = CardDefaults.cardColors(containerColor = LaughTrackColors.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
     ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            RemoteImage(
-                url = comedian.imageUrl,
-                fallback = RemoteImageFallback.Comedian,
-                contentDescription = comedian.name,
-                contentScale = ContentScale.Fit,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(portraitHeight)
-                        .clip(RoundedCornerShape(12.dp)),
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(comedian.name, style = MaterialTheme.typography.titleLarge, maxLines = 1)
-                    Text(
-                        "${comedian.showCount} upcoming shows",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                FavoriteButton(isFavorite = isFavorite, onClick = onFavorite)
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.radialGradient(
+                        colors =
+                            listOf(
+                                LaughTrackColors.AccentStrong.copy(alpha = 0.22f),
+                                LaughTrackColors.Surface,
+                            ),
+                    ),
+                ),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                MarqueePoster(comedian = comedian, posterSize = posterSize)
+                Text(
+                    comedian.name.uppercase(),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 0.4.sp,
+                    textAlign = TextAlign.Center,
+                    color = LaughTrackColors.Foreground,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun MarqueePoster(
+    comedian: ComedianSearchItem,
+    posterSize: Dp,
+) {
+    val frameSize = posterSize + 12.dp
+    Box(Modifier.size(frameSize), contentAlignment = Alignment.Center) {
+        RemoteImage(
+            url = comedian.imageUrl,
+            fallback = RemoteImageFallback.Comedian,
+            contentDescription = comedian.name,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(posterSize).clip(RoundedCornerShape(8.dp)),
+        )
+        Canvas(Modifier.fillMaxSize()) {
+            drawRoundRect(
+                color = LaughTrackColors.AccentStrong,
+                cornerRadius = CornerRadius(12.dp.toPx()),
+                style =
+                    Stroke(
+                        width = 2.5.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 7.dp.toPx())),
+                    ),
+            )
         }
     }
 }
@@ -557,18 +630,22 @@ private fun FavoriteButton(
 
 @Composable
 private fun ContinueBar(
-    favoriteCount: Int,
     isSaving: Boolean,
     onContinue: () -> Unit,
 ) {
-    Row(
-        Modifier.fillMaxWidth().padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Button(
+        onClick = onContinue,
+        enabled = !isSaving,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(52.dp),
+        shape = CircleShape,
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = LaughTrackColors.AccentStrong,
+                contentColor = Color(0xFF21120C),
+            ),
     ) {
-        Text("$favoriteCount followed", modifier = Modifier.weight(1f))
-        Button(onClick = onContinue, enabled = !isSaving) {
-            Text(if (isSaving) "Saving..." else "Continue")
-        }
+        Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.size(8.dp))
+        Text(if (isSaving) "Saving..." else "Continue", fontWeight = FontWeight.SemiBold)
     }
 }

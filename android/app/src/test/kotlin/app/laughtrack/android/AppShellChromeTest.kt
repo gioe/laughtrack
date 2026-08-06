@@ -41,13 +41,13 @@ class AppShellChromeTest {
         assertEquals(
             setOf(
                 AppRoute.Favorites::class,
-                AppRoute.ComedianOnboarding::class,
                 AppRoute.Profile::class,
             ),
             AppShellChrome.topAppBarRoutes,
         )
         assertFalse(AppRoute.Discover::class in AppShellChrome.topAppBarRoutes)
         assertFalse(AppRoute.Search::class in AppShellChrome.topAppBarRoutes)
+        assertFalse(AppRoute.ComedianOnboarding::class in AppShellChrome.topAppBarRoutes)
         assertFalse(AppRoute.ShowDetail::class in AppShellChrome.topAppBarRoutes)
         assertFalse(AppRoute.NotificationCenter::class in AppShellChrome.topAppBarRoutes)
     }
@@ -103,6 +103,7 @@ class AppShellChromeTest {
             AppShellChrome.fullScreenRoutes intersect
                 (AppShellChrome.topAppBarRoutes + AppShellChrome.bottomBarRoutes)
         assertTrue("fullScreenRoutes must not also claim a bar: $overlap", overlap.isEmpty())
+        assertTrue(AppRoute.ComedianOnboarding::class in AppShellChrome.fullScreenRoutes)
     }
 
     @Test

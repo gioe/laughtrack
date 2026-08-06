@@ -26,7 +26,7 @@ class ScreenshotOnboardingReadinessTest {
     ): Boolean =
         isOnboardingScreenshotReady(
             fixtureNamePresent = true,
-            fixtureDetailsPresent = true,
+            fixturePortraitPresent = true,
             passControlPresent = true,
             followControlPresent = true,
             loadingPresent = loadingPresent,
