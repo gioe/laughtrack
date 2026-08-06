@@ -320,7 +320,10 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
             constraints.append(.init(kind: .date, label: dateRange.pillLabel()))
         }
 
-        let namesBySlug = Dictionary(uniqueKeysWithValues: availableFilters.map { ($0.slug, $0.name) })
+        let namesBySlug = Dictionary(
+            availableFilters.map { ($0.slug, $0.name) },
+            uniquingKeysWith: { first, _ in first }
+        )
         for slug in selectedFilterSlugs.sorted() {
             let fallback = ShowFormatOption(rawValue: slug)?.title ?? slug.replacingOccurrences(of: "-", with: " ").capitalized
             constraints.append(.init(kind: .filter(slug), label: namesBySlug[slug] ?? fallback))

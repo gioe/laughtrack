@@ -803,6 +803,25 @@ struct SearchRootModelTests {
         #expect(showsModel.resultsPresentation == .agenda)
     }
 
+    @Test("show constraints tolerate duplicate API filter slugs")
+    func showConstraintsTolerateDuplicateAPIFilterSlugs() async throws {
+        let showsModel = makeShowsListModel(
+            name: "duplicate-filter-slugs",
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
+        )
+        showsModel.selectedFilterSlugs = ["free"]
+        let filters = [
+            Components.Schemas.Filter(id: -1, slug: "free", name: "Free"),
+            Components.Schemas.Filter(id: 9, slug: "free", name: "Legacy Free")
+        ]
+
+        let freeConstraints = showsModel.activeConstraints(availableFilters: filters).filter {
+            $0.kind == .filter("free")
+        }
+
+        #expect(freeConstraints == [ShowActiveConstraint(kind: .filter("free"), label: "Free")])
+    }
+
     @Test("default external show seed clears stale faceted state")
     func defaultExternalShowSeedClearsStaleFacetedState() async throws {
         let showsModel = makeShowsListModel(
