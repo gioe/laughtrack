@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
@@ -19,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,6 +32,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
@@ -50,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,6 +62,47 @@ import app.laughtrack.android.core.data.profile.ProfileAccount
 import app.laughtrack.android.core.data.profile.ProfilePreferences
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
+
+internal enum class ProfileLayoutMode {
+    Compact,
+    Expanded,
+}
+
+internal data class ProfileAdaptiveLayoutSpec(
+    val mode: ProfileLayoutMode,
+    val contentMaxWidth: Dp,
+    val horizontalPadding: Dp,
+    val paneSpacing: Dp,
+    val accountPaneWidth: Dp,
+)
+
+private val PROFILE_EXPANDED_BREAKPOINT = 600.dp
+private val PROFILE_WIDE_BREAKPOINT = 720.dp
+private val PROFILE_SEVEN_INCH_CONTENT_MAX_WIDTH = 720.dp
+private val PROFILE_EXPANDED_CONTENT_MAX_WIDTH = 960.dp
+
+internal fun profileAdaptiveLayoutSpec(availableWidth: Dp): ProfileAdaptiveLayoutSpec {
+    if (availableWidth < PROFILE_EXPANDED_BREAKPOINT) {
+        return ProfileAdaptiveLayoutSpec(
+            mode = ProfileLayoutMode.Compact,
+            contentMaxWidth = Dp.Infinity,
+            horizontalPadding = 24.dp,
+            paneSpacing = 18.dp,
+            accountPaneWidth = Dp.Infinity,
+        )
+    }
+
+    val boundedWidth = minOf(availableWidth, PROFILE_EXPANDED_CONTENT_MAX_WIDTH)
+    val isWide = boundedWidth >= PROFILE_WIDE_BREAKPOINT
+    return ProfileAdaptiveLayoutSpec(
+        mode = ProfileLayoutMode.Expanded,
+        contentMaxWidth =
+            if (isWide) PROFILE_EXPANDED_CONTENT_MAX_WIDTH else PROFILE_SEVEN_INCH_CONTENT_MAX_WIDTH,
+        horizontalPadding = if (isWide) 32.dp else 8.dp,
+        paneSpacing = if (isWide) 32.dp else 12.dp,
+        accountPaneWidth = (boundedWidth * 0.42f).coerceIn(264.dp, 360.dp),
+    )
+}
 
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
@@ -162,63 +208,148 @@ private fun ProfileContent(
         )
     }
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
-    ) {
-        Text("Profile", style = MaterialTheme.typography.headlineLarge)
+    val scrollState = rememberScrollState()
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val layoutSpec = profileAdaptiveLayoutSpec(maxWidth)
+        Column(
+            modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = layoutSpec.contentMaxWidth)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = layoutSpec.horizontalPadding, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            if (state.isLoading) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator()
+                }
+            }
 
-        if (state.isLoading) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                CircularProgressIndicator()
+            if (state.message != null) {
+                AssistChip(
+                    onClick = actions.clearMessage,
+                    label = { Text(state.message.orEmpty()) },
+                )
+            }
+
+            when (layoutSpec.mode) {
+                ProfileLayoutMode.Compact -> ProfileCompactContent(state, actions)
+                ProfileLayoutMode.Expanded ->
+                    ProfileExpandedContent(
+                        state = state,
+                        actions = actions,
+                        accountPaneWidth = layoutSpec.accountPaneWidth,
+                        paneSpacing = layoutSpec.paneSpacing,
+                    )
             }
         }
+    }
+}
 
-        if (state.message != null) {
-            AssistChip(
-                onClick = actions.clearMessage,
-                label = { Text(state.message.orEmpty()) },
-            )
+@Composable
+private fun ProfileCompactContent(
+    state: ProfileUiState,
+    actions: ProfileActions,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+        ProfileAccountCard(state, actions)
+        ProfileSettings(state, actions)
+    }
+}
+
+@Composable
+private fun ProfileExpandedContent(
+    state: ProfileUiState,
+    actions: ProfileActions,
+    accountPaneWidth: Dp,
+    paneSpacing: Dp,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(paneSpacing),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(
+            modifier = Modifier.width(accountPaneWidth),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            ProfileAccountCard(state, actions)
+            if (state.signedIn) {
+                NotificationsSection(
+                    preferences = state.preferences,
+                    enabled = !state.isMutating,
+                    onEmailChange = actions.setEmailNotifications,
+                    onPushChange = actions.setPushNotifications,
+                )
+            }
         }
-
-        AccountCard(
-            signedIn = state.signedIn,
-            account = state.account,
-            isMutating = state.isMutating,
-            onGoogleSignIn = actions.googleSignIn,
-            onAppleSignIn = actions.appleSignIn,
-            onEmailSignIn = actions.emailSignIn,
-            onSignOut = actions.signOut,
-            onDeleteAccount = actions.requestDeleteAccount,
-        )
-
-        if (state.signedIn) {
-            LocationSection(
-                preferences = state.preferences,
-                zipCodeDraft = state.zipCodeDraft,
-                selectedDistanceMiles = state.selectedDistanceMiles,
-                isMutating = state.isMutating,
-                isResolvingCurrentLocation = state.isResolvingCurrentLocation,
-                onZipChange = actions.setZipCodeDraft,
-                onDistanceChange = actions.setSelectedDistance,
-                onSave = actions.saveLocation,
-                onUseCurrentLocation = actions.useCurrentLocation,
-                onClear = actions.clearLocation,
-            )
-            NotificationsSection(
-                preferences = state.preferences,
-                enabled = !state.isMutating,
-                onEmailChange = actions.setEmailNotifications,
-                onPushChange = actions.setPushNotifications,
-            )
-        } else {
-            GuestPreview()
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            if (state.signedIn) {
+                ProfileLocationSection(state, actions)
+            } else {
+                GuestPreview()
+            }
         }
     }
+}
+
+@Composable
+private fun ProfileAccountCard(
+    state: ProfileUiState,
+    actions: ProfileActions,
+) {
+    AccountCard(
+        signedIn = state.signedIn,
+        account = state.account,
+        isMutating = state.isMutating,
+        onGoogleSignIn = actions.googleSignIn,
+        onAppleSignIn = actions.appleSignIn,
+        onEmailSignIn = actions.emailSignIn,
+        onSignOut = actions.signOut,
+        onDeleteAccount = actions.requestDeleteAccount,
+    )
+}
+
+@Composable
+private fun ProfileSettings(
+    state: ProfileUiState,
+    actions: ProfileActions,
+) {
+    if (state.signedIn) {
+        ProfileLocationSection(state, actions)
+        NotificationsSection(
+            preferences = state.preferences,
+            enabled = !state.isMutating,
+            onEmailChange = actions.setEmailNotifications,
+            onPushChange = actions.setPushNotifications,
+        )
+    } else {
+        GuestPreview()
+    }
+}
+
+@Composable
+private fun ProfileLocationSection(
+    state: ProfileUiState,
+    actions: ProfileActions,
+) {
+    LocationSection(
+        preferences = state.preferences,
+        zipCodeDraft = state.zipCodeDraft,
+        selectedDistanceMiles = state.selectedDistanceMiles,
+        isMutating = state.isMutating,
+        isResolvingCurrentLocation = state.isResolvingCurrentLocation,
+        onZipChange = actions.setZipCodeDraft,
+        onDistanceChange = actions.setSelectedDistance,
+        onSave = actions.saveLocation,
+        onUseCurrentLocation = actions.useCurrentLocation,
+        onClear = actions.clearLocation,
+    )
 }
 
 @Composable
@@ -232,7 +363,10 @@ private fun AccountCard(
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
         Column(
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -485,10 +619,14 @@ private fun SettingsSection(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold,
         )
-        Card(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
