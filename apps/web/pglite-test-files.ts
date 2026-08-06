@@ -1,5 +1,6 @@
 export const PGLITE_TEST_FILES = [
     "app/api/admin/podcast-ownership-reviews/route.test.ts",
+    "lib/data/home/getPodcastEpisodeDiscovery.test.ts",
     "lib/data/home/getTrendingComedians.test.ts",
     "lib/discovery/favoriteGrowth.test.ts",
     "lib/discovery/features.test.ts",
