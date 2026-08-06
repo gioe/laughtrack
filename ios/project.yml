@@ -104,7 +104,7 @@ targets:
         DEVELOPMENT_TEAM: 4HDNC3V5Q6
         GENERATE_INFOPLIST_FILE: "NO"
         MARKETING_VERSION: "2.6.3"
-        CURRENT_PROJECT_VERSION: "43"
+        CURRENT_PROJECT_VERSION: "44"
   LaughTrack:
     type: application
     platform: iOS
@@ -184,7 +184,7 @@ targets:
         # though the provisioning profile grants it.
         CODE_SIGN_ENTITLEMENTS: Sources/LaughTrackApp/LaughTrack.entitlements
         MARKETING_VERSION: "2.6.3"
-        CURRENT_PROJECT_VERSION: "43"
+        CURRENT_PROJECT_VERSION: "44"
         SWIFT_EMIT_LOC_STRINGS: "YES"
         # iPhone-only (TARGETED_DEVICE_FAMILY "1"). Without this xcodegen defaults
         # to "1,2" (iPhone + iPad), which makes App Store Connect require iPad
