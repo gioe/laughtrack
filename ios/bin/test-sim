@@ -112,6 +112,36 @@ def _run_xcodebuild(command: list[str], selectors: list[str]) -> int:
     return 0
 
 
+def _command_with_selectors(command: list[str], selectors: list[str]) -> list[str]:
+    return [*command, *(f"-only-testing:{selector}" for selector in selectors)]
+
+
+def _run_selected_tests(command: list[str], selectors: list[str]) -> int:
+    swift_selectors = [selector for selector in selectors if _requires_swift_testing_summary(selector)]
+    if len(swift_selectors) <= 1:
+        return _run_xcodebuild(_command_with_selectors(command, selectors), selectors)
+
+    # Swift Testing emits custom @Suite display names, so a combined summary
+    # cannot prove which requested type selectors matched. Isolate only the
+    # ambiguous multi-Swift case and retain the aggregate fast path above.
+    for selector in swift_selectors:
+        returncode = _run_xcodebuild(
+            _command_with_selectors(command, [selector]),
+            [selector],
+        )
+        if returncode != 0:
+            return returncode
+
+    xctest_selectors = [selector for selector in selectors if selector not in swift_selectors]
+    if xctest_selectors:
+        return _run_xcodebuild(
+            _command_with_selectors(command, xctest_selectors),
+            xctest_selectors,
+        )
+
+    return 0
+
+
 def main() -> int:
     args = _parser().parse_args()
     if not args.resolve_only and not args.selectors:
@@ -149,8 +179,7 @@ def main() -> int:
         "CODE_SIGNING_ALLOWED=NO",
         "test",
     ]
-    command.extend(f"-only-testing:{selector}" for selector in args.selectors)
-    return _run_xcodebuild(command, args.selectors)
+    return _run_selected_tests(command, args.selectors)
 
 
 if __name__ == "__main__":
