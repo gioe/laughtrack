@@ -240,6 +240,7 @@ struct HomeView: View {
     let searchNavigationBridge: SearchNavigationBridge
     let onInitialHomeLoadComplete: (() -> Void)?
 
+    @ObservedObject private var nearbyPreferenceStore: NearbyPreferenceStore
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
@@ -255,12 +256,14 @@ struct HomeView: View {
         signedOutMessage: String?,
         selectedPrimitive: SearchRootModel.Pivot? = nil,
         searchNavigationBridge: SearchNavigationBridge,
+        nearbyPreferenceStore: NearbyPreferenceStore,
         onInitialHomeLoadComplete: (() -> Void)? = nil
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.selectedPrimitive = selectedPrimitive
         self.searchNavigationBridge = searchNavigationBridge
+        self.nearbyPreferenceStore = nearbyPreferenceStore
         self.onInitialHomeLoadComplete = onInitialHomeLoadComplete
     }
 
@@ -272,14 +275,14 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
                     HomeDiscoverHeader(
                         nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                        nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+                        nearbyPreferenceStore: nearbyPreferenceStore,
                         profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
                         currentUser: authManager.currentUser
                     )
 
                     if selectedPrimitive == nil || selectedPrimitive == .shows {
                         HomeDiscoveryIdeas(
-                            nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+                            nearbyPreferenceStore: nearbyPreferenceStore,
                             searchNavigationBridge: searchNavigationBridge
                         )
                     }
@@ -411,7 +414,7 @@ struct HomeView: View {
     private var followedComedianShowsSection: some View {
         HomeFollowedComedianShowsRail(
             apiClient: apiClient,
-            nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            nearbyPreferenceStore: nearbyPreferenceStore,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
         )
@@ -421,7 +424,7 @@ struct HomeView: View {
         HomeShowsTonightRail(
             railKind: railKind,
             apiClient: apiClient,
-            nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            nearbyPreferenceStore: nearbyPreferenceStore,
             searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self),
@@ -432,7 +435,7 @@ struct HomeView: View {
     private var comediansSection: some View {
         HomeTrendingComediansRail(
             apiClient: apiClient,
-            nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            nearbyPreferenceStore: nearbyPreferenceStore,
             searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
@@ -442,7 +445,7 @@ struct HomeView: View {
     private var clubsSection: some View {
         HomePopularClubsRail(
             apiClient: apiClient,
-            nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            nearbyPreferenceStore: nearbyPreferenceStore,
             searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
@@ -452,7 +455,7 @@ struct HomeView: View {
     private var podcastsSection: some View {
         HomeTrendingPodcastsRail(
             apiClient: apiClient,
-            nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            nearbyPreferenceStore: nearbyPreferenceStore,
             searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
@@ -460,8 +463,7 @@ struct HomeView: View {
     }
 
     private var nearbyPreference: NearbyPreference? {
-        let store = serviceContainer.resolve(NearbyPreferenceStore.self)
-        return store.preference ?? store.defaultPreference
+        nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference
     }
 
     private var sessionDiscriminator: String? {

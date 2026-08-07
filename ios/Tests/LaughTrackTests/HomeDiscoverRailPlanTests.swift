@@ -171,6 +171,29 @@ struct HomeDiscoverRailPlanTests {
         #expect(episodes == [episode])
         #expect(HomePodcastEpisodeDiscoveryPresentation.item(from: episodes[0]).id == 701)
     }
+
+    @Test("location changes refresh plans and planned show rails preserve See all handoff")
+    func locationChangesRefreshPlansAndShowRailsPreserveSeeAllHandoff() throws {
+        let testFileURL = URL(fileURLWithPath: #filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let homeView = try String(
+            contentsOf: iosRoot.appendingPathComponent("Sources/LaughTrackApp/Home/Views/HomeView.swift"),
+            encoding: .utf8
+        )
+        let plannedRail = try String(
+            contentsOf: iosRoot.appendingPathComponent("Sources/LaughTrackApp/Home/Views/Rails/HomeDiscoverPlannedRail.swift"),
+            encoding: .utf8
+        )
+
+        #expect(homeView.contains("@ObservedObject private var nearbyPreferenceStore"))
+        #expect(homeView.contains(".task(id: railPlanRequestKey)"))
+        #expect(plannedRail.contains("showSeeAllButton(railKind: .showsTonight)"))
+        #expect(plannedRail.contains("seeMoreRailKind: .thisWeek"))
+        #expect(plannedRail.contains("HomeShowsTonightModel.seeMoreSearchSeed("))
+    }
 }
 
 private func makePlan(

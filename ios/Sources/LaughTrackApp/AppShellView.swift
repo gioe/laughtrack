@@ -174,6 +174,7 @@ struct AppShellView: View {
                     signedOutMessage: signedOutMessage,
                     selectedPrimitive: shellState.selectedPrimitive,
                     searchNavigationBridge: searchNavigationBridge,
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
                     onInitialHomeLoadComplete: onInitialHomeLoadComplete
                 )
             }

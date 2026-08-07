@@ -31,6 +31,7 @@ struct HomeDiscoverPlannedRail: View {
                     shows: shows,
                     onSelect: trackSelection
                 )
+                showSeeAllButton(railKind: .showsTonight)
             }
 
         case .followedComedianShows(let shows):
@@ -46,7 +47,8 @@ struct HomeDiscoverPlannedRail: View {
                 shows: shows,
                 eyebrow: "Coming Up",
                 title: "Best shows this week",
-                accessibilityIdentifier: "laughtrack.home.this-week-rail"
+                accessibilityIdentifier: "laughtrack.home.this-week-rail",
+                seeMoreRailKind: .thisWeek
             )
 
         case .trendingComedians(let comedians):
@@ -189,7 +191,8 @@ struct HomeDiscoverPlannedRail: View {
         shows: [Components.Schemas.Show],
         eyebrow: String?,
         title: String,
-        accessibilityIdentifier: String
+        accessibilityIdentifier: String,
+        seeMoreRailKind: HomeShowRailKind? = nil
     ) -> some View {
         HomeDiscoverRailCard(
             variant: .scheduleBoard,
@@ -210,7 +213,29 @@ struct HomeDiscoverPlannedRail: View {
                     .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightButton(show.id))
                 }
             }
+
+            if let seeMoreRailKind {
+                showSeeAllButton(railKind: seeMoreRailKind)
+            }
         }
+    }
+
+    private func showSeeAllButton(railKind: HomeShowRailKind) -> some View {
+        LaughTrackButton(
+            "See all",
+            systemImage: "magnifyingglass",
+            tone: .secondary,
+            density: .compact
+        ) {
+            trackSelection()
+            searchNavigationBridge.openSearch(
+                HomeShowsTonightModel.seeMoreSearchSeed(
+                    railKind: railKind,
+                    nearbyPreference: nearbyPreference
+                )
+            )
+        }
+        .accessibilityIdentifier(railKind.seeMoreAccessibilityIdentifier)
     }
 
     private func trackSelection() {
