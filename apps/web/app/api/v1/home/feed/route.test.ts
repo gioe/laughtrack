@@ -52,6 +52,9 @@ vi.mock("@/lib/data/home/getPodcastEpisodeDiscovery", () => ({
 vi.mock("@/lib/data/home/getFavoriteComedianShows", () => ({
     getFavoriteComedianShows: vi.fn(),
 }));
+vi.mock("@/lib/data/home/getDiscoveryRailPolicy", () => ({
+    getDiscoveryRailPolicy: vi.fn(),
+}));
 
 import { GET } from "./route";
 import { auth } from "@/auth";
@@ -68,6 +71,11 @@ import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWe
 import { getTrendingPodcasts } from "@/lib/data/home/getTrendingPodcasts";
 import { getPodcastEpisodeDiscovery } from "@/lib/data/home/getPodcastEpisodeDiscovery";
 import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
+import { getDiscoveryRailPolicy } from "@/lib/data/home/getDiscoveryRailPolicy";
+import {
+    getDefaultDiscoveryRailPolicy,
+    type DiscoveryPlatform,
+} from "@/lib/discovery/railPolicy";
 import {
     RATE_LIMIT_SENTINEL_HEADER,
     RATE_LIMIT_SENTINEL_HEADERS,
@@ -89,6 +97,7 @@ const mockGetTrendingShowsThisWeek = vi.mocked(getTrendingShowsThisWeek);
 const mockGetTrendingPodcasts = vi.mocked(getTrendingPodcasts);
 const mockGetPodcastEpisodeDiscovery = vi.mocked(getPodcastEpisodeDiscovery);
 const mockGetFavoriteComedianShows = vi.mocked(getFavoriteComedianShows);
+const mockGetDiscoveryRailPolicy = vi.mocked(getDiscoveryRailPolicy);
 
 function makeRequest(
     params: Record<string, string> = {},
@@ -124,10 +133,94 @@ beforeEach(() => {
         city: null,
         state: null,
     });
+    mockGetDiscoveryRailPolicy.mockImplementation(
+        async (platform: DiscoveryPlatform) =>
+            getDefaultDiscoveryRailPolicy(platform),
+    );
     primeHappyPath();
 });
 
 describe("GET /api/v1/home/feed", () => {
+    describe("rail plan", () => {
+        it.each(["web", "ios", "android"] as const)(
+            "returns a versioned plan for the validated %s platform",
+            async (platform) => {
+                mockGetShowsTonight.mockResolvedValue([{ id: 42 }] as never);
+
+                const res = await GET(makeRequest({ platform }));
+                const body = await res.json();
+
+                expect(res.status).toBe(200);
+                expect(mockGetDiscoveryRailPolicy).toHaveBeenCalledWith(
+                    platform,
+                );
+                expect(body.data.railPlan).toMatchObject({
+                    version: 1,
+                    catalogVersion: 1,
+                    policyVersion: 1,
+                    platform,
+                    rails: expect.arrayContaining([
+                        {
+                            railKey: "shows_tonight",
+                            payloadKey: "showsTonight",
+                            position: expect.any(Number),
+                            itemIds: ["42"],
+                        },
+                    ]),
+                });
+            },
+        );
+
+        it("defaults older clients to web and preserves every legacy response field", async () => {
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockGetDiscoveryRailPolicy).toHaveBeenCalledWith("web");
+            expect(Object.keys(body.data)).toEqual([
+                "hero",
+                "trendingComedians",
+                "comediansNearYou",
+                "showsTonight",
+                "moreNearYou",
+                "trendingThisWeek",
+                "followedComedianShows",
+                "podcastEpisodes",
+                "trendingPodcasts",
+                "popularClubs",
+                "railPlan",
+            ]);
+            expect(body.data.railPlan.platform).toBe("web");
+        });
+
+        it("returns 400 for an unsupported platform", async () => {
+            const res = await GET(makeRequest({ platform: "desktop" }));
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toMatch(/platform/i);
+            expect(mockGetHeroContext).not.toHaveBeenCalled();
+            expect(mockGetDiscoveryRailPolicy).not.toHaveBeenCalled();
+        });
+
+        it("falls back to the platform default when the stored policy cannot load", async () => {
+            mockGetDiscoveryRailPolicy.mockRejectedValue(
+                new Error("database unavailable"),
+            );
+
+            const res = await GET(makeRequest({ platform: "ios" }));
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.data.railPlan).toMatchObject({
+                version: 1,
+                catalogVersion: 1,
+                policyVersion: 1,
+                platform: "ios",
+            });
+        });
+    });
+
     describe("zip validation", () => {
         it("returns 400 when zip is not a 5-digit code", async () => {
             const res = await GET(makeRequest({ zip: "abc" }));

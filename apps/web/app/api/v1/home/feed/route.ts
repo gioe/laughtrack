@@ -12,6 +12,16 @@ import { getTrendingPodcasts } from "@/lib/data/home/getTrendingPodcasts";
 import { getPodcastEpisodeDiscovery } from "@/lib/data/home/getPodcastEpisodeDiscovery";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
+import { getDiscoveryRailPolicy } from "@/lib/data/home/getDiscoveryRailPolicy";
+import {
+    DISCOVERY_PLATFORMS,
+    type DiscoveryPlatform,
+} from "@/lib/discovery/railPolicy";
+import {
+    getDiscoveryRailCycleIndex,
+    loadDiscoveryRailPolicyWithFallback,
+    selectDiscoveryRailPlan,
+} from "@/lib/discovery/railSelector";
 import { PROFILE_MISSING, resolveAuth } from "@/lib/auth/resolveAuth";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
@@ -38,6 +48,14 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
 
     const zipParam = req.nextUrl.searchParams.get("zip");
     const distanceParam = req.nextUrl.searchParams.get("distance");
+    const platformParam = req.nextUrl.searchParams.get("platform") ?? "web";
+    if (!DISCOVERY_PLATFORMS.includes(platformParam as DiscoveryPlatform)) {
+        return NextResponse.json(
+            { error: "platform must be one of web, ios, or android" },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
+    const platform = platformParam as DiscoveryPlatform;
     if (zipParam !== null && !ZIP_RE.test(zipParam)) {
         return NextResponse.json(
             { error: "zip must be a 5-digit US zip code" },
@@ -76,6 +94,10 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         ]);
         const authCtx = rawAuthCtx === PROFILE_MISSING ? null : rawAuthCtx;
         const profileId = authCtx?.profileId ?? null;
+        const policyPromise = loadDiscoveryRailPolicyWithFallback(
+            platform,
+            getDiscoveryRailPolicy,
+        );
         const sessionZip = session?.profile?.zipCode ?? null;
         // Query ?zip= beats the session profile's stored zip; this lets
         // signed-out callers ask about a location and lets signed-in callers
@@ -173,6 +195,47 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         const followedComedianShows = followedComedianShowCandidates.filter(
             (show) => !higherPriorityShowIds.has(show.id),
         );
+        const policy = await policyPromise;
+        const railPlan = selectDiscoveryRailPlan({
+            policy,
+            actorKey: profileId
+                ? `profile:${profileId}`
+                : `anonymous:${zipCode ?? "global"}`,
+            cycleIndex: getDiscoveryRailCycleIndex(
+                Date.now(),
+                policy.cycleCadenceHours,
+            ),
+            payloads: {
+                shows_tonight: {
+                    payloadKey: "showsTonight",
+                    items: showsTonight,
+                },
+                followed_comedian_shows: {
+                    payloadKey: "followedComedianShows",
+                    items: followedComedianShows,
+                },
+                trending_this_week: {
+                    payloadKey: "trendingThisWeek",
+                    items: trendingThisWeek,
+                },
+                trending_comedians: {
+                    payloadKey: "trendingComedians",
+                    items: trendingComedians,
+                },
+                popular_clubs: {
+                    payloadKey: "popularClubs",
+                    items: popularClubs,
+                },
+                trending_podcasts: {
+                    payloadKey: "podcastEpisodes",
+                    items: podcastEpisodes,
+                },
+                nearby_shows: {
+                    payloadKey: "moreNearYou",
+                    items: moreNearYou,
+                },
+            },
+        });
 
         return NextResponse.json(
             {
@@ -192,6 +255,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     podcastEpisodes,
                     trendingPodcasts,
                     popularClubs,
+                    railPlan,
                 },
             },
             {
