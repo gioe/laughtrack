@@ -6,9 +6,9 @@ package app.laughtrack.android.core.analytics
  *
  * [Push] and [Notifications] mirror the iOS catalog VERBATIM (PushAnalyticsEvents
  * / NotificationsAnalyticsEvents) so dashboards stay cross-client comparable —
- * RelativeTime-style unit tests pin the exact strings. [Onboarding], [Search], and
- * [Cards] are Android-leading events for flows iOS has not instrumented yet; their
- * names are the ones iOS should adopt when it mirrors them.
+ * RelativeTime-style unit tests pin the exact strings. [Discover] also mirrors
+ * iOS, while [Onboarding], [Search], and [Cards] are Android-leading events for
+ * flows iOS has not instrumented yet.
  */
 object AnalyticsEvents {
     /** Push-permission funnel — mirrors iOS PushAnalyticsEvents exactly. */
@@ -66,6 +66,17 @@ object AnalyticsEvents {
         object Param {
             const val ENTITY_TYPE = "entity_type"
             const val ENTITY_ID = "entity_id"
+        }
+    }
+
+    /** Server-directed Discover rail interactions — mirrors iOS exactly. */
+    object Discover {
+        const val RAIL_SELECTED = "discover_rail_selected"
+
+        object Param {
+            const val RAIL_KEY = "rail_key"
+            const val POLICY_VERSION = "policy_version"
+            const val RANK = "rank"
         }
     }
 }

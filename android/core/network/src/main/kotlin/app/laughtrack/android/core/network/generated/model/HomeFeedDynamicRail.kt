@@ -24,7 +24,7 @@ import kotlinx.serialization.Contextual
 /**
  * 
  *
- * @param railKey 
+ * @param railKey Extensible dynamic rail identifier. Clients must tolerate values introduced by newer recommendation policies.
  * @param label 
  * @param items 
  */
@@ -32,8 +32,9 @@ import kotlinx.serialization.Contextual
 
 data class HomeFeedDynamicRail (
 
+    /* Extensible dynamic rail identifier. Clients must tolerate values introduced by newer recommendation policies. */
     @SerialName(value = "railKey")
-    val railKey: HomeFeedDynamicRail.RailKey,
+    val railKey: kotlin.String,
 
     @SerialName(value = "label")
     val label: kotlin.String,
@@ -43,23 +44,6 @@ data class HomeFeedDynamicRail (
 
 ) {
 
-    /**
-     * 
-     *
-     * Values: JUST_PASSING_THROUGH,RARE_RETURNS,ONLY_CHANCE_NEARBY,NEWLY_ADDED,STARTING_TO_BUZZ,CATCH_THEM_EARLY,FROM_YOUR_PODCASTS,STACKED_LINEUPS,BECAUSE_YOU_FOLLOW_THEM
-     */
-    @Serializable
-    enum class RailKey(val value: kotlin.String) {
-        @SerialName(value = "just_passing_through") JUST_PASSING_THROUGH("just_passing_through"),
-        @SerialName(value = "rare_returns") RARE_RETURNS("rare_returns"),
-        @SerialName(value = "only_chance_nearby") ONLY_CHANCE_NEARBY("only_chance_nearby"),
-        @SerialName(value = "newly_added") NEWLY_ADDED("newly_added"),
-        @SerialName(value = "starting_to_buzz") STARTING_TO_BUZZ("starting_to_buzz"),
-        @SerialName(value = "catch_them_early") CATCH_THEM_EARLY("catch_them_early"),
-        @SerialName(value = "from_your_podcasts") FROM_YOUR_PODCASTS("from_your_podcasts"),
-        @SerialName(value = "stacked_lineups") STACKED_LINEUPS("stacked_lineups"),
-        @SerialName(value = "because_you_follow_them") BECAUSE_YOU_FOLLOW_THEM("because_you_follow_them");
-    }
 
 }
 

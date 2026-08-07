@@ -34,6 +34,14 @@ class AnalyticsEventsTest {
     }
 
     @Test
+    fun `discover events mirror the iOS catalog`() {
+        assertEquals("discover_rail_selected", AnalyticsEvents.Discover.RAIL_SELECTED)
+        assertEquals("rail_key", AnalyticsEvents.Discover.Param.RAIL_KEY)
+        assertEquals("policy_version", AnalyticsEvents.Discover.Param.POLICY_VERSION)
+        assertEquals("rank", AnalyticsEvents.Discover.Param.RANK)
+    }
+
+    @Test
     fun `user property keys mirror the iOS app bootstrap`() {
         assertEquals("comedian_onboarding_completed", AnalyticsUserProperties.COMEDIAN_ONBOARDING_COMPLETED)
         assertEquals("has_zip", AnalyticsUserProperties.HAS_ZIP)
@@ -53,6 +61,7 @@ class AnalyticsEventsTest {
                 AnalyticsEvents.Onboarding.COMPLETED,
                 AnalyticsEvents.Search.PERFORMED,
                 AnalyticsEvents.Cards.TAPPED,
+                AnalyticsEvents.Discover.RAIL_SELECTED,
             )
         val snakeCase = Regex("^[a-z][a-z0-9_]*$")
         names.forEach { name ->

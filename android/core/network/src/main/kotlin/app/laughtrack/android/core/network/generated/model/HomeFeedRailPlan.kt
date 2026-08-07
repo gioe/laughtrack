@@ -24,7 +24,7 @@ import kotlinx.serialization.Contextual
 /**
  * 
  *
- * @param version 
+ * @param version Extensible rail-plan schema version. Clients must tolerate newer versions.
  * @param catalogVersion 
  * @param policyVersion 
  * @param platform 
@@ -35,8 +35,9 @@ import kotlinx.serialization.Contextual
 
 data class HomeFeedRailPlan (
 
+    /* Extensible rail-plan schema version. Clients must tolerate newer versions. */
     @SerialName(value = "version")
-    val version: HomeFeedRailPlan.Version,
+    val version: kotlin.Int,
 
     @SerialName(value = "catalogVersion")
     val catalogVersion: kotlin.Int,
@@ -55,15 +56,6 @@ data class HomeFeedRailPlan (
 
 ) {
 
-    /**
-     * 
-     *
-     * Values: _1
-     */
-    @Serializable
-    enum class Version(val value: kotlin.Int) {
-        @SerialName(value = "1") _1(1);
-    }
     /**
      * 
      *

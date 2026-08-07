@@ -1,5 +1,6 @@
 package app.laughtrack.android.feature.home
 
+import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.location.HomeLocation
 import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.network.generated.model.ClubListItem
@@ -380,7 +381,7 @@ class HomeViewModelTest {
         cache: HomeFeedCache = FakeHomeFeedCache(),
         resolver: HomeLocationResolver = FakeLocationResolver(),
         locationState: HomeLocationState = HomeLocationState(),
-    ) = HomeViewModel(repository, cache, resolver, locationState)
+    ) = HomeViewModel(repository, cache, resolver, locationState, AnalyticsManager(emptyList()))
 
     private class FakeHomeFeedRepository(
         private val failuresBeforeSuccess: Int = 0,

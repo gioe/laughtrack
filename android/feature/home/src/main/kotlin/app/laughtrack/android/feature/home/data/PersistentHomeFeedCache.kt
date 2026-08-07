@@ -89,7 +89,7 @@ class PersistentHomeFeedCache internal constructor(
 
     private companion object {
         const val CACHE_TTL_MILLIS = 60L * 60L * 1000L
-        const val SCHEMA_VERSION = "home-feed-v2"
+        const val SCHEMA_VERSION = "home-feed-v3"
         val json = Serializer.kotlinxSerializationJson
     }
 
@@ -102,4 +102,9 @@ class PersistentHomeFeedCache internal constructor(
 }
 
 private fun HomeFeed.withoutPersonalizedContent(): HomeFeed =
-    copy(followedComedianShows = emptyList(), podcastEpisodes = null)
+    copy(
+        followedComedianShows = emptyList(),
+        podcastEpisodes = null,
+        dynamicRails = null,
+        railPlan = null,
+    )

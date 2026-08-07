@@ -4762,7 +4762,7 @@
         "properties": {
           "kind": {
             "type": "string",
-            "enum": ["just_passing_through", "rare_return", "back_after_a_while", "only_chance_nearby", "newly_added", "starting_to_buzz", "catch_them_early", "from_your_podcasts", "stacked_lineup", "because_you_follow_them"]
+            "description": "Extensible reason identifier. Clients must tolerate values introduced by newer recommendation policies."
           },
           "label": { "type": "string" },
           "evidence": { "$ref": "#/components/schemas/HomeFeedDynamicRailReasonEvidence" }
@@ -4785,7 +4785,7 @@
         "properties": {
           "railKey": {
             "type": "string",
-            "enum": ["just_passing_through", "rare_returns", "only_chance_nearby", "newly_added", "starting_to_buzz", "catch_them_early", "from_your_podcasts", "stacked_lineups", "because_you_follow_them"]
+            "description": "Extensible dynamic rail identifier. Clients must tolerate values introduced by newer recommendation policies."
           },
           "label": { "type": "string" },
           "items": {
@@ -4868,11 +4868,11 @@
         "properties": {
           "railKey": {
             "type": "string",
-            "enum": ["shows_tonight", "followed_comedian_shows", "trending_this_week", "trending_comedians", "popular_clubs", "trending_podcasts", "nearby_shows", "just_passing_through", "rare_returns", "only_chance_nearby", "newly_added", "starting_to_buzz", "catch_them_early", "from_your_podcasts", "stacked_lineups", "because_you_follow_them"]
+            "description": "Extensible rail identifier selected by the server policy."
           },
           "payloadKey": {
             "type": "string",
-            "enum": ["showsTonight", "followedComedianShows", "trendingThisWeek", "trendingComedians", "popularClubs", "podcastEpisodes", "moreNearYou", "dynamicRails"]
+            "description": "Extensible HomeFeed payload field containing the rail data."
           },
           "position": { "type": "integer", "minimum": 0 },
           "itemIds": {
@@ -4885,7 +4885,11 @@
         "type": "object",
         "required": ["version", "catalogVersion", "policyVersion", "platform", "cycleIndex", "rails"],
         "properties": {
-          "version": { "type": "integer", "enum": [1] },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Extensible rail-plan schema version. Clients must tolerate newer versions."
+          },
           "catalogVersion": { "type": "integer", "minimum": 1 },
           "policyVersion": { "type": "integer", "minimum": 1 },
           "platform": { "type": "string", "enum": ["web", "ios", "android"] },

@@ -23,8 +23,8 @@ import kotlinx.serialization.Contextual
 /**
  * 
  *
- * @param railKey 
- * @param payloadKey 
+ * @param railKey Extensible rail identifier selected by the server policy.
+ * @param payloadKey Extensible HomeFeed payload field containing the rail data.
  * @param position 
  * @param itemIds 
  */
@@ -32,11 +32,13 @@ import kotlinx.serialization.Contextual
 
 data class HomeFeedRailPlanEntry (
 
+    /* Extensible rail identifier selected by the server policy. */
     @SerialName(value = "railKey")
-    val railKey: HomeFeedRailPlanEntry.RailKey,
+    val railKey: kotlin.String,
 
+    /* Extensible HomeFeed payload field containing the rail data. */
     @SerialName(value = "payloadKey")
-    val payloadKey: HomeFeedRailPlanEntry.PayloadKey,
+    val payloadKey: kotlin.String,
 
     @SerialName(value = "position")
     val position: kotlin.Int,
@@ -46,46 +48,6 @@ data class HomeFeedRailPlanEntry (
 
 ) {
 
-    /**
-     * 
-     *
-     * Values: SHOWS_TONIGHT,FOLLOWED_COMEDIAN_SHOWS,TRENDING_THIS_WEEK,TRENDING_COMEDIANS,POPULAR_CLUBS,TRENDING_PODCASTS,NEARBY_SHOWS,JUST_PASSING_THROUGH,RARE_RETURNS,ONLY_CHANCE_NEARBY,NEWLY_ADDED,STARTING_TO_BUZZ,CATCH_THEM_EARLY,FROM_YOUR_PODCASTS,STACKED_LINEUPS,BECAUSE_YOU_FOLLOW_THEM
-     */
-    @Serializable
-    enum class RailKey(val value: kotlin.String) {
-        @SerialName(value = "shows_tonight") SHOWS_TONIGHT("shows_tonight"),
-        @SerialName(value = "followed_comedian_shows") FOLLOWED_COMEDIAN_SHOWS("followed_comedian_shows"),
-        @SerialName(value = "trending_this_week") TRENDING_THIS_WEEK("trending_this_week"),
-        @SerialName(value = "trending_comedians") TRENDING_COMEDIANS("trending_comedians"),
-        @SerialName(value = "popular_clubs") POPULAR_CLUBS("popular_clubs"),
-        @SerialName(value = "trending_podcasts") TRENDING_PODCASTS("trending_podcasts"),
-        @SerialName(value = "nearby_shows") NEARBY_SHOWS("nearby_shows"),
-        @SerialName(value = "just_passing_through") JUST_PASSING_THROUGH("just_passing_through"),
-        @SerialName(value = "rare_returns") RARE_RETURNS("rare_returns"),
-        @SerialName(value = "only_chance_nearby") ONLY_CHANCE_NEARBY("only_chance_nearby"),
-        @SerialName(value = "newly_added") NEWLY_ADDED("newly_added"),
-        @SerialName(value = "starting_to_buzz") STARTING_TO_BUZZ("starting_to_buzz"),
-        @SerialName(value = "catch_them_early") CATCH_THEM_EARLY("catch_them_early"),
-        @SerialName(value = "from_your_podcasts") FROM_YOUR_PODCASTS("from_your_podcasts"),
-        @SerialName(value = "stacked_lineups") STACKED_LINEUPS("stacked_lineups"),
-        @SerialName(value = "because_you_follow_them") BECAUSE_YOU_FOLLOW_THEM("because_you_follow_them");
-    }
-    /**
-     * 
-     *
-     * Values: SHOWS_TONIGHT,FOLLOWED_COMEDIAN_SHOWS,TRENDING_THIS_WEEK,TRENDING_COMEDIANS,POPULAR_CLUBS,PODCAST_EPISODES,MORE_NEAR_YOU,DYNAMIC_RAILS
-     */
-    @Serializable
-    enum class PayloadKey(val value: kotlin.String) {
-        @SerialName(value = "showsTonight") SHOWS_TONIGHT("showsTonight"),
-        @SerialName(value = "followedComedianShows") FOLLOWED_COMEDIAN_SHOWS("followedComedianShows"),
-        @SerialName(value = "trendingThisWeek") TRENDING_THIS_WEEK("trendingThisWeek"),
-        @SerialName(value = "trendingComedians") TRENDING_COMEDIANS("trendingComedians"),
-        @SerialName(value = "popularClubs") POPULAR_CLUBS("popularClubs"),
-        @SerialName(value = "podcastEpisodes") PODCAST_EPISODES("podcastEpisodes"),
-        @SerialName(value = "moreNearYou") MORE_NEAR_YOU("moreNearYou"),
-        @SerialName(value = "dynamicRails") DYNAMIC_RAILS("dynamicRails");
-    }
 
 }
 

@@ -44,6 +44,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,6 +60,7 @@ import app.laughtrack.android.core.navigation.SearchLaunchRequest
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
+import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRailItem
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.UiState
@@ -115,6 +118,7 @@ fun HomeScreen(
                         onUseLocation = viewModel::useDeviceLocation,
                         onSetDistance = viewModel::setDistance,
                         onClearLocation = viewModel::clearLocation,
+                        onRailSelected = viewModel::onDiscoverRailSelected,
                     )
                 else -> HomeLoading()
             }
@@ -133,8 +137,10 @@ private fun HomeContent(
     onUseLocation: () -> Unit,
     onSetDistance: (Int) -> Unit,
     onClearLocation: () -> Unit,
+    onRailSelected: (HomeDiscoverRailAttribution) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val plannedRails = remember(state.loadedFeed) { resolveHomeDiscoverRails(state.loadedFeed) }
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -171,65 +177,162 @@ private fun HomeContent(
                     onOpenSearch = onOpenSearch,
                 )
             }
-            item(key = "tonight") {
-                ShowsTonightRail(
-                    shows = state.showsTonight,
-                    onOpenEntity = onOpenEntity,
-                    onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.TONIGHT, state)) },
-                )
-            }
-            item(key = "best-this-week") {
-                ShowListRail(
-                    eyebrow = "Coming Up",
-                    title = "Best shows this week",
-                    emptyMessage = "No upcoming shows are listed near you this week.",
-                    shows = state.trendingThisWeek,
-                    onOpenEntity = onOpenEntity,
-                    onOpenSearch = {
-                        onOpenSearch(homeRailSearchRequest(HomeExpandableRail.BEST_THIS_WEEK, state))
-                    },
-                )
-            }
-            if (state.followedComedianShows.isNotEmpty()) {
-                item(key = "followed-comedian-shows") {
-                    ShowListRail(
-                        eyebrow = "For You",
-                        title = "Because you follow them",
-                        emptyMessage = "",
-                        shows = state.followedComedianShows,
+            if (plannedRails == null) {
+                item(key = "tonight") {
+                    ShowsTonightRail(
+                        shows = state.showsTonight,
                         onOpenEntity = onOpenEntity,
-                        onOpenSearch = null,
+                        onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.TONIGHT, state)) },
                     )
                 }
-            }
-            item(key = "comedians") {
-                ComedianRail(
-                    state.comedians,
-                    onOpenEntity,
-                    onOpenSearch = {
-                        onOpenSearch(homeRailSearchRequest(HomeExpandableRail.COMEDIANS, state))
-                    },
-                )
-            }
-            item(key = "clubs") {
-                ClubRail(
-                    state.clubs,
-                    onOpenEntity,
-                    onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.CLUBS, state)) },
-                )
-            }
-            item(key = "podcasts") {
-                HomePodcastRail(
-                    episodes = state.podcastEpisodes,
-                    podcasts = state.podcasts,
-                    onOpenEntity = onOpenEntity,
-                    onPlay = onPlay,
-                    onBrowsePodcasts = {
-                        onOpenSearch(homeRailSearchRequest(HomeExpandableRail.PODCASTS, state))
-                    },
-                )
+                item(key = "best-this-week") {
+                    ShowListRail(
+                        eyebrow = "Coming Up",
+                        title = "Best shows this week",
+                        emptyMessage = "No upcoming shows are listed near you this week.",
+                        shows = state.trendingThisWeek,
+                        onOpenEntity = onOpenEntity,
+                        onOpenSearch = {
+                            onOpenSearch(homeRailSearchRequest(HomeExpandableRail.BEST_THIS_WEEK, state))
+                        },
+                    )
+                }
+                if (state.followedComedianShows.isNotEmpty()) {
+                    item(key = "followed-comedian-shows") {
+                        ShowListRail(
+                            eyebrow = "For You",
+                            title = "Because you follow them",
+                            emptyMessage = "",
+                            shows = state.followedComedianShows,
+                            onOpenEntity = onOpenEntity,
+                            onOpenSearch = null,
+                        )
+                    }
+                }
+                item(key = "comedians") {
+                    ComedianRail(
+                        state.comedians,
+                        onOpenEntity,
+                        onOpenSearch = {
+                            onOpenSearch(homeRailSearchRequest(HomeExpandableRail.COMEDIANS, state))
+                        },
+                    )
+                }
+                item(key = "clubs") {
+                    ClubRail(
+                        state.clubs,
+                        onOpenEntity,
+                        onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.CLUBS, state)) },
+                    )
+                }
+                item(key = "podcasts") {
+                    HomePodcastRail(
+                        episodes = state.podcastEpisodes,
+                        podcasts = state.podcasts,
+                        onOpenEntity = onOpenEntity,
+                        onPlay = onPlay,
+                        onBrowsePodcasts = {
+                            onOpenSearch(homeRailSearchRequest(HomeExpandableRail.PODCASTS, state))
+                        },
+                    )
+                }
+            } else {
+                plannedRails.forEach { section ->
+                    item(key = section.stableKey) {
+                        HomeDiscoverPlannedRail(
+                            section = section,
+                            state = state,
+                            onOpenEntity = onOpenEntity,
+                            onPlay = onPlay,
+                            onOpenSearch = onOpenSearch,
+                            onRailSelected = onRailSelected,
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun HomeDiscoverPlannedRail(
+    section: HomeDiscoverRailSection,
+    state: HomeUiState,
+    onOpenEntity: (AppRoute) -> Unit,
+    onPlay: (PodcastPlaybackItem) -> Unit,
+    onOpenSearch: (SearchLaunchRequest) -> Unit,
+    onRailSelected: (HomeDiscoverRailAttribution) -> Unit,
+) {
+    fun trackedOpen(route: AppRoute) {
+        onRailSelected(section.attributionFor(route))
+        onOpenEntity(route)
+    }
+
+    when (val content = section.content) {
+        is HomeDiscoverRailSection.Content.ShowsTonight ->
+            ShowsTonightRail(
+                shows = content.shows,
+                onOpenEntity = ::trackedOpen,
+                onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.TONIGHT, state)) },
+            )
+        is HomeDiscoverRailSection.Content.FollowedComedianShows ->
+            ShowListRail(
+                eyebrow = "For You",
+                title = "Because you follow them",
+                emptyMessage = "",
+                shows = content.shows,
+                onOpenEntity = ::trackedOpen,
+                onOpenSearch = null,
+            )
+        is HomeDiscoverRailSection.Content.TrendingThisWeek ->
+            ShowListRail(
+                eyebrow = "Coming Up",
+                title = "Best shows this week",
+                emptyMessage = "No upcoming shows are listed near you this week.",
+                shows = content.shows,
+                onOpenEntity = ::trackedOpen,
+                onOpenSearch = {
+                    onOpenSearch(homeRailSearchRequest(HomeExpandableRail.BEST_THIS_WEEK, state))
+                },
+            )
+        is HomeDiscoverRailSection.Content.TrendingComedians ->
+            ComedianRail(
+                comedians = content.comedians,
+                onOpenEntity = ::trackedOpen,
+                onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.COMEDIANS, state)) },
+            )
+        is HomeDiscoverRailSection.Content.PopularClubs ->
+            ClubRail(
+                clubs = content.clubs,
+                onOpenEntity = ::trackedOpen,
+                onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.CLUBS, state)) },
+            )
+        is HomeDiscoverRailSection.Content.PodcastEpisodes ->
+            HomePodcastRail(
+                episodes = content.episodes,
+                podcasts = emptyList(),
+                onOpenEntity = ::trackedOpen,
+                onPlay = {
+                    onRailSelected(section.attributionForPodcastEpisode(it.episodeId))
+                    onPlay(it)
+                },
+                onBrowsePodcasts = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.PODCASTS, state)) },
+            )
+        is HomeDiscoverRailSection.Content.NearbyShows ->
+            ShowListRail(
+                eyebrow = "Near You",
+                title = "More shows nearby",
+                emptyMessage = "No more shows are listed nearby.",
+                shows = content.shows,
+                onOpenEntity = ::trackedOpen,
+                onOpenSearch = null,
+            )
+        is HomeDiscoverRailSection.Content.DynamicShows ->
+            DynamicShowListRail(
+                label = content.label,
+                items = content.items,
+                onOpenEntity = ::trackedOpen,
+            )
     }
 }
 
@@ -375,6 +478,28 @@ private fun ShowListRail(
             )
         }
         onOpenSearch?.let { SeeAllButton(onClick = it) }
+    }
+}
+
+@Composable
+private fun DynamicShowListRail(
+    label: String,
+    items: List<HomeFeedDynamicRailItem>,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
+    FeedRailCard(
+        eyebrow = "Picked for you",
+        title = label,
+        emptyMessage = "",
+        itemCount = items.size,
+    ) {
+        items.forEach { item ->
+            ShowListRow(
+                show = item.show,
+                reasonLabel = item.reason.label,
+                onClick = { onOpenEntity(AppRoute.ShowDetail(item.show.id)) },
+            )
+        }
     }
 }
 
@@ -630,12 +755,21 @@ private fun TonightPageIndicator(
 @Composable
 private fun ShowListRow(
     show: Show,
+    reasonLabel: String? = null,
     onClick: () -> Unit,
 ) {
     TicketShowRow(
         dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
         priceLabel = formatPrice(show.tickets?.mapNotNull { it.price }),
         onClick = onClick,
+        modifier =
+            if (reasonLabel == null) {
+                Modifier
+            } else {
+                Modifier.semantics {
+                    contentDescription = homeDiscoverDynamicShowContentDescription(show, reasonLabel)
+                }
+            },
         colors =
             TicketShowRowColors(
                 paper = LaughTrackColors.SurfaceElevated,
@@ -650,13 +784,19 @@ private fun ShowListRow(
                     ),
             ),
     ) { bodyModifier ->
-        ShowTicketBody(show = show, modifier = bodyModifier)
+        ShowTicketBody(show = show, reasonLabel = reasonLabel, modifier = bodyModifier)
     }
 }
+
+internal fun homeDiscoverDynamicShowContentDescription(
+    show: Show,
+    reasonLabel: String,
+): String = "${showListTitle(show)}. $reasonLabel"
 
 @Composable
 private fun ShowTicketBody(
     show: Show,
+    reasonLabel: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val headliner = showHeadliner(show)
@@ -674,6 +814,14 @@ private fun ShowTicketBody(
                 ShowHeadlinerBlock(show = show, headliner = headliner, supporting = supporting)
             } else {
                 ShowTitleOnlyBlock(show = show)
+            }
+
+            reasonLabel?.takeIf { it.isNotBlank() }?.let { reason ->
+                Text(
+                    text = reason,
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
 
             val badges = showTicketBadges(show)

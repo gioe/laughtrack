@@ -1,8 +1,8 @@
 package app.laughtrack.android.feature.home.data
 
-import app.laughtrack.android.core.network.generated.api.HomeApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import app.laughtrack.android.core.network.generated.model.HomeFeed
+import app.laughtrack.android.core.network.home.HomeFeedApi
 import java.io.IOException
 import javax.inject.Inject
 
@@ -22,13 +22,18 @@ class DefaultHomeFeedRepository
     constructor(
         apiClient: ApiClient,
     ) : HomeFeedRepository {
-        private val homeApi: HomeApi = apiClient.createService(HomeApi::class.java)
+        private val homeApi: HomeFeedApi = apiClient.createService(HomeFeedApi::class.java)
 
         override suspend fun getHomeFeed(
             zip: String?,
             distance: Int?,
         ): HomeFeed {
-            val response = homeApi.getHomeFeed(zip = zip, distance = distance)
+            val response =
+                homeApi.getHomeFeed(
+                    zip = zip,
+                    distance = distance,
+                    platform = HomeFeedApi.PLATFORM_ANDROID,
+                )
             if (!response.isSuccessful) {
                 throw IOException("Home feed failed with HTTP ${response.code()}")
             }

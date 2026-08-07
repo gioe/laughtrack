@@ -2,6 +2,7 @@ package app.laughtrack.android.feature.home.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.model.ClubListItem
@@ -11,8 +12,10 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisode
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
+import app.laughtrack.android.feature.home.HomeDiscoverRailAttribution
 import app.laughtrack.android.feature.home.data.HomeFeedCache
 import app.laughtrack.android.feature.home.data.HomeFeedRepository
+import app.laughtrack.android.feature.home.homeDiscoverRailSelectedEvent
 import app.laughtrack.android.feature.home.location.HomeLocationResolver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -29,7 +32,7 @@ data class HomeUiState(
     val distanceMiles: Int = HomeFeedRepository.DEFAULT_DISTANCE_MILES,
     val isResolvingLocation: Boolean = false,
 ) {
-    private val loadedFeed: HomeFeed?
+    internal val loadedFeed: HomeFeed?
         get() = (feed as? UiState.Success<HomeFeed>)?.value
 
     /**
@@ -113,6 +116,7 @@ class HomeViewModel
         private val cache: HomeFeedCache,
         private val locationResolver: HomeLocationResolver,
         private val homeLocationState: HomeLocationState,
+        private val analytics: AnalyticsManager,
     ) : ViewModel() {
         private val _state = MutableStateFlow(HomeUiState(feed = UiState.Loading))
         val state: StateFlow<HomeUiState> = _state.asStateFlow()
@@ -149,6 +153,10 @@ class HomeViewModel
 
         fun retry() {
             load(currentZip)
+        }
+
+        internal fun onDiscoverRailSelected(attribution: HomeDiscoverRailAttribution) {
+            analytics.logEvent(homeDiscoverRailSelectedEvent(attribution))
         }
 
         /** Strip account-scoped content immediately, then refresh for the new session. */
@@ -268,7 +276,12 @@ private fun dedupeShows(shows: List<Show>): List<Show> {
 private fun HomeFeed.withoutFollowedShows(): HomeFeed = copy(followedComedianShows = emptyList())
 
 private fun HomeFeed.withoutAccountScopedContent(): HomeFeed =
-    copy(followedComedianShows = emptyList(), podcastEpisodes = null)
+    copy(
+        followedComedianShows = emptyList(),
+        podcastEpisodes = null,
+        dynamicRails = null,
+        railPlan = null,
+    )
 
 private fun isSoldOut(show: Show): Boolean {
     if (show.soldOut == true) return true

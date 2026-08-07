@@ -1,11 +1,13 @@
 package app.laughtrack.android.feature.home.data
 
 import app.laughtrack.android.core.network.generated.model.HomeFeed
+import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRail
 import app.laughtrack.android.core.network.generated.model.HomeFeedHero
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisode
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodeComedian
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodePodcast
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodeRecommendation
+import app.laughtrack.android.core.network.generated.model.HomeFeedRailPlan
 import app.laughtrack.android.core.network.generated.model.Show
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -43,7 +45,7 @@ class PersistentHomeFeedCacheTest {
             entryFile.parentFile!!.mkdirs()
             // Well-formed, not-yet-expired entry, but tagged with a stale schema version.
             entryFile.writeText(
-                """{"schemaVersion":"home-feed-v0-OLD","expiresAtMillis":${Long.MAX_VALUE},"feedJson":"{}"}""",
+                """{"schemaVersion":"home-feed-v2","expiresAtMillis":${Long.MAX_VALUE},"feedJson":"{}"}""",
             )
 
             assertNull(cache.get(zip = null, distance = null))
@@ -68,7 +70,7 @@ class PersistentHomeFeedCacheTest {
             entryFile.parentFile!!.mkdirs()
             // Current schema, but the expiry timestamp is already in the past.
             entryFile.writeText(
-                """{"schemaVersion":"home-feed-v1","expiresAtMillis":1,"feedJson":"{}"}""",
+                """{"schemaVersion":"home-feed-v3","expiresAtMillis":1,"feedJson":"{}"}""",
             )
 
             assertNull(cache.get(zip = null, distance = null))
@@ -113,6 +115,38 @@ class PersistentHomeFeedCacheTest {
             cache.set(zip = null, distance = null, feed = personalized)
 
             assertNull(cache.get(zip = null, distance = null)!!.podcastEpisodes)
+        }
+
+    @Test
+    fun account_scoped_rail_plan_and_dynamic_payloads_are_never_persisted() =
+        runTest {
+            val (cache, _) = newCache()
+            val personalized =
+                emptyFeed().copy(
+                    dynamicRails =
+                        listOf(
+                            HomeFeedDynamicRail(
+                                railKey = "starting_to_buzz",
+                                label = "Starting to buzz",
+                                items = emptyList(),
+                            ),
+                        ),
+                    railPlan =
+                        HomeFeedRailPlan(
+                            version = 1,
+                            catalogVersion = 1,
+                            policyVersion = 2,
+                            platform = HomeFeedRailPlan.Platform.ANDROID,
+                            cycleIndex = 0,
+                            rails = emptyList(),
+                        ),
+                )
+
+            cache.set(zip = null, distance = null, feed = personalized)
+
+            val loaded = cache.get(zip = null, distance = null)!!
+            assertNull(loaded.dynamicRails)
+            assertNull(loaded.railPlan)
         }
 
     private fun emptyFeed(): HomeFeed =
