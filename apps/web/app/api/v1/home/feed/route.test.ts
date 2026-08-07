@@ -55,6 +55,15 @@ vi.mock("@/lib/data/home/getFavoriteComedianShows", () => ({
 vi.mock("@/lib/data/home/getDiscoveryRailPolicy", () => ({
     getDiscoveryRailPolicy: vi.fn(),
 }));
+vi.mock("@/lib/data/home/getTouringScarcityRails", () => ({
+    getTouringScarcityRails: vi.fn(),
+}));
+vi.mock("@/lib/data/home/getFreshAndRisingRails", () => ({
+    getFreshAndRisingRails: vi.fn(),
+}));
+vi.mock("@/lib/data/home/getAffinityRails", () => ({
+    getAffinityRails: vi.fn(),
+}));
 
 import { GET } from "./route";
 import { auth } from "@/auth";
@@ -72,6 +81,9 @@ import { getTrendingPodcasts } from "@/lib/data/home/getTrendingPodcasts";
 import { getPodcastEpisodeDiscovery } from "@/lib/data/home/getPodcastEpisodeDiscovery";
 import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
 import { getDiscoveryRailPolicy } from "@/lib/data/home/getDiscoveryRailPolicy";
+import { getTouringScarcityRails } from "@/lib/data/home/getTouringScarcityRails";
+import { getFreshAndRisingRails } from "@/lib/data/home/getFreshAndRisingRails";
+import { getAffinityRails } from "@/lib/data/home/getAffinityRails";
 import {
     getDefaultDiscoveryRailPolicy,
     type DiscoveryPlatform,
@@ -98,6 +110,9 @@ const mockGetTrendingPodcasts = vi.mocked(getTrendingPodcasts);
 const mockGetPodcastEpisodeDiscovery = vi.mocked(getPodcastEpisodeDiscovery);
 const mockGetFavoriteComedianShows = vi.mocked(getFavoriteComedianShows);
 const mockGetDiscoveryRailPolicy = vi.mocked(getDiscoveryRailPolicy);
+const mockGetTouringScarcityRails = vi.mocked(getTouringScarcityRails);
+const mockGetFreshAndRisingRails = vi.mocked(getFreshAndRisingRails);
+const mockGetAffinityRails = vi.mocked(getAffinityRails);
 
 function makeRequest(
     params: Record<string, string> = {},
@@ -121,6 +136,57 @@ function primeHappyPath() {
     mockGetTrendingPodcasts.mockResolvedValue([]);
     mockGetPodcastEpisodeDiscovery.mockResolvedValue([]);
     mockGetFavoriteComedianShows.mockResolvedValue([]);
+    mockGetTouringScarcityRails.mockResolvedValue({
+        justPassingThrough: {
+            railKey: "just_passing_through",
+            label: "Just passing through",
+            items: [],
+        },
+        rareReturns: {
+            railKey: "rare_returns",
+            label: "Rarely in town / Back after a while",
+            items: [],
+        },
+        onlyChanceNearby: {
+            railKey: "only_chance_nearby",
+            label: "Only chance nearby",
+            items: [],
+        },
+    });
+    mockGetFreshAndRisingRails.mockResolvedValue({
+        newlyAdded: {
+            railKey: "newly_added",
+            label: "Newly added",
+            items: [],
+        },
+        startingToBuzz: {
+            railKey: "starting_to_buzz",
+            label: "Starting to buzz",
+            items: [],
+        },
+        catchThemEarly: {
+            railKey: "catch_them_early",
+            label: "Catch them early",
+            items: [],
+        },
+    });
+    mockGetAffinityRails.mockResolvedValue({
+        fromYourPodcasts: {
+            railKey: "from_your_podcasts",
+            label: "From your podcasts",
+            items: [],
+        },
+        stackedLineups: {
+            railKey: "stacked_lineups",
+            label: "Stacked lineups",
+            items: [],
+        },
+        becauseYouFollowThem: {
+            railKey: "because_you_follow_them",
+            label: "Because you follow them",
+            items: [],
+        },
+    });
 }
 
 beforeEach(() => {
@@ -188,6 +254,7 @@ describe("GET /api/v1/home/feed", () => {
                 "podcastEpisodes",
                 "trendingPodcasts",
                 "popularClubs",
+                "dynamicRails",
                 "railPlan",
             ]);
             expect(body.data.railPlan.platform).toBe("web");
@@ -218,6 +285,200 @@ describe("GET /api/v1/home/feed", () => {
                 policyVersion: 2,
                 platform: "ios",
             });
+        });
+
+        it("invokes every dynamic provider and preserves structured reason evidence", async () => {
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-1",
+                userId: "user-1",
+            });
+            mockGetHeroContext.mockResolvedValue({
+                zipCode: "10001",
+                city: "New York",
+                state: "NY",
+            });
+            const sharedShow = { id: 71, name: "Dynamic show" };
+            mockGetTouringScarcityRails.mockResolvedValue({
+                justPassingThrough: {
+                    railKey: "just_passing_through",
+                    label: "Just passing through",
+                    items: [
+                        {
+                            show: sharedShow,
+                            performer: { id: 1, uuid: "comic-1", name: "Ada" },
+                            reason: {
+                                kind: "just_passing_through",
+                                label: "Ada is visiting New York",
+                                evidence: { canonicalComedianId: 1 },
+                            },
+                        },
+                    ],
+                },
+                rareReturns: {
+                    railKey: "rare_returns",
+                    label: "Rarely in town / Back after a while",
+                    items: [],
+                },
+                onlyChanceNearby: {
+                    railKey: "only_chance_nearby",
+                    label: "Only chance nearby",
+                    items: [],
+                },
+            } as never);
+            mockGetFreshAndRisingRails.mockResolvedValue({
+                newlyAdded: {
+                    railKey: "newly_added",
+                    label: "Newly added",
+                    items: [],
+                },
+                startingToBuzz: {
+                    railKey: "starting_to_buzz",
+                    label: "Starting to buzz",
+                    items: [
+                        {
+                            show: sharedShow,
+                            performer: { id: 1, uuid: "comic-1", name: "Ada" },
+                            reason: {
+                                kind: "starting_to_buzz",
+                                label: "Demand is accelerating",
+                                evidence: { momentum: 0.8, confidence: 0.9 },
+                            },
+                        },
+                    ],
+                },
+                catchThemEarly: {
+                    railKey: "catch_them_early",
+                    label: "Catch them early",
+                    items: [],
+                },
+            } as never);
+            mockGetAffinityRails.mockResolvedValue({
+                fromYourPodcasts: {
+                    railKey: "from_your_podcasts",
+                    label: "From your podcasts",
+                    items: [],
+                },
+                stackedLineups: {
+                    railKey: "stacked_lineups",
+                    label: "Stacked lineups",
+                    items: [
+                        {
+                            show: sharedShow,
+                            reason: {
+                                kind: "stacked_lineup",
+                                label: "3 qualifying comedians on one lineup",
+                                evidence: {
+                                    qualifyingPerformerCount: 3,
+                                    threshold: 3,
+                                },
+                            },
+                        },
+                    ],
+                },
+                becauseYouFollowThem: {
+                    railKey: "because_you_follow_them",
+                    label: "Because you follow them",
+                    items: [],
+                },
+            } as never);
+            mockGetDiscoveryRailPolicy.mockResolvedValue({
+                platform: "web",
+                catalogVersion: 2,
+                version: 3,
+                cycleCadenceHours: 24,
+                rails: [
+                    "just_passing_through",
+                    "starting_to_buzz",
+                    "stacked_lineups",
+                ].map((railKey, position) => ({
+                    railKey,
+                    enabled: true,
+                    position,
+                    rotationPool: null,
+                    weight: 1,
+                })),
+            } as never);
+
+            const res = await GET(
+                makeRequest({ zip: "10001", distance: "40" }),
+            );
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockGetTouringScarcityRails).toHaveBeenCalledWith({
+                zipCode: "10001",
+                radiusMiles: 40,
+            });
+            expect(mockGetFreshAndRisingRails).toHaveBeenCalledWith();
+            expect(mockGetAffinityRails).toHaveBeenCalledWith("profile-1", {
+                deduplicateAcrossRails: false,
+            });
+            expect(body.data.dynamicRails).toHaveLength(3);
+            expect(body.data.dynamicRails).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        railKey: "just_passing_through",
+                        items: [
+                            expect.objectContaining({
+                                id: 71,
+                                show: sharedShow,
+                                reason: expect.objectContaining({
+                                    kind: "just_passing_through",
+                                    evidence: { canonicalComedianId: 1 },
+                                }),
+                            }),
+                        ],
+                    }),
+                    expect.objectContaining({
+                        railKey: "starting_to_buzz",
+                        items: [
+                            expect.objectContaining({
+                                id: 71,
+                                reason: expect.objectContaining({
+                                    evidence: {
+                                        momentum: 0.8,
+                                        confidence: 0.9,
+                                    },
+                                }),
+                            }),
+                        ],
+                    }),
+                    expect.objectContaining({
+                        railKey: "stacked_lineups",
+                        items: [
+                            expect.objectContaining({
+                                id: 71,
+                                reason: expect.objectContaining({
+                                    evidence: {
+                                        qualifyingPerformerCount: 3,
+                                        threshold: 3,
+                                    },
+                                }),
+                            }),
+                        ],
+                    }),
+                ]),
+            );
+            expect(body.data.railPlan.rails).toEqual([
+                {
+                    railKey: "just_passing_through",
+                    payloadKey: "dynamicRails",
+                    position: 0,
+                    itemIds: ["71"],
+                },
+            ]);
+        });
+
+        it("isolates dynamic provider failures", async () => {
+            mockGetFreshAndRisingRails.mockRejectedValue(
+                new Error("snapshot unavailable"),
+            );
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.data.dynamicRails).toEqual([]);
         });
 
         it("deduplicates plan shows by policy priority without changing the legacy field", async () => {

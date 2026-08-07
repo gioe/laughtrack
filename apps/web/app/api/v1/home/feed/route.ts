@@ -13,14 +13,19 @@ import { getPodcastEpisodeDiscovery } from "@/lib/data/home/getPodcastEpisodeDis
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
 import { getDiscoveryRailPolicy } from "@/lib/data/home/getDiscoveryRailPolicy";
+import { getTouringScarcityRails } from "@/lib/data/home/getTouringScarcityRails";
+import { getFreshAndRisingRails } from "@/lib/data/home/getFreshAndRisingRails";
+import { getAffinityRails } from "@/lib/data/home/getAffinityRails";
 import {
     DISCOVERY_PLATFORMS,
     type DiscoveryPlatform,
+    type DiscoveryRailKey,
 } from "@/lib/discovery/railPolicy";
 import {
     getDiscoveryRailCycleIndex,
     loadDiscoveryRailPolicyWithFallback,
     selectDiscoveryRailPlan,
+    type DiscoveryRailPayloadMap,
 } from "@/lib/discovery/railSelector";
 import { PROFILE_MISSING, resolveAuth } from "@/lib/auth/resolveAuth";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
@@ -39,6 +44,30 @@ function logSectionError(section: string) {
     return (error: unknown) => {
         console.error(`home-feed: ${section} failed`, error);
         return [];
+    };
+}
+
+function logProviderError(section: string) {
+    return (error: unknown) => {
+        console.error(`home-feed: ${section} failed`, error);
+        return null;
+    };
+}
+
+function isPresent<T>(value: T | null | undefined): value is T {
+    return value !== null && value !== undefined;
+}
+
+function withDynamicItemIds<
+    T extends {
+        railKey: DiscoveryRailKey;
+        label: string;
+        items: readonly { show: { id: number } }[];
+    },
+>(rail: T) {
+    return {
+        ...rail,
+        items: rail.items.map((item) => ({ ...item, id: item.show.id })),
     };
 }
 
@@ -120,6 +149,9 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             podcastEpisodes,
             trendingPodcasts,
             followedComedianShowCandidates,
+            touringScarcityRails,
+            freshAndRisingRails,
+            affinityRails,
         ] = await Promise.all([
             zipCode
                 ? getTrendingComedians(8, 0, {
@@ -183,7 +215,42 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                       logSectionError("getFavoriteComedianShows"),
                   )
                 : Promise.resolve([]),
+            getTouringScarcityRails({
+                zipCode: zipCode ?? "",
+                radiusMiles: distanceMiles,
+            }).catch(logProviderError("getTouringScarcityRails")),
+            getFreshAndRisingRails().catch(
+                logProviderError("getFreshAndRisingRails"),
+            ),
+            getAffinityRails(profileId, {
+                deduplicateAcrossRails: false,
+            }).catch(logProviderError("getAffinityRails")),
         ]);
+
+        const dynamicRails = [
+            touringScarcityRails?.justPassingThrough,
+            touringScarcityRails?.rareReturns,
+            touringScarcityRails?.onlyChanceNearby,
+            freshAndRisingRails?.newlyAdded,
+            freshAndRisingRails?.startingToBuzz,
+            freshAndRisingRails?.catchThemEarly,
+            affinityRails?.fromYourPodcasts,
+            affinityRails?.stackedLineups,
+            affinityRails?.becauseYouFollowThem,
+        ]
+            .filter(isPresent)
+            .map(withDynamicItemIds)
+            .filter((rail) => rail.items.length > 0);
+        const dynamicPayloads = dynamicRails.reduce<DiscoveryRailPayloadMap>(
+            (payloads, rail) => {
+                payloads[rail.railKey] = {
+                    payloadKey: "dynamicRails",
+                    items: rail.items,
+                };
+                return payloads;
+            },
+            {},
+        );
 
         const heroShows = showsNearZip.slice(0, HERO_SHOW_COUNT);
         const moreNearYou = showsNearZip.slice(HERO_SHOW_COUNT);
@@ -234,6 +301,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     payloadKey: "moreNearYou",
                     items: moreNearYou,
                 },
+                ...dynamicPayloads,
             },
         });
 
@@ -255,6 +323,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     podcastEpisodes,
                     trendingPodcasts,
                     popularClubs,
+                    dynamicRails,
                     railPlan,
                 },
             },
