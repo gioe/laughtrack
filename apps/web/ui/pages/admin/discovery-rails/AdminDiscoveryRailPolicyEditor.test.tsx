@@ -171,7 +171,11 @@ describe("AdminDiscoveryRailPolicyEditor", () => {
         expect(screen.getByText("Built-in default policy")).toBeTruthy();
         expect(screen.getByText(/Matt Admin/)).toBeTruthy();
         expect(screen.getByText(/ops@example.com/)).toBeTruthy();
-        expect(screen.getByText(/Updated Not recorded/)).toBeTruthy();
+        expect(
+            screen.getByText(
+                "No admin update recorded; using the built-in policy.",
+            ),
+        ).toBeTruthy();
 
         fireEvent.click(screen.getByRole("button", { name: /iOS/ }));
         expect(
@@ -348,5 +352,36 @@ describe("AdminDiscoveryRailPolicyEditor", () => {
             screen.getByRole("button", { name: /^Web Version/ }).textContent,
         ).toContain("Version 7");
         expect((cadence as HTMLInputElement).value).toBe("20");
+    });
+
+    it("requires a reload when a saved policy cannot be refreshed", async () => {
+        const fetchMock = await renderLoadedEditor();
+
+        fireEvent.change(screen.getByLabelText("Rotation cadence (hours)"), {
+            target: { value: "18" },
+        });
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse({ ok: true }))
+            .mockRejectedValueOnce(new Error("Refresh unavailable"));
+
+        fireEvent.click(
+            screen.getByRole("button", { name: "Save Web policy" }),
+        );
+
+        expect(
+            await screen.findByText(
+                "The policy was saved, but its latest version could not be reloaded. Reload policies before making more changes.",
+            ),
+        ).toBeTruthy();
+        expect(
+            screen.getByRole("button", { name: /^Web Version/ }).textContent,
+        ).toContain("Version 7");
+        expect(
+            (
+                screen.getByRole("button", {
+                    name: "Save Web policy",
+                }) as HTMLButtonElement
+            ).disabled,
+        ).toBe(true);
     });
 });

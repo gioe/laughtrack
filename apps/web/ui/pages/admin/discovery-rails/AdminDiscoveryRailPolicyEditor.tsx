@@ -139,6 +139,7 @@ export default function AdminDiscoveryRailPolicyEditor() {
         useState<DiscoveryPlatform>("web");
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [requiresReload, setRequiresReload] = useState(false);
     const [status, setStatus] = useState<EditorStatus>({ kind: "idle" });
     const [previewObservedAt] = useState(() => Date.now());
 
@@ -169,6 +170,8 @@ export default function AdminDiscoveryRailPolicyEditor() {
             setSavedPolicies(nextSaved);
             setDrafts(nextDrafts);
             setLastValidPreviews(nextPreviews);
+            setRequiresReload(false);
+            return true;
         } catch (error) {
             setStatus({
                 kind: "error",
@@ -177,6 +180,7 @@ export default function AdminDiscoveryRailPolicyEditor() {
                         ? error.message
                         : "Unable to load Discover rail policies",
             });
+            return false;
         } finally {
             setIsLoading(false);
         }
@@ -409,11 +413,20 @@ export default function AdminDiscoveryRailPolicyEditor() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(validation.data),
             });
-            await loadPolicies(false);
-            setStatus({
-                kind: "ok",
-                message: `${PLATFORM_LABELS[selectedPlatform]} policy saved.`,
-            });
+            const reloaded = await loadPolicies(false);
+            if (reloaded) {
+                setStatus({
+                    kind: "ok",
+                    message: `${PLATFORM_LABELS[selectedPlatform]} policy saved.`,
+                });
+            } else {
+                setRequiresReload(true);
+                setStatus({
+                    kind: "error",
+                    message:
+                        "The policy was saved, but its latest version could not be reloaded. Reload policies before making more changes.",
+                });
+            }
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : "Save failed";
@@ -500,7 +513,7 @@ export default function AdminDiscoveryRailPolicyEditor() {
                         const updater =
                             policy.updatedBy?.name ||
                             policy.updatedBy?.email ||
-                            "system migration";
+                            "an unknown admin";
                         return (
                             <button
                                 key={platform}
@@ -526,8 +539,9 @@ export default function AdminDiscoveryRailPolicyEditor() {
                                         : "Built-in default policy"}
                                 </span>
                                 <span className="mt-1 block font-dmSans text-caption text-muted-foreground">
-                                    Updated {formatDateTime(policy.updatedAt)}{" "}
-                                    by {updater}
+                                    {policy.provenance === "stored"
+                                        ? `Updated ${formatDateTime(policy.updatedAt)} by ${updater}`
+                                        : "No admin update recorded; using the built-in policy."}
                                 </span>
                             </button>
                         );
@@ -848,6 +862,7 @@ export default function AdminDiscoveryRailPolicyEditor() {
                     disabled={
                         isSaving ||
                         isLoading ||
+                        requiresReload ||
                         !hasChanges ||
                         !validation?.success
                     }
