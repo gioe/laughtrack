@@ -359,6 +359,11 @@ describe("getFreshAndRisingRails", () => {
         expect(sql).toContain("s.tickets_sold_out = false");
         expect(sql).toContain("ticket.sold_out = false");
         expect(sql).toContain("NULLIF(btrim(ticket.purchase_url), '')");
+        expect(sql).toContain("s.first_discovered_at >=");
+        expect(sql).toContain("candidate_snapshot.feature_version =");
+        expect(sql).toContain("candidate_snapshot.confidence >=");
+        expect(sql).toContain("candidate_snapshot.momentum >=");
+        expect(sql).toContain("candidate_snapshot.growth >=");
         expect(sql).toContain("ORDER BY snapshot.as_of DESC");
         expect(query.values).toContain(DISCOVERY_FEATURE_VERSION);
     });

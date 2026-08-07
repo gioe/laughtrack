@@ -477,6 +477,11 @@ export function buildFreshAndRisingQuery({
     now: Date;
     horizonEnd: Date;
 }): Prisma.Sql {
+    const newlyAddedAfter = new Date(now.getTime() - NEWLY_ADDED_DAYS * DAY_MS);
+    const snapshotFreshAfter = new Date(
+        now.getTime() - MAX_SNAPSHOT_AGE_HOURS * 60 * 60 * 1_000,
+    );
+
     return Prisma.sql`
         WITH eligible_shows AS (
             SELECT
@@ -493,6 +498,26 @@ export function buildFreshAndRisingQuery({
               AND s.date <= ${horizonEnd}
               AND s.tickets_sold_out = false
               AND COALESCE(s.name, '') !~* 'sold[ -]?out'
+              AND (
+                  (
+                      s.first_discovered_at >= ${newlyAddedAfter}
+                      AND s.first_discovered_at <= ${now}
+                  )
+                  OR EXISTS (
+                      SELECT 1
+                      FROM discovery_show_feature_snapshots candidate_snapshot
+                      WHERE candidate_snapshot.show_id = s.id
+                        AND candidate_snapshot.feature_version = ${DISCOVERY_FEATURE_VERSION}
+                        AND candidate_snapshot.as_of >= ${snapshotFreshAfter}
+                        AND candidate_snapshot.as_of <= ${now}
+                        AND candidate_snapshot.availability = 'available'
+                        AND candidate_snapshot.confidence >= ${MIN_CONFIDENCE}
+                        AND (
+                            candidate_snapshot.momentum >= ${MIN_MOMENTUM}
+                            OR candidate_snapshot.growth >= ${MIN_GROWTH}
+                        )
+                  )
+              )
               AND EXISTS (
                   SELECT 1
                   FROM tickets ticket
