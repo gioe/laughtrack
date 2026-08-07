@@ -16,7 +16,6 @@ const MAX_SNAPSHOT_AGE_HOURS = 48;
 const MIN_CONFIDENCE = 0.5;
 const MIN_MOMENTUM = 0.15;
 const MIN_GROWTH = 0.6;
-const MAX_EARLY_PROMINENCE = 0.6;
 
 export type FreshAndRisingReasonKind =
     | "newly_added"
@@ -446,7 +445,7 @@ export function classifyFreshAndRisingCandidates(
             );
         }
 
-        if (positiveGrowth && row.prominence <= MAX_EARLY_PROMINENCE) {
+        if (positiveGrowth) {
             catchThemEarly.push(
                 classifiedItem(
                     row,

@@ -275,7 +275,7 @@ describe("getFreshAndRisingRails", () => {
                 [row({ prominence: 0.95, growth: 0.95 })],
                 REQUEST,
             ).catchThemEarly,
-        ).toEqual([]);
+        ).toHaveLength(1);
         expect(
             classifyFreshAndRisingCandidates(
                 [row({ prominence: 0.01, growth: 0.5, momentum: 0.5 })],
