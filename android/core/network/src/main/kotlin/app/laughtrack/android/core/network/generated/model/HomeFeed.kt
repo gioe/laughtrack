@@ -17,9 +17,11 @@ package app.laughtrack.android.core.network.generated.model
 
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
+import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRail
 import app.laughtrack.android.core.network.generated.model.HomeFeedHero
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisode
+import app.laughtrack.android.core.network.generated.model.HomeFeedRailPlan
 import app.laughtrack.android.core.network.generated.model.Show
 
 import kotlinx.serialization.Serializable
@@ -39,6 +41,8 @@ import kotlinx.serialization.Contextual
  * @param trendingPodcasts Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
  * @param popularClubs 
  * @param podcastEpisodes Optional fresh episode recommendations ranked from comedian follows, podcast favorites, appearance role, comedian popularity, and recency. Older clients and stale cached payloads may omit this field.
+ * @param dynamicRails Non-empty dynamic show rail payloads with structured recommendation reasons. Use railPlan.itemIds for the policy-selected subset and order.
+ * @param railPlan 
  */
 @Serializable
 
@@ -77,7 +81,14 @@ data class HomeFeed (
 
     /* Optional fresh episode recommendations ranked from comedian follows, podcast favorites, appearance role, comedian popularity, and recency. Older clients and stale cached payloads may omit this field. */
     @SerialName(value = "podcastEpisodes")
-    val podcastEpisodes: kotlin.collections.List<HomeFeedPodcastEpisode>? = null
+    val podcastEpisodes: kotlin.collections.List<HomeFeedPodcastEpisode>? = null,
+
+    /* Non-empty dynamic show rail payloads with structured recommendation reasons. Use railPlan.itemIds for the policy-selected subset and order. */
+    @SerialName(value = "dynamicRails")
+    val dynamicRails: kotlin.collections.List<HomeFeedDynamicRail>? = null,
+
+    @SerialName(value = "railPlan")
+    val railPlan: HomeFeedRailPlan? = null
 
 ) {
 

@@ -4613,6 +4613,187 @@
           }
         }
       },
+      "HomeFeedDynamicRailPerformer": {
+        "type": "object",
+        "required": ["id", "uuid", "name"],
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string" },
+          "name": { "type": "string" }
+        }
+      },
+      "HomeFeedDynamicRailPodcast": {
+        "type": "object",
+        "required": ["id", "slug", "title"],
+        "properties": {
+          "id": { "type": "integer" },
+          "slug": { "type": "string" },
+          "title": { "type": "string" }
+        }
+      },
+      "HomeFeedDynamicRailFreshnessProvenance": {
+        "type": "object",
+        "required": ["kind"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["laughtrack_observation", "verified_announcement"]
+          },
+          "source": { "type": "string" },
+          "announcedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "HomeFeedDynamicRailBehaviorSignals": {
+        "type": "object",
+        "required": ["momentumWindow", "recentDetailActors", "recentTicketIntentActors", "recentDemandActors", "growth", "confidence"],
+        "properties": {
+          "momentumWindow": {
+            "type": "string",
+            "enum": ["recent", "trailing28", "insufficient"]
+          },
+          "recentDetailActors": { "type": "integer" },
+          "recentTicketIntentActors": { "type": "integer" },
+          "recentDemandActors": { "type": "integer" },
+          "growth": { "type": ["number", "null"] },
+          "confidence": { "type": "number" }
+        }
+      },
+      "HomeFeedDynamicRailFavoriteSignals": {
+        "type": "object",
+        "required": ["recentCount", "baselineCount", "growth", "confidence"],
+        "properties": {
+          "recentCount": { "type": "integer" },
+          "baselineCount": { "type": "integer" },
+          "growth": { "type": ["number", "null"] },
+          "confidence": { "type": "number" }
+        }
+      },
+      "HomeFeedDynamicRailSocialSignals": {
+        "type": "object",
+        "required": ["pairedSeries", "observedSeries", "growth", "confidence"],
+        "properties": {
+          "pairedSeries": { "type": "integer" },
+          "observedSeries": { "type": "integer" },
+          "growth": { "type": ["number", "null"] },
+          "confidence": { "type": "number" }
+        }
+      },
+      "HomeFeedDynamicRailReasonEvidence": {
+        "type": "object",
+        "description": "Typed evidence superset. Fields are populated according to the reason kind.",
+        "properties": {
+          "canonicalComedianId": { "type": "integer" },
+          "localAppearanceCount": { "type": "integer" },
+          "horizonDays": { "type": "integer" },
+          "runStart": { "type": "string", "format": "date-time" },
+          "runEnd": { "type": "string", "format": "date-time" },
+          "homeMarket": {
+            "type": ["object", "null"],
+            "required": ["city", "state"],
+            "properties": {
+              "city": { "type": "string" },
+              "state": { "type": "string" },
+              "country": { "type": ["string", "null"] }
+            }
+          },
+          "requestedMarket": {
+            "type": ["object", "null"],
+            "required": ["city", "state"],
+            "properties": {
+              "city": { "type": "string" },
+              "state": { "type": "string" },
+              "country": { "type": ["string", "null"] }
+            }
+          },
+          "priorLocalAppearanceCount": { "type": "integer" },
+          "lastLocalAppearanceAt": { "type": ["string", "null"], "format": "date-time" },
+          "historyCoverageStart": { "type": ["string", "null"], "format": "date-time" },
+          "historyCoverageShowCount": { "type": "integer" },
+          "firstDiscoveredAt": { "type": ["string", "null"], "format": "date-time" },
+          "freshnessProvenance": { "$ref": "#/components/schemas/HomeFeedDynamicRailFreshnessProvenance" },
+          "featureVersion": { "type": ["string", "null"] },
+          "featureAsOf": { "type": ["string", "null"], "format": "date-time" },
+          "prominence": { "type": ["number", "null"] },
+          "momentum": { "type": ["number", "null"] },
+          "growth": { "type": ["number", "null"] },
+          "confidence": { "type": ["number", "null"] },
+          "availability": {
+            "type": ["string", "null"],
+            "enum": ["available", "unknown", "unavailable", null]
+          },
+          "signals": {
+            "type": ["object", "null"],
+            "required": ["behavior", "favorites", "social", "confidenceReasons"],
+            "properties": {
+              "behavior": { "$ref": "#/components/schemas/HomeFeedDynamicRailBehaviorSignals" },
+              "favorites": { "$ref": "#/components/schemas/HomeFeedDynamicRailFavoriteSignals" },
+              "social": { "$ref": "#/components/schemas/HomeFeedDynamicRailSocialSignals" },
+              "confidenceReasons": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "podcast": { "$ref": "#/components/schemas/HomeFeedDynamicRailPodcast" },
+          "attribution": {
+            "type": "string",
+            "enum": ["host", "cohost", "recent_appearance"]
+          },
+          "appearanceRole": {
+            "type": ["string", "null"],
+            "enum": ["host", "cohost", "guest", null]
+          },
+          "episode": {
+            "type": ["object", "null"],
+            "required": ["id", "title", "releaseDate"],
+            "properties": {
+              "id": { "type": "integer" },
+              "title": { "type": "string" },
+              "releaseDate": { "type": "string", "format": "date-time" }
+            }
+          },
+          "qualifyingPerformerCount": { "type": "integer" },
+          "threshold": { "type": "integer" }
+        }
+      },
+      "HomeFeedDynamicRailReason": {
+        "type": "object",
+        "required": ["kind", "label", "evidence"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["just_passing_through", "rare_return", "back_after_a_while", "only_chance_nearby", "newly_added", "starting_to_buzz", "catch_them_early", "from_your_podcasts", "stacked_lineup", "because_you_follow_them"]
+          },
+          "label": { "type": "string" },
+          "evidence": { "$ref": "#/components/schemas/HomeFeedDynamicRailReasonEvidence" }
+        }
+      },
+      "HomeFeedDynamicRailItem": {
+        "type": "object",
+        "required": ["id", "show", "reason"],
+        "properties": {
+          "id": { "type": "integer" },
+          "show": { "$ref": "#/components/schemas/Show" },
+          "performer": { "$ref": "#/components/schemas/HomeFeedDynamicRailPerformer" },
+          "podcast": { "$ref": "#/components/schemas/HomeFeedDynamicRailPodcast" },
+          "reason": { "$ref": "#/components/schemas/HomeFeedDynamicRailReason" }
+        }
+      },
+      "HomeFeedDynamicRail": {
+        "type": "object",
+        "required": ["railKey", "label", "items"],
+        "properties": {
+          "railKey": {
+            "type": "string",
+            "enum": ["just_passing_through", "rare_returns", "only_chance_nearby", "newly_added", "starting_to_buzz", "catch_them_early", "from_your_podcasts", "stacked_lineups", "because_you_follow_them"]
+          },
+          "label": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HomeFeedDynamicRailItem" }
+          }
+        }
+      },
       "HomeFeed": {
         "type": "object",
         "required": [
@@ -4671,6 +4852,11 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/ClubListItem" }
           },
+          "dynamicRails": {
+            "type": "array",
+            "description": "Non-empty dynamic show rail payloads with structured recommendation reasons. Use railPlan.itemIds for the policy-selected subset and order.",
+            "items": { "$ref": "#/components/schemas/HomeFeedDynamicRail" }
+          },
           "railPlan": {
             "$ref": "#/components/schemas/HomeFeedRailPlan"
           }
@@ -4682,11 +4868,11 @@
         "properties": {
           "railKey": {
             "type": "string",
-            "enum": ["shows_tonight", "followed_comedian_shows", "trending_this_week", "trending_comedians", "popular_clubs", "trending_podcasts", "nearby_shows"]
+            "enum": ["shows_tonight", "followed_comedian_shows", "trending_this_week", "trending_comedians", "popular_clubs", "trending_podcasts", "nearby_shows", "just_passing_through", "rare_returns", "only_chance_nearby", "newly_added", "starting_to_buzz", "catch_them_early", "from_your_podcasts", "stacked_lineups", "because_you_follow_them"]
           },
           "payloadKey": {
             "type": "string",
-            "enum": ["showsTonight", "followedComedianShows", "trendingThisWeek", "trendingComedians", "popularClubs", "podcastEpisodes", "moreNearYou"]
+            "enum": ["showsTonight", "followedComedianShows", "trendingThisWeek", "trendingComedians", "popularClubs", "podcastEpisodes", "moreNearYou", "dynamicRails"]
           },
           "position": { "type": "integer", "minimum": 0 },
           "itemIds": {

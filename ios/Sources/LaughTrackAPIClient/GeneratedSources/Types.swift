@@ -4489,6 +4489,662 @@ public enum Components {
                 case recommendation
             }
         }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailPerformer`.
+        public struct HomeFeedDynamicRailPerformer: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailPerformer/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailPerformer/uuid`.
+            public var uuid: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailPerformer/name`.
+            public var name: Swift.String
+            /// Creates a new `HomeFeedDynamicRailPerformer`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - uuid:
+            ///   - name:
+            public init(
+                id: Swift.Int,
+                uuid: Swift.String,
+                name: Swift.String
+            ) {
+                self.id = id
+                self.uuid = uuid
+                self.name = name
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case uuid
+                case name
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailPodcast`.
+        public struct HomeFeedDynamicRailPodcast: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailPodcast/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailPodcast/slug`.
+            public var slug: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailPodcast/title`.
+            public var title: Swift.String
+            /// Creates a new `HomeFeedDynamicRailPodcast`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - slug:
+            ///   - title:
+            public init(
+                id: Swift.Int,
+                slug: Swift.String,
+                title: Swift.String
+            ) {
+                self.id = id
+                self.slug = slug
+                self.title = title
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case slug
+                case title
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFreshnessProvenance`.
+        public struct HomeFeedDynamicRailFreshnessProvenance: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFreshnessProvenance/kind`.
+            @frozen public enum KindPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case laughtrackObservation = "laughtrack_observation"
+                case verifiedAnnouncement = "verified_announcement"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFreshnessProvenance/kind`.
+            public var kind: Components.Schemas.HomeFeedDynamicRailFreshnessProvenance.KindPayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFreshnessProvenance/source`.
+            public var source: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFreshnessProvenance/announcedAt`.
+            public var announcedAt: Foundation.Date?
+            /// Creates a new `HomeFeedDynamicRailFreshnessProvenance`.
+            ///
+            /// - Parameters:
+            ///   - kind:
+            ///   - source:
+            ///   - announcedAt:
+            public init(
+                kind: Components.Schemas.HomeFeedDynamicRailFreshnessProvenance.KindPayload,
+                source: Swift.String? = nil,
+                announcedAt: Foundation.Date? = nil
+            ) {
+                self.kind = kind
+                self.source = source
+                self.announcedAt = announcedAt
+            }
+            public enum CodingKeys: String, CodingKey {
+                case kind
+                case source
+                case announcedAt
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailBehaviorSignals`.
+        public struct HomeFeedDynamicRailBehaviorSignals: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailBehaviorSignals/momentumWindow`.
+            @frozen public enum MomentumWindowPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case recent = "recent"
+                case trailing28 = "trailing28"
+                case insufficient = "insufficient"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailBehaviorSignals/momentumWindow`.
+            public var momentumWindow: Components.Schemas.HomeFeedDynamicRailBehaviorSignals.MomentumWindowPayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailBehaviorSignals/recentDetailActors`.
+            public var recentDetailActors: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailBehaviorSignals/recentTicketIntentActors`.
+            public var recentTicketIntentActors: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailBehaviorSignals/recentDemandActors`.
+            public var recentDemandActors: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailBehaviorSignals/growth`.
+            public var growth: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailBehaviorSignals/confidence`.
+            public var confidence: Swift.Double
+            /// Creates a new `HomeFeedDynamicRailBehaviorSignals`.
+            ///
+            /// - Parameters:
+            ///   - momentumWindow:
+            ///   - recentDetailActors:
+            ///   - recentTicketIntentActors:
+            ///   - recentDemandActors:
+            ///   - growth:
+            ///   - confidence:
+            public init(
+                momentumWindow: Components.Schemas.HomeFeedDynamicRailBehaviorSignals.MomentumWindowPayload,
+                recentDetailActors: Swift.Int,
+                recentTicketIntentActors: Swift.Int,
+                recentDemandActors: Swift.Int,
+                growth: Swift.Double? = nil,
+                confidence: Swift.Double
+            ) {
+                self.momentumWindow = momentumWindow
+                self.recentDetailActors = recentDetailActors
+                self.recentTicketIntentActors = recentTicketIntentActors
+                self.recentDemandActors = recentDemandActors
+                self.growth = growth
+                self.confidence = confidence
+            }
+            public enum CodingKeys: String, CodingKey {
+                case momentumWindow
+                case recentDetailActors
+                case recentTicketIntentActors
+                case recentDemandActors
+                case growth
+                case confidence
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFavoriteSignals`.
+        public struct HomeFeedDynamicRailFavoriteSignals: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFavoriteSignals/recentCount`.
+            public var recentCount: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFavoriteSignals/baselineCount`.
+            public var baselineCount: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFavoriteSignals/growth`.
+            public var growth: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailFavoriteSignals/confidence`.
+            public var confidence: Swift.Double
+            /// Creates a new `HomeFeedDynamicRailFavoriteSignals`.
+            ///
+            /// - Parameters:
+            ///   - recentCount:
+            ///   - baselineCount:
+            ///   - growth:
+            ///   - confidence:
+            public init(
+                recentCount: Swift.Int,
+                baselineCount: Swift.Int,
+                growth: Swift.Double? = nil,
+                confidence: Swift.Double
+            ) {
+                self.recentCount = recentCount
+                self.baselineCount = baselineCount
+                self.growth = growth
+                self.confidence = confidence
+            }
+            public enum CodingKeys: String, CodingKey {
+                case recentCount
+                case baselineCount
+                case growth
+                case confidence
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailSocialSignals`.
+        public struct HomeFeedDynamicRailSocialSignals: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailSocialSignals/pairedSeries`.
+            public var pairedSeries: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailSocialSignals/observedSeries`.
+            public var observedSeries: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailSocialSignals/growth`.
+            public var growth: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailSocialSignals/confidence`.
+            public var confidence: Swift.Double
+            /// Creates a new `HomeFeedDynamicRailSocialSignals`.
+            ///
+            /// - Parameters:
+            ///   - pairedSeries:
+            ///   - observedSeries:
+            ///   - growth:
+            ///   - confidence:
+            public init(
+                pairedSeries: Swift.Int,
+                observedSeries: Swift.Int,
+                growth: Swift.Double? = nil,
+                confidence: Swift.Double
+            ) {
+                self.pairedSeries = pairedSeries
+                self.observedSeries = observedSeries
+                self.growth = growth
+                self.confidence = confidence
+            }
+            public enum CodingKeys: String, CodingKey {
+                case pairedSeries
+                case observedSeries
+                case growth
+                case confidence
+            }
+        }
+        /// Typed evidence superset. Fields are populated according to the reason kind.
+        ///
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence`.
+        public struct HomeFeedDynamicRailReasonEvidence: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/canonicalComedianId`.
+            public var canonicalComedianId: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/localAppearanceCount`.
+            public var localAppearanceCount: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/horizonDays`.
+            public var horizonDays: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/runStart`.
+            public var runStart: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/runEnd`.
+            public var runEnd: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/homeMarket`.
+            public struct HomeMarketPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/homeMarket/city`.
+                public var city: Swift.String
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/homeMarket/state`.
+                public var state: Swift.String
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/homeMarket/country`.
+                public var country: Swift.String?
+                /// Creates a new `HomeMarketPayload`.
+                ///
+                /// - Parameters:
+                ///   - city:
+                ///   - state:
+                ///   - country:
+                public init(
+                    city: Swift.String,
+                    state: Swift.String,
+                    country: Swift.String? = nil
+                ) {
+                    self.city = city
+                    self.state = state
+                    self.country = country
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case city
+                    case state
+                    case country
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/homeMarket`.
+            public var homeMarket: Components.Schemas.HomeFeedDynamicRailReasonEvidence.HomeMarketPayload?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/requestedMarket`.
+            public struct RequestedMarketPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/requestedMarket/city`.
+                public var city: Swift.String
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/requestedMarket/state`.
+                public var state: Swift.String
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/requestedMarket/country`.
+                public var country: Swift.String?
+                /// Creates a new `RequestedMarketPayload`.
+                ///
+                /// - Parameters:
+                ///   - city:
+                ///   - state:
+                ///   - country:
+                public init(
+                    city: Swift.String,
+                    state: Swift.String,
+                    country: Swift.String? = nil
+                ) {
+                    self.city = city
+                    self.state = state
+                    self.country = country
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case city
+                    case state
+                    case country
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/requestedMarket`.
+            public var requestedMarket: Components.Schemas.HomeFeedDynamicRailReasonEvidence.RequestedMarketPayload?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/priorLocalAppearanceCount`.
+            public var priorLocalAppearanceCount: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/lastLocalAppearanceAt`.
+            public var lastLocalAppearanceAt: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/historyCoverageStart`.
+            public var historyCoverageStart: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/historyCoverageShowCount`.
+            public var historyCoverageShowCount: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/firstDiscoveredAt`.
+            public var firstDiscoveredAt: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/freshnessProvenance`.
+            public var freshnessProvenance: Components.Schemas.HomeFeedDynamicRailFreshnessProvenance?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/featureVersion`.
+            public var featureVersion: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/featureAsOf`.
+            public var featureAsOf: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/prominence`.
+            public var prominence: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/momentum`.
+            public var momentum: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/growth`.
+            public var growth: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/confidence`.
+            public var confidence: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/availability`.
+            @frozen public enum AvailabilityPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case available = "available"
+                case unknown = "unknown"
+                case unavailable = "unavailable"
+                case _empty_ = ""
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/availability`.
+            public var availability: Components.Schemas.HomeFeedDynamicRailReasonEvidence.AvailabilityPayload?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/signals`.
+            public struct SignalsPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/signals/behavior`.
+                public var behavior: Components.Schemas.HomeFeedDynamicRailBehaviorSignals
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/signals/favorites`.
+                public var favorites: Components.Schemas.HomeFeedDynamicRailFavoriteSignals
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/signals/social`.
+                public var social: Components.Schemas.HomeFeedDynamicRailSocialSignals
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/signals/confidenceReasons`.
+                public var confidenceReasons: [Swift.String]
+                /// Creates a new `SignalsPayload`.
+                ///
+                /// - Parameters:
+                ///   - behavior:
+                ///   - favorites:
+                ///   - social:
+                ///   - confidenceReasons:
+                public init(
+                    behavior: Components.Schemas.HomeFeedDynamicRailBehaviorSignals,
+                    favorites: Components.Schemas.HomeFeedDynamicRailFavoriteSignals,
+                    social: Components.Schemas.HomeFeedDynamicRailSocialSignals,
+                    confidenceReasons: [Swift.String]
+                ) {
+                    self.behavior = behavior
+                    self.favorites = favorites
+                    self.social = social
+                    self.confidenceReasons = confidenceReasons
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case behavior
+                    case favorites
+                    case social
+                    case confidenceReasons
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/signals`.
+            public var signals: Components.Schemas.HomeFeedDynamicRailReasonEvidence.SignalsPayload?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/podcast`.
+            public var podcast: Components.Schemas.HomeFeedDynamicRailPodcast?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/attribution`.
+            @frozen public enum AttributionPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case host = "host"
+                case cohost = "cohost"
+                case recentAppearance = "recent_appearance"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/attribution`.
+            public var attribution: Components.Schemas.HomeFeedDynamicRailReasonEvidence.AttributionPayload?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/appearanceRole`.
+            @frozen public enum AppearanceRolePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case host = "host"
+                case cohost = "cohost"
+                case guest = "guest"
+                case _empty_ = ""
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/appearanceRole`.
+            public var appearanceRole: Components.Schemas.HomeFeedDynamicRailReasonEvidence.AppearanceRolePayload?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/episode`.
+            public struct EpisodePayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/episode/id`.
+                public var id: Swift.Int
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/episode/title`.
+                public var title: Swift.String
+                /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/episode/releaseDate`.
+                public var releaseDate: Foundation.Date
+                /// Creates a new `EpisodePayload`.
+                ///
+                /// - Parameters:
+                ///   - id:
+                ///   - title:
+                ///   - releaseDate:
+                public init(
+                    id: Swift.Int,
+                    title: Swift.String,
+                    releaseDate: Foundation.Date
+                ) {
+                    self.id = id
+                    self.title = title
+                    self.releaseDate = releaseDate
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case id
+                    case title
+                    case releaseDate
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/episode`.
+            public var episode: Components.Schemas.HomeFeedDynamicRailReasonEvidence.EpisodePayload?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/qualifyingPerformerCount`.
+            public var qualifyingPerformerCount: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/threshold`.
+            public var threshold: Swift.Int?
+            /// Creates a new `HomeFeedDynamicRailReasonEvidence`.
+            ///
+            /// - Parameters:
+            ///   - canonicalComedianId:
+            ///   - localAppearanceCount:
+            ///   - horizonDays:
+            ///   - runStart:
+            ///   - runEnd:
+            ///   - homeMarket:
+            ///   - requestedMarket:
+            ///   - priorLocalAppearanceCount:
+            ///   - lastLocalAppearanceAt:
+            ///   - historyCoverageStart:
+            ///   - historyCoverageShowCount:
+            ///   - firstDiscoveredAt:
+            ///   - freshnessProvenance:
+            ///   - featureVersion:
+            ///   - featureAsOf:
+            ///   - prominence:
+            ///   - momentum:
+            ///   - growth:
+            ///   - confidence:
+            ///   - availability:
+            ///   - signals:
+            ///   - podcast:
+            ///   - attribution:
+            ///   - appearanceRole:
+            ///   - episode:
+            ///   - qualifyingPerformerCount:
+            ///   - threshold:
+            public init(
+                canonicalComedianId: Swift.Int? = nil,
+                localAppearanceCount: Swift.Int? = nil,
+                horizonDays: Swift.Int? = nil,
+                runStart: Foundation.Date? = nil,
+                runEnd: Foundation.Date? = nil,
+                homeMarket: Components.Schemas.HomeFeedDynamicRailReasonEvidence.HomeMarketPayload? = nil,
+                requestedMarket: Components.Schemas.HomeFeedDynamicRailReasonEvidence.RequestedMarketPayload? = nil,
+                priorLocalAppearanceCount: Swift.Int? = nil,
+                lastLocalAppearanceAt: Foundation.Date? = nil,
+                historyCoverageStart: Foundation.Date? = nil,
+                historyCoverageShowCount: Swift.Int? = nil,
+                firstDiscoveredAt: Foundation.Date? = nil,
+                freshnessProvenance: Components.Schemas.HomeFeedDynamicRailFreshnessProvenance? = nil,
+                featureVersion: Swift.String? = nil,
+                featureAsOf: Foundation.Date? = nil,
+                prominence: Swift.Double? = nil,
+                momentum: Swift.Double? = nil,
+                growth: Swift.Double? = nil,
+                confidence: Swift.Double? = nil,
+                availability: Components.Schemas.HomeFeedDynamicRailReasonEvidence.AvailabilityPayload? = nil,
+                signals: Components.Schemas.HomeFeedDynamicRailReasonEvidence.SignalsPayload? = nil,
+                podcast: Components.Schemas.HomeFeedDynamicRailPodcast? = nil,
+                attribution: Components.Schemas.HomeFeedDynamicRailReasonEvidence.AttributionPayload? = nil,
+                appearanceRole: Components.Schemas.HomeFeedDynamicRailReasonEvidence.AppearanceRolePayload? = nil,
+                episode: Components.Schemas.HomeFeedDynamicRailReasonEvidence.EpisodePayload? = nil,
+                qualifyingPerformerCount: Swift.Int? = nil,
+                threshold: Swift.Int? = nil
+            ) {
+                self.canonicalComedianId = canonicalComedianId
+                self.localAppearanceCount = localAppearanceCount
+                self.horizonDays = horizonDays
+                self.runStart = runStart
+                self.runEnd = runEnd
+                self.homeMarket = homeMarket
+                self.requestedMarket = requestedMarket
+                self.priorLocalAppearanceCount = priorLocalAppearanceCount
+                self.lastLocalAppearanceAt = lastLocalAppearanceAt
+                self.historyCoverageStart = historyCoverageStart
+                self.historyCoverageShowCount = historyCoverageShowCount
+                self.firstDiscoveredAt = firstDiscoveredAt
+                self.freshnessProvenance = freshnessProvenance
+                self.featureVersion = featureVersion
+                self.featureAsOf = featureAsOf
+                self.prominence = prominence
+                self.momentum = momentum
+                self.growth = growth
+                self.confidence = confidence
+                self.availability = availability
+                self.signals = signals
+                self.podcast = podcast
+                self.attribution = attribution
+                self.appearanceRole = appearanceRole
+                self.episode = episode
+                self.qualifyingPerformerCount = qualifyingPerformerCount
+                self.threshold = threshold
+            }
+            public enum CodingKeys: String, CodingKey {
+                case canonicalComedianId
+                case localAppearanceCount
+                case horizonDays
+                case runStart
+                case runEnd
+                case homeMarket
+                case requestedMarket
+                case priorLocalAppearanceCount
+                case lastLocalAppearanceAt
+                case historyCoverageStart
+                case historyCoverageShowCount
+                case firstDiscoveredAt
+                case freshnessProvenance
+                case featureVersion
+                case featureAsOf
+                case prominence
+                case momentum
+                case growth
+                case confidence
+                case availability
+                case signals
+                case podcast
+                case attribution
+                case appearanceRole
+                case episode
+                case qualifyingPerformerCount
+                case threshold
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason`.
+        public struct HomeFeedDynamicRailReason: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason/kind`.
+            @frozen public enum KindPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case justPassingThrough = "just_passing_through"
+                case rareReturn = "rare_return"
+                case backAfterAWhile = "back_after_a_while"
+                case onlyChanceNearby = "only_chance_nearby"
+                case newlyAdded = "newly_added"
+                case startingToBuzz = "starting_to_buzz"
+                case catchThemEarly = "catch_them_early"
+                case fromYourPodcasts = "from_your_podcasts"
+                case stackedLineup = "stacked_lineup"
+                case becauseYouFollowThem = "because_you_follow_them"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason/kind`.
+            public var kind: Components.Schemas.HomeFeedDynamicRailReason.KindPayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason/label`.
+            public var label: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason/evidence`.
+            public var evidence: Components.Schemas.HomeFeedDynamicRailReasonEvidence
+            /// Creates a new `HomeFeedDynamicRailReason`.
+            ///
+            /// - Parameters:
+            ///   - kind:
+            ///   - label:
+            ///   - evidence:
+            public init(
+                kind: Components.Schemas.HomeFeedDynamicRailReason.KindPayload,
+                label: Swift.String,
+                evidence: Components.Schemas.HomeFeedDynamicRailReasonEvidence
+            ) {
+                self.kind = kind
+                self.label = label
+                self.evidence = evidence
+            }
+            public enum CodingKeys: String, CodingKey {
+                case kind
+                case label
+                case evidence
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailItem`.
+        public struct HomeFeedDynamicRailItem: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailItem/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailItem/show`.
+            public var show: Components.Schemas.Show
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailItem/performer`.
+            public var performer: Components.Schemas.HomeFeedDynamicRailPerformer?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailItem/podcast`.
+            public var podcast: Components.Schemas.HomeFeedDynamicRailPodcast?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailItem/reason`.
+            public var reason: Components.Schemas.HomeFeedDynamicRailReason
+            /// Creates a new `HomeFeedDynamicRailItem`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - show:
+            ///   - performer:
+            ///   - podcast:
+            ///   - reason:
+            public init(
+                id: Swift.Int,
+                show: Components.Schemas.Show,
+                performer: Components.Schemas.HomeFeedDynamicRailPerformer? = nil,
+                podcast: Components.Schemas.HomeFeedDynamicRailPodcast? = nil,
+                reason: Components.Schemas.HomeFeedDynamicRailReason
+            ) {
+                self.id = id
+                self.show = show
+                self.performer = performer
+                self.podcast = podcast
+                self.reason = reason
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case show
+                case performer
+                case podcast
+                case reason
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail`.
+        public struct HomeFeedDynamicRail: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail/railKey`.
+            @frozen public enum RailKeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case justPassingThrough = "just_passing_through"
+                case rareReturns = "rare_returns"
+                case onlyChanceNearby = "only_chance_nearby"
+                case newlyAdded = "newly_added"
+                case startingToBuzz = "starting_to_buzz"
+                case catchThemEarly = "catch_them_early"
+                case fromYourPodcasts = "from_your_podcasts"
+                case stackedLineups = "stacked_lineups"
+                case becauseYouFollowThem = "because_you_follow_them"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail/railKey`.
+            public var railKey: Components.Schemas.HomeFeedDynamicRail.RailKeyPayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail/label`.
+            public var label: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail/items`.
+            public var items: [Components.Schemas.HomeFeedDynamicRailItem]
+            /// Creates a new `HomeFeedDynamicRail`.
+            ///
+            /// - Parameters:
+            ///   - railKey:
+            ///   - label:
+            ///   - items:
+            public init(
+                railKey: Components.Schemas.HomeFeedDynamicRail.RailKeyPayload,
+                label: Swift.String,
+                items: [Components.Schemas.HomeFeedDynamicRailItem]
+            ) {
+                self.railKey = railKey
+                self.label = label
+                self.items = items
+            }
+            public enum CodingKeys: String, CodingKey {
+                case railKey
+                case label
+                case items
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/HomeFeed`.
         public struct HomeFeed: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/HomeFeed/hero`.
@@ -4521,6 +5177,10 @@ public enum Components {
             public var trendingPodcasts: [Components.Schemas.HomeFeedPodcast]
             /// - Remark: Generated from `#/components/schemas/HomeFeed/popularClubs`.
             public var popularClubs: [Components.Schemas.ClubListItem]
+            /// Non-empty dynamic show rail payloads with structured recommendation reasons. Use railPlan.itemIds for the policy-selected subset and order.
+            ///
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/dynamicRails`.
+            public var dynamicRails: [Components.Schemas.HomeFeedDynamicRail]?
             /// - Remark: Generated from `#/components/schemas/HomeFeed/railPlan`.
             public var railPlan: Components.Schemas.HomeFeedRailPlan?
             /// Creates a new `HomeFeed`.
@@ -4536,6 +5196,7 @@ public enum Components {
             ///   - podcastEpisodes: Optional fresh episode recommendations ranked from comedian follows, podcast favorites, appearance role, comedian popularity, and recency. Older clients and stale cached payloads may omit this field.
             ///   - trendingPodcasts: Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
             ///   - popularClubs:
+            ///   - dynamicRails: Non-empty dynamic show rail payloads with structured recommendation reasons. Use railPlan.itemIds for the policy-selected subset and order.
             ///   - railPlan:
             public init(
                 hero: Components.Schemas.HomeFeedHero,
@@ -4548,6 +5209,7 @@ public enum Components {
                 podcastEpisodes: [Components.Schemas.HomeFeedPodcastEpisode]? = nil,
                 trendingPodcasts: [Components.Schemas.HomeFeedPodcast],
                 popularClubs: [Components.Schemas.ClubListItem],
+                dynamicRails: [Components.Schemas.HomeFeedDynamicRail]? = nil,
                 railPlan: Components.Schemas.HomeFeedRailPlan? = nil
             ) {
                 self.hero = hero
@@ -4560,6 +5222,7 @@ public enum Components {
                 self.podcastEpisodes = podcastEpisodes
                 self.trendingPodcasts = trendingPodcasts
                 self.popularClubs = popularClubs
+                self.dynamicRails = dynamicRails
                 self.railPlan = railPlan
             }
             public enum CodingKeys: String, CodingKey {
@@ -4573,6 +5236,7 @@ public enum Components {
                 case podcastEpisodes
                 case trendingPodcasts
                 case popularClubs
+                case dynamicRails
                 case railPlan
             }
         }
@@ -4587,6 +5251,15 @@ public enum Components {
                 case popularClubs = "popular_clubs"
                 case trendingPodcasts = "trending_podcasts"
                 case nearbyShows = "nearby_shows"
+                case justPassingThrough = "just_passing_through"
+                case rareReturns = "rare_returns"
+                case onlyChanceNearby = "only_chance_nearby"
+                case newlyAdded = "newly_added"
+                case startingToBuzz = "starting_to_buzz"
+                case catchThemEarly = "catch_them_early"
+                case fromYourPodcasts = "from_your_podcasts"
+                case stackedLineups = "stacked_lineups"
+                case becauseYouFollowThem = "because_you_follow_them"
             }
             /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/railKey`.
             public var railKey: Components.Schemas.HomeFeedRailPlanEntry.RailKeyPayload
@@ -4599,6 +5272,7 @@ public enum Components {
                 case popularClubs = "popularClubs"
                 case podcastEpisodes = "podcastEpisodes"
                 case moreNearYou = "moreNearYou"
+                case dynamicRails = "dynamicRails"
             }
             /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/payloadKey`.
             public var payloadKey: Components.Schemas.HomeFeedRailPlanEntry.PayloadKeyPayload
