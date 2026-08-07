@@ -220,6 +220,66 @@ describe("DiscoveryImpressionTracker", () => {
         );
     });
 
+    it("records server-directed rail metadata without near-you context", async () => {
+        render(
+            <DiscoveryImpressionTracker
+                showId={42}
+                rank={2}
+                surface="starting_to_buzz"
+                policyVersion="9"
+                experimentVariant="server_directed"
+            >
+                {({ impressionId, onShowDetail }) => (
+                    <>
+                        <span data-testid="server-impression">
+                            {impressionId ?? "unqualified"}
+                        </span>
+                        <button type="button" onClick={onShowDetail}>
+                            Open server-directed show
+                        </button>
+                    </>
+                )}
+            </DiscoveryImpressionTracker>,
+        );
+
+        setVisibility(0, 1);
+        await act(() => vi.advanceTimersByTimeAsync(1050));
+
+        const impression = JSON.parse(
+            String(vi.mocked(fetch).mock.calls[0][1]?.body),
+        );
+        expect(impression.events[0]).toEqual(
+            expect.objectContaining({
+                entityId: 42,
+                surface: "starting_to_buzz",
+                policyVersion: "9",
+                experimentVariant: "server_directed",
+                rank: 2,
+            }),
+        );
+        expect(impression.events[0]).not.toHaveProperty("assignmentEligible");
+        expect(impression.events[0]).not.toHaveProperty("showContexts");
+
+        const impressionId =
+            screen.getByTestId("server-impression").textContent;
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: "Open server-directed show",
+            }),
+        );
+        await act(() => vi.runAllTimersAsync());
+
+        const engagement = JSON.parse(
+            String(vi.mocked(fetch).mock.calls[1][1]?.body),
+        );
+        expect(engagement.events[0]).toEqual(
+            expect.objectContaining({
+                impressionEventId: impressionId,
+                engagementType: "show_detail",
+            }),
+        );
+    });
+
     it("withholds action attribution until impression persistence succeeds", async () => {
         let resolveImpression: (() => void) | undefined;
         vi.mocked(fetch).mockImplementationOnce(

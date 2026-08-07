@@ -4,18 +4,23 @@ import type {
     DiscoveryAssignmentReason,
     DiscoveryAvailabilityAtImpression,
 } from "./telemetry";
+import type { DiscoveryRailKey } from "./railPolicy";
 
 export type DiscoveryExperimentVariant = "control" | "candidate";
 
-export interface DiscoveryImpressionEvent {
+interface DiscoveryImpressionEventBase {
     eventId: string;
     entityType: "show";
     entityId: number;
-    surface: "near_you";
     policyVersion: string;
-    experimentVariant: DiscoveryExperimentVariant;
     rank: number;
     impressedAt: string;
+}
+
+export interface NearYouDiscoveryImpressionEvent
+    extends DiscoveryImpressionEventBase {
+    surface: "near_you";
+    experimentVariant: DiscoveryExperimentVariant;
     assignmentEligible: boolean;
     assignmentReason: DiscoveryAssignmentReason;
     explorationSelected: boolean;
@@ -24,6 +29,16 @@ export interface DiscoveryImpressionEvent {
     availabilityAtImpression: DiscoveryAvailabilityAtImpression;
     featureVersion: string | null;
 }
+
+export interface ServerDirectedDiscoveryImpressionEvent
+    extends DiscoveryImpressionEventBase {
+    surface: DiscoveryRailKey;
+    experimentVariant: "server_directed";
+}
+
+export type DiscoveryImpressionEvent =
+    | NearYouDiscoveryImpressionEvent
+    | ServerDirectedDiscoveryImpressionEvent;
 
 interface DiscoveryEngagementEvent {
     eventId: string;

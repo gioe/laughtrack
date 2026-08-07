@@ -17,11 +17,14 @@ interface TrendingClubsCarouselProps {
     // When set, the rail is scoped to the viewer's area and titled accordingly.
     // Omitted (no resolved location) falls back to the global popular list.
     zipCode?: string;
+    /** Preserve the authoritative order supplied by a server-directed plan. */
+    preserveOrder?: boolean;
 }
 
 const TrendingClubsCarousel = ({
     clubs,
     zipCode,
+    preserveOrder = false,
 }: TrendingClubsCarouselProps) => {
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [isClient, setIsClient] = useState(false);
@@ -31,12 +34,13 @@ const TrendingClubsCarousel = ({
 
     // Sort clubs once instead of on every render
     const sortedClubs = React.useMemo(() => {
+        if (preserveOrder) return clubs;
         return [...clubs].sort((a, b) =>
             (a.activeComedianCount ?? 0) > (b.activeComedianCount ?? 0)
                 ? -1
                 : 1,
         );
-    }, [clubs]);
+    }, [clubs, preserveOrder]);
 
     useEffect(() => {
         setIsClient(true);
@@ -194,7 +198,7 @@ const TrendingClubsCarousel = ({
             >
                 {sortedClubs.map((dto) => (
                     <div
-                        key={dto.name}
+                        key={dto.id ?? dto.name}
                         className="flex-none w-rail-card-compact sm:w-rail-card-standard md:w-rail-card-standard lg:w-rail-card-standard max-w-[calc(100vw-2rem)]"
                     >
                         <PopularClubCard entity={dto} />

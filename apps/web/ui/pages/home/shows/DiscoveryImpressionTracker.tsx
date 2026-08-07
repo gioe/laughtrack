@@ -12,41 +12,55 @@ import {
     trackDiscoveryShowDetail,
     type DiscoveryExperimentVariant,
 } from "@/lib/discovery/clientEvents";
+import type { DiscoveryRailKey } from "@/lib/discovery/railPolicy";
 import type { DiscoveryShowImpressionContexts } from "@/lib/discovery/telemetry";
 
 const QUALIFIED_VISIBILITY_RATIO = 0.5;
 const QUALIFIED_DWELL_MS = 1000;
 
-export interface DiscoveryPresentation {
+export interface NearYouDiscoveryPresentation {
     surface: "near_you";
     policyVersion: string;
     experimentVariant: DiscoveryExperimentVariant;
     showContexts: DiscoveryShowImpressionContexts;
 }
 
+export interface ServerDirectedDiscoveryPresentation {
+    surface: DiscoveryRailKey;
+    policyVersion: string;
+    experimentVariant: "server_directed";
+}
+
+export type DiscoveryPresentation =
+    | NearYouDiscoveryPresentation
+    | ServerDirectedDiscoveryPresentation;
+
 interface DiscoveryAttribution {
     impressionId?: string;
     onShowDetail: () => void;
 }
 
-interface DiscoveryImpressionTrackerProps extends DiscoveryPresentation {
+type DiscoveryImpressionTrackerProps = DiscoveryPresentation & {
     showId: number;
     rank: number;
     className?: string;
     children: (attribution: DiscoveryAttribution) => ReactNode;
-}
+};
 
-export default function DiscoveryImpressionTracker({
-    showId,
-    rank,
-    surface,
-    policyVersion,
-    experimentVariant,
-    showContexts,
-    className,
-    children,
-}: DiscoveryImpressionTrackerProps) {
-    const impressionContext = showContexts[showId];
+export default function DiscoveryImpressionTracker(
+    props: DiscoveryImpressionTrackerProps,
+) {
+    const {
+        showId,
+        rank,
+        surface,
+        policyVersion,
+        experimentVariant,
+        className,
+        children,
+    } = props;
+    const impressionContext =
+        props.surface === "near_you" ? props.showContexts[showId] : undefined;
     const elementRef = useRef<HTMLDivElement | null>(null);
     const qualifiedRef = useRef(false);
     const dwellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -79,7 +93,7 @@ export default function DiscoveryImpressionTracker({
                 if (
                     qualifiedRef.current ||
                     dwellTimerRef.current ||
-                    !impressionContext
+                    (surface === "near_you" && !impressionContext)
                 ) {
                     return;
                 }
@@ -88,17 +102,28 @@ export default function DiscoveryImpressionTracker({
                     dwellTimerRef.current = null;
                     if (qualifiedRef.current) return;
                     qualifiedRef.current = true;
-                    void queueDiscoveryImpression({
+                    const baseEvent = {
                         eventId: impressionId,
                         entityType: "show",
                         entityId: showId,
-                        surface,
                         policyVersion,
-                        experimentVariant,
                         rank,
                         impressedAt: new Date().toISOString(),
-                        ...impressionContext,
-                    }).then((persisted) => {
+                    } as const;
+                    const event =
+                        surface === "near_you"
+                            ? {
+                                  ...baseEvent,
+                                  surface: "near_you" as const,
+                                  experimentVariant,
+                                  ...impressionContext!,
+                              }
+                            : {
+                                  ...baseEvent,
+                                  surface,
+                                  experimentVariant: "server_directed" as const,
+                              };
+                    void queueDiscoveryImpression(event).then((persisted) => {
                         if (active && persisted) {
                             setQualifiedImpressionId(impressionId);
                         }

@@ -31,6 +31,8 @@ interface ShowDiscoverySectionProps {
     // value so a copy tweak to `title` doesn't silently break the locator.
     testId?: string;
     discoveryPresentation?: DiscoveryPresentation;
+    /** Structured server reason copy keyed by show identity. */
+    reasonLabels?: Readonly<Record<number, string>>;
 }
 
 const ShowDiscoverySection = ({
@@ -41,6 +43,7 @@ const ShowDiscoverySection = ({
     seeAllHref,
     testId,
     discoveryPresentation,
+    reasonLabels,
 }: ShowDiscoverySectionProps) => {
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [isClient, setIsClient] = useState(false);
@@ -140,20 +143,36 @@ const ShowDiscoverySection = ({
             >
                 {shows.map((show, index) => {
                     const cardClassName =
-                        "flex-none w-rail-card-compact sm:w-rail-card-standard md:w-rail-card-standard lg:w-rail-card-standard max-w-[calc(100vw-2rem)]";
+                        "relative flex-none w-rail-card-compact sm:w-rail-card-standard md:w-rail-card-standard lg:w-rail-card-standard max-w-[calc(100vw-2rem)]";
+                    const reasonLabel = reasonLabels?.[show.id];
+                    const card = (discoveryAttribution?: {
+                        impressionId?: string;
+                        onShowDetail: () => void;
+                    }) => (
+                        <>
+                            {reasonLabel ? (
+                                <p className="relative z-[3] mb-2 w-fit rounded-full border border-copper/30 bg-cedar px-3 py-1 font-dmSans text-caption font-semibold text-champagne">
+                                    {reasonLabel}
+                                </p>
+                            ) : null}
+                            <ShowCard
+                                show={show}
+                                density="compact"
+                                discoveryAttribution={discoveryAttribution}
+                            />
+                        </>
+                    );
                     if (!discoveryPresentation) {
                         return (
                             <div key={show.id} className={cardClassName}>
-                                <ShowCard show={show} density="compact" />
+                                {card()}
                             </div>
                         );
                     }
                     const presentationKey = [
                         show.id,
-                        index + 1,
                         discoveryPresentation.surface,
                         discoveryPresentation.policyVersion,
-                        discoveryPresentation.experimentVariant,
                     ].join(":");
                     return (
                         <DiscoveryImpressionTracker
@@ -163,13 +182,7 @@ const ShowDiscoverySection = ({
                             className={cardClassName}
                             {...discoveryPresentation}
                         >
-                            {(attribution) => (
-                                <ShowCard
-                                    show={show}
-                                    density="compact"
-                                    discoveryAttribution={attribution}
-                                />
-                            )}
+                            {(attribution) => card(attribution)}
                         </DiscoveryImpressionTracker>
                     );
                 })}

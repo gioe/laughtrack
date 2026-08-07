@@ -13,10 +13,21 @@ import { getShowsNearZipWithTelemetry } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
+import { getDiscoveryRailPolicy } from "@/lib/data/home/getDiscoveryRailPolicy";
+import { getTouringScarcityRails } from "@/lib/data/home/getTouringScarcityRails";
+import { getFreshAndRisingRails } from "@/lib/data/home/getFreshAndRisingRails";
+import { getAffinityRails } from "@/lib/data/home/getAffinityRails";
 import {
     isNearYouRankerEnabled,
     resolveNearYouDiscoveryPolicy,
 } from "@/lib/data/home/discoveryRanker";
+import {
+    getDiscoveryRailCycleIndex,
+    loadDiscoveryRailPolicyWithFallback,
+    selectDiscoveryRailPlan,
+    type DiscoveryRailPayloadMap,
+} from "@/lib/discovery/railSelector";
+import type { DiscoveryRailKey } from "@/lib/discovery/railPolicy";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
@@ -25,6 +36,7 @@ import HeroComponent from "@/ui/pages/home/hero";
 import TrendingComedianGrid from "@/ui/pages/home/comedians";
 import TrendingClubsCarousel from "@/ui/pages/home/clubs";
 import ShowDiscoverySection from "@/ui/pages/home/shows";
+import DiscoveryRailPlan from "@/ui/pages/home/DiscoveryRailPlan";
 import FooterComponent from "@/ui/pages/home/footer";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildWebSiteJsonLd } from "@/util/jsonLd";
@@ -33,6 +45,23 @@ import FixtureHomePage from "./page.fixture";
 export interface HomePageData {
     comedians: ComedianDTO[];
     clubs: ClubDTO[];
+}
+
+function isPresent<T>(value: T | null | undefined): value is T {
+    return value !== null && value !== undefined;
+}
+
+function withDynamicItemIds<
+    T extends {
+        railKey: DiscoveryRailKey;
+        label: string;
+        items: readonly { show: { id: number } }[];
+    },
+>(rail: T) {
+    return {
+        ...rail,
+        items: rail.items.map((item) => ({ ...item, id: item.show.id })),
+    };
 }
 
 async function getHomePageData(): Promise<HomePageData> {
@@ -81,6 +110,10 @@ export default async function HomePage() {
 
     const [session, cookieStore] = await Promise.all([auth(), cookies()]);
     const timezone = readTimezoneCookie(cookieStore.get("timezone")?.value);
+    const railPolicyPromise = loadDiscoveryRailPolicyWithFallback(
+        "web",
+        getDiscoveryRailPolicy,
+    );
     const heroContext = await getHeroContext(session?.profile?.zipCode ?? null);
     const zipCode = heroContext.zipCode;
     const storedAnonymousVisitorId =
@@ -115,6 +148,9 @@ export default async function HomePage() {
         nearYouResult,
         trendingShowsThisWeek,
         favoriteComedianShows,
+        touringScarcityRails,
+        freshAndRisingRails,
+        affinityRails,
     ] = await Promise.all([
         getCachedHomePageData(),
         zipCode
@@ -145,6 +181,14 @@ export default async function HomePage() {
         session?.profile?.id
             ? getFavoriteComedianShows(session.profile.id).catch(() => [])
             : Promise.resolve([]),
+        getTouringScarcityRails({
+            zipCode: zipCode ?? "",
+            radiusMiles: DEFAULT_HOME_RADIUS_MILES,
+        }).catch(() => null),
+        getFreshAndRisingRails().catch(() => null),
+        getAffinityRails(session?.profile?.id, {
+            deduplicateAcrossRails: false,
+        }).catch(() => null),
     ]);
 
     const showsNearYou = nearYouResult.shows;
@@ -163,16 +207,86 @@ export default async function HomePage() {
     const popularClubsLocal = Boolean(zipCode && nearYouClubs.length > 0);
     const popularClubs = popularClubsLocal ? nearYouClubs : clubs;
 
-    return (
-        <main id="main-content" className="min-h-screen w-full">
-            <JsonLd data={buildWebSiteJsonLd()} />
-            <HeroComponent
-                profile={session?.profile}
-                city={heroContext.city}
-                state={heroContext.state}
-                heroShows={heroShows}
-                hasLocalShows={hasLocalShows}
-            />
+    const dynamicRails = [
+        touringScarcityRails?.justPassingThrough
+            ? withDynamicItemIds(touringScarcityRails.justPassingThrough)
+            : null,
+        touringScarcityRails?.rareReturns
+            ? withDynamicItemIds(touringScarcityRails.rareReturns)
+            : null,
+        touringScarcityRails?.onlyChanceNearby
+            ? withDynamicItemIds(touringScarcityRails.onlyChanceNearby)
+            : null,
+        freshAndRisingRails?.newlyAdded
+            ? withDynamicItemIds(freshAndRisingRails.newlyAdded)
+            : null,
+        freshAndRisingRails?.startingToBuzz
+            ? withDynamicItemIds(freshAndRisingRails.startingToBuzz)
+            : null,
+        freshAndRisingRails?.catchThemEarly
+            ? withDynamicItemIds(freshAndRisingRails.catchThemEarly)
+            : null,
+        affinityRails?.fromYourPodcasts
+            ? withDynamicItemIds(affinityRails.fromYourPodcasts)
+            : null,
+        affinityRails?.stackedLineups
+            ? withDynamicItemIds(affinityRails.stackedLineups)
+            : null,
+        affinityRails?.becauseYouFollowThem
+            ? withDynamicItemIds(affinityRails.becauseYouFollowThem)
+            : null,
+    ]
+        .filter(isPresent)
+        .filter((rail) => rail.items.length > 0);
+    const dynamicPayloads = dynamicRails.reduce<DiscoveryRailPayloadMap>(
+        (payloads, rail) => {
+            payloads[rail.railKey] = {
+                payloadKey: "dynamicRails",
+                items: rail.items,
+            };
+            return payloads;
+        },
+        {},
+    );
+    const railPolicy = await railPolicyPromise;
+    const railPlan = selectDiscoveryRailPlan({
+        policy: railPolicy,
+        actorKey: discoveryActorKey ?? `anonymous:${zipCode ?? "global"}`,
+        cycleIndex: getDiscoveryRailCycleIndex(
+            nowInTz,
+            railPolicy.cycleCadenceHours,
+        ),
+        payloads: {
+            followed_comedian_shows: {
+                payloadKey: "followedComedianShows",
+                items: favoriteComedianShows,
+            },
+            trending_comedians: {
+                payloadKey: "trendingComedians",
+                items: onTheRiseComedians,
+            },
+            shows_tonight: {
+                payloadKey: "showsTonight",
+                items: showsTonight,
+            },
+            nearby_shows: {
+                payloadKey: "moreNearYou",
+                items: showsNearYou,
+            },
+            trending_this_week: {
+                payloadKey: "trendingThisWeek",
+                items: trendingShowsThisWeek,
+            },
+            popular_clubs: {
+                payloadKey: "popularClubs",
+                items: popularClubs,
+            },
+            ...dynamicPayloads,
+        },
+    });
+
+    const fallbackRails = (
+        <>
             {favoriteComedianShows.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
@@ -235,6 +349,38 @@ export default async function HomePage() {
                     zipCode={popularClubsLocal && zipCode ? zipCode : undefined}
                 />
             </section>
+        </>
+    );
+
+    return (
+        <main id="main-content" className="min-h-screen w-full">
+            <JsonLd data={buildWebSiteJsonLd()} />
+            <HeroComponent
+                profile={session?.profile}
+                city={heroContext.city}
+                state={heroContext.state}
+                heroShows={heroShows}
+                hasLocalShows={hasLocalShows}
+            />
+            <DiscoveryRailPlan
+                plan={railPlan}
+                payloads={{
+                    followedComedianShows: favoriteComedianShows,
+                    trendingComedians: onTheRiseComedians,
+                    showsTonight,
+                    moreNearYou: showsNearYou,
+                    trendingThisWeek: trendingShowsThisWeek,
+                    popularClubs,
+                    dynamicRails,
+                }}
+                fallback={fallbackRails}
+                today={todayStr}
+                weekEnd={weekStr}
+                zipCode={zipCode ?? undefined}
+                distanceMiles={DEFAULT_HOME_RADIUS_MILES}
+                localTrendingComedians={onTheRiseLocal}
+                localPopularClubs={popularClubsLocal}
+            />
             <FooterComponent />
         </main>
     );

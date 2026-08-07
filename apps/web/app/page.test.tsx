@@ -14,6 +14,10 @@ const mocks = vi.hoisted(() => ({
     getTrendingShowsThisWeek: vi.fn(),
     getHeroContext: vi.fn(),
     getFavoriteComedianShows: vi.fn(),
+    getDiscoveryRailPolicy: vi.fn(),
+    getTouringScarcityRails: vi.fn(),
+    getFreshAndRisingRails: vi.fn(),
+    getAffinityRails: vi.fn(),
 }));
 
 vi.mock("../auth", () => ({
@@ -55,6 +59,18 @@ vi.mock("@/lib/data/home/getHeroContext", () => ({
 vi.mock("@/lib/data/home/getFavoriteComedianShows", () => ({
     getFavoriteComedianShows: mocks.getFavoriteComedianShows,
 }));
+vi.mock("@/lib/data/home/getDiscoveryRailPolicy", () => ({
+    getDiscoveryRailPolicy: mocks.getDiscoveryRailPolicy,
+}));
+vi.mock("@/lib/data/home/getTouringScarcityRails", () => ({
+    getTouringScarcityRails: mocks.getTouringScarcityRails,
+}));
+vi.mock("@/lib/data/home/getFreshAndRisingRails", () => ({
+    getFreshAndRisingRails: mocks.getFreshAndRisingRails,
+}));
+vi.mock("@/lib/data/home/getAffinityRails", () => ({
+    getAffinityRails: mocks.getAffinityRails,
+}));
 
 vi.mock("@/ui/pages/home/hero", () => ({
     default: () => <section data-testid="home-hero" />,
@@ -95,6 +111,23 @@ vi.mock("@/ui/pages/home/shows", () => ({
 }));
 vi.mock("@/ui/pages/home/footer", () => ({
     default: () => <footer data-testid="home-footer" />,
+}));
+vi.mock("@/ui/pages/home/DiscoveryRailPlan", () => ({
+    default: ({
+        plan,
+        fallback,
+    }: {
+        plan: { platform?: string; policyVersion?: number } | null;
+        fallback: React.ReactNode;
+    }) => (
+        <div
+            data-testid="discovery-rail-plan"
+            data-platform={plan?.platform}
+            data-policy-version={plan?.policyVersion}
+        >
+            {fallback}
+        </div>
+    ),
 }));
 vi.mock("@/ui/components/JsonLd", () => ({
     default: () => null,
@@ -141,6 +174,16 @@ beforeEach(() => {
         zipCode: null,
     });
     mocks.getFavoriteComedianShows.mockResolvedValue([]);
+    mocks.getDiscoveryRailPolicy.mockResolvedValue({
+        platform: "web",
+        catalogVersion: 2,
+        version: 7,
+        cycleCadenceHours: 24,
+        rails: [],
+    });
+    mocks.getTouringScarcityRails.mockResolvedValue(null);
+    mocks.getFreshAndRisingRails.mockResolvedValue(null);
+    mocks.getAffinityRails.mockResolvedValue(null);
 });
 
 afterEach(() => {
@@ -163,6 +206,14 @@ function findCandidateProfileId(): string {
 }
 
 describe("HomePage favorite comedian rail", () => {
+    it("selects the shared discovery policy for the web platform", async () => {
+        const markup = await renderHomePage();
+
+        expect(mocks.getDiscoveryRailPolicy).toHaveBeenCalledWith("web");
+        expect(markup).toContain('data-platform="web"');
+        expect(markup).toContain('data-policy-version="7"');
+    });
+
     it("scopes shows tonight to the resolved profile ZIP", async () => {
         mocks.auth.mockResolvedValue({
             profile: { id: "profile-1", zipCode: "10801" },
