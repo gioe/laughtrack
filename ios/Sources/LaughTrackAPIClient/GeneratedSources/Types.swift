@@ -4522,7 +4522,7 @@ public enum Components {
             /// - Remark: Generated from `#/components/schemas/HomeFeed/popularClubs`.
             public var popularClubs: [Components.Schemas.ClubListItem]
             /// - Remark: Generated from `#/components/schemas/HomeFeed/railPlan`.
-            public var railPlan: Components.Schemas.HomeFeedRailPlan
+            public var railPlan: Components.Schemas.HomeFeedRailPlan?
             /// Creates a new `HomeFeed`.
             ///
             /// - Parameters:
@@ -4548,7 +4548,7 @@ public enum Components {
                 podcastEpisodes: [Components.Schemas.HomeFeedPodcastEpisode]? = nil,
                 trendingPodcasts: [Components.Schemas.HomeFeedPodcast],
                 popularClubs: [Components.Schemas.ClubListItem],
-                railPlan: Components.Schemas.HomeFeedRailPlan
+                railPlan: Components.Schemas.HomeFeedRailPlan? = nil
             ) {
                 self.hero = hero
                 self.trendingComedians = trendingComedians

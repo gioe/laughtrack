@@ -4624,8 +4624,7 @@
           "trendingThisWeek",
           "followedComedianShows",
           "trendingPodcasts",
-          "popularClubs",
-          "railPlan"
+          "popularClubs"
         ],
         "properties": {
           "hero": { "$ref": "#/components/schemas/HomeFeedHero" },
