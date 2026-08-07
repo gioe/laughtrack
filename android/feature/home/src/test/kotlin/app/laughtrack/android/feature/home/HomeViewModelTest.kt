@@ -164,6 +164,20 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun repeated_signed_out_state_preserves_anonymous_episode_recommendations() =
+        runTest {
+            val repository = FakeHomeFeedRepository(feed = homeFeed().copy(podcastEpisodes = listOf(podcastEpisode())))
+            val viewModel = viewModel(repository)
+            advanceUntilIdle()
+
+            viewModel.onAuthStateChanged(signedIn = false)
+            advanceUntilIdle()
+
+            assertEquals(listOf(501), viewModel.state.value.podcastEpisodes.map { it.id })
+            assertEquals(1, repository.loads)
+        }
+
+    @Test
     fun cached_feed_survives_network_failure() =
         runTest {
             // Cache holds a prior snapshot; the network always fails. The user keeps

@@ -153,7 +153,8 @@ class HomeViewModel
 
         /** Strip account-scoped content immediately, then refresh for the new session. */
         fun onAuthStateChanged(signedIn: Boolean) {
-            if (!signedIn) {
+            val signingOut = currentSignedIn && !signedIn
+            if (signingOut) {
                 _state.update { snapshot ->
                     val feed = (snapshot.feed as? UiState.Success<HomeFeed>)?.value
                     if (feed == null) {
