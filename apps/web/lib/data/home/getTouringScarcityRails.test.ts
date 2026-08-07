@@ -1,3 +1,4 @@
+import { PGlite } from "@electric-sql/pglite";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/db", () => ({
@@ -36,6 +37,22 @@ const REQUEST = {
 
 const mockQueryRaw = vi.mocked(db.$queryRaw);
 const mockFindShowsForHome = vi.mocked(findShowsForHome);
+
+type SqlLike = {
+    strings: readonly string[];
+    values: readonly unknown[];
+};
+
+function toPgliteQuery(query: SqlLike) {
+    const values = query.values.map((value) =>
+        value instanceof Date ? value.toISOString() : value,
+    );
+    const text = query.strings.reduce((sql, chunk, index) => {
+        if (index >= values.length) return sql + chunk;
+        return `${sql}${chunk}$${index + 1}`;
+    }, "");
+    return { text, values };
+}
 
 function row(
     overrides: Partial<TouringScarcityEvidenceRow> = {},
@@ -287,6 +304,134 @@ describe("getTouringScarcityRails", () => {
         expect(sql).toContain("NULLIF(btrim(ticket.purchase_url), '')");
         expect(query.values).toContain("94103");
         expect(query.values).toContain("94107");
+    });
+
+    it("executes canonical scarcity evidence against relational show history", async () => {
+        const pg = new PGlite();
+        try {
+            await pg.exec(`
+                CREATE TABLE clubs (
+                    id INTEGER PRIMARY KEY,
+                    zip_code TEXT,
+                    visible BOOLEAN NOT NULL
+                );
+                CREATE TABLE shows (
+                    id INTEGER PRIMARY KEY,
+                    club_id INTEGER NOT NULL REFERENCES clubs(id),
+                    date TIMESTAMPTZ NOT NULL,
+                    name TEXT,
+                    tickets_sold_out BOOLEAN NOT NULL DEFAULT false
+                );
+                CREATE TABLE tickets (
+                    id INTEGER PRIMARY KEY,
+                    show_id INTEGER NOT NULL REFERENCES shows(id),
+                    sold_out BOOLEAN NOT NULL DEFAULT false,
+                    purchase_url TEXT
+                );
+                CREATE TABLE comedians (
+                    id INTEGER PRIMARY KEY,
+                    uuid TEXT NOT NULL UNIQUE,
+                    name TEXT NOT NULL,
+                    visible BOOLEAN NOT NULL DEFAULT true,
+                    parent_comedian_id INTEGER REFERENCES comedians(id),
+                    home_city TEXT,
+                    home_state TEXT,
+                    home_country TEXT,
+                    home_club_id INTEGER REFERENCES clubs(id),
+                    home_location_updated_at TIMESTAMPTZ
+                );
+                CREATE TABLE lineup_items (
+                    show_id INTEGER NOT NULL REFERENCES shows(id),
+                    comedian_id TEXT NOT NULL REFERENCES comedians(uuid)
+                );
+                CREATE TABLE tags (
+                    id INTEGER PRIMARY KEY,
+                    "restrictContent" BOOLEAN NOT NULL DEFAULT false
+                );
+                CREATE TABLE tagged_comedians (
+                    comedian_id TEXT NOT NULL REFERENCES comedians(uuid),
+                    tag_id INTEGER NOT NULL REFERENCES tags(id)
+                );
+
+                INSERT INTO clubs (id, zip_code, visible) VALUES
+                    (1, '94103', true),
+                    (2, '90001', true),
+                    (3, '94107', false);
+                INSERT INTO comedians
+                    (id, uuid, name, visible, parent_comedian_id, home_city,
+                     home_state, home_country, home_club_id,
+                     home_location_updated_at)
+                VALUES
+                    (10, 'canonical', 'Canonical Comic', true, NULL,
+                     'Los Angeles', 'CA', 'US', 2, '2026-07-01T00:00:00Z'),
+                    (11, 'alias', 'Alias Comic', true, 10,
+                     NULL, NULL, NULL, NULL, NULL),
+                    (12, 'hidden-alias', 'Hidden Alias', false, 10,
+                     NULL, NULL, NULL, NULL, NULL);
+
+                INSERT INTO shows (id, club_id, date, name) VALUES
+                    (1, 1, '2024-01-01T20:00:00Z', 'History 1'),
+                    (2, 1, '2024-02-01T20:00:00Z', 'History 2'),
+                    (3, 1, '2024-03-01T20:00:00Z', 'History 3'),
+                    (4, 1, '2024-04-01T20:00:00Z', 'History 4'),
+                    (5, 1, '2024-05-01T20:00:00Z', 'History 5'),
+                    (6, 1, '2024-06-01T20:00:00Z', 'History 6'),
+                    (7, 1, '2024-07-01T20:00:00Z', 'History 7'),
+                    (8, 1, '2024-08-01T20:00:00Z', 'History 8'),
+                    (9, 1, '2024-09-01T20:00:00Z', 'History 9'),
+                    (10, 1, '2025-01-01T20:00:00Z', 'Prior Alias Date'),
+                    (101, 1, '2026-08-10T20:00:00Z', 'Eligible Date'),
+                    (102, 1, '2026-08-11T20:00:00Z', 'Sold Out Date'),
+                    (103, 1, '2026-08-12T20:00:00Z', 'No Ticket Date'),
+                    (104, 1, '2026-08-13T20:00:00Z', 'Hidden Alias Date'),
+                    (105, 3, '2026-08-14T20:00:00Z', 'Hidden Club Date');
+                UPDATE shows SET tickets_sold_out = true WHERE id = 102;
+
+                INSERT INTO lineup_items (show_id, comedian_id) VALUES
+                    (10, 'alias'),
+                    (101, 'alias'),
+                    (102, 'alias'),
+                    (103, 'alias'),
+                    (104, 'hidden-alias'),
+                    (105, 'alias');
+                INSERT INTO tickets (id, show_id, sold_out, purchase_url) VALUES
+                    (1, 101, false, 'https://tickets.example.com/101'),
+                    (2, 102, true, 'https://tickets.example.com/102'),
+                    (3, 103, false, '   '),
+                    (4, 104, false, 'https://tickets.example.com/104'),
+                    (5, 105, false, 'https://tickets.example.com/105');
+            `);
+
+            const query = buildTouringScarcityQuery({
+                nearbyZips: ["94103", "94107"],
+                now: NOW,
+                horizonEnd: new Date("2026-10-30T12:00:00.000Z"),
+            });
+            const converted = toPgliteQuery(query as SqlLike);
+            const result = await pg.query<{
+                show_id: number;
+                canonical_comedian_id: number;
+                canonical_comedian_uuid: string;
+                local_appearance_count: number;
+                prior_local_appearance_count: number;
+                history_coverage_show_count: number;
+                home_zip_code: string;
+            }>(converted.text, converted.values);
+
+            expect(result.rows).toEqual([
+                expect.objectContaining({
+                    show_id: 101,
+                    canonical_comedian_id: 10,
+                    canonical_comedian_uuid: "canonical",
+                    local_appearance_count: 1,
+                    prior_local_appearance_count: 1,
+                    history_coverage_show_count: 10,
+                    home_zip_code: "90001",
+                }),
+            ]);
+        } finally {
+            await pg.close();
+        }
     });
 
     it("hydrates selected evidence through the shared public home-show mapper", async () => {
