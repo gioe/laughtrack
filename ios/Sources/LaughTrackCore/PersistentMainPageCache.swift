@@ -7,11 +7,15 @@ public extension Components.Schemas.HomeFeed {
         var feed = self
         feed.followedComedianShows = []
         feed.podcastEpisodes = nil
+        feed.railPlan = nil
+        feed.dynamicRails = nil
         return feed
     }
 }
 
 public actor PersistentMainPageCache {
+    private static let homeFeedPlanSchemaRevision = 1
+
     public struct CachedValue<Value: Sendable>: Sendable {
         public let value: Value
         public let expiresAt: Date
@@ -31,9 +35,12 @@ public actor PersistentMainPageCache {
     /// on the build number means any entry from a different build is treated as
     /// a miss and refetched, instead of bleeding stale data into the Discover
     /// rails (TASK-2919). CFBundleVersion changes on every build, so this also
-    /// covers schema changes that happen to remain decode-compatible.
+    /// covers schema changes that happen to remain decode-compatible. The
+    /// explicit home-feed-plan revision invalidates same-build blobs when the
+    /// public cache's plan-safety semantics change; bump it with those changes.
     public static var defaultSchemaVersion: String {
-        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "0"
+        let buildNumber = (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "0"
+        return "\(buildNumber):home-feed-plan-v\(homeFeedPlanSchemaRevision)"
     }
 
     private struct Entry<Value: Codable>: Codable {

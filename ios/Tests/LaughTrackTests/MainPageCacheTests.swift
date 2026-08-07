@@ -153,7 +153,9 @@ struct MainPageCacheTests {
         let personalizedFeed = homeFeed(
             showID: 733,
             followedShowIDs: [734],
-            podcastEpisodeIDs: [735]
+            podcastEpisodeIDs: [735],
+            railPlan: homeFeedRailPlan(),
+            dynamicRails: [homeFeedDynamicRail()]
         )
 
         await MainPageCache.set(
@@ -171,9 +173,13 @@ struct MainPageCacheTests {
         #expect(memoryValue?.showsTonight.map(\.id) == [733])
         #expect(memoryValue?.followedComedianShows.isEmpty == true)
         #expect(memoryValue?.podcastEpisodes == nil)
+        #expect(memoryValue?.railPlan == nil)
+        #expect(memoryValue?.dynamicRails == nil)
         #expect(diskValue?.showsTonight.map(\.id) == [733])
         #expect(diskValue?.followedComedianShows.isEmpty == true)
         #expect(diskValue?.podcastEpisodes == nil)
+        #expect(diskValue?.railPlan == nil)
+        #expect(diskValue?.dynamicRails == nil)
 
         // Defensive reads also sanitize a raw value written outside MainPageCache.
         await cache.set(personalizedFeed, forKey: key)
@@ -185,6 +191,14 @@ struct MainPageCacheTests {
         #expect(sanitizedRead?.showsTonight.map(\.id) == [733])
         #expect(sanitizedRead?.followedComedianShows.isEmpty == true)
         #expect(sanitizedRead?.podcastEpisodes == nil)
+        #expect(sanitizedRead?.railPlan == nil)
+        #expect(sanitizedRead?.dynamicRails == nil)
+    }
+
+    @Test("default schema version combines the build number with the home-feed plan revision")
+    func defaultSchemaVersionIncludesBuildAndPlanRevision() {
+        let buildNumber = (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "0"
+        #expect(PersistentMainPageCache.defaultSchemaVersion == "\(buildNumber):home-feed-plan-v1")
     }
 
     @Test("home feed persistent cache expires entries")
@@ -465,7 +479,9 @@ private func makeClient(_ transport: ClientTransport) -> Client {
 private func homeFeed(
     showID: Int,
     followedShowIDs: [Int] = [],
-    podcastEpisodeIDs: [Int]? = nil
+    podcastEpisodeIDs: [Int]? = nil,
+    railPlan: Components.Schemas.HomeFeedRailPlan? = nil,
+    dynamicRails: [Components.Schemas.HomeFeedDynamicRail]? = nil
 ) -> Components.Schemas.HomeFeed {
     .init(
         hero: .init(
@@ -482,7 +498,45 @@ private func homeFeed(
         followedComedianShows: followedShowIDs.map(homeShow),
         podcastEpisodes: podcastEpisodeIDs?.map(homePodcastEpisode),
         trendingPodcasts: [],
-        popularClubs: []
+        popularClubs: [],
+        dynamicRails: dynamicRails,
+        railPlan: railPlan
+    )
+}
+
+private func homeFeedRailPlan() -> Components.Schemas.HomeFeedRailPlan {
+    .init(
+        version: 2,
+        catalogVersion: 1,
+        policyVersion: 1,
+        platform: .ios,
+        cycleIndex: 0,
+        rails: [
+            .init(
+                railKey: "future_server_rail",
+                payloadKey: "futurePayload",
+                position: 0,
+                itemIds: ["736"]
+            )
+        ]
+    )
+}
+
+private func homeFeedDynamicRail() -> Components.Schemas.HomeFeedDynamicRail {
+    .init(
+        railKey: "future_dynamic_rail",
+        label: "A future rail",
+        items: [
+            .init(
+                id: 736,
+                show: homeShow(id: 736),
+                reason: .init(
+                    kind: "future_reason_kind",
+                    label: "A future reason",
+                    evidence: .init()
+                )
+            )
+        ]
     )
 }
 
