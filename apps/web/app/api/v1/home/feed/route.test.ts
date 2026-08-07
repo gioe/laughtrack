@@ -219,6 +219,61 @@ describe("GET /api/v1/home/feed", () => {
                 platform: "ios",
             });
         });
+
+        it("deduplicates plan shows by policy priority without changing the legacy field", async () => {
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-1",
+                userId: "user-1",
+            });
+            mockGetFavoriteComedianShows.mockResolvedValue([
+                { id: 42 },
+            ] as never);
+            mockGetShowsTonight.mockResolvedValue([
+                { id: 42 },
+                { id: 43 },
+            ] as never);
+            mockGetDiscoveryRailPolicy.mockResolvedValue({
+                platform: "web",
+                catalogVersion: 1,
+                version: 2,
+                cycleCadenceHours: 24,
+                rails: [
+                    {
+                        railKey: "followed_comedian_shows",
+                        enabled: true,
+                        position: 0,
+                        rotationPool: null,
+                        weight: 1,
+                    },
+                    {
+                        railKey: "shows_tonight",
+                        enabled: true,
+                        position: 1,
+                        rotationPool: null,
+                        weight: 1,
+                    },
+                ],
+            });
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(body.data.followedComedianShows).toEqual([]);
+            expect(body.data.railPlan.rails).toEqual([
+                {
+                    railKey: "followed_comedian_shows",
+                    payloadKey: "followedComedianShows",
+                    position: 0,
+                    itemIds: ["42"],
+                },
+                {
+                    railKey: "shows_tonight",
+                    payloadKey: "showsTonight",
+                    position: 1,
+                    itemIds: ["43"],
+                },
+            ]);
+        });
     });
 
     describe("zip validation", () => {

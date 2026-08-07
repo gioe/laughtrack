@@ -212,7 +212,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 },
                 followed_comedian_shows: {
                     payloadKey: "followedComedianShows",
-                    items: followedComedianShows,
+                    items: followedComedianShowCandidates,
                 },
                 trending_this_week: {
                     payloadKey: "trendingThisWeek",
