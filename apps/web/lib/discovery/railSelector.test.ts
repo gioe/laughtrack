@@ -225,6 +225,87 @@ describe("selectDiscoveryRailPlan", () => {
         ]);
         expect(payloads).toEqual(payloadSnapshot);
     });
+
+    it("uses resolved policy priority to deduplicate dynamic show rails", () => {
+        const payloads: DiscoveryRailPayloadMap = {
+            newly_added: {
+                payloadKey: "dynamicRails",
+                items: [{ id: 41 }, { id: 42 }],
+            },
+            stacked_lineups: {
+                payloadKey: "dynamicRails",
+                items: [{ id: 41 }, { id: 43 }],
+            },
+            just_passing_through: {
+                payloadKey: "dynamicRails",
+                items: [{ id: 41 }, { id: 42 }, { id: 43 }],
+            },
+            because_you_follow_them: {
+                payloadKey: "dynamicRails",
+                items: [],
+            },
+        };
+        const policyFor = (
+            railKeys: DiscoveryRailPolicyDto["rails"][number]["railKey"][],
+        ): DiscoveryRailPolicyDto => ({
+            platform: "web",
+            catalogVersion: 2,
+            version: 9,
+            cycleCadenceHours: 24,
+            rails: railKeys.map((railKey, position) => ({
+                railKey,
+                enabled: true,
+                position,
+                rotationPool: null,
+                weight: 1,
+            })),
+        });
+
+        const freshFirst = selectDiscoveryRailPlan({
+            policy: policyFor([
+                "newly_added",
+                "stacked_lineups",
+                "just_passing_through",
+                "because_you_follow_them",
+            ]),
+            actorKey: "profile:dynamic",
+            cycleIndex: 12,
+            payloads,
+        });
+        expect(freshFirst.rails).toEqual([
+            {
+                railKey: "newly_added",
+                payloadKey: "dynamicRails",
+                position: 0,
+                itemIds: ["41", "42"],
+            },
+            {
+                railKey: "stacked_lineups",
+                payloadKey: "dynamicRails",
+                position: 1,
+                itemIds: ["43"],
+            },
+        ]);
+
+        const touringFirst = selectDiscoveryRailPlan({
+            policy: policyFor([
+                "just_passing_through",
+                "stacked_lineups",
+                "newly_added",
+            ]),
+            actorKey: "profile:dynamic",
+            cycleIndex: 12,
+            payloads,
+        });
+        expect(touringFirst.rails).toEqual([
+            {
+                railKey: "just_passing_through",
+                payloadKey: "dynamicRails",
+                position: 0,
+                itemIds: ["41", "42", "43"],
+            },
+        ]);
+    });
 });
 
 describe("loadDiscoveryRailPolicyWithFallback", () => {

@@ -51,6 +51,15 @@ const SHOW_RAIL_KEYS = new Set<DiscoveryRailKey>([
     "followed_comedian_shows",
     "trending_this_week",
     "nearby_shows",
+    "just_passing_through",
+    "rare_returns",
+    "only_chance_nearby",
+    "newly_added",
+    "starting_to_buzz",
+    "catch_them_early",
+    "from_your_podcasts",
+    "stacked_lineups",
+    "because_you_follow_them",
 ]);
 
 /**

@@ -468,4 +468,44 @@ describe("getAffinityRails", () => {
             qualifyingPerformerCount: 3,
         });
     });
+
+    it("preserves fixed cross-rail dedup by default and can defer priority to the home-feed selector", () => {
+        const candidates = [
+            podcastRow(501, 1, { favoriteComedian: true }),
+            row(501, 2),
+            row(501, 3),
+        ];
+
+        const defaultPriority = classifyAffinityCandidates(candidates, REQUEST);
+        expect(
+            defaultPriority.fromYourPodcasts.map(({ showId }) => showId),
+        ).toEqual([501]);
+        expect(defaultPriority.stackedLineups).toEqual([]);
+        expect(defaultPriority.becauseYouFollowThem).toEqual([]);
+
+        const policyPriority = classifyAffinityCandidates(candidates, {
+            ...REQUEST,
+            deduplicateAcrossRails: false,
+        });
+        expect(
+            policyPriority.fromYourPodcasts.map(({ showId }) => showId),
+        ).toEqual([501]);
+        expect(
+            policyPriority.stackedLineups.map(({ showId }) => showId),
+        ).toEqual([501]);
+        expect(
+            policyPriority.becauseYouFollowThem.map(({ showId }) => showId),
+        ).toEqual([501]);
+
+        const externallyExcluded = classifyAffinityCandidates(candidates, {
+            ...REQUEST,
+            deduplicateAcrossRails: false,
+            excludedShowIds: [501],
+        });
+        expect(externallyExcluded).toEqual({
+            fromYourPodcasts: [],
+            stackedLineups: [],
+            becauseYouFollowThem: [],
+        });
+    });
 });

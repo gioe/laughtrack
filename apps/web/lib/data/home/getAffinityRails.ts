@@ -107,6 +107,12 @@ export interface AffinityRailsOptions {
     limit?: number;
     stackedLineupThreshold?: number;
     excludedShowIds?: readonly number[];
+    /**
+     * Keep the provider's historical fixed rail priority by default. The home
+     * feed disables this so its operator-configured policy can own cross-rail
+     * deduplication after rotation has been resolved.
+     */
+    deduplicateAcrossRails?: boolean;
 }
 
 export interface AffinityEvidenceRow {
@@ -140,6 +146,7 @@ interface ClassifyOptions {
     stackedLineupThreshold: number;
     personalized: boolean;
     excludedShowIds: readonly number[];
+    deduplicateAcrossRails?: boolean;
 }
 
 interface ClassifiedFromPodcastItem {
@@ -498,7 +505,11 @@ function podcast(row: AffinityEvidenceRow): AffinityPodcast | null {
         : null;
 }
 
-/** Pure classifier. Rail order is also the internal show-dedup priority. */
+/**
+ * Pure classifier. By default, rail order is also the internal show-dedup
+ * priority. Callers with a separate authoritative policy can retain overlaps
+ * for that later selector by setting deduplicateAcrossRails=false.
+ */
 export function classifyAffinityCandidates(
     rows: readonly AffinityEvidenceRow[],
     options: ClassifyOptions,
@@ -537,7 +548,15 @@ export function classifyAffinityCandidates(
             leftRows[0].showDate.getTime() - rightRows[0].showDate.getTime() ||
             leftId - rightId,
     );
-    const seen = new Set(options.excludedShowIds);
+    const podcastSeen = new Set(options.excludedShowIds);
+    const stackedSeen =
+        options.deduplicateAcrossRails === false
+            ? new Set(options.excludedShowIds)
+            : podcastSeen;
+    const followedSeen =
+        options.deduplicateAcrossRails === false
+            ? new Set(options.excludedShowIds)
+            : podcastSeen;
     const result: ClassifiedAffinityRails = {
         fromYourPodcasts: [],
         stackedLineups: [],
@@ -547,7 +566,7 @@ export function classifyAffinityCandidates(
     if (options.personalized) {
         for (const [showId, showRows] of shows) {
             if (
-                seen.has(showId) ||
+                podcastSeen.has(showId) ||
                 result.fromYourPodcasts.length >= options.limit
             ) {
                 continue;
@@ -602,12 +621,15 @@ export function classifyAffinityCandidates(
                     },
                 },
             });
-            seen.add(showId);
+            podcastSeen.add(showId);
         }
     }
 
     for (const [showId, showRows] of shows) {
-        if (seen.has(showId) || result.stackedLineups.length >= options.limit) {
+        if (
+            stackedSeen.has(showId) ||
+            result.stackedLineups.length >= options.limit
+        ) {
             continue;
         }
         const count = showRows.length;
@@ -623,13 +645,13 @@ export function classifyAffinityCandidates(
                 },
             },
         });
-        seen.add(showId);
+        stackedSeen.add(showId);
     }
 
     if (options.personalized) {
         for (const [showId, showRows] of shows) {
             if (
-                seen.has(showId) ||
+                followedSeen.has(showId) ||
                 result.becauseYouFollowThem.length >= options.limit
             ) {
                 continue;
@@ -652,7 +674,7 @@ export function classifyAffinityCandidates(
                     },
                 },
             });
-            seen.add(showId);
+            followedSeen.add(showId);
         }
     }
 
@@ -732,6 +754,7 @@ export async function getAffinityRails(
         stackedLineupThreshold,
         personalized: Boolean(profileId),
         excludedShowIds: options.excludedShowIds ?? [],
+        deduplicateAcrossRails: options.deduplicateAcrossRails ?? true,
     });
     const showIds = [
         ...new Set(
