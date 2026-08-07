@@ -493,7 +493,7 @@ export default function AdminDiscoveryRailPolicyEditor() {
                     </Button>
                 </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <div className="mt-4 grid gap-3 md:grid-cols-3 lg:grid-cols-3">
                     {DISCOVERY_PLATFORMS.map((platform) => {
                         const policy = savedPolicies[platform];
                         if (!policy) return null;
@@ -551,9 +551,9 @@ export default function AdminDiscoveryRailPolicyEditor() {
 
             <section
                 aria-labelledby="policy-settings-heading"
-                className="rounded-md border border-copper/20 bg-surface-elevated p-4 md:p-5"
+                className="rounded-md border border-copper/20 bg-surface-elevated p-4 md:p-5 lg:p-5"
             >
-                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <h2
                             id="policy-settings-heading"
@@ -819,7 +819,7 @@ export default function AdminDiscoveryRailPolicyEditor() {
                         </span>
                     ) : null}
                 </div>
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-2">
                     <PreviewCard
                         title="Current cycle"
                         railKeys={
