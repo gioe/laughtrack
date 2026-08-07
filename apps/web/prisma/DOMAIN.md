@@ -52,6 +52,15 @@ Review queue and audit log for candidate episode appearances. Stores accepted an
 ### Show
 A comedy show at a club on a date. Has lineup items, tickets, and tags. `showType` is the normalized programming classifier used to derive ClubDiscoveryProfile rows; `unknown` means classification was attempted without enough evidence, while null means unclassified legacy or not-yet-processed data. `firstDiscoveredAt` is set by the database default when a scraper inserts a new show and is preserved on later upserts; historical rows may be null so notification candidate queries can exclude pre-existing backlog.
 
+### DiscoveryRailCatalog
+Stable registry of Discover rail keys and their rendering metadata. Each row identifies the rail's label and content kind, whether it requires an authenticated viewer, the platforms that can render it, and the catalog version that introduced the definition. Platform policies may reference only cataloged keys, and catalog rows cannot be deleted while policy entries still use them.
+
+### DiscoveryRailPlatformPolicy
+Versioned Discover configuration for exactly one of `web`, `ios`, or `android`. Each platform owns an independent policy version, catalog version, and cycle cadence in hours. `updatedByProfileId` attributes the latest admin write when available; deleting that profile nulls the reference without deleting configuration. Updates to a policy and its entries must be applied atomically and increment `policyVersion`.
+
+### DiscoveryRailPolicyEntry
+Placement and rotation settings for one catalog rail on one platform. The composite `(platform, railKey)` identity prevents duplicate configuration, and every rail must be cataloged and support its selected platform. `position` is zero-based, contiguous across slots, and cannot mix a fixed rail with a rotation pool or two different pools. `rotationPool` is null for fixed rails or names the pool used for cycling; all members of one pool share a position and every pool has at least one enabled member. Fixed rails require weight 1, rotation weights are constrained to 1–100, and enabled fixed rails have unique positions per platform. Deleting a platform policy cascades to its entries, while deleting a referenced catalog rail is restricted.
+
 ### Ticket
 A ticket option for a show (price, purchase URL, type, sold-out flag).
 
