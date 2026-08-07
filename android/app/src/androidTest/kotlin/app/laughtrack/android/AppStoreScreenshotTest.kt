@@ -18,9 +18,11 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -37,6 +39,7 @@ import app.laughtrack.android.feature.detail.ui.CLUB_FREQUENT_PERFORMERS_SECTION
 import app.laughtrack.android.feature.detail.ui.CLUB_HIGHLIGHT_SECTION_TEST_TAG
 import app.laughtrack.android.feature.detail.ui.CLUB_SHOW_ROW_TEST_TAG
 import app.laughtrack.android.feature.detail.ui.components.DETAIL_LOADING_TEST_TAG
+import app.laughtrack.android.feature.home.HOME_DISCOVER_LIST_TEST_TAG
 import app.laughtrack.android.feature.search.ui.SEARCH_RESULT_ROW_TEST_TAG
 import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
 import app.laughtrack.android.screenshots.ScreenshotImageTracker
@@ -246,6 +249,26 @@ class AppStoreScreenshotTest {
                 hasText("Near Los Angeles", substring = true) or hasText("90028", substring = true),
                 timeoutMs = 30_000,
             )
+            if (isCompactScreenshotProfile()) {
+                waitFor(hasTestTag(HOME_DISCOVER_LIST_TEST_TAG), timeoutMs = 30_000)
+                waitForDiscoverAndScrollTo(hasText("Episodes for you"))
+                waitForStable(hasText("Episodes for you"), timeoutMs = 30_000)
+                composeRule.onNodeWithText("Browse podcasts").performScrollTo()
+                waitFor(hasContentDescription("The Joe Rogan Experience"))
+                waitFor(hasText("#2520 - A Night of Comedy"))
+                waitFor(hasText(" • 149 min", substring = true))
+                waitFor(hasText("Guest: Ali Wong"))
+                waitFor(hasText("Guest appearance by Ali Wong"))
+                waitFor(
+                    hasContentDescription(
+                        "Open #2520 - A Night of Comedy",
+                        substring = true,
+                    ),
+                )
+                waitFor(hasTestTag("homePodcastEpisodePlay-501"))
+                waitFor(hasContentDescription("Play episode #2520 - A Night of Comedy"))
+                waitFor(hasText("Browse podcasts"))
+            }
             if (capture("01_NearMe")) return
         } else {
             waitForCanonicalHomeLocation()
@@ -459,6 +482,26 @@ class AppStoreScreenshotTest {
                     location.distanceMiles == 25 &&
                     location.locationLabel == "Los Angeles, CA"
             } == true
+        }
+    }
+
+    private fun isCompactScreenshotProfile(): Boolean =
+        InstrumentationRegistry.getInstrumentation()
+            .targetContext
+            .resources
+            .displayMetrics
+            .run { widthPixels * 160f / densityDpi < 600f }
+
+    private fun waitForDiscoverAndScrollTo(
+        matcher: SemanticsMatcher,
+        timeoutMs: Long = 30_000,
+    ) {
+        composeRule.waitUntil(timeoutMillis = timeoutMs) {
+            runCatching {
+                composeRule
+                    .onNodeWithTag(HOME_DISCOVER_LIST_TEST_TAG)
+                    .performScrollToNode(matcher)
+            }.isSuccess
         }
     }
 

@@ -189,6 +189,36 @@ def test_home_feed_includes_personalized_followed_comedian_shows() -> None:
     assert home["followedComedianShows"][0]["name"] == "Late Night at The Store"
 
 
+def test_home_feed_includes_deterministic_podcast_episode_discovery() -> None:
+    home = fixture_response("/api/v1/home/feed", "http://fixture")["data"]
+
+    assert len(home["podcastEpisodes"]) == 1
+    episode = home["podcastEpisodes"][0]
+    assert episode["id"] == 501
+    assert episode["title"] == "#2520 - A Night of Comedy"
+    assert episode["releaseDate"] == EPISODE_RELEASE_DATE.isoformat()
+    assert episode["durationSeconds"] == 8940
+    assert episode["audioUrl"] == "https://example.invalid/audio/501.mp3"
+    assert episode["podcast"] == {
+        "id": 401,
+        "slug": "joe-rogan-experience",
+        "title": "The Joe Rogan Experience",
+        "imageUrl": "http://fixture/artwork/joe-rogan.png",
+    }
+    assert episode["recommendation"] == {
+        "reason": "guest_appearance",
+        "comedian": {
+            "id": 301,
+            "uuid": "fixture-301",
+            "name": "Ali Wong",
+            "imageUrl": "http://fixture/artwork/ali-wong.png",
+        },
+        "appearanceRole": "guest",
+        "followedComedian": False,
+        "favoritePodcast": False,
+    }
+
+
 def test_club_highlights_fixture_populates_tonight_and_qualified_performers() -> None:
     payload = fixture_response("/api/v1/clubs/201/highlights", "http://fixture")
     highlights = payload["data"]

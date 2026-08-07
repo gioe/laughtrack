@@ -588,6 +588,36 @@ def _podcast_episode(base_url: str) -> dict:
     }
 
 
+def _home_feed_podcast_episode(base_url: str) -> dict:
+    episode = _podcast_episode(base_url)
+    podcast = _podcast(base_url)
+    guest = episode["appearances"][1]
+    return {
+        key: episode[key]
+        for key in (
+            "id",
+            "title",
+            "description",
+            "releaseDate",
+            "durationSeconds",
+            "episodeUrl",
+            "audioUrl",
+        )
+    } | {
+        "podcast": {
+            key: podcast[key]
+            for key in ("id", "slug", "title", "imageUrl")
+        },
+        "recommendation": {
+            "reason": "guest_appearance",
+            "comedian": guest,
+            "appearanceRole": "guest",
+            "followedComedian": False,
+            "favoritePodcast": False,
+        },
+    }
+
+
 def fixture_response(
     path: str,
     base_url: str,
@@ -640,6 +670,7 @@ def fixture_response(
                     mode=mode,
                 )
             ],
+            "podcastEpisodes": [_home_feed_podcast_episode(base_url)],
             "trendingPodcasts": [{"id": 401, "slug": "joe-rogan-experience", "title": "The Joe Rogan Experience", "episodeCount": 2520, "authorName": "Joe Rogan", "imageUrl": f"{base_url}/artwork/joe-rogan.png"}],
             "popularClubs": [{"id": 201, "address": "8433 Sunset Blvd, West Hollywood, CA", "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "activeComedianCount": 120, "zipCode": "90069"}],
         }}
