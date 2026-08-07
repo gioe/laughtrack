@@ -8,44 +8,59 @@ import LaughTrackCore
 
 @MainActor
 final class HomeTrendingPodcastsModel: ObservableObject {
-    @Published private(set) var phase: LoadPhase<[Components.Schemas.HomeFeedPodcast]> = .idle
+    enum Content: Equatable {
+        case episodes([Components.Schemas.HomeFeedPodcastEpisode])
+        case legacyPodcasts([Components.Schemas.HomeFeedPodcast])
+    }
+
+    @Published private(set) var phase: LoadPhase<Content> = .idle
 
     private var loadedRequestKey: String?
     private var loadedAt: Date?
 
-    func requestKey(for zipCode: String?, distanceMiles: Int? = nil) -> String {
-        HomeFeedRequest.requestKey(zipCode: zipCode, distanceMiles: distanceMiles)
+    func requestKey(
+        for zipCode: String?,
+        distanceMiles: Int? = nil,
+        sessionDiscriminator: String? = nil
+    ) -> String {
+        "\(sessionDiscriminator ?? "signed-out")|\(HomeFeedRequest.requestKey(zipCode: zipCode, distanceMiles: distanceMiles))"
     }
 
     func refresh(
         apiClient: Client,
         zipCode: String?,
         distanceMiles: Int? = nil,
+        sessionDiscriminator: String? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
         persistentCache: PersistentMainPageCache?,
         coalescer: HomeFeedRequestCoalescer = .shared
     ) async {
-        let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles)
+        let requestKey = requestKey(
+            for: zipCode,
+            distanceMiles: distanceMiles,
+            sessionDiscriminator: sessionDiscriminator
+        )
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
             return
         }
 
-        if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
+        let cachedFeed: Components.Schemas.HomeFeed? = await MainPageCache.get(
             .homeFeed(zipCode: zipCode, distanceMiles: distanceMiles),
             from: cache,
             persistentCache: persistentCache
-        ) {
+        )
+        if let cachedFeed {
             apply(feed: cachedFeed, requestKey: requestKey)
-            return
+        } else {
+            phase = .loading
         }
-
-        phase = .loading
 
         let result = await HomeFeedRequest.load(
             apiClient: apiClient,
             zipCode: zipCode,
             distanceMiles: distanceMiles,
+            sessionDiscriminator: sessionDiscriminator,
             cache: cache,
             cacheTTL: cacheTTL,
             badParamsMessage: "LaughTrack could not load trending podcasts.",
@@ -62,14 +77,23 @@ final class HomeTrendingPodcastsModel: ObservableObject {
         case .success(let feed):
             apply(feed: feed, requestKey: requestKey)
         case .failure(let failure):
-            phase = .failure(failure)
+            if cachedFeed == nil {
+                phase = .failure(failure)
+            }
         }
     }
 
     private func apply(feed: Components.Schemas.HomeFeed, requestKey: String) {
-        phase = .success(feed.trendingPodcasts)
+        phase = .success(Self.content(from: feed))
         loadedRequestKey = requestKey
         loadedAt = Date()
+    }
+
+    static func content(from feed: Components.Schemas.HomeFeed) -> Content {
+        if let episodes = feed.podcastEpisodes, !episodes.isEmpty {
+            return .episodes(episodes)
+        }
+        return .legacyPodcasts(feed.trendingPodcasts)
     }
 
     private func isLoadedValueFresh(cacheTTL: TimeInterval) -> Bool {

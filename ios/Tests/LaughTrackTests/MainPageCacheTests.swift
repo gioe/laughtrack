@@ -150,7 +150,11 @@ struct MainPageCacheTests {
         let persistentCache = PersistentMainPageCache(directory: directory)
         let cache = DataCache<LaughTrackCacheKey>()
         let key = LaughTrackCacheKey.homeFeed(zipCode: "10801", distanceMiles: 25)
-        let personalizedFeed = homeFeed(showID: 733, followedShowIDs: [734])
+        let personalizedFeed = homeFeed(
+            showID: 733,
+            followedShowIDs: [734],
+            podcastEpisodeIDs: [735]
+        )
 
         await MainPageCache.set(
             personalizedFeed,
@@ -166,8 +170,10 @@ struct MainPageCacheTests {
         )
         #expect(memoryValue?.showsTonight.map(\.id) == [733])
         #expect(memoryValue?.followedComedianShows.isEmpty == true)
+        #expect(memoryValue?.podcastEpisodes == nil)
         #expect(diskValue?.showsTonight.map(\.id) == [733])
         #expect(diskValue?.followedComedianShows.isEmpty == true)
+        #expect(diskValue?.podcastEpisodes == nil)
 
         // Defensive reads also sanitize a raw value written outside MainPageCache.
         await cache.set(personalizedFeed, forKey: key)
@@ -178,6 +184,7 @@ struct MainPageCacheTests {
         )
         #expect(sanitizedRead?.showsTonight.map(\.id) == [733])
         #expect(sanitizedRead?.followedComedianShows.isEmpty == true)
+        #expect(sanitizedRead?.podcastEpisodes == nil)
     }
 
     @Test("home feed persistent cache expires entries")
@@ -457,7 +464,8 @@ private func makeClient(_ transport: ClientTransport) -> Client {
 
 private func homeFeed(
     showID: Int,
-    followedShowIDs: [Int] = []
+    followedShowIDs: [Int] = [],
+    podcastEpisodeIDs: [Int]? = nil
 ) -> Components.Schemas.HomeFeed {
     .init(
         hero: .init(
@@ -472,8 +480,34 @@ private func homeFeed(
         moreNearYou: [],
         trendingThisWeek: [],
         followedComedianShows: followedShowIDs.map(homeShow),
+        podcastEpisodes: podcastEpisodeIDs?.map(homePodcastEpisode),
         trendingPodcasts: [],
         popularClubs: []
+    )
+}
+
+private func homePodcastEpisode(id: Int) -> Components.Schemas.HomeFeedPodcastEpisode {
+    .init(
+        id: id,
+        title: "Personalized Episode \(id)",
+        releaseDate: Date(),
+        podcast: .init(
+            id: 401,
+            slug: "personalized-podcast",
+            title: "Personalized Podcast"
+        ),
+        recommendation: .init(
+            reason: .followedComedian,
+            comedian: .init(
+                id: 501,
+                uuid: "comedian-501",
+                name: "Followed Comedian",
+                imageUrl: "https://example.com/comedian.png"
+            ),
+            appearanceRole: .guest,
+            followedComedian: true,
+            favoritePodcast: false
+        )
     )
 }
 

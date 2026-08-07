@@ -67,7 +67,8 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
 
         #expect(source.contains("LaughTrackButton(\"See all\""))
-        #expect(source.components(separatedBy: "actionTitle: \"See all\"").count - 1 == 3)
+        #expect(source.components(separatedBy: "actionTitle: \"See all\"").count - 1 == 2)
+        #expect(source.contains("actionTitle: \"Browse podcasts\""))
         #expect(source.contains(".discoverEntity(.comedians)"))
         #expect(source.contains("nearbyPreference: nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference"))
         #expect(source.contains(".discoverEntity(.podcasts)"))

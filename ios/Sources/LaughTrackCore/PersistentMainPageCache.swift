@@ -6,6 +6,7 @@ public extension Components.Schemas.HomeFeed {
     var publicCacheSlice: Self {
         var feed = self
         feed.followedComedianShows = []
+        feed.podcastEpisodes = nil
         return feed
     }
 }

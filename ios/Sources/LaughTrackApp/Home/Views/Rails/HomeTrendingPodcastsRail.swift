@@ -6,6 +6,130 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
+struct PodcastEpisodeDiscoveryItem: Identifiable, Equatable {
+    let id: Int
+    let title: String
+    let podcastName: String
+    let artworkURL: String?
+    let releaseMetadata: String
+    let comedianName: String
+    let comedianRole: String
+    let recommendationReason: String
+    let playbackItem: PodcastPlaybackItem?
+}
+
+enum HomePodcastEpisodeDiscoveryPresentation {
+    static func item(
+        from episode: Components.Schemas.HomeFeedPodcastEpisode,
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) -> PodcastEpisodeDiscoveryItem {
+        let recommendation = episode.recommendation
+        let audioURL = URL.normalizedExternalURL(episode.audioUrl)
+        let releaseDate = iso8601Formatter.string(from: episode.releaseDate)
+        let playbackItem = audioURL.map { audioURL in
+            PodcastPlaybackItem(
+                id: episode.id,
+                episodeID: episode.id,
+                podcastID: episode.podcast.id,
+                episodeTitle: episode.title,
+                podcastName: episode.podcast.title,
+                podcastImageURL: episode.podcast.imageUrl,
+                displayRole: roleLabel(recommendation.appearanceRole),
+                audioURL: audioURL,
+                episodeURL: URL.normalizedExternalURL(episode.episodeUrl),
+                failedAudioURL: nil,
+                releaseDate: releaseDate
+            )
+        }
+
+        return PodcastEpisodeDiscoveryItem(
+            id: episode.id,
+            title: episode.title,
+            podcastName: episode.podcast.title,
+            artworkURL: episode.podcast.imageUrl,
+            releaseMetadata: releaseMetadata(
+                date: episode.releaseDate,
+                durationSeconds: episode.durationSeconds,
+                now: now,
+                calendar: calendar
+            ),
+            comedianName: recommendation.comedian.name,
+            comedianRole: roleLabel(recommendation.appearanceRole),
+            recommendationReason: reasonLabel(recommendation),
+            playbackItem: playbackItem
+        )
+    }
+
+    static func route(for item: PodcastEpisodeDiscoveryItem) -> AppRoute {
+        .podcastEpisodeDetail(item.id)
+    }
+
+    private static func releaseMetadata(
+        date: Date,
+        durationSeconds: Int?,
+        now: Date,
+        calendar: Calendar
+    ) -> String {
+        let releaseDay = calendar.startOfDay(for: date)
+        let today = calendar.startOfDay(for: now)
+        let elapsedDays = max(0, calendar.dateComponents([.day], from: releaseDay, to: today).day ?? 0)
+        let freshness: String
+        switch elapsedDays {
+        case 0:
+            freshness = "Today"
+        case 1:
+            freshness = "Yesterday"
+        case 2...6:
+            freshness = "\(elapsedDays)d ago"
+        default:
+            freshness = releaseDateFormatter.string(from: date)
+        }
+
+        guard let durationSeconds, durationSeconds > 0 else { return freshness }
+        let minutes = max(1, Int((Double(durationSeconds) / 60).rounded()))
+        return "\(freshness) · \(minutes) min"
+    }
+
+    private static func roleLabel(
+        _ role: Components.Schemas.HomeFeedPodcastEpisodeRecommendation.AppearanceRolePayload
+    ) -> String {
+        switch role {
+        case .host: return "Host"
+        case .cohost: return "Cohost"
+        case .guest: return "Guest"
+        }
+    }
+
+    private static func reasonLabel(
+        _ recommendation: Components.Schemas.HomeFeedPodcastEpisodeRecommendation
+    ) -> String {
+        let comedian = recommendation.comedian.name
+        switch recommendation.reason {
+        case .followedComedian:
+            return "Because you follow \(comedian)"
+        case .favoritePodcast:
+            return "From a favorite podcast"
+        case .guestAppearance:
+            return "Guest appearance by \(comedian)"
+        case .popularComedian:
+            return "Featuring popular comedian \(comedian)"
+        case .recentEpisode:
+            return "A recent episode with \(comedian)"
+        }
+    }
+
+    private static let releaseDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "MMM d"
+        return formatter
+    }()
+
+    private static let iso8601Formatter = ISO8601DateFormatter()
+}
+
 struct HomeTrendingPodcastsRail: View {
     let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
@@ -15,6 +139,8 @@ struct HomeTrendingPodcastsRail: View {
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @StateObject private var model = HomeTrendingPodcastsModel()
 
     private var zipCode: String? {
@@ -25,14 +151,20 @@ struct HomeTrendingPodcastsRail: View {
         nearbyPreferenceStore.preference?.distanceMiles
     }
 
+    private var sessionDiscriminator: String? {
+        guard let userId = authManager.currentUser?.userId,
+              let session = authManager.currentSession else { return nil }
+        return "\(userId)|\(session.signedInAt.timeIntervalSinceReferenceDate)"
+    }
+
     var body: some View {
         HomeDiscoverRailCard(
             variant: .listeningRoom,
             eyebrow: "Funny listening",
-            title: "Popular comedy podcasts",
+            title: railTitle,
             subtitle: nil,
             accessibilityIdentifier: LaughTrackViewTestID.homeTrendingPodcastsRail,
-            actionTitle: "See all",
+            actionTitle: "Browse podcasts",
             action: {
                 searchNavigationBridge.openSearch(.discoverEntity(.podcasts))
             }
@@ -48,39 +180,70 @@ struct HomeTrendingPodcastsRail: View {
                             apiClient: apiClient,
                             zipCode: zipCode,
                             distanceMiles: distanceMiles,
+                            sessionDiscriminator: sessionDiscriminator,
                             cache: cache,
                             persistentCache: persistentCache
                         )
                     },
                     signIn: { coordinator.push(.profile) }
                 )
-            case .success(let items):
-                if items.isEmpty {
-                    EmptyCard(message: "No trending podcasts are available right now.")
-                } else {
-                    LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
-                        ForEach(items, id: \.id) { podcast in
-                            Button {
-                                coordinator.open(.podcast(podcast.id))
-                            } label: {
-                                HomeTrendingPodcastCard(podcast: podcast)
+            case .success(let content):
+                switch content {
+                case .episodes(let episodes):
+                    VStack(spacing: theme.spacing.sm) {
+                        ForEach(episodes, id: \.id) { episode in
+                            let item = HomePodcastEpisodeDiscoveryPresentation.item(from: episode)
+                            PodcastEpisodeDiscoveryRow(
+                                item: item,
+                                onSelect: {
+                                    coordinator.push(HomePodcastEpisodeDiscoveryPresentation.route(for: item))
+                                },
+                                onPlay: item.playbackItem.map { playbackItem in
+                                    { podcastPlayer.start(playbackItem) }
+                                }
+                            )
+                        }
+                    }
+                case .legacyPodcasts(let podcasts):
+                    if podcasts.isEmpty {
+                        EmptyCard(message: "No comedy podcasts are available right now.")
+                    } else {
+                        LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
+                            ForEach(podcasts, id: \.id) { podcast in
+                                Button {
+                                    coordinator.open(.podcast(podcast.id))
+                                } label: {
+                                    HomeTrendingPodcastCard(podcast: podcast)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingPodcastButton(podcast.id))
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingPodcastButton(podcast.id))
                         }
                     }
                 }
             }
         }
-        .task(id: model.requestKey(for: zipCode, distanceMiles: distanceMiles)) {
+        .task(id: model.requestKey(
+            for: zipCode,
+            distanceMiles: distanceMiles,
+            sessionDiscriminator: sessionDiscriminator
+        )) {
             await model.refresh(
                 apiClient: apiClient,
                 zipCode: zipCode,
                 distanceMiles: distanceMiles,
+                sessionDiscriminator: sessionDiscriminator,
                 cache: cache,
                 persistentCache: persistentCache
             )
         }
+    }
+
+    private var railTitle: String {
+        if case .success(.legacyPodcasts) = model.phase {
+            return "Popular comedy podcasts"
+        }
+        return "Episodes for you"
     }
 
     private var gridColumns: [GridItem] {
@@ -88,6 +251,107 @@ struct HomeTrendingPodcastsRail: View {
             GridItem(.flexible(), spacing: theme.spacing.sm),
             GridItem(.flexible(), spacing: theme.spacing.sm),
         ]
+    }
+}
+
+struct PodcastEpisodeDiscoveryRow: View {
+    let item: PodcastEpisodeDiscoveryItem
+    let onSelect: () -> Void
+    let onPlay: (() -> Void)?
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(alignment: .center, spacing: theme.spacing.sm) {
+            Button(action: onSelect) {
+                HStack(alignment: .top, spacing: theme.spacing.sm) {
+                    artwork
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.podcastName)
+                            .font(laughTrack.typography.metadata.weight(.bold))
+                            .foregroundStyle(laughTrack.colors.accentStrong)
+                            .lineLimit(1)
+
+                        Text(item.title)
+                            .font(laughTrack.typography.body.weight(.semibold))
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
+
+                        Text(item.releaseMetadata)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+
+                        Text("\(item.comedianRole): \(item.comedianName)")
+                            .font(laughTrack.typography.metadata.weight(.semibold))
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .lineLimit(1)
+
+                        Text(item.recommendationReason)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .lineLimit(2)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(
+                "Open \(item.title), \(item.podcastName), \(item.releaseMetadata), \(item.comedianRole) \(item.comedianName), \(item.recommendationReason)"
+            )
+            .accessibilityIdentifier(LaughTrackViewTestID.homePodcastEpisodeButton(item.id))
+
+            if let onPlay {
+                Button(action: onPlay) {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 28, weight: .semibold))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Play \(item.title)")
+                .accessibilityIdentifier(LaughTrackViewTestID.homePodcastEpisodePlayButton(item.id))
+            }
+        }
+        .padding(theme.spacing.sm)
+        .background(laughTrack.colors.surface)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    @ViewBuilder
+    private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+        let fallback = RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: ArtworkFallbackKind.podcast.systemImage)
+                    .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+
+        Group {
+            if let url = URL.normalizedExternalURL(item.artworkURL) {
+                CachedAsyncImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    fallback
+                } error: { _ in
+                    fallback
+                }
+            } else {
+                fallback
+            }
+        }
+        .frame(width: 78, height: 78)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 

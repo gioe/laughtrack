@@ -127,6 +127,14 @@ enum LaughTrackViewTestID {
         "laughtrack.home.trending-podcast-\(id)"
     }
 
+    static func homePodcastEpisodeButton(_ id: Int) -> String {
+        "laughtrack.home.podcast-episode-\(id)"
+    }
+
+    static func homePodcastEpisodePlayButton(_ id: Int) -> String {
+        "laughtrack.home.podcast-episode-play-\(id)"
+    }
+
     static func homeFavoriteShowButton(_ id: Int) -> String {
         "laughtrack.home.favorite-show-\(id)"
     }
