@@ -10,5 +10,10 @@ The iOS gate uses `xcodebuild build-for-testing` instead of
 which must compile against an iOS SDK rather than SwiftPM's default macOS
 destination.
 
+Before building, both the iOS domain gate and the `ios/**` path gate run
+`ios/bin/check-pbxproj-sync.sh`. This fails fast when a Swift source or test
+file is missing from `LaughTrack.xcodeproj/project.pbxproj`, rather than
+allowing an unregistered test file to be silently omitted from verification.
+
 The timeout remains finite so `tusk commit` still fails genuinely hung test
 commands instead of waiting indefinitely.
