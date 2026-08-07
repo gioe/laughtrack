@@ -4521,6 +4521,8 @@ public enum Components {
             public var trendingPodcasts: [Components.Schemas.HomeFeedPodcast]
             /// - Remark: Generated from `#/components/schemas/HomeFeed/popularClubs`.
             public var popularClubs: [Components.Schemas.ClubListItem]
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/railPlan`.
+            public var railPlan: Components.Schemas.HomeFeedRailPlan
             /// Creates a new `HomeFeed`.
             ///
             /// - Parameters:
@@ -4534,6 +4536,7 @@ public enum Components {
             ///   - podcastEpisodes: Optional fresh episode recommendations ranked from comedian follows, podcast favorites, appearance role, comedian popularity, and recency. Older clients and stale cached payloads may omit this field.
             ///   - trendingPodcasts: Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
             ///   - popularClubs:
+            ///   - railPlan:
             public init(
                 hero: Components.Schemas.HomeFeedHero,
                 trendingComedians: [Components.Schemas.ComedianListItem],
@@ -4544,7 +4547,8 @@ public enum Components {
                 followedComedianShows: [Components.Schemas.Show],
                 podcastEpisodes: [Components.Schemas.HomeFeedPodcastEpisode]? = nil,
                 trendingPodcasts: [Components.Schemas.HomeFeedPodcast],
-                popularClubs: [Components.Schemas.ClubListItem]
+                popularClubs: [Components.Schemas.ClubListItem],
+                railPlan: Components.Schemas.HomeFeedRailPlan
             ) {
                 self.hero = hero
                 self.trendingComedians = trendingComedians
@@ -4556,6 +4560,7 @@ public enum Components {
                 self.podcastEpisodes = podcastEpisodes
                 self.trendingPodcasts = trendingPodcasts
                 self.popularClubs = popularClubs
+                self.railPlan = railPlan
             }
             public enum CodingKeys: String, CodingKey {
                 case hero
@@ -4568,6 +4573,119 @@ public enum Components {
                 case podcastEpisodes
                 case trendingPodcasts
                 case popularClubs
+                case railPlan
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry`.
+        public struct HomeFeedRailPlanEntry: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/railKey`.
+            @frozen public enum RailKeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case showsTonight = "shows_tonight"
+                case followedComedianShows = "followed_comedian_shows"
+                case trendingThisWeek = "trending_this_week"
+                case trendingComedians = "trending_comedians"
+                case popularClubs = "popular_clubs"
+                case trendingPodcasts = "trending_podcasts"
+                case nearbyShows = "nearby_shows"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/railKey`.
+            public var railKey: Components.Schemas.HomeFeedRailPlanEntry.RailKeyPayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/payloadKey`.
+            @frozen public enum PayloadKeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case showsTonight = "showsTonight"
+                case followedComedianShows = "followedComedianShows"
+                case trendingThisWeek = "trendingThisWeek"
+                case trendingComedians = "trendingComedians"
+                case popularClubs = "popularClubs"
+                case podcastEpisodes = "podcastEpisodes"
+                case moreNearYou = "moreNearYou"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/payloadKey`.
+            public var payloadKey: Components.Schemas.HomeFeedRailPlanEntry.PayloadKeyPayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/position`.
+            public var position: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/itemIds`.
+            public var itemIds: [Swift.String]
+            /// Creates a new `HomeFeedRailPlanEntry`.
+            ///
+            /// - Parameters:
+            ///   - railKey:
+            ///   - payloadKey:
+            ///   - position:
+            ///   - itemIds:
+            public init(
+                railKey: Components.Schemas.HomeFeedRailPlanEntry.RailKeyPayload,
+                payloadKey: Components.Schemas.HomeFeedRailPlanEntry.PayloadKeyPayload,
+                position: Swift.Int,
+                itemIds: [Swift.String]
+            ) {
+                self.railKey = railKey
+                self.payloadKey = payloadKey
+                self.position = position
+                self.itemIds = itemIds
+            }
+            public enum CodingKeys: String, CodingKey {
+                case railKey
+                case payloadKey
+                case position
+                case itemIds
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan`.
+        public struct HomeFeedRailPlan: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/version`.
+            @frozen public enum VersionPayload: Int, Codable, Hashable, Sendable, CaseIterable {
+                case _1 = 1
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/version`.
+            public var version: Components.Schemas.HomeFeedRailPlan.VersionPayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/catalogVersion`.
+            public var catalogVersion: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/policyVersion`.
+            public var policyVersion: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/platform`.
+            @frozen public enum PlatformPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case web = "web"
+                case ios = "ios"
+                case android = "android"
+            }
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/platform`.
+            public var platform: Components.Schemas.HomeFeedRailPlan.PlatformPayload
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/cycleIndex`.
+            public var cycleIndex: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/rails`.
+            public var rails: [Components.Schemas.HomeFeedRailPlanEntry]
+            /// Creates a new `HomeFeedRailPlan`.
+            ///
+            /// - Parameters:
+            ///   - version:
+            ///   - catalogVersion:
+            ///   - policyVersion:
+            ///   - platform:
+            ///   - cycleIndex:
+            ///   - rails:
+            public init(
+                version: Components.Schemas.HomeFeedRailPlan.VersionPayload,
+                catalogVersion: Swift.Int,
+                policyVersion: Swift.Int,
+                platform: Components.Schemas.HomeFeedRailPlan.PlatformPayload,
+                cycleIndex: Swift.Int,
+                rails: [Components.Schemas.HomeFeedRailPlanEntry]
+            ) {
+                self.version = version
+                self.catalogVersion = catalogVersion
+                self.policyVersion = policyVersion
+                self.platform = platform
+                self.cycleIndex = cycleIndex
+                self.rails = rails
+            }
+            public enum CodingKeys: String, CodingKey {
+                case version
+                case catalogVersion
+                case policyVersion
+                case platform
+                case cycleIndex
+                case rails
             }
         }
         /// - Remark: Generated from `#/components/schemas/HomeFeedResponse`.
@@ -13718,17 +13836,30 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/home/feed/GET/query/distance`.
                 public var distance: Swift.Int?
+                /// - Remark: Generated from `#/paths/home/feed/GET/query/platform`.
+                @frozen public enum PlatformPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                    case web = "web"
+                    case ios = "ios"
+                    case android = "android"
+                }
+                /// Client platform used to select the server-directed Discover rail policy. Defaults to web for backward compatibility.
+                ///
+                /// - Remark: Generated from `#/paths/home/feed/GET/query/platform`.
+                public var platform: Operations.GetHomeFeed.Input.Query.PlatformPayload?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
                 ///   - zip: Optional 5-digit US zip override. When supplied, beats the signed-in user's profile zipCode for this request — used for anonymous callers or profile-preview.
                 ///   - distance: Radius in miles for zip-scoped recommendations (1-500, default 25).
+                ///   - platform: Client platform used to select the server-directed Discover rail policy. Defaults to web for backward compatibility.
                 public init(
                     zip: Swift.String? = nil,
-                    distance: Swift.Int? = nil
+                    distance: Swift.Int? = nil,
+                    platform: Operations.GetHomeFeed.Input.Query.PlatformPayload? = nil
                 ) {
                     self.zip = zip
                     self.distance = distance
+                    self.platform = platform
                 }
             }
             public var query: Operations.GetHomeFeed.Input.Query

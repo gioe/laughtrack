@@ -4451,6 +4451,13 @@ public struct Client: APIProtocol {
                     name: "distance",
                     value: input.query.distance
                 )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "platform",
+                    value: input.query.platform
+                )
                 try converter.setHeaderFieldAsURI(
                     in: &request.headerFields,
                     name: "X-Timezone",
