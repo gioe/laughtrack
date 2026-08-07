@@ -5023,21 +5023,10 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason`.
         public struct HomeFeedDynamicRailReason: Codable, Hashable, Sendable {
+            /// Extensible reason identifier. Clients must tolerate values introduced by newer recommendation policies.
+            ///
             /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason/kind`.
-            @frozen public enum KindPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case justPassingThrough = "just_passing_through"
-                case rareReturn = "rare_return"
-                case backAfterAWhile = "back_after_a_while"
-                case onlyChanceNearby = "only_chance_nearby"
-                case newlyAdded = "newly_added"
-                case startingToBuzz = "starting_to_buzz"
-                case catchThemEarly = "catch_them_early"
-                case fromYourPodcasts = "from_your_podcasts"
-                case stackedLineup = "stacked_lineup"
-                case becauseYouFollowThem = "because_you_follow_them"
-            }
-            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason/kind`.
-            public var kind: Components.Schemas.HomeFeedDynamicRailReason.KindPayload
+            public var kind: Swift.String
             /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason/label`.
             public var label: Swift.String
             /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason/evidence`.
@@ -5045,11 +5034,11 @@ public enum Components {
             /// Creates a new `HomeFeedDynamicRailReason`.
             ///
             /// - Parameters:
-            ///   - kind:
+            ///   - kind: Extensible reason identifier. Clients must tolerate values introduced by newer recommendation policies.
             ///   - label:
             ///   - evidence:
             public init(
-                kind: Components.Schemas.HomeFeedDynamicRailReason.KindPayload,
+                kind: Swift.String,
                 label: Swift.String,
                 evidence: Components.Schemas.HomeFeedDynamicRailReasonEvidence
             ) {
@@ -5106,20 +5095,10 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail`.
         public struct HomeFeedDynamicRail: Codable, Hashable, Sendable {
+            /// Extensible dynamic rail identifier. Clients must tolerate values introduced by newer recommendation policies.
+            ///
             /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail/railKey`.
-            @frozen public enum RailKeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case justPassingThrough = "just_passing_through"
-                case rareReturns = "rare_returns"
-                case onlyChanceNearby = "only_chance_nearby"
-                case newlyAdded = "newly_added"
-                case startingToBuzz = "starting_to_buzz"
-                case catchThemEarly = "catch_them_early"
-                case fromYourPodcasts = "from_your_podcasts"
-                case stackedLineups = "stacked_lineups"
-                case becauseYouFollowThem = "because_you_follow_them"
-            }
-            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail/railKey`.
-            public var railKey: Components.Schemas.HomeFeedDynamicRail.RailKeyPayload
+            public var railKey: Swift.String
             /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail/label`.
             public var label: Swift.String
             /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRail/items`.
@@ -5127,11 +5106,11 @@ public enum Components {
             /// Creates a new `HomeFeedDynamicRail`.
             ///
             /// - Parameters:
-            ///   - railKey:
+            ///   - railKey: Extensible dynamic rail identifier. Clients must tolerate values introduced by newer recommendation policies.
             ///   - label:
             ///   - items:
             public init(
-                railKey: Components.Schemas.HomeFeedDynamicRail.RailKeyPayload,
+                railKey: Swift.String,
                 label: Swift.String,
                 items: [Components.Schemas.HomeFeedDynamicRailItem]
             ) {
@@ -5242,40 +5221,14 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry`.
         public struct HomeFeedRailPlanEntry: Codable, Hashable, Sendable {
+            /// Extensible rail identifier selected by the server policy.
+            ///
             /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/railKey`.
-            @frozen public enum RailKeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case showsTonight = "shows_tonight"
-                case followedComedianShows = "followed_comedian_shows"
-                case trendingThisWeek = "trending_this_week"
-                case trendingComedians = "trending_comedians"
-                case popularClubs = "popular_clubs"
-                case trendingPodcasts = "trending_podcasts"
-                case nearbyShows = "nearby_shows"
-                case justPassingThrough = "just_passing_through"
-                case rareReturns = "rare_returns"
-                case onlyChanceNearby = "only_chance_nearby"
-                case newlyAdded = "newly_added"
-                case startingToBuzz = "starting_to_buzz"
-                case catchThemEarly = "catch_them_early"
-                case fromYourPodcasts = "from_your_podcasts"
-                case stackedLineups = "stacked_lineups"
-                case becauseYouFollowThem = "because_you_follow_them"
-            }
-            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/railKey`.
-            public var railKey: Components.Schemas.HomeFeedRailPlanEntry.RailKeyPayload
+            public var railKey: Swift.String
+            /// Extensible HomeFeed payload field containing the rail data.
+            ///
             /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/payloadKey`.
-            @frozen public enum PayloadKeyPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case showsTonight = "showsTonight"
-                case followedComedianShows = "followedComedianShows"
-                case trendingThisWeek = "trendingThisWeek"
-                case trendingComedians = "trendingComedians"
-                case popularClubs = "popularClubs"
-                case podcastEpisodes = "podcastEpisodes"
-                case moreNearYou = "moreNearYou"
-                case dynamicRails = "dynamicRails"
-            }
-            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/payloadKey`.
-            public var payloadKey: Components.Schemas.HomeFeedRailPlanEntry.PayloadKeyPayload
+            public var payloadKey: Swift.String
             /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/position`.
             public var position: Swift.Int
             /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlanEntry/itemIds`.
@@ -5283,13 +5236,13 @@ public enum Components {
             /// Creates a new `HomeFeedRailPlanEntry`.
             ///
             /// - Parameters:
-            ///   - railKey:
-            ///   - payloadKey:
+            ///   - railKey: Extensible rail identifier selected by the server policy.
+            ///   - payloadKey: Extensible HomeFeed payload field containing the rail data.
             ///   - position:
             ///   - itemIds:
             public init(
-                railKey: Components.Schemas.HomeFeedRailPlanEntry.RailKeyPayload,
-                payloadKey: Components.Schemas.HomeFeedRailPlanEntry.PayloadKeyPayload,
+                railKey: Swift.String,
+                payloadKey: Swift.String,
                 position: Swift.Int,
                 itemIds: [Swift.String]
             ) {
@@ -5307,12 +5260,10 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan`.
         public struct HomeFeedRailPlan: Codable, Hashable, Sendable {
+            /// Extensible rail-plan schema version. Clients must tolerate newer versions.
+            ///
             /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/version`.
-            @frozen public enum VersionPayload: Int, Codable, Hashable, Sendable, CaseIterable {
-                case _1 = 1
-            }
-            /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/version`.
-            public var version: Components.Schemas.HomeFeedRailPlan.VersionPayload
+            public var version: Swift.Int
             /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/catalogVersion`.
             public var catalogVersion: Swift.Int
             /// - Remark: Generated from `#/components/schemas/HomeFeedRailPlan/policyVersion`.
@@ -5332,14 +5283,14 @@ public enum Components {
             /// Creates a new `HomeFeedRailPlan`.
             ///
             /// - Parameters:
-            ///   - version:
+            ///   - version: Extensible rail-plan schema version. Clients must tolerate newer versions.
             ///   - catalogVersion:
             ///   - policyVersion:
             ///   - platform:
             ///   - cycleIndex:
             ///   - rails:
             public init(
-                version: Components.Schemas.HomeFeedRailPlan.VersionPayload,
+                version: Swift.Int,
                 catalogVersion: Swift.Int,
                 policyVersion: Swift.Int,
                 platform: Components.Schemas.HomeFeedRailPlan.PlatformPayload,
