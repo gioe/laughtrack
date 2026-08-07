@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -17,6 +18,7 @@ from test_sim_destination import DestinationNotFoundError, select_destination
 
 DEFAULT_MODEL = "iPhone 16 Pro"
 DEFAULT_IOS_MAJOR = 18
+SWIFT_TEST_SUMMARY = re.compile(r"Test run with (\d+) tests?\b")
 
 
 def _simctl_json(*arguments: str) -> dict[str, object]:
@@ -65,6 +67,51 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _requires_swift_testing_summary(selector: str) -> bool:
+    return selector == "LaughTrackTests" or selector.startswith("LaughTrackTests/")
+
+
+def _run_xcodebuild(command: list[str], selectors: list[str]) -> int:
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        text=True,
+        bufsize=1,
+    )
+    if process.stdout is None:
+        process.kill()
+        process.wait()
+        print("test-sim: could not read xcodebuild output", file=sys.stderr)
+        return 2
+
+    swift_test_count: int | None = None
+    for line in process.stdout:
+        sys.stdout.write(line)
+        sys.stdout.flush()
+        for match in SWIFT_TEST_SUMMARY.finditer(line):
+            count = int(match.group(1))
+            swift_test_count = max(swift_test_count or 0, count)
+
+    returncode = process.wait()
+    if returncode != 0:
+        return returncode
+
+    swift_selectors = [selector for selector in selectors if _requires_swift_testing_summary(selector)]
+    if swift_selectors and not swift_test_count:
+        joined_selectors = ", ".join(swift_selectors)
+        print(
+            "test-sim: xcodebuild succeeded but no Swift Testing cases ran for "
+            f"selector(s): {joined_selectors}. Use a suite-level "
+            "LaughTrackTests/SuiteName selector and confirm new test files are "
+            "registered in LaughTrack.xcodeproj/project.pbxproj "
+            "(make -C ios check-pbxproj).",
+            file=sys.stderr,
+        )
+        return 1
+
+    return 0
+
+
 def main() -> int:
     args = _parser().parse_args()
     if not args.resolve_only and not args.selectors:
@@ -103,7 +150,7 @@ def main() -> int:
         "test",
     ]
     command.extend(f"-only-testing:{selector}" for selector in args.selectors)
-    return subprocess.run(command).returncode
+    return _run_xcodebuild(command, args.selectors)
 
 
 if __name__ == "__main__":
