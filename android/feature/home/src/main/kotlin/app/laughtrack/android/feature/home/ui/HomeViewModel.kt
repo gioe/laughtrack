@@ -8,6 +8,7 @@ import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeed
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisode
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.home.data.HomeFeedCache
@@ -99,6 +100,9 @@ data class HomeUiState(
 
     val podcasts: List<HomeFeedPodcast>
         get() = loadedFeed?.trendingPodcasts.orEmpty()
+
+    val podcastEpisodes: List<HomeFeedPodcastEpisode>
+        get() = loadedFeed?.podcastEpisodes.orEmpty().distinctBy { it.id }
 }
 
 @HiltViewModel
@@ -152,7 +156,11 @@ class HomeViewModel
             if (!signedIn) {
                 _state.update { snapshot ->
                     val feed = (snapshot.feed as? UiState.Success<HomeFeed>)?.value
-                    if (feed == null) snapshot else snapshot.copy(feed = UiState.Success(feed.withoutFollowedShows()))
+                    if (feed == null) {
+                        snapshot
+                    } else {
+                        snapshot.copy(feed = UiState.Success(feed.withoutAccountScopedContent()))
+                    }
                 }
             }
             if (signedIn != currentSignedIn) {
@@ -257,6 +265,9 @@ private fun dedupeShows(shows: List<Show>): List<Show> {
 }
 
 private fun HomeFeed.withoutFollowedShows(): HomeFeed = copy(followedComedianShows = emptyList())
+
+private fun HomeFeed.withoutAccountScopedContent(): HomeFeed =
+    copy(followedComedianShows = emptyList(), podcastEpisodes = null)
 
 private fun isSoldOut(show: Show): Boolean {
     if (show.soldOut == true) return true

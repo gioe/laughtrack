@@ -7,6 +7,10 @@ import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeed
 import app.laughtrack.android.core.network.generated.model.HomeFeedHero
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisode
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodeComedian
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodePodcast
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodeRecommendation
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.core.network.generated.model.Ticket
@@ -139,6 +143,24 @@ class HomeViewModelTest {
             viewModel.onAuthStateChanged(signedIn = false)
             advanceUntilIdle()
             assertTrue(viewModel.state.value.followedComedianShows.isEmpty())
+        }
+
+    @Test
+    fun sign_out_clears_account_episodes_before_anonymous_refresh_repopulates_them() =
+        runTest {
+            val feed = homeFeed().copy(podcastEpisodes = listOf(podcastEpisode()))
+            val viewModel = viewModel(FakeHomeFeedRepository(feed = feed))
+            advanceUntilIdle()
+
+            viewModel.onAuthStateChanged(signedIn = true)
+            advanceUntilIdle()
+            assertEquals(listOf(501), viewModel.state.value.podcastEpisodes.map { it.id })
+
+            viewModel.onAuthStateChanged(signedIn = false)
+            assertTrue(viewModel.state.value.podcastEpisodes.isEmpty())
+
+            advanceUntilIdle()
+            assertEquals(listOf(501), viewModel.state.value.podcastEpisodes.map { it.id })
         }
 
     @Test
@@ -458,6 +480,38 @@ class HomeViewModelTest {
             popularClubs = listOf(club()),
         )
     }
+
+    private fun podcastEpisode(): HomeFeedPodcastEpisode =
+        HomeFeedPodcastEpisode(
+            id = 501,
+            title = "A Great New Set",
+            description = null,
+            releaseDate = "2026-08-05",
+            durationSeconds = 3_600,
+            episodeUrl = null,
+            audioUrl = "https://example.com/audio.mp3",
+            podcast =
+                HomeFeedPodcastEpisodePodcast(
+                    id = 88,
+                    slug = "the-comedy-hour",
+                    title = "The Comedy Hour",
+                    imageUrl = null,
+                ),
+            recommendation =
+                HomeFeedPodcastEpisodeRecommendation(
+                    reason = HomeFeedPodcastEpisodeRecommendation.Reason.RECENT_EPISODE,
+                    comedian =
+                        HomeFeedPodcastEpisodeComedian(
+                            id = 7,
+                            uuid = "comedian-7",
+                            name = "Jane Comic",
+                            imageUrl = "",
+                        ),
+                    appearanceRole = HomeFeedPodcastEpisodeRecommendation.AppearanceRole.GUEST,
+                    followedComedian = false,
+                    favoritePodcast = false,
+                ),
+        )
 
     private fun show(
         id: Int,

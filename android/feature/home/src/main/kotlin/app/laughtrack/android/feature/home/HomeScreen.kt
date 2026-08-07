@@ -58,8 +58,8 @@ import app.laughtrack.android.core.navigation.SearchLaunchRequest
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
-import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
@@ -87,6 +87,7 @@ const val HOME_DISCOVER_LIST_TEST_TAG = "homeDiscoverList"
 @Composable
 fun HomeScreen(
     onOpenEntity: (AppRoute) -> Unit,
+    onPlay: (PodcastPlaybackItem) -> Unit,
     onOpenSearch: (SearchLaunchRequest) -> Unit,
     signedIn: Boolean = false,
     modifier: Modifier = Modifier,
@@ -108,6 +109,7 @@ fun HomeScreen(
                         state = state,
                         listState = listState,
                         onOpenEntity = onOpenEntity,
+                        onPlay = onPlay,
                         onOpenSearch = onOpenSearch,
                         onManualZip = viewModel::setManualZip,
                         onUseLocation = viewModel::useDeviceLocation,
@@ -125,6 +127,7 @@ private fun HomeContent(
     state: HomeUiState,
     listState: LazyListState,
     onOpenEntity: (AppRoute) -> Unit,
+    onPlay: (PodcastPlaybackItem) -> Unit,
     onOpenSearch: (SearchLaunchRequest) -> Unit,
     onManualZip: (String) -> Unit,
     onUseLocation: () -> Unit,
@@ -216,10 +219,12 @@ private fun HomeContent(
                 )
             }
             item(key = "podcasts") {
-                PodcastRail(
-                    state.podcasts,
-                    onOpenEntity,
-                    onOpenSearch = {
+                HomePodcastRail(
+                    episodes = state.podcastEpisodes,
+                    podcasts = state.podcasts,
+                    onOpenEntity = onOpenEntity,
+                    onPlay = onPlay,
+                    onBrowsePodcasts = {
                         onOpenSearch(homeRailSearchRequest(HomeExpandableRail.PODCASTS, state))
                     },
                 )
@@ -420,30 +425,7 @@ private fun ClubRail(
 }
 
 @Composable
-private fun PodcastRail(
-    podcasts: List<HomeFeedPodcast>,
-    onOpenEntity: (AppRoute) -> Unit,
-    onOpenSearch: () -> Unit,
-) {
-    FeedRailCard(title = "Comedy podcasts", emptyMessage = "No podcasts found.", itemCount = podcasts.size) {
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(podcasts, key = { it.id }) { podcast ->
-                FeedCard(
-                    title = podcast.title,
-                    subtitle = podcast.authorName ?: "${podcast.episodeCount} episodes",
-                    imageUrl = podcast.imageUrl,
-                    fallback = RemoteImageFallback.Podcast,
-                    width = 168.dp,
-                    onClick = { onOpenEntity(AppRoute.PodcastDetail(podcast.id)) },
-                )
-            }
-        }
-        SeeAllButton(onClick = onOpenSearch)
-    }
-}
-
-@Composable
-private fun FeedRailCard(
+internal fun FeedRailCard(
     eyebrow: String? = null,
     title: String?,
     emptyMessage: String,
@@ -808,7 +790,10 @@ private fun ShowTitleOnlyBlock(show: Show) {
 }
 
 @Composable
-private fun SeeAllButton(onClick: () -> Unit) {
+internal fun SeeAllButton(
+    label: String = "See all",
+    onClick: () -> Unit,
+) {
     Surface(
         color = LaughTrackColors.Surface,
         shape = RoundedCornerShape(999.dp),
@@ -826,13 +811,13 @@ private fun SeeAllButton(onClick: () -> Unit) {
         ) {
             Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("See all", style = MaterialTheme.typography.labelLarge)
+            Text(label, style = MaterialTheme.typography.labelLarge)
         }
     }
 }
 
 @Composable
-private fun FeedCard(
+internal fun FeedCard(
     title: String,
     subtitle: String?,
     imageUrl: String?,

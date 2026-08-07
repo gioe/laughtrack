@@ -51,7 +51,7 @@ class PersistentHomeFeedCache internal constructor(
                     // Personalized rows are account-scoped while cache keys are not.
                     // Never return them from disk, including entries written by an
                     // older app version before this policy existed.
-                    json.decodeFromString<HomeFeed>(entry.feedJson).withoutFollowedShows()
+                    json.decodeFromString<HomeFeed>(entry.feedJson).withoutPersonalizedContent()
                 }
             }.onFailure {
                 // Corrupt/undecodable entry (e.g. model drift without a SCHEMA_VERSION
@@ -72,7 +72,7 @@ class PersistentHomeFeedCache internal constructor(
                 Entry(
                     schemaVersion = SCHEMA_VERSION,
                     expiresAtMillis = System.currentTimeMillis() + CACHE_TTL_MILLIS,
-                    feedJson = json.encodeToString(feed.withoutFollowedShows()),
+                    feedJson = json.encodeToString(feed.withoutPersonalizedContent()),
                 )
             fileFor(zip, distance).writeText(json.encodeToString(entry))
         }
@@ -101,4 +101,5 @@ class PersistentHomeFeedCache internal constructor(
     )
 }
 
-private fun HomeFeed.withoutFollowedShows(): HomeFeed = copy(followedComedianShows = emptyList())
+private fun HomeFeed.withoutPersonalizedContent(): HomeFeed =
+    copy(followedComedianShows = emptyList(), podcastEpisodes = null)

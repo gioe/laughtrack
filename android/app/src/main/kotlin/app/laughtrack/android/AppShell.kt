@@ -155,6 +155,7 @@ fun AppShell(
                         HomeScreen(
                             signedIn = signedIn,
                             onOpenEntity = navController::openEntity,
+                            onPlay = { item -> playbackController?.play(item) },
                             onOpenSearch = { request ->
                                 pendingSearchRequest = request
                                 navController.switchTab(AppTab.SEARCH)

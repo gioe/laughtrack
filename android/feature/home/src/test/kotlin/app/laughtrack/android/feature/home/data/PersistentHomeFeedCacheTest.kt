@@ -2,6 +2,10 @@ package app.laughtrack.android.feature.home.data
 
 import app.laughtrack.android.core.network.generated.model.HomeFeed
 import app.laughtrack.android.core.network.generated.model.HomeFeedHero
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisode
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodeComedian
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodePodcast
+import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodeRecommendation
 import app.laughtrack.android.core.network.generated.model.Show
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -100,6 +104,17 @@ class PersistentHomeFeedCacheTest {
             assertTrue(cache.get(zip = null, distance = null)!!.followedComedianShows.isEmpty())
         }
 
+    @Test
+    fun personalized_podcast_episodes_are_never_persisted() =
+        runTest {
+            val (cache, _) = newCache()
+            val personalized = emptyFeed().copy(podcastEpisodes = listOf(podcastEpisode()))
+
+            cache.set(zip = null, distance = null, feed = personalized)
+
+            assertNull(cache.get(zip = null, distance = null)!!.podcastEpisodes)
+        }
+
     private fun emptyFeed(): HomeFeed =
         HomeFeed(
             hero = HomeFeedHero(shows = emptyList(), zipCode = "10001", city = "New York", state = "NY"),
@@ -111,5 +126,37 @@ class PersistentHomeFeedCacheTest {
             followedComedianShows = emptyList(),
             trendingPodcasts = emptyList(),
             popularClubs = emptyList(),
+        )
+
+    private fun podcastEpisode(): HomeFeedPodcastEpisode =
+        HomeFeedPodcastEpisode(
+            id = 501,
+            title = "A Great New Set",
+            description = null,
+            releaseDate = "2026-08-05",
+            durationSeconds = 3_600,
+            episodeUrl = null,
+            audioUrl = "https://example.com/audio.mp3",
+            podcast =
+                HomeFeedPodcastEpisodePodcast(
+                    id = 88,
+                    slug = "the-comedy-hour",
+                    title = "The Comedy Hour",
+                    imageUrl = null,
+                ),
+            recommendation =
+                HomeFeedPodcastEpisodeRecommendation(
+                    reason = HomeFeedPodcastEpisodeRecommendation.Reason.RECENT_EPISODE,
+                    comedian =
+                        HomeFeedPodcastEpisodeComedian(
+                            id = 7,
+                            uuid = "comedian-7",
+                            name = "Jane Comic",
+                            imageUrl = "",
+                        ),
+                    appearanceRole = HomeFeedPodcastEpisodeRecommendation.AppearanceRole.GUEST,
+                    followedComedian = false,
+                    favoritePodcast = false,
+                ),
         )
 }
