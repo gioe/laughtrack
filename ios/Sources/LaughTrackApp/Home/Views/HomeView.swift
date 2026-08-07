@@ -6,13 +6,13 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
-enum HomeContentSection: Hashable {
-    case showsTonight
-    case followedComedianShows
-    case thisWeek
-    case comedians
-    case clubs
-    case podcasts
+enum HomeContentSection: String, Hashable {
+    case showsTonight = "shows_tonight"
+    case followedComedianShows = "followed_comedian_shows"
+    case thisWeek = "trending_this_week"
+    case comedians = "trending_comedians"
+    case clubs = "popular_clubs"
+    case podcasts = "trending_podcasts"
 
     static func sections(for primitive: SearchRootModel.Pivot?) -> [HomeContentSection] {
         switch primitive {
@@ -106,6 +106,20 @@ enum HomeScrollRetention {
         from offsets: [HomeContentSection: CGFloat],
         threshold: CGFloat = 24
     ) -> HomeContentSection? {
+        visibleValue(from: offsets, threshold: threshold)
+    }
+
+    static func visibleSection(
+        from offsets: [String: CGFloat],
+        threshold: CGFloat = 24
+    ) -> String? {
+        visibleValue(from: offsets, threshold: threshold)
+    }
+
+    private static func visibleValue<Section: Hashable>(
+        from offsets: [Section: CGFloat],
+        threshold: CGFloat
+    ) -> Section? {
         let passed = offsets.filter { $0.value <= threshold }
         if let nearestPassed = passed.max(by: { $0.value < $1.value }) {
             return nearestPassed.key
@@ -117,6 +131,20 @@ enum HomeScrollRetention {
         _ retainedSection: HomeContentSection?,
         among sections: [HomeContentSection]
     ) -> HomeContentSection? {
+        restorableValue(retainedSection, among: sections)
+    }
+
+    static func restorableSection(
+        _ retainedSection: String?,
+        among sections: [String]
+    ) -> String? {
+        restorableValue(retainedSection, among: sections)
+    }
+
+    private static func restorableValue<Section: Equatable>(
+        _ retainedSection: Section?,
+        among sections: [Section]
+    ) -> Section? {
         guard let retainedSection, sections.contains(retainedSection) else {
             return sections.first
         }
@@ -125,11 +153,11 @@ enum HomeScrollRetention {
 }
 
 private struct HomeSectionOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: [HomeContentSection: CGFloat] = [:]
+    static var defaultValue: [String: CGFloat] = [:]
 
     static func reduce(
-        value: inout [HomeContentSection: CGFloat],
-        nextValue: () -> [HomeContentSection: CGFloat]
+        value: inout [String: CGFloat],
+        nextValue: () -> [String: CGFloat]
     ) {
         value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
     }
@@ -217,8 +245,10 @@ struct HomeView: View {
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
-    @State private var retainedSection: HomeContentSection?
+    @StateObject private var railPlanModel = HomeDiscoverRailPlanModel()
+    @State private var retainedSectionID: String?
     @State private var hasAppeared = false
+    @State private var hasReportedInitialLoad = false
 
     init(
         apiClient: Client,
@@ -263,20 +293,34 @@ struct HomeView: View {
             .coordinateSpace(name: "laughtrack.home.scroll")
             .onPreferenceChange(HomeSectionOffsetPreferenceKey.self) { offsets in
                 if let visibleSection = HomeScrollRetention.visibleSection(from: offsets) {
-                    retainedSection = visibleSection
+                    retainedSectionID = visibleSection
                 }
             }
             .onAppear {
                 defer { hasAppeared = true }
                 guard hasAppeared else { return }
-                let sections = HomeContentSection.sections(for: selectedPrimitive)
-                guard let section = HomeScrollRetention.restorableSection(retainedSection, among: sections) else {
+                guard let sectionID = HomeScrollRetention.restorableSection(
+                    retainedSectionID,
+                    among: visibleSectionIDs
+                ) else {
                     return
                 }
                 DispatchQueue.main.async {
-                    proxy.scrollTo(section, anchor: .top)
+                    proxy.scrollTo(sectionID, anchor: .top)
                 }
             }
+        }
+        .task(id: railPlanRequestKey) {
+            guard selectedPrimitive == nil else { return }
+            await railPlanModel.refresh(
+                apiClient: apiClient,
+                zipCode: nearbyPreference?.zipCode,
+                distanceMiles: nearbyPreference?.distanceMiles,
+                sessionDiscriminator: sessionDiscriminator,
+                cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
+                persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
+            )
+            reportInitialLoad()
         }
         .rootScrollBottomClearance(
             theme: theme,
@@ -309,20 +353,41 @@ struct HomeView: View {
 
     @ViewBuilder
     private var contentSections: some View {
-        ForEach(HomeContentSection.sections(for: selectedPrimitive), id: \.self) { section in
-            sectionContent(section)
-                .id(section)
-                .background {
-                    GeometryReader { proxy in
-                        Color.clear.preference(
-                            key: HomeSectionOffsetPreferenceKey.self,
-                            value: [
-                                section: proxy.frame(in: .named("laughtrack.home.scroll")).minY,
-                            ]
-                        )
-                    }
+        if selectedPrimitive == nil, let plannedSections = railPlanModel.sections {
+            ForEach(plannedSections) { section in
+                anchoredSection(id: section.id) {
+                    HomeDiscoverPlannedRail(
+                        section: section,
+                        searchNavigationBridge: searchNavigationBridge,
+                        nearbyPreference: nearbyPreference
+                    )
                 }
+            }
+        } else {
+            ForEach(HomeContentSection.sections(for: selectedPrimitive), id: \.self) { section in
+                anchoredSection(id: section.rawValue) {
+                    sectionContent(section)
+                }
+            }
         }
+    }
+
+    private func anchoredSection<Content: View>(
+        id: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        content()
+            .id(id)
+            .background {
+                GeometryReader { proxy in
+                    Color.clear.preference(
+                        key: HomeSectionOffsetPreferenceKey.self,
+                        value: [
+                            id: proxy.frame(in: .named("laughtrack.home.scroll")).minY,
+                        ]
+                    )
+                }
+            }
     }
 
     @ViewBuilder
@@ -360,7 +425,7 @@ struct HomeView: View {
             searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self),
-            onInitialHomeLoadComplete: onInitialHomeLoadComplete
+            onInitialHomeLoadComplete: reportInitialLoad
         )
     }
 
@@ -392,6 +457,38 @@ struct HomeView: View {
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
             persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
         )
+    }
+
+    private var nearbyPreference: NearbyPreference? {
+        let store = serviceContainer.resolve(NearbyPreferenceStore.self)
+        return store.preference ?? store.defaultPreference
+    }
+
+    private var sessionDiscriminator: String? {
+        guard let userID = authManager.currentUser?.userId,
+              let session = authManager.currentSession else { return nil }
+        return "\(userID)|\(session.signedInAt.timeIntervalSinceReferenceDate)"
+    }
+
+    private var railPlanRequestKey: String {
+        railPlanModel.requestKey(
+            zipCode: nearbyPreference?.zipCode,
+            distanceMiles: nearbyPreference?.distanceMiles,
+            sessionDiscriminator: sessionDiscriminator
+        )
+    }
+
+    private var visibleSectionIDs: [String] {
+        if selectedPrimitive == nil, let sections = railPlanModel.sections {
+            return sections.map(\.id)
+        }
+        return HomeContentSection.sections(for: selectedPrimitive).map(\.rawValue)
+    }
+
+    private func reportInitialLoad() {
+        guard !hasReportedInitialLoad else { return }
+        hasReportedInitialLoad = true
+        onInitialHomeLoadComplete?()
     }
 }
 

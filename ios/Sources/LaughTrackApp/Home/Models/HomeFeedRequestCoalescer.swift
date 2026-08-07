@@ -99,7 +99,11 @@ enum HomeFeedRequest {
                 : TimeZone.autoupdatingCurrent.identifier
             let output = try await apiClient.getHomeFeed(
                 .init(
-                    query: .init(zip: zipCode, distance: zipCode == nil ? nil : distanceMiles),
+                    query: .init(
+                        zip: zipCode,
+                        distance: zipCode == nil ? nil : distanceMiles,
+                        platform: .ios
+                    ),
                     headers: .init(xTimezone: timezone)
                 )
             )

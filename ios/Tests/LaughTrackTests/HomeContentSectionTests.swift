@@ -67,14 +67,15 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
 
         #expect(source.contains("LaughTrackButton(\"See all\""))
-        #expect(source.components(separatedBy: "actionTitle: \"See all\"").count - 1 == 2)
+        #expect(source.components(separatedBy: "actionTitle: \"See all\"").count - 1 >= 2)
+        #expect(source.contains("HomeDiscoverPlannedRail("))
         #expect(source.contains("actionTitle: \"Browse podcasts\""))
         #expect(source.contains(".discoverEntity(.comedians)"))
         #expect(source.contains("nearbyPreference: nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference"))
         #expect(source.contains(".discoverEntity(.podcasts)"))
         #expect(source.contains("HomeDiscoveryIdeas("))
         #expect(source.contains("ScrollViewReader"))
-        #expect(source.contains("proxy.scrollTo(section, anchor: .top)"))
+        #expect(source.contains("proxy.scrollTo(sectionID, anchor: .top)"))
     }
 
     @Test("home show hero omits footer actions")
@@ -150,7 +151,7 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
         let carouselBlock = try sourceBlock(
             in: source,
-            from: "private struct HomeShowsTonightCarousel",
+            from: "struct HomeShowsTonightCarousel",
             to: "private struct HomeShowsTonightPageIndicator"
         )
         let heroBlock = try sourceBlock(
@@ -197,7 +198,7 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
-            from: "private struct HomePopularClubCard",
+            from: "struct HomePopularClubCard",
             to: "private var posterFallback: some View"
         )
 
@@ -252,7 +253,7 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
         let carouselBlock = try sourceBlock(
             in: source,
-            from: "private struct HomeShowsTonightCarousel",
+            from: "struct HomeShowsTonightCarousel",
             to: "private struct HomeShowsTonightPageIndicator"
         )
         let heroBlock = try sourceBlock(
@@ -339,7 +340,7 @@ struct HomeContentSectionTests {
         let railBlock = try sourceBlock(
             in: source,
             from: "struct HomeShowsTonightRail",
-            to: "private struct HomeShowsTonightCarousel"
+            to: "struct HomeShowsTonightCarousel"
         )
 
         #expect(headerBlock.contains("@ObservedObject private var nearbyPreferenceStore: NearbyPreferenceStore"))
@@ -413,7 +414,7 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
-            from: "private struct HomePopularClubCard",
+            from: "struct HomePopularClubCard",
             to: "@MainActor\nfinal class HomePopularClubsModel"
         )
         let bulbFrameBlock = try sourceBlock(
@@ -547,7 +548,9 @@ struct HomeContentSectionTests {
             "Views/Rails/HomeRailChrome.swift",
             "Views/HomeView.swift",
             "Views/HomeLocationEditor.swift",
+            "Views/Rails/HomeDiscoverPlannedRail.swift",
             "Views/Rails/HomeShowsTonightRail.swift",
+            "Models/HomeDiscoverRailPlanModel.swift",
             "Models/HomeShowsTonightModel.swift",
             "Models/HomeFavoriteShowsModel.swift",
             "Views/Rails/HomeFollowedComedianShowsRail.swift",

@@ -135,7 +135,7 @@ private struct HomePopularClubsGridSkeleton: View {
     }
 }
 
-private struct HomePopularClubCard: View {
+struct HomePopularClubCard: View {
     let club: Components.Schemas.ClubListItem
 
     @Environment(\.appTheme) private var theme

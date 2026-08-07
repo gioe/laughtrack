@@ -127,8 +127,14 @@ struct HomeShowsTonightRail: View {
     }
 }
 
-private struct HomeShowsTonightCarousel: View {
+struct HomeShowsTonightCarousel: View {
     let shows: [Components.Schemas.Show]
+    var onSelect: (() -> Void)?
+
+    init(shows: [Components.Schemas.Show], onSelect: (() -> Void)? = nil) {
+        self.shows = shows
+        self.onSelect = onSelect
+    }
 
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
@@ -198,6 +204,7 @@ private struct HomeShowsTonightCarousel: View {
     private func carouselButtons(pageWidth: CGFloat) -> some View {
         ForEach(shows, id: \.id) { show in
             Button {
+                onSelect?()
                 coordinator.open(.show(show.id))
             } label: {
                 HomeShowsTonightHeroCard(
@@ -217,6 +224,7 @@ private struct HomeShowsTonightCarousel: View {
     private func scrollingCarouselButtons(cardWidth: CGFloat) -> some View {
         ForEach(shows, id: \.id) { show in
             Button {
+                onSelect?()
                 coordinator.open(.show(show.id))
             } label: {
                 HomeShowsTonightScrollingCard(
