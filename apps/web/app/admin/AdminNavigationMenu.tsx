@@ -4,6 +4,7 @@ import {
     Activity,
     Building2,
     Flag,
+    LayoutList,
     Menu,
     Podcast,
     Radio,
@@ -52,6 +53,12 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
         href: "/admin/feature-flags",
         description: "Rollout switches",
         icon: Flag,
+    },
+    {
+        label: "Discover Rails",
+        href: "/admin/discovery-rails",
+        description: "Cross-platform rail policy",
+        icon: LayoutList,
     },
     {
         label: "Comedians",

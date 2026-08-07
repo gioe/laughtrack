@@ -83,6 +83,13 @@ const currentWebPolicy = {
     catalogVersion: 2,
     cycleCadenceHours: 24,
     updatedByProfileId: null,
+    updatedByProfile: {
+        id: "profile-operator",
+        user: {
+            name: "Discover Operator",
+            email: "operator@example.com",
+        },
+    },
     createdAt: new Date("2026-08-06T00:00:00Z"),
     updatedAt: new Date("2026-08-06T00:00:00Z"),
     entries: [
@@ -179,7 +186,7 @@ describe("GET /api/admin/discovery-rails", () => {
         expect(mockCatalogFindMany).not.toHaveBeenCalled();
     });
 
-    it("returns the complete catalog and independent platform policies", async () => {
+    it("returns stored metadata and built-in provenance with each platform policy", async () => {
         const tx = makeTransactionClient();
         const catalog = [
             {
@@ -220,9 +227,39 @@ describe("GET /api/admin/discovery-rails", () => {
             platform: "web",
             version: 1,
             cycleCadenceHours: 24,
+            provenance: "stored",
+            updatedAt: "2026-08-06T00:00:00.000Z",
+            updatedBy: {
+                profileId: "profile-operator",
+                name: "Discover Operator",
+                email: "operator@example.com",
+            },
+        });
+        expect(body.platforms[1]).toMatchObject({
+            platform: "ios",
+            provenance: "built_in_default",
+            updatedAt: null,
+            updatedBy: null,
+        });
+        expect(body.platforms[2]).toMatchObject({
+            platform: "android",
+            provenance: "built_in_default",
+            updatedAt: null,
+            updatedBy: null,
         });
         expect(body.platforms[1].rails).toHaveLength(15);
         expect(body.platforms[2].rails).toHaveLength(15);
+        expect(tx.discoveryRailPlatformPolicy.findMany).toHaveBeenCalledWith({
+            include: {
+                entries: true,
+                updatedByProfile: {
+                    select: {
+                        id: true,
+                        user: { select: { name: true, email: true } },
+                    },
+                },
+            },
+        });
         expect(mockTransaction).toHaveBeenCalledWith(expect.any(Function), {
             isolationLevel: "RepeatableRead",
         });

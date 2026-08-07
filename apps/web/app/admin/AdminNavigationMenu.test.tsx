@@ -29,6 +29,11 @@ describe("AdminNavigationMenu", () => {
                 .getByRole("link", { name: /Feature Flags/ })
                 .getAttribute("href"),
         ).toBe("/admin/feature-flags");
+        expect(
+            screen
+                .getByRole("link", { name: /Discover Rails/ })
+                .getAttribute("href"),
+        ).toBe("/admin/discovery-rails");
 
         fireEvent.pointerDown(document.body);
 

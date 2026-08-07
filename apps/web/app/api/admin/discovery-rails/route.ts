@@ -18,6 +18,18 @@ type RailPolicyRow = Prisma.DiscoveryRailPlatformPolicyGetPayload<{
     include: { entries: true };
 }>;
 
+type AdminRailPolicyRow = Prisma.DiscoveryRailPlatformPolicyGetPayload<{
+    include: {
+        entries: true;
+        updatedByProfile: {
+            select: {
+                id: true;
+                user: { select: { name: true; email: true } };
+            };
+        };
+    };
+}>;
+
 type RailPolicyWriter = Pick<
     Prisma.TransactionClient,
     | "discoveryRailPlatformPolicy"
@@ -65,6 +77,21 @@ function toPolicyDto(row: RailPolicyRow): DiscoveryRailPolicyDto {
     });
 }
 
+function toAdminPolicyDto(row: AdminRailPolicyRow) {
+    return {
+        ...toPolicyDto(row),
+        provenance: "stored" as const,
+        updatedAt: row.updatedAt.toISOString(),
+        updatedBy: row.updatedByProfile
+            ? {
+                  profileId: row.updatedByProfile.id,
+                  name: row.updatedByProfile.user.name,
+                  email: row.updatedByProfile.user.email,
+              }
+            : null,
+    };
+}
+
 export const GET = withRequestMetrics(async function GET() {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
@@ -90,7 +117,17 @@ export const GET = withRequestMetrics(async function GET() {
                         },
                     }),
                     tx.discoveryRailPlatformPolicy.findMany({
-                        include: { entries: true },
+                        include: {
+                            entries: true,
+                            updatedByProfile: {
+                                select: {
+                                    id: true,
+                                    user: {
+                                        select: { name: true, email: true },
+                                    },
+                                },
+                            },
+                        },
                     }),
                 ]),
             {
@@ -104,8 +141,13 @@ export const GET = withRequestMetrics(async function GET() {
         const platforms = DISCOVERY_PLATFORMS.map((platform) => {
             const row = byPlatform.get(platform);
             return row
-                ? toPolicyDto(row)
-                : getDefaultDiscoveryRailPolicy(platform);
+                ? toAdminPolicyDto(row)
+                : {
+                      ...getDefaultDiscoveryRailPolicy(platform),
+                      provenance: "built_in_default" as const,
+                      updatedAt: null,
+                      updatedBy: null,
+                  };
         });
 
         return NextResponse.json({
