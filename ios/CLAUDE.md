@@ -716,47 +716,24 @@ edit and the regenerated Client/Types edit in the same PR — splitting them str
 iOS client behind the server contract.
 
 `swift-openapi-generator` is not a LaughTrack dependency — the build tool plugin was
-removed upstream to avoid Xcode validation prompts. To regenerate, stand up a throwaway
-SPM package that wires the plugin in, then copy the output back:
+removed upstream to avoid Xcode validation prompts. The regeneration script creates a
+throwaway SPM package, runs the pinned generator, and replaces both committed outputs
+only after generation succeeds:
 
 ```bash
-mkdir -p /tmp/openapi-regen/Sources/OpenAPIRegen && cd /tmp/openapi-regen
-cat > Package.swift <<'EOF'
-// swift-tools-version: 5.9
-import PackageDescription
-let package = Package(
-    name: "OpenAPIRegen",
-    platforms: [.macOS(.v13)],
-    dependencies: [
-        .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.9.0"),
-        .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
-    ],
-    targets: [.target(
-        name: "OpenAPIRegen",
-        dependencies: [
-            .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
-            .product(name: "HTTPTypes", package: "swift-http-types"),
-        ],
-        plugins: [.plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")],
-    )],
-)
-EOF
-touch Sources/OpenAPIRegen/empty.swift   # SPM requires at least one source file
-cp <repo>/ios/Sources/LaughTrackAPIClient/openapi.json Sources/OpenAPIRegen/
-cp <repo>/ios/Sources/LaughTrackAPIClient/openapi-generator-config.yaml Sources/OpenAPIRegen/
-swift build --target OpenAPIRegen
-cp .build/plugins/outputs/openapi-regen/OpenAPIRegen/destination/OpenAPIGenerator/GeneratedSources/{Client,Types}.swift \
-   <repo>/ios/Sources/LaughTrackAPIClient/GeneratedSources/
+ios/bin/regen-openapi.sh
+ios/bin/check-openapi-regen-drift.sh
 ```
 
 Then `cd <repo>/ios && swift build --target LaughTrackAPIClient` to verify the
-regenerated files compile.
+regenerated files compile. Both commands source `ios/bin/openapi-common.sh`, which
+owns the exact generator/runtime pins and package setup so write and check modes
+cannot silently diverge. Version overrides are reserved for intentional re-baselining.
 
 **Generator-version drift.** `swift-openapi-generator` 1.9+ emits multi-line
 argument lists where older versions wrote single-line ones. As of TASK-2568
 the committed `Client.swift` / `Types.swift` match a clean regen against the
-pinned 1.9.0 generator (the default in `ios/bin/check-openapi-regen-drift.sh`),
+pinned 1.9.0 generator (the default in `ios/bin/openapi-common.sh`),
 and `.github/workflows/ios.yml` (the `check-openapi-regen-drift` job) runs that script as a blocking
 gate on every change to the spec, config, or generated files. If you bump the
 pinned generator version and the regen diff is dominated by formatting noise

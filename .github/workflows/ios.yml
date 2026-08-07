@@ -28,6 +28,8 @@ on:
       - "ios/bin/check-pbxproj-sync.sh"
       - "ios/bin/check-ios-libs-pin.sh"
       - "ios/bin/check-openapi-regen-drift.sh"
+      - "ios/bin/openapi-common.sh"
+      - "ios/bin/regen-openapi.sh"
       - ".github/workflows/ios.yml"
   pull_request:
     branches: [main]
@@ -43,6 +45,8 @@ on:
       - "ios/bin/check-pbxproj-sync.sh"
       - "ios/bin/check-ios-libs-pin.sh"
       - "ios/bin/check-openapi-regen-drift.sh"
+      - "ios/bin/openapi-common.sh"
+      - "ios/bin/regen-openapi.sh"
       - "ios/bin/check-bundle-version.sh"
       - ".github/workflows/ios.yml"
 
@@ -91,6 +95,8 @@ jobs:
               - 'ios/Sources/LaughTrackAPIClient/openapi-generator-config.yaml'
               - 'ios/Sources/LaughTrackAPIClient/GeneratedSources/**'
               - 'ios/bin/check-openapi-regen-drift.sh'
+              - 'ios/bin/openapi-common.sh'
+              - 'ios/bin/regen-openapi.sh'
               - '.github/workflows/ios.yml'
             bundle_version:
               - 'ios/project.yml'
