@@ -13,7 +13,7 @@ import {
 function rotatingPolicy(version = 7): DiscoveryRailPolicyDto {
     return {
         platform: "web",
-        catalogVersion: 1,
+        catalogVersion: 2,
         version,
         cycleCadenceHours: 24,
         rails: [
@@ -125,7 +125,7 @@ describe("selectDiscoveryRailPlan", () => {
     it("suppresses empty rails and deduplicates candidates", () => {
         const policy: DiscoveryRailPolicyDto = {
             platform: "web",
-            catalogVersion: 1,
+            catalogVersion: 2,
             version: 4,
             cycleCadenceHours: 24,
             rails: [

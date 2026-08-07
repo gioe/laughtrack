@@ -68,9 +68,9 @@ function makeTransactionClient() {
 }
 
 function runTransactionWith(tx: ReturnType<typeof makeTransactionClient>) {
-    mockTransaction.mockImplementationOnce(
-        ((callback: (client: typeof tx) => unknown) => callback(tx)) as never,
-    );
+    mockTransaction.mockImplementationOnce(((
+        callback: (client: typeof tx) => unknown,
+    ) => callback(tx)) as never);
 }
 
 const adminSession = {
@@ -80,7 +80,7 @@ const adminSession = {
 const currentWebPolicy = {
     platform: "web",
     policyVersion: 1,
-    catalogVersion: 1,
+    catalogVersion: 2,
     cycleCadenceHours: 24,
     updatedByProfileId: null,
     createdAt: new Date("2026-08-06T00:00:00Z"),
@@ -107,7 +107,7 @@ const currentWebPolicy = {
 
 const validUpdate = {
     platform: "web",
-    catalogVersion: 1,
+    catalogVersion: 2,
     expectedVersion: 1,
     cycleCadenceHours: 12,
     rails: [
@@ -126,7 +126,7 @@ const validUpdate = {
             weight: 70,
         },
         {
-            railKey: "popular_clubs",
+            railKey: "stacked_lineups",
             enabled: true,
             position: 1,
             rotationPool: "daily_mix",
@@ -190,6 +190,14 @@ describe("GET /api/admin/discovery-rails", () => {
                 supportedPlatforms: ["web", "ios", "android"],
                 catalogVersion: 1,
             },
+            {
+                key: "stacked_lineups",
+                label: "Stacked lineups",
+                contentKind: "show",
+                requiresAuth: false,
+                supportedPlatforms: ["web", "ios", "android"],
+                catalogVersion: 2,
+            },
         ];
         tx.discoveryRailCatalog.findMany.mockResolvedValueOnce(catalog);
         tx.discoveryRailPlatformPolicy.findMany.mockResolvedValueOnce([
@@ -201,7 +209,7 @@ describe("GET /api/admin/discovery-rails", () => {
         const body = await response.json();
 
         expect(response.status).toBe(200);
-        expect(body.catalogVersion).toBe(1);
+        expect(body.catalogVersion).toBe(2);
         expect(body.catalog).toEqual(catalog);
         expect(
             body.platforms.map(
@@ -213,8 +221,8 @@ describe("GET /api/admin/discovery-rails", () => {
             version: 1,
             cycleCadenceHours: 24,
         });
-        expect(body.platforms[1].rails).toHaveLength(6);
-        expect(body.platforms[2].rails).toHaveLength(6);
+        expect(body.platforms[1].rails).toHaveLength(15);
+        expect(body.platforms[2].rails).toHaveLength(15);
         expect(mockTransaction).toHaveBeenCalledWith(expect.any(Function), {
             isolationLevel: "RepeatableRead",
         });
@@ -354,7 +362,7 @@ describe("PATCH /api/admin/discovery-rails", () => {
             ok: true,
             policy: {
                 platform: "web",
-                catalogVersion: 1,
+                catalogVersion: 2,
                 version: 2,
                 cycleCadenceHours: 12,
                 rails: validUpdate.rails,
@@ -364,7 +372,7 @@ describe("PATCH /api/admin/discovery-rails", () => {
             where: { platform: "web", policyVersion: 1 },
             data: {
                 policyVersion: { increment: 1 },
-                catalogVersion: 1,
+                catalogVersion: 2,
                 cycleCadenceHours: 12,
                 updatedByProfileId: "profile-1",
             },

@@ -8,6 +8,18 @@ import {
     parseDiscoveryRailPolicy,
 } from "./railPolicy";
 
+const dynamicKeys = [
+    "just_passing_through",
+    "only_chance_nearby",
+    "rare_returns",
+    "catch_them_early",
+    "newly_added",
+    "starting_to_buzz",
+    "because_you_follow_them",
+    "from_your_podcasts",
+    "stacked_lineups",
+] as const;
+
 const expectedKeys = {
     web: [
         "followed_comedian_shows",
@@ -16,6 +28,7 @@ const expectedKeys = {
         "nearby_shows",
         "trending_this_week",
         "popular_clubs",
+        ...dynamicKeys,
     ],
     ios: [
         "shows_tonight",
@@ -24,6 +37,7 @@ const expectedKeys = {
         "trending_comedians",
         "popular_clubs",
         "trending_podcasts",
+        ...dynamicKeys,
     ],
     android: [
         "shows_tonight",
@@ -32,6 +46,7 @@ const expectedKeys = {
         "trending_comedians",
         "popular_clubs",
         "trending_podcasts",
+        ...dynamicKeys,
     ],
 } as const;
 
@@ -71,7 +86,7 @@ function messages(
 
 describe("discovery rail catalog", () => {
     it("uses stable keys and declares content, auth, and platform metadata", () => {
-        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(1);
+        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(2);
         expect(Object.keys(DISCOVERY_RAIL_CATALOG)).toEqual([
             "shows_tonight",
             "followed_comedian_shows",
@@ -80,6 +95,15 @@ describe("discovery rail catalog", () => {
             "popular_clubs",
             "trending_podcasts",
             "nearby_shows",
+            "just_passing_through",
+            "rare_returns",
+            "only_chance_nearby",
+            "newly_added",
+            "starting_to_buzz",
+            "catch_them_early",
+            "from_your_podcasts",
+            "stacked_lineups",
+            "because_you_follow_them",
         ]);
         expect(DISCOVERY_RAIL_CATALOG.followed_comedian_shows).toMatchObject({
             contentKind: "show",
@@ -92,33 +116,59 @@ describe("discovery rail catalog", () => {
         expect(DISCOVERY_RAIL_CATALOG.nearby_shows.supportedPlatforms).toEqual([
             "web",
         ]);
+        expect(DISCOVERY_RAIL_CATALOG.from_your_podcasts).toMatchObject({
+            contentKind: "show",
+            requiresAuth: true,
+            supportedPlatforms: ["web", "ios", "android"],
+        });
+        expect(DISCOVERY_RAIL_CATALOG.stacked_lineups.requiresAuth).toBe(false);
     });
 });
 
 describe("production-compatible defaults", () => {
     it.each(["web", "ios", "android"] as const)(
-        "preserves the exact %s production rail order",
+        "preserves the current %s rail order and appends dynamic rotation families",
         (platform) => {
             const policy = DISCOVERY_RAIL_DEFAULTS[platform];
             expect(policy).toMatchObject({
                 platform,
-                catalogVersion: 1,
-                version: 1,
+                catalogVersion: 2,
+                version: 2,
                 cycleCadenceHours: 24,
             });
             expect(policy.rails.map((rail) => rail.railKey)).toEqual(
                 expectedKeys[platform],
             );
             expect(policy.rails.map((rail) => rail.position)).toEqual([
-                0, 1, 2, 3, 4, 5,
+                0, 1, 2, 3, 4, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8,
             ]);
             expect(
-                policy.rails.every(
-                    (rail) =>
-                        rail.enabled &&
-                        rail.rotationPool === null &&
-                        rail.weight === 1,
-                ),
+                policy.rails
+                    .slice(0, 6)
+                    .every(
+                        (rail) =>
+                            rail.enabled &&
+                            rail.rotationPool === null &&
+                            rail.weight === 1,
+                    ),
+            ).toBe(true);
+            expect(
+                policy.rails.slice(6).map((rail) => rail.rotationPool),
+            ).toEqual([
+                "touring_scarcity",
+                "touring_scarcity",
+                "touring_scarcity",
+                "fresh_and_rising",
+                "fresh_and_rising",
+                "fresh_and_rising",
+                "affinity",
+                "affinity",
+                "affinity",
+            ]);
+            expect(
+                policy.rails
+                    .slice(6)
+                    .every((rail) => rail.enabled && rail.weight === 1),
             ).toBe(true);
             expect(() => parseDiscoveryRailPolicy(policy)).not.toThrow();
         },
@@ -323,7 +373,7 @@ describe("DiscoveryRailPolicyUpdateSchema", () => {
         }
         expect(
             DiscoveryRailPolicyUpdateSchema.safeParse(
-                update({ catalogVersion: 2 }),
+                update({ catalogVersion: 1 }),
             ).success,
         ).toBe(false);
     });

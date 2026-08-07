@@ -13,6 +13,13 @@ const MIGRATION_SQL = readFileSync(
     ),
     "utf8",
 );
+const DYNAMIC_MIGRATION_SQL = readFileSync(
+    resolve(
+        WEB_ROOT,
+        "prisma/migrations/20260807143000_add_dynamic_discovery_rails/migration.sql",
+    ),
+    "utf8",
+);
 const SCHEMA_TEXT = readFileSync(
     resolve(WEB_ROOT, "prisma/schema.prisma"),
     "utf8",
@@ -294,6 +301,146 @@ describe("Discover rail policy migration", () => {
             expect(remaining.rows[0].count).toBe("0");
         } finally {
             await db.exec("ROLLBACK");
+        }
+    });
+});
+
+describe("dynamic Discover rail policy migration", () => {
+    let db: PGlite;
+
+    beforeAll(async () => {
+        db = new PGlite();
+        await db.exec(BASE_SCHEMA_SQL);
+        await db.exec(MIGRATION_SQL);
+        await db.query(`
+            UPDATE discovery_rail_policy_entries
+            SET enabled = false
+            WHERE platform = 'web'
+              AND rail_key = 'followed_comedian_shows'
+        `);
+        await db.exec(DYNAMIC_MIGRATION_SQL);
+    });
+
+    afterAll(async () => {
+        await db.close();
+    });
+
+    it("adds the version-two dynamic catalog with correct auth metadata", async () => {
+        const result = await db.query<{
+            key: string;
+            requires_auth: boolean;
+            catalog_version: number;
+        }>(`
+            SELECT key, requires_auth, catalog_version
+            FROM discovery_rail_catalog
+            WHERE catalog_version = 2
+            ORDER BY key
+        `);
+
+        expect(result.rows).toEqual([
+            {
+                key: "because_you_follow_them",
+                requires_auth: true,
+                catalog_version: 2,
+            },
+            {
+                key: "catch_them_early",
+                requires_auth: false,
+                catalog_version: 2,
+            },
+            {
+                key: "from_your_podcasts",
+                requires_auth: true,
+                catalog_version: 2,
+            },
+            {
+                key: "just_passing_through",
+                requires_auth: false,
+                catalog_version: 2,
+            },
+            {
+                key: "newly_added",
+                requires_auth: false,
+                catalog_version: 2,
+            },
+            {
+                key: "only_chance_nearby",
+                requires_auth: false,
+                catalog_version: 2,
+            },
+            {
+                key: "rare_returns",
+                requires_auth: false,
+                catalog_version: 2,
+            },
+            {
+                key: "stacked_lineups",
+                requires_auth: false,
+                catalog_version: 2,
+            },
+            {
+                key: "starting_to_buzz",
+                requires_auth: false,
+                catalog_version: 2,
+            },
+        ]);
+    });
+
+    it("appends enabled rotation families without replacing stored entries", async () => {
+        const policies = await db.query<PolicyRow>(`
+            SELECT platform, policy_version, catalog_version, cycle_cadence_hours
+            FROM discovery_rail_platform_policies
+            ORDER BY platform
+        `);
+        expect(
+            policies.rows.map(
+                ({ platform, policy_version, catalog_version }) => ({
+                    platform,
+                    policy_version,
+                    catalog_version,
+                }),
+            ),
+        ).toEqual([
+            { platform: "android", policy_version: 2, catalog_version: 2 },
+            { platform: "ios", policy_version: 2, catalog_version: 2 },
+            { platform: "web", policy_version: 2, catalog_version: 2 },
+        ]);
+
+        const preserved = await db.query<{ enabled: boolean }>(`
+            SELECT enabled
+            FROM discovery_rail_policy_entries
+            WHERE platform = 'web'
+              AND rail_key = 'followed_comedian_shows'
+        `);
+        expect(preserved.rows).toEqual([{ enabled: false }]);
+
+        const dynamic = await db.query<EntryRow>(`
+            SELECT platform, rail_key, enabled, position, rotation_pool, weight
+            FROM discovery_rail_policy_entries
+            WHERE rotation_pool IS NOT NULL
+            ORDER BY platform, position, rail_key
+        `);
+        expect(dynamic.rows).toHaveLength(27);
+        for (const platform of ["android", "ios", "web"]) {
+            const entries = dynamic.rows.filter(
+                (entry) => entry.platform === platform,
+            );
+            expect(entries.map((entry) => entry.position)).toEqual([
+                6, 6, 6, 7, 7, 7, 8, 8, 8,
+            ]);
+            expect(entries.map((entry) => entry.rotation_pool)).toEqual([
+                "touring_scarcity",
+                "touring_scarcity",
+                "touring_scarcity",
+                "fresh_and_rising",
+                "fresh_and_rising",
+                "fresh_and_rising",
+                "affinity",
+                "affinity",
+                "affinity",
+            ]);
+            expect(entries.every((entry) => entry.enabled)).toBe(true);
+            expect(entries.every((entry) => entry.weight === 1)).toBe(true);
         }
     });
 });

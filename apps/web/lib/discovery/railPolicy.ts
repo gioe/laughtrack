@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const DISCOVERY_RAIL_CATALOG_VERSION = 1 as const;
+export const DISCOVERY_RAIL_CATALOG_VERSION = 2 as const;
 
 export const DISCOVERY_PLATFORMS = ["web", "ios", "android"] as const;
 export type DiscoveryPlatform = (typeof DISCOVERY_PLATFORMS)[number];
@@ -13,6 +13,15 @@ export const DISCOVERY_RAIL_KEYS = [
     "popular_clubs",
     "trending_podcasts",
     "nearby_shows",
+    "just_passing_through",
+    "rare_returns",
+    "only_chance_nearby",
+    "newly_added",
+    "starting_to_buzz",
+    "catch_them_early",
+    "from_your_podcasts",
+    "stacked_lineups",
+    "because_you_follow_them",
 ] as const;
 export type DiscoveryRailKey = (typeof DISCOVERY_RAIL_KEYS)[number];
 
@@ -85,6 +94,69 @@ export const DISCOVERY_RAIL_CATALOG = {
         requiresAuth: false,
         supportedPlatforms: ["web"],
     },
+    just_passing_through: {
+        key: "just_passing_through",
+        label: "Just passing through",
+        contentKind: "show",
+        requiresAuth: false,
+        supportedPlatforms: ALL_PLATFORMS,
+    },
+    rare_returns: {
+        key: "rare_returns",
+        label: "Rarely in town / Back after a while",
+        contentKind: "show",
+        requiresAuth: false,
+        supportedPlatforms: ALL_PLATFORMS,
+    },
+    only_chance_nearby: {
+        key: "only_chance_nearby",
+        label: "Only chance nearby",
+        contentKind: "show",
+        requiresAuth: false,
+        supportedPlatforms: ALL_PLATFORMS,
+    },
+    newly_added: {
+        key: "newly_added",
+        label: "Newly added",
+        contentKind: "show",
+        requiresAuth: false,
+        supportedPlatforms: ALL_PLATFORMS,
+    },
+    starting_to_buzz: {
+        key: "starting_to_buzz",
+        label: "Starting to buzz",
+        contentKind: "show",
+        requiresAuth: false,
+        supportedPlatforms: ALL_PLATFORMS,
+    },
+    catch_them_early: {
+        key: "catch_them_early",
+        label: "Catch them early",
+        contentKind: "show",
+        requiresAuth: false,
+        supportedPlatforms: ALL_PLATFORMS,
+    },
+    from_your_podcasts: {
+        key: "from_your_podcasts",
+        label: "From your podcasts",
+        contentKind: "show",
+        requiresAuth: true,
+        supportedPlatforms: ALL_PLATFORMS,
+    },
+    stacked_lineups: {
+        key: "stacked_lineups",
+        label: "Stacked lineups",
+        contentKind: "show",
+        requiresAuth: false,
+        supportedPlatforms: ALL_PLATFORMS,
+    },
+    because_you_follow_them: {
+        key: "because_you_follow_them",
+        label: "Because you follow them",
+        contentKind: "show",
+        requiresAuth: true,
+        supportedPlatforms: ALL_PLATFORMS,
+    },
 } as const satisfies Record<DiscoveryRailKey, DiscoveryRailCatalogEntry>;
 
 export interface DiscoveryRailPolicyRailDto {
@@ -125,11 +197,39 @@ function fixedRail(
     };
 }
 
+function rotatingRail(
+    railKey: DiscoveryRailKey,
+    position: number,
+    rotationPool: string,
+): DiscoveryRailPolicyRailDto {
+    return {
+        railKey,
+        enabled: true,
+        position,
+        rotationPool,
+        weight: 1,
+    };
+}
+
+function dynamicRotationRails(): DiscoveryRailPolicyRailDto[] {
+    return [
+        rotatingRail("just_passing_through", 6, "touring_scarcity"),
+        rotatingRail("only_chance_nearby", 6, "touring_scarcity"),
+        rotatingRail("rare_returns", 6, "touring_scarcity"),
+        rotatingRail("catch_them_early", 7, "fresh_and_rising"),
+        rotatingRail("newly_added", 7, "fresh_and_rising"),
+        rotatingRail("starting_to_buzz", 7, "fresh_and_rising"),
+        rotatingRail("because_you_follow_them", 8, "affinity"),
+        rotatingRail("from_your_podcasts", 8, "affinity"),
+        rotatingRail("stacked_lineups", 8, "affinity"),
+    ];
+}
+
 export const DISCOVERY_RAIL_DEFAULTS = {
     web: {
         platform: "web",
         catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
-        version: 1,
+        version: 2,
         cycleCadenceHours: 24,
         rails: [
             fixedRail("followed_comedian_shows", 0),
@@ -138,12 +238,13 @@ export const DISCOVERY_RAIL_DEFAULTS = {
             fixedRail("nearby_shows", 3),
             fixedRail("trending_this_week", 4),
             fixedRail("popular_clubs", 5),
+            ...dynamicRotationRails(),
         ],
     },
     ios: {
         platform: "ios",
         catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
-        version: 1,
+        version: 2,
         cycleCadenceHours: 24,
         rails: [
             fixedRail("shows_tonight", 0),
@@ -152,12 +253,13 @@ export const DISCOVERY_RAIL_DEFAULTS = {
             fixedRail("trending_comedians", 3),
             fixedRail("popular_clubs", 4),
             fixedRail("trending_podcasts", 5),
+            ...dynamicRotationRails(),
         ],
     },
     android: {
         platform: "android",
         catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
-        version: 1,
+        version: 2,
         cycleCadenceHours: 24,
         rails: [
             fixedRail("shows_tonight", 0),
@@ -166,6 +268,7 @@ export const DISCOVERY_RAIL_DEFAULTS = {
             fixedRail("trending_comedians", 3),
             fixedRail("popular_clubs", 4),
             fixedRail("trending_podcasts", 5),
+            ...dynamicRotationRails(),
         ],
     },
 } as const satisfies Record<DiscoveryPlatform, DiscoveryRailPolicyDto>;

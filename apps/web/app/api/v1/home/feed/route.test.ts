@@ -156,8 +156,8 @@ describe("GET /api/v1/home/feed", () => {
                 );
                 expect(body.data.railPlan).toMatchObject({
                     version: 1,
-                    catalogVersion: 1,
-                    policyVersion: 1,
+                    catalogVersion: 2,
+                    policyVersion: 2,
                     platform,
                     rails: expect.arrayContaining([
                         {
@@ -214,8 +214,8 @@ describe("GET /api/v1/home/feed", () => {
             expect(res.status).toBe(200);
             expect(body.data.railPlan).toMatchObject({
                 version: 1,
-                catalogVersion: 1,
-                policyVersion: 1,
+                catalogVersion: 2,
+                policyVersion: 2,
                 platform: "ios",
             });
         });
@@ -234,7 +234,7 @@ describe("GET /api/v1/home/feed", () => {
             ] as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "web",
-                catalogVersion: 1,
+                catalogVersion: 2,
                 version: 2,
                 cycleCadenceHours: 24,
                 rails: [
