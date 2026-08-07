@@ -12,6 +12,13 @@ const MIGRATION_SQL = readFileSync(
     ),
     "utf-8",
 );
+const RAIL_IMPRESSIONS_MIGRATION_SQL = readFileSync(
+    resolve(
+        HERE,
+        "migrations/20260807181500_allow_discovery_rail_impressions/migration.sql",
+    ),
+    "utf-8",
+);
 
 const BASE_SCHEMA_SQL = `
     CREATE TABLE user_profiles (id TEXT PRIMARY KEY);
@@ -33,6 +40,7 @@ describe("discovery event migration", () => {
         db = new PGlite();
         await db.exec(BASE_SCHEMA_SQL);
         await db.exec(MIGRATION_SQL);
+        await db.exec(RAIL_IMPRESSIONS_MIGRATION_SQL);
     });
 
     afterAll(async () => {
@@ -87,6 +95,29 @@ describe("discovery event migration", () => {
             "SELECT COUNT(*)::text AS count FROM discovery_impression_events",
         );
         expect(count.rows[0].count).toBe("1");
+    });
+
+    it("stores server-directed rail impressions and rejects mismatched variants", async () => {
+        await db.query(
+            `INSERT INTO discovery_impression_events (${IMPRESSION_COLUMNS})
+             VALUES ($1, 'show', 42, 'starting_to_buzz', '2', 'server_directed', 3, NOW(), 'anon-1')`,
+            ["123e4567-e89b-42d3-a456-426614174005"],
+        );
+
+        await expect(
+            db.query(
+                `INSERT INTO discovery_impression_events (${IMPRESSION_COLUMNS})
+                 VALUES ($1, 'show', 42, 'starting_to_buzz', '2', 'candidate', 3, NOW(), 'anon-1')`,
+                ["123e4567-e89b-42d3-a456-426614174006"],
+            ),
+        ).rejects.toThrow();
+        await expect(
+            db.query(
+                `INSERT INTO discovery_impression_events (${IMPRESSION_COLUMNS})
+                 VALUES ($1, 'show', 42, 'near_you', 'near-you-v1', 'server_directed', 3, NOW(), 'anon-1')`,
+                ["123e4567-e89b-42d3-a456-426614174007"],
+            ),
+        ).rejects.toThrow();
     });
 
     it("cascades engagement cleanup and retains denormalized ticket attribution", async () => {

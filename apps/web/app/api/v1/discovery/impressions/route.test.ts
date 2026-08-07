@@ -70,6 +70,20 @@ function validEvent(overrides: Record<string, unknown> = {}) {
     };
 }
 
+function validServerDirectedEvent(overrides: Record<string, unknown> = {}) {
+    return {
+        eventId: EVENT_ID,
+        entityType: "show",
+        entityId: 42,
+        surface: "starting_to_buzz",
+        policyVersion: "2",
+        experimentVariant: "server_directed",
+        rank: 3,
+        impressedAt: new Date().toISOString(),
+        ...overrides,
+    };
+}
+
 function makeRequest(
     body: unknown,
     headers: Record<string, string> = {},
@@ -139,6 +153,78 @@ describe("POST /api/v1/discovery/impressions", () => {
             "lt_anon_visitor_id=",
         );
         expect(getClientIp).toHaveBeenCalled();
+    });
+
+    it("records a known server-directed rail with nullable near-you context", async () => {
+        const response = await POST(
+            makeRequest({ events: [validServerDirectedEvent()] }),
+        );
+
+        expect(response.status).toBe(201);
+        expect(await response.json()).toEqual({ accepted: 1, inserted: 1 });
+        expect(mockImpressionCreateMany).toHaveBeenCalledWith({
+            data: [
+                expect.objectContaining({
+                    eventId: EVENT_ID,
+                    entityType: "show",
+                    entityId: 42,
+                    surface: "starting_to_buzz",
+                    policyVersion: "2",
+                    experimentVariant: "server_directed",
+                    rank: 3,
+                    assignmentEligible: null,
+                    assignmentReason: null,
+                    explorationSelected: null,
+                    distanceMiles: null,
+                    maxDistanceMiles: null,
+                    availabilityAtImpression: null,
+                    featureVersion: null,
+                    profileId: null,
+                    anonymousVisitorId: expect.any(String),
+                    impressedAt: expect.any(Date),
+                }),
+            ],
+            skipDuplicates: true,
+        });
+    });
+
+    it("rejects unknown future rail surfaces", async () => {
+        const response = await POST(
+            makeRequest({
+                events: [
+                    validServerDirectedEvent({ surface: "future_discovery" }),
+                ],
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        expect(mockImpressionCreateMany).not.toHaveBeenCalled();
+    });
+
+    it("rejects non-show catalog rails for show impressions", async () => {
+        const response = await POST(
+            makeRequest({
+                events: [
+                    validServerDirectedEvent({ surface: "popular_clubs" }),
+                ],
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        expect(mockImpressionCreateMany).not.toHaveBeenCalled();
+    });
+
+    it("rejects a non-server-directed variant on a rail surface", async () => {
+        const response = await POST(
+            makeRequest({
+                events: [
+                    validServerDirectedEvent({ experimentVariant: "control" }),
+                ],
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        expect(mockImpressionCreateMany).not.toHaveBeenCalled();
     });
 
     it("uses the authenticated quota and preserves the existing opaque visitor id", async () => {
