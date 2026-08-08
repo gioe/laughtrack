@@ -31,6 +31,7 @@ def test_documented_validator_is_sparse_safe_and_reads_local_catalog(
     tusk_config = json.loads((REPO_ROOT / "tusk" / "config.json").read_text())
     sparse_paths = set(tusk_config["scope"]["sparse_always_include"])
     assert {
+        ".github/actions/record-pipeline-run/action.yml",
         "scripts/screenshots/comparison.py",
         "scripts/screenshots/manifest.py",
         "scripts/screenshots/fixture_server.py",
