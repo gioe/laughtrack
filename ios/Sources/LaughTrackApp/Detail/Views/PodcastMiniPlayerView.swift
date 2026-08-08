@@ -16,6 +16,20 @@ struct PodcastMiniPlayerView: View {
 
     private static let dismissThreshold: CGFloat = 60
 
+    #if canImport(UIKit)
+    private var presentsNowPlayingFullScreen: Bool {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return true
+        }
+
+        #if DEBUG
+        return ProcessInfo.processInfo.environment[UITestLaunchArgs.forceComparisonScreens] == "1"
+        #else
+        return false
+        #endif
+    }
+    #endif
+
     var body: some View {
         if let item = player.currentItem {
             presentedContent(item: item)
@@ -29,7 +43,7 @@ struct PodcastMiniPlayerView: View {
             .gesture(dismissGesture)
 
         #if canImport(UIKit)
-        if UIDevice.current.userInterfaceIdiom == .pad {
+        if presentsNowPlayingFullScreen {
             miniPlayer
                 .fullScreenCover(isPresented: $isExpanded) {
                     NowPlayingView(player: player, apiClient: apiClient)

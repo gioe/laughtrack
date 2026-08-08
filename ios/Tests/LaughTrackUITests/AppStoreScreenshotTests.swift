@@ -369,6 +369,12 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 expectedLayout,
                 "Expected adaptive Now Playing layout"
             )
+            if app.windows.firstMatch.frame.width < 768 {
+                XCTAssertFalse(
+                    app.sheets.firstMatch.exists,
+                    "Expected the screenshot Now Playing surface to cover the full phone screen"
+                )
+            }
             // Intentional background override: this immersive media surface uses
             // an opaque semantic canvas instead of the inherited app atmosphere.
             try capture(
@@ -378,7 +384,12 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                     identified("laughtrack.now-playing.close", as: "adaptive Now Playing composition"),
                     identified("laughtrack.now-playing.scrubber", as: "playback scrubber"),
                     identified("laughtrack.now-playing.speed", as: "playback speed control"),
+                    identified("laughtrack.now-playing.route-picker", as: "AirPlay route picker"),
                     identified("laughtrack.now-playing.sleep", as: "sleep timer control"),
+                    allButtons(
+                        ["Skip back 15 seconds", "Play", "Skip forward 30 seconds"],
+                        as: "podcast transport controls"
+                    ),
                     text("The LaughTrack Comedy Roundup", as: "seeded episode"),
                 ]
             )
