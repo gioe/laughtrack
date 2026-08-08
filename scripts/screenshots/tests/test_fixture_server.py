@@ -137,7 +137,8 @@ def validate_openapi_value(
         assert TIMEZONE_SUFFIX.search(value), (
             f"{path}: date-time must include Z or a numeric timezone offset"
         )
-        datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        assert parsed.tzinfo is not None, f"{path}: date-time must include a timezone"
 
 
 def test_default_mode_uses_curated_artwork_for_every_shipping_profile() -> None:
