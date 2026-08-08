@@ -185,7 +185,9 @@
       "ios/Resources",
       "ios/Tests",
       "ios/LaughTrack.xcodeproj",
-      "ios/bin"
+      "ios/bin",
+      "ios/fastlane",
+      "android"
     ]
   },
   "init_intent": null,

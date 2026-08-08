@@ -35,6 +35,36 @@ def test_documented_validator_is_sparse_safe_and_reads_local_catalog(
         "scripts/screenshots/manifest.py",
         "scripts/screenshots/fixture_server.py",
     } <= sparse_paths
+    sparse_cones = set(tusk_config["scope"]["sparse_always_cone"])
+    required_native_inputs = {
+        "ios/bin/lane",
+        "ios/fastlane/Fastfile",
+        "ios/LaughTrack.xcodeproj/project.pbxproj",
+        "ios/Sources",
+        "ios/Tests",
+        "android/bin/lane",
+        "android/fastlane/Fastfile",
+        "android/gradlew",
+        "android/settings.gradle.kts",
+        "android/gradle",
+        "android/app",
+        "android/core",
+        "android/feature",
+    }
+    for platform_task_cone in ("android", "ios"):
+        effective_cones = sparse_cones | {platform_task_cone}
+        uncovered_inputs = {
+            required
+            for required in required_native_inputs
+            if not any(
+                required == cone or required.startswith(f"{cone}/")
+                for cone in effective_cones
+            )
+        }
+        assert not uncovered_inputs, (
+            f"{platform_task_cone}-only visual worktree omits complete matrix "
+            f"inputs: {sorted(uncovered_inputs)}"
+        )
 
     checkout = tmp_path / "sparse-checkout"
     script_dir = checkout / "scripts" / "screenshots"
