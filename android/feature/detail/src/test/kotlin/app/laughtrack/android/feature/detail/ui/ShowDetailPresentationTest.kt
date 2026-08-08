@@ -27,7 +27,35 @@ class ShowDetailPresentationTest {
     }
 
     @Test
-    fun open_mic_uses_club_art_and_hides_lineup_hero() {
+    fun hero_image_prefers_lineup_art_over_show_and_club_art() {
+        val headliner = comedian(1, "Comic")
+
+        assertEquals(headliner.imageUrl, showDetailHeroImageUrl(show(lineup = listOf(headliner))))
+    }
+
+    @Test
+    fun hero_image_prefers_show_art_when_lineup_art_is_unavailable() {
+        assertEquals(
+            "https://example.com/show.jpg",
+            showDetailHeroImageUrl(show(lineup = emptyList())),
+        )
+    }
+
+    @Test
+    fun hero_image_uses_club_art_as_the_final_fallback() {
+        assertEquals(
+            "https://example.com/club.jpg",
+            showDetailHeroImageUrl(
+                show(
+                    lineup = listOf(comedian(1, "Comic", imageUrl = " ")),
+                    showImageUrl = " ",
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun open_mic_uses_show_art_and_hides_lineup_hero() {
         val openMic =
             show(
                 name = "Tuesday Open Mic",
@@ -36,7 +64,7 @@ class ShowDetailPresentationTest {
             )
 
         assertNull(showDetailHeroComedian(openMic))
-        assertEquals("https://example.com/club.jpg", showDetailHeroImageUrl(openMic))
+        assertEquals("https://example.com/show.jpg", showDetailHeroImageUrl(openMic))
     }
 
     @Test
@@ -77,10 +105,11 @@ class ShowDetailPresentationTest {
         name: String = "Backroom Comedy",
         lineup: List<ComedianLineup>,
         tags: List<Tag>? = null,
+        showImageUrl: String = "https://example.com/show.jpg",
     ) = ShowDetail(
         id = 42,
         date = "2026-07-13T23:00:00Z",
-        imageUrl = "https://example.com/show.jpg",
+        imageUrl = showImageUrl,
         showPageUrl = "https://example.com/show/42",
         club = ShowDetailClub(id = 7, name = "Comedy Room", imageUrl = "https://example.com/club.jpg"),
         cta = ShowDetailCta(label = "Buy tickets", isSoldOut = false),
@@ -94,11 +123,12 @@ class ShowDetailPresentationTest {
         name: String,
         showCount: Int? = null,
         role: String? = null,
+        imageUrl: String = "https://example.com/$id.jpg",
     ) = ComedianLineup(
         id = id,
         uuid = "uuid-$id",
         name = name,
-        imageUrl = "https://example.com/$id.jpg",
+        imageUrl = imageUrl,
         showCount = showCount,
         role = role,
     )

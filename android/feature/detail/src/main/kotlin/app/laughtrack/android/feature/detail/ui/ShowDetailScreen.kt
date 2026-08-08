@@ -721,8 +721,8 @@ internal fun showDetailHeroComedian(show: ShowDetail): ComedianLineup? {
 
 internal fun showDetailHeroImageUrl(show: ShowDetail): String? =
     showDetailHeroComedian(show)?.imageUrl?.takeIf { it.isNotBlank() }
-        ?: show.club.imageUrl.takeIf { it.isNotBlank() }
         ?: show.imageUrl.takeIf { it.isNotBlank() }
+        ?: show.club.imageUrl.takeIf { it.isNotBlank() }
 
 internal fun showDetailIsOpenMic(show: ShowDetail): Boolean =
     show.name.orEmpty().contains("open mic", ignoreCase = true) ||
