@@ -16,6 +16,7 @@ class ProfileLayoutTest {
             assertEquals(24.dp, spec.horizontalPadding)
             assertEquals(18.dp, spec.paneSpacing)
             assertEquals(Dp.Infinity, spec.accountPaneWidth)
+            assertEquals(false, spec.centerContentVertically)
         }
     }
 
@@ -24,10 +25,11 @@ class ProfileLayoutTest {
         val spec = profileAdaptiveLayoutSpec(600.dp)
 
         assertEquals(ProfileLayoutMode.Expanded, spec.mode)
-        assertEquals(720.dp, spec.contentMaxWidth)
+        assertEquals(560.dp, spec.contentMaxWidth)
         assertEquals(8.dp, spec.horizontalPadding)
         assertEquals(12.dp, spec.paneSpacing)
         assertEquals(264.dp, spec.accountPaneWidth)
+        assertEquals(true, spec.centerContentVertically)
     }
 
     @Test
@@ -35,10 +37,11 @@ class ProfileLayoutTest {
         val spec = profileAdaptiveLayoutSpec(800.dp)
 
         assertEquals(ProfileLayoutMode.Expanded, spec.mode)
-        assertEquals(960.dp, spec.contentMaxWidth)
+        assertEquals(720.dp, spec.contentMaxWidth)
         assertEquals(32.dp, spec.horizontalPadding)
         assertEquals(32.dp, spec.paneSpacing)
-        assertEquals(336.dp, spec.accountPaneWidth)
+        assertEquals(302.4.dp, spec.accountPaneWidth)
+        assertEquals(true, spec.centerContentVertically)
     }
 
     @Test
@@ -46,7 +49,7 @@ class ProfileLayoutTest {
         val spec = profileAdaptiveLayoutSpec(1_600.dp)
 
         assertEquals(ProfileLayoutMode.Expanded, spec.mode)
-        assertEquals(960.dp, spec.contentMaxWidth)
-        assertEquals(360.dp, spec.accountPaneWidth)
+        assertEquals(720.dp, spec.contentMaxWidth)
+        assertEquals(302.4.dp, spec.accountPaneWidth)
     }
 }

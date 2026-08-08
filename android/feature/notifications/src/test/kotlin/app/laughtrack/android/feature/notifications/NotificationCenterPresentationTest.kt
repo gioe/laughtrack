@@ -1,5 +1,6 @@
 package app.laughtrack.android.feature.notifications
 
+import androidx.compose.ui.unit.dp
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.NotificationComedian
 import app.laughtrack.android.core.network.generated.model.NotificationItem
@@ -13,6 +14,33 @@ import java.time.ZonedDateTime
 
 class NotificationCenterPresentationTest {
     private val now = ZonedDateTime.parse("2026-07-15T15:00:00-04:00")
+
+    @Test
+    fun compactNotificationCenterPreservesPhoneComposition() {
+        listOf(440.dp, 599.dp).forEach { width ->
+            val spec = notificationCenterLayoutSpec(width)
+
+            assertEquals(NotificationCenterLayoutMode.Compact, spec.mode)
+            assertEquals(720.dp, spec.contentMaxWidth)
+            assertEquals(16.dp, spec.horizontalPadding)
+            assertFalse(spec.centerSparseContent)
+        }
+    }
+
+    @Test
+    fun shippingTabletsUseBoundedCenteredNotificationCompositions() {
+        val sevenInch = notificationCenterLayoutSpec(600.dp)
+        val tenInch = notificationCenterLayoutSpec(800.dp)
+        val veryWide = notificationCenterLayoutSpec(1_600.dp)
+
+        assertEquals(NotificationCenterLayoutMode.Expanded, sevenInch.mode)
+        assertEquals(560.dp, sevenInch.contentMaxWidth)
+        assertTrue(sevenInch.centerSparseContent)
+        assertEquals(NotificationCenterLayoutMode.Expanded, tenInch.mode)
+        assertEquals(720.dp, tenInch.contentMaxWidth)
+        assertTrue(tenInch.centerSparseContent)
+        assertEquals(720.dp, veryWide.contentMaxWidth)
+    }
 
     @Test
     fun unreadRowExposesSourceTimestampAndUnreadEmphasis() {

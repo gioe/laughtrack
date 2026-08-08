@@ -74,8 +74,8 @@ internal fun nowPlayingLayoutSpec(availableWidth: Dp): NowPlayingLayoutSpec {
     return if (expanded) {
         NowPlayingLayoutSpec(
             mode = NowPlayingLayoutMode.Expanded,
-            artworkSize = (availableWidth * EXPANDED_ARTWORK_WIDTH_RATIO).coerceIn(220.dp, 360.dp),
-            contentMaxWidth = 1_000.dp,
+            artworkSize = (availableWidth * EXPANDED_ARTWORK_WIDTH_RATIO).coerceIn(360.dp, 480.dp),
+            contentMaxWidth = 620.dp,
         )
     } else {
         NowPlayingLayoutSpec(
@@ -286,18 +286,19 @@ private fun ExpandedNowPlayingContent(
     playbackController: PodcastPlaybackController,
     spec: NowPlayingLayoutSpec,
 ) {
-    Row(
+    Column(
         modifier =
             Modifier
                 .widthIn(max = spec.contentMaxWidth)
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(40.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp, vertical = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         PlayerArtwork(ui = ui, artworkSize = spec.artworkSize)
         Column(
-            modifier = Modifier.weight(1f).widthIn(max = 480.dp),
+            modifier = Modifier.widthIn(max = 520.dp).fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -578,4 +579,4 @@ private fun formatTime(ms: Long): String {
 }
 
 private val EXPANDED_PLAYER_BREAKPOINT = 600.dp
-private const val EXPANDED_ARTWORK_WIDTH_RATIO = 0.38f
+private const val EXPANDED_ARTWORK_WIDTH_RATIO = 0.60f

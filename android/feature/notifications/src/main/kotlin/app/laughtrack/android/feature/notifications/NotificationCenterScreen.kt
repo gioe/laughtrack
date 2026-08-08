@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -48,6 +49,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -154,11 +156,18 @@ private fun NotificationList(
     val now = remember(referenceTime) { referenceTime ?: ZonedDateTime.now() }
     var sortOrder by rememberSaveable { mutableStateOf(DEFAULT_NOTIFICATION_SORT_ORDER) }
     val sortedItems = remember(items, sortOrder) { sortOrder.sorted(items) }
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        val layoutSpec = notificationCenterLayoutSpec(maxWidth)
         LazyColumn(
-            modifier = Modifier.widthIn(max = NOTIFICATION_LIST_MAX_WIDTH).fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.widthIn(max = layoutSpec.contentMaxWidth).fillMaxSize(),
+            contentPadding =
+                PaddingValues(horizontal = layoutSpec.horizontalPadding, vertical = 12.dp),
+            verticalArrangement =
+                if (layoutSpec.centerSparseContent) {
+                    Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+                } else {
+                    Arrangement.spacedBy(12.dp)
+                },
         ) {
             item(key = "notification-sort-control") {
                 NotificationSortControl(
@@ -180,6 +189,42 @@ private fun NotificationList(
             }
         }
     }
+}
+
+internal enum class NotificationCenterLayoutMode {
+    Compact,
+    Expanded,
+}
+
+internal data class NotificationCenterLayoutSpec(
+    val mode: NotificationCenterLayoutMode,
+    val contentMaxWidth: Dp,
+    val horizontalPadding: Dp,
+    val centerSparseContent: Boolean,
+)
+
+internal fun notificationCenterLayoutSpec(availableWidth: Dp): NotificationCenterLayoutSpec {
+    if (availableWidth < NOTIFICATION_EXPANDED_BREAKPOINT) {
+        return NotificationCenterLayoutSpec(
+            mode = NotificationCenterLayoutMode.Compact,
+            contentMaxWidth = NOTIFICATION_LIST_MAX_WIDTH,
+            horizontalPadding = 16.dp,
+            centerSparseContent = false,
+        )
+    }
+
+    val contentMaxWidth =
+        if (availableWidth >= NOTIFICATION_WIDE_BREAKPOINT) {
+            NOTIFICATION_WIDE_CONTENT_MAX_WIDTH
+        } else {
+            NOTIFICATION_SEVEN_INCH_CONTENT_MAX_WIDTH
+        }
+    return NotificationCenterLayoutSpec(
+        mode = NotificationCenterLayoutMode.Expanded,
+        contentMaxWidth = contentMaxWidth,
+        horizontalPadding = 16.dp,
+        centerSparseContent = true,
+    )
 }
 
 @Composable
@@ -496,3 +541,7 @@ private fun CenteredMessage(
 }
 
 private val NOTIFICATION_LIST_MAX_WIDTH = 720.dp
+private val NOTIFICATION_EXPANDED_BREAKPOINT = 600.dp
+private val NOTIFICATION_WIDE_BREAKPOINT = 720.dp
+private val NOTIFICATION_SEVEN_INCH_CONTENT_MAX_WIDTH = 560.dp
+private val NOTIFICATION_WIDE_CONTENT_MAX_WIDTH = 720.dp

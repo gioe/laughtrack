@@ -22,9 +22,16 @@ class PodcastPlaybackUiTest {
     fun artwork_is_square_by_contract_and_capped_for_each_layout() {
         assertEquals(340.dp, nowPlayingLayoutSpec(440.dp).artworkSize)
         assertEquals(340.dp, nowPlayingLayoutSpec(599.dp).artworkSize)
-        assertEquals(228.dp, nowPlayingLayoutSpec(600.dp).artworkSize)
-        assertEquals(304.dp, nowPlayingLayoutSpec(800.dp).artworkSize)
-        assertEquals(360.dp, nowPlayingLayoutSpec(1_200.dp).artworkSize)
+        assertEquals(360.dp, nowPlayingLayoutSpec(600.dp).artworkSize)
+        assertEquals(480.dp, nowPlayingLayoutSpec(800.dp).artworkSize)
+        assertEquals(480.dp, nowPlayingLayoutSpec(1_200.dp).artworkSize)
+    }
+
+    @Test
+    fun content_width_is_bounded_for_compact_and_expanded_compositions() {
+        assertEquals(520.dp, nowPlayingLayoutSpec(599.dp).contentMaxWidth)
+        assertEquals(620.dp, nowPlayingLayoutSpec(600.dp).contentMaxWidth)
+        assertEquals(620.dp, nowPlayingLayoutSpec(1_200.dp).contentMaxWidth)
     }
 
     @Test

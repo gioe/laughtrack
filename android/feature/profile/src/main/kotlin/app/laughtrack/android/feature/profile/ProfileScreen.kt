@@ -74,12 +74,13 @@ internal data class ProfileAdaptiveLayoutSpec(
     val horizontalPadding: Dp,
     val paneSpacing: Dp,
     val accountPaneWidth: Dp,
+    val centerContentVertically: Boolean,
 )
 
 private val PROFILE_EXPANDED_BREAKPOINT = 600.dp
 private val PROFILE_WIDE_BREAKPOINT = 720.dp
-private val PROFILE_SEVEN_INCH_CONTENT_MAX_WIDTH = 720.dp
-private val PROFILE_EXPANDED_CONTENT_MAX_WIDTH = 960.dp
+private val PROFILE_SEVEN_INCH_CONTENT_MAX_WIDTH = 560.dp
+private val PROFILE_EXPANDED_CONTENT_MAX_WIDTH = 720.dp
 
 internal fun profileAdaptiveLayoutSpec(availableWidth: Dp): ProfileAdaptiveLayoutSpec {
     if (availableWidth < PROFILE_EXPANDED_BREAKPOINT) {
@@ -89,18 +90,21 @@ internal fun profileAdaptiveLayoutSpec(availableWidth: Dp): ProfileAdaptiveLayou
             horizontalPadding = 24.dp,
             paneSpacing = 18.dp,
             accountPaneWidth = Dp.Infinity,
+            centerContentVertically = false,
         )
     }
 
-    val boundedWidth = minOf(availableWidth, PROFILE_EXPANDED_CONTENT_MAX_WIDTH)
-    val isWide = boundedWidth >= PROFILE_WIDE_BREAKPOINT
+    val isWide = availableWidth >= PROFILE_WIDE_BREAKPOINT
+    val contentMaxWidth =
+        if (isWide) PROFILE_EXPANDED_CONTENT_MAX_WIDTH else PROFILE_SEVEN_INCH_CONTENT_MAX_WIDTH
+    val boundedWidth = minOf(availableWidth, contentMaxWidth)
     return ProfileAdaptiveLayoutSpec(
         mode = ProfileLayoutMode.Expanded,
-        contentMaxWidth =
-            if (isWide) PROFILE_EXPANDED_CONTENT_MAX_WIDTH else PROFILE_SEVEN_INCH_CONTENT_MAX_WIDTH,
+        contentMaxWidth = contentMaxWidth,
         horizontalPadding = if (isWide) 32.dp else 8.dp,
         paneSpacing = if (isWide) 32.dp else 12.dp,
         accountPaneWidth = (boundedWidth * 0.42f).coerceIn(264.dp, 360.dp),
+        centerContentVertically = true,
     )
 }
 
@@ -219,7 +223,12 @@ private fun ProfileContent(
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(horizontal = layoutSpec.horizontalPadding, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement =
+                if (layoutSpec.centerContentVertically) {
+                    Arrangement.spacedBy(18.dp, Alignment.CenterVertically)
+                } else {
+                    Arrangement.spacedBy(18.dp)
+                },
         ) {
             if (state.isLoading) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
