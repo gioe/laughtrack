@@ -43,7 +43,7 @@ object AuthenticatedScreenshotPersona {
             account =
                 ProfileAccount(
                     displayName = "Jordan Rivera",
-                    email = "jordan.rivera@example.invalid",
+                    email = "jordan.rivera@example.com",
                     avatarUrl = null,
                 ),
             preferences =

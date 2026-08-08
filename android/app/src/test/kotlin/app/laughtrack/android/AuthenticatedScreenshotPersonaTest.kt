@@ -15,7 +15,7 @@ class AuthenticatedScreenshotPersonaTest {
         assertTrue(profile.signedIn)
         assertFalse(profile.isLoading)
         assertEquals("Jordan Rivera", profile.account?.displayName)
-        assertEquals("jordan.rivera@example.invalid", profile.account?.email)
+        assertEquals("jordan.rivera@example.com", profile.account?.email)
         assertNull(profile.account?.avatarUrl)
         assertEquals("10012", profile.preferences.zipCode)
         assertEquals(25, profile.preferences.nearbyDistanceMiles)
