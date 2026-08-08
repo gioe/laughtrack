@@ -305,12 +305,14 @@ class AppStoreScreenshotTest {
         // the selected club's calendar rather than returning to global Shows.
         waitFor(hasTestTag(CLUB_SHOW_ROW_TEST_TAG), timeoutMs = 30_000)
         composeRule
-            .onNode(hasTestTag(CLUB_SHOW_ROW_TEST_TAG) and hasText("Taylor Tomlinson & Friends"))
+            .onAllNodes(hasTestTag(CLUB_SHOW_ROW_TEST_TAG))
+            .onFirst()
             .performScrollTo()
             .performClick()
         waitFor(hasContentDescription("Home"), timeoutMs = 20_000)
         waitForDetail()
         waitFor(hasText("TAYLOR TOMLINSON & FRIENDS"), timeoutMs = 20_000)
+        waitFor(hasText("Aug 14, 2026", substring = true), timeoutMs = 20_000)
         if (capture("06_ShowDetail")) return
         goBackToClubDetail()
         goBack()
