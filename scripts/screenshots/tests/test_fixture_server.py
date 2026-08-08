@@ -243,6 +243,64 @@ def test_fixture_dates_are_plausible_and_deterministic() -> None:
     ]
 
 
+def test_show_101_contract_is_shared_across_native_capture_endpoints() -> None:
+    base_url = "http://fixture"
+    club_shows = fixture_response("/api/v1/clubs/201/shows", base_url)["data"]
+    search_shows = fixture_response("/api/v1/shows/search", base_url)["data"]
+    detail = fixture_response("/api/v1/shows/101", base_url)["data"]
+
+    club_show = club_shows[0]
+    search_show = next(show for show in search_shows if show["id"] == 101)
+
+    assert club_show["id"] == 101
+    assert search_show == club_show
+    assert {key: detail[key] for key in club_show} == club_show
+    assert {
+        "id": club_show["id"],
+        "name": club_show["name"],
+        "date": club_show["date"],
+        "clubId": club_show["clubId"],
+        "clubName": club_show["clubName"],
+        "clubCity": club_show["clubCity"],
+        "clubState": club_show["clubState"],
+        "timezone": club_show["timezone"],
+        "imageUrl": club_show["imageUrl"],
+        "tickets": club_show["tickets"],
+    } == {
+        "id": 101,
+        "name": "Taylor Tomlinson & Friends",
+        "date": "2026-08-14T20:00:00-07:00",
+        "clubId": 201,
+        "clubName": "The Comedy Store",
+        "clubCity": "West Hollywood",
+        "clubState": "CA",
+        "timezone": "America/Los_Angeles",
+        "imageUrl": f"{base_url}/artwork/show-friends.png",
+        "tickets": [
+            {
+                "price": 40,
+                "purchaseUrl": "https://example.invalid/tickets/101",
+                "soldOut": False,
+                "type": "General Admission",
+            }
+        ],
+    }
+    assert club_show["lineup"][0]["name"] == "Taylor Tomlinson"
+    assert club_show["lineup"][0]["imageUrl"] == f"{base_url}/artwork/taylor.png"
+    assert detail["club"] == {
+        "id": 201,
+        "name": "The Comedy Store",
+        "imageUrl": f"{base_url}/artwork/comedy-store.png",
+        "address": "8433 Sunset Blvd, West Hollywood, CA",
+        "timezone": "America/Los_Angeles",
+    }
+    assert detail["cta"] == {
+        "label": "Buy tickets",
+        "isSoldOut": False,
+        "url": "https://example.invalid/tickets/101",
+    }
+
+
 def test_fallback_focused_mode_remains_available_for_targeted_verification() -> None:
     contract = CONTENT_FIXTURE["modes"][FALLBACK_MODE]
     referenced_artwork: set[str] = set()
