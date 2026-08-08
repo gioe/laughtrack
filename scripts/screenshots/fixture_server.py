@@ -19,6 +19,9 @@ REVIEW_ANCHOR_DATE = date(2026, 8, 5)
 PRIMARY_SHOW_DATE = date(2026, 8, 14)
 SECONDARY_SHOW_DATE = date(2026, 8, 15)
 EPISODE_RELEASE_DATE = REVIEW_ANCHOR_DATE - timedelta(days=4)
+HOME_FEED_EPISODE_RELEASE_DATETIME = (
+    f"{EPISODE_RELEASE_DATE.isoformat()}T12:00:00.000Z"
+)
 PRIMARY_SHOW_DATETIME = f"{PRIMARY_SHOW_DATE.isoformat()}T20:00:00-07:00"
 SECONDARY_SHOW_DATETIME = f"{SECONDARY_SHOW_DATE.isoformat()}T21:00:00-07:00"
 ARTWORK_ASSETS = {
@@ -590,6 +593,7 @@ def _podcast_episode(base_url: str) -> dict:
 
 def _home_feed_podcast_episode(base_url: str) -> dict:
     episode = _podcast_episode(base_url)
+    episode["releaseDate"] = HOME_FEED_EPISODE_RELEASE_DATETIME
     podcast = _podcast(base_url)
     guest = episode["appearances"][1]
     return {

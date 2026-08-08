@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import threading
 import urllib.error
 import urllib.request
@@ -19,6 +20,7 @@ from scripts.screenshots.fixture_server import (
     EPISODE_RELEASE_DATE,
     FALLBACK_MODE,
     FixtureServer,
+    HOME_FEED_EPISODE_RELEASE_DATETIME,
     PRIMARY_SHOW_DATE,
     REVIEW_ANCHOR_DATE,
     SECONDARY_SHOW_DATE,
@@ -35,6 +37,14 @@ SEARCH_PATHS = (
     "/api/v1/podcasts/search",
 )
 CATALOG_PATH = Path(__file__).resolve().parents[3] / "screenshots" / "catalog.json"
+IOS_OPENAPI_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "ios"
+    / "Sources"
+    / "LaughTrackAPIClient"
+    / "openapi.json"
+)
+TIMEZONE_SUFFIX = re.compile(r"(?:Z|[+-]\d{2}:\d{2})$")
 
 
 @pytest.fixture
@@ -63,6 +73,71 @@ def artwork_keys(value: object) -> set[str]:
     if isinstance(value, str) and value.startswith("http://fixture/artwork/"):
         return {value.rsplit("/", 1)[-1].removesuffix(".png")}
     return set()
+
+
+def validate_openapi_value(
+    value: object,
+    schema: dict,
+    document: dict,
+    path: str = "$",
+) -> None:
+    if "$ref" in schema:
+        ref = schema["$ref"]
+        assert ref.startswith("#/"), f"{path}: unsupported schema reference {ref}"
+        resolved: object = document
+        for segment in ref.removeprefix("#/").split("/"):
+            assert isinstance(resolved, dict), f"{path}: invalid schema reference {ref}"
+            resolved = resolved[segment]
+        assert isinstance(resolved, dict), f"{path}: schema reference is not an object"
+        validate_openapi_value(value, resolved, document, path)
+        return
+
+    declared_types = schema.get("type")
+    if isinstance(declared_types, str):
+        declared_types = [declared_types]
+    if declared_types is None:
+        declared_types = []
+
+    if value is None:
+        assert "null" in declared_types, f"{path}: null is not allowed"
+        return
+
+    type_checks = {
+        "object": lambda candidate: isinstance(candidate, dict),
+        "array": lambda candidate: isinstance(candidate, list),
+        "string": lambda candidate: isinstance(candidate, str),
+        "integer": lambda candidate: isinstance(candidate, int)
+        and not isinstance(candidate, bool),
+        "number": lambda candidate: isinstance(candidate, (int, float))
+        and not isinstance(candidate, bool),
+        "boolean": lambda candidate: isinstance(candidate, bool),
+    }
+    non_null_types = [item for item in declared_types if item != "null"]
+    assert not non_null_types or any(
+        type_checks[item](value) for item in non_null_types
+    ), f"{path}: expected {declared_types}, got {type(value).__name__}"
+
+    if isinstance(value, dict):
+        missing = set(schema.get("required", [])) - set(value)
+        assert not missing, f"{path}: missing required properties {sorted(missing)}"
+        for key, child_schema in schema.get("properties", {}).items():
+            if key in value:
+                validate_openapi_value(
+                    value[key], child_schema, document, f"{path}.{key}"
+                )
+
+    if isinstance(value, list) and "items" in schema:
+        for index, item in enumerate(value):
+            validate_openapi_value(
+                item, schema["items"], document, f"{path}[{index}]"
+            )
+
+    if schema.get("format") == "date-time":
+        assert isinstance(value, str)
+        assert TIMEZONE_SUFFIX.search(value), (
+            f"{path}: date-time must include Z or a numeric timezone offset"
+        )
+        datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def test_default_mode_uses_curated_artwork_for_every_shipping_profile() -> None:
@@ -196,7 +271,7 @@ def test_home_feed_includes_deterministic_podcast_episode_discovery() -> None:
     episode = home["podcastEpisodes"][0]
     assert episode["id"] == 501
     assert episode["title"] == "#2520 - A Night of Comedy"
-    assert episode["releaseDate"] == EPISODE_RELEASE_DATE.isoformat()
+    assert episode["releaseDate"] == HOME_FEED_EPISODE_RELEASE_DATETIME
     assert episode["durationSeconds"] == 8940
     assert episode["audioUrl"] == "https://example.invalid/audio/501.mp3"
     assert episode["podcast"] == {
@@ -217,6 +292,16 @@ def test_home_feed_includes_deterministic_podcast_episode_discovery() -> None:
         "followedComedian": False,
         "favoritePodcast": False,
     }
+
+
+def test_home_feed_fixture_matches_current_ios_openapi_schema() -> None:
+    document = json.loads(IOS_OPENAPI_PATH.read_text())
+    home_feed_schema = document["paths"]["/home/feed"]["get"]["responses"]["200"][
+        "content"
+    ]["application/json"]["schema"]
+    payload = fixture_response("/api/v1/home/feed", "http://fixture")
+
+    validate_openapi_value(payload, home_feed_schema, document)
 
 
 def test_club_highlights_fixture_populates_tonight_and_qualified_performers() -> None:
