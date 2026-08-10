@@ -13,7 +13,7 @@ import {
 function rotatingPolicy(version = 7): DiscoveryRailPolicyDto {
     return {
         platform: "web",
-        catalogVersion: 3,
+        catalogVersion: 4,
         version,
         cycleCadenceHours: 24,
         rails: [
@@ -125,7 +125,7 @@ describe("selectDiscoveryRailPlan", () => {
     it("suppresses empty rails and deduplicates candidates", () => {
         const policy: DiscoveryRailPolicyDto = {
             platform: "web",
-            catalogVersion: 3,
+            catalogVersion: 4,
             version: 4,
             cycleCadenceHours: 24,
             rails: [
@@ -228,7 +228,7 @@ describe("selectDiscoveryRailPlan", () => {
 
     it("uses resolved policy priority to deduplicate dynamic show rails", () => {
         const payloads: DiscoveryRailPayloadMap = {
-            newly_added: {
+            starting_to_buzz: {
                 payloadKey: "dynamicRails",
                 items: [{ id: 41 }, { id: 42 }],
             },
@@ -249,7 +249,7 @@ describe("selectDiscoveryRailPlan", () => {
             railKeys: DiscoveryRailPolicyDto["rails"][number]["railKey"][],
         ): DiscoveryRailPolicyDto => ({
             platform: "web",
-            catalogVersion: 3,
+            catalogVersion: 4,
             version: 9,
             cycleCadenceHours: 24,
             rails: railKeys.map((railKey, position) => ({
@@ -263,7 +263,7 @@ describe("selectDiscoveryRailPlan", () => {
 
         const freshFirst = selectDiscoveryRailPlan({
             policy: policyFor([
-                "newly_added",
+                "starting_to_buzz",
                 "from_your_podcasts",
                 "just_passing_through",
                 "because_you_follow_them",
@@ -274,7 +274,7 @@ describe("selectDiscoveryRailPlan", () => {
         });
         expect(freshFirst.rails).toEqual([
             {
-                railKey: "newly_added",
+                railKey: "starting_to_buzz",
                 payloadKey: "dynamicRails",
                 position: 0,
                 itemIds: ["41", "42"],
@@ -291,7 +291,7 @@ describe("selectDiscoveryRailPlan", () => {
             policy: policyFor([
                 "just_passing_through",
                 "from_your_podcasts",
-                "newly_added",
+                "starting_to_buzz",
             ]),
             actorKey: "profile:dynamic",
             cycleIndex: 12,

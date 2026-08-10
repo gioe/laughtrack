@@ -35,7 +35,7 @@ class TonightCarouselTest {
         assertTrue(movingPage.contains("TonightHeroCardContent("))
         assertTrue(movingPage.contains("onClick = onClick"))
         assertTrue(movingPage.contains("modifier.then("))
-        assertTrue(source.contains("if (railKey == \"just_passing_through\")"))
+        assertTrue(source.contains("if (isTodayStyleDynamicShowRail(railKey))"))
         assertTrue(source.contains("FeaturedShowsCarousel("))
         assertTrue(source.contains("preferredHeadlinerId = preferredDynamicRailHeadlinerId(railKey, item)"))
         assertTrue(source.contains("timestampLabel = formatShowDateTime(item.show)"))

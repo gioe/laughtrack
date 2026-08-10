@@ -65,16 +65,12 @@ type ShowRailPresentation = {
     eyebrow?: string;
     title: string;
     subtitle: string;
-    seeAllHref: string;
+    seeAllHref?: string;
 };
 
 const DYNAMIC_SHOW_RAIL_KEYS = new Set<string>([
     "just_passing_through",
-    "rare_returns",
-    "only_chance_nearby",
-    "newly_added",
     "starting_to_buzz",
-    "catch_them_early",
     "from_your_podcasts",
     "because_you_follow_them",
 ]);
@@ -137,7 +133,6 @@ function showRail(
     plan: DiscoveryRailPlanData,
     shows: ShowDTO[],
     presentation: ShowRailPresentation,
-    reasonLabels?: Record<number, string>,
 ) {
     if (shows.length === 0) return null;
     return (
@@ -150,7 +145,6 @@ function showRail(
                 {...presentation}
                 shows={shows}
                 testId={`discovery-rail-${railKey}`}
-                reasonLabels={reasonLabels}
                 discoveryPresentation={{
                     surface: railKey,
                     policyVersion: String(plan.policyVersion),
@@ -264,24 +258,16 @@ function renderRail(
         entry.itemIds,
         (item) => item.id ?? item.show.id,
     );
-    const items =
-        entry.railKey === "just_passing_through"
-            ? selectedDynamicItems.slice(0, 5)
-            : selectedDynamicItems;
+    const items = selectedDynamicItems.slice(0, 5);
     if (items.length === 0) return null;
-    const reasons = Object.fromEntries(
-        items.map((item) => [item.show.id, item.reason.label]),
-    );
     return showRail(
         entry.railKey as DiscoveryRailKey,
         plan,
         items.map((item) => item.show),
         {
             title: dynamicRail.label,
-            subtitle: "Recommended from the latest LaughTrack signals",
-            seeAllHref: "/show/search",
+            subtitle: "",
         },
-        reasons,
     );
 }
 

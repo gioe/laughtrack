@@ -94,7 +94,7 @@ class HomeDiscoverRailPlanTest {
                     listOf(
                         HomeFeedDynamicRail(
                             railKey = "starting_to_buzz",
-                            label = "Starting to buzz",
+                            label = "Shows gaining momentum",
                             items = listOf(dynamicItem),
                         ),
                     ),
@@ -142,7 +142,7 @@ class HomeDiscoverRailPlanTest {
     }
 
     @Test
-    fun just_passing_through_features_its_associated_comedian() {
+    fun custom_show_rails_use_today_style_cards_and_feature_their_associated_comedian() {
         val item =
             HomeFeedDynamicRailItem(
                 id = 91,
@@ -156,12 +156,16 @@ class HomeDiscoverRailPlanTest {
                     ),
             )
 
-        assertEquals(81, preferredDynamicRailHeadlinerId("just_passing_through", item))
+        for (railKey in listOf("just_passing_through", "starting_to_buzz", "from_your_podcasts", "because_you_follow_them")) {
+            assertTrue(isTodayStyleDynamicShowRail(railKey))
+            assertEquals(81, preferredDynamicRailHeadlinerId(railKey, item))
+        }
+        assertNull(preferredDynamicRailHeadlinerId("only_chance_nearby", item))
         assertNull(preferredDynamicRailHeadlinerId("rare_returns", item))
     }
 
     @Test
-    fun limits_just_passing_through_to_five_shows() {
+    fun limits_rarely_nearby_to_five_shows() {
         val items =
             (1..7).map { id ->
                 HomeFeedDynamicRailItem(
@@ -175,15 +179,16 @@ class HomeDiscoverRailPlanTest {
                         ),
                 )
             }
+        val railKey = "just_passing_through"
         val sections =
             resolveHomeDiscoverRails(
                 feed(
-                    rails = listOf(entry("just_passing_through", "dynamicRails", 0, items.map { it.id.toString() })),
+                    rails = listOf(entry(railKey, "dynamicRails", 0, items.map { it.id.toString() })),
                     dynamicRails =
                         listOf(
                             HomeFeedDynamicRail(
-                                railKey = "just_passing_through",
-                                label = "Just passing through",
+                                railKey = railKey,
+                                label = "Rarely nearby",
                                 items = items,
                             ),
                         ),
@@ -195,7 +200,7 @@ class HomeDiscoverRailPlanTest {
     }
 
     @Test
-    fun removed_stacked_lineups_rail_is_ignored() {
+    fun removed_dynamic_rails_are_ignored() {
         val item =
             HomeFeedDynamicRailItem(
                 id = 91,
@@ -207,22 +212,24 @@ class HomeDiscoverRailPlanTest {
                         evidence = HomeFeedDynamicRailReasonEvidence(),
                     ),
             )
-        val result =
-            resolveHomeDiscoverRails(
-                feed(
-                    rails = listOf(entry("stacked_lineups", "dynamicRails", 0, listOf("91"))),
-                    dynamicRails =
-                        listOf(
-                            HomeFeedDynamicRail(
-                                railKey = "stacked_lineups",
-                                label = "Stacked lineups",
-                                items = listOf(item),
+        for (railKey in listOf("stacked_lineups", "rare_returns", "only_chance_nearby")) {
+            val result =
+                resolveHomeDiscoverRails(
+                    feed(
+                        rails = listOf(entry(railKey, "dynamicRails", 0, listOf("91"))),
+                        dynamicRails =
+                            listOf(
+                                HomeFeedDynamicRail(
+                                    railKey = railKey,
+                                    label = railKey,
+                                    items = listOf(item),
+                                ),
                             ),
-                        ),
-                ),
-            )
+                    ),
+                )
 
-        assertNull(result)
+            assertNull(result)
+        }
     }
 
     @Test

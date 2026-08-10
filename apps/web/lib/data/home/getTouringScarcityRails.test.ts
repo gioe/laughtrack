@@ -18,6 +18,7 @@ import {
     buildTouringScarcityQuery,
     classifyTouringScarcityCandidates,
     getTouringScarcityRails,
+    TOURING_SCARCITY_POPULARITY_FLOOR,
     type TouringScarcityEvidenceRow,
 } from "./getTouringScarcityRails";
 
@@ -70,6 +71,7 @@ function row(
         canonicalComedianId: 10,
         canonicalComedianUuid: "canonical-comic",
         canonicalComedianName: "Canonical Comic",
+        canonicalPopularity: 0.5,
         homeCity: "Los Angeles",
         homeState: "CA",
         homeCountry: "US",
@@ -84,6 +86,28 @@ function row(
         historyCoverageShowCount: 40,
         ...overrides,
     };
+}
+
+function withoutRareReturn(
+    overrides: Partial<TouringScarcityEvidenceRow> = {},
+): TouringScarcityEvidenceRow {
+    return row({
+        priorLocalAppearanceCount: 0,
+        lastLocalAppearanceAt: null,
+        historyCoverageStart: null,
+        historyCoverageShowCount: 0,
+        ...overrides,
+    });
+}
+
+function rareReturnOnly(
+    overrides: Partial<TouringScarcityEvidenceRow> = {},
+): TouringScarcityEvidenceRow {
+    return row({
+        homeCity: null,
+        homeLocationUpdatedAt: null,
+        ...overrides,
+    });
 }
 
 function show(id = 101): ShowDTO {
@@ -111,6 +135,7 @@ function rawRow(overrides: Record<string, unknown> = {}) {
         canonical_comedian_id: 10,
         canonical_comedian_uuid: "canonical-comic",
         canonical_comedian_name: "Canonical Comic",
+        canonical_popularity: 0.5,
         home_city: "Los Angeles",
         home_state: "CA",
         home_country: "US",
@@ -154,27 +179,32 @@ describe("getTouringScarcityRails", () => {
             },
         });
 
-        const sameMarket = row({ homeZipCode: "94103" });
-        const unknownHome = row({
+        const sameMarket = withoutRareReturn({ homeZipCode: "94103" });
+        const unknownHome = withoutRareReturn({
             homeCity: null,
             homeLocationUpdatedAt: null,
         });
-        const staleHome = row({
+        const staleHome = withoutRareReturn({
             homeLocationUpdatedAt: new Date("2023-01-01T00:00:00.000Z"),
         });
-        const longRun = row({
+        const longRun = withoutRareReturn({
             localAppearanceCount: 4,
             runEnd: new Date("2026-08-20T20:00:00.000Z"),
         });
         for (const candidate of [sameMarket, unknownHome, staleHome, longRun]) {
+            const combined = classifyTouringScarcityCandidates(
+                [candidate],
+                REQUEST,
+            ).justPassingThrough;
             expect(
-                classifyTouringScarcityCandidates([candidate], REQUEST)
-                    .justPassingThrough,
-            ).toEqual([]);
+                combined.some(
+                    ({ reason }) => reason.kind === "just_passing_through",
+                ),
+            ).toBe(false);
         }
     });
 
-    it("limits Just passing through to five shows", () => {
+    it("limits Rarely nearby to five shows", () => {
         const candidates = Array.from({ length: 7 }, (_, index) =>
             row({
                 showId: index + 1,
@@ -188,13 +218,33 @@ describe("getTouringScarcityRails", () => {
         expect(selected.justPassingThrough.map(({ showId }) => showId)).toEqual(
             [1, 2, 3, 4, 5],
         );
-        expect(selected.rareReturns).toHaveLength(7);
     });
 
-    it("rare return labels require trustworthy local history and never infer first-ever appearances", () => {
-        const back = classifyTouringScarcityCandidates([row()], REQUEST);
-        expect(back.rareReturns).toHaveLength(1);
-        expect(back.rareReturns[0].reason).toMatchObject({
+    it("requires canonical popularity above 0.40 for touring scarcity rails", () => {
+        expect(TOURING_SCARCITY_POPULARITY_FLOOR).toBe(0.4);
+
+        for (const canonicalPopularity of [0, 0.4]) {
+            const selected = classifyTouringScarcityCandidates(
+                [row({ canonicalPopularity })],
+                REQUEST,
+            );
+            expect(selected.justPassingThrough).toEqual([]);
+        }
+
+        const selected = classifyTouringScarcityCandidates(
+            [row({ canonicalPopularity: 0.4001 })],
+            REQUEST,
+        );
+        expect(selected.justPassingThrough).toHaveLength(1);
+    });
+
+    it("merges trustworthy rare-return evidence into Rarely nearby without inferring first-ever appearances", () => {
+        const back = classifyTouringScarcityCandidates(
+            [rareReturnOnly()],
+            REQUEST,
+        );
+        expect(back.justPassingThrough).toHaveLength(1);
+        expect(back.justPassingThrough[0].reason).toMatchObject({
             kind: "back_after_a_while",
             label: expect.stringMatching(/^Back nearby after \d+ months$/),
             evidence: {
@@ -206,23 +256,25 @@ describe("getTouringScarcityRails", () => {
 
         const rare = classifyTouringScarcityCandidates(
             [
-                row({
+                rareReturnOnly({
                     lastLocalAppearanceAt: new Date("2026-07-01T00:00:00.000Z"),
                     priorLocalAppearanceCount: 2,
                 }),
             ],
             REQUEST,
         );
-        expect(rare.rareReturns[0].reason.kind).toBe("rare_return");
-        expect(rare.rareReturns[0].reason.label).toContain(
+        expect(rare.justPassingThrough[0].reason.kind).toBe("rare_return");
+        expect(rare.justPassingThrough[0].reason.label).toContain(
             "LaughTrack history",
         );
 
-        const insufficientSpan = row({
+        const insufficientSpan = rareReturnOnly({
             historyCoverageStart: new Date("2026-01-01T00:00:00.000Z"),
         });
-        const insufficientInventory = row({ historyCoverageShowCount: 9 });
-        const noObservedHistory = row({
+        const insufficientInventory = rareReturnOnly({
+            historyCoverageShowCount: 9,
+        });
+        const noObservedHistory = rareReturnOnly({
             priorLocalAppearanceCount: 0,
             lastLocalAppearanceAt: null,
         });
@@ -231,17 +283,26 @@ describe("getTouringScarcityRails", () => {
             insufficientInventory,
             noObservedHistory,
         ]) {
+            const combined = classifyTouringScarcityCandidates(
+                [candidate],
+                REQUEST,
+            ).justPassingThrough;
             expect(
-                classifyTouringScarcityCandidates([candidate], REQUEST)
-                    .rareReturns,
-            ).toEqual([]);
+                combined.some(({ reason }) =>
+                    ["rare_return", "back_after_a_while"].includes(reason.kind),
+                ),
+            ).toBe(false);
         }
     });
 
-    it("only chance requires exactly one qualifying local appearance in the horizon", () => {
+    it("merges the only-upcoming-date signal into Rarely nearby", () => {
+        const onlyUpcomingDate = withoutRareReturn({
+            homeCity: null,
+            homeLocationUpdatedAt: null,
+        });
         expect(
-            classifyTouringScarcityCandidates([row()], REQUEST)
-                .onlyChanceNearby[0].reason,
+            classifyTouringScarcityCandidates([onlyUpcomingDate], REQUEST)
+                .justPassingThrough[0].reason,
         ).toMatchObject({
             kind: "only_chance_nearby",
             label: "Only local date in the next 90 days",
@@ -249,9 +310,15 @@ describe("getTouringScarcityRails", () => {
         });
         expect(
             classifyTouringScarcityCandidates(
-                [row({ localAppearanceCount: 2 })],
+                [
+                    withoutRareReturn({
+                        homeCity: null,
+                        homeLocationUpdatedAt: null,
+                        localAppearanceCount: 2,
+                    }),
+                ],
                 REQUEST,
-            ).onlyChanceNearby,
+            ).justPassingThrough,
         ).toEqual([]);
     });
 
@@ -283,14 +350,12 @@ describe("getTouringScarcityRails", () => {
         );
 
         expect(selected.justPassingThrough).toHaveLength(1);
-        expect(selected.rareReturns).toHaveLength(1);
-        expect(selected.onlyChanceNearby).toHaveLength(1);
-        expect(selected.onlyChanceNearby[0].performer).toEqual({
+        expect(selected.justPassingThrough[0].performer).toEqual({
             id: 10,
             uuid: "canonical-comic",
             name: "Canonical Comic",
         });
-        expect(selected.onlyChanceNearby[0].reason.evidence).toEqual(
+        expect(selected.justPassingThrough[0].reason.evidence).toEqual(
             expect.objectContaining({
                 canonicalComedianId: 10,
                 runStart: UPCOMING,
@@ -349,6 +414,7 @@ describe("getTouringScarcityRails", () => {
                     id INTEGER PRIMARY KEY,
                     uuid TEXT NOT NULL UNIQUE,
                     name TEXT NOT NULL,
+                    popularity DOUBLE PRECISION NOT NULL DEFAULT 0,
                     visible BOOLEAN NOT NULL DEFAULT true,
                     parent_comedian_id INTEGER REFERENCES comedians(id),
                     home_city TEXT,
@@ -375,15 +441,15 @@ describe("getTouringScarcityRails", () => {
                     (2, '90001', true),
                     (3, '94107', false);
                 INSERT INTO comedians
-                    (id, uuid, name, visible, parent_comedian_id, home_city,
+                    (id, uuid, name, popularity, visible, parent_comedian_id, home_city,
                      home_state, home_country, home_club_id,
                      home_location_updated_at)
                 VALUES
-                    (10, 'canonical', 'Canonical Comic', true, NULL,
+                    (10, 'canonical', 'Canonical Comic', 0.5, true, NULL,
                      'Los Angeles', 'CA', 'US', 2, '2026-07-01T00:00:00Z'),
-                    (11, 'alias', 'Alias Comic', true, 10,
+                    (11, 'alias', 'Alias Comic', 0.9, true, 10,
                      NULL, NULL, NULL, NULL, NULL),
-                    (12, 'hidden-alias', 'Hidden Alias', false, 10,
+                    (12, 'hidden-alias', 'Hidden Alias', 0.9, false, 10,
                      NULL, NULL, NULL, NULL, NULL);
 
                 INSERT INTO shows (id, club_id, date, name) VALUES
@@ -429,6 +495,7 @@ describe("getTouringScarcityRails", () => {
                 show_id: number;
                 canonical_comedian_id: number;
                 canonical_comedian_uuid: string;
+                canonical_popularity: number;
                 local_appearance_count: number;
                 prior_local_appearance_count: number;
                 history_coverage_show_count: number;
@@ -440,6 +507,7 @@ describe("getTouringScarcityRails", () => {
                     show_id: 101,
                     canonical_comedian_id: 10,
                     canonical_comedian_uuid: "canonical",
+                    canonical_popularity: 0.5,
                     local_appearance_count: 1,
                     prior_local_appearance_count: 1,
                     history_coverage_show_count: 10,
@@ -472,15 +540,12 @@ describe("getTouringScarcityRails", () => {
             performer: { id: 10, uuid: "canonical-comic" },
             reason: { kind: "just_passing_through" },
         });
-        expect(result.rareReturns.items[0].show.id).toBe(101);
-        expect(result.onlyChanceNearby.items[0].show.id).toBe(101);
+        expect(result.justPassingThrough.label).toBe("Rarely nearby");
     });
 
     it("returns empty providers for invalid ZIPs without querying", async () => {
         const result = await getTouringScarcityRails({ zipCode: "bad" });
         expect(mockQueryRaw).not.toHaveBeenCalled();
         expect(result.justPassingThrough.items).toEqual([]);
-        expect(result.rareReturns.items).toEqual([]);
-        expect(result.onlyChanceNearby.items).toEqual([]);
     });
 });

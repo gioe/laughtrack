@@ -16,7 +16,8 @@ const MIN_HISTORY_COVERAGE_DAYS = 365;
 const MIN_HISTORY_SHOWS = 10;
 const BACK_AFTER_DAYS = 270;
 const MAX_RARE_PRIOR_APPEARANCES = 2;
-const JUST_PASSING_THROUGH_LIMIT = 5;
+const TOURING_SCARCITY_RAIL_LIMIT = 5;
+export const TOURING_SCARCITY_POPULARITY_FLOOR = 0.4;
 
 export type TouringScarcityReasonKind =
     | "just_passing_through"
@@ -61,15 +62,13 @@ export interface TouringScarcityRailItem {
 }
 
 export interface TouringScarcityRail {
-    railKey: "just_passing_through" | "rare_returns" | "only_chance_nearby";
+    railKey: "just_passing_through";
     label: string;
     items: TouringScarcityRailItem[];
 }
 
 export interface TouringScarcityRails {
     justPassingThrough: TouringScarcityRail;
-    rareReturns: TouringScarcityRail;
-    onlyChanceNearby: TouringScarcityRail;
 }
 
 export interface TouringScarcityOptions {
@@ -98,6 +97,7 @@ export interface TouringScarcityEvidenceRow {
     canonicalComedianId: number;
     canonicalComedianUuid: string;
     canonicalComedianName: string;
+    canonicalPopularity: number;
     homeCity: string | null;
     homeState: string | null;
     homeCountry: string | null;
@@ -120,8 +120,6 @@ interface ClassifiedItem {
 
 interface ClassifiedRails {
     justPassingThrough: ClassifiedItem[];
-    rareReturns: ClassifiedItem[];
-    onlyChanceNearby: ClassifiedItem[];
 }
 
 interface ClassifyOptions {
@@ -145,6 +143,7 @@ type TouringScarcityQueryRow = {
     canonical_comedian_id: number;
     canonical_comedian_uuid: string;
     canonical_comedian_name: string;
+    canonical_popularity: number;
     home_city: string | null;
     home_state: string | null;
     home_country: string | null;
@@ -291,8 +290,6 @@ export function classifyTouringScarcityCandidates(
     );
     const result: ClassifiedRails = {
         justPassingThrough: [],
-        rareReturns: [],
-        onlyChanceNearby: [],
     };
 
     const eligibleRows = rows
@@ -309,7 +306,10 @@ export function classifyTouringScarcityCandidates(
         const runDays =
             (row.runEnd.getTime() - row.runStart.getTime()) / DAY_MS;
         const homeMarket = knownOutsideHomeMarket(row, options);
+        const meetsPopularityFloor =
+            row.canonicalPopularity > TOURING_SCARCITY_POPULARITY_FLOOR;
         if (
+            meetsPopularityFloor &&
             homeMarket &&
             localCount <= MAX_SHORT_RUN_APPEARANCES &&
             runDays <= MAX_SHORT_RUN_DAYS
@@ -321,7 +321,7 @@ export function classifyTouringScarcityCandidates(
                     label: `Visiting from ${homeMarket.city}, ${homeMarket.state} for ${localCount} local ${localCount === 1 ? "date" : "dates"}`,
                     evidence: evidence(row, options, homeMarket),
                 }),
-                Math.min(options.limit, JUST_PASSING_THROUGH_LIMIT),
+                Math.min(options.limit, TOURING_SCARCITY_RAIL_LIMIT),
             );
         }
 
@@ -335,6 +335,7 @@ export function classifyTouringScarcityCandidates(
             row.lastLocalAppearanceAt !== null &&
             priorCount > 0;
         if (
+            meetsPopularityFloor &&
             hasTrustworthyHistory &&
             row.lastLocalAppearanceAt &&
             row.historyCoverageStart
@@ -354,26 +355,26 @@ export function classifyTouringScarcityCandidates(
                         ? `Back nearby after ${monthsBetween(row.lastLocalAppearanceAt, options.now)} months`
                         : `${priorCount} prior local ${priorCount === 1 ? "date" : "dates"} in ${yearsOfCoverage(row.historyCoverageStart, options.now)}+ years of LaughTrack history`;
                 appendUnique(
-                    result.rareReturns,
+                    result.justPassingThrough,
                     baseItem(row, {
                         kind: rareKind,
                         label,
                         evidence: evidence(row, options, null),
                     }),
-                    options.limit,
+                    Math.min(options.limit, TOURING_SCARCITY_RAIL_LIMIT),
                 );
             }
         }
 
-        if (localCount === 1) {
+        if (meetsPopularityFloor && localCount === 1) {
             appendUnique(
-                result.onlyChanceNearby,
+                result.justPassingThrough,
                 baseItem(row, {
                     kind: "only_chance_nearby",
                     label: `Only local date in the next ${options.horizonDays} days`,
                     evidence: evidence(row, options, null),
                 }),
-                options.limit,
+                Math.min(options.limit, TOURING_SCARCITY_RAIL_LIMIT),
             );
         }
     }
@@ -426,6 +427,7 @@ export function buildTouringScarcityQuery({
                 canonical.id AS canonical_comedian_id,
                 canonical.uuid AS canonical_comedian_uuid,
                 canonical.name AS canonical_comedian_name,
+                canonical.popularity AS canonical_popularity,
                 canonical.home_city,
                 canonical.home_state,
                 canonical.home_country,
@@ -513,6 +515,7 @@ export function buildTouringScarcityQuery({
             upcoming.canonical_comedian_id,
             upcoming.canonical_comedian_uuid,
             upcoming.canonical_comedian_name,
+            upcoming.canonical_popularity,
             upcoming.home_city,
             upcoming.home_state,
             upcoming.home_country,
@@ -553,6 +556,7 @@ function rowToEvidence(
         canonicalComedianId: row.canonical_comedian_id,
         canonicalComedianUuid: row.canonical_comedian_uuid,
         canonicalComedianName: row.canonical_comedian_name,
+        canonicalPopularity: row.canonical_popularity,
         homeCity: row.home_city,
         homeState: row.home_state,
         homeCountry: row.home_country,
@@ -582,17 +586,7 @@ function emptyRails(): TouringScarcityRails {
     return {
         justPassingThrough: {
             railKey: "just_passing_through",
-            label: "Just passing through",
-            items: [],
-        },
-        rareReturns: {
-            railKey: "rare_returns",
-            label: "Rarely in town / Back after a while",
-            items: [],
-        },
-        onlyChanceNearby: {
-            railKey: "only_chance_nearby",
-            label: "Only chance nearby",
+            label: "Rarely nearby",
             items: [],
         },
     };
@@ -632,13 +626,7 @@ export async function getTouringScarcityRails(
         },
     );
     const showIds = [
-        ...new Set(
-            [
-                ...classified.justPassingThrough,
-                ...classified.rareReturns,
-                ...classified.onlyChanceNearby,
-            ].map(({ showId }) => showId),
-        ),
+        ...new Set(classified.justPassingThrough.map(({ showId }) => showId)),
     ];
     if (showIds.length === 0) return rails;
 
@@ -656,7 +644,5 @@ export async function getTouringScarcityRails(
         });
 
     rails.justPassingThrough.items = hydrate(classified.justPassingThrough);
-    rails.rareReturns.items = hydrate(classified.rareReturns);
-    rails.onlyChanceNearby.items = hydrate(classified.onlyChanceNearby);
     return rails;
 }

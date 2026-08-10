@@ -10,10 +10,6 @@ import {
 
 const dynamicKeys = [
     "just_passing_through",
-    "only_chance_nearby",
-    "rare_returns",
-    "catch_them_early",
-    "newly_added",
     "starting_to_buzz",
     "because_you_follow_them",
     "from_your_podcasts",
@@ -85,7 +81,7 @@ function messages(
 
 describe("discovery rail catalog", () => {
     it("uses stable keys and declares content, auth, and platform metadata", () => {
-        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(3);
+        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(4);
         expect(Object.keys(DISCOVERY_RAIL_CATALOG)).toEqual([
             "shows_tonight",
             "followed_comedian_shows",
@@ -95,11 +91,7 @@ describe("discovery rail catalog", () => {
             "trending_podcasts",
             "nearby_shows",
             "just_passing_through",
-            "rare_returns",
-            "only_chance_nearby",
-            "newly_added",
             "starting_to_buzz",
-            "catch_them_early",
             "from_your_podcasts",
             "because_you_follow_them",
         ]);
@@ -124,20 +116,20 @@ describe("discovery rail catalog", () => {
 
 describe("production-compatible defaults", () => {
     it.each(["web", "ios", "android"] as const)(
-        "preserves the current %s rail order and appends dynamic rotation families",
+        "preserves the current %s rail order and appends dynamic rails",
         (platform) => {
             const policy = DISCOVERY_RAIL_DEFAULTS[platform];
             expect(policy).toMatchObject({
                 platform,
-                catalogVersion: 3,
-                version: 3,
+                catalogVersion: 4,
+                version: 4,
                 cycleCadenceHours: 24,
             });
             expect(policy.rails.map((rail) => rail.railKey)).toEqual(
                 expectedKeys[platform],
             );
             expect(policy.rails.map((rail) => rail.position)).toEqual([
-                0, 1, 2, 3, 4, 5, 6, 6, 6, 7, 7, 7, 8, 8,
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 8,
             ]);
             expect(
                 policy.rails
@@ -149,21 +141,24 @@ describe("production-compatible defaults", () => {
                             rail.weight === 1,
                     ),
             ).toBe(true);
+            expect(policy.rails[6]).toMatchObject({
+                railKey: "just_passing_through",
+                position: 6,
+                rotationPool: null,
+                weight: 1,
+            });
+            expect(policy.rails[7]).toMatchObject({
+                railKey: "starting_to_buzz",
+                position: 7,
+                rotationPool: null,
+                weight: 1,
+            });
             expect(
-                policy.rails.slice(6).map((rail) => rail.rotationPool),
-            ).toEqual([
-                "touring_scarcity",
-                "touring_scarcity",
-                "touring_scarcity",
-                "fresh_and_rising",
-                "fresh_and_rising",
-                "fresh_and_rising",
-                "affinity",
-                "affinity",
-            ]);
+                policy.rails.slice(8).map((rail) => rail.rotationPool),
+            ).toEqual(["affinity", "affinity"]);
             expect(
                 policy.rails
-                    .slice(6)
+                    .slice(8)
                     .every((rail) => rail.enabled && rail.weight === 1),
             ).toBe(true);
             expect(() => parseDiscoveryRailPolicy(policy)).not.toThrow();

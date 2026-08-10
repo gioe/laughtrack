@@ -294,14 +294,14 @@ describe("DiscoveryRailPlan", () => {
         expect(screen.getByTestId("show-11")).toBeTruthy();
     });
 
-    it("shows structured reason labels and preserves sold-out show DTOs", () => {
+    it("uses show-card presentation without reason copy or See all and preserves sold-out DTOs", () => {
         const soldOut = show(71, true);
         const omitted = show(72);
         const nextPayloads = payloads();
         nextPayloads.dynamicRails = [
             {
                 railKey: "starting_to_buzz",
-                label: "Starting to buzz",
+                label: "Shows gaining momentum",
                 items: [
                     {
                         id: 71,
@@ -337,8 +337,8 @@ describe("DiscoveryRailPlan", () => {
         );
 
         expect(
-            screen.getByText("Ticket interest is climbing quickly"),
-        ).toBeTruthy();
+            screen.queryByText("Ticket interest is climbing quickly"),
+        ).toBeNull();
         expect(
             screen.queryByText("This unselected item must stay hidden"),
         ).toBeNull();
@@ -347,9 +347,10 @@ describe("DiscoveryRailPlan", () => {
             screen.getByTestId("show-71").getAttribute("data-sold-out"),
         ).toBe("true");
         expect(mocks.renderedShows[0]).toBe(soldOut);
+        expect(screen.queryByText("See all →")).toBeNull();
     });
 
-    it("limits Just passing through to five shows", () => {
+    it("limits Rarely nearby to five shows", () => {
         const items = Array.from({ length: 7 }, (_, index) => ({
             id: index + 1,
             show: show(index + 1),
@@ -362,7 +363,7 @@ describe("DiscoveryRailPlan", () => {
         nextPayloads.dynamicRails = [
             {
                 railKey: "just_passing_through",
-                label: "Just passing through",
+                label: "Rarely nearby",
                 items,
             },
         ];

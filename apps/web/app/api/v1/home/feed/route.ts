@@ -229,11 +229,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
 
         const dynamicRails = [
             touringScarcityRails?.justPassingThrough,
-            touringScarcityRails?.rareReturns,
-            touringScarcityRails?.onlyChanceNearby,
-            freshAndRisingRails?.newlyAdded,
             freshAndRisingRails?.startingToBuzz,
-            freshAndRisingRails?.catchThemEarly,
             affinityRails?.fromYourPodcasts,
             affinityRails?.becauseYouFollowThem,
         ]

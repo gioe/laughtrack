@@ -146,7 +146,7 @@ struct HomeDiscoverPlannedRail: View {
             )
 
         case .dynamicShows(let label, let items):
-            if section.id == "just_passing_through" {
+            if HomeDiscoverRailPlanPresentation.usesTodayStyleShowCarousel(railKey: section.id) {
                 HomeDiscoverRailCard(
                     variant: .spotlight,
                     eyebrow: nil,

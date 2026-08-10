@@ -211,20 +211,8 @@ export default async function HomePage() {
         touringScarcityRails?.justPassingThrough
             ? withDynamicItemIds(touringScarcityRails.justPassingThrough)
             : null,
-        touringScarcityRails?.rareReturns
-            ? withDynamicItemIds(touringScarcityRails.rareReturns)
-            : null,
-        touringScarcityRails?.onlyChanceNearby
-            ? withDynamicItemIds(touringScarcityRails.onlyChanceNearby)
-            : null,
-        freshAndRisingRails?.newlyAdded
-            ? withDynamicItemIds(freshAndRisingRails.newlyAdded)
-            : null,
         freshAndRisingRails?.startingToBuzz
             ? withDynamicItemIds(freshAndRisingRails.startingToBuzz)
-            : null,
-        freshAndRisingRails?.catchThemEarly
-            ? withDynamicItemIds(freshAndRisingRails.catchThemEarly)
             : null,
         affinityRails?.fromYourPodcasts
             ? withDynamicItemIds(affinityRails.fromYourPodcasts)

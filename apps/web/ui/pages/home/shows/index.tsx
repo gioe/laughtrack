@@ -24,15 +24,13 @@ interface ShowDiscoverySectionProps {
     title: string;
     subtitle: string;
     shows: ShowDTO[];
-    seeAllHref: string;
+    seeAllHref?: string;
     // Optional stable identifier for visual regression tests. When omitted,
     // falls back to a slug derived from `title` — but callers that pin
     // baselines (e.g. apps/web/app/page.fixture.tsx) should pass an explicit
     // value so a copy tweak to `title` doesn't silently break the locator.
     testId?: string;
     discoveryPresentation?: DiscoveryPresentation;
-    /** Structured server reason copy keyed by show identity. */
-    reasonLabels?: Readonly<Record<number, string>>;
 }
 
 const ShowDiscoverySection = ({
@@ -43,7 +41,6 @@ const ShowDiscoverySection = ({
     seeAllHref,
     testId,
     discoveryPresentation,
-    reasonLabels,
 }: ShowDiscoverySectionProps) => {
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [isClient, setIsClient] = useState(false);
@@ -120,13 +117,15 @@ const ShowDiscoverySection = ({
                     className="mb-4 sm:mb-0"
                 />
                 <div className="flex items-center gap-4 self-end sm:self-auto md:self-auto lg:self-auto">
-                    <Link
-                        href={seeAllHref}
-                        aria-label={`See all ${title} shows`}
-                        className="text-sm font-dmSans text-copper hover:underline whitespace-nowrap"
-                    >
-                        See all →
-                    </Link>
+                    {seeAllHref ? (
+                        <Link
+                            href={seeAllHref}
+                            aria-label={`See all ${title} shows`}
+                            className="text-sm font-dmSans text-copper hover:underline whitespace-nowrap"
+                        >
+                            See all →
+                        </Link>
+                    ) : null}
                     <ScrollButtons
                         leftOnClick={() => scroll("left")}
                         rightOnClick={() => scroll("right")}
@@ -144,23 +143,15 @@ const ShowDiscoverySection = ({
                 {shows.map((show, index) => {
                     const cardClassName =
                         "relative flex-none w-rail-card-compact sm:w-rail-card-standard md:w-rail-card-standard lg:w-rail-card-standard max-w-[calc(100vw-2rem)]";
-                    const reasonLabel = reasonLabels?.[show.id];
                     const card = (discoveryAttribution?: {
                         impressionId?: string;
                         onShowDetail: () => void;
                     }) => (
-                        <>
-                            {reasonLabel ? (
-                                <p className="relative z-[3] mb-2 w-fit rounded-full border border-copper/30 bg-cedar px-3 py-1 font-dmSans text-caption font-semibold text-champagne">
-                                    {reasonLabel}
-                                </p>
-                            ) : null}
-                            <ShowCard
-                                show={show}
-                                density="compact"
-                                discoveryAttribution={discoveryAttribution}
-                            />
-                        </>
+                        <ShowCard
+                            show={show}
+                            density="compact"
+                            discoveryAttribution={discoveryAttribution}
+                        />
                     );
                     if (!discoveryPresentation) {
                         return (

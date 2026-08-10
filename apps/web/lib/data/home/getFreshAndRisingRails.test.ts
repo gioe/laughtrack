@@ -151,72 +151,7 @@ beforeEach(() => {
 });
 
 describe("getFreshAndRisingRails", () => {
-    it("newly added uses firstDiscoveredAt and distinguishes observation from verified announcement provenance", () => {
-        const selected = classifyFreshAndRisingCandidates([row()], REQUEST);
-        expect(selected.newlyAdded[0].reason).toMatchObject({
-            kind: "newly_added",
-            label: "Newly found by LaughTrack",
-            evidence: {
-                firstDiscoveredAt: new Date("2026-08-05T12:00:00.000Z"),
-                freshnessProvenance: { kind: "laughtrack_observation" },
-            },
-        });
-
-        const unverified = classifyFreshAndRisingCandidates(
-            [
-                row({
-                    announcementProvenance: {
-                        verified: false,
-                        source: "Venue",
-                        announcedAt: new Date("2026-08-04T00:00:00.000Z"),
-                    },
-                }),
-            ],
-            REQUEST,
-        );
-        expect(unverified.newlyAdded[0].reason.label).toBe(
-            "Newly found by LaughTrack",
-        );
-
-        const verified = classifyFreshAndRisingCandidates(
-            [
-                row({
-                    announcementProvenance: {
-                        verified: true,
-                        source: "The Venue",
-                        announcedAt: new Date("2026-08-04T00:00:00.000Z"),
-                    },
-                }),
-            ],
-            REQUEST,
-        );
-        expect(verified.newlyAdded[0].reason).toMatchObject({
-            label: "Recently announced by The Venue",
-            evidence: {
-                freshnessProvenance: {
-                    kind: "verified_announcement",
-                    source: "The Venue",
-                },
-            },
-        });
-
-        for (const candidate of [
-            row({ firstDiscoveredAt: null }),
-            row({
-                firstDiscoveredAt: new Date("2026-07-01T00:00:00.000Z"),
-            }),
-            row({
-                firstDiscoveredAt: new Date("2026-08-08T00:00:00.000Z"),
-            }),
-        ]) {
-            expect(
-                classifyFreshAndRisingCandidates([candidate], REQUEST)
-                    .newlyAdded,
-            ).toEqual([]);
-        }
-    });
-
-    it("starting to buzz requires confident positive momentum or growth and returns structured supporting evidence", () => {
+    it("Shows gaining momentum requires confident positive momentum or growth and returns structured supporting evidence", () => {
         const selected = classifyFreshAndRisingCandidates([row()], REQUEST);
         expect(selected.startingToBuzz[0].reason).toMatchObject({
             kind: "starting_to_buzz",
@@ -255,32 +190,41 @@ describe("getFreshAndRisingRails", () => {
         }
     });
 
-    it("catch them early favors growing lower-prominence performers without letting prominence define eligibility", () => {
-        const lowerProminence = row({ showId: 201, prominence: 0.1 });
-        const higherProminence = row({ showId: 202, prominence: 0.55 });
+    it("uses freshness and lower prominence as ranking boosts, never as eligibility", () => {
+        const recentLowerProminence = row({
+            showId: 201,
+            prominence: 0.1,
+            firstDiscoveredAt: new Date("2026-08-06T12:00:00.000Z"),
+        });
+        const olderHigherProminence = row({
+            showId: 202,
+            prominence: 0.55,
+            firstDiscoveredAt: new Date("2026-01-01T00:00:00.000Z"),
+        });
         const selected = classifyFreshAndRisingCandidates(
-            [higherProminence, lowerProminence],
+            [olderHigherProminence, recentLowerProminence],
             REQUEST,
         );
-        expect(selected.catchThemEarly.map(({ showId }) => showId)).toEqual([
+        expect(selected.startingToBuzz.map(({ showId }) => showId)).toEqual([
             201, 202,
         ]);
-        expect(selected.catchThemEarly[0].reason).toMatchObject({
-            kind: "catch_them_early",
-            evidence: { prominence: 0.1, growth: 0.75 },
-        });
 
         expect(
             classifyFreshAndRisingCandidates(
-                [row({ prominence: 0.95, growth: 0.95 })],
+                [
+                    row({
+                        featureVersion: null,
+                        featureAsOf: null,
+                        prominence: null,
+                        momentum: null,
+                        growth: null,
+                        confidence: null,
+                        availability: null,
+                        featureEvidence: null,
+                    }),
+                ],
                 REQUEST,
-            ).catchThemEarly,
-        ).toHaveLength(1);
-        expect(
-            classifyFreshAndRisingCandidates(
-                [row({ prominence: 0.01, growth: 0.5, momentum: 0.5 })],
-                REQUEST,
-            ).catchThemEarly,
+            ).startingToBuzz,
         ).toEqual([]);
     });
 
@@ -299,9 +243,7 @@ describe("getFreshAndRisingRails", () => {
             row({ showId: 208, availability: "unavailable" }),
         ];
         const selected = classifyFreshAndRisingCandidates(invalidRows, REQUEST);
-        expect(selected.newlyAdded).toEqual([]);
         expect(selected.startingToBuzz).toEqual([]);
-        expect(selected.catchThemEarly).toEqual([]);
 
         for (const candidate of [
             row({
@@ -320,7 +262,6 @@ describe("getFreshAndRisingRails", () => {
                 REQUEST,
             );
             expect(result.startingToBuzz).toEqual([]);
-            expect(result.catchThemEarly).toEqual([]);
         }
 
         const neutralMissingSnapshot = classifyFreshAndRisingCandidates(
@@ -338,9 +279,7 @@ describe("getFreshAndRisingRails", () => {
             ],
             REQUEST,
         );
-        expect(neutralMissingSnapshot.newlyAdded).toHaveLength(1);
         expect(neutralMissingSnapshot.startingToBuzz).toEqual([]);
-        expect(neutralMissingSnapshot.catchThemEarly).toEqual([]);
     });
 
     it("builds a current-version, visible, canonical, actionable evidence query", () => {
@@ -359,7 +298,7 @@ describe("getFreshAndRisingRails", () => {
         expect(sql).toContain("s.tickets_sold_out = false");
         expect(sql).toContain("ticket.sold_out = false");
         expect(sql).toContain("NULLIF(btrim(ticket.purchase_url), '')");
-        expect(sql).toContain("s.first_discovered_at >=");
+        expect(sql).not.toContain("s.first_discovered_at >=");
         expect(sql).toContain("candidate_snapshot.feature_version =");
         expect(sql).toContain("candidate_snapshot.confidence >=");
         expect(sql).toContain("candidate_snapshot.momentum >=");
@@ -460,16 +399,16 @@ describe("getFreshAndRisingRails", () => {
             [{ date: "asc" }, { id: "asc" }],
             1,
         );
-        expect(rails.newlyAdded.items[0]).toMatchObject({
+        expect(rails.startingToBuzz.items[0]).toMatchObject({
             show: { id: 101 },
             performer: { id: 10, uuid: "canonical-comic" },
-            reason: { kind: "newly_added" },
+            reason: { kind: "starting_to_buzz" },
         });
         expect(rails.startingToBuzz.items[0].reason.evidence.signals).toEqual(
             expect.objectContaining({
                 favorites: expect.objectContaining({ recentCount: 8 }),
             }),
         );
-        expect(rails.catchThemEarly.items).toHaveLength(1);
+        expect(rails.startingToBuzz.label).toBe("Shows gaining momentum");
     });
 });

@@ -127,7 +127,7 @@ class PersistentHomeFeedCacheTest {
                         listOf(
                             HomeFeedDynamicRail(
                                 railKey = "starting_to_buzz",
-                                label = "Starting to buzz",
+                                label = "Shows gaining momentum",
                                 items = emptyList(),
                             ),
                         ),

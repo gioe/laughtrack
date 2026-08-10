@@ -161,7 +161,7 @@ private fun resolveDynamicContent(
     val items =
         select(entry.itemIds, rail.items) { it.id.toString() }
             .let { selected ->
-                if (railKey == "just_passing_through") selected.take(HOME_DISCOVER_RAIL_ITEM_LIMIT) else selected
+                if (isTodayStyleDynamicShowRail(railKey)) selected.take(HOME_DISCOVER_RAIL_ITEM_LIMIT) else selected
             }
     return items
         .ifNotEmpty { HomeDiscoverRailSection.Content.DynamicShows(rail.label, it) }
@@ -181,7 +181,10 @@ internal fun homeDiscoverRailSelectedEvent(attribution: HomeDiscoverRailAttribut
 internal fun preferredDynamicRailHeadlinerId(
     railKey: String,
     item: HomeFeedDynamicRailItem,
-): Int? = item.performer?.id.takeIf { railKey == "just_passing_through" }
+): Int? = item.performer?.id.takeIf { isTodayStyleDynamicShowRail(railKey) }
+
+internal fun isTodayStyleDynamicShowRail(railKey: String): Boolean =
+    railKey in DYNAMIC_RAIL_KEYS
 
 private fun <T> select(
     itemIds: List<String>,
@@ -217,11 +220,7 @@ private const val PAYLOAD_DYNAMIC_RAILS = "dynamicRails"
 private val DYNAMIC_RAIL_KEYS =
     setOf(
         "just_passing_through",
-        "rare_returns",
-        "only_chance_nearby",
-        "newly_added",
         "starting_to_buzz",
-        "catch_them_early",
         "from_your_podcasts",
         "because_you_follow_them",
     )

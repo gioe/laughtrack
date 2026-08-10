@@ -17,16 +17,7 @@ const MIN_CONFIDENCE = 0.5;
 const MIN_MOMENTUM = 0.15;
 const MIN_GROWTH = 0.6;
 
-export type FreshAndRisingReasonKind =
-    | "newly_added"
-    | "starting_to_buzz"
-    | "catch_them_early";
-
-export interface AnnouncementProvenance {
-    verified: boolean;
-    source: string;
-    announcedAt: Date;
-}
+export type FreshAndRisingReasonKind = "starting_to_buzz";
 
 export interface FreshAndRisingSignalEvidence {
     behavior: {
@@ -54,9 +45,6 @@ export interface FreshAndRisingSignalEvidence {
 
 export interface FreshAndRisingReasonEvidence {
     firstDiscoveredAt: Date | null;
-    freshnessProvenance:
-        | { kind: "laughtrack_observation" }
-        | { kind: "verified_announcement"; source: string; announcedAt: Date };
     featureVersion: string | null;
     featureAsOf: Date | null;
     prominence: number | null;
@@ -90,9 +78,7 @@ export interface FreshAndRisingRail {
 }
 
 export interface FreshAndRisingRails {
-    newlyAdded: FreshAndRisingRail;
     startingToBuzz: FreshAndRisingRail;
-    catchThemEarly: FreshAndRisingRail;
 }
 
 export interface FreshAndRisingOptions {
@@ -122,7 +108,6 @@ export interface FreshAndRisingEvidenceRow {
     confidence: number | null;
     availability: string | null;
     featureEvidence: unknown;
-    announcementProvenance?: AnnouncementProvenance | null;
 }
 
 interface ClassifiedItem {
@@ -134,9 +119,7 @@ interface ClassifiedItem {
 }
 
 interface ClassifiedRails {
-    newlyAdded: ClassifiedItem[];
     startingToBuzz: ClassifiedItem[];
-    catchThemEarly: ClassifiedItem[];
 }
 
 interface ClassifyOptions {
@@ -255,33 +238,11 @@ function isEligible(
     );
 }
 
-function verifiedAnnouncement(
-    row: FreshAndRisingEvidenceRow,
-    now: Date,
-): AnnouncementProvenance | null {
-    const provenance = row.announcementProvenance;
-    return provenance?.verified === true &&
-        provenance.source.trim().length > 0 &&
-        !Number.isNaN(provenance.announcedAt.getTime()) &&
-        provenance.announcedAt.getTime() <= now.getTime()
-        ? provenance
-        : null;
-}
-
 function reasonEvidence(
     row: FreshAndRisingEvidenceRow,
-    now: Date,
 ): FreshAndRisingReasonEvidence {
-    const announcement = verifiedAnnouncement(row, now);
     return {
         firstDiscoveredAt: row.firstDiscoveredAt,
-        freshnessProvenance: announcement
-            ? {
-                  kind: "verified_announcement",
-                  source: announcement.source.trim(),
-                  announcedAt: announcement.announcedAt,
-              }
-            : { kind: "laughtrack_observation" },
         featureVersion: row.featureVersion,
         featureAsOf: row.featureAsOf,
         prominence: row.prominence,
@@ -291,6 +252,36 @@ function reasonEvidence(
         availability: validAvailability(row.availability),
         signals: normalizeSignals(row.featureEvidence),
     };
+}
+
+function freshnessBoost(firstDiscoveredAt: Date | null, now: Date): number {
+    if (
+        !firstDiscoveredAt ||
+        Number.isNaN(firstDiscoveredAt.getTime()) ||
+        firstDiscoveredAt.getTime() > now.getTime()
+    ) {
+        return 0;
+    }
+    const ageDays = (now.getTime() - firstDiscoveredAt.getTime()) / DAY_MS;
+    return Math.max(0, 1 - ageDays / NEWLY_ADDED_DAYS);
+}
+
+function momentumRankingScore(
+    row: FreshAndRisingEvidenceRow & {
+        prominence: number;
+        momentum: number;
+        growth: number;
+        confidence: number;
+    },
+    now: Date,
+): number {
+    const lowerProminenceBoost = 1 - Math.max(0, Math.min(1, row.prominence));
+    return (
+        Math.max(row.momentum, row.growth) * 0.55 +
+        row.confidence * 0.25 +
+        lowerProminenceBoost * 0.1 +
+        freshnessBoost(row.firstDiscoveredAt, now) * 0.1
+    );
 }
 
 function hasPositiveGrowthSupport(
@@ -386,38 +377,11 @@ export function classifyFreshAndRisingCandidates(
     const horizonEnd = new Date(
         options.now.getTime() + options.horizonDays * DAY_MS,
     );
-    const newlyAdded: ClassifiedItem[] = [];
     const startingToBuzz: ClassifiedItem[] = [];
-    const catchThemEarly: ClassifiedItem[] = [];
 
     for (const row of rows) {
         if (!isEligible(row, options.now, horizonEnd)) continue;
         if (row.availability === "unavailable") continue;
-
-        const evidence = reasonEvidence(row, options.now);
-        const firstDiscoveredAt = row.firstDiscoveredAt;
-        if (
-            firstDiscoveredAt &&
-            !Number.isNaN(firstDiscoveredAt.getTime()) &&
-            firstDiscoveredAt.getTime() <= options.now.getTime() &&
-            options.now.getTime() - firstDiscoveredAt.getTime() <=
-                NEWLY_ADDED_DAYS * DAY_MS
-        ) {
-            const announcement = verifiedAnnouncement(row, options.now);
-            newlyAdded.push(
-                classifiedItem(
-                    row,
-                    {
-                        kind: "newly_added",
-                        label: announcement
-                            ? `Recently announced by ${announcement.source.trim()}`
-                            : "Newly found by LaughTrack",
-                        evidence,
-                    },
-                    firstDiscoveredAt.getTime(),
-                ),
-            );
-        }
 
         if (!hasUsableSnapshot(row, options.now)) continue;
         const signals = normalizeSignals(row.featureEvidence);
@@ -437,36 +401,16 @@ export function classifyFreshAndRisingCandidates(
                     {
                         kind: "starting_to_buzz",
                         label: strongestSignal,
-                        evidence,
+                        evidence: reasonEvidence(row),
                     },
-                    Math.max(row.momentum, row.growth) * 0.7 +
-                        row.confidence * 0.3,
-                ),
-            );
-        }
-
-        if (positiveGrowth) {
-            catchThemEarly.push(
-                classifiedItem(
-                    row,
-                    {
-                        kind: "catch_them_early",
-                        label: "Growing now, before everyone catches on",
-                        evidence,
-                    },
-                    row.growth * 0.45 +
-                        row.momentum * 0.2 +
-                        row.confidence * 0.2 +
-                        (1 - Math.max(0, Math.min(1, row.prominence))) * 0.15,
+                    momentumRankingScore(row, options.now),
                 ),
             );
         }
     }
 
     return {
-        newlyAdded: uniqueAndLimit(newlyAdded, options.limit),
         startingToBuzz: uniqueAndLimit(startingToBuzz, options.limit),
-        catchThemEarly: uniqueAndLimit(catchThemEarly, options.limit),
     };
 }
 
@@ -477,7 +421,6 @@ export function buildFreshAndRisingQuery({
     now: Date;
     horizonEnd: Date;
 }): Prisma.Sql {
-    const newlyAddedAfter = new Date(now.getTime() - NEWLY_ADDED_DAYS * DAY_MS);
     const snapshotFreshAfter = new Date(
         now.getTime() - MAX_SNAPSHOT_AGE_HOURS * 60 * 60 * 1_000,
     );
@@ -498,25 +441,19 @@ export function buildFreshAndRisingQuery({
               AND s.date <= ${horizonEnd}
               AND s.tickets_sold_out = false
               AND COALESCE(s.name, '') !~* 'sold[ -]?out'
-              AND (
-                  (
-                      s.first_discovered_at >= ${newlyAddedAfter}
-                      AND s.first_discovered_at <= ${now}
-                  )
-                  OR EXISTS (
-                      SELECT 1
-                      FROM discovery_show_feature_snapshots candidate_snapshot
-                      WHERE candidate_snapshot.show_id = s.id
-                        AND candidate_snapshot.feature_version = ${DISCOVERY_FEATURE_VERSION}
-                        AND candidate_snapshot.as_of >= ${snapshotFreshAfter}
-                        AND candidate_snapshot.as_of <= ${now}
-                        AND candidate_snapshot.availability = 'available'
-                        AND candidate_snapshot.confidence >= ${MIN_CONFIDENCE}
-                        AND (
-                            candidate_snapshot.momentum >= ${MIN_MOMENTUM}
-                            OR candidate_snapshot.growth >= ${MIN_GROWTH}
-                        )
-                  )
+              AND EXISTS (
+                  SELECT 1
+                  FROM discovery_show_feature_snapshots candidate_snapshot
+                  WHERE candidate_snapshot.show_id = s.id
+                    AND candidate_snapshot.feature_version = ${DISCOVERY_FEATURE_VERSION}
+                    AND candidate_snapshot.as_of >= ${snapshotFreshAfter}
+                    AND candidate_snapshot.as_of <= ${now}
+                    AND candidate_snapshot.availability = 'available'
+                    AND candidate_snapshot.confidence >= ${MIN_CONFIDENCE}
+                    AND (
+                        candidate_snapshot.momentum >= ${MIN_MOMENTUM}
+                        OR candidate_snapshot.growth >= ${MIN_GROWTH}
+                    )
               )
               AND EXISTS (
                   SELECT 1
@@ -621,19 +558,9 @@ function rowToEvidence(row: FreshAndRisingQueryRow): FreshAndRisingEvidenceRow {
 
 function emptyRails(): FreshAndRisingRails {
     return {
-        newlyAdded: {
-            railKey: "newly_added",
-            label: "Newly added",
-            items: [],
-        },
         startingToBuzz: {
             railKey: "starting_to_buzz",
-            label: "Starting to buzz",
-            items: [],
-        },
-        catchThemEarly: {
-            railKey: "catch_them_early",
-            label: "Catch them early",
+            label: "Shows gaining momentum",
             items: [],
         },
     };
@@ -665,13 +592,7 @@ export async function getFreshAndRisingRails(
         { now, horizonDays, limit },
     );
     const showIds = [
-        ...new Set(
-            [
-                ...classified.newlyAdded,
-                ...classified.startingToBuzz,
-                ...classified.catchThemEarly,
-            ].map(({ showId }) => showId),
-        ),
+        ...new Set(classified.startingToBuzz.map(({ showId }) => showId)),
     ];
     if (showIds.length === 0) return rails;
 
@@ -689,8 +610,6 @@ export async function getFreshAndRisingRails(
             return [{ ...rest, show }];
         });
 
-    rails.newlyAdded.items = hydrate(classified.newlyAdded);
     rails.startingToBuzz.items = hydrate(classified.startingToBuzz);
-    rails.catchThemEarly.items = hydrate(classified.catchThemEarly);
     return rails;
 }

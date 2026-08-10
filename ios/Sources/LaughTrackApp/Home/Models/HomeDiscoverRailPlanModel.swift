@@ -26,20 +26,20 @@ enum HomeDiscoverRailPlanPresentation {
     static let itemLimit = 5
     private static let supportedDynamicRailKeys: Set<String> = [
         "just_passing_through",
-        "rare_returns",
-        "only_chance_nearby",
-        "newly_added",
         "starting_to_buzz",
-        "catch_them_early",
         "from_your_podcasts",
         "because_you_follow_them",
     ]
+
+    static func usesTodayStyleShowCarousel(railKey: String) -> Bool {
+        supportedDynamicRailKeys.contains(railKey)
+    }
 
     static func preferredHeadlinerID(
         railKey: String,
         item: Components.Schemas.HomeFeedDynamicRailItem
     ) -> Int? {
-        guard railKey == "just_passing_through" else { return nil }
+        guard usesTodayStyleShowCarousel(railKey: railKey) else { return nil }
         return item.performer?.id
     }
 
@@ -134,7 +134,7 @@ enum HomeDiscoverRailPlanPresentation {
             guard let rail = rails[railKey] else { return nil }
             var values = select(itemIDs, from: rail.items) { String($0.id) }
                 .filter { !ShowAvailability.isSoldOut($0.show) }
-            if railKey == "just_passing_through" {
+            if usesTodayStyleShowCarousel(railKey: railKey) {
                 values = Array(values.prefix(itemLimit))
             }
             content = values.isEmpty ? nil : .dynamicShows(label: rail.label, items: values)

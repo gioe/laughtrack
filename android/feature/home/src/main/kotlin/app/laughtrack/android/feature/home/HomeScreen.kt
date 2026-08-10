@@ -426,12 +426,12 @@ private fun DynamicShowListRail(
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     FeedRailCard(
-        eyebrow = if (railKey == "just_passing_through") null else "Picked for you",
-        title = label.takeUnless { railKey == "just_passing_through" },
+        eyebrow = if (isTodayStyleDynamicShowRail(railKey)) null else "Picked for you",
+        title = label.takeUnless { isTodayStyleDynamicShowRail(railKey) },
         emptyMessage = "",
         itemCount = items.size,
     ) {
-        if (railKey == "just_passing_through") {
+        if (isTodayStyleDynamicShowRail(railKey)) {
             FeaturedShowsCarousel(
                 headline = label,
                 items =

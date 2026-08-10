@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const DISCOVERY_RAIL_CATALOG_VERSION = 3 as const;
+export const DISCOVERY_RAIL_CATALOG_VERSION = 4 as const;
 
 export const DISCOVERY_PLATFORMS = ["web", "ios", "android"] as const;
 export type DiscoveryPlatform = (typeof DISCOVERY_PLATFORMS)[number];
@@ -14,11 +14,7 @@ export const DISCOVERY_RAIL_KEYS = [
     "trending_podcasts",
     "nearby_shows",
     "just_passing_through",
-    "rare_returns",
-    "only_chance_nearby",
-    "newly_added",
     "starting_to_buzz",
-    "catch_them_early",
     "from_your_podcasts",
     "because_you_follow_them",
 ] as const;
@@ -95,42 +91,14 @@ export const DISCOVERY_RAIL_CATALOG = {
     },
     just_passing_through: {
         key: "just_passing_through",
-        label: "Just passing through",
-        contentKind: "show",
-        requiresAuth: false,
-        supportedPlatforms: ALL_PLATFORMS,
-    },
-    rare_returns: {
-        key: "rare_returns",
-        label: "Rarely in town / Back after a while",
-        contentKind: "show",
-        requiresAuth: false,
-        supportedPlatforms: ALL_PLATFORMS,
-    },
-    only_chance_nearby: {
-        key: "only_chance_nearby",
-        label: "Only chance nearby",
-        contentKind: "show",
-        requiresAuth: false,
-        supportedPlatforms: ALL_PLATFORMS,
-    },
-    newly_added: {
-        key: "newly_added",
-        label: "Newly added",
+        label: "Rarely nearby",
         contentKind: "show",
         requiresAuth: false,
         supportedPlatforms: ALL_PLATFORMS,
     },
     starting_to_buzz: {
         key: "starting_to_buzz",
-        label: "Starting to buzz",
-        contentKind: "show",
-        requiresAuth: false,
-        supportedPlatforms: ALL_PLATFORMS,
-    },
-    catch_them_early: {
-        key: "catch_them_early",
-        label: "Catch them early",
+        label: "Shows gaining momentum",
         contentKind: "show",
         requiresAuth: false,
         supportedPlatforms: ALL_PLATFORMS,
@@ -203,14 +171,10 @@ function rotatingRail(
     };
 }
 
-function dynamicRotationRails(): DiscoveryRailPolicyRailDto[] {
+function dynamicRails(): DiscoveryRailPolicyRailDto[] {
     return [
-        rotatingRail("just_passing_through", 6, "touring_scarcity"),
-        rotatingRail("only_chance_nearby", 6, "touring_scarcity"),
-        rotatingRail("rare_returns", 6, "touring_scarcity"),
-        rotatingRail("catch_them_early", 7, "fresh_and_rising"),
-        rotatingRail("newly_added", 7, "fresh_and_rising"),
-        rotatingRail("starting_to_buzz", 7, "fresh_and_rising"),
+        fixedRail("just_passing_through", 6),
+        fixedRail("starting_to_buzz", 7),
         rotatingRail("because_you_follow_them", 8, "affinity"),
         rotatingRail("from_your_podcasts", 8, "affinity"),
     ];
@@ -220,7 +184,7 @@ export const DISCOVERY_RAIL_DEFAULTS = {
     web: {
         platform: "web",
         catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
-        version: 3,
+        version: 4,
         cycleCadenceHours: 24,
         rails: [
             fixedRail("followed_comedian_shows", 0),
@@ -229,13 +193,13 @@ export const DISCOVERY_RAIL_DEFAULTS = {
             fixedRail("nearby_shows", 3),
             fixedRail("trending_this_week", 4),
             fixedRail("popular_clubs", 5),
-            ...dynamicRotationRails(),
+            ...dynamicRails(),
         ],
     },
     ios: {
         platform: "ios",
         catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
-        version: 3,
+        version: 4,
         cycleCadenceHours: 24,
         rails: [
             fixedRail("shows_tonight", 0),
@@ -244,13 +208,13 @@ export const DISCOVERY_RAIL_DEFAULTS = {
             fixedRail("trending_comedians", 3),
             fixedRail("popular_clubs", 4),
             fixedRail("trending_podcasts", 5),
-            ...dynamicRotationRails(),
+            ...dynamicRails(),
         ],
     },
     android: {
         platform: "android",
         catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
-        version: 3,
+        version: 4,
         cycleCadenceHours: 24,
         rails: [
             fixedRail("shows_tonight", 0),
@@ -259,7 +223,7 @@ export const DISCOVERY_RAIL_DEFAULTS = {
             fixedRail("trending_comedians", 3),
             fixedRail("popular_clubs", 4),
             fixedRail("trending_podcasts", 5),
-            ...dynamicRotationRails(),
+            ...dynamicRails(),
         ],
     },
 } as const satisfies Record<DiscoveryPlatform, DiscoveryRailPolicyDto>;

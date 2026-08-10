@@ -139,34 +139,14 @@ function primeHappyPath() {
     mockGetTouringScarcityRails.mockResolvedValue({
         justPassingThrough: {
             railKey: "just_passing_through",
-            label: "Just passing through",
-            items: [],
-        },
-        rareReturns: {
-            railKey: "rare_returns",
-            label: "Rarely in town / Back after a while",
-            items: [],
-        },
-        onlyChanceNearby: {
-            railKey: "only_chance_nearby",
-            label: "Only chance nearby",
+            label: "Rarely nearby",
             items: [],
         },
     });
     mockGetFreshAndRisingRails.mockResolvedValue({
-        newlyAdded: {
-            railKey: "newly_added",
-            label: "Newly added",
-            items: [],
-        },
         startingToBuzz: {
             railKey: "starting_to_buzz",
-            label: "Starting to buzz",
-            items: [],
-        },
-        catchThemEarly: {
-            railKey: "catch_them_early",
-            label: "Catch them early",
+            label: "Shows gaining momentum",
             items: [],
         },
     });
@@ -217,8 +197,8 @@ describe("GET /api/v1/home/feed", () => {
                 );
                 expect(body.data.railPlan).toMatchObject({
                     version: 1,
-                    catalogVersion: 3,
-                    policyVersion: 3,
+                    catalogVersion: 4,
+                    policyVersion: 4,
                     platform,
                     rails: expect.arrayContaining([
                         {
@@ -276,8 +256,8 @@ describe("GET /api/v1/home/feed", () => {
             expect(res.status).toBe(200);
             expect(body.data.railPlan).toMatchObject({
                 version: 1,
-                catalogVersion: 3,
-                policyVersion: 3,
+                catalogVersion: 4,
+                policyVersion: 4,
                 platform: "ios",
             });
         });
@@ -296,7 +276,7 @@ describe("GET /api/v1/home/feed", () => {
             mockGetTouringScarcityRails.mockResolvedValue({
                 justPassingThrough: {
                     railKey: "just_passing_through",
-                    label: "Just passing through",
+                    label: "Rarely nearby",
                     items: [
                         {
                             show: sharedShow,
@@ -309,26 +289,11 @@ describe("GET /api/v1/home/feed", () => {
                         },
                     ],
                 },
-                rareReturns: {
-                    railKey: "rare_returns",
-                    label: "Rarely in town / Back after a while",
-                    items: [],
-                },
-                onlyChanceNearby: {
-                    railKey: "only_chance_nearby",
-                    label: "Only chance nearby",
-                    items: [],
-                },
             } as never);
             mockGetFreshAndRisingRails.mockResolvedValue({
-                newlyAdded: {
-                    railKey: "newly_added",
-                    label: "Newly added",
-                    items: [],
-                },
                 startingToBuzz: {
                     railKey: "starting_to_buzz",
-                    label: "Starting to buzz",
+                    label: "Shows gaining momentum",
                     items: [
                         {
                             show: sharedShow,
@@ -340,11 +305,6 @@ describe("GET /api/v1/home/feed", () => {
                             },
                         },
                     ],
-                },
-                catchThemEarly: {
-                    railKey: "catch_them_early",
-                    label: "Catch them early",
-                    items: [],
                 },
             } as never);
             mockGetAffinityRails.mockResolvedValue({
@@ -361,8 +321,8 @@ describe("GET /api/v1/home/feed", () => {
             } as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "web",
-                catalogVersion: 3,
-                version: 3,
+                catalogVersion: 4,
+                version: 4,
                 cycleCadenceHours: 24,
                 rails: ["just_passing_through", "starting_to_buzz"].map(
                     (railKey, position) => ({
@@ -457,8 +417,8 @@ describe("GET /api/v1/home/feed", () => {
             ] as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "web",
-                catalogVersion: 3,
-                version: 3,
+                catalogVersion: 4,
+                version: 4,
                 cycleCadenceHours: 24,
                 rails: [
                     {

@@ -27,6 +27,13 @@ const REMOVE_STACKED_LINEUPS_MIGRATION_SQL = readFileSync(
     ),
     "utf8",
 );
+const MERGE_RARELY_NEARBY_MIGRATION_SQL = readFileSync(
+    resolve(
+        WEB_ROOT,
+        "prisma/migrations/20260810120000_merge_rarely_nearby_rails/migration.sql",
+    ),
+    "utf8",
+);
 const SCHEMA_TEXT = readFileSync(
     resolve(WEB_ROOT, "prisma/schema.prisma"),
     "utf8",
@@ -498,6 +505,106 @@ describe("stacked lineups removal migration", () => {
             { platform: "android", policy_version: 3, catalog_version: 3 },
             { platform: "ios", policy_version: 3, catalog_version: 3 },
             { platform: "web", policy_version: 3, catalog_version: 3 },
+        ]);
+    });
+});
+
+describe("Rarely nearby rail merge migration", () => {
+    let db: PGlite;
+
+    beforeAll(async () => {
+        db = new PGlite();
+        await db.exec(BASE_SCHEMA_SQL);
+        await db.exec(MIGRATION_SQL);
+        await db.exec(DYNAMIC_MIGRATION_SQL);
+        await db.exec(REMOVE_STACKED_LINEUPS_MIGRATION_SQL);
+        await db.exec(MERGE_RARELY_NEARBY_MIGRATION_SQL);
+    });
+
+    afterAll(async () => {
+        await db.close();
+    });
+
+    it("retires consolidated rails and fixes both survivors in place", async () => {
+        const retiredCatalog = await db.query<{ count: string }>(`
+            SELECT COUNT(*)::text AS count
+            FROM discovery_rail_catalog
+            WHERE key IN (
+                'rare_returns',
+                'only_chance_nearby',
+                'newly_added',
+                'catch_them_early'
+            )
+        `);
+        const retiredEntries = await db.query<{ count: string }>(`
+            SELECT COUNT(*)::text AS count
+            FROM discovery_rail_policy_entries
+            WHERE rail_key IN (
+                'rare_returns',
+                'only_chance_nearby',
+                'newly_added',
+                'catch_them_early'
+            )
+        `);
+        const survivingRail = await db.query<{
+            label: string;
+            catalog_version: number;
+        }>(`
+            SELECT label, catalog_version
+            FROM discovery_rail_catalog
+            WHERE key IN ('just_passing_through', 'starting_to_buzz')
+            ORDER BY key
+        `);
+        const survivingEntries = await db.query<EntryRow>(`
+            SELECT platform, rail_key, enabled, position, rotation_pool, weight
+            FROM discovery_rail_policy_entries
+            WHERE rail_key IN ('just_passing_through', 'starting_to_buzz')
+            ORDER BY platform, position
+        `);
+        const policies = await db.query<PolicyRow>(`
+            SELECT platform, policy_version, catalog_version, cycle_cadence_hours
+            FROM discovery_rail_platform_policies
+            ORDER BY platform
+        `);
+
+        expect(retiredCatalog.rows[0].count).toBe("0");
+        expect(retiredEntries.rows[0].count).toBe("0");
+        expect(survivingRail.rows).toEqual([
+            { label: "Rarely nearby", catalog_version: 4 },
+            { label: "Shows gaining momentum", catalog_version: 4 },
+        ]);
+        expect(survivingEntries.rows).toEqual(
+            ["android", "ios", "web"].flatMap((platform) => [
+                {
+                    platform,
+                    rail_key: "just_passing_through",
+                    enabled: true,
+                    position: 6,
+                    rotation_pool: null,
+                    weight: 1,
+                },
+                {
+                    platform,
+                    rail_key: "starting_to_buzz",
+                    enabled: true,
+                    position: 7,
+                    rotation_pool: null,
+                    weight: 1,
+                },
+            ]),
+        );
+        expect(
+            policies.rows.map(
+                ({ platform, policy_version, catalog_version }) => ({
+                    platform,
+                    policy_version,
+                    catalog_version,
+                }),
+            ),
+        ).toEqual([
+            { platform: "android", policy_version: 4, catalog_version: 4 },
+            { platform: "ios", policy_version: 4, catalog_version: 4 },
+            { platform: "web", policy_version: 4, catalog_version: 4 },
         ]);
     });
 });
