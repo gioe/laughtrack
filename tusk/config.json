@@ -171,6 +171,7 @@
     "sparse_always_include": [
       "bin/tusk",
       "tests/conftest.py",
+      ".github/actions/record-pipeline-run/action.yml",
       ".github/workflows/podcast-episode-sync.yml",
       ".github/workflows/scraper-schedule.yml",
       "ios/Sources/LaughTrackAPIClient/openapi.json",
