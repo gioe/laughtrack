@@ -1,4 +1,3 @@
 Improvements
-• Refine Discover rails across platforms
-• [TASK-3921] Present screenshot Now Playing full screen
-• [TASK-3918] Restore iOS home feed screenshot contract with atomic fixture tests and capture readiness
+• Consolidate Discover recommendation rails
+• Update iOS 2.7.0 release notes
