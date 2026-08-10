@@ -1,12 +1,4 @@
-New Features
-• [TASK-3848] Add podcast episode detail screenshot coverage
-• [TASK-3846] Add podcast episode detail destination and screen
-• [TASK-3850] Add independent club highlights sections
-
 Improvements
-• [TASK-3853] Ship inseparable club marquee selection and row navigation
-• [TASK-3852] Make podcast episode row identifier actionable; one accessibility placement satisfies all three screenshot navigation criteria
-• [TASK-3846] Route podcast catalog rows to episode details
-• [TASK-3845] Expose episode detail in generated API clients
-• [TASK-3850] Refresh club detail screenshot coverage
-• [TASK-3849] Publish club highlights contract and regenerate native clients
+• Refine Discover rails across platforms
+• [TASK-3921] Present screenshot Now Playing full screen
+• [TASK-3918] Restore iOS home feed screenshot contract with atomic fixture tests and capture readiness
