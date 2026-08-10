@@ -70,8 +70,10 @@ fun TonightHeroCard(
                 text = content.timeLabel,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Black,
-                fontSize = 30.sp,
+                fontSize = if (content.timeLabel.length > 15) 20.sp else 30.sp,
                 maxLines = 1,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
             Text(
                 text = content.title.uppercase(Locale.US),

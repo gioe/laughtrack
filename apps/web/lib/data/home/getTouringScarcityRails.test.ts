@@ -174,6 +174,23 @@ describe("getTouringScarcityRails", () => {
         }
     });
 
+    it("limits Just passing through to five shows", () => {
+        const candidates = Array.from({ length: 7 }, (_, index) =>
+            row({
+                showId: index + 1,
+                canonicalComedianId: index + 1,
+                canonicalComedianUuid: `comedian-${index + 1}`,
+            }),
+        );
+
+        const selected = classifyTouringScarcityCandidates(candidates, REQUEST);
+
+        expect(selected.justPassingThrough.map(({ showId }) => showId)).toEqual(
+            [1, 2, 3, 4, 5],
+        );
+        expect(selected.rareReturns).toHaveLength(7);
+    });
+
     it("rare return labels require trustworthy local history and never infer first-ever appearances", () => {
         const back = classifyTouringScarcityCandidates([row()], REQUEST);
         expect(back.rareReturns).toHaveLength(1);

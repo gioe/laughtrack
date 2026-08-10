@@ -4,6 +4,7 @@ import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.HomeFeed
 import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRail
 import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRailItem
+import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRailPerformer
 import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRailReason
 import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRailReasonEvidence
 import app.laughtrack.android.core.network.generated.model.HomeFeedHero
@@ -42,6 +43,29 @@ class HomeDiscoverRailPlanTest {
             listOf(2, 1),
             (sections[1].content as HomeDiscoverRailSection.Content.ShowsTonight).shows.map { it.id },
         )
+    }
+
+    @Test
+    fun limits_best_shows_this_week_to_five_shows() {
+        val shows = (1..7).map(::show)
+        val sections =
+            resolveHomeDiscoverRails(
+                feed(
+                    trendingThisWeek = shows,
+                    rails =
+                        listOf(
+                            entry(
+                                "trending_this_week",
+                                "trendingThisWeek",
+                                position = 0,
+                                itemIds = shows.map { it.id.toString() },
+                            ),
+                        ),
+                ),
+            )!!
+
+        val content = sections.single().content as HomeDiscoverRailSection.Content.TrendingThisWeek
+        assertEquals(listOf(1, 2, 3, 4, 5), content.shows.map { it.id })
     }
 
     @Test
@@ -115,6 +139,90 @@ class HomeDiscoverRailPlanTest {
             )!!
 
         assertEquals(first.map { it.stableKey }.toSet(), reordered.map { it.stableKey }.toSet())
+    }
+
+    @Test
+    fun just_passing_through_features_its_associated_comedian() {
+        val item =
+            HomeFeedDynamicRailItem(
+                id = 91,
+                show = show(9),
+                performer = HomeFeedDynamicRailPerformer(id = 81, uuid = "avery-stone", name = "Avery Stone"),
+                reason =
+                    HomeFeedDynamicRailReason(
+                        kind = "just_passing_through",
+                        label = "Avery is visiting",
+                        evidence = HomeFeedDynamicRailReasonEvidence(),
+                    ),
+            )
+
+        assertEquals(81, preferredDynamicRailHeadlinerId("just_passing_through", item))
+        assertNull(preferredDynamicRailHeadlinerId("rare_returns", item))
+    }
+
+    @Test
+    fun limits_just_passing_through_to_five_shows() {
+        val items =
+            (1..7).map { id ->
+                HomeFeedDynamicRailItem(
+                    id = id,
+                    show = show(id),
+                    reason =
+                        HomeFeedDynamicRailReason(
+                            kind = "just_passing_through",
+                            label = "Comic $id is visiting",
+                            evidence = HomeFeedDynamicRailReasonEvidence(),
+                        ),
+                )
+            }
+        val sections =
+            resolveHomeDiscoverRails(
+                feed(
+                    rails = listOf(entry("just_passing_through", "dynamicRails", 0, items.map { it.id.toString() })),
+                    dynamicRails =
+                        listOf(
+                            HomeFeedDynamicRail(
+                                railKey = "just_passing_through",
+                                label = "Just passing through",
+                                items = items,
+                            ),
+                        ),
+                ),
+            )!!
+
+        val content = sections.single().content as HomeDiscoverRailSection.Content.DynamicShows
+        assertEquals(listOf(1, 2, 3, 4, 5), content.items.map { it.id })
+    }
+
+    @Test
+    fun removed_stacked_lineups_rail_is_ignored() {
+        val item =
+            HomeFeedDynamicRailItem(
+                id = 91,
+                show = show(9),
+                reason =
+                    HomeFeedDynamicRailReason(
+                        kind = "stacked_lineup",
+                        label = "Three comedians",
+                        evidence = HomeFeedDynamicRailReasonEvidence(),
+                    ),
+            )
+        val result =
+            resolveHomeDiscoverRails(
+                feed(
+                    rails = listOf(entry("stacked_lineups", "dynamicRails", 0, listOf("91"))),
+                    dynamicRails =
+                        listOf(
+                            HomeFeedDynamicRail(
+                                railKey = "stacked_lineups",
+                                label = "Stacked lineups",
+                                items = listOf(item),
+                            ),
+                        ),
+                ),
+            )
+
+        assertNull(result)
     }
 
     @Test

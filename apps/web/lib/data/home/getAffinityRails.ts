@@ -11,8 +11,6 @@ const DAY_MS = 24 * 60 * 60 * 1_000;
 const DEFAULT_HORIZON_DAYS = 90;
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 50;
-const DEFAULT_STACKED_LINEUP_THRESHOLD = 3;
-const MAX_STACKED_LINEUP_THRESHOLD = 20;
 const RECENT_PODCAST_APPEARANCE_DAYS = 30;
 
 export type PodcastAffinityAttribution =
@@ -48,15 +46,6 @@ export interface FromYourPodcastsReason {
     };
 }
 
-export interface StackedLineupReason {
-    kind: "stacked_lineup";
-    label: string;
-    evidence: {
-        qualifyingPerformerCount: number;
-        threshold: number;
-    };
-}
-
 export interface BecauseYouFollowThemReason {
     kind: "because_you_follow_them";
     label: string;
@@ -72,11 +61,6 @@ export interface FromYourPodcastsRailItem {
     reason: FromYourPodcastsReason;
 }
 
-export interface StackedLineupRailItem {
-    show: ShowDTO;
-    reason: StackedLineupReason;
-}
-
 export interface BecauseYouFollowThemRailItem {
     show: ShowDTO;
     performer: AffinityPerformer;
@@ -89,11 +73,6 @@ export interface AffinityRails {
         label: "From your podcasts";
         items: FromYourPodcastsRailItem[];
     };
-    stackedLineups: {
-        railKey: "stacked_lineups";
-        label: "Stacked lineups";
-        items: StackedLineupRailItem[];
-    };
     becauseYouFollowThem: {
         railKey: "because_you_follow_them";
         label: "Because you follow them";
@@ -105,7 +84,6 @@ export interface AffinityRailsOptions {
     now?: Date;
     horizonDays?: number;
     limit?: number;
-    stackedLineupThreshold?: number;
     excludedShowIds?: readonly number[];
     /**
      * Keep the provider's historical fixed rail priority by default. The home
@@ -127,7 +105,6 @@ export interface AffinityEvidenceRow {
     canonicalComedianId: number;
     canonicalComedianUuid: string;
     canonicalComedianName: string;
-    qualifyingPerformerCount: number | bigint;
     favoriteComedian: boolean;
     podcastId: number | null;
     podcastSlug: string | null;
@@ -143,7 +120,6 @@ interface ClassifyOptions {
     now: Date;
     horizonDays: number;
     limit: number;
-    stackedLineupThreshold: number;
     personalized: boolean;
     excludedShowIds: readonly number[];
     deduplicateAcrossRails?: boolean;
@@ -156,11 +132,6 @@ interface ClassifiedFromPodcastItem {
     reason: FromYourPodcastsReason;
 }
 
-interface ClassifiedStackedItem {
-    showId: number;
-    reason: StackedLineupReason;
-}
-
 interface ClassifiedFollowedItem {
     showId: number;
     performer: AffinityPerformer;
@@ -169,7 +140,6 @@ interface ClassifiedFollowedItem {
 
 interface ClassifiedAffinityRails {
     fromYourPodcasts: ClassifiedFromPodcastItem[];
-    stackedLineups: ClassifiedStackedItem[];
     becauseYouFollowThem: ClassifiedFollowedItem[];
 }
 
@@ -185,7 +155,6 @@ type AffinityQueryRow = {
     canonical_comedian_id: number;
     canonical_comedian_uuid: string;
     canonical_comedian_name: string;
-    qualifying_performer_count: number | bigint;
     favorite_comedian: boolean;
     podcast_id: number | null;
     podcast_slug: string | null;
@@ -395,8 +364,6 @@ export function buildAffinityQuery({
             lineup.canonical_comedian_id,
             lineup.canonical_comedian_uuid,
             lineup.canonical_comedian_name,
-            COUNT(*) OVER (PARTITION BY lineup.show_id)::integer
-                AS qualifying_performer_count,
             favorite.canonical_comedian_id IS NOT NULL AS favorite_comedian,
             affinity.podcast_id,
             affinity.podcast_slug,
@@ -420,11 +387,6 @@ function emptyRails(): AffinityRails {
         fromYourPodcasts: {
             railKey: "from_your_podcasts",
             label: "From your podcasts",
-            items: [],
-        },
-        stackedLineups: {
-            railKey: "stacked_lineups",
-            label: "Stacked lineups",
             items: [],
         },
         becauseYouFollowThem: {
@@ -549,17 +511,12 @@ export function classifyAffinityCandidates(
             leftId - rightId,
     );
     const podcastSeen = new Set(options.excludedShowIds);
-    const stackedSeen =
-        options.deduplicateAcrossRails === false
-            ? new Set(options.excludedShowIds)
-            : podcastSeen;
     const followedSeen =
         options.deduplicateAcrossRails === false
             ? new Set(options.excludedShowIds)
             : podcastSeen;
     const result: ClassifiedAffinityRails = {
         fromYourPodcasts: [],
-        stackedLineups: [],
         becauseYouFollowThem: [],
     };
 
@@ -625,29 +582,6 @@ export function classifyAffinityCandidates(
         }
     }
 
-    for (const [showId, showRows] of shows) {
-        if (
-            stackedSeen.has(showId) ||
-            result.stackedLineups.length >= options.limit
-        ) {
-            continue;
-        }
-        const count = showRows.length;
-        if (count < options.stackedLineupThreshold) continue;
-        result.stackedLineups.push({
-            showId,
-            reason: {
-                kind: "stacked_lineup",
-                label: `${count} qualifying comedians on one lineup`,
-                evidence: {
-                    qualifyingPerformerCount: count,
-                    threshold: options.stackedLineupThreshold,
-                },
-            },
-        });
-        stackedSeen.add(showId);
-    }
-
     if (options.personalized) {
         for (const [showId, showRows] of shows) {
             if (
@@ -694,7 +628,6 @@ function rowToEvidence(row: AffinityQueryRow): AffinityEvidenceRow {
         canonicalComedianId: row.canonical_comedian_id,
         canonicalComedianUuid: row.canonical_comedian_uuid,
         canonicalComedianName: row.canonical_comedian_name,
-        qualifyingPerformerCount: row.qualifying_performer_count,
         favoriteComedian: row.favorite_comedian,
         podcastId: row.podcast_id,
         podcastSlug: row.podcast_slug,
@@ -723,16 +656,6 @@ export async function getAffinityRails(
         1,
         Math.min(MAX_LIMIT, Math.trunc(options.limit ?? DEFAULT_LIMIT)),
     );
-    const stackedLineupThreshold = Math.max(
-        2,
-        Math.min(
-            MAX_STACKED_LINEUP_THRESHOLD,
-            Math.trunc(
-                options.stackedLineupThreshold ??
-                    DEFAULT_STACKED_LINEUP_THRESHOLD,
-            ),
-        ),
-    );
     const horizonEnd = new Date(now.getTime() + horizonDays * DAY_MS);
     const appearanceCutoff = new Date(
         now.getTime() - RECENT_PODCAST_APPEARANCE_DAYS * DAY_MS,
@@ -751,7 +674,6 @@ export async function getAffinityRails(
         now,
         horizonDays,
         limit,
-        stackedLineupThreshold,
         personalized: Boolean(profileId),
         excludedShowIds: options.excludedShowIds ?? [],
         deduplicateAcrossRails: options.deduplicateAcrossRails ?? true,
@@ -760,7 +682,6 @@ export async function getAffinityRails(
         ...new Set(
             [
                 ...classified.fromYourPodcasts,
-                ...classified.stackedLineups,
                 ...classified.becauseYouFollowThem,
             ].map(({ showId }) => showId),
         ),
@@ -779,10 +700,6 @@ export async function getAffinityRails(
             return show ? [{ ...item, show }] : [];
         },
     );
-    rails.stackedLineups.items = classified.stackedLineups.flatMap((item) => {
-        const show = showsById.get(item.showId);
-        return show ? [{ ...item, show }] : [];
-    });
     rails.becauseYouFollowThem.items = classified.becauseYouFollowThem.flatMap(
         (item) => {
             const show = showsById.get(item.showId);

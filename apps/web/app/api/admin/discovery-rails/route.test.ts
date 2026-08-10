@@ -80,7 +80,7 @@ const adminSession = {
 const currentWebPolicy = {
     platform: "web",
     policyVersion: 1,
-    catalogVersion: 2,
+    catalogVersion: 3,
     cycleCadenceHours: 24,
     updatedByProfileId: null,
     updatedByProfile: {
@@ -114,7 +114,7 @@ const currentWebPolicy = {
 
 const validUpdate = {
     platform: "web",
-    catalogVersion: 2,
+    catalogVersion: 3,
     expectedVersion: 1,
     cycleCadenceHours: 12,
     rails: [
@@ -133,7 +133,7 @@ const validUpdate = {
             weight: 70,
         },
         {
-            railKey: "stacked_lineups",
+            railKey: "starting_to_buzz",
             enabled: true,
             position: 1,
             rotationPool: "daily_mix",
@@ -198,8 +198,8 @@ describe("GET /api/admin/discovery-rails", () => {
                 catalogVersion: 1,
             },
             {
-                key: "stacked_lineups",
-                label: "Stacked lineups",
+                key: "starting_to_buzz",
+                label: "Starting to buzz",
                 contentKind: "show",
                 requiresAuth: false,
                 supportedPlatforms: ["web", "ios", "android"],
@@ -216,7 +216,7 @@ describe("GET /api/admin/discovery-rails", () => {
         const body = await response.json();
 
         expect(response.status).toBe(200);
-        expect(body.catalogVersion).toBe(2);
+        expect(body.catalogVersion).toBe(3);
         expect(body.catalog).toEqual(catalog);
         expect(
             body.platforms.map(
@@ -247,8 +247,8 @@ describe("GET /api/admin/discovery-rails", () => {
             updatedAt: null,
             updatedBy: null,
         });
-        expect(body.platforms[1].rails).toHaveLength(15);
-        expect(body.platforms[2].rails).toHaveLength(15);
+        expect(body.platforms[1].rails).toHaveLength(14);
+        expect(body.platforms[2].rails).toHaveLength(14);
         expect(tx.discoveryRailPlatformPolicy.findMany).toHaveBeenCalledWith({
             include: {
                 entries: true,
@@ -399,7 +399,7 @@ describe("PATCH /api/admin/discovery-rails", () => {
             ok: true,
             policy: {
                 platform: "web",
-                catalogVersion: 2,
+                catalogVersion: 3,
                 version: 2,
                 cycleCadenceHours: 12,
                 rails: validUpdate.rails,
@@ -409,7 +409,7 @@ describe("PATCH /api/admin/discovery-rails", () => {
             where: { platform: "web", policyVersion: 1 },
             data: {
                 policyVersion: { increment: 1 },
-                catalogVersion: 2,
+                catalogVersion: 3,
                 cycleCadenceHours: 12,
                 updatedByProfileId: "profile-1",
             },

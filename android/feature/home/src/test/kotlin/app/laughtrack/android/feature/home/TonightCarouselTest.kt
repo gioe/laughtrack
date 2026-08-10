@@ -20,21 +20,26 @@ class TonightCarouselTest {
     @Test
     fun carousel_keeps_shared_chrome_and_delegates_each_page_to_the_shared_card() {
         val source = String(Files.readAllBytes(homeScreenPath()))
-        val carousel = functionSource(source, "TonightCarousel")
-        val movingPage = functionSource(source, "TonightHeroPage")
+        val carousel = functionSource(source, "FeaturedShowsCarousel")
+        val movingPage = functionSource(source, "FeaturedShowHeroPage")
         val lazyRowIndex = carousel.indexOf("LazyRow(")
 
         assertTrue(lazyRowIndex >= 0)
         assertTrue(carousel.indexOf("Surface(") in 0 until lazyRowIndex)
-        assertTrue(carousel.indexOf("text = \"TONIGHT!\"") in 0 until lazyRowIndex)
+        assertTrue(carousel.indexOf("text = headline.uppercase(Locale.US)") in 0 until lazyRowIndex)
         assertTrue(carousel.indexOf("TonightPageIndicator(") > lazyRowIndex)
         assertTrue(carousel.contains("rememberSnapFlingBehavior(lazyListState = listState)"))
-        assertTrue(carousel.contains("onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) }"))
+        assertTrue(carousel.contains("onClick = { onOpenEntity(AppRoute.ShowDetail(item.show.id)) }"))
 
         assertTrue(movingPage.contains("TonightHeroCard("))
         assertTrue(movingPage.contains("TonightHeroCardContent("))
         assertTrue(movingPage.contains("onClick = onClick"))
-        assertTrue(movingPage.contains("modifier = modifier"))
+        assertTrue(movingPage.contains("modifier.then("))
+        assertTrue(source.contains("if (railKey == \"just_passing_through\")"))
+        assertTrue(source.contains("FeaturedShowsCarousel("))
+        assertTrue(source.contains("preferredHeadlinerId = preferredDynamicRailHeadlinerId(railKey, item)"))
+        assertTrue(source.contains("timestampLabel = formatShowDateTime(item.show)"))
+        assertTrue(movingPage.contains("item.timestampLabel ?: formatShowTime(show).orEmpty()"))
     }
 
     private fun homeScreenPath(): Path {

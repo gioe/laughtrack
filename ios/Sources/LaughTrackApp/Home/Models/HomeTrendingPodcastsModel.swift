@@ -91,7 +91,7 @@ final class HomeTrendingPodcastsModel: ObservableObject {
 
     static func content(from feed: Components.Schemas.HomeFeed) -> Content {
         if let episodes = feed.podcastEpisodes, !episodes.isEmpty {
-            return .episodes(episodes)
+            return .episodes(Array(episodes.prefix(HomeDiscoverRailPlanPresentation.itemLimit)))
         }
         return .legacyPodcasts(feed.trendingPodcasts)
     }

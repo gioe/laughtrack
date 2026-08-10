@@ -76,7 +76,6 @@ const DYNAMIC_SHOW_RAIL_KEYS = new Set<string>([
     "starting_to_buzz",
     "catch_them_early",
     "from_your_podcasts",
-    "stacked_lineups",
     "because_you_follow_them",
 ]);
 
@@ -260,11 +259,15 @@ function renderRail(
         (rail) => rail.railKey === entry.railKey,
     );
     if (!dynamicRail) return null;
-    const items = selectedItems(
+    const selectedDynamicItems = selectedItems(
         dynamicRail.items,
         entry.itemIds,
         (item) => item.id ?? item.show.id,
     );
+    const items =
+        entry.railKey === "just_passing_through"
+            ? selectedDynamicItems.slice(0, 5)
+            : selectedDynamicItems;
     if (items.length === 0) return null;
     const reasons = Object.fromEntries(
         items.map((item) => [item.show.id, item.reason.label]),

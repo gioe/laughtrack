@@ -141,7 +141,7 @@ function payloads(): DiscoveryRailPayloads {
 function plan(rails: DiscoveryRailPlanData["rails"]): DiscoveryRailPlanData {
     return {
         version: 1,
-        catalogVersion: 2,
+        catalogVersion: 3,
         policyVersion: 9,
         platform: "web",
         cycleIndex: 100,
@@ -347,6 +347,43 @@ describe("DiscoveryRailPlan", () => {
             screen.getByTestId("show-71").getAttribute("data-sold-out"),
         ).toBe("true");
         expect(mocks.renderedShows[0]).toBe(soldOut);
+    });
+
+    it("limits Just passing through to five shows", () => {
+        const items = Array.from({ length: 7 }, (_, index) => ({
+            id: index + 1,
+            show: show(index + 1),
+            reason: {
+                kind: "just_passing_through",
+                label: `Comic ${index + 1} is visiting`,
+            },
+        }));
+        const nextPayloads = payloads();
+        nextPayloads.dynamicRails = [
+            {
+                railKey: "just_passing_through",
+                label: "Just passing through",
+                items,
+            },
+        ];
+
+        renderPlan(
+            plan([
+                {
+                    railKey: "just_passing_through",
+                    payloadKey: "dynamicRails",
+                    position: 0,
+                    itemIds: items.map(({ id }) => String(id)),
+                },
+            ]),
+            nextPayloads,
+        );
+
+        expect(
+            mocks.renderedShows
+                .map(({ id }) => id)
+                .filter((id, index, ids) => ids.indexOf(id) === index),
+        ).toEqual([1, 2, 3, 4, 5]);
     });
 
     it("passes rail key, policy version, and rank for analytics attribution", () => {

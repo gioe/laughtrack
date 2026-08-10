@@ -151,15 +151,20 @@ struct HomeDiscoverRailCard<Content: View>: View {
                 HomeDiscoverSectionHeader(
                     eyebrow: eyebrow,
                     title: title,
-                    subtitle: subtitle,
-                    actionTitle: actionTitle,
-                    actionAccessibilityIdentifier: actionAccessibilityIdentifier,
-                    action: action
+                    subtitle: subtitle
                 )
                 .modifier(HomeRailAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
             }
 
             content
+
+            if let actionTitle, let action {
+                HomeDiscoverRailAction(
+                    title: actionTitle,
+                    accessibilityIdentifier: actionAccessibilityIdentifier,
+                    action: action
+                )
+            }
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
         .background(railBackground)
@@ -226,9 +231,6 @@ private struct HomeDiscoverSectionHeader: View {
     let eyebrow: String?
     let title: String
     let subtitle: String?
-    let actionTitle: String?
-    let actionAccessibilityIdentifier: String?
-    let action: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
 
@@ -255,31 +257,15 @@ private struct HomeDiscoverSectionHeader: View {
 
                 Spacer(minLength: 0)
 
-                if let actionTitle, let action {
-                    Button(action: action) {
-                        HStack(spacing: 4) {
-                            Text(actionTitle)
-                            Image(systemName: "chevron.right")
-                                .font(.caption2.weight(.bold))
-                        }
-                        .font(laughTrack.typography.metadata.weight(.bold))
-                        .foregroundStyle(laughTrack.colors.accentStrong)
+                HStack(spacing: 4) {
+                    ForEach(0..<5, id: \.self) { index in
+                        Circle()
+                            .fill(laughTrack.colors.accentStrong.opacity(0.85 - Double(index) * 0.11))
+                            .frame(width: 4, height: 4)
+                            .shadow(color: laughTrack.colors.accentStrong.opacity(0.34), radius: 4)
                     }
-                    .buttonStyle(.plain)
-                    .modifier(HomeRailAccessibilityIdentifierModifier(
-                        identifier: actionAccessibilityIdentifier
-                    ))
-                } else {
-                    HStack(spacing: 4) {
-                        ForEach(0..<5, id: \.self) { index in
-                            Circle()
-                                .fill(laughTrack.colors.accentStrong.opacity(0.85 - Double(index) * 0.11))
-                                .frame(width: 4, height: 4)
-                                .shadow(color: laughTrack.colors.accentStrong.opacity(0.34), radius: 4)
-                        }
-                    }
-                    .accessibilityHidden(true)
                 }
+                .accessibilityHidden(true)
             }
 
             if let subtitle {
@@ -290,6 +276,25 @@ private struct HomeDiscoverSectionHeader: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+}
+
+private struct HomeDiscoverRailAction: View {
+    let title: String
+    let accessibilityIdentifier: String?
+    let action: () -> Void
+
+    var body: some View {
+        LaughTrackButton(
+            title,
+            systemImage: "magnifyingglass",
+            tone: .secondary,
+            density: .compact,
+            action: action
+        )
+        .modifier(HomeRailAccessibilityIdentifierModifier(
+            identifier: accessibilityIdentifier
+        ))
     }
 }
 

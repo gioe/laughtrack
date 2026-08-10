@@ -7,6 +7,7 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisod
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodePodcast
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisodeRecommendation
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -19,7 +20,7 @@ class HomePodcastEpisodeDiscoveryTest {
     private val today = LocalDate.of(2026, 8, 6)
 
     @Test
-    fun episode_presentation_includes_discovery_context_and_explainable_reasons() {
+    fun episode_presentation_includes_discovery_context() {
         val item = homePodcastEpisodeDiscoveryItem(episode(), today)
 
         assertEquals("A Great New Set", item.title)
@@ -28,19 +29,6 @@ class HomePodcastEpisodeDiscoveryTest {
         assertEquals("Yesterday • 61 min", item.releaseMetadata)
         assertEquals("Guest", item.comedianRole)
         assertEquals("Jane Comic", item.comedianName)
-        assertEquals("Guest appearance by Jane Comic", item.recommendationReason)
-
-        val expectedReasons =
-            mapOf(
-                HomeFeedPodcastEpisodeRecommendation.Reason.FOLLOWED_COMEDIAN to "Because you follow Jane Comic",
-                HomeFeedPodcastEpisodeRecommendation.Reason.FAVORITE_PODCAST to "From a favorite podcast",
-                HomeFeedPodcastEpisodeRecommendation.Reason.GUEST_APPEARANCE to "Guest appearance by Jane Comic",
-                HomeFeedPodcastEpisodeRecommendation.Reason.POPULAR_COMEDIAN to "Featuring popular comedian Jane Comic",
-                HomeFeedPodcastEpisodeRecommendation.Reason.RECENT_EPISODE to "A recent episode with Jane Comic",
-            )
-        expectedReasons.forEach { (reason, label) ->
-            assertEquals(label, homePodcastEpisodeDiscoveryItem(episode(reason = reason), today).recommendationReason)
-        }
     }
 
     @Test
@@ -74,27 +62,43 @@ class HomePodcastEpisodeDiscoveryTest {
     }
 
     @Test
-    fun discover_wiring_keeps_open_and_play_actions_separate_and_labels_the_catalog() {
+    fun episode_recommendations_are_limited_to_five() {
+        val episodes = (1..7).map { episode(id = it) }
+
+        val content = homePodcastRailContent(episodes, emptyList()) as HomePodcastRailContent.Episodes
+
+        assertEquals(listOf(1, 2, 3, 4, 5), content.episodes.map { it.id })
+    }
+
+    @Test
+    fun discover_wiring_keeps_episode_actions_separate_and_catalog_action_on_the_catalog() {
         val discoverySource = String(Files.readAllBytes(discoveryPath()))
         val homeSource = String(Files.readAllBytes(homeScreenPath()))
         val shellSource = String(Files.readAllBytes(appShellPath()))
+        val episodeBlock =
+            discoverySource
+                .substringAfter("internal fun HomePodcastEpisodeDiscoveryRail(")
+                .substringBefore("private fun HomeLegacyPodcastRail(")
+        val legacyCatalogBlock = discoverySource.substringAfter("private fun HomeLegacyPodcastRail(")
 
         assertTrue(discoverySource.contains("onOpenEntity(homePodcastEpisodeRoute(item))"))
         assertTrue(discoverySource.contains("onPlay(playbackItem)"))
         assertTrue(discoverySource.contains("homePodcastEpisodeRowTestTag(item.id)"))
         assertTrue(discoverySource.contains("homePodcastEpisodePlayTestTag(item.id)"))
-        assertTrue(discoverySource.contains("SeeAllButton(label = \"Browse podcasts\""))
+        assertFalse(episodeBlock.contains("actionLabel"))
+        assertTrue(legacyCatalogBlock.contains("actionLabel = \"Browse podcasts\""))
         assertTrue(homeSource.contains("episodes = state.podcastEpisodes"))
         assertTrue(shellSource.contains("onPlay = { item -> playbackController?.play(item) }"))
     }
 
     private fun episode(
+        id: Int = 501,
         audioUrl: String? = "https://example.com/audio.mp3",
         reason: HomeFeedPodcastEpisodeRecommendation.Reason =
             HomeFeedPodcastEpisodeRecommendation.Reason.GUEST_APPEARANCE,
     ): HomeFeedPodcastEpisode =
         HomeFeedPodcastEpisode(
-            id = 501,
+            id = id,
             title = "A Great New Set",
             description = "Episode description",
             releaseDate = "2026-08-05",

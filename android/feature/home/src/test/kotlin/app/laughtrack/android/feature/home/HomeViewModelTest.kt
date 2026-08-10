@@ -117,6 +117,25 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun best_shows_this_week_is_limited_to_five_shows() {
+        val weeklyShows = (10..16).map { show(it, "Week show $it") }
+        val state =
+            HomeUiState(
+                feed =
+                    UiState.Success(
+                        homeFeed().copy(
+                            hero = homeFeed().hero.copy(shows = emptyList()),
+                            showsTonight = emptyList(),
+                            moreNearYou = emptyList(),
+                            trendingThisWeek = weeklyShows,
+                        ),
+                    ),
+            )
+
+        assertEquals(listOf(10, 11, 12, 13, 14), state.trendingThisWeek.map { it.id })
+    }
+
+    @Test
     fun followed_comedian_shows_are_exposed_without_sold_out_rows() {
         val available = show(40, "Followed favorite")
         val soldOut = show(41, "Sold out favorite").copy(soldOut = true)

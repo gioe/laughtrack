@@ -386,10 +386,11 @@ JSON blob and the `skill_run.run_id` you already captured.
      > 0 with `passing_spec_count` = 0 records the downgrade).
      Proceed normally and implement from scratch.
 
-3. **Determine the best agent** (informational in Codex — there is no
-   sub-agent dispatch primitive). Note the task's domain, assignee
-   field, and description so the work mirrors the conventions for that
-   area.
+3. **Determine the best exploration and implementation subagent(s)**
+   based on the task's domain, assignee field, description, and
+   requirements. Exploration is always delegated in Step 5. The
+   implementation candidate is used only when Step 6 routes
+   implementation to a subagent.
 
 4. **Confirm failure using relevant evidence** — Before exploring code
    for a task that fixes an existing failure, confirm the reported
@@ -420,27 +421,36 @@ JSON blob and the `skill_run.run_id` you already captured.
       not cancel the run. Only a test that directly asserts the reported
       rendering defect, such as a screenshot, golden, pixel, or rendering
       assertion, can invalidate that visual evidence.
-   3. **Logic-test evidence:** if specific relevant tests are named, run
-      them directly. Otherwise, use `tusk test-detect` to find the
-      project's test command, then run the most relevant subset.
-   4. **If a relevant reproducer test passes:** before concluding the
-      issue is already fixed, inspect the recorded failure evidence for
-      time/date sensitivity. Signals include date- or year-named tests,
-      local-date versus UTC assertions, and failure timestamps clustered
-      in a narrow wall-clock window (use `run_started_at` / `run_ended_at`
-      from a recorded `tusk test-precheck` verdict when available). When
-      those signals exist, retry under a controlled timezone such as
-      `TZ=UTC` and, when the test framework supports it, a frozen clock at
-      the recorded failure instant. If the controlled reproduction fails,
-      continue to Explore using that output. Only when no time-sensitive
-      signal exists, or controlled retries still pass, run
-      `tusk skill-run cancel <run_id>`, surface that the issue may already
-      be fixed or inaccurate, and stop before investigating further.
-   5. **If a relevant reproducer test fails:** capture the failure output.
-      Use it as the primary diagnostic anchor in Step 5.
+   3. **Logic-test evidence:** if specific tests are named, run them
+      directly. A named test or suite is a baseline, not a reproducer,
+      unless its assertions directly exercise the reported failure.
+      Otherwise, use `tusk test-detect` to find the project's test command,
+      then run the most relevant subset. If a named baseline passes but
+      the bug's acceptance criteria require new regression coverage, add
+      and run a focused regression test before deciding whether to cancel.
+      Its expected pre-fix red result confirms the failure; capture it and
+      continue to Explore. Do not cancel based only on a passing baseline.
+   4. **If a test that directly exercises the reported failure passes:**
+      before concluding the issue is already fixed, inspect the recorded
+      failure evidence for time/date sensitivity. Signals include date- or
+      year-named tests, local-date versus UTC assertions, and failure
+      timestamps clustered in a narrow wall-clock window (use
+      `run_started_at` / `run_ended_at` from a recorded
+      `tusk test-precheck` verdict when available). When those signals
+      exist, retry under a controlled timezone such as `TZ=UTC` and, when
+      the test framework supports it, a frozen clock at the recorded
+      failure instant. If the controlled reproduction fails, continue to
+      Explore using that output. Only when no time-sensitive signal exists,
+      or controlled retries still pass, does that passing evidence directly
+      disprove the report: run `tusk skill-run cancel <run_id>`, surface
+      that the issue may already be fixed or inaccurate, and stop before
+      investigating further.
+   5. **If a test that directly exercises the reported failure fails:**
+      capture the failure output. Use it as the primary diagnostic anchor
+      in Step 5.
 
-5. **Explore the codebase before implementing.** Use `Read`, `Grep`,
-   `Glob`, and read-only `Bash` to research:
+5. **Explore the codebase before implementing.** Always delegate this
+   exploration pass to a sub-agent. Have it research:
    - What files will need to change?
    - Are there existing patterns to follow?
    - What tests already exist for this area?
@@ -449,19 +459,94 @@ JSON blob and the `skill_run.run_id` you already captured.
      what you're about to write, use it instead of duplicating the
      logic.
 
-   Codex has no parallel sub-agent primitive — do the searches inline.
    Report findings before writing any code.
 
-5b. **Scope check — only implement what the task describes.**
-   The task's `summary` and `description` define the full scope of
-   work for this session. If the description references external
-   documents (evaluation docs, design specs, RFCs), treat them as
-   **background context only** — do not implement items from those
-   docs that go beyond what the task's own description asks for.
+   **Bounded recovery for a stalled exploration subagent.** Do not wait
+   indefinitely for mandatory exploration. After a reasonable interval with no
+   material progress, inspect the task worktree and the subagent's latest
+   report. Material progress includes a worktree diff, completed command or test
+   output, or a substantive report of finished work or a concrete blocker; an
+   active/running status alone is not progress. On the first no-progress check,
+   send one focused nudge that restates or narrows the exploration assignment.
+   If the next progress check still shows no material progress, interrupt the
+   subagent. Then either delegate one narrower replacement exploration
+   assignment or complete the required exploration locally. A replacement gets
+   the same single-nudge budget; if it also stalls, interrupt it and fall back
+   locally rather than spawning another replacement. On local fallback, complete
+   the same exploration checklist, report findings before writing any code, and
+   surface `Exploration routing: local fallback — <stalled evidence; local
+   findings>`. Do not interrupt an actively producing command or test before it
+   finishes or reaches its own timeout.
 
-6. **Begin implementation.** Codex executes work in the current
-   session — there is no delegation to a sub-agent. Apply the patterns
-   surfaced in Step 5.
+5b. **Declare scope before the first commit.** The commit-time scope
+   guard reads from the authoritative `task_scope` table. Before staging
+   the first commit, run `tusk scope list <id>` to see what the table
+   currently authorizes:
+
+   - **If the list already covers the files you plan to touch**, proceed
+     to commit; no action is needed. Tasks created with
+     `tusk task-insert --scope/--creates` have
+     `operator_declared`/`creates` rows from the start.
+   - **Reserve `operator_declared` for scope supplied during task creation
+     or added before the task's first durable checkpoint.** `task-start`
+     alone does not cross this provenance boundary; the boundary is the
+     first progress checkpoint or committed criterion.
+   - **If the task has no progress checkpoint and no committed criterion**,
+     run `tusk scope add <id> <path> --reason "<why>"` before staging. The
+     implicit source is `operator_declared` even though Step 1 has already
+     started the task.
+   - **Once a progress checkpoint or committed criterion exists**, the same
+     implicit `tusk scope add` records `expanded_mid_task`. Keep the
+     rationale specific so retro can distinguish healthy exploration from
+     a decomposition miss.
+   - **If `tusk scope list` is empty on a `scope_enforced=1` task**,
+     declare the files you plan to edit before staging. Empty scope is not
+     a vacuous pass for current tasks; the commit guard rejects it.
+   - **If the task is a legitimately repo-wide refactor**, it should have
+     been created with `tusk task-insert --unbounded`. If it was not,
+     `tusk scope add <id> "**" --reason "..."` is a partial workaround and
+     uses the same checkpoint-based provenance as any other addition;
+     recreating the task with `--unbounded` is the long-term fix.
+
+   Externally referenced documents (evaluation docs, design specs, RFCs)
+   are background context, not scope. Do not add or implement items from
+   them unless the task itself requires those files to change.
+
+6. **Route implementation after delegated exploration.** Wait for the
+   exploration sub-agent to finish and report its findings before
+   choosing a route. Then apply these rules:
+
+   - **Local implementation is eligible only for XS/S tasks** when the
+     completed exploration identifies the exact files and relevant
+     tests, and the resulting change is focused and unambiguous.
+   - **Delegate implementation for M/L/XL tasks**, or whenever
+     exploration leaves the change broad, ambiguous, or missing exact
+     files or tests.
+   - **Explicit operator requests override the size rule.** If the
+     operator asks for delegation, agents, or parallel work, delegate
+     implementation even for an otherwise focused XS/S task.
+
+   Before writing any implementation code, report the decision using
+   one of these forms: `Implementation routing: local — <basis>` or
+   `Implementation routing: delegated — <basis>`. On the local route,
+   proceed to Step 7 in the current session. On the delegated route,
+   assign the work to the chosen implementation subagent(s), then
+   coordinate their result through Step 7.
+
+   **Bounded recovery for a stalled implementation subagent.** Do not wait
+   indefinitely for delegated implementation. After a reasonable interval with
+   no material progress, inspect the task worktree and the subagent's latest
+   report. Material progress includes a worktree diff, completed command or test
+   output, or a substantive report of finished work or a concrete blocker; an
+   active/running status alone is not progress. On the first no-progress check,
+   send one focused nudge that restates or narrows the assignment. If the next
+   progress check still shows no material progress, interrupt the subagent. Then
+   either delegate a narrower replacement assignment or continue locally. A
+   local fallback is allowed for any task size only after this bounded recovery
+   sequence; surface the route change and evidence using `Implementation routing:
+   local fallback — <stalled evidence; reason for continuing locally>`. Do not
+   interrupt an actively producing command or test before it finishes or reaches
+   its own timeout.
 
 7. **Implement, commit, and mark criteria done.** Work through the
    acceptance criteria from Step 1 as your checklist — **one commit per
@@ -522,6 +607,20 @@ JSON blob and the `skill_run.run_id` you already captured.
 
    **After each `tusk commit`,** run `git status --short` to confirm
    your files were staged and committed.
+
+   **If `tusk commit` exits 9 (concurrent commit active),** another
+   invocation holds the operation lock for the same worktree and this
+   process did not run `git commit`. Wait for the active invocation to
+   finish and inspect its `TUSK_COMMIT_RESULT`. Retry only when that
+   result shows the requested commit did not land. If the result is
+   unavailable, inspect HEAD with `git log -1 --format='%H %s'`, the
+   selected paths with `git status --short -- "<file1>" ["<file2>" ...]`,
+   and criterion bindings with `tusk criteria list <id>` before deciding.
+   If the requested TASK commit and intended criterion bindings landed
+   and the selected requested changes are clean, do not reissue
+   `tusk commit`; if the evidence is inconsistent, investigate instead
+   of retrying blindly. Do not interpret exit 9 as a Git failure or mark
+   criteria directly from the losing invocation.
 
    **If `tusk commit` fails with `pathspec did not match any files`**
    (exit code 3, git-add error), first check whether the file was
@@ -591,16 +690,22 @@ JSON blob and the `skill_run.run_id` you already captured.
    ```bash
    tusk test-precheck --command "<test_command>" --flake-retries 2
    ```
-   `tusk test-precheck` resolves the test command, stashes any local
-   changes safely under a uniquely-named entry, runs the test against
-   HEAD, and pops that entry by reference. Output is JSON:
-   `{pre_existing, exit_code, test_command, stashed,
-   diverged_from_default, diverged_paths}`, plus
+   After an exit-2 commit gate, a bare `tusk test-precheck` replays the
+   exact failed command recorded for the current task and HEAD, so unrelated
+   dirty paths cannot redirect diagnosis to another path/domain suite.
+   `--command`, `--paths`, and `--domain` explicitly bypass that replay.
+   Without an eligible replay, it resolves path command → domain command →
+   global command → test-detect. It stashes any local changes safely under a
+   uniquely-named entry, runs the test against HEAD, and pops that entry by
+   reference. Output is JSON:
+   `{verdict, pre_existing, exit_code, test_command, stashed,
+   diverged_from_default, diverged_paths}`, where `verdict` is
+   `non_reproduced`, `pre_existing`, `flaky`, or `skipped`, plus
    `{flake_runs_total, flake_failures, flaky_suspect}` when
    `--flake-retries N` (N>0) was passed.
 
    Branch on the verdict in this order — `flaky_suspect` first, then
-   divergence, then the `pre_existing` true/false split:
+   `verdict: non_reproduced`, then divergence, then `pre_existing: true`:
 
    - **If `flaky_suspect` is `true`** — the N+1 HEAD runs disagreed on
      identical code, so the test is flaky, not a regression you
@@ -610,6 +715,15 @@ JSON blob and the `skill_run.run_id` you already captured.
      usually passes on the next attempt. If it keeps flapping, log a
      progress note naming the flaky test and surface it rather than
      force-committing.
+
+   - **If `verdict` is `non_reproduced` (or `exit_code` is `0` in a
+     legacy payload)** — every clean-HEAD run passed, so the original
+     commit-gate failure was not reproduced. Do not infer that the task
+     changes introduced the failure from `pre_existing: false` alone.
+     **Retry the same `tusk commit`** with the same arguments. Retry up
+     to 3 times; if the original gate keeps failing while clean-HEAD
+     prechecks consistently return `non_reproduced`, then use the full
+     original gate output to diagnose the task changes.
 
    - **If `pre_existing` is `true` AND `diverged_from_default` is
      `true`** — `origin/<default>` has commits HEAD lacks that touch
@@ -637,8 +751,9 @@ JSON blob and the `skill_run.run_id` you already captured.
      ```
      Then mark criteria done with `tusk criteria done <cid> --skip-verify`.
 
-   - **If `pre_existing` is `false`** — your changes introduced the
-     failure. Proceed with the diagnosis loop:
+   - **If repeated original gates fail while clean-HEAD prechecks
+     consistently return `non_reproduced`** — the combined evidence now
+     points to the task changes. Proceed with the diagnosis loop:
      1. Read the full test output — scroll through the entire failure
         log. Do not make any code changes until you understand what
         failed and why.
@@ -710,6 +825,42 @@ JSON blob and the `skill_run.run_id` you already captured.
     violations are warnings. Fix any clear violations in files you've
     already touched. Do not refactor unrelated code just to satisfy
     lint.
+
+10b. **Prepare source-repository release metadata before final review.**
+    Run this checkpoint for standalone `/tusk` work only. When `/chain`
+    owns the run, skip it: the chain workflow consolidates one VERSION
+    and CHANGELOG update after every head completes.
+
+    Resolve the active checkout-local Tusk wrapper using this candidate
+    order: `bin/tusk`, `tusk/bin/tusk`, then `.claude/bin/tusk`. Follow
+    its complete symlink chain and read the
+    sibling `install-mode` marker. A compound marker ending in
+    `-consumer` means this is a consumer project: skip the rest of this
+    checkpoint. A marker ending in `-source`, a legacy plain marker
+    without a role suffix, or a missing marker means this is the Tusk
+    source repository and the checkpoint applies. Do not infer the role
+    from CWD names or the presence of source-looking files.
+
+    For a source run, compare the task branch with `origin/<default>`
+    using `tusk git-default-branch`. If the committed diff changes any
+    path guarded by `hooks/git/version-bump-check.sh` (`bin/*`,
+    `skills/*`, `config.default.json`, or `install.sh`), VERSION and
+    CHANGELOG.md must be part of task scope and committed before Step 11:
+
+    ```bash
+    tusk scope add <id> VERSION --reason "Source release metadata required before review"
+    tusk scope add <id> CHANGELOG.md --reason "Source release metadata required before review"
+    tusk version-bump
+    tusk changelog-add <id>
+    tusk commit <id> "Prepare source release metadata before review" VERSION CHANGELOG.md
+    ```
+
+    First check whether VERSION already differs from
+    `origin/<default>`. If it does, do **not** bump VERSION again; verify
+    that CHANGELOG.md already has the current version and task entry,
+    add only the missing changelog entry if needed, and commit any
+    remaining metadata before review. This keeps retries and resumed
+    sessions to one release bump.
 
 11. **Run review-commits if configured.** Check the review mode first:
     ```bash

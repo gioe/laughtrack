@@ -4751,9 +4751,7 @@
               "title": { "type": "string" },
               "releaseDate": { "type": "string", "format": "date-time" }
             }
-          },
-          "qualifyingPerformerCount": { "type": "integer" },
-          "threshold": { "type": "integer" }
+          }
         }
       },
       "HomeFeedDynamicRailReason": {

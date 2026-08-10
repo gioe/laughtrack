@@ -13,7 +13,7 @@ import {
 function rotatingPolicy(version = 7): DiscoveryRailPolicyDto {
     return {
         platform: "web",
-        catalogVersion: 2,
+        catalogVersion: 3,
         version,
         cycleCadenceHours: 24,
         rails: [
@@ -125,7 +125,7 @@ describe("selectDiscoveryRailPlan", () => {
     it("suppresses empty rails and deduplicates candidates", () => {
         const policy: DiscoveryRailPolicyDto = {
             platform: "web",
-            catalogVersion: 2,
+            catalogVersion: 3,
             version: 4,
             cycleCadenceHours: 24,
             rails: [
@@ -232,7 +232,7 @@ describe("selectDiscoveryRailPlan", () => {
                 payloadKey: "dynamicRails",
                 items: [{ id: 41 }, { id: 42 }],
             },
-            stacked_lineups: {
+            from_your_podcasts: {
                 payloadKey: "dynamicRails",
                 items: [{ id: 41 }, { id: 43 }],
             },
@@ -249,7 +249,7 @@ describe("selectDiscoveryRailPlan", () => {
             railKeys: DiscoveryRailPolicyDto["rails"][number]["railKey"][],
         ): DiscoveryRailPolicyDto => ({
             platform: "web",
-            catalogVersion: 2,
+            catalogVersion: 3,
             version: 9,
             cycleCadenceHours: 24,
             rails: railKeys.map((railKey, position) => ({
@@ -264,7 +264,7 @@ describe("selectDiscoveryRailPlan", () => {
         const freshFirst = selectDiscoveryRailPlan({
             policy: policyFor([
                 "newly_added",
-                "stacked_lineups",
+                "from_your_podcasts",
                 "just_passing_through",
                 "because_you_follow_them",
             ]),
@@ -280,7 +280,7 @@ describe("selectDiscoveryRailPlan", () => {
                 itemIds: ["41", "42"],
             },
             {
-                railKey: "stacked_lineups",
+                railKey: "from_your_podcasts",
                 payloadKey: "dynamicRails",
                 position: 1,
                 itemIds: ["43"],
@@ -290,7 +290,7 @@ describe("selectDiscoveryRailPlan", () => {
         const touringFirst = selectDiscoveryRailPlan({
             policy: policyFor([
                 "just_passing_through",
-                "stacked_lineups",
+                "from_your_podcasts",
                 "newly_added",
             ]),
             actorKey: "profile:dynamic",

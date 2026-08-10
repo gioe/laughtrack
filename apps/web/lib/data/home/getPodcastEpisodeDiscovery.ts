@@ -8,7 +8,7 @@ import {
 } from "@/lib/data/podcast/appearanceRole";
 import { stripHtmlTags } from "@/util/primatives/stringUtil";
 
-const DEFAULT_LIMIT = 8;
+const DEFAULT_LIMIT = 5;
 const MAX_LIMIT = 50;
 const RECENCY_DAYS = 30;
 const MIN_CANDIDATE_POOL = 200;
@@ -201,8 +201,9 @@ export function buildPodcastEpisodeDiscoveryQuery({
                         AND pdl.feed_url = p.feed_url
                     )
                 )
-          )
+        )
         ORDER BY
+            pe.release_date DESC,
             followed_comedian DESC,
             favorite_podcast DESC,
             CASE
@@ -211,7 +212,6 @@ export function buildPodcastEpisodeDiscoveryQuery({
                 ELSE 0
             END DESC,
             c.popularity DESC,
-            pe.release_date DESC,
             p.id ASC,
             pe.id ASC,
             c.id ASC,
@@ -275,17 +275,16 @@ function compareCandidates(
     right: PodcastEpisodeDiscoveryCandidate,
 ): number {
     return (
+        right.releaseDate.getTime() - left.releaseDate.getTime() ||
         Number(right.followedComedian) - Number(left.followedComedian) ||
         Number(right.favoritePodcast) - Number(left.favoritePodcast) ||
         Number(
             normalizePodcastAppearanceRole(right.appearanceRole) === "guest",
         ) -
             Number(
-                normalizePodcastAppearanceRole(left.appearanceRole) ===
-                    "guest",
+                normalizePodcastAppearanceRole(left.appearanceRole) === "guest",
             ) ||
         right.comedianPopularity - left.comedianPopularity ||
-        right.releaseDate.getTime() - left.releaseDate.getTime() ||
         left.podcastId - right.podcastId ||
         left.episodeId - right.episodeId ||
         left.comedianId - right.comedianId ||

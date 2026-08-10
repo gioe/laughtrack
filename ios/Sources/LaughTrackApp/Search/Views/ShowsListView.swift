@@ -519,6 +519,22 @@ private struct ShowFiltersPanel: View {
                     ) {
                         model.applyDateShortcut("This Weekend")
                     }
+
+                    facetButton(
+                        title: "Free",
+                        systemImage: "ticket",
+                        isSelected: model.selectedFilterSlugs.contains("free")
+                    ) {
+                        toggleFilter("free")
+                    }
+
+                    facetButton(
+                        title: ShowFormatOption.openMic.title,
+                        systemImage: "mic",
+                        isSelected: model.selectedFilterSlugs.contains(ShowFormatOption.openMic.rawValue)
+                    ) {
+                        toggleFilter(ShowFormatOption.openMic.rawValue)
+                    }
                 }
 
                 if model.allowsLocationFiltering {
@@ -552,14 +568,6 @@ private struct ShowFiltersPanel: View {
                 }
 
                 if chrome.showsFilterControl {
-                    facetButton(
-                        title: "Free",
-                        systemImage: "ticket",
-                        isSelected: model.selectedFilterSlugs.contains("free")
-                    ) {
-                        toggleFilter("free")
-                    }
-
                     PillDropdownTrigger(
                         id: "shows-max-price",
                         selected: model.maximumPrice,
@@ -568,7 +576,7 @@ private struct ShowFiltersPanel: View {
                         openDropdownID: $openDropdownID
                     )
 
-                    ForEach(ShowFormatOption.allCases) { format in
+                    ForEach(ShowFormatOption.allCases.filter { $0 != .openMic }) { format in
                         facetButton(
                             title: format.title,
                             systemImage: formatSystemImage(format),

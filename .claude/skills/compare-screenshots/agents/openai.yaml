@@ -1,4 +1,0 @@
-interface:
-  display_name: "Compare Screenshots"
-  short_description: "Capture and compare iOS and Android screenshots"
-  default_prompt: "Use $compare-screenshots to regenerate and audit the iOS and Android scenario sheets against the reviewed baseline."

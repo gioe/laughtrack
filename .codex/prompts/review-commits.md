@@ -29,6 +29,71 @@ from the current branch name.
 
 ## Step 0: Start Cost Tracking
 
+### Resolve the Tusk wrapper for this checkout
+
+Before the first Tusk command, resolve an executable from the active checkout.
+This step overrides any outer Codex wrapper instruction that names a fixed
+`.claude/bin/tusk` path: that generated directory may be absent from a task
+worktree. Prefer checkout-local wrappers so review commands exercise the code
+and Git state in the workspace being reviewed.
+
+```bash
+REVIEW_REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+REVIEW_TUSK_BIN=""
+for candidate in \
+  "$REVIEW_REPO_ROOT/bin/tusk" \
+  "$REVIEW_REPO_ROOT/tusk/bin/tusk" \
+  "$REVIEW_REPO_ROOT/.claude/bin/tusk"
+do
+  if [ -x "$candidate" ]; then
+    REVIEW_TUSK_BIN="$candidate"
+    break
+  fi
+done
+if [ -z "$REVIEW_TUSK_BIN" ]; then
+  REVIEW_TUSK_BIN=$(command -v tusk || true)
+fi
+if [ -z "$REVIEW_TUSK_BIN" ]; then
+  echo "Review aborted: no executable Tusk wrapper found for this checkout." >&2
+  exit 1
+fi
+
+# Command execution follows the checkout-local wrapper above, but install mode
+# describes the installed agent surface that invoked this workflow. Follow its
+# complete symlink chain before looking for the sibling marker; machine-level
+# wrappers commonly live in ~/.local/bin without a marker of their own.
+INSTALL_MODE_SOURCE=$(command -v tusk || true)
+if [ -z "$INSTALL_MODE_SOURCE" ]; then
+  INSTALL_MODE_SOURCE="$REVIEW_TUSK_BIN"
+fi
+while [ -L "$INSTALL_MODE_SOURCE" ]; do
+  INSTALL_MODE_SOURCE_DIR=$(cd -P "$(dirname "$INSTALL_MODE_SOURCE")" && pwd)
+  INSTALL_MODE_SOURCE_TARGET=$(readlink "$INSTALL_MODE_SOURCE")
+  case "$INSTALL_MODE_SOURCE_TARGET" in
+    /*) INSTALL_MODE_SOURCE="$INSTALL_MODE_SOURCE_TARGET" ;;
+    *) INSTALL_MODE_SOURCE="$INSTALL_MODE_SOURCE_DIR/$INSTALL_MODE_SOURCE_TARGET" ;;
+  esac
+done
+INSTALL_MODE_SOURCE_DIR=$(cd -P "$(dirname "$INSTALL_MODE_SOURCE")" && pwd)
+if [ -f "$INSTALL_MODE_SOURCE_DIR/install-mode" ]; then
+  INSTALL_MODE=$(tr -d '[:space:]' < "$INSTALL_MODE_SOURCE_DIR/install-mode")
+else
+  INSTALL_MODE=claude-source
+fi
+case "$INSTALL_MODE" in codex|codex-*) IS_CODEX=1 ;; *) IS_CODEX=0 ;; esac
+printf '%s\n' "$REVIEW_TUSK_BIN"
+```
+
+Capture the printed absolute path as `REVIEW_TUSK_BIN`, and capture the resolved
+`INSTALL_MODE` and `IS_CODEX` values, in orchestrator state. The Codex port
+always reviews inline, but retaining the same install-mode contract keeps its
+wrapper guidance aligned with the canonical workflow.
+Every `tusk ...` example below means “invoke that exact resolved path with these
+arguments.” Tool calls may run in separate shells, so do not assume the shell
+variables or a shell function persist between calls. Do not continue using a
+fixed wrapper path supplied by the invocation wrapper for Tusk commands after
+this resolution.
+
 First, resolve the task ID. Use the argument if one was passed, otherwise
 parse it from the current branch:
 
@@ -475,11 +540,16 @@ tusk review-pass-status $TASK_ID
 ```
 
 This returns
-`{"current_pass": N, "max_passes": N, "can_retry": bool, "open_must_fix": N}`.
+`{"current_pass": N, "max_passes": N, "can_retry": bool, "open_must_fix": N, "fixed_must_fix": N}`.
+The finding counts describe only the latest non-superseded review: a fixed
+`must_fix` makes that pass eligible for one verification pass, while a clean
+verification pass does not retrigger because findings from earlier passes are
+ignored.
 
-If `can_retry` is false (either no open `must_fix` items, or
-`current_pass >= max_passes`), do not enter the loop. If
-`open_must_fix > 0` and `can_retry` is false, **escalate to the user**:
+If `can_retry` is false, do not enter the loop. A clean latest pass
+(`open_must_fix == 0` and `fixed_must_fix == 0`) needs no further verification.
+If `open_must_fix > 0` and `can_retry` is false because
+`current_pass >= max_passes`, **escalate to the user**:
 
 > Max review passes (`max_passes`) reached. The following must_fix items
 > remain unresolved:
@@ -489,27 +559,54 @@ If `can_retry` is false (either no open `must_fix` items, or
 
 Otherwise, loop while `can_retry` is true:
 
-1. Start a new review pass:
+1. **Commit the fixes that the next pass must inspect.** The re-review diff
+   ends at committed `HEAD`; do not start another pass with review fixes only
+   in the working tree. Deduplicate the tracked paths, abort if none were
+   recorded, then stage and commit only `REVIEW_FIX_FILES`:
+
+   ```bash
+   REVIEW_FIX_FILES=($(printf '%s\n' "${REVIEW_FIX_FILES[@]}" | sort -u))
+   if [ ${#REVIEW_FIX_FILES[@]} -eq 0 ]; then
+     echo "ERROR: re-review requested but REVIEW_FIX_FILES is empty. Record the review-fix paths before starting another pass." >&2
+     exit 1
+   fi
+
+   git diff --stat
+   git diff --cached --stat
+   git add -- "${REVIEW_FIX_FILES[@]}"
+   git commit -m "[TASK-$TASK_ID] Apply review fixes" -- "${REVIEW_FIX_FILES[@]}"
+   git push --set-upstream origin HEAD
+   REVIEW_FIX_FILES=()
+   ```
+
+   The pathspec on `git commit` prevents unrelated paths that were already
+   staged from leaking into the fix commit. Leave all other tracked or
+   untracked working-tree changes untouched. If staging, committing, or
+   pushing fails, stop before creating the next review row.
+
+2. Start a new review pass:
    ```bash
    tusk review start $TASK_ID --pass-num <current_pass + 1> --diff-summary "Re-review pass <n>"
    ```
 
-2. Recompute the diff range:
+3. Recompute the diff range:
    ```bash
    DIFF_RANGE=$(tusk review-diff-range $TASK_ID | jq -r .range)
    ```
 
-3. Run the inline review again — repeat Step 5 (fetch diff, analyze,
+4. Run the inline review again — repeat Step 5 (fetch diff, analyze,
    verify final state, verification constraints, record findings,
    submit verdict). Then process the new findings via Step 7.
 
-4. Re-check pass status to determine whether to continue:
+5. Re-check pass status to determine whether to continue:
    ```bash
    tusk review-pass-status $TASK_ID
    ```
-   If `can_retry` is still true and `open_must_fix > 0`, repeat from
-   step 1. If `can_retry` is false and `open_must_fix > 0`, escalate to
-   the user with the same message as above.
+   If `can_retry` is still true, repeat from step 1. This includes the
+   fixed-finding state where `open_must_fix == 0` and
+   `fixed_must_fix > 0`. If `can_retry` is false and
+   `open_must_fix > 0`, escalate to the user with the same message as
+   above.
 
 If `tusk review-verdict $TASK_ID` returns `"verdict": "APPROVED"` and no
 new blocking findings were raised, proceed to Step 9.
@@ -563,9 +660,15 @@ Once the list is reconciled, stage, commit, and push in a single pass:
 
 ```bash
 git add -- "${REVIEW_FIX_FILES[@]}"
-git commit -m "[TASK-$TASK_ID] Apply review fixes"
+git commit -m "[TASK-$TASK_ID] Apply review fixes" -- "${REVIEW_FIX_FILES[@]}"
 git push --set-upstream origin HEAD
+REVIEW_FIX_FILES=()
 ```
+
+The path-limited commit is a final safeguard against unrelated paths that
+were already staged before review. It commits only the files recorded in
+`REVIEW_FIX_FILES`; all other tracked or untracked working-tree changes remain
+untouched.
 
 `--set-upstream origin HEAD` is required on the **first** push of a
 brand-new feature branch when `push.autoSetupRemote` is not set in the

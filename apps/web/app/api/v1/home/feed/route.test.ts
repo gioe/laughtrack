@@ -176,11 +176,6 @@ function primeHappyPath() {
             label: "From your podcasts",
             items: [],
         },
-        stackedLineups: {
-            railKey: "stacked_lineups",
-            label: "Stacked lineups",
-            items: [],
-        },
         becauseYouFollowThem: {
             railKey: "because_you_follow_them",
             label: "Because you follow them",
@@ -222,8 +217,8 @@ describe("GET /api/v1/home/feed", () => {
                 );
                 expect(body.data.railPlan).toMatchObject({
                     version: 1,
-                    catalogVersion: 2,
-                    policyVersion: 2,
+                    catalogVersion: 3,
+                    policyVersion: 3,
                     platform,
                     rails: expect.arrayContaining([
                         {
@@ -281,8 +276,8 @@ describe("GET /api/v1/home/feed", () => {
             expect(res.status).toBe(200);
             expect(body.data.railPlan).toMatchObject({
                 version: 1,
-                catalogVersion: 2,
-                policyVersion: 2,
+                catalogVersion: 3,
+                policyVersion: 3,
                 platform: "ios",
             });
         });
@@ -358,23 +353,6 @@ describe("GET /api/v1/home/feed", () => {
                     label: "From your podcasts",
                     items: [],
                 },
-                stackedLineups: {
-                    railKey: "stacked_lineups",
-                    label: "Stacked lineups",
-                    items: [
-                        {
-                            show: sharedShow,
-                            reason: {
-                                kind: "stacked_lineup",
-                                label: "3 qualifying comedians on one lineup",
-                                evidence: {
-                                    qualifyingPerformerCount: 3,
-                                    threshold: 3,
-                                },
-                            },
-                        },
-                    ],
-                },
                 becauseYouFollowThem: {
                     railKey: "because_you_follow_them",
                     label: "Because you follow them",
@@ -383,20 +361,18 @@ describe("GET /api/v1/home/feed", () => {
             } as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "web",
-                catalogVersion: 2,
+                catalogVersion: 3,
                 version: 3,
                 cycleCadenceHours: 24,
-                rails: [
-                    "just_passing_through",
-                    "starting_to_buzz",
-                    "stacked_lineups",
-                ].map((railKey, position) => ({
-                    railKey,
-                    enabled: true,
-                    position,
-                    rotationPool: null,
-                    weight: 1,
-                })),
+                rails: ["just_passing_through", "starting_to_buzz"].map(
+                    (railKey, position) => ({
+                        railKey,
+                        enabled: true,
+                        position,
+                        rotationPool: null,
+                        weight: 1,
+                    }),
+                ),
             } as never);
 
             const res = await GET(
@@ -413,7 +389,7 @@ describe("GET /api/v1/home/feed", () => {
             expect(mockGetAffinityRails).toHaveBeenCalledWith("profile-1", {
                 deduplicateAcrossRails: false,
             });
-            expect(body.data.dynamicRails).toHaveLength(3);
+            expect(body.data.dynamicRails).toHaveLength(2);
             expect(body.data.dynamicRails).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
@@ -438,20 +414,6 @@ describe("GET /api/v1/home/feed", () => {
                                     evidence: {
                                         momentum: 0.8,
                                         confidence: 0.9,
-                                    },
-                                }),
-                            }),
-                        ],
-                    }),
-                    expect.objectContaining({
-                        railKey: "stacked_lineups",
-                        items: [
-                            expect.objectContaining({
-                                id: 71,
-                                reason: expect.objectContaining({
-                                    evidence: {
-                                        qualifyingPerformerCount: 3,
-                                        threshold: 3,
                                     },
                                 }),
                             }),
@@ -495,8 +457,8 @@ describe("GET /api/v1/home/feed", () => {
             ] as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "web",
-                catalogVersion: 2,
-                version: 2,
+                catalogVersion: 3,
+                version: 3,
                 cycleCadenceHours: 24,
                 rails: [
                     {

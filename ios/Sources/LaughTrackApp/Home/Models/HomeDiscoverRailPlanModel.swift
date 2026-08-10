@@ -23,6 +23,25 @@ struct HomeDiscoverRailSection: Identifiable, Equatable {
 
 enum HomeDiscoverRailPlanPresentation {
     static let supportedVersion = 1
+    static let itemLimit = 5
+    private static let supportedDynamicRailKeys: Set<String> = [
+        "just_passing_through",
+        "rare_returns",
+        "only_chance_nearby",
+        "newly_added",
+        "starting_to_buzz",
+        "catch_them_early",
+        "from_your_podcasts",
+        "because_you_follow_them",
+    ]
+
+    static func preferredHeadlinerID(
+        railKey: String,
+        item: Components.Schemas.HomeFeedDynamicRailItem
+    ) -> Int? {
+        guard railKey == "just_passing_through" else { return nil }
+        return item.performer?.id
+    }
 
     /// Returns nil when the response has no compatible iOS plan, which tells
     /// HomeView to preserve the legacy fixed sections. A compatible plan may
@@ -87,7 +106,7 @@ enum HomeDiscoverRailPlanPresentation {
             }
         case ("trending_this_week", "trendingThisWeek"):
             if let shows = nonEmptyShows(itemIDs, from: feed.trendingThisWeek) {
-                content = .trendingThisWeek(shows)
+                content = .trendingThisWeek(Array(shows.prefix(HomeShowsTonightModel.displayLimit)))
             } else {
                 content = nil
             }
@@ -99,7 +118,7 @@ enum HomeDiscoverRailPlanPresentation {
             content = values.isEmpty ? nil : .popularClubs(values)
         case ("trending_podcasts", "podcastEpisodes"):
             let values = select(itemIDs, from: feed.podcastEpisodes ?? []) { String($0.id) }
-            content = values.isEmpty ? nil : .podcastEpisodes(values)
+            content = values.isEmpty ? nil : .podcastEpisodes(Array(values.prefix(itemLimit)))
         case ("nearby_shows", "moreNearYou"):
             if let shows = nonEmptyShows(itemIDs, from: feed.moreNearYou) {
                 content = .nearbyShows(shows)
@@ -107,13 +126,17 @@ enum HomeDiscoverRailPlanPresentation {
                 content = nil
             }
         case (_, "dynamicRails"):
+            guard supportedDynamicRailKeys.contains(railKey) else { return nil }
             let rails = dynamicRails ?? Dictionary(
                 (feed.dynamicRails ?? []).map { ($0.railKey, $0) },
                 uniquingKeysWith: { first, _ in first }
             )
             guard let rail = rails[railKey] else { return nil }
-            let values = select(itemIDs, from: rail.items) { String($0.id) }
+            var values = select(itemIDs, from: rail.items) { String($0.id) }
                 .filter { !ShowAvailability.isSoldOut($0.show) }
+            if railKey == "just_passing_through" {
+                values = Array(values.prefix(itemLimit))
+            }
             content = values.isEmpty ? nil : .dynamicShows(label: rail.label, items: values)
         default:
             // Raw OpenAPI keys deliberately stay app-owned and fail-soft so a

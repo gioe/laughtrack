@@ -26,6 +26,7 @@ enum ShowFormatting {
     @MainActor private static var dayStackFormatters: [String: DateFormatter] = [:]
     @MainActor private static var timeStackFormatters: [String: DateFormatter] = [:]
     @MainActor private static var listDateFormatters: [String: DateFormatter] = [:]
+    @MainActor private static var featuredDateFormatters: [String: DateFormatter] = [:]
 
     @MainActor
     private static func cachedFormatter(
@@ -84,6 +85,26 @@ enum ShowFormatting {
             day: dayFormatter.string(from: date),
             time: "\(time)\(timezoneSuffix)"
         )
+    }
+
+    @MainActor
+    static func featuredDateTime(
+        _ date: Date,
+        timezoneID: String? = nil,
+        localTimezone: TimeZone = .current
+    ) -> String {
+        let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
+        let dateFormatter = cachedFormatter(in: &featuredDateFormatters, timezone: resolvedTimezone) {
+            $0.locale = Locale(identifier: "en_US_POSIX")
+            $0.dateFormat = "EEE, MMM d"
+        }
+        let dateLabel = dateFormatter.string(from: date).uppercased()
+        let timeLabel = dateStack(
+            date,
+            timezoneID: timezoneID,
+            localTimezone: localTimezone
+        ).time
+        return "\(dateLabel) • \(timeLabel)"
     }
 
     static func isOpenMic(_ name: String?) -> Bool {

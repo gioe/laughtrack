@@ -33,7 +33,6 @@ const DISCOVERY_RAIL_SURFACES = new Set<DiscoveryRailKey>([
     "starting_to_buzz",
     "catch_them_early",
     "from_your_podcasts",
-    "stacked_lineups",
     "because_you_follow_them",
 ]);
 const NEAR_YOU_ONLY_FIELDS = [

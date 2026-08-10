@@ -20,6 +20,13 @@ const DYNAMIC_MIGRATION_SQL = readFileSync(
     ),
     "utf8",
 );
+const REMOVE_STACKED_LINEUPS_MIGRATION_SQL = readFileSync(
+    resolve(
+        WEB_ROOT,
+        "prisma/migrations/20260809013000_remove_stacked_lineups_discovery_rail/migration.sql",
+    ),
+    "utf8",
+);
 const SCHEMA_TEXT = readFileSync(
     resolve(WEB_ROOT, "prisma/schema.prisma"),
     "utf8",
@@ -442,5 +449,55 @@ describe("dynamic Discover rail policy migration", () => {
             expect(entries.every((entry) => entry.enabled)).toBe(true);
             expect(entries.every((entry) => entry.weight === 1)).toBe(true);
         }
+    });
+});
+
+describe("stacked lineups removal migration", () => {
+    let db: PGlite;
+
+    beforeAll(async () => {
+        db = new PGlite();
+        await db.exec(BASE_SCHEMA_SQL);
+        await db.exec(MIGRATION_SQL);
+        await db.exec(DYNAMIC_MIGRATION_SQL);
+        await db.exec(REMOVE_STACKED_LINEUPS_MIGRATION_SQL);
+    });
+
+    afterAll(async () => {
+        await db.close();
+    });
+
+    it("removes the rail from the catalog and every platform policy", async () => {
+        const catalog = await db.query<{ count: string }>(`
+            SELECT COUNT(*)::text AS count
+            FROM discovery_rail_catalog
+            WHERE key = 'stacked_lineups'
+        `);
+        const entries = await db.query<{ count: string }>(`
+            SELECT COUNT(*)::text AS count
+            FROM discovery_rail_policy_entries
+            WHERE rail_key = 'stacked_lineups'
+        `);
+        const policies = await db.query<PolicyRow>(`
+            SELECT platform, policy_version, catalog_version, cycle_cadence_hours
+            FROM discovery_rail_platform_policies
+            ORDER BY platform
+        `);
+
+        expect(catalog.rows[0].count).toBe("0");
+        expect(entries.rows[0].count).toBe("0");
+        expect(
+            policies.rows.map(
+                ({ platform, policy_version, catalog_version }) => ({
+                    platform,
+                    policy_version,
+                    catalog_version,
+                }),
+            ),
+        ).toEqual([
+            { platform: "android", policy_version: 3, catalog_version: 3 },
+            { platform: "ios", policy_version: 3, catalog_version: 3 },
+            { platform: "web", policy_version: 3, catalog_version: 3 },
+        ]);
     });
 });

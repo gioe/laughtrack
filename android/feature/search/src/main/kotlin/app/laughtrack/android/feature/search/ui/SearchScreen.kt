@@ -556,16 +556,21 @@ private fun ShowSearchControls(
                         onClick = { onDateShortcut(shortcut) },
                     )
                 }
-                LocationPill(zip = query.zip, locationLabel = locationLabel, onZip = onZip)
-                DistancePill(distance = query.distance, onDistance = onDistance)
-                DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
                 ShowFacetChip(
                     label = "Free",
                     selected = "free" in query.filters,
                     onClick = { onToggleFilter("free") },
                 )
+                ShowFacetChip(
+                    label = ShowFormatOption.OPEN_MIC.label,
+                    selected = ShowFormatOption.OPEN_MIC.slug in query.filters,
+                    onClick = { onToggleFilter(ShowFormatOption.OPEN_MIC.slug) },
+                )
+                LocationPill(zip = query.zip, locationLabel = locationLabel, onZip = onZip)
+                DistancePill(distance = query.distance, onDistance = onDistance)
+                DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
                 MaximumPricePill(selected = query.maxPrice, onSelect = onMaximumPrice)
-                ShowFormatOption.entries.forEach { format ->
+                ShowFormatOption.entries.filterNot { it == ShowFormatOption.OPEN_MIC }.forEach { format ->
                     ShowFacetChip(
                         label = format.label,
                         selected = format.slug in query.filters,

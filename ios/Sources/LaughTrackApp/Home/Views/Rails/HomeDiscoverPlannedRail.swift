@@ -25,13 +25,16 @@ struct HomeDiscoverPlannedRail: View {
                 eyebrow: nil,
                 title: nil,
                 subtitle: nil,
-                accessibilityIdentifier: LaughTrackViewTestID.homeShowsTonightRail
+                accessibilityIdentifier: LaughTrackViewTestID.homeShowsTonightRail,
+                actionTitle: "See all",
+                actionAccessibilityIdentifier: HomeShowRailKind.showsTonight.seeMoreAccessibilityIdentifier,
+                action: { openSeeAll(railKind: .showsTonight) }
             ) {
-                HomeShowsTonightCarousel(
-                    shows: shows,
+                HomeFeaturedShowsCarousel(
+                    headline: "Tonight!",
+                    items: HomeFeaturedShowCarouselItem.tonightItems(shows),
                     onSelect: trackSelection
                 )
-                showSeeAllButton(railKind: .showsTonight)
             }
 
         case .followedComedianShows(let shows):
@@ -112,12 +115,7 @@ struct HomeDiscoverPlannedRail: View {
                 eyebrow: "Funny listening",
                 title: "Episodes for you",
                 subtitle: nil,
-                accessibilityIdentifier: LaughTrackViewTestID.homeTrendingPodcastsRail,
-                actionTitle: "Browse podcasts",
-                action: {
-                    trackSelection()
-                    searchNavigationBridge.openSearch(.discoverEntity(.podcasts))
-                }
+                accessibilityIdentifier: LaughTrackViewTestID.homeTrendingPodcastsRail
             ) {
                 VStack(spacing: theme.spacing.sm) {
                     ForEach(episodes, id: \.id) { episode in
@@ -148,32 +146,63 @@ struct HomeDiscoverPlannedRail: View {
             )
 
         case .dynamicShows(let label, let items):
-            HomeDiscoverRailCard(
-                variant: .scheduleBoard,
-                eyebrow: "Picked for you",
-                title: label,
-                subtitle: nil,
-                accessibilityIdentifier: "laughtrack.home.dynamic-\(section.id)-rail"
-            ) {
-                VStack(spacing: theme.spacing.sm) {
-                    ForEach(items, id: \.id) { item in
-                        Button {
-                            trackSelection()
-                            coordinator.open(.show(item.show.id))
-                        } label: {
-                            VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                                ShowRow(show: item.show, presentation: .compactTicket)
-                                Text(HomeDiscoverDynamicRailPresentation.reasonLabel(item.reason.label))
-                                    .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
-                                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+            if section.id == "just_passing_through" {
+                HomeDiscoverRailCard(
+                    variant: .spotlight,
+                    eyebrow: nil,
+                    title: nil,
+                    subtitle: nil,
+                    accessibilityIdentifier: "laughtrack.home.dynamic-\(section.id)-rail"
+                ) {
+                    HomeFeaturedShowsCarousel(
+                        headline: label,
+                        items: items.map { item in
+                            HomeFeaturedShowCarouselItem(
+                                show: item.show,
+                                preferredHeadlinerID: HomeDiscoverRailPlanPresentation.preferredHeadlinerID(
+                                    railKey: section.id,
+                                    item: item
+                                ),
+                                accessibilityIdentifier: "laughtrack.home.dynamic-\(section.id)-show-\(item.show.id)",
+                                accessibilityLabel: "\(ShowTitlePresentation.title(for: item.show)). \(item.reason.label)",
+                                timestampLabel: ShowFormatting.featuredDateTime(
+                                    item.show.date,
+                                    timezoneID: item.show.timezone
+                                )
+                            )
+                        },
+                        onSelect: trackSelection
+                    )
+                }
+            } else {
+                HomeDiscoverRailCard(
+                    variant: .scheduleBoard,
+                    eyebrow: "Picked for you",
+                    title: label,
+                    subtitle: nil,
+                    accessibilityIdentifier: "laughtrack.home.dynamic-\(section.id)-rail"
+                ) {
+                    VStack(spacing: theme.spacing.sm) {
+                        ForEach(items, id: \.id) { item in
+                            Button {
+                                trackSelection()
+                                coordinator.open(.show(item.show.id))
+                            } label: {
+                                ShowRow(
+                                    show: item.show,
+                                    presentation: .compactTicket,
+                                    preferredHeadlinerID: HomeDiscoverRailPlanPresentation.preferredHeadlinerID(
+                                        railKey: section.id,
+                                        item: item
+                                    )
+                                )
                             }
+                            .buttonStyle(.plain)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(
+                                "\(ShowTitlePresentation.title(for: item.show)). \(item.reason.label)"
+                            )
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel(
-                            "\(ShowTitlePresentation.title(for: item.show)). \(item.reason.label)"
-                        )
                     }
                 }
             }
@@ -199,7 +228,12 @@ struct HomeDiscoverPlannedRail: View {
             eyebrow: eyebrow,
             title: title,
             subtitle: nil,
-            accessibilityIdentifier: accessibilityIdentifier
+            accessibilityIdentifier: accessibilityIdentifier,
+            actionTitle: seeMoreRailKind == nil ? nil : "See all",
+            actionAccessibilityIdentifier: seeMoreRailKind?.seeMoreAccessibilityIdentifier,
+            action: seeMoreRailKind.map { railKind in
+                { openSeeAll(railKind: railKind) }
+            }
         ) {
             VStack(spacing: theme.spacing.sm) {
                 ForEach(shows, id: \.id) { show in
@@ -213,29 +247,17 @@ struct HomeDiscoverPlannedRail: View {
                     .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightButton(show.id))
                 }
             }
-
-            if let seeMoreRailKind {
-                showSeeAllButton(railKind: seeMoreRailKind)
-            }
         }
     }
 
-    private func showSeeAllButton(railKind: HomeShowRailKind) -> some View {
-        LaughTrackButton(
-            "See all",
-            systemImage: "magnifyingglass",
-            tone: .secondary,
-            density: .compact
-        ) {
-            trackSelection()
-            searchNavigationBridge.openSearch(
-                HomeShowsTonightModel.seeMoreSearchSeed(
-                    railKind: railKind,
-                    nearbyPreference: nearbyPreference
-                )
+    private func openSeeAll(railKind: HomeShowRailKind) {
+        trackSelection()
+        searchNavigationBridge.openSearch(
+            HomeShowsTonightModel.seeMoreSearchSeed(
+                railKind: railKind,
+                nearbyPreference: nearbyPreference
             )
-        }
-        .accessibilityIdentifier(railKind.seeMoreAccessibilityIdentifier)
+        )
     }
 
     private func trackSelection() {
@@ -247,11 +269,5 @@ struct HomeDiscoverPlannedRail: View {
                 rank: section.rank
             )
         )
-    }
-}
-
-enum HomeDiscoverDynamicRailPresentation {
-    static func reasonLabel(_ reason: String) -> String {
-        reason
     }
 }

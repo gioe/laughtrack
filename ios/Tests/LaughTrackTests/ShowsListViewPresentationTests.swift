@@ -44,6 +44,12 @@ struct ShowsListViewPresentationTests {
         for label in ["Tonight", "This Weekend", "Location", "Max price", "Free"] {
             #expect(filters.contains(label), "Missing directly discoverable facet: \(label)")
         }
+        let tonight = try #require(filters.range(of: "title: \"Tonight\"")?.lowerBound)
+        let weekend = try #require(filters.range(of: "title: \"This Weekend\"")?.lowerBound)
+        let free = try #require(filters.range(of: "title: \"Free\"")?.lowerBound)
+        let openMic = try #require(filters.range(of: "title: ShowFormatOption.openMic.title")?.lowerBound)
+        let location = try #require(filters.range(of: "title: zipChipTitle")?.lowerBound)
+        #expect(tonight < weekend && weekend < free && free < openMic && openMic < location)
         #expect(filters.contains("id: \"shows-distance\""))
         #expect(filters.contains("systemImage: \"calendar\""))
         #expect(ShowFormatOption.allCases.map(\.title) == ["Stand-up", "Improv", "Open mic"])

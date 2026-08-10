@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const DISCOVERY_RAIL_CATALOG_VERSION = 2 as const;
+export const DISCOVERY_RAIL_CATALOG_VERSION = 3 as const;
 
 export const DISCOVERY_PLATFORMS = ["web", "ios", "android"] as const;
 export type DiscoveryPlatform = (typeof DISCOVERY_PLATFORMS)[number];
@@ -20,7 +20,6 @@ export const DISCOVERY_RAIL_KEYS = [
     "starting_to_buzz",
     "catch_them_early",
     "from_your_podcasts",
-    "stacked_lineups",
     "because_you_follow_them",
 ] as const;
 export type DiscoveryRailKey = (typeof DISCOVERY_RAIL_KEYS)[number];
@@ -143,13 +142,6 @@ export const DISCOVERY_RAIL_CATALOG = {
         requiresAuth: true,
         supportedPlatforms: ALL_PLATFORMS,
     },
-    stacked_lineups: {
-        key: "stacked_lineups",
-        label: "Stacked lineups",
-        contentKind: "show",
-        requiresAuth: false,
-        supportedPlatforms: ALL_PLATFORMS,
-    },
     because_you_follow_them: {
         key: "because_you_follow_them",
         label: "Because you follow them",
@@ -221,7 +213,6 @@ function dynamicRotationRails(): DiscoveryRailPolicyRailDto[] {
         rotatingRail("starting_to_buzz", 7, "fresh_and_rising"),
         rotatingRail("because_you_follow_them", 8, "affinity"),
         rotatingRail("from_your_podcasts", 8, "affinity"),
-        rotatingRail("stacked_lineups", 8, "affinity"),
     ];
 }
 
@@ -229,7 +220,7 @@ export const DISCOVERY_RAIL_DEFAULTS = {
     web: {
         platform: "web",
         catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
-        version: 2,
+        version: 3,
         cycleCadenceHours: 24,
         rails: [
             fixedRail("followed_comedian_shows", 0),
@@ -244,7 +235,7 @@ export const DISCOVERY_RAIL_DEFAULTS = {
     ios: {
         platform: "ios",
         catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
-        version: 2,
+        version: 3,
         cycleCadenceHours: 24,
         rails: [
             fixedRail("shows_tonight", 0),
@@ -259,7 +250,7 @@ export const DISCOVERY_RAIL_DEFAULTS = {
     android: {
         platform: "android",
         catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
-        version: 2,
+        version: 3,
         cycleCadenceHours: 24,
         rails: [
             fixedRail("shows_tonight", 0),

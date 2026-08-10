@@ -132,6 +132,7 @@ private fun resolveContent(
                 .ifNotEmpty(HomeDiscoverRailSection.Content::FollowedComedianShows)
         TRENDING_THIS_WEEK to PAYLOAD_TRENDING_THIS_WEEK ->
             select(entry.itemIds, feed.trendingThisWeek) { it.id.toString() }
+                .take(HOME_DISCOVER_RAIL_ITEM_LIMIT)
                 .ifNotEmpty(HomeDiscoverRailSection.Content::TrendingThisWeek)
         TRENDING_COMEDIANS to PAYLOAD_TRENDING_COMEDIANS ->
             select(entry.itemIds, feed.trendingComedians) { it.id.toString() }
@@ -141,6 +142,7 @@ private fun resolveContent(
                 .ifNotEmpty(HomeDiscoverRailSection.Content::PopularClubs)
         TRENDING_PODCASTS to PAYLOAD_PODCAST_EPISODES ->
             select(entry.itemIds, feed.podcastEpisodes.orEmpty()) { it.id.toString() }
+                .take(HOME_DISCOVER_RAIL_ITEM_LIMIT)
                 .ifNotEmpty(HomeDiscoverRailSection.Content::PodcastEpisodes)
         NEARBY_SHOWS to PAYLOAD_MORE_NEAR_YOU ->
             select(entry.itemIds, feed.moreNearYou) { it.id.toString() }
@@ -156,7 +158,12 @@ private fun resolveDynamicContent(
 ): HomeDiscoverRailSection.Content.DynamicShows? {
     if (payloadKey != PAYLOAD_DYNAMIC_RAILS || railKey !in DYNAMIC_RAIL_KEYS) return null
     val rail = dynamicRails[railKey] ?: return null
-    return select(entry.itemIds, rail.items) { it.id.toString() }
+    val items =
+        select(entry.itemIds, rail.items) { it.id.toString() }
+            .let { selected ->
+                if (railKey == "just_passing_through") selected.take(HOME_DISCOVER_RAIL_ITEM_LIMIT) else selected
+            }
+    return items
         .ifNotEmpty { HomeDiscoverRailSection.Content.DynamicShows(rail.label, it) }
 }
 
@@ -171,6 +178,11 @@ internal fun homeDiscoverRailSelectedEvent(attribution: HomeDiscoverRailAttribut
             ),
     )
 
+internal fun preferredDynamicRailHeadlinerId(
+    railKey: String,
+    item: HomeFeedDynamicRailItem,
+): Int? = item.performer?.id.takeIf { railKey == "just_passing_through" }
+
 private fun <T> select(
     itemIds: List<String>,
     values: List<T>,
@@ -181,6 +193,8 @@ private fun <T> select(
 }
 
 private fun <T, R> List<T>.ifNotEmpty(transform: (List<T>) -> R): R? = takeIf { it.isNotEmpty() }?.let(transform)
+
+internal const val HOME_DISCOVER_RAIL_ITEM_LIMIT = 5
 
 private const val SUPPORTED_RAIL_PLAN_VERSION = 1
 private const val SHOWS_TONIGHT = "shows_tonight"
@@ -209,6 +223,5 @@ private val DYNAMIC_RAIL_KEYS =
         "starting_to_buzz",
         "catch_them_early",
         "from_your_podcasts",
-        "stacked_lineups",
         "because_you_follow_them",
     )

@@ -44,6 +44,59 @@ struct ShowRowTests {
         #expect(ShowRow.artworkImageURL(for: show) == "https://example.com/headliner.jpg")
     }
 
+    @Test("preferred headliner overrides the normal artwork ranking")
+    func preferredHeadlinerOverridesArtworkRanking() {
+        let usualHeadliner = lineup(
+            name: "Usual Headliner",
+            imageURL: "https://example.com/usual.jpg",
+            showCount: 100,
+            popularity: 100
+        )
+        let visitingComedian = lineup(
+            name: "Visiting Comedian",
+            imageURL: "https://example.com/visitor.jpg",
+            showCount: 2,
+            popularity: 2
+        )
+        let show = makeShow(lineup: [usualHeadliner, visitingComedian])
+
+        #expect(
+            ShowRow.artworkComedian(
+                for: show,
+                preferredComedianID: visitingComedian.id
+            )?.name == "Visiting Comedian"
+        )
+        #expect(
+            ShowRow.artworkImageURL(
+                for: show,
+                preferredComedianID: visitingComedian.id
+            ) == "https://example.com/visitor.jpg"
+        )
+    }
+
+    @Test("preferred canonical headliner resolves through a lineup alias")
+    func preferredCanonicalHeadlinerResolvesAlias() {
+        let canonical = lineup(
+            name: "Canonical Visitor",
+            imageURL: "https://example.com/canonical.jpg",
+            showCount: 2
+        )
+        let alias = lineup(
+            name: "Visitor Alias",
+            imageURL: "https://example.com/alias.jpg",
+            showCount: 2,
+            parentComedian: canonical
+        )
+        let show = makeShow(lineup: [alias])
+
+        #expect(
+            ShowRow.artworkComedian(
+                for: show,
+                preferredComedianID: canonical.id
+            )?.name == "Canonical Visitor"
+        )
+    }
+
     // Title-transformation behavior (plain passthrough, solo-headliner "<Performer>
     // Headlines", performer-looking fallback, named-show preservation) is owned by
     // ShowTitlePresentationTests — the single authoritative suite. ShowRow.title is a
@@ -302,6 +355,18 @@ struct ShowRowTests {
 
         #expect(stack.time.contains("8:00"))
         #expect(!stack.time.contains("EDT"))
+    }
+
+    @Test("featured date and time includes the venue date and timestamp")
+    func featuredDateAndTimeIncludesVenueDateAndTimestamp() {
+        let date = Date(timeIntervalSince1970: 1_714_780_800)
+        let label = ShowFormatting.featuredDateTime(
+            date,
+            timezoneID: "America/Los_Angeles",
+            localTimezone: TimeZone(identifier: "America/New_York")!
+        )
+
+        #expect(label.replacingOccurrences(of: "\u{202F}", with: " ") == "FRI, MAY 3 • 5:00 PM PDT")
     }
 
     @Test("open mic detection reads the tag list without depending on the show name")

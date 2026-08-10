@@ -4900,10 +4900,6 @@ public enum Components {
             }
             /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/episode`.
             public var episode: Components.Schemas.HomeFeedDynamicRailReasonEvidence.EpisodePayload?
-            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/qualifyingPerformerCount`.
-            public var qualifyingPerformerCount: Swift.Int?
-            /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReasonEvidence/threshold`.
-            public var threshold: Swift.Int?
             /// Creates a new `HomeFeedDynamicRailReasonEvidence`.
             ///
             /// - Parameters:
@@ -4932,8 +4928,6 @@ public enum Components {
             ///   - attribution:
             ///   - appearanceRole:
             ///   - episode:
-            ///   - qualifyingPerformerCount:
-            ///   - threshold:
             public init(
                 canonicalComedianId: Swift.Int? = nil,
                 localAppearanceCount: Swift.Int? = nil,
@@ -4959,9 +4953,7 @@ public enum Components {
                 podcast: Components.Schemas.HomeFeedDynamicRailPodcast? = nil,
                 attribution: Components.Schemas.HomeFeedDynamicRailReasonEvidence.AttributionPayload? = nil,
                 appearanceRole: Components.Schemas.HomeFeedDynamicRailReasonEvidence.AppearanceRolePayload? = nil,
-                episode: Components.Schemas.HomeFeedDynamicRailReasonEvidence.EpisodePayload? = nil,
-                qualifyingPerformerCount: Swift.Int? = nil,
-                threshold: Swift.Int? = nil
+                episode: Components.Schemas.HomeFeedDynamicRailReasonEvidence.EpisodePayload? = nil
             ) {
                 self.canonicalComedianId = canonicalComedianId
                 self.localAppearanceCount = localAppearanceCount
@@ -4988,8 +4980,6 @@ public enum Components {
                 self.attribution = attribution
                 self.appearanceRole = appearanceRole
                 self.episode = episode
-                self.qualifyingPerformerCount = qualifyingPerformerCount
-                self.threshold = threshold
             }
             public enum CodingKeys: String, CodingKey {
                 case canonicalComedianId
@@ -5017,8 +5007,6 @@ public enum Components {
                 case attribution
                 case appearanceRole
                 case episode
-                case qualifyingPerformerCount
-                case threshold
             }
         }
         /// - Remark: Generated from `#/components/schemas/HomeFeedDynamicRailReason`.

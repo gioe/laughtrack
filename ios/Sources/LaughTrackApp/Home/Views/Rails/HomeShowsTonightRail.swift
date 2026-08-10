@@ -33,7 +33,10 @@ struct HomeShowsTonightRail: View {
             eyebrow: railKind.eyebrow,
             title: title,
             subtitle: railKind.subtitle,
-            accessibilityIdentifier: railKind.railAccessibilityIdentifier
+            accessibilityIdentifier: railKind.railAccessibilityIdentifier,
+            actionTitle: "See all",
+            actionAccessibilityIdentifier: railKind.seeMoreAccessibilityIdentifier,
+            action: openSeeAll
         ) {
             switch model.phase {
             case .idle, .loading:
@@ -96,7 +99,10 @@ struct HomeShowsTonightRail: View {
     @ViewBuilder
     private func showsContent(_ shows: [Components.Schemas.Show]) -> some View {
         if railKind == .showsTonight {
-            HomeShowsTonightCarousel(shows: shows)
+            HomeFeaturedShowsCarousel(
+                headline: "Tonight!",
+                items: HomeFeaturedShowCarouselItem.tonightItems(shows)
+            )
         } else {
             VStack(spacing: theme.spacing.sm) {
                 ForEach(shows, id: \.id) { show in
@@ -110,16 +116,15 @@ struct HomeShowsTonightRail: View {
                 }
             }
         }
+    }
 
-        LaughTrackButton("See all", systemImage: "magnifyingglass", tone: .secondary, density: .compact) {
-            searchNavigationBridge.openSearch(
-                HomeShowsTonightModel.seeMoreSearchSeed(
-                    railKind: railKind,
-                    nearbyPreference: seeMoreNearbyPreference
-                )
+    private func openSeeAll() {
+        searchNavigationBridge.openSearch(
+            HomeShowsTonightModel.seeMoreSearchSeed(
+                railKind: railKind,
+                nearbyPreference: seeMoreNearbyPreference
             )
-        }
-        .accessibilityIdentifier(railKind.seeMoreAccessibilityIdentifier)
+        )
     }
 
     private var seeMoreNearbyPreference: NearbyPreference? {
@@ -127,12 +132,43 @@ struct HomeShowsTonightRail: View {
     }
 }
 
-struct HomeShowsTonightCarousel: View {
-    let shows: [Components.Schemas.Show]
+struct HomeFeaturedShowCarouselItem: Identifiable {
+    let show: Components.Schemas.Show
+    let preferredHeadlinerID: Int?
+    let accessibilityIdentifier: String
+    let accessibilityLabel: String?
+    var timestampLabel: String? = nil
+
+    var id: Int { show.id }
+
+    static func tonightItems(
+        _ shows: [Components.Schemas.Show]
+    ) -> [HomeFeaturedShowCarouselItem] {
+        shows.enumerated().map { index, show in
+            HomeFeaturedShowCarouselItem(
+                show: show,
+                preferredHeadlinerID: nil,
+                accessibilityIdentifier: index == 0
+                    ? LaughTrackViewTestID.homeShowsTonightHeroButton
+                    : LaughTrackViewTestID.homeShowsTonightButton(show.id),
+                accessibilityLabel: nil
+            )
+        }
+    }
+}
+
+struct HomeFeaturedShowsCarousel: View {
+    let headline: String
+    let items: [HomeFeaturedShowCarouselItem]
     var onSelect: (() -> Void)?
 
-    init(shows: [Components.Schemas.Show], onSelect: (() -> Void)? = nil) {
-        self.shows = shows
+    init(
+        headline: String,
+        items: [HomeFeaturedShowCarouselItem],
+        onSelect: (() -> Void)? = nil
+    ) {
+        self.headline = headline
+        self.items = items
         self.onSelect = onSelect
     }
 
@@ -152,12 +188,14 @@ struct HomeShowsTonightCarousel: View {
                 )
 
                 VStack(alignment: .center, spacing: theme.spacing.md) {
-                    Text("TONIGHT!")
+                    Text(headline)
                         .font(.system(size: 22, weight: .heavy, design: .rounded))
                         .tracking(2.4)
                         .textCase(.uppercase)
                         .foregroundStyle(laughTrack.colors.accentStrong)
                         .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
 
                     ZStack(alignment: .top) {
                         HomeMarqueeStageBackground(glowRadius: 200, glowOpacity: 0.22)
@@ -177,7 +215,7 @@ struct HomeShowsTonightCarousel: View {
                     .clipped()
 
                     HomeShowsTonightPageIndicator(
-                        count: shows.count,
+                        count: items.count,
                         selectedIndex: selectedShowIndex
                     )
                 }
@@ -202,49 +240,54 @@ struct HomeShowsTonightCarousel: View {
     }
 
     private func carouselButtons(pageWidth: CGFloat) -> some View {
-        ForEach(shows, id: \.id) { show in
+        ForEach(items) { item in
             Button {
                 onSelect?()
-                coordinator.open(.show(show.id))
+                coordinator.open(.show(item.show.id))
             } label: {
                 HomeShowsTonightHeroCard(
-                    show: show,
-                    width: pageWidth
+                    show: item.show,
+                    width: pageWidth,
+                    preferredHeadlinerID: item.preferredHeadlinerID,
+                    timestampLabel: item.timestampLabel
                 )
                     .frame(width: pageWidth)
             }
             .frame(width: pageWidth)
             .clipped()
             .buttonStyle(.plain)
-            .accessibilityIdentifier(show.id == shows.first?.id ? LaughTrackViewTestID.homeShowsTonightHeroButton : LaughTrackViewTestID.homeShowsTonightButton(show.id))
-            .tag(show.id)
+            .accessibilityIdentifier(item.accessibilityIdentifier)
+            .modifier(HomeFeaturedShowAccessibilityModifier(label: item.accessibilityLabel))
+            .tag(item.show.id)
         }
     }
 
     private func scrollingCarouselButtons(cardWidth: CGFloat) -> some View {
-        ForEach(shows, id: \.id) { show in
+        ForEach(items) { item in
             Button {
                 onSelect?()
-                coordinator.open(.show(show.id))
+                coordinator.open(.show(item.show.id))
             } label: {
                 HomeShowsTonightScrollingCard(
-                    show: show,
+                    headline: headline,
+                    item: item,
                     width: cardWidth,
-                    pageIndicatorCount: shows.count,
+                    pageIndicatorCount: items.count,
                     selectedPageIndex: selectedShowIndex
                 )
             }
             .frame(width: cardWidth)
             .clipped()
             .buttonStyle(.plain)
-            .accessibilityIdentifier(show.id == shows.first?.id ? LaughTrackViewTestID.homeShowsTonightHeroButton : LaughTrackViewTestID.homeShowsTonightButton(show.id))
-            .tag(show.id)
+            .accessibilityIdentifier(item.accessibilityIdentifier)
+            .modifier(HomeFeaturedShowAccessibilityModifier(label: item.accessibilityLabel))
+            .tag(item.show.id)
         }
     }
 
     private var selectedShowIndex: Int {
-        guard let selectedID = selectedShowID ?? shows.first?.id,
-              let index = shows.firstIndex(where: { $0.id == selectedID })
+        guard let selectedID = selectedShowID ?? items.first?.show.id,
+              let index = items.firstIndex(where: { $0.show.id == selectedID })
         else {
             return 0
         }
@@ -257,12 +300,24 @@ struct HomeShowsTonightCarousel: View {
             .onEnded { value in
                 let nextIndex = HomeHorizontalPagerDrag.nextIndex(
                     currentIndex: selectedShowIndex,
-                    itemCount: shows.count,
+                    itemCount: items.count,
                     pageWidth: pageWidth,
                     translation: value.translation
                 )
-                selectedShowID = shows[nextIndex].id
+                selectedShowID = items[nextIndex].show.id
             }
+    }
+}
+
+private struct HomeFeaturedShowAccessibilityModifier: ViewModifier {
+    let label: String?
+
+    func body(content: Content) -> some View {
+        if let label {
+            content.accessibilityLabel(label)
+        } else {
+            content
+        }
     }
 }
 
@@ -319,7 +374,8 @@ private struct HomeShowsTonightPageIndicator: View {
 }
 
 private struct HomeShowsTonightScrollingCard: View {
-    let show: Components.Schemas.Show
+    let headline: String
+    let item: HomeFeaturedShowCarouselItem
     let width: CGFloat
     let pageIndicatorCount: Int
     let selectedPageIndex: Int
@@ -334,19 +390,26 @@ private struct HomeShowsTonightScrollingCard: View {
         )
 
         VStack(alignment: .center, spacing: theme.spacing.md) {
-            Text("TONIGHT!")
+            Text(headline)
                 .font(.system(size: 22, weight: .heavy, design: .rounded))
                 .tracking(2.4)
                 .textCase(.uppercase)
                 .foregroundStyle(laughTrack.colors.accentStrong)
                 .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
 
             ZStack(alignment: .top) {
                 HomeMarqueeStageBackground(glowRadius: 200, glowOpacity: 0.22)
                     .frame(height: HomeShowsTonightCarouselLayout.stageHeight)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-                HomeShowsTonightHeroCard(show: show, width: contentWidth)
+                HomeShowsTonightHeroCard(
+                    show: item.show,
+                    width: contentWidth,
+                    preferredHeadlinerID: item.preferredHeadlinerID,
+                    timestampLabel: item.timestampLabel
+                )
             }
             .frame(width: contentWidth)
             .clipped()
@@ -371,6 +434,8 @@ struct HomeShowsTonightHeroCard: View {
     let show: Components.Schemas.Show
     var width: CGFloat?
     var artworkHeight: CGFloat = HomeShowsTonightCarouselLayout.stageHeight
+    var preferredHeadlinerID: Int? = nil
+    var timestampLabel: String? = nil
 
     @Environment(\.appTheme) private var theme
 
@@ -381,11 +446,13 @@ struct HomeShowsTonightHeroCard: View {
             artwork
 
             VStack(alignment: .center, spacing: 10) {
-                Text(timeLabel)
+                Text(displayTimestampLabel)
                     .font(.system(size: 30, weight: .heavy, design: .rounded))
                     .tracking(0.5)
                     .foregroundStyle(laughTrack.colors.textPrimary)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.55)
+                    .allowsTightening(true)
                     .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
 
                 Text(ShowTitlePresentation.title(for: show))
@@ -458,7 +525,10 @@ struct HomeShowsTonightHeroCard: View {
     private var artworkImage: some View {
         let laughTrack = theme.laughTrackTokens
 
-        if let url = HomeShowsTonightHeroPresentation.artworkImageURL(for: show).flatMap(URL.normalizedExternalURL) {
+        if let url = HomeShowsTonightHeroPresentation.artworkImageURL(
+            for: show,
+            preferredHeadlinerID: preferredHeadlinerID
+        ).flatMap(URL.normalizedExternalURL) {
             CachedAsyncImage(url: url) { image in
                 image
                     .resizable()
@@ -494,8 +564,15 @@ struct HomeShowsTonightHeroCard: View {
         ShowFormatting.dateStack(show.date, timezoneID: show.timezone).time
     }
 
+    private var displayTimestampLabel: String {
+        timestampLabel ?? timeLabel
+    }
+
     private var headshotCaption: String {
-        HomeShowsTonightHeroPresentation.headshotCaption(for: show)
+        HomeShowsTonightHeroPresentation.headshotCaption(
+            for: show,
+            preferredHeadlinerID: preferredHeadlinerID
+        )
     }
 
     private func portraitMetrics(
@@ -536,7 +613,7 @@ struct HomeShowsTonightHeroCard: View {
     }
 
     private var accessibilityMetadata: [String] {
-        [timeLabel, roomLabel, priceLabel].compactMap { $0 }
+        [displayTimestampLabel, roomLabel, priceLabel].compactMap { $0 }
     }
 
 }
@@ -556,23 +633,41 @@ enum HomeShowsTonightHeroPresentation {
         false
     }
 
-    static func artworkImageURL(for show: Components.Schemas.Show) -> String? {
-        if let comedianImageURL = artworkComedian(for: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty {
+    static func artworkImageURL(
+        for show: Components.Schemas.Show,
+        preferredHeadlinerID: Int? = nil
+    ) -> String? {
+        if let comedianImageURL = artworkComedian(
+            for: show,
+            preferredHeadlinerID: preferredHeadlinerID
+        )?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty {
             return comedianImageURL
         }
 
         return show.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
     }
 
-    static func headshotCaption(for show: Components.Schemas.Show) -> String {
-        if let comedianName = artworkComedian(for: show)?.name.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty {
+    static func headshotCaption(
+        for show: Components.Schemas.Show,
+        preferredHeadlinerID: Int? = nil
+    ) -> String {
+        if let comedianName = artworkComedian(
+            for: show,
+            preferredHeadlinerID: preferredHeadlinerID
+        )?.name.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty {
             return comedianName
         }
 
         return ShowTitlePresentation.title(for: show)
     }
 
-    private static func artworkComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
-        ShowRow.artworkComedian(for: show)
+    private static func artworkComedian(
+        for show: Components.Schemas.Show,
+        preferredHeadlinerID: Int?
+    ) -> Components.Schemas.ComedianLineup? {
+        ShowRow.artworkComedian(
+            for: show,
+            preferredComedianID: preferredHeadlinerID
+        )
     }
 }

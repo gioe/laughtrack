@@ -5,16 +5,13 @@ vi.mock("@/lib/db", () => ({
     db: { $queryRaw: vi.fn() },
 }));
 vi.mock("@/lib/data/comedian/imageAssets", () => ({
-    buildComedianImageUrls: vi.fn(
-        ({ name }: { name: string }) => ({
-            imageUrl: `https://cdn.example.com/comedians/${name}.jpg`,
-        }),
-    ),
+    buildComedianImageUrls: vi.fn(({ name }: { name: string }) => ({
+        imageUrl: `https://cdn.example.com/comedians/${name}.jpg`,
+    })),
 }));
 vi.mock("@/lib/data/podcast/imageUrl", () => ({
-    buildPodcastArtworkUrl: vi.fn(
-        (url: string | null) =>
-            url ? `https://cdn.example.com/podcasts/${url}` : null,
+    buildPodcastArtworkUrl: vi.fn((url: string | null) =>
+        url ? `https://cdn.example.com/podcasts/${url}` : null,
     ),
 }));
 
@@ -85,6 +82,18 @@ beforeEach(() => {
 });
 
 describe("getPodcastEpisodeDiscovery", () => {
+    it("limits Episodes for you to five by default", () => {
+        const inputs = Array.from({ length: 7 }, (_, index) =>
+            candidate(index + 1),
+        );
+
+        expect(
+            rankPodcastEpisodeDiscoveryCandidates(inputs).map(
+                ({ episodeId }) => episodeId,
+            ),
+        ).toEqual([1, 2, 3, 4, 5]);
+    });
+
     it("filters ineligible episode candidates", async () => {
         const pg = new PGlite();
         try {
@@ -188,7 +197,7 @@ describe("getPodcastEpisodeDiscovery", () => {
                     (107, 2, '107', 'Denied Podcast Id', '2026-08-01T00:00:00Z', '107.mp3'),
                     (108, 3, '108', 'Denied Podcast Source', '2026-08-01T00:00:00Z', '108.mp3'),
                     (109, 4, '109', 'Denied Podcast Feed', '2026-08-01T00:00:00Z', '109.mp3'),
-                    (110, 5, '110', 'Restored Podcast', '2026-08-01T00:00:00Z', '110.mp3'),
+                    (110, 5, '110', 'Restored Podcast', '2026-08-02T00:00:00Z', '110.mp3'),
                     (111, 1, '111', 'Stale', '2026-06-01T00:00:00Z', '111.mp3'),
                     (112, 1, '112', 'Future', '2026-08-07T00:00:00Z', '112.mp3');
                 INSERT INTO episode_appearances
@@ -222,14 +231,14 @@ describe("getPodcastEpisodeDiscovery", () => {
             );
 
             expect(result.rows.map((row) => row.episode_id)).toEqual([
-                101, 110,
+                110, 101,
             ]);
         } finally {
             await pg.close();
         }
     });
 
-    it("ranks episode recommendations", async () => {
+    it("orders episode recommendations by recency descending before personalization", async () => {
         const old = new Date("2026-07-10T00:00:00.000Z");
         const newer = new Date("2026-08-05T00:00:00.000Z");
         const inputs = [
@@ -250,7 +259,7 @@ describe("getPodcastEpisodeDiscovery", () => {
             rankPodcastEpisodeDiscoveryCandidates(inputs, 10).map(
                 ({ episodeId }) => episodeId,
             ),
-        ).toEqual([1, 2, 3, 4, 6, 7, 5]);
+        ).toEqual([6, 7, 2, 3, 1, 4, 5]);
 
         mockQueryRaw.mockResolvedValue([
             {
@@ -281,34 +290,32 @@ describe("getPodcastEpisodeDiscovery", () => {
             },
         ] as never);
 
-        await expect(getPodcastEpisodeDiscovery("profile-1")).resolves.toEqual(
-            [
-                expect.objectContaining({
-                    id: 30,
-                    description: "A & B",
-                    podcast: {
-                        id: 20,
-                        slug: "the-podcast",
-                        title: "The Podcast",
+        await expect(getPodcastEpisodeDiscovery("profile-1")).resolves.toEqual([
+            expect.objectContaining({
+                id: 30,
+                description: "A & B",
+                podcast: {
+                    id: 20,
+                    slug: "the-podcast",
+                    title: "The Podcast",
+                    imageUrl:
+                        "https://cdn.example.com/podcasts/the-podcast.jpg",
+                },
+                recommendation: {
+                    reason: "followed_comedian",
+                    comedian: {
+                        id: 10,
+                        uuid: "comic-10",
+                        name: "Comic Ten",
                         imageUrl:
-                            "https://cdn.example.com/podcasts/the-podcast.jpg",
+                            "https://cdn.example.com/comedians/Comic Ten.jpg",
                     },
-                    recommendation: {
-                        reason: "followed_comedian",
-                        comedian: {
-                            id: 10,
-                            uuid: "comic-10",
-                            name: "Comic Ten",
-                            imageUrl:
-                                "https://cdn.example.com/comedians/Comic Ten.jpg",
-                        },
-                        appearanceRole: "cohost",
-                        followedComedian: true,
-                        favoritePodcast: false,
-                    },
-                }),
-            ],
-        );
+                    appearanceRole: "cohost",
+                    followedComedian: true,
+                    favoritePodcast: false,
+                },
+            }),
+        ]);
     });
 
     it("deduplicates and diversifies recommendations", () => {

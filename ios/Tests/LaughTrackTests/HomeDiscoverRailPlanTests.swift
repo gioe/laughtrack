@@ -79,6 +79,30 @@ struct HomeDiscoverRailPlanTests {
         #expect(shows.map(\.id) == [2, 1])
     }
 
+    @Test("best shows this week is limited to five shows")
+    func bestShowsThisWeekIsLimitedToFiveShows() throws {
+        let shows = (1...7).map(makeShow)
+        let feed = makeFeed(
+            trendingThisWeek: shows,
+            railPlan: makePlan(rails: [
+                .init(
+                    railKey: "trending_this_week",
+                    payloadKey: "trendingThisWeek",
+                    position: 0,
+                    itemIds: shows.map { String($0.id) }
+                ),
+            ])
+        )
+
+        let sections = try #require(HomeDiscoverRailPlanPresentation.sections(from: feed))
+        guard case .trendingThisWeek(let limitedShows) = sections[0].content else {
+            Issue.record("Expected a best-shows-this-week rail")
+            return
+        }
+
+        #expect(limitedShows.map(\.id) == [1, 2, 3, 4, 5])
+    }
+
     @Test("missing or incompatible plans preserve the legacy experience")
     func missingOrIncompatiblePlansPreserveLegacyExperience() {
         #expect(HomeDiscoverRailPlanPresentation.sections(from: makeFeed()) == nil)
@@ -145,7 +169,7 @@ struct HomeDiscoverRailPlanTests {
             Issue.record("Expected a dynamic show rail")
             return
         }
-        #expect(HomeDiscoverDynamicRailPresentation.reasonLabel(items[0].reason.label) == "Ada is visiting New York")
+        #expect(items[0].reason.label == "Ada is visiting New York")
     }
 
     @Test("podcast plans reuse structured episode discovery data")
@@ -172,6 +196,94 @@ struct HomeDiscoverRailPlanTests {
         #expect(HomePodcastEpisodeDiscoveryPresentation.item(from: episodes[0]).id == 701)
     }
 
+    @Test("Episodes for you and Just passing through are limited to five items")
+    func requestedRailsAreLimitedToFiveItems() throws {
+        let episodes = (1...7).map(makeEpisode)
+        let dynamicItems = (11...17).map {
+            makeDynamicItem(id: $0, reason: "Comic \($0) is visiting")
+        }
+        let feed = makeFeed(
+            podcastEpisodes: episodes,
+            dynamicRails: [
+                .init(
+                    railKey: "just_passing_through",
+                    label: "Just passing through",
+                    items: dynamicItems
+                )
+            ],
+            railPlan: makePlan(rails: [
+                .init(
+                    railKey: "trending_podcasts",
+                    payloadKey: "podcastEpisodes",
+                    position: 0,
+                    itemIds: episodes.map { String($0.id) }
+                ),
+                .init(
+                    railKey: "just_passing_through",
+                    payloadKey: "dynamicRails",
+                    position: 1,
+                    itemIds: dynamicItems.map { String($0.id) }
+                ),
+            ])
+        )
+
+        let sections = try #require(HomeDiscoverRailPlanPresentation.sections(from: feed))
+        guard case .podcastEpisodes(let limitedEpisodes) = sections[0].content,
+              case .dynamicShows(_, let limitedShows) = sections[1].content else {
+            Issue.record("Expected podcast and Just passing through rails")
+            return
+        }
+
+        #expect(limitedEpisodes.map(\.id) == [1, 2, 3, 4, 5])
+        #expect(limitedShows.map(\.id) == [11, 12, 13, 14, 15])
+    }
+
+    @Test("removed stacked lineups rail is ignored")
+    func removedStackedLineupsRailIsIgnored() {
+        let item = makeDynamicItem(id: 9, reason: "Three comedians")
+        let feed = makeFeed(
+            dynamicRails: [
+                .init(
+                    railKey: "stacked_lineups",
+                    label: "Stacked lineups",
+                    items: [item]
+                )
+            ],
+            railPlan: makePlan(rails: [
+                .init(
+                    railKey: "stacked_lineups",
+                    payloadKey: "dynamicRails",
+                    position: 0,
+                    itemIds: ["9"]
+                )
+            ])
+        )
+
+        #expect(HomeDiscoverRailPlanPresentation.sections(from: feed) == [])
+    }
+
+    @Test("just passing through features its associated comedian")
+    func justPassingThroughFeaturesAssociatedComedian() {
+        let item = makeDynamicItem(
+            id: 9,
+            reason: "Avery is visiting",
+            performer: .init(id: 81, uuid: "avery-stone", name: "Avery Stone")
+        )
+
+        #expect(
+            HomeDiscoverRailPlanPresentation.preferredHeadlinerID(
+                railKey: "just_passing_through",
+                item: item
+            ) == 81
+        )
+        #expect(
+            HomeDiscoverRailPlanPresentation.preferredHeadlinerID(
+                railKey: "rare_returns",
+                item: item
+            ) == nil
+        )
+    }
+
     @Test("location changes refresh plans and planned show rails preserve See all handoff")
     func locationChangesRefreshPlansAndShowRailsPreserveSeeAllHandoff() throws {
         let testFileURL = URL(fileURLWithPath: #filePath)
@@ -190,9 +302,13 @@ struct HomeDiscoverRailPlanTests {
 
         #expect(homeView.contains("@ObservedObject private var nearbyPreferenceStore"))
         #expect(homeView.contains(".task(id: railPlanRequestKey)"))
-        #expect(plannedRail.contains("showSeeAllButton(railKind: .showsTonight)"))
+        #expect(plannedRail.contains("action: { openSeeAll(railKind: .showsTonight) }"))
         #expect(plannedRail.contains("seeMoreRailKind: .thisWeek"))
         #expect(plannedRail.contains("HomeShowsTonightModel.seeMoreSearchSeed("))
+        #expect(plannedRail.contains("if section.id == \"just_passing_through\""))
+        #expect(plannedRail.contains("HomeFeaturedShowsCarousel("))
+        #expect(plannedRail.contains("preferredHeadlinerID: HomeDiscoverRailPlanPresentation.preferredHeadlinerID("))
+        #expect(plannedRail.contains("timestampLabel: ShowFormatting.featuredDateTime("))
     }
 }
 
@@ -236,11 +352,13 @@ private func makeFeed(
 
 private func makeDynamicItem(
     id: Int,
-    reason: String
+    reason: String,
+    performer: Components.Schemas.HomeFeedDynamicRailPerformer? = nil
 ) -> Components.Schemas.HomeFeedDynamicRailItem {
     .init(
         id: id,
         show: makeShow(id),
+        performer: performer,
         reason: .init(
             kind: "just_passing_through",
             label: reason,

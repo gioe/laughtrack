@@ -30,21 +30,6 @@ struct HomeContentSectionTests {
         #expect(HomeContentSection.sections(for: .podcasts) == [.podcasts])
     }
 
-    @Test("first viewport offers property-based discovery ideas")
-    func firstViewportOffersPropertyBasedDiscoveryIdeas() {
-        #expect(HomeDiscoveryIdea.allCases == [.tonight, .thisWeekend, .freeShows, .openMics])
-
-        let nearby = NearbyPreference(
-            zipCode: "10012",
-            source: .manual,
-            distanceMiles: 25
-        )
-        #expect(HomeDiscoveryIdea.tonight.searchSeed(nearbyPreference: nearby).shortcut == "Tonight")
-        #expect(HomeDiscoveryIdea.thisWeekend.searchSeed(nearbyPreference: nearby).shortcut == "This Weekend")
-        #expect(HomeDiscoveryIdea.freeShows.searchSeed(nearbyPreference: nearby).showSearch?.filterSlugs == ["free"])
-        #expect(HomeDiscoveryIdea.openMics.searchSeed(nearbyPreference: nearby).showSearch?.filterSlugs == ["open_mic"])
-    }
-
     @Test("discover section anchors retain the nearest section at the viewport top")
     func discoverSectionAnchorsRetainNearestSectionAtViewportTop() {
         #expect(HomeScrollRetention.visibleSection(from: [
@@ -66,14 +51,16 @@ struct HomeContentSectionTests {
     func expandableDiscoverRailsExposeSeeAllAndTypedSearchHandoff() throws {
         let source = try homeSourceText()
 
-        #expect(source.contains("LaughTrackButton(\"See all\""))
+        #expect(source.contains("struct HomeDiscoverRailAction"))
+        #expect(source.contains("systemImage: \"magnifyingglass\""))
         #expect(source.components(separatedBy: "actionTitle: \"See all\"").count - 1 >= 2)
         #expect(source.contains("HomeDiscoverPlannedRail("))
-        #expect(source.contains("actionTitle: \"Browse podcasts\""))
+        #expect(source.contains("actionTitle: displaysBrowsePodcastsAction ? \"Browse podcasts\" : nil"))
         #expect(source.contains(".discoverEntity(.comedians)"))
         #expect(source.contains("nearbyPreference: nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference"))
         #expect(source.contains(".discoverEntity(.podcasts)"))
-        #expect(source.contains("HomeDiscoveryIdeas("))
+        #expect(!source.contains("HomeDiscoveryIdeas("))
+        #expect(!source.contains("Text(\"Explore by\")"))
         #expect(source.contains("ScrollViewReader"))
         #expect(source.contains("proxy.scrollTo(sectionID, anchor: .top)"))
     }
@@ -151,7 +138,7 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
         let carouselBlock = try sourceBlock(
             in: source,
-            from: "struct HomeShowsTonightCarousel",
+            from: "struct HomeFeaturedShowsCarousel",
             to: "private struct HomeShowsTonightPageIndicator"
         )
         let heroBlock = try sourceBlock(
@@ -165,19 +152,20 @@ struct HomeContentSectionTests {
             to: "struct HomeShowsTonightHeroCard"
         )
 
-        #expect(carouselBlock.contains("Text(\"TONIGHT!\")"))
+        #expect(carouselBlock.contains("Text(headline)"))
         #expect(carouselBlock.contains("HomeMarqueeStageBackground("))
         #expect(carouselBlock.contains("HomeShowsTonightPageIndicator("))
         #expect(carouselBlock.contains("scrollingCarouselButtons(cardWidth: 320)"))
         #expect(carouselBlock.contains(".background(laughTrack.colors.surface)"))
         #expect(carouselBlock.contains(".stroke(laughTrack.colors.borderSubtle"))
-        #expect(scrollingCardBlock.contains("Text(\"TONIGHT!\")"))
+        #expect(scrollingCardBlock.contains("Text(headline)"))
         #expect(scrollingCardBlock.contains("HomeMarqueeStageBackground("))
         #expect(scrollingCardBlock.contains("HomeShowsTonightPageIndicator("))
         #expect(scrollingCardBlock.contains(".background(laughTrack.colors.surface)"))
         #expect(scrollingCardBlock.contains(".stroke(laughTrack.colors.borderSubtle"))
         #expect(heroBlock.contains("ClubWallHeadshotFrame("))
-        #expect(heroBlock.contains("Text(timeLabel)"))
+        #expect(heroBlock.contains("Text(displayTimestampLabel)"))
+        #expect(heroBlock.contains("timestampLabel ?? timeLabel"))
         #expect(heroBlock.contains("Text(ShowTitlePresentation.title(for: show))"))
         #expect(heroBlock.contains("Text(venueLine)"))
         #expect(!heroBlock.contains("Text(\"TONIGHT!\")"))
@@ -253,7 +241,7 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
         let carouselBlock = try sourceBlock(
             in: source,
-            from: "struct HomeShowsTonightCarousel",
+            from: "struct HomeFeaturedShowsCarousel",
             to: "private struct HomeShowsTonightPageIndicator"
         )
         let heroBlock = try sourceBlock(
@@ -340,7 +328,7 @@ struct HomeContentSectionTests {
         let railBlock = try sourceBlock(
             in: source,
             from: "struct HomeShowsTonightRail",
-            to: "struct HomeShowsTonightCarousel"
+            to: "struct HomeFeaturedShowsCarousel"
         )
 
         #expect(headerBlock.contains("@ObservedObject private var nearbyPreferenceStore: NearbyPreferenceStore"))
@@ -529,6 +517,18 @@ struct HomeContentSectionTests {
         #expect(
             HomeShowsTonightHeroPresentation.artworkImageURL(for: show)
                 == "https://cdn.example.com/brittany-brave.jpg"
+        )
+        #expect(
+            HomeShowsTonightHeroPresentation.headshotCaption(
+                for: show,
+                preferredHeadlinerID: 12
+            ) == "Mike Britt"
+        )
+        #expect(
+            HomeShowsTonightHeroPresentation.artworkImageURL(
+                for: show,
+                preferredHeadlinerID: 12
+            ) == mikeImage
         )
     }
 

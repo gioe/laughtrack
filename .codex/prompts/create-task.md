@@ -17,6 +17,11 @@ ask:
 > What would you like to turn into tasks? Paste any text — feature specs,
 > meeting notes, bug reports, requirements, etc.
 
+The caller may also provide an objective-planning context with an existing
+`OBJECTIVE_ID`. Keep that context through approval and materialization. It
+changes persistence, not decomposition: every approved task must be linked to
+that objective in the same atomic import that creates dependencies.
+
 ## Step 2: Fetch Config and Backlog
 
 ```bash
@@ -122,6 +127,19 @@ that another deliverable is done?**
 **Rule:** If removing the work would leave the *feature itself* incomplete
 → task_type. If removing it just removes *verification* of an already-
 complete feature → criterion.
+
+**Classify behavior from its contract, not its verbs.** Use `feature` when
+the request adds behavior or capability that the existing contract does not
+promise, even when it says "fix the gap", "restore", or "reconcile". Use
+`bug` only when current behavior violates an existing requirement or contract,
+or regresses previously working behavior. The word "fix" is not evidence of a
+defect by itself.
+
+If the input does not establish whether the behavior was already promised,
+do not guess from wording. Draft the most likely `task_type` (default
+`feature` for additive behavior) and add a `Classification note:` in Step 4
+explaining the contract evidence or its absence. The operator must be able to
+confirm or edit that proposed type before insertion.
 
 ### Decomposition Guidelines
 
@@ -235,6 +253,11 @@ If exactly one task was produced, use the inline format:
 > token. Include refresh token support.
 ```
 
+For an ambiguous feature-versus-bug decision, add `Classification note:
+proposed <type> because <contract evidence or missing evidence>` below the
+description. The type in the metadata line is the value that will be inserted
+unless the operator edits it.
+
 Ask: **Confirm**, **edit** (e.g. "change priority to Medium"), or
 **remove**.
 
@@ -256,6 +279,10 @@ If two or more tasks were produced, show a numbered table:
 > Implement POST /auth/login that validates credentials and returns a JWT
 > token. Include refresh token support.
 ```
+
+Add the same `Classification note:` beneath every task whose feature-versus-bug
+boundary is ambiguous. The table's **Type** column is the value that will be
+inserted unless the operator edits it.
 
 Ask: **Confirm**, **remove N**, **edit N field=value**, or **add a
 missing task**.
@@ -311,7 +338,17 @@ user, and revise before inserting:
 
 When two or more tasks are approved, prefer `tusk task-import`, not repeated `tusk task-insert` calls. Build one JSON plan with a top-level `tasks` array, run `tusk task-import --stdin --dry-run` first, show and fix any `failed` or `skipped` outcomes, then run the same JSON without `--dry-run` after approval. Use local `key` values and `depends_on` entries when the approved tasks have ordering relationships; this lets import create the rows first and then resolve dependencies in one transaction.
 
-For single-task creation, or when an operator explicitly asks for one row only, use `tusk task-insert` as before.
+When `OBJECTIVE_ID` is present, use `task-import` even for one approved
+task. Give every task a stable `key`, set `duplicate_policy` to `skip`, plan
+all dependency edges before persistence, and add an `objectives` entry with
+`OBJ-<OBJECTIVE_ID>` plus the selected `primary`, `contributes_to`, or
+`follow_up` relationship. Run one default atomic import without
+`--best-effort`. Resolve the planned task IDs from both
+`created.*.task_id` and `skipped.*.matched_task_id`; never use a maximum-ID
+snapshot or ID window.
+
+For single-task creation outside objective-planning context, or when an
+operator explicitly asks for one row only, use `tusk task-insert` as before.
 
 ```bash
 tusk task-insert "<summary>" "<description>" \
@@ -375,6 +412,8 @@ Step 6 was merged into Step 5 here.)
 
 Skip this step when:
 
+- `OBJECTIVE_ID` is present — dependencies were analyzed and approved before
+  Step 6 so they could be included in the atomic import payload, OR
 - Zero tasks were created (all duplicates), OR
 - Exactly one task was created.
 
@@ -410,8 +449,9 @@ Don't propose more than necessary — most independent tasks need no edges.
 | 16 | Add rate limiting middleware | Medium | api |
 ```
 
-Show the **Dependencies added** line only when Step 7 inserted edges —
-omit when skipped or when the user removed all proposals.
+Show the **Dependencies added** line when Step 7 inserted edges or when
+objective-planning context inserted approved edges atomically in Step 6.
+Omit it when dependency planning was skipped.
 
 ### Zero-criteria check
 

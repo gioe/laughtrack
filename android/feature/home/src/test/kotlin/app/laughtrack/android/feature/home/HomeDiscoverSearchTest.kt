@@ -20,19 +20,6 @@ class HomeDiscoverSearchTest {
     private val state = HomeUiState(feed = UiState.Success(feed()))
 
     @Test
-    fun discovery_ideas_expose_four_distinct_property_searches_with_location() {
-        val ideas = homeDiscoveryIdeas(state, today)
-
-        assertEquals(listOf("Tonight", "This weekend", "Free shows", "Open mics"), ideas.map { it.title })
-        assertEquals("2026-08-04" to "2026-08-04", ideas[0].request.from to ideas[0].request.to)
-        assertEquals("2026-08-07" to "2026-08-09", ideas[1].request.from to ideas[1].request.to)
-        assertEquals(setOf("free"), ideas[2].request.filters)
-        assertEquals(setOf("open_mic"), ideas[3].request.filters)
-        assertTrue(ideas.all { it.request.destination == SearchDestination.SHOWS })
-        assertTrue(ideas.all { it.request.zip == "10001" && it.request.distanceMiles == 25 })
-    }
-
-    @Test
     fun every_expandable_rail_has_the_applicable_search_constraints() {
         val requests = HomeExpandableRail.entries.associateWith { homeRailSearchRequest(it, state, today) }
 
@@ -56,6 +43,16 @@ class HomeDiscoverSearchTest {
     }
 
     @Test
+    fun expandable_rails_use_the_shared_card_footer_action() {
+        val source = String(Files.readAllBytes(homeScreenPath()))
+
+        assertTrue(source.contains("internal fun FeedRailAction("))
+        assertTrue(source.contains("actionLabel: String? = null"))
+        assertTrue(source.contains("FeedRailAction(label = actionLabel, onClick = onAction)"))
+        assertFalse(source.contains("SeeAllButton("))
+    }
+
+    @Test
     fun discover_state_is_saveable_and_search_handoff_switches_tabs() {
         val home = String(Files.readAllBytes(homeScreenPath()))
         val shell = String(Files.readAllBytes(appShellPath()))
@@ -63,6 +60,8 @@ class HomeDiscoverSearchTest {
         assertTrue(home.contains("val listState = rememberLazyListState()"))
         assertTrue(home.contains("state = listState"))
         assertTrue(home.contains("item(key = \"followed-comedian-shows\")"))
+        assertFalse(home.contains("ExploreByIdeas"))
+        assertFalse(home.contains("key = \"explore-by\""))
         assertTrue(shell.contains("pendingSearchRequest = request"))
         assertTrue(shell.contains("navController.switchTab(AppTab.SEARCH)"))
         assertTrue(shell.contains("onRequestedSearchConsumed = { pendingSearchRequest = null }"))

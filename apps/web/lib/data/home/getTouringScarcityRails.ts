@@ -16,6 +16,7 @@ const MIN_HISTORY_COVERAGE_DAYS = 365;
 const MIN_HISTORY_SHOWS = 10;
 const BACK_AFTER_DAYS = 270;
 const MAX_RARE_PRIOR_APPEARANCES = 2;
+const JUST_PASSING_THROUGH_LIMIT = 5;
 
 export type TouringScarcityReasonKind =
     | "just_passing_through"
@@ -320,7 +321,7 @@ export function classifyTouringScarcityCandidates(
                     label: `Visiting from ${homeMarket.city}, ${homeMarket.state} for ${localCount} local ${localCount === 1 ? "date" : "dates"}`,
                     evidence: evidence(row, options, homeMarket),
                 }),
-                options.limit,
+                Math.min(options.limit, JUST_PASSING_THROUGH_LIMIT),
             );
         }
 

@@ -57,7 +57,6 @@ internal data class HomePodcastEpisodeDiscoveryItem(
     val releaseMetadata: String,
     val comedianName: String,
     val comedianRole: String,
-    val recommendationReason: String,
     val playbackItem: PodcastPlaybackItem?,
 )
 
@@ -75,7 +74,7 @@ internal fun homePodcastRailContent(
     episodes: List<HomeFeedPodcastEpisode>?,
     podcasts: List<HomeFeedPodcast>,
 ): HomePodcastRailContent {
-    val uniqueEpisodes = episodes.orEmpty().distinctBy { it.id }
+    val uniqueEpisodes = episodes.orEmpty().distinctBy { it.id }.take(HOME_DISCOVER_RAIL_ITEM_LIMIT)
     return if (uniqueEpisodes.isNotEmpty()) {
         HomePodcastRailContent.Episodes(uniqueEpisodes)
     } else {
@@ -98,7 +97,6 @@ internal fun homePodcastEpisodeDiscoveryItem(
         releaseMetadata = homePodcastEpisodeReleaseMetadata(episode, today),
         comedianName = recommendation.comedian.name,
         comedianRole = homePodcastEpisodeRoleLabel(recommendation.appearanceRole),
-        recommendationReason = homePodcastEpisodeReasonLabel(recommendation),
         playbackItem =
             audioUrl?.let {
                 PodcastPlaybackItem(
@@ -148,17 +146,6 @@ private fun homePodcastEpisodeRoleLabel(role: HomeFeedPodcastEpisodeRecommendati
         HomeFeedPodcastEpisodeRecommendation.AppearanceRole.GUEST -> "Guest"
     }
 
-private fun homePodcastEpisodeReasonLabel(recommendation: HomeFeedPodcastEpisodeRecommendation): String {
-    val comedian = recommendation.comedian.name
-    return when (recommendation.reason) {
-        HomeFeedPodcastEpisodeRecommendation.Reason.FOLLOWED_COMEDIAN -> "Because you follow $comedian"
-        HomeFeedPodcastEpisodeRecommendation.Reason.FAVORITE_PODCAST -> "From a favorite podcast"
-        HomeFeedPodcastEpisodeRecommendation.Reason.GUEST_APPEARANCE -> "Guest appearance by $comedian"
-        HomeFeedPodcastEpisodeRecommendation.Reason.POPULAR_COMEDIAN -> "Featuring popular comedian $comedian"
-        HomeFeedPodcastEpisodeRecommendation.Reason.RECENT_EPISODE -> "A recent episode with $comedian"
-    }
-}
-
 @Composable
 internal fun HomePodcastRail(
     episodes: List<HomeFeedPodcastEpisode>?,
@@ -173,7 +160,6 @@ internal fun HomePodcastRail(
                 episodes = content.episodes,
                 onOpenEntity = onOpenEntity,
                 onPlay = onPlay,
-                onBrowsePodcasts = onBrowsePodcasts,
             )
         is HomePodcastRailContent.LegacyPodcasts ->
             HomeLegacyPodcastRail(
@@ -189,7 +175,6 @@ internal fun HomePodcastEpisodeDiscoveryRail(
     episodes: List<HomeFeedPodcastEpisode>,
     onOpenEntity: (AppRoute) -> Unit,
     onPlay: (PodcastPlaybackItem) -> Unit,
-    onBrowsePodcasts: () -> Unit,
 ) {
     FeedRailCard(
         eyebrow = "Funny listening",
@@ -207,7 +192,6 @@ internal fun HomePodcastEpisodeDiscoveryRail(
                 )
             }
         }
-        SeeAllButton(label = "Browse podcasts", onClick = onBrowsePodcasts)
     }
 }
 
@@ -217,7 +201,13 @@ private fun HomeLegacyPodcastRail(
     onOpenEntity: (AppRoute) -> Unit,
     onBrowsePodcasts: () -> Unit,
 ) {
-    FeedRailCard(title = "Comedy podcasts", emptyMessage = "No podcasts found.", itemCount = podcasts.size) {
+    FeedRailCard(
+        title = "Comedy podcasts",
+        emptyMessage = "No podcasts found.",
+        itemCount = podcasts.size,
+        actionLabel = "Browse podcasts",
+        onAction = onBrowsePodcasts,
+    ) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(podcasts, key = { it.id }) { podcast ->
                 FeedCard(
@@ -230,7 +220,6 @@ private fun HomeLegacyPodcastRail(
                 )
             }
         }
-        SeeAllButton(label = "Browse podcasts", onClick = onBrowsePodcasts)
     }
 }
 
@@ -259,8 +248,12 @@ private fun HomePodcastEpisodeDiscoveryRow(
                     .clickable(onClick = onOpen)
                     .semantics {
                         contentDescription =
-                            "Open ${item.title}, ${item.podcastTitle}, ${item.releaseMetadata}, " +
-                            "${item.comedianRole} ${item.comedianName}, ${item.recommendationReason}"
+                            listOfNotNull(
+                                "Open ${item.title}",
+                                item.podcastTitle,
+                                item.releaseMetadata,
+                                "${item.comedianRole} ${item.comedianName}",
+                            ).joinToString(", ")
                     },
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.Top,
@@ -296,13 +289,6 @@ private fun HomePodcastEpisodeDiscoveryRow(
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                     color = LaughTrackColors.Foreground,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    item.recommendationReason,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = LaughTrackColors.ForegroundMuted,
-                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }

@@ -16,13 +16,16 @@ struct ShowRow: View {
 
     let show: Components.Schemas.Show
     let presentation: ShowRowPresentation
+    let preferredHeadlinerID: Int?
 
     init(
         show: Components.Schemas.Show,
-        presentation: ShowRowPresentation = .standard
+        presentation: ShowRowPresentation = .standard,
+        preferredHeadlinerID: Int? = nil
     ) {
         self.show = show
         self.presentation = presentation
+        self.preferredHeadlinerID = preferredHeadlinerID
     }
 
     var body: some View {
@@ -161,7 +164,10 @@ struct ShowRow: View {
         let laughTrack = theme.laughTrackTokens
         let isSoldOut = show.soldOut == true
         let isOpenMic = Self.isOpenMic(show)
-        let headliner = Self.artworkComedian(for: show)
+        let headliner = Self.artworkComedian(
+            for: show,
+            preferredComedianID: preferredHeadlinerID
+        )
         let supporting = Self.supportingLineup(for: show, excluding: headliner)
 
         return VStack(alignment: .leading, spacing: theme.spacing.sm) {
@@ -316,7 +322,10 @@ struct ShowRow: View {
     private var artworkImage: some View {
         let laughTrack = theme.laughTrackTokens
 
-        if let rawURL = Self.artworkImageURL(for: show), let url = URL(string: rawURL) {
+        if let rawURL = Self.artworkImageURL(
+            for: show,
+            preferredComedianID: preferredHeadlinerID
+        ), let url = URL(string: rawURL) {
             CachedAsyncImage(url: url) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
@@ -564,15 +573,30 @@ struct ShowRow: View {
         return clubName
     }
 
-    static func artworkImageURL(for show: Components.Schemas.Show) -> String? {
-        if let comedian = artworkComedian(for: show) {
+    static func artworkImageURL(
+        for show: Components.Schemas.Show,
+        preferredComedianID: Int? = nil
+    ) -> String? {
+        if let comedian = artworkComedian(
+            for: show,
+            preferredComedianID: preferredComedianID
+        ) {
             return absoluteArtworkImageURL(comedian.imageUrl)
         }
         return absoluteArtworkImageURL(show.imageUrl)
     }
 
-    static func artworkComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
+    static func artworkComedian(
+        for show: Components.Schemas.Show,
+        preferredComedianID: Int? = nil
+    ) -> Components.Schemas.ComedianLineup? {
         guard let lineup = show.lineup else { return nil }
+        if let preferredComedianID,
+           let preferred = lineup
+            .map(effectiveComedian)
+            .first(where: { $0.id == preferredComedianID }) {
+            return preferred
+        }
         return rankedLineup(lineup, requiringAbsoluteArtwork: true).first
     }
 

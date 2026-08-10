@@ -53,8 +53,6 @@ import kotlinx.serialization.Contextual
  * @param attribution 
  * @param appearanceRole 
  * @param episode 
- * @param qualifyingPerformerCount 
- * @param threshold 
  */
 @Serializable
 
@@ -133,13 +131,7 @@ data class HomeFeedDynamicRailReasonEvidence (
     val appearanceRole: HomeFeedDynamicRailReasonEvidence.AppearanceRole? = null,
 
     @SerialName(value = "episode")
-    val episode: HomeFeedDynamicRailReasonEvidenceEpisode? = null,
-
-    @SerialName(value = "qualifyingPerformerCount")
-    val qualifyingPerformerCount: kotlin.Int? = null,
-
-    @SerialName(value = "threshold")
-    val threshold: kotlin.Int? = null
+    val episode: HomeFeedDynamicRailReasonEvidenceEpisode? = null
 
 ) {
 

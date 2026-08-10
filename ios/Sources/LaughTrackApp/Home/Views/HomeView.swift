@@ -30,77 +30,6 @@ enum HomeContentSection: String, Hashable {
     }
 }
 
-enum HomeDiscoveryIdea: String, CaseIterable, Identifiable {
-    case tonight
-    case thisWeekend
-    case freeShows
-    case openMics
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .tonight: return "Tonight"
-        case .thisWeekend: return "This weekend"
-        case .freeShows: return "Free shows"
-        case .openMics: return "Open mics"
-        }
-    }
-
-    var subtitle: String {
-        switch self {
-        case .tonight: return "What is on nearby"
-        case .thisWeekend: return "Plan a night out"
-        case .freeShows: return "Comedy without a cover"
-        case .openMics: return "See who is coming up"
-        }
-    }
-
-    var systemImage: String {
-        switch self {
-        case .tonight: return "moon.stars.fill"
-        case .thisWeekend: return "calendar"
-        case .freeShows: return "ticket.fill"
-        case .openMics: return "mic.fill"
-        }
-    }
-
-    func searchSeed(nearbyPreference: NearbyPreference?) -> SearchRootModel.Seed {
-        switch self {
-        case .tonight:
-            return .init(
-                pivot: .shows,
-                query: "",
-                shortcut: "Tonight",
-                nearbyPreference: nearbyPreference
-            )
-        case .thisWeekend:
-            return .init(
-                pivot: .shows,
-                query: "",
-                shortcut: "This Weekend",
-                nearbyPreference: nearbyPreference
-            )
-        case .freeShows:
-            return .init(
-                pivot: .shows,
-                query: "",
-                shortcut: nil,
-                nearbyPreference: nearbyPreference,
-                showSearch: ShowSearchSeed(filterSlugs: ["free"])
-            )
-        case .openMics:
-            return .init(
-                pivot: .shows,
-                query: "",
-                shortcut: nil,
-                nearbyPreference: nearbyPreference,
-                showSearch: ShowSearchSeed(filterSlugs: ["open_mic"])
-            )
-        }
-    }
-}
-
 enum HomeScrollRetention {
     static func visibleSection(
         from offsets: [HomeContentSection: CGFloat],
@@ -279,13 +208,6 @@ struct HomeView: View {
                         profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
                         currentUser: authManager.currentUser
                     )
-
-                    if selectedPrimitive == nil || selectedPrimitive == .shows {
-                        HomeDiscoveryIdeas(
-                            nearbyPreferenceStore: nearbyPreferenceStore,
-                            searchNavigationBridge: searchNavigationBridge
-                        )
-                    }
 
                     contentSections
                 }
@@ -491,78 +413,6 @@ struct HomeView: View {
         guard !hasReportedInitialLoad else { return }
         hasReportedInitialLoad = true
         onInitialHomeLoadComplete?()
-    }
-}
-
-private struct HomeDiscoveryIdeas: View {
-    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
-    let searchNavigationBridge: SearchNavigationBridge
-
-    @Environment(\.appTheme) private var theme
-
-    var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            Text("Explore by")
-                .font(laughTrack.typography.metadata.weight(.heavy))
-                .tracking(1.5)
-                .textCase(.uppercase)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-
-            LazyVGrid(columns: columns, spacing: theme.spacing.sm) {
-                ForEach(HomeDiscoveryIdea.allCases) { idea in
-                    Button {
-                        searchNavigationBridge.openSearch(
-                            idea.searchSeed(nearbyPreference: nearbyPreference)
-                        )
-                    } label: {
-                        HStack(spacing: theme.spacing.sm) {
-                            Image(systemName: idea.systemImage)
-                                .font(.body.weight(.bold))
-                                .foregroundStyle(laughTrack.colors.accentStrong)
-                                .frame(width: 24)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(idea.title)
-                                    .font(laughTrack.typography.body.weight(.bold))
-                                    .foregroundStyle(laughTrack.colors.textPrimary)
-                                    .lineLimit(1)
-
-                                Text(idea.subtitle)
-                                    .font(.caption2)
-                                    .foregroundStyle(laughTrack.colors.textSecondary)
-                                    .lineLimit(1)
-                            }
-
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, theme.spacing.sm)
-                        .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
-                        .background(laughTrack.colors.surfaceElevated.opacity(0.78))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(laughTrack.colors.accentMuted.opacity(0.34), lineWidth: 1)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("\(idea.title), \(idea.subtitle)")
-                    .accessibilityIdentifier("laughtrack.home.idea.\(idea.rawValue)")
-                }
-            }
-        }
-    }
-
-    private var nearbyPreference: NearbyPreference? {
-        nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference
-    }
-
-    private var columns: [GridItem] {
-        [
-            GridItem(.flexible(), spacing: theme.spacing.sm),
-            GridItem(.flexible(), spacing: theme.spacing.sm),
-        ]
     }
 }
 

@@ -143,6 +143,27 @@ struct HomeShowsTonightModelTests {
         #expect(shows.map(\.id) == [901, 902, 903, 904])
     }
 
+    @Test("limits the this-week rail to five shows")
+    func limitsThisWeekRailToFiveShows() async {
+        let model = HomeShowsTonightModel()
+
+        await model.refresh(
+            railKind: .thisWeek,
+            apiClient: makeHomeShowsTonightClient(showIDs: Array(801...810)),
+            zipCode: "10013",
+            cache: DataCache<LaughTrackCacheKey>(),
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
+        )
+
+        guard case .success(let shows) = model.phase else {
+            Issue.record("Expected this-week success phase")
+            return
+        }
+
+        #expect(shows.map(\.id) == [805, 806, 807, 808, 809])
+    }
+
     @Test("loads nearby preference from the home feed hero")
     func loadsNearbyPreferenceFromHomeFeedHero() async {
         let model = HomeShowsTonightModel()

@@ -12,6 +12,7 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisode
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
+import app.laughtrack.android.feature.home.HOME_DISCOVER_RAIL_ITEM_LIMIT
 import app.laughtrack.android.feature.home.HomeDiscoverRailAttribution
 import app.laughtrack.android.feature.home.data.HomeFeedCache
 import app.laughtrack.android.feature.home.data.HomeFeedRepository
@@ -81,7 +82,7 @@ data class HomeUiState(
                 ?.let { feed ->
                     dedupeShows(feed.showsTonight + feed.hero.shows + feed.trendingThisWeek)
                         .filterNot(::isSoldOut)
-                        .take(HOME_HERO_DISPLAY_LIMIT)
+                        .take(HOME_DISCOVER_RAIL_ITEM_LIMIT)
                 }.orEmpty()
 
     val trendingThisWeek: List<Show>
@@ -90,6 +91,7 @@ data class HomeUiState(
                 val tonightIds = (feed.showsTonight + feed.hero.shows).map { it.id }.toSet()
                 dedupeShows((feed.trendingThisWeek + feed.moreNearYou).filterNot { it.id in tonightIds })
                     .filterNot(::isSoldOut)
+                    .take(HOME_DISCOVER_RAIL_ITEM_LIMIT)
             }.orEmpty()
 
     val followedComedianShows: List<Show>
@@ -105,7 +107,7 @@ data class HomeUiState(
         get() = loadedFeed?.trendingPodcasts.orEmpty()
 
     val podcastEpisodes: List<HomeFeedPodcastEpisode>
-        get() = loadedFeed?.podcastEpisodes.orEmpty().distinctBy { it.id }
+        get() = loadedFeed?.podcastEpisodes.orEmpty().distinctBy { it.id }.take(HOME_DISCOVER_RAIL_ITEM_LIMIT)
 }
 
 @HiltViewModel
@@ -288,8 +290,6 @@ private fun isSoldOut(show: Show): Boolean {
     val tickets = show.tickets.orEmpty()
     return tickets.isNotEmpty() && tickets.all { it.soldOut == true }
 }
-
-private const val HOME_HERO_DISPLAY_LIMIT = 5
 
 private fun dedupeComedians(comedians: List<ComedianListItem>): List<ComedianListItem> {
     val seen = mutableSetOf<String>()

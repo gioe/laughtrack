@@ -14,7 +14,6 @@ struct PodcastEpisodeDiscoveryItem: Identifiable, Equatable {
     let releaseMetadata: String
     let comedianName: String
     let comedianRole: String
-    let recommendationReason: String
     let playbackItem: PodcastPlaybackItem?
 }
 
@@ -56,7 +55,6 @@ enum HomePodcastEpisodeDiscoveryPresentation {
             ),
             comedianName: recommendation.comedian.name,
             comedianRole: roleLabel(recommendation.appearanceRole),
-            recommendationReason: reasonLabel(recommendation),
             playbackItem: playbackItem
         )
     }
@@ -98,24 +96,6 @@ enum HomePodcastEpisodeDiscoveryPresentation {
         case .host: return "Host"
         case .cohost: return "Cohost"
         case .guest: return "Guest"
-        }
-    }
-
-    private static func reasonLabel(
-        _ recommendation: Components.Schemas.HomeFeedPodcastEpisodeRecommendation
-    ) -> String {
-        let comedian = recommendation.comedian.name
-        switch recommendation.reason {
-        case .followedComedian:
-            return "Because you follow \(comedian)"
-        case .favoritePodcast:
-            return "From a favorite podcast"
-        case .guestAppearance:
-            return "Guest appearance by \(comedian)"
-        case .popularComedian:
-            return "Featuring popular comedian \(comedian)"
-        case .recentEpisode:
-            return "A recent episode with \(comedian)"
         }
     }
 
@@ -164,7 +144,7 @@ struct HomeTrendingPodcastsRail: View {
             title: railTitle,
             subtitle: nil,
             accessibilityIdentifier: LaughTrackViewTestID.homeTrendingPodcastsRail,
-            actionTitle: "Browse podcasts",
+            actionTitle: displaysBrowsePodcastsAction ? "Browse podcasts" : nil,
             action: {
                 searchNavigationBridge.openSearch(.discoverEntity(.podcasts))
             }
@@ -246,6 +226,13 @@ struct HomeTrendingPodcastsRail: View {
         return "Episodes for you"
     }
 
+    private var displaysBrowsePodcastsAction: Bool {
+        if case .success(.legacyPodcasts) = model.phase {
+            return true
+        }
+        return false
+    }
+
     private var gridColumns: [GridItem] {
         [
             GridItem(.flexible(), spacing: theme.spacing.sm),
@@ -290,10 +277,6 @@ struct PodcastEpisodeDiscoveryRow: View {
                             .foregroundStyle(laughTrack.colors.textPrimary)
                             .lineLimit(1)
 
-                        Text(item.recommendationReason)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .lineLimit(2)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -301,7 +284,13 @@ struct PodcastEpisodeDiscoveryRow: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(
-                "Open \(item.title), \(item.podcastName), \(item.releaseMetadata), \(item.comedianRole) \(item.comedianName), \(item.recommendationReason)"
+                [
+                    "Open \(item.title)",
+                    item.podcastName,
+                    item.releaseMetadata,
+                    "\(item.comedianRole) \(item.comedianName)",
+                ]
+                .joined(separator: ", ")
             )
             .accessibilityIdentifier(LaughTrackViewTestID.homePodcastEpisodeButton(item.id))
 

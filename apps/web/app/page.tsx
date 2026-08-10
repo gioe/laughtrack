@@ -229,9 +229,6 @@ export default async function HomePage() {
         affinityRails?.fromYourPodcasts
             ? withDynamicItemIds(affinityRails.fromYourPodcasts)
             : null,
-        affinityRails?.stackedLineups
-            ? withDynamicItemIds(affinityRails.stackedLineups)
-            : null,
         affinityRails?.becauseYouFollowThem
             ? withDynamicItemIds(affinityRails.becauseYouFollowThem)
             : null,

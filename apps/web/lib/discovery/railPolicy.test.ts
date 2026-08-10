@@ -17,7 +17,6 @@ const dynamicKeys = [
     "starting_to_buzz",
     "because_you_follow_them",
     "from_your_podcasts",
-    "stacked_lineups",
 ] as const;
 
 const expectedKeys = {
@@ -86,7 +85,7 @@ function messages(
 
 describe("discovery rail catalog", () => {
     it("uses stable keys and declares content, auth, and platform metadata", () => {
-        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(2);
+        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(3);
         expect(Object.keys(DISCOVERY_RAIL_CATALOG)).toEqual([
             "shows_tonight",
             "followed_comedian_shows",
@@ -102,7 +101,6 @@ describe("discovery rail catalog", () => {
             "starting_to_buzz",
             "catch_them_early",
             "from_your_podcasts",
-            "stacked_lineups",
             "because_you_follow_them",
         ]);
         expect(DISCOVERY_RAIL_CATALOG.followed_comedian_shows).toMatchObject({
@@ -121,7 +119,6 @@ describe("discovery rail catalog", () => {
             requiresAuth: true,
             supportedPlatforms: ["web", "ios", "android"],
         });
-        expect(DISCOVERY_RAIL_CATALOG.stacked_lineups.requiresAuth).toBe(false);
     });
 });
 
@@ -132,15 +129,15 @@ describe("production-compatible defaults", () => {
             const policy = DISCOVERY_RAIL_DEFAULTS[platform];
             expect(policy).toMatchObject({
                 platform,
-                catalogVersion: 2,
-                version: 2,
+                catalogVersion: 3,
+                version: 3,
                 cycleCadenceHours: 24,
             });
             expect(policy.rails.map((rail) => rail.railKey)).toEqual(
                 expectedKeys[platform],
             );
             expect(policy.rails.map((rail) => rail.position)).toEqual([
-                0, 1, 2, 3, 4, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8,
+                0, 1, 2, 3, 4, 5, 6, 6, 6, 7, 7, 7, 8, 8,
             ]);
             expect(
                 policy.rails
@@ -161,7 +158,6 @@ describe("production-compatible defaults", () => {
                 "fresh_and_rising",
                 "fresh_and_rising",
                 "fresh_and_rising",
-                "affinity",
                 "affinity",
                 "affinity",
             ]);

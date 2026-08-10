@@ -176,7 +176,7 @@ beforeEach(() => {
     mocks.getFavoriteComedianShows.mockResolvedValue([]);
     mocks.getDiscoveryRailPolicy.mockResolvedValue({
         platform: "web",
-        catalogVersion: 2,
+        catalogVersion: 3,
         version: 7,
         cycleCadenceHours: 24,
         rails: [],

@@ -78,9 +78,7 @@ import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import app.laughtrack.android.feature.home.ui.HomeUiState
 import app.laughtrack.android.feature.home.ui.HomeViewModel
-import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
 /** Stable semantics anchor for instrumented Discover scroll-restoration coverage. */
@@ -169,12 +167,6 @@ private fun HomeContent(
                     onUseLocation = onUseLocation,
                     onSetDistance = onSetDistance,
                     onClearLocation = onClearLocation,
-                )
-            }
-            item(key = "explore-by") {
-                ExploreByIdeas(
-                    ideas = homeDiscoveryIdeas(state),
-                    onOpenSearch = onOpenSearch,
                 )
             }
             if (plannedRails == null) {
@@ -329,6 +321,7 @@ private fun HomeDiscoverPlannedRail(
             )
         is HomeDiscoverRailSection.Content.DynamicShows ->
             DynamicShowListRail(
+                railKey = section.railKey,
                 label = content.label,
                 items = content.items,
                 onOpenEntity = ::trackedOpen,
@@ -336,36 +329,12 @@ private fun HomeDiscoverPlannedRail(
     }
 }
 
-internal data class HomeDiscoveryIdea(
-    val title: String,
-    val subtitle: String,
-    val request: SearchLaunchRequest,
-)
-
 internal enum class HomeExpandableRail {
     TONIGHT,
     BEST_THIS_WEEK,
     COMEDIANS,
     CLUBS,
     PODCASTS,
-}
-
-internal fun homeDiscoveryIdeas(
-    state: HomeUiState,
-    today: LocalDate = LocalDate.now(),
-): List<HomeDiscoveryIdea> {
-    val weekendStart =
-        when (today.dayOfWeek) {
-            DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY -> today
-            else -> today.with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
-        }
-    val weekendEnd = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
-    return listOf(
-        HomeDiscoveryIdea("Tonight", "Comedy happening now", state.showSearch(today, today)),
-        HomeDiscoveryIdea("This weekend", "Friday through Sunday", state.showSearch(weekendStart, weekendEnd)),
-        HomeDiscoveryIdea("Free shows", "No-cover comedy", state.showSearch(filters = setOf("free"))),
-        HomeDiscoveryIdea("Open mics", "See new local acts", state.showSearch(filters = setOf("open_mic"))),
-    )
 }
 
 internal fun homeRailSearchRequest(
@@ -403,49 +372,6 @@ private fun HomeUiState.showSearch(
     )
 
 @Composable
-private fun ExploreByIdeas(
-    ideas: List<HomeDiscoveryIdea>,
-    onOpenSearch: (SearchLaunchRequest) -> Unit,
-) {
-    FeedRailCard(title = "Explore by", emptyMessage = "", itemCount = ideas.size) {
-        ideas.chunked(2).forEach { rowIdeas ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                rowIdeas.forEach { idea ->
-                    Surface(
-                        color = LaughTrackColors.Surface,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .height(72.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { onOpenSearch(idea.request) }
-                                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(12.dp)),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
-                            Text(idea.title, style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                idea.subtitle,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun ShowsTonightRail(
     shows: List<Show>,
     onOpenEntity: (AppRoute) -> Unit,
@@ -455,9 +381,14 @@ private fun ShowsTonightRail(
         title = null,
         emptyMessage = "No shows are listed for tonight yet.",
         itemCount = shows.size,
+        actionLabel = "See all",
+        onAction = onOpenSearch,
     ) {
-        TonightCarousel(shows = shows, onOpenEntity = onOpenEntity)
-        SeeAllButton(onClick = onOpenSearch)
+        FeaturedShowsCarousel(
+            headline = "Tonight!",
+            items = shows.map { show -> FeaturedShowCarouselItem(show = show) },
+            onOpenEntity = onOpenEntity,
+        )
     }
 }
 
@@ -470,35 +401,59 @@ private fun ShowListRail(
     onOpenEntity: (AppRoute) -> Unit,
     onOpenSearch: (() -> Unit)?,
 ) {
-    FeedRailCard(eyebrow = eyebrow, title = title, emptyMessage = emptyMessage, itemCount = shows.size) {
+    FeedRailCard(
+        eyebrow = eyebrow,
+        title = title,
+        emptyMessage = emptyMessage,
+        itemCount = shows.size,
+        actionLabel = onOpenSearch?.let { "See all" },
+        onAction = onOpenSearch,
+    ) {
         shows.forEach { show ->
             ShowListRow(
                 show = show,
                 onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
             )
         }
-        onOpenSearch?.let { SeeAllButton(onClick = it) }
     }
 }
 
 @Composable
 private fun DynamicShowListRail(
+    railKey: String,
     label: String,
     items: List<HomeFeedDynamicRailItem>,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     FeedRailCard(
-        eyebrow = "Picked for you",
-        title = label,
+        eyebrow = if (railKey == "just_passing_through") null else "Picked for you",
+        title = label.takeUnless { railKey == "just_passing_through" },
         emptyMessage = "",
         itemCount = items.size,
     ) {
-        items.forEach { item ->
-            ShowListRow(
-                show = item.show,
-                reasonLabel = item.reason.label,
-                onClick = { onOpenEntity(AppRoute.ShowDetail(item.show.id)) },
+        if (railKey == "just_passing_through") {
+            FeaturedShowsCarousel(
+                headline = label,
+                items =
+                    items.map { item ->
+                        FeaturedShowCarouselItem(
+                            show = item.show,
+                            preferredHeadlinerId = preferredDynamicRailHeadlinerId(railKey, item),
+                            accessibilityReasonLabel = item.reason.label,
+                            timestampLabel = formatShowDateTime(item.show),
+                        )
+                    },
+                onOpenEntity = onOpenEntity,
             )
+        } else {
+            items.forEach { item ->
+                ShowListRow(
+                    show = item.show,
+                    preferredHeadlinerId = preferredDynamicRailHeadlinerId(railKey, item),
+                    accessibilityReasonLabel = item.reason.label,
+                    onClick = { onOpenEntity(AppRoute.ShowDetail(item.show.id)) },
+                )
+            }
         }
     }
 }
@@ -509,7 +464,13 @@ private fun ComedianRail(
     onOpenEntity: (AppRoute) -> Unit,
     onOpenSearch: () -> Unit,
 ) {
-    FeedRailCard(title = "Comedians to watch", emptyMessage = "No comedians found.", itemCount = comedians.size) {
+    FeedRailCard(
+        title = "Comedians to watch",
+        emptyMessage = "No comedians found.",
+        itemCount = comedians.size,
+        actionLabel = "See all",
+        onAction = onOpenSearch,
+    ) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(comedians, key = { it.uuid }) { comedian ->
                 FeedCard(
@@ -522,7 +483,6 @@ private fun ComedianRail(
                 )
             }
         }
-        SeeAllButton(onClick = onOpenSearch)
     }
 }
 
@@ -532,7 +492,13 @@ private fun ClubRail(
     onOpenEntity: (AppRoute) -> Unit,
     onOpenSearch: () -> Unit,
 ) {
-    FeedRailCard(title = "Popular clubs", emptyMessage = "No clubs found.", itemCount = clubs.size) {
+    FeedRailCard(
+        title = "Popular clubs",
+        emptyMessage = "No clubs found.",
+        itemCount = clubs.size,
+        actionLabel = "See all",
+        onAction = onOpenSearch,
+    ) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(clubs, key = { it.id }) { club ->
                 FeedCard(
@@ -545,7 +511,6 @@ private fun ClubRail(
                 )
             }
         }
-        SeeAllButton(onClick = onOpenSearch)
     }
 }
 
@@ -555,6 +520,8 @@ internal fun FeedRailCard(
     title: String?,
     emptyMessage: String,
     itemCount: Int,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -584,8 +551,12 @@ internal fun FeedRailCard(
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
-                        content = content,
-                    )
+                    ) {
+                        content()
+                        if (actionLabel != null && onAction != null) {
+                            FeedRailAction(label = actionLabel, onClick = onAction)
+                        }
+                    }
                 }
             }
         }
@@ -623,14 +594,22 @@ private fun ShelfHeader(
     }
 }
 
+private data class FeaturedShowCarouselItem(
+    val show: Show,
+    val preferredHeadlinerId: Int? = null,
+    val accessibilityReasonLabel: String? = null,
+    val timestampLabel: String? = null,
+)
+
 @Composable
-private fun TonightCarousel(
-    shows: List<Show>,
+private fun FeaturedShowsCarousel(
+    headline: String,
+    items: List<FeaturedShowCarouselItem>,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    val selectedIndex by remember(listState, shows.size) {
-        derivedStateOf { tonightSelectedIndex(listState.firstVisibleItemIndex, shows.size) }
+    val selectedIndex by remember(listState, items.size) {
+        derivedStateOf { tonightSelectedIndex(listState.firstVisibleItemIndex, items.size) }
     }
 
     Column(
@@ -651,11 +630,11 @@ private fun TonightCarousel(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
-                    text = "TONIGHT!",
+                    text = headline.uppercase(Locale.US),
                     color = LaughTrackColors.AccentStrong,
                     fontWeight = FontWeight.Black,
-                    fontSize = 22.sp,
-                    letterSpacing = 2.4.sp,
+                    fontSize = if (headline.length > 14) 18.sp else 22.sp,
+                    letterSpacing = if (headline.length > 14) 1.8.sp else 2.4.sp,
                     maxLines = 1,
                 )
 
@@ -671,14 +650,14 @@ private fun TonightCarousel(
                         state = listState,
                         flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
                     ) {
-                        items(shows, key = { it.id }) { show ->
-                            TonightHeroPage(
-                                show = show,
+                        items(items, key = { it.show.id }) { item ->
+                            FeaturedShowHeroPage(
+                                item = item,
                                 modifier =
                                     Modifier
                                         .width(pageWidth)
                                         .fillParentMaxHeight(),
-                                onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
+                                onClick = { onOpenEntity(AppRoute.ShowDetail(item.show.id)) },
                             )
                         }
                     }
@@ -686,7 +665,7 @@ private fun TonightCarousel(
             }
         }
 
-        TonightPageIndicator(itemCount = shows.size, selectedIndex = selectedIndex)
+        TonightPageIndicator(itemCount = items.size, selectedIndex = selectedIndex)
     }
 }
 
@@ -696,22 +675,23 @@ internal fun tonightSelectedIndex(
 ): Int = firstVisibleItemIndex.coerceIn(0, (showCount - 1).coerceAtLeast(0))
 
 @Composable
-private fun TonightHeroPage(
-    show: Show,
+private fun FeaturedShowHeroPage(
+    item: FeaturedShowCarouselItem,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    val show = item.show
     TonightHeroCard(
         content =
             TonightHeroCardContent(
-                timeLabel = formatShowTime(show).orEmpty(),
+                timeLabel = item.timestampLabel ?: formatShowTime(show).orEmpty(),
                 title = show.name ?: "Show",
                 venueLabel = "At ${show.clubName ?: "Unknown club"}",
-                artworkUrl = heroArtworkUrl(show),
-                artworkCaption = heroArtworkCaption(show),
+                artworkUrl = heroArtworkUrl(show, item.preferredHeadlinerId),
+                artworkCaption = heroArtworkCaption(show, item.preferredHeadlinerId),
                 artworkContentDescription = show.name ?: "Show",
                 artworkFallback =
-                    if (heroArtworkComedian(show) != null) {
+                    if (heroArtworkComedian(show, item.preferredHeadlinerId) != null) {
                         RemoteImageFallback.Comedian
                     } else {
                         RemoteImageFallback.Show
@@ -719,7 +699,14 @@ private fun TonightHeroPage(
                 priceLabel = formatPrice(show.tickets?.mapNotNull { it.price }),
             ),
         onClick = onClick,
-        modifier = modifier,
+        modifier =
+            modifier.then(
+                item.accessibilityReasonLabel?.let { reason ->
+                    Modifier.semantics {
+                        contentDescription = homeDiscoverDynamicShowContentDescription(show, reason)
+                    }
+                } ?: Modifier,
+            ),
     )
 }
 
@@ -755,7 +742,8 @@ private fun TonightPageIndicator(
 @Composable
 private fun ShowListRow(
     show: Show,
-    reasonLabel: String? = null,
+    preferredHeadlinerId: Int? = null,
+    accessibilityReasonLabel: String? = null,
     onClick: () -> Unit,
 ) {
     TicketShowRow(
@@ -763,11 +751,11 @@ private fun ShowListRow(
         priceLabel = formatPrice(show.tickets?.mapNotNull { it.price }),
         onClick = onClick,
         modifier =
-            if (reasonLabel == null) {
+            if (accessibilityReasonLabel == null) {
                 Modifier
             } else {
                 Modifier.semantics {
-                    contentDescription = homeDiscoverDynamicShowContentDescription(show, reasonLabel)
+                    contentDescription = homeDiscoverDynamicShowContentDescription(show, accessibilityReasonLabel)
                 }
             },
         colors =
@@ -784,7 +772,11 @@ private fun ShowListRow(
                     ),
             ),
     ) { bodyModifier ->
-        ShowTicketBody(show = show, reasonLabel = reasonLabel, modifier = bodyModifier)
+        ShowTicketBody(
+            show = show,
+            preferredHeadlinerId = preferredHeadlinerId,
+            modifier = bodyModifier,
+        )
     }
 }
 
@@ -796,10 +788,10 @@ internal fun homeDiscoverDynamicShowContentDescription(
 @Composable
 private fun ShowTicketBody(
     show: Show,
-    reasonLabel: String? = null,
+    preferredHeadlinerId: Int? = null,
     modifier: Modifier = Modifier,
 ) {
-    val headliner = showHeadliner(show)
+    val headliner = showHeadliner(show, preferredHeadlinerId)
     val supporting = showSupportingLineup(show, excluding = headliner)
     Box(
         modifier =
@@ -814,14 +806,6 @@ private fun ShowTicketBody(
                 ShowHeadlinerBlock(show = show, headliner = headliner, supporting = supporting)
             } else {
                 ShowTitleOnlyBlock(show = show)
-            }
-
-            reasonLabel?.takeIf { it.isNotBlank() }?.let { reason ->
-                Text(
-                    text = reason,
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
 
             val badges = showTicketBadges(show)
@@ -938,7 +922,7 @@ private fun ShowTitleOnlyBlock(show: Show) {
 }
 
 @Composable
-internal fun SeeAllButton(
+internal fun FeedRailAction(
     label: String = "See all",
     onClick: () -> Unit,
 ) {

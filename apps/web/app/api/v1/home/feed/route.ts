@@ -235,7 +235,6 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             freshAndRisingRails?.startingToBuzz,
             freshAndRisingRails?.catchThemEarly,
             affinityRails?.fromYourPodcasts,
-            affinityRails?.stackedLineups,
             affinityRails?.becauseYouFollowThem,
         ]
             .filter(isPresent)

@@ -10,7 +10,7 @@ import Testing
 @Suite("Home podcast episode discovery")
 @MainActor
 struct HomePodcastEpisodeDiscoveryTests {
-    @Test("episode presentation includes discovery context and explainable recommendation")
+    @Test("episode presentation includes discovery context")
     func episodePresentationIncludesDiscoveryContext() {
         let now = Date(timeIntervalSince1970: 1_786_003_200)
         let episode = makeEpisode(
@@ -32,27 +32,6 @@ struct HomePodcastEpisodeDiscoveryTests {
         #expect(item.releaseMetadata == "2d ago · 42 min")
         #expect(item.comedianName == "Avery Stone")
         #expect(item.comedianRole == "Guest")
-        #expect(item.recommendationReason == "Because you follow Avery Stone")
-    }
-
-    @Test("recommendation reasons stay human readable")
-    func recommendationReasonsStayHumanReadable() {
-        let expected: [(Components.Schemas.HomeFeedPodcastEpisodeRecommendation.ReasonPayload, String)] = [
-            (.followedComedian, "Because you follow Avery Stone"),
-            (.favoritePodcast, "From a favorite podcast"),
-            (.guestAppearance, "Guest appearance by Avery Stone"),
-            (.popularComedian, "Featuring popular comedian Avery Stone"),
-            (.recentEpisode, "A recent episode with Avery Stone"),
-        ]
-
-        for (reason, label) in expected {
-            let item = HomePodcastEpisodeDiscoveryPresentation.item(
-                from: makeEpisode(reason: reason),
-                now: Date(timeIntervalSince1970: 1_786_003_200),
-                calendar: utcCalendar
-            )
-            #expect(item.recommendationReason == label)
-        }
     }
 
     @Test("detail selection and playback are separate actions")
@@ -98,6 +77,18 @@ struct HomePodcastEpisodeDiscoveryTests {
             podcastEpisodes: [makeEpisode()],
             trendingPodcasts: [legacy]
         )) == .episodes([makeEpisode()]))
+    }
+
+    @Test("episode recommendations are limited to five")
+    func episodeRecommendationsAreLimitedToFive() {
+        let episodes = (1...7).map { id in
+            makeEpisode(id: id)
+        }
+
+        #expect(HomeTrendingPodcastsModel.content(from: makeFeed(
+            podcastEpisodes: episodes,
+            trendingPodcasts: []
+        )) == .episodes(Array(episodes.prefix(5))))
     }
 
     @Test("public cache fallback does not suppress a session-scoped episode fetch")
@@ -154,11 +145,18 @@ struct HomePodcastEpisodeDiscoveryTests {
         #expect(publicValue?.podcastEpisodes == nil)
     }
 
-    @Test("rail exposes Browse podcasts and distinct detail and play controls")
-    func railExposesBrowseAndDistinctControls() throws {
+    @Test("episode rail omits the podcast catalog action and keeps distinct detail and play controls")
+    func episodeRailOmitsCatalogActionAndKeepsDistinctControls() throws {
         let source = try railSource()
+        let plannedSource = try plannedRailSource()
+        let episodeBlock = try #require(
+            plannedSource.components(separatedBy: "case .podcastEpisodes").last?
+                .components(separatedBy: "case .nearbyShows").first
+        )
 
-        #expect(source.contains("actionTitle: \"Browse podcasts\""))
+        #expect(source.contains("actionTitle: displaysBrowsePodcastsAction ? \"Browse podcasts\" : nil"))
+        #expect(source.contains("if case .success(.legacyPodcasts) = model.phase"))
+        #expect(!episodeBlock.contains("actionTitle:"))
         #expect(source.contains("coordinator.push(HomePodcastEpisodeDiscoveryPresentation.route(for: item))"))
         #expect(source.contains("podcastPlayer.start(playbackItem)"))
         #expect(source.contains("homePodcastEpisodeButton(item.id)"))
@@ -172,6 +170,7 @@ struct HomePodcastEpisodeDiscoveryTests {
     }
 
     private func makeEpisode(
+        id: Int = 701,
         releaseDate: Date = Date(timeIntervalSince1970: 1_786_003_200),
         durationSeconds: Int? = 2_520,
         audioURL: String? = "https://cdn.example.com/fresh-set.mp3",
@@ -179,7 +178,7 @@ struct HomePodcastEpisodeDiscoveryTests {
         role: Components.Schemas.HomeFeedPodcastEpisodeRecommendation.AppearanceRolePayload = .guest
     ) -> Components.Schemas.HomeFeedPodcastEpisode {
         .init(
-            id: 701,
+            id: id,
             title: "A Fresh Set",
             description: "A new conversation about stand-up.",
             releaseDate: releaseDate,
@@ -243,6 +242,18 @@ struct HomePodcastEpisodeDiscoveryTests {
             .deletingLastPathComponent()
         let sourceURL = iosRoot.appendingPathComponent(
             "Sources/LaughTrackApp/Home/Views/Rails/HomeTrendingPodcastsRail.swift"
+        )
+        return try String(contentsOf: sourceURL, encoding: .utf8)
+    }
+
+    private func plannedRailSource(filePath: String = #filePath) throws -> String {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot.appendingPathComponent(
+            "Sources/LaughTrackApp/Home/Views/Rails/HomeDiscoverPlannedRail.swift"
         )
         return try String(contentsOf: sourceURL, encoding: .utf8)
     }
