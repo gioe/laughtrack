@@ -284,6 +284,7 @@ class HomeDiscoverRailPlanTest {
         assertTrue(resolveHomeDiscoverRails(feed(rails = listOf(entry("future", "future", 0, emptyList())))) == null)
     }
 
+    @Suppress("LongParameterList")
     private fun feed(
         showsTonight: List<Show> = emptyList(),
         trendingThisWeek: List<Show> = emptyList(),

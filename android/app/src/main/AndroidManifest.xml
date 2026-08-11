@@ -63,7 +63,8 @@
         <service
             android:name="app.laughtrack.android.core.playback.PodcastPlaybackService"
             android:exported="true"
-            android:foregroundServiceType="mediaPlayback">
+            android:foregroundServiceType="mediaPlayback"
+            tools:ignore="Instantiatable">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
@@ -82,6 +83,18 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="comedian_arrivals" />
+
+        <!-- LaughTrackApplication supplies an on-demand WorkManager configuration;
+             remove only WorkManager's AndroidX Startup entry and retain the other
+             initializers contributed to the shared provider. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                tools:node="remove" />
+        </provider>
 
         <!-- Strip Sentry's auto-init ContentProviders. The SDK ships these in its
              manifest; SentryInitProvider.onCreate() calls Sentry.init() before

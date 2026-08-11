@@ -37,8 +37,8 @@ class HomeDiscoverSearchTest {
 
         assertTrue(source.contains("if (state.followedComedianShows.isNotEmpty())"))
         assertTrue(source.contains("key = \"followed-comedian-shows\""))
-        assertTrue(source.contains("title = \"Because you follow them\""))
-        assertTrue(source.contains("onOpenSearch = null"))
+        assertTrue(source.contains("private fun FollowedComedianShowsRail("))
+        assertTrue(source.contains("headline = \"Because you follow them\""))
         assertFalse(HomeExpandableRail.entries.any { it.name.contains("FOLLOWED") })
     }
 
