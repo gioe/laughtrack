@@ -11,6 +11,7 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedHero
 import app.laughtrack.android.core.network.generated.model.HomeFeedRailPlan
 import app.laughtrack.android.core.network.generated.model.HomeFeedRailPlanEntry
 import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -156,12 +157,45 @@ class HomeDiscoverRailPlanTest {
                     ),
             )
 
-        for (railKey in listOf("just_passing_through", "starting_to_buzz", "from_your_podcasts", "because_you_follow_them")) {
+        for (railKey in listOf("just_passing_through", "starting_to_buzz", "from_your_podcasts")) {
             assertTrue(isTodayStyleDynamicShowRail(railKey))
             assertEquals(81, preferredDynamicRailHeadlinerId(railKey, item))
         }
+        assertTrue(!isTodayStyleDynamicShowRail("because_you_follow_them"))
         assertNull(preferredDynamicRailHeadlinerId("only_chance_nearby", item))
         assertNull(preferredDynamicRailHeadlinerId("rare_returns", item))
+    }
+
+    @Test
+    fun followed_comedian_shows_are_capped_and_feature_the_favorite_lineup_member() {
+        val favorite =
+            ComedianLineup(
+                name = "Avery Stone",
+                imageUrl = "",
+                uuid = "avery-stone",
+                id = 81,
+                isFavorite = true,
+            )
+        val shows = (1..7).map { id -> show(id, lineup = if (id == 1) listOf(favorite) else emptyList()) }
+        val sections =
+            resolveHomeDiscoverRails(
+                feed(
+                    followedComedianShows = shows,
+                    rails =
+                        listOf(
+                            entry(
+                                "followed_comedian_shows",
+                                "followedComedianShows",
+                                0,
+                                shows.map { it.id.toString() },
+                            ),
+                        ),
+                ),
+            )!!
+
+        val content = sections.single().content as HomeDiscoverRailSection.Content.FollowedComedianShows
+        assertEquals(listOf(1, 2, 3, 4, 5), content.shows.map { it.id })
+        assertEquals(81, preferredFavoriteHeadlinerId(content.shows.first()))
     }
 
     @Test
@@ -253,6 +287,7 @@ class HomeDiscoverRailPlanTest {
     private fun feed(
         showsTonight: List<Show> = emptyList(),
         trendingThisWeek: List<Show> = emptyList(),
+        followedComedianShows: List<Show> = emptyList(),
         dynamicRails: List<HomeFeedDynamicRail>? = null,
         rails: List<HomeFeedRailPlanEntry> = emptyList(),
         railPlan: HomeFeedRailPlan? = plan(rails),
@@ -264,7 +299,7 @@ class HomeDiscoverRailPlanTest {
             showsTonight = showsTonight,
             moreNearYou = emptyList(),
             trendingThisWeek = trendingThisWeek,
-            followedComedianShows = emptyList(),
+            followedComedianShows = followedComedianShows,
             trendingPodcasts = emptyList(),
             popularClubs = emptyList(),
             dynamicRails = dynamicRails,
@@ -295,12 +330,16 @@ class HomeDiscoverRailPlanTest {
         itemIds = itemIds,
     )
 
-    private fun show(id: Int) =
+    private fun show(
+        id: Int,
+        lineup: List<ComedianLineup> = emptyList(),
+    ) =
         Show(
             id = id,
             clubId = 10,
             date = "2026-08-07T20:00:00-04:00",
             imageUrl = "",
             name = "Show $id",
+            lineup = lineup,
         )
 }

@@ -56,6 +56,24 @@ describe("filterAndMapLineupItems", () => {
             expect(result.isFavorite).toBe(true);
         });
 
+        it("is true for a visible canonical parent that is favorited", () => {
+            const item = makeItem({
+                favoriteComedians: [],
+                parentComedian: {
+                    id: 99,
+                    uuid: "uuid-99",
+                    name: "Canonical Comedian",
+                    visible: true,
+                    taggedComedians: [],
+                    favoriteComedians: [{ id: 99 }],
+                },
+            });
+            const [result] = filterAndMapLineupItems([item], "user-1");
+
+            expect(result.id).toBe(99);
+            expect(result.isFavorite).toBe(true);
+        });
+
         it("is false when userId is set and favoriteComedians is empty", () => {
             const item = makeItem({ favoriteComedians: [] });
             const [result] = filterAndMapLineupItems([item], "user-1");

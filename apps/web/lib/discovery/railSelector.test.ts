@@ -13,7 +13,7 @@ import {
 function rotatingPolicy(version = 7): DiscoveryRailPolicyDto {
     return {
         platform: "web",
-        catalogVersion: 4,
+        catalogVersion: 5,
         version,
         cycleCadenceHours: 24,
         rails: [
@@ -125,8 +125,8 @@ describe("selectDiscoveryRailPlan", () => {
     it("suppresses empty rails and deduplicates candidates", () => {
         const policy: DiscoveryRailPolicyDto = {
             platform: "web",
-            catalogVersion: 4,
-            version: 4,
+            catalogVersion: 5,
+            version: 5,
             cycleCadenceHours: 24,
             rails: [
                 {
@@ -240,16 +240,12 @@ describe("selectDiscoveryRailPlan", () => {
                 payloadKey: "dynamicRails",
                 items: [{ id: 41 }, { id: 42 }, { id: 43 }],
             },
-            because_you_follow_them: {
-                payloadKey: "dynamicRails",
-                items: [],
-            },
         };
         const policyFor = (
             railKeys: DiscoveryRailPolicyDto["rails"][number]["railKey"][],
         ): DiscoveryRailPolicyDto => ({
             platform: "web",
-            catalogVersion: 4,
+            catalogVersion: 5,
             version: 9,
             cycleCadenceHours: 24,
             rails: railKeys.map((railKey, position) => ({
@@ -266,7 +262,6 @@ describe("selectDiscoveryRailPlan", () => {
                 "starting_to_buzz",
                 "from_your_podcasts",
                 "just_passing_through",
-                "because_you_follow_them",
             ]),
             actorKey: "profile:dynamic",
             cycleIndex: 12,

@@ -37,5 +37,6 @@ export async function getFavoriteComedianShows(
         },
         [{ popularity: "desc" }, { date: "asc" }, { id: "asc" }],
         8,
+        { profileId },
     );
 }

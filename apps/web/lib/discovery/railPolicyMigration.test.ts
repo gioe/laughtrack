@@ -34,6 +34,13 @@ const MERGE_RARELY_NEARBY_MIGRATION_SQL = readFileSync(
     ),
     "utf8",
 );
+const REMOVE_DUPLICATE_FOLLOWED_RAIL_MIGRATION_SQL = readFileSync(
+    resolve(
+        WEB_ROOT,
+        "prisma/migrations/20260811010000_remove_duplicate_followed_rail/migration.sql",
+    ),
+    "utf8",
+);
 const SCHEMA_TEXT = readFileSync(
     resolve(WEB_ROOT, "prisma/schema.prisma"),
     "utf8",
@@ -606,5 +613,98 @@ describe("Rarely nearby rail merge migration", () => {
             { platform: "ios", policy_version: 4, catalog_version: 4 },
             { platform: "web", policy_version: 4, catalog_version: 4 },
         ]);
+    });
+});
+
+describe("duplicate followed-comedian rail removal migration", () => {
+    let db: PGlite;
+
+    beforeAll(async () => {
+        db = new PGlite();
+        await db.exec(BASE_SCHEMA_SQL);
+        await db.exec(MIGRATION_SQL);
+        await db.exec(DYNAMIC_MIGRATION_SQL);
+        await db.exec(REMOVE_STACKED_LINEUPS_MIGRATION_SQL);
+        await db.exec(MERGE_RARELY_NEARBY_MIGRATION_SQL);
+        await db.exec(`
+            CREATE TABLE discovery_impression_events (
+                id BIGSERIAL PRIMARY KEY,
+                surface TEXT NOT NULL,
+                CONSTRAINT discovery_impression_events_surface_check CHECK (
+                    surface IN ('because_you_follow_them', 'followed_comedian_shows')
+                )
+            );
+        `);
+        await db.exec(REMOVE_DUPLICATE_FOLLOWED_RAIL_MIGRATION_SQL);
+    });
+
+    afterAll(async () => {
+        await db.close();
+    });
+
+    it("removes the duplicate rail and makes the remaining affinity rail fixed", async () => {
+        const retiredCatalog = await db.query<{ count: string }>(`
+            SELECT COUNT(*)::text AS count
+            FROM discovery_rail_catalog
+            WHERE key = 'because_you_follow_them'
+        `);
+        const retiredEntries = await db.query<{ count: string }>(`
+            SELECT COUNT(*)::text AS count
+            FROM discovery_rail_policy_entries
+            WHERE rail_key = 'because_you_follow_them'
+        `);
+        const podcastEntries = await db.query<EntryRow>(`
+            SELECT platform, rail_key, enabled, position, rotation_pool, weight
+            FROM discovery_rail_policy_entries
+            WHERE rail_key = 'from_your_podcasts'
+            ORDER BY platform
+        `);
+
+        expect(retiredCatalog.rows[0].count).toBe("0");
+        expect(retiredEntries.rows[0].count).toBe("0");
+        expect(podcastEntries.rows).toEqual(
+            ["android", "ios", "web"].map((platform) => ({
+                platform,
+                rail_key: "from_your_podcasts",
+                enabled: true,
+                position: 8,
+                rotation_pool: null,
+                weight: 1,
+            })),
+        );
+    });
+
+    it("bumps persisted policies to version five and retires the impression surface", async () => {
+        const policies = await db.query<PolicyRow>(`
+            SELECT platform, policy_version, catalog_version, cycle_cadence_hours
+            FROM discovery_rail_platform_policies
+            ORDER BY platform
+        `);
+
+        expect(
+            policies.rows.map(
+                ({ platform, policy_version, catalog_version }) => ({
+                    platform,
+                    policy_version,
+                    catalog_version,
+                }),
+            ),
+        ).toEqual([
+            { platform: "android", policy_version: 5, catalog_version: 5 },
+            { platform: "ios", policy_version: 5, catalog_version: 5 },
+            { platform: "web", policy_version: 5, catalog_version: 5 },
+        ]);
+        await expect(
+            db.query(`
+                INSERT INTO discovery_impression_events (surface)
+                VALUES ('because_you_follow_them')
+            `),
+        ).rejects.toThrow();
+        await expect(
+            db.query(`
+                INSERT INTO discovery_impression_events (surface)
+                VALUES ('followed_comedian_shows')
+            `),
+        ).resolves.toBeDefined();
     });
 });

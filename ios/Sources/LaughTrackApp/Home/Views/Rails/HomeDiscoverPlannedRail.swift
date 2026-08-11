@@ -38,12 +38,32 @@ struct HomeDiscoverPlannedRail: View {
             }
 
         case .followedComedianShows(let shows):
-            showListRail(
-                shows: shows,
-                eyebrow: "Your lineup",
-                title: "Shows from comedians you follow",
+            HomeDiscoverRailCard(
+                variant: .spotlight,
+                eyebrow: nil,
+                title: nil,
+                subtitle: nil,
                 accessibilityIdentifier: "laughtrack.home.followed-comedian-shows-rail"
-            )
+            ) {
+                HomeFeaturedShowsCarousel(
+                    headline: "Because you follow them",
+                    items: shows.prefix(HomeDiscoverRailPlanPresentation.itemLimit).map { show in
+                        HomeFeaturedShowCarouselItem(
+                            show: show,
+                            preferredHeadlinerID: HomeDiscoverRailPlanPresentation.preferredFavoriteHeadlinerID(
+                                show: show
+                            ),
+                            accessibilityIdentifier: "laughtrack.home.followed-comedian-shows-show-\(show.id)",
+                            accessibilityLabel: ShowTitlePresentation.title(for: show),
+                            timestampLabel: ShowFormatting.featuredDateTime(
+                                show.date,
+                                timezoneID: show.timezone
+                            )
+                        )
+                    },
+                    onSelect: trackSelection
+                )
+            }
 
         case .trendingThisWeek(let shows):
             showListRail(

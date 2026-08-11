@@ -82,12 +82,12 @@ function rails() {
 
 function policyResponse(webVersion = 7) {
     return {
-        catalogVersion: 3,
+        catalogVersion: 5,
         catalog,
         platforms: [
             {
                 platform: "web",
-                catalogVersion: 3,
+                catalogVersion: 5,
                 version: webVersion,
                 cycleCadenceHours: 24,
                 rails: rails(),
@@ -101,7 +101,7 @@ function policyResponse(webVersion = 7) {
             },
             {
                 platform: "ios",
-                catalogVersion: 3,
+                catalogVersion: 5,
                 version: 4,
                 cycleCadenceHours: 12,
                 rails: rails(),
@@ -111,7 +111,7 @@ function policyResponse(webVersion = 7) {
             },
             {
                 platform: "android",
-                catalogVersion: 3,
+                catalogVersion: 5,
                 version: 5,
                 cycleCadenceHours: 6,
                 rails: rails(),

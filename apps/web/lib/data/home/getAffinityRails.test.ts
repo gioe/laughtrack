@@ -63,7 +63,6 @@ function row(
         canonicalComedianId,
         canonicalComedianUuid: `comic-${canonicalComedianId}`,
         canonicalComedianName: `Comic ${canonicalComedianId}`,
-        favoriteComedian: false,
         podcastId: null,
         podcastSlug: null,
         podcastTitle: null,
@@ -285,41 +284,12 @@ describe("getAffinityRails", () => {
         }
     });
 
-    it("favorites and anonymous users resolve direct canonical matches while keeping personalized rails private", async () => {
-        const database = await buildFixture();
-        try {
-            const query = buildAffinityQuery({
-                profileId: "profile-1",
-                now: NOW,
-                horizonEnd: new Date("2026-11-05T12:00:00.000Z"),
-                appearanceCutoff: new Date("2026-07-08T12:00:00.000Z"),
-            });
-            const result = await database.query<{
-                show_id: number;
-                canonical_comedian_id: number;
-                favorite_comedian: boolean;
-            }>(...(Object.values(toPgliteQuery(query)) as [string, unknown[]]));
-            expect(
-                result.rows.find(
-                    (candidate) =>
-                        candidate.show_id === 104 &&
-                        candidate.canonical_comedian_id === 4,
-                ),
-            ).toMatchObject({ favorite_comedian: true });
-        } finally {
-            await database.close();
-        }
-
+    it("keeps podcast affinity private for anonymous users", async () => {
         const anonymous = classifyAffinityCandidates(
-            [
-                podcastRow(301, 1, { favoriteComedian: true }),
-                row(301, 2),
-                row(301, 3),
-            ],
+            [podcastRow(301, 1), row(301, 2), row(301, 3)],
             { ...REQUEST, personalized: false },
         );
         expect(anonymous.fromYourPodcasts).toEqual([]);
-        expect(anonymous.becauseYouFollowThem).toEqual([]);
 
         mockQueryRaw.mockResolvedValue([
             {
@@ -334,7 +304,6 @@ describe("getAffinityRails", () => {
                 canonical_comedian_id: 1,
                 canonical_comedian_uuid: "comic-1",
                 canonical_comedian_name: "Comic 1",
-                favorite_comedian: true,
                 podcast_id: 10,
                 podcast_slug: "favorite",
                 podcast_title: "Favorite Podcast",
@@ -356,7 +325,6 @@ describe("getAffinityRails", () => {
                 canonical_comedian_id: id,
                 canonical_comedian_uuid: `comic-${id}`,
                 canonical_comedian_name: `Comic ${id}`,
-                favorite_comedian: false,
                 podcast_id: null,
                 podcast_slug: null,
                 podcast_title: null,
@@ -369,24 +337,18 @@ describe("getAffinityRails", () => {
         ] as never);
         const result = await getAffinityRails(null, { now: NOW });
         expect(result.fromYourPodcasts.items).toEqual([]);
-        expect(result.becauseYouFollowThem.items).toEqual([]);
         expect(mockFindShowsForHome).not.toHaveBeenCalled();
     });
 
-    it("canonical aliases merge evidence and selected shows deduplicate against higher-priority rails", () => {
+    it("canonical aliases merge evidence and excluded shows stay excluded", () => {
         const candidates = [
-            podcastRow(401, 1, { favoriteComedian: true }),
+            podcastRow(401, 1),
             row(401, 1, {
                 canonicalComedianUuid: "alias-of-1",
-                favoriteComedian: true,
             }),
             row(401, 2),
             row(401, 3),
-            row(402, 1, { favoriteComedian: true }),
-            row(402, 2),
-            row(402, 3),
-            row(403, 4, { favoriteComedian: true }),
-            podcastRow(404, 5, { favoriteComedian: true }),
+            podcastRow(404, 5),
         ];
 
         const selected = classifyAffinityCandidates(candidates, {
@@ -397,43 +359,5 @@ describe("getAffinityRails", () => {
         expect(selected.fromYourPodcasts.map(({ showId }) => showId)).toEqual([
             401,
         ]);
-        expect(
-            selected.becauseYouFollowThem.map(({ showId }) => showId),
-        ).toEqual([402, 403]);
-    });
-
-    it("preserves fixed cross-rail dedup by default and can defer priority to the home-feed selector", () => {
-        const candidates = [
-            podcastRow(501, 1, { favoriteComedian: true }),
-            row(501, 2),
-            row(501, 3),
-        ];
-
-        const defaultPriority = classifyAffinityCandidates(candidates, REQUEST);
-        expect(
-            defaultPriority.fromYourPodcasts.map(({ showId }) => showId),
-        ).toEqual([501]);
-        expect(defaultPriority.becauseYouFollowThem).toEqual([]);
-
-        const policyPriority = classifyAffinityCandidates(candidates, {
-            ...REQUEST,
-            deduplicateAcrossRails: false,
-        });
-        expect(
-            policyPriority.fromYourPodcasts.map(({ showId }) => showId),
-        ).toEqual([501]);
-        expect(
-            policyPriority.becauseYouFollowThem.map(({ showId }) => showId),
-        ).toEqual([501]);
-
-        const externallyExcluded = classifyAffinityCandidates(candidates, {
-            ...REQUEST,
-            deduplicateAcrossRails: false,
-            excludedShowIds: [501],
-        });
-        expect(externallyExcluded).toEqual({
-            fromYourPodcasts: [],
-            becauseYouFollowThem: [],
-        });
     });
 });

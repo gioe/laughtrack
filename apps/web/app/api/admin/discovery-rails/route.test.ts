@@ -80,7 +80,7 @@ const adminSession = {
 const currentWebPolicy = {
     platform: "web",
     policyVersion: 1,
-    catalogVersion: 4,
+    catalogVersion: 5,
     cycleCadenceHours: 24,
     updatedByProfileId: null,
     updatedByProfile: {
@@ -114,7 +114,7 @@ const currentWebPolicy = {
 
 const validUpdate = {
     platform: "web",
-    catalogVersion: 4,
+    catalogVersion: 5,
     expectedVersion: 1,
     cycleCadenceHours: 12,
     rails: [
@@ -216,7 +216,7 @@ describe("GET /api/admin/discovery-rails", () => {
         const body = await response.json();
 
         expect(response.status).toBe(200);
-        expect(body.catalogVersion).toBe(4);
+        expect(body.catalogVersion).toBe(5);
         expect(body.catalog).toEqual(catalog);
         expect(
             body.platforms.map(
@@ -247,8 +247,8 @@ describe("GET /api/admin/discovery-rails", () => {
             updatedAt: null,
             updatedBy: null,
         });
-        expect(body.platforms[1].rails).toHaveLength(10);
-        expect(body.platforms[2].rails).toHaveLength(10);
+        expect(body.platforms[1].rails).toHaveLength(9);
+        expect(body.platforms[2].rails).toHaveLength(9);
         expect(tx.discoveryRailPlatformPolicy.findMany).toHaveBeenCalledWith({
             include: {
                 entries: true,
@@ -399,7 +399,7 @@ describe("PATCH /api/admin/discovery-rails", () => {
             ok: true,
             policy: {
                 platform: "web",
-                catalogVersion: 4,
+                catalogVersion: 5,
                 version: 2,
                 cycleCadenceHours: 12,
                 rails: validUpdate.rails,
@@ -409,7 +409,7 @@ describe("PATCH /api/admin/discovery-rails", () => {
             where: { platform: "web", policyVersion: 1 },
             data: {
                 policyVersion: { increment: 1 },
-                catalogVersion: 4,
+                catalogVersion: 5,
                 cycleCadenceHours: 12,
                 updatedByProfileId: "profile-1",
             },

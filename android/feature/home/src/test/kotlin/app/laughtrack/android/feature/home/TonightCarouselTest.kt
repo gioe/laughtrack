@@ -39,6 +39,8 @@ class TonightCarouselTest {
         assertTrue(source.contains("FeaturedShowsCarousel("))
         assertTrue(source.contains("preferredHeadlinerId = preferredDynamicRailHeadlinerId(railKey, item)"))
         assertTrue(source.contains("timestampLabel = formatShowDateTime(item.show)"))
+        assertTrue(source.contains("private fun FollowedComedianShowsRail("))
+        assertTrue(source.contains("preferredHeadlinerId = preferredFavoriteHeadlinerId(show)"))
         assertTrue(movingPage.contains("item.timestampLabel ?: formatShowTime(show).orEmpty()"))
     }
 

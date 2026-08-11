@@ -65,6 +65,7 @@ describe("getFavoriteComedianShows", () => {
             },
             [{ popularity: "desc" }, { date: "asc" }, { id: "asc" }],
             8,
+            { profileId: "profile-1" },
         );
     });
 

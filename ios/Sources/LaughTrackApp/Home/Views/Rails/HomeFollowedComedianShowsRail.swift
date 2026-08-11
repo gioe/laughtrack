@@ -13,8 +13,6 @@ struct HomeFollowedComedianShowsRail: View {
     let persistentCache: PersistentMainPageCache
 
     @EnvironmentObject private var authManager: AuthManager
-    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
-    @Environment(\.appTheme) private var theme
     @StateObject private var model = HomeFollowedComedianShowsModel()
 
     private var zipCode: String? {
@@ -35,23 +33,29 @@ struct HomeFollowedComedianShowsRail: View {
         Group {
             if case .success(let shows) = model.phase, !shows.isEmpty {
                 HomeDiscoverRailCard(
-                    variant: .scheduleBoard,
-                    eyebrow: "Your lineup",
-                    title: "Shows from comedians you follow",
+                    variant: .spotlight,
+                    eyebrow: nil,
+                    title: nil,
                     subtitle: nil,
                     accessibilityIdentifier: "laughtrack.home.followed-comedian-shows-rail"
                 ) {
-                    VStack(spacing: theme.spacing.sm) {
-                        ForEach(shows, id: \.id) { show in
-                            Button {
-                                coordinator.open(.show(show.id))
-                            } label: {
-                                ShowRow(show: show, presentation: .compactTicket)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier(LaughTrackViewTestID.homeFavoriteShowButton(show.id))
+                    HomeFeaturedShowsCarousel(
+                        headline: "Because you follow them",
+                        items: shows.prefix(HomeDiscoverRailPlanPresentation.itemLimit).map { show in
+                            HomeFeaturedShowCarouselItem(
+                                show: show,
+                                preferredHeadlinerID: HomeDiscoverRailPlanPresentation.preferredFavoriteHeadlinerID(
+                                    show: show
+                                ),
+                                accessibilityIdentifier: LaughTrackViewTestID.homeFavoriteShowButton(show.id),
+                                accessibilityLabel: ShowTitlePresentation.title(for: show),
+                                timestampLabel: ShowFormatting.featuredDateTime(
+                                    show.date,
+                                    timezoneID: show.timezone
+                                )
+                            )
                         }
-                    }
+                    )
                 }
             }
         }

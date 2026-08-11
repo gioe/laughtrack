@@ -72,7 +72,6 @@ const DYNAMIC_SHOW_RAIL_KEYS = new Set<string>([
     "just_passing_through",
     "starting_to_buzz",
     "from_your_podcasts",
-    "because_you_follow_them",
 ]);
 
 function selectedItems<T>(

@@ -54,7 +54,6 @@ const SHOW_RAIL_KEYS = new Set<DiscoveryRailKey>([
     "just_passing_through",
     "starting_to_buzz",
     "from_your_podcasts",
-    "because_you_follow_them",
 ]);
 
 /**

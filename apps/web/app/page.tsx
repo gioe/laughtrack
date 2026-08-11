@@ -186,9 +186,7 @@ export default async function HomePage() {
             radiusMiles: DEFAULT_HOME_RADIUS_MILES,
         }).catch(() => null),
         getFreshAndRisingRails().catch(() => null),
-        getAffinityRails(session?.profile?.id, {
-            deduplicateAcrossRails: false,
-        }).catch(() => null),
+        getAffinityRails(session?.profile?.id).catch(() => null),
     ]);
 
     const showsNearYou = nearYouResult.shows;
@@ -216,9 +214,6 @@ export default async function HomePage() {
             : null,
         affinityRails?.fromYourPodcasts
             ? withDynamicItemIds(affinityRails.fromYourPodcasts)
-            : null,
-        affinityRails?.becauseYouFollowThem
-            ? withDynamicItemIds(affinityRails.becauseYouFollowThem)
             : null,
     ]
         .filter(isPresent)

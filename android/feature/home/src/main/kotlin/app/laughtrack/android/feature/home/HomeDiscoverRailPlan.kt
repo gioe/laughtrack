@@ -129,6 +129,7 @@ private fun resolveContent(
                 .ifNotEmpty(HomeDiscoverRailSection.Content::ShowsTonight)
         FOLLOWED_COMEDIAN_SHOWS to PAYLOAD_FOLLOWED_SHOWS ->
             select(entry.itemIds, feed.followedComedianShows) { it.id.toString() }
+                .take(HOME_DISCOVER_RAIL_ITEM_LIMIT)
                 .ifNotEmpty(HomeDiscoverRailSection.Content::FollowedComedianShows)
         TRENDING_THIS_WEEK to PAYLOAD_TRENDING_THIS_WEEK ->
             select(entry.itemIds, feed.trendingThisWeek) { it.id.toString() }
@@ -183,6 +184,9 @@ internal fun preferredDynamicRailHeadlinerId(
     item: HomeFeedDynamicRailItem,
 ): Int? = item.performer?.id.takeIf { isTodayStyleDynamicShowRail(railKey) }
 
+internal fun preferredFavoriteHeadlinerId(show: Show): Int? =
+    show.lineup.orEmpty().firstOrNull { it.isFavorite == true }?.id
+
 internal fun isTodayStyleDynamicShowRail(railKey: String): Boolean =
     railKey in DYNAMIC_RAIL_KEYS
 
@@ -222,5 +226,4 @@ private val DYNAMIC_RAIL_KEYS =
         "just_passing_through",
         "starting_to_buzz",
         "from_your_podcasts",
-        "because_you_follow_them",
     )

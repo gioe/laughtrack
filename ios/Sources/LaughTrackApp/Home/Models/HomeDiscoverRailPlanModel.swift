@@ -28,7 +28,6 @@ enum HomeDiscoverRailPlanPresentation {
         "just_passing_through",
         "starting_to_buzz",
         "from_your_podcasts",
-        "because_you_follow_them",
     ]
 
     static func usesTodayStyleShowCarousel(railKey: String) -> Bool {
@@ -41,6 +40,12 @@ enum HomeDiscoverRailPlanPresentation {
     ) -> Int? {
         guard usesTodayStyleShowCarousel(railKey: railKey) else { return nil }
         return item.performer?.id
+    }
+
+    static func preferredFavoriteHeadlinerID(
+        show: Components.Schemas.Show
+    ) -> Int? {
+        show.lineup?.first(where: { $0.isFavorite == true })?.id
     }
 
     /// Returns nil when the response has no compatible iOS plan, which tells
@@ -100,7 +105,7 @@ enum HomeDiscoverRailPlanPresentation {
             }
         case ("followed_comedian_shows", "followedComedianShows"):
             if let shows = nonEmptyShows(itemIDs, from: feed.followedComedianShows) {
-                content = .followedComedianShows(shows)
+                content = .followedComedianShows(Array(shows.prefix(itemLimit)))
             } else {
                 content = nil
             }

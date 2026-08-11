@@ -191,13 +191,9 @@ private fun HomeContent(
                 }
                 if (state.followedComedianShows.isNotEmpty()) {
                     item(key = "followed-comedian-shows") {
-                        ShowListRail(
-                            eyebrow = "For You",
-                            title = "Because you follow them",
-                            emptyMessage = "",
+                        FollowedComedianShowsRail(
                             shows = state.followedComedianShows,
                             onOpenEntity = onOpenEntity,
-                            onOpenSearch = null,
                         )
                     }
                 }
@@ -268,13 +264,9 @@ private fun HomeDiscoverPlannedRail(
                 onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.TONIGHT, state)) },
             )
         is HomeDiscoverRailSection.Content.FollowedComedianShows ->
-            ShowListRail(
-                eyebrow = "For You",
-                title = "Because you follow them",
-                emptyMessage = "",
+            FollowedComedianShowsRail(
                 shows = content.shows,
                 onOpenEntity = ::trackedOpen,
-                onOpenSearch = null,
             )
         is HomeDiscoverRailSection.Content.TrendingThisWeek ->
             ShowListRail(
@@ -387,6 +379,31 @@ private fun ShowsTonightRail(
         FeaturedShowsCarousel(
             headline = "Tonight!",
             items = shows.map { show -> FeaturedShowCarouselItem(show = show) },
+            onOpenEntity = onOpenEntity,
+        )
+    }
+}
+
+@Composable
+private fun FollowedComedianShowsRail(
+    shows: List<Show>,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
+    FeedRailCard(
+        title = null,
+        emptyMessage = "",
+        itemCount = shows.size,
+    ) {
+        FeaturedShowsCarousel(
+            headline = "Because you follow them",
+            items =
+                shows.take(HOME_DISCOVER_RAIL_ITEM_LIMIT).map { show ->
+                    FeaturedShowCarouselItem(
+                        show = show,
+                        preferredHeadlinerId = preferredFavoriteHeadlinerId(show),
+                        timestampLabel = formatShowDateTime(show),
+                    )
+                },
             onOpenEntity = onOpenEntity,
         )
     }

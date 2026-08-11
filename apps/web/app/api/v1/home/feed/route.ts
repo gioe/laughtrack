@@ -222,16 +222,15 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             getFreshAndRisingRails().catch(
                 logProviderError("getFreshAndRisingRails"),
             ),
-            getAffinityRails(profileId, {
-                deduplicateAcrossRails: false,
-            }).catch(logProviderError("getAffinityRails")),
+            getAffinityRails(profileId).catch(
+                logProviderError("getAffinityRails"),
+            ),
         ]);
 
         const dynamicRails = [
             touringScarcityRails?.justPassingThrough,
             freshAndRisingRails?.startingToBuzz,
             affinityRails?.fromYourPodcasts,
-            affinityRails?.becauseYouFollowThem,
         ]
             .filter(isPresent)
             .map(withDynamicItemIds)

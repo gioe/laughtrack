@@ -11,7 +11,6 @@ import {
 const dynamicKeys = [
     "just_passing_through",
     "starting_to_buzz",
-    "because_you_follow_them",
     "from_your_podcasts",
 ] as const;
 
@@ -81,7 +80,7 @@ function messages(
 
 describe("discovery rail catalog", () => {
     it("uses stable keys and declares content, auth, and platform metadata", () => {
-        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(4);
+        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(5);
         expect(Object.keys(DISCOVERY_RAIL_CATALOG)).toEqual([
             "shows_tonight",
             "followed_comedian_shows",
@@ -93,7 +92,6 @@ describe("discovery rail catalog", () => {
             "just_passing_through",
             "starting_to_buzz",
             "from_your_podcasts",
-            "because_you_follow_them",
         ]);
         expect(DISCOVERY_RAIL_CATALOG.followed_comedian_shows).toMatchObject({
             contentKind: "show",
@@ -121,15 +119,15 @@ describe("production-compatible defaults", () => {
             const policy = DISCOVERY_RAIL_DEFAULTS[platform];
             expect(policy).toMatchObject({
                 platform,
-                catalogVersion: 4,
-                version: 4,
+                catalogVersion: 5,
+                version: 5,
                 cycleCadenceHours: 24,
             });
             expect(policy.rails.map((rail) => rail.railKey)).toEqual(
                 expectedKeys[platform],
             );
             expect(policy.rails.map((rail) => rail.position)).toEqual([
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 8,
+                0, 1, 2, 3, 4, 5, 6, 7, 8,
             ]);
             expect(
                 policy.rails
@@ -153,14 +151,12 @@ describe("production-compatible defaults", () => {
                 rotationPool: null,
                 weight: 1,
             });
-            expect(
-                policy.rails.slice(8).map((rail) => rail.rotationPool),
-            ).toEqual(["affinity", "affinity"]);
-            expect(
-                policy.rails
-                    .slice(8)
-                    .every((rail) => rail.enabled && rail.weight === 1),
-            ).toBe(true);
+            expect(policy.rails[8]).toMatchObject({
+                railKey: "from_your_podcasts",
+                position: 8,
+                rotationPool: null,
+                weight: 1,
+            });
             expect(() => parseDiscoveryRailPolicy(policy)).not.toThrow();
         },
     );

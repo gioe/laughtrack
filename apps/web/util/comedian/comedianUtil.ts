@@ -101,7 +101,8 @@ const mapLineupItem = (
             : {}),
         ...(item.role ? { role: item.role } : {}),
         isFavorite: userId
-            ? (item.comedian.favoriteComedians?.length ?? 0) > 0
+            ? (item.comedian.favoriteComedians?.length ?? 0) > 0 ||
+              (effectiveComedian.favoriteComedians?.length ?? 0) > 0
             : false,
         isAlias,
     };

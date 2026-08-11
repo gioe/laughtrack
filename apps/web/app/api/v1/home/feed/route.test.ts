@@ -156,11 +156,6 @@ function primeHappyPath() {
             label: "From your podcasts",
             items: [],
         },
-        becauseYouFollowThem: {
-            railKey: "because_you_follow_them",
-            label: "Because you follow them",
-            items: [],
-        },
     });
 }
 
@@ -197,8 +192,8 @@ describe("GET /api/v1/home/feed", () => {
                 );
                 expect(body.data.railPlan).toMatchObject({
                     version: 1,
-                    catalogVersion: 4,
-                    policyVersion: 4,
+                    catalogVersion: 5,
+                    policyVersion: 5,
                     platform,
                     rails: expect.arrayContaining([
                         {
@@ -256,8 +251,8 @@ describe("GET /api/v1/home/feed", () => {
             expect(res.status).toBe(200);
             expect(body.data.railPlan).toMatchObject({
                 version: 1,
-                catalogVersion: 4,
-                policyVersion: 4,
+                catalogVersion: 5,
+                policyVersion: 5,
                 platform: "ios",
             });
         });
@@ -313,16 +308,11 @@ describe("GET /api/v1/home/feed", () => {
                     label: "From your podcasts",
                     items: [],
                 },
-                becauseYouFollowThem: {
-                    railKey: "because_you_follow_them",
-                    label: "Because you follow them",
-                    items: [],
-                },
             } as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "web",
-                catalogVersion: 4,
-                version: 4,
+                catalogVersion: 5,
+                version: 5,
                 cycleCadenceHours: 24,
                 rails: ["just_passing_through", "starting_to_buzz"].map(
                     (railKey, position) => ({
@@ -346,9 +336,7 @@ describe("GET /api/v1/home/feed", () => {
                 radiusMiles: 40,
             });
             expect(mockGetFreshAndRisingRails).toHaveBeenCalledWith();
-            expect(mockGetAffinityRails).toHaveBeenCalledWith("profile-1", {
-                deduplicateAcrossRails: false,
-            });
+            expect(mockGetAffinityRails).toHaveBeenCalledWith("profile-1");
             expect(body.data.dynamicRails).toHaveLength(2);
             expect(body.data.dynamicRails).toEqual(
                 expect.arrayContaining([
@@ -417,8 +405,8 @@ describe("GET /api/v1/home/feed", () => {
             ] as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "web",
-                catalogVersion: 4,
-                version: 4,
+                catalogVersion: 5,
+                version: 5,
                 cycleCadenceHours: 24,
                 rails: [
                     {

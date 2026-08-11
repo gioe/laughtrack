@@ -81,7 +81,7 @@ struct HomeDiscoverRailPlanTests {
 
     @Test("best shows this week is limited to five shows")
     func bestShowsThisWeekIsLimitedToFiveShows() throws {
-        let shows = (1...7).map(makeShow)
+        let shows = (1...7).map { makeShow($0) }
         let feed = makeFeed(
             trendingThisWeek: shows,
             railPlan: makePlan(rails: [
@@ -276,7 +276,6 @@ struct HomeDiscoverRailPlanTests {
             "just_passing_through",
             "starting_to_buzz",
             "from_your_podcasts",
-            "because_you_follow_them",
         ] {
             #expect(HomeDiscoverRailPlanPresentation.usesTodayStyleShowCarousel(railKey: railKey))
             #expect(
@@ -292,12 +291,48 @@ struct HomeDiscoverRailPlanTests {
                 item: item
             ) == nil
         )
+        #expect(!HomeDiscoverRailPlanPresentation.usesTodayStyleShowCarousel(
+            railKey: "because_you_follow_them"
+        ))
         #expect(
             HomeDiscoverRailPlanPresentation.preferredHeadlinerID(
                 railKey: "rare_returns",
                 item: item
             ) == nil
         )
+    }
+
+    @Test("followed comedian shows are capped and feature the favorite lineup member")
+    func followedComedianShowsAreCappedAndFeatureFavorite() throws {
+        let favorite = Components.Schemas.ComedianLineup(
+            name: "Avery Stone",
+            imageUrl: "",
+            uuid: "avery-stone",
+            id: 81,
+            isFavorite: true
+        )
+        let shows = (1...7).map { id in
+            makeShow(id, lineup: id == 1 ? [favorite] : [])
+        }
+        let feed = makeFeed(
+            followedComedianShows: shows,
+            railPlan: makePlan(rails: [
+                .init(
+                    railKey: "followed_comedian_shows",
+                    payloadKey: "followedComedianShows",
+                    position: 0,
+                    itemIds: shows.map { String($0.id) }
+                )
+            ])
+        )
+
+        let sections = try #require(HomeDiscoverRailPlanPresentation.sections(from: feed))
+        guard case .followedComedianShows(let limitedShows) = sections[0].content else {
+            Issue.record("Expected followed-comedian shows")
+            return
+        }
+        #expect(limitedShows.map(\.id) == [1, 2, 3, 4, 5])
+        #expect(HomeDiscoverRailPlanPresentation.preferredFavoriteHeadlinerID(show: limitedShows[0]) == 81)
     }
 
     @Test("location changes refresh plans and planned show rails preserve See all handoff")
@@ -346,6 +381,7 @@ private func makePlan(
 private func makeFeed(
     showsTonight: [Components.Schemas.Show] = [],
     trendingThisWeek: [Components.Schemas.Show] = [],
+    followedComedianShows: [Components.Schemas.Show] = [],
     podcastEpisodes: [Components.Schemas.HomeFeedPodcastEpisode]? = nil,
     dynamicRails: [Components.Schemas.HomeFeedDynamicRail]? = nil,
     railPlan: Components.Schemas.HomeFeedRailPlan? = nil
@@ -357,7 +393,7 @@ private func makeFeed(
         showsTonight: showsTonight,
         moreNearYou: [],
         trendingThisWeek: trendingThisWeek,
-        followedComedianShows: [],
+        followedComedianShows: followedComedianShows,
         podcastEpisodes: podcastEpisodes,
         trendingPodcasts: [],
         popularClubs: [],
@@ -404,7 +440,10 @@ private func makeEpisode(id: Int) -> Components.Schemas.HomeFeedPodcastEpisode {
     )
 }
 
-private func makeShow(_ id: Int) -> Components.Schemas.Show {
+private func makeShow(
+    _ id: Int,
+    lineup: [Components.Schemas.ComedianLineup] = []
+) -> Components.Schemas.Show {
     .init(
         id: id,
         clubId: 301,
@@ -413,7 +452,7 @@ private func makeShow(_ id: Int) -> Components.Schemas.Show {
         tickets: [],
         name: "Show \(id)",
         socialData: nil,
-        lineup: [],
+        lineup: lineup,
         description: nil,
         address: "241 E 24th St, New York, NY",
         room: nil,

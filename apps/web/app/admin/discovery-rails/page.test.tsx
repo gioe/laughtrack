@@ -72,13 +72,13 @@ describe("AdminDiscoveryRailsPage", () => {
 
         await waitFor(() => {
             expect(
-                screen.getByRole("button", { name: /Web.*Version 2/i }),
+                screen.getByRole("button", { name: /Web.*Version 5/i }),
             ).toBeTruthy();
             expect(
-                screen.getByRole("button", { name: /iOS.*Version 2/i }),
+                screen.getByRole("button", { name: /iOS.*Version 5/i }),
             ).toBeTruthy();
             expect(
-                screen.getByRole("button", { name: /Android.*Version 2/i }),
+                screen.getByRole("button", { name: /Android.*Version 5/i }),
             ).toBeTruthy();
         });
 

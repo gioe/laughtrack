@@ -51,7 +51,7 @@ vi.mock("@/util/distanceUtil", () => ({
     ),
 }));
 vi.mock("@/util/comedian/comedianUtil", () => ({
-    filterAndMapLineupItems: vi.fn((items: LineupInput[]) =>
+    filterAndMapLineupItems: vi.fn((items: LineupInput[], userId?: string) =>
         items.map((item) => ({
             id: item.comedian.id,
             uuid: item.comedian.uuid,
@@ -68,7 +68,7 @@ vi.mock("@/util/comedian/comedianUtil", () => ({
                       },
                   }
                 : {}),
-            isFavorite: false,
+            isFavorite: Boolean(userId),
             isAlias: false,
         })),
     ),
@@ -298,6 +298,51 @@ describe("findShowsForHome", () => {
             const result = await findShowsForHome({}, { date: "asc" });
 
             expect(result[0].lineup).toEqual([mappedItem]);
+        });
+
+        it("loads direct and canonical-parent favorite evidence for personalized rails", async () => {
+            const { filterAndMapLineupItems } = await import(
+                "@/util/comedian/comedianUtil"
+            );
+            const lineupItems = [makeLineupItem()];
+            mockFindMany.mockResolvedValue([
+                makeShowRow({ lineupItems }),
+            ] as never);
+
+            const result = await findShowsForHome({}, { date: "asc" }, 8, {
+                profileId: "profile-1",
+            });
+
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    select: expect.objectContaining({
+                        lineupItems: expect.objectContaining({
+                            select: expect.objectContaining({
+                                comedian: expect.objectContaining({
+                                    select: expect.objectContaining({
+                                        favoriteComedians: expect.any(Object),
+                                        parentComedian: expect.objectContaining(
+                                            {
+                                                select: expect.objectContaining(
+                                                    {
+                                                        favoriteComedians:
+                                                            expect.any(Object),
+                                                    },
+                                                ),
+                                            },
+                                        ),
+                                    }),
+                                }),
+                            }),
+                        }),
+                    }),
+                }),
+            );
+            expect(filterAndMapLineupItems).toHaveBeenCalledWith(
+                lineupItems,
+                "profile-1",
+            );
+            expect(result[0].lineup?.[0].isFavorite).toBe(true);
         });
     });
 

@@ -24,8 +24,8 @@ import { mapTickets } from "@/util/ticket/ticketUtil";
 // contract, so per-path field parity must stay exact.
 
 // The all-time-count comedian select, common to the search and home paths. The
-// search path spreads this and adds a favoriteComedians block (see
-// buildShowSelect); home uses it as-is via PUBLIC_SHOW_SELECT.
+// Personalized paths add a favoriteComedians block (see buildShowSelect);
+// anonymous home requests use it as-is via PUBLIC_SHOW_SELECT.
 const LINEUP_ITEM_COMEDIAN_SELECT = buildLineupItemComedianSelect();
 
 // The base public show select: the fields both the search and home paths fetch.
@@ -110,7 +110,7 @@ interface BuildShowSelectOptions {
     /**
      * When set, add a favoriteComedians block keyed by this profileId to the
      * lineup comedian select so the mapper can compute isFavorite. Only the
-     * search path supplies this.
+     * search and personalized home paths supply this.
      */
     favoriteComediansProfileId?: string;
     /**
@@ -126,11 +126,21 @@ interface BuildShowSelectOptions {
 
 /**
  * Compose the show select for a path that needs per-path additions (search:
- * description column and/or a profileId-keyed favoriteComedians block; detail:
- * an upcoming-only lineup count filter) on top of PUBLIC_SHOW_SELECT. Home
- * passes PUBLIC_SHOW_SELECT directly.
+ * description column; personalized search/home: a profileId-keyed
+ * favoriteComedians block; detail:
+ * an upcoming-only lineup count filter) on top of PUBLIC_SHOW_SELECT.
  */
 export function buildShowSelect(options: BuildShowSelectOptions = {}) {
+    const lineupComedianSelect = buildLineupItemComedianSelect(
+        options.lineupCountWhere,
+    );
+    const favoriteComedians = options.favoriteComediansProfileId
+        ? {
+              where: { profileId: options.favoriteComediansProfileId },
+              select: { id: true },
+          }
+        : null;
+
     return {
         ...PUBLIC_SHOW_SELECT,
         ...(options.includeDescription ? { description: true } : {}),
@@ -140,18 +150,16 @@ export function buildShowSelect(options: BuildShowSelectOptions = {}) {
                 role: true,
                 comedian: {
                     select: {
-                        ...buildLineupItemComedianSelect(
-                            options.lineupCountWhere,
-                        ),
-                        ...(options.favoriteComediansProfileId
+                        ...lineupComedianSelect,
+                        ...(favoriteComedians
                             ? {
-                                  favoriteComedians: {
-                                      where: {
-                                          profileId:
-                                              options.favoriteComediansProfileId,
-                                      },
+                                  favoriteComedians,
+                                  parentComedian: {
+                                      ...lineupComedianSelect.parentComedian,
                                       select: {
-                                          id: true,
+                                          ...lineupComedianSelect.parentComedian
+                                              .select,
+                                          favoriteComedians,
                                       },
                                   },
                               }
@@ -175,7 +183,7 @@ export type PublicShowRow = Prisma.ShowGetPayload<{
 export interface MapShowRowOptions {
     /**
      * Passed to filterAndMapLineupItems to compute each lineup member's
-     * isFavorite flag. Search supplies helper.getUserId(); home omits it.
+     * isFavorite flag. Search and personalized home requests supply it.
      */
     userId?: string;
     /**

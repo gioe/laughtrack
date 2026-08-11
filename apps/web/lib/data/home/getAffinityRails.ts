@@ -46,25 +46,11 @@ export interface FromYourPodcastsReason {
     };
 }
 
-export interface BecauseYouFollowThemReason {
-    kind: "because_you_follow_them";
-    label: string;
-    evidence: {
-        canonicalComedianId: number;
-    };
-}
-
 export interface FromYourPodcastsRailItem {
     show: ShowDTO;
     performer: AffinityPerformer;
     podcast: AffinityPodcast;
     reason: FromYourPodcastsReason;
-}
-
-export interface BecauseYouFollowThemRailItem {
-    show: ShowDTO;
-    performer: AffinityPerformer;
-    reason: BecauseYouFollowThemReason;
 }
 
 export interface AffinityRails {
@@ -73,11 +59,6 @@ export interface AffinityRails {
         label: "From your podcasts";
         items: FromYourPodcastsRailItem[];
     };
-    becauseYouFollowThem: {
-        railKey: "because_you_follow_them";
-        label: "Because you follow them";
-        items: BecauseYouFollowThemRailItem[];
-    };
 }
 
 export interface AffinityRailsOptions {
@@ -85,12 +66,6 @@ export interface AffinityRailsOptions {
     horizonDays?: number;
     limit?: number;
     excludedShowIds?: readonly number[];
-    /**
-     * Keep the provider's historical fixed rail priority by default. The home
-     * feed disables this so its operator-configured policy can own cross-rail
-     * deduplication after rotation has been resolved.
-     */
-    deduplicateAcrossRails?: boolean;
 }
 
 export interface AffinityEvidenceRow {
@@ -105,7 +80,6 @@ export interface AffinityEvidenceRow {
     canonicalComedianId: number;
     canonicalComedianUuid: string;
     canonicalComedianName: string;
-    favoriteComedian: boolean;
     podcastId: number | null;
     podcastSlug: string | null;
     podcastTitle: string | null;
@@ -122,7 +96,6 @@ interface ClassifyOptions {
     limit: number;
     personalized: boolean;
     excludedShowIds: readonly number[];
-    deduplicateAcrossRails?: boolean;
 }
 
 interface ClassifiedFromPodcastItem {
@@ -132,15 +105,8 @@ interface ClassifiedFromPodcastItem {
     reason: FromYourPodcastsReason;
 }
 
-interface ClassifiedFollowedItem {
-    showId: number;
-    performer: AffinityPerformer;
-    reason: BecauseYouFollowThemReason;
-}
-
 interface ClassifiedAffinityRails {
     fromYourPodcasts: ClassifiedFromPodcastItem[];
-    becauseYouFollowThem: ClassifiedFollowedItem[];
 }
 
 type AffinityQueryRow = {
@@ -155,7 +121,6 @@ type AffinityQueryRow = {
     canonical_comedian_id: number;
     canonical_comedian_uuid: string;
     canonical_comedian_name: string;
-    favorite_comedian: boolean;
     podcast_id: number | null;
     podcast_slug: string | null;
     podcast_title: string | null;
@@ -186,9 +151,6 @@ export function buildAffinityQuery({
     horizonEnd: Date;
     appearanceCutoff: Date;
 }): Prisma.Sql {
-    const favoriteComedianProfile = profileId
-        ? Prisma.sql`fc.profile_id = ${profileId}`
-        : Prisma.sql`FALSE`;
     const favoritePodcastProfile = profileId
         ? Prisma.sql`fp.profile_id = ${profileId}`
         : Prisma.sql`FALSE`;
@@ -244,18 +206,6 @@ export function buildAffinityQuery({
                   WHERE tagged.comedian_id IN (performer.uuid, canonical.uuid)
                     AND tag."restrictContent" = true
               )
-        ),
-        favorite_canonical_comedians AS (
-            SELECT DISTINCT canonical.id AS canonical_comedian_id
-            FROM favorite_comedians fc
-            JOIN comedians favorite ON favorite.uuid = fc.comedian_id
-            JOIN comedians canonical
-              ON canonical.id = COALESCE(favorite.parent_comedian_id, favorite.id)
-            WHERE ${favoriteComedianProfile}
-              AND favorite.visible = true
-              AND canonical.visible = true
-              AND canonical.parent_comedian_id IS NULL
-              AND ${comedianNotDenied("canonical")}
         ),
         favorite_public_podcasts AS (
             SELECT DISTINCT
@@ -364,7 +314,6 @@ export function buildAffinityQuery({
             lineup.canonical_comedian_id,
             lineup.canonical_comedian_uuid,
             lineup.canonical_comedian_name,
-            favorite.canonical_comedian_id IS NOT NULL AS favorite_comedian,
             affinity.podcast_id,
             affinity.podcast_slug,
             affinity.podcast_title,
@@ -374,8 +323,6 @@ export function buildAffinityQuery({
             affinity.episode_title,
             affinity.episode_release_date
         FROM canonical_lineup lineup
-        LEFT JOIN favorite_canonical_comedians favorite
-          ON favorite.canonical_comedian_id = lineup.canonical_comedian_id
         LEFT JOIN podcast_affinities affinity
           ON affinity.canonical_comedian_id = lineup.canonical_comedian_id
         ORDER BY lineup.show_date, lineup.show_id, lineup.canonical_comedian_id
@@ -387,11 +334,6 @@ function emptyRails(): AffinityRails {
         fromYourPodcasts: {
             railKey: "from_your_podcasts",
             label: "From your podcasts",
-            items: [],
-        },
-        becauseYouFollowThem: {
-            railKey: "because_you_follow_them",
-            label: "Because you follow them",
             items: [],
         },
     };
@@ -467,11 +409,7 @@ function podcast(row: AffinityEvidenceRow): AffinityPodcast | null {
         : null;
 }
 
-/**
- * Pure classifier. By default, rail order is also the internal show-dedup
- * priority. Callers with a separate authoritative policy can retain overlaps
- * for that later selector by setting deduplicateAcrossRails=false.
- */
+/** Pure classifier for shows connected to the viewer's favorite podcasts. */
 export function classifyAffinityCandidates(
     rows: readonly AffinityEvidenceRow[],
     options: ClassifyOptions,
@@ -497,11 +435,8 @@ export function classifyAffinityCandidates(
                     candidate.canonicalComedianId === row.canonicalComedianId,
             );
             const prior = existing[index];
-            existing[index] = {
-                ...(comparePodcastEvidence(row, prior) < 0 ? row : prior),
-                favoriteComedian:
-                    prior.favoriteComedian || row.favoriteComedian,
-            };
+            existing[index] =
+                comparePodcastEvidence(row, prior) < 0 ? row : prior;
         }
     }
 
@@ -511,13 +446,8 @@ export function classifyAffinityCandidates(
             leftId - rightId,
     );
     const podcastSeen = new Set(options.excludedShowIds);
-    const followedSeen =
-        options.deduplicateAcrossRails === false
-            ? new Set(options.excludedShowIds)
-            : podcastSeen;
     const result: ClassifiedAffinityRails = {
         fromYourPodcasts: [],
-        becauseYouFollowThem: [],
     };
 
     if (options.personalized) {
@@ -582,36 +512,6 @@ export function classifyAffinityCandidates(
         }
     }
 
-    if (options.personalized) {
-        for (const [showId, showRows] of shows) {
-            if (
-                followedSeen.has(showId) ||
-                result.becauseYouFollowThem.length >= options.limit
-            ) {
-                continue;
-            }
-            const match = [...showRows]
-                .filter((row) => row.favoriteComedian)
-                .sort(
-                    (left, right) =>
-                        left.canonicalComedianId - right.canonicalComedianId,
-                )[0];
-            if (!match) continue;
-            result.becauseYouFollowThem.push({
-                showId,
-                performer: performer(match),
-                reason: {
-                    kind: "because_you_follow_them",
-                    label: `Featuring ${match.canonicalComedianName}, whom you follow`,
-                    evidence: {
-                        canonicalComedianId: match.canonicalComedianId,
-                    },
-                },
-            });
-            followedSeen.add(showId);
-        }
-    }
-
     return result;
 }
 
@@ -628,7 +528,6 @@ function rowToEvidence(row: AffinityQueryRow): AffinityEvidenceRow {
         canonicalComedianId: row.canonical_comedian_id,
         canonicalComedianUuid: row.canonical_comedian_uuid,
         canonicalComedianName: row.canonical_comedian_name,
-        favoriteComedian: row.favorite_comedian,
         podcastId: row.podcast_id,
         podcastSlug: row.podcast_slug,
         podcastTitle: row.podcast_title,
@@ -676,15 +575,9 @@ export async function getAffinityRails(
         limit,
         personalized: Boolean(profileId),
         excludedShowIds: options.excludedShowIds ?? [],
-        deduplicateAcrossRails: options.deduplicateAcrossRails ?? true,
     });
     const showIds = [
-        ...new Set(
-            [
-                ...classified.fromYourPodcasts,
-                ...classified.becauseYouFollowThem,
-            ].map(({ showId }) => showId),
-        ),
+        ...new Set(classified.fromYourPodcasts.map(({ showId }) => showId)),
     ];
     if (showIds.length === 0) return rails;
 
@@ -695,12 +588,6 @@ export async function getAffinityRails(
     );
     const showsById = new Map(shows.map((show) => [show.id, show]));
     rails.fromYourPodcasts.items = classified.fromYourPodcasts.flatMap(
-        (item) => {
-            const show = showsById.get(item.showId);
-            return show ? [{ ...item, show }] : [];
-        },
-    );
-    rails.becauseYouFollowThem.items = classified.becauseYouFollowThem.flatMap(
         (item) => {
             const show = showsById.get(item.showId);
             return show ? [{ ...item, show }] : [];
