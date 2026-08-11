@@ -32,6 +32,9 @@ beforeEach(() => {
 vi.mock("./comedianAdvanced", () => ({
     default: () => <div data-testid="comedian-advanced-filters" />,
 }));
+vi.mock("@/ui/components/club/clubProgrammingFilters", () => ({
+    default: () => <div data-testid="club-programming-filters" />,
+}));
 vi.mock("../../params/filter/chips", () => ({
     FilterChip: ({ option }: { option: { name: string } }) => (
         <div data-testid={`chip-${option.name}`}>{option.name}</div>
@@ -82,6 +85,32 @@ describe("FilterModal", () => {
                 '[data-testid="comedian-advanced-filters"]',
             ),
         ).toBeNull();
+    });
+
+    it("retains ClubProgrammingFilters for AllClubs", () => {
+        const { container } = render(
+            <FilterModal
+                filters={[]}
+                total={42}
+                variant={SearchVariant.AllClubs}
+            />,
+        );
+        expect(
+            container.querySelector('[data-testid="club-programming-filters"]'),
+        ).not.toBeNull();
+    });
+
+    it("does not expose the duplicate Podcast Scope control", () => {
+        const { container } = render(
+            <FilterModal
+                filters={[]}
+                total={42}
+                variant={SearchVariant.AllPodcasts}
+            />,
+        );
+
+        expect(container.textContent).not.toContain("Podcast Scope");
+        expect(container.textContent).not.toContain("Include all podcasts");
     });
 
     it("renders the live total count in the footer button", () => {
