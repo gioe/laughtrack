@@ -76,7 +76,11 @@ class DiscoverScrollRestorationTest {
         composeRule.onNodeWithText("Popular clubs").assertIsDisplayed()
 
         composeRule.onAllNodes(hasClickAction() and hasText("The Comedy Store"))[0].performClick()
-        composeRule.waitUntil(timeoutMillis = 30_000) {
+        // Hosted macOS emulators can spend several seconds at a time in renderer
+        // stalls while the detail graph and fixture response settle. Keep the
+        // navigation assertion strict, but allow the same budget as other remote
+        // fixture-backed screenshot waits.
+        composeRule.waitUntil(timeoutMillis = 60_000) {
             composeRule.onAllNodes(hasContentDescription("Back")).fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithContentDescription("Back").performClick()
