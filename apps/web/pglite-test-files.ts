@@ -10,6 +10,7 @@ export const PGLITE_TEST_FILES = [
     "lib/discovery/railPolicyMigration.test.ts",
     "prisma/adminActionAudit.test.ts",
     "prisma/discoveryEventsMigration.test.ts",
+    "prisma/improvAsylumSourceMigration.test.ts",
     "prisma/podcastEpisodeUniqueRelease.test.ts",
     "prisma/podcastGraphMigration.test.ts",
     "prisma/podcastSlugMigration.test.ts",

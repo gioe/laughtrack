@@ -187,8 +187,7 @@ internal fun preferredDynamicRailHeadlinerId(
 internal fun preferredFavoriteHeadlinerId(show: Show): Int? =
     show.lineup.orEmpty().firstOrNull { it.isFavorite == true }?.id
 
-internal fun isTodayStyleDynamicShowRail(railKey: String): Boolean =
-    railKey in DYNAMIC_RAIL_KEYS
+internal fun isTodayStyleDynamicShowRail(railKey: String): Boolean = railKey in DYNAMIC_RAIL_KEYS
 
 private fun <T> select(
     itemIds: List<String>,

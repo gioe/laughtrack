@@ -1,6 +1,7 @@
 package app.laughtrack.android.feature.home
 
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.HomeFeed
 import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRail
 import app.laughtrack.android.core.network.generated.model.HomeFeedDynamicRailItem
@@ -11,7 +12,6 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedHero
 import app.laughtrack.android.core.network.generated.model.HomeFeedRailPlan
 import app.laughtrack.android.core.network.generated.model.HomeFeedRailPlanEntry
 import app.laughtrack.android.core.network.generated.model.Show
-import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -334,13 +334,12 @@ class HomeDiscoverRailPlanTest {
     private fun show(
         id: Int,
         lineup: List<ComedianLineup> = emptyList(),
-    ) =
-        Show(
-            id = id,
-            clubId = 10,
-            date = "2026-08-07T20:00:00-04:00",
-            imageUrl = "",
-            name = "Show $id",
-            lineup = lineup,
-        )
+    ) = Show(
+        id = id,
+        clubId = 10,
+        date = "2026-08-07T20:00:00-04:00",
+        imageUrl = "",
+        name = "Show $id",
+        lineup = lineup,
+    )
 }
