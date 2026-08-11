@@ -23,6 +23,10 @@ SET catalog_version = 5,
     updated_at = NOW()
 WHERE catalog_version < 5;
 
+-- Retired-surface telemetry cannot satisfy the replacement constraint.
+DELETE FROM discovery_impression_events
+WHERE surface = 'because_you_follow_them';
+
 ALTER TABLE discovery_impression_events
     DROP CONSTRAINT discovery_impression_events_surface_check;
 

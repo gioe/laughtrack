@@ -634,6 +634,8 @@ describe("duplicate followed-comedian rail removal migration", () => {
                     surface IN ('because_you_follow_them', 'followed_comedian_shows')
                 )
             );
+            INSERT INTO discovery_impression_events (surface)
+            VALUES ('because_you_follow_them');
         `);
         await db.exec(REMOVE_DUPLICATE_FOLLOWED_RAIL_MIGRATION_SQL);
     });
@@ -700,6 +702,12 @@ describe("duplicate followed-comedian rail removal migration", () => {
                 VALUES ('because_you_follow_them')
             `),
         ).rejects.toThrow();
+        const retiredImpressions = await db.query<{ count: string }>(`
+            SELECT COUNT(*)::text AS count
+            FROM discovery_impression_events
+            WHERE surface = 'because_you_follow_them'
+        `);
+        expect(retiredImpressions.rows[0].count).toBe("0");
         await expect(
             db.query(`
                 INSERT INTO discovery_impression_events (surface)
