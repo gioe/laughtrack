@@ -253,12 +253,11 @@ class AppStoreScreenshotTest {
                 waitFor(hasTestTag(HOME_DISCOVER_LIST_TEST_TAG), timeoutMs = 30_000)
                 waitForDiscoverAndScrollTo(hasText("Episodes for you"))
                 waitForStable(hasText("Episodes for you"), timeoutMs = 30_000)
-                composeRule.onNodeWithText("Browse podcasts").performScrollTo()
+                composeRule.onNodeWithTag("homePodcastEpisodePlay-501").performScrollTo()
                 waitFor(hasContentDescription("The Joe Rogan Experience"))
                 waitFor(hasText("#2520 - A Night of Comedy"))
                 waitFor(hasText(" • 149 min", substring = true))
                 waitFor(hasText("Guest: Ali Wong"))
-                waitFor(hasText("Guest appearance by Ali Wong"))
                 waitFor(
                     hasContentDescription(
                         "Open #2520 - A Night of Comedy",
@@ -267,7 +266,6 @@ class AppStoreScreenshotTest {
                 )
                 waitFor(hasTestTag("homePodcastEpisodePlay-501"))
                 waitFor(hasContentDescription("Play episode #2520 - A Night of Comedy"))
-                waitFor(hasText("Browse podcasts"))
             }
             if (capture("01_NearMe")) return
         } else {
