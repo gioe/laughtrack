@@ -227,7 +227,7 @@ struct SearchRootViewTests {
 
         showsModel.comedianSearchText = "Atsuko"
         showsModel.clubSearchText = "The Stand"
-        showsModel.selectedFilterSlugs = ["improv"]
+        showsModel.selectedFilterSlugs = [ShowFormatOption.openMic.rawValue]
         showsModel.maximumPrice = .forty
         let reloadTask = Task {
             await showsModel.reload(apiClient: apiClient)
@@ -242,7 +242,7 @@ struct SearchRootViewTests {
         #expect(request.operationID == "searchShows")
         #expect(searchRootQueryValue("comedian", from: request.path) == "Atsuko")
         #expect(searchRootQueryValue("club", from: request.path) == "The Stand")
-        #expect(searchRootQueryValue("filters", from: request.path) == "improv")
+        #expect(searchRootQueryValue("filters", from: request.path) == "open_mic")
         #expect(searchRootQueryValue("maxPrice", from: request.path) == "40.0")
     }
 
@@ -820,6 +820,28 @@ struct SearchRootModelTests {
         }
 
         #expect(freeConstraints == [ShowActiveConstraint(kind: .filter("free"), label: "Free")])
+    }
+
+    @Test("legacy show filters remain visible and removable as active constraints")
+    func legacyShowFiltersRemainVisibleAndRemovable() async throws {
+        let showsModel = makeShowsListModel(
+            name: "legacy-filter-constraints",
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
+        )
+        showsModel.selectedFilterSlugs = ["open mic", "0-20"]
+        let filters = [
+            Components.Schemas.Filter(id: 7, slug: "open mic", name: "Open Mic"),
+            Components.Schemas.Filter(id: 8, slug: "0-20", name: "$0–20"),
+        ]
+
+        let constraints = showsModel.activeConstraints(availableFilters: filters)
+
+        #expect(constraints.contains(.init(kind: .filter("open mic"), label: "Open Mic")))
+        #expect(constraints.contains(.init(kind: .filter("0-20"), label: "$0–20")))
+
+        showsModel.removeConstraint(.filter("open mic"))
+        showsModel.removeConstraint(.filter("0-20"))
+        #expect(showsModel.selectedFilterSlugs.isEmpty)
     }
 
     @Test("default external show seed clears stale faceted state")
