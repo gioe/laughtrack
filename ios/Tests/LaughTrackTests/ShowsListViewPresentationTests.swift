@@ -58,6 +58,23 @@ struct ShowsListViewPresentationTests {
         #expect(source.range(of: "ShowFiltersPanel(")!.lowerBound < source.range(of: "Comedian (optional)")!.lowerBound)
     }
 
+    @Test("more filters excludes primary aliases and legacy price buckets")
+    func moreFiltersExcludeRedundantShowFacets() throws {
+        let availableSlugs = [
+            "standup", "improv", "open_mic", "open mic", "free",
+            "0-20", "20-50", "50-100", ">100", "late-night", "clean"
+        ]
+
+        let secondarySlugs = availableSlugs.filter(ShowFilterFacetTaxonomy.isSecondary(slug:))
+        let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
+        let taxonomyUsageCount = source.components(
+            separatedBy: "ShowFilterFacetTaxonomy.isSecondary(slug: $0.slug)"
+        ).count - 1
+
+        #expect(secondarySlugs == ["late-night", "clean"])
+        #expect(taxonomyUsageCount == 2)
+    }
+
     @Test("show results default to a grouped agenda and offer density calendar")
     func showResultsOfferAgendaAndDensityCalendar() throws {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)

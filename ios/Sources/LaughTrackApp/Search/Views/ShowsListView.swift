@@ -344,8 +344,7 @@ struct ShowsListView: View {
     }
 
     private var secondaryFilters: [Components.Schemas.Filter] {
-        let primarySlugs = Set(ShowFormatOption.allCases.map(\.rawValue)).union(["free"])
-        return currentFilters.filter { !primarySlugs.contains($0.slug) }
+        currentFilters.filter { ShowFilterFacetTaxonomy.isSecondary(slug: $0.slug) }
     }
 
     private var activeConstraints: [ShowActiveConstraint] {
@@ -637,8 +636,7 @@ private struct ShowFiltersPanel: View {
     }
 
     private var secondaryFilters: [Components.Schemas.Filter] {
-        let primarySlugs = Set(ShowFormatOption.allCases.map(\.rawValue)).union(["free"])
-        return filters.filter { !primarySlugs.contains($0.slug) }
+        filters.filter { ShowFilterFacetTaxonomy.isSecondary(slug: $0.slug) }
     }
 
     private var secondaryFilterCount: Int {

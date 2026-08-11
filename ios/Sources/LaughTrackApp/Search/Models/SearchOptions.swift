@@ -103,6 +103,21 @@ enum ShowFormatOption: String, CaseIterable, Identifiable {
     }
 }
 
+enum ShowFilterFacetTaxonomy {
+    private static let nonSecondarySlugs = Set(ShowFormatOption.allCases.map(\.rawValue)).union([
+        "free",
+        "open mic",
+        "0-20",
+        "20-50",
+        "50-100",
+        ">100",
+    ])
+
+    static func isSecondary(slug: String) -> Bool {
+        !nonSecondarySlugs.contains(slug)
+    }
+}
+
 enum ShowResultsPresentation: String, CaseIterable, Identifiable {
     case agenda
     case calendar
