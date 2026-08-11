@@ -1,7 +1,6 @@
 package app.laughtrack.android
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -15,6 +14,7 @@ import app.laughtrack.android.core.network.ApiClientModule
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import app.laughtrack.android.feature.home.HOME_DISCOVER_LIST_TEST_TAG
+import app.laughtrack.android.feature.home.homeClubCardTestTag
 import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -75,12 +75,8 @@ class DiscoverScrollRestorationTest {
             .performScrollToNode(hasText("Popular clubs"))
         composeRule.onNodeWithText("Popular clubs").assertIsDisplayed()
 
-        composeRule.onAllNodes(hasClickAction() and hasText("The Comedy Store"))[0].performClick()
-        // Hosted macOS emulators can spend several seconds at a time in renderer
-        // stalls while the detail graph and fixture response settle. Keep the
-        // navigation assertion strict, but allow the same budget as other remote
-        // fixture-backed screenshot waits.
-        composeRule.waitUntil(timeoutMillis = 60_000) {
+        composeRule.onNodeWithTag(homeClubCardTestTag(201)).performClick()
+        composeRule.waitUntil(timeoutMillis = 30_000) {
             composeRule.onAllNodes(hasContentDescription("Back")).fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithContentDescription("Back").performClick()

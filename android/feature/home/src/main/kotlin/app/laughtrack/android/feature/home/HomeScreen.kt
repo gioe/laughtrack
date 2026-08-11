@@ -84,6 +84,9 @@ import java.util.Locale
 /** Stable semantics anchor for instrumented Discover scroll-restoration coverage. */
 const val HOME_DISCOVER_LIST_TEST_TAG = "homeDiscoverList"
 
+/** Stable semantics anchor for a club card in instrumented Discover coverage. */
+fun homeClubCardTestTag(clubId: Int) = "homeClubCard-$clubId"
+
 /** Discover/Home surface backed by the composite home feed endpoint. */
 @Composable
 fun HomeScreen(
@@ -524,6 +527,7 @@ private fun ClubRail(
                     imageUrl = club.imageUrl,
                     fallback = RemoteImageFallback.Club,
                     width = 168.dp,
+                    modifier = Modifier.testTag(homeClubCardTestTag(club.id)),
                     onClick = { onOpenEntity(AppRoute.ClubDetail(club.id)) },
                 )
             }
@@ -972,11 +976,12 @@ internal fun FeedCard(
     imageUrl: String?,
     fallback: RemoteImageFallback,
     width: Dp,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     Surface(
         modifier =
-            Modifier
+            modifier
                 .width(width)
                 .height(178.dp)
                 .clip(RoundedCornerShape(12.dp))
