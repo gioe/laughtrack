@@ -56,7 +56,6 @@ vi.mock("@/ui/pages/search/filterBar", () => ({
             data-filter-count={filterData.length}
         >
             <button type="button">Sort</button>
-            <button type="button">Filter</button>
             <label>
                 <input type="checkbox" />
                 Include all
@@ -67,13 +66,7 @@ vi.mock("@/ui/pages/search/filterBar", () => ({
 }));
 
 vi.mock("@/ui/components/modals/filter", () => ({
-    default: ({
-        filters,
-        total,
-    }: {
-        filters: unknown[];
-        total: number;
-    }) => (
+    default: ({ filters, total }: { filters: unknown[]; total: number }) => (
         <div
             data-testid="filter-modal"
             data-filter-count={filters.length}
@@ -101,21 +94,39 @@ describe("PodcastsPage filter shell integration", () => {
         });
         const { container } = render(tree);
 
-        const filterBar = container.querySelector(
-            '[data-testid="filter-bar"]',
-        );
+        const filterBar = container.querySelector('[data-testid="filter-bar"]');
         expect(filterBar).not.toBeNull();
         expect(filterBar?.getAttribute("data-variant")).toBe(
             String(SearchVariant.AllPodcasts),
         );
+        expect(filterBar?.getAttribute("data-filter-count")).toBe("0");
         expect(container.querySelector("button")).not.toBeNull();
+        expect(
+            container.querySelectorAll('input[type="checkbox"]'),
+        ).toHaveLength(1);
         expect(container.textContent).toContain("Sort");
-        expect(container.textContent).toContain("Filter");
+        expect(container.textContent).not.toContain("Filter");
         expect(container.textContent).toContain("Include all");
         expect(container.textContent).toContain("0 results");
     });
 
-    it("renders the shared FilterModal alongside the FilterBar", async () => {
+    it("omits the shared FilterModal while podcast tag filters are empty", async () => {
+        const tree = await PodcastsPage({
+            searchParams: Promise.resolve({}),
+        });
+        const { container } = render(tree);
+
+        expect(
+            container.querySelector('[data-testid="filter-modal"]'),
+        ).toBeNull();
+    });
+
+    it("renders the shared FilterModal when podcast tag filters exist", async () => {
+        mockGetSearchedPodcasts.mockResolvedValueOnce({
+            data: [],
+            total: 1,
+            filters: [{ id: 1, slug: "interview", name: "Interview" }],
+        });
         const tree = await PodcastsPage({
             searchParams: Promise.resolve({}),
         });

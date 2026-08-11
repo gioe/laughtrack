@@ -117,10 +117,7 @@ const FilterBar = ({
         : 0;
     const filterButtonCount = activeFilters.length + advancedFilterCount;
     const showFilterButton =
-        filterData.length > 0 ||
-        isClubSearch ||
-        isComedianSearch ||
-        isPodcastSearch;
+        filterData.length > 0 || isClubSearch || isComedianSearch;
 
     const removeFilter = (slug: string) => {
         const updated = selectedSlugs.filter((s) => s !== slug).join(",");

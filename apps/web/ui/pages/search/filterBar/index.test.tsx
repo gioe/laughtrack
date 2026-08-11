@@ -3,7 +3,7 @@
  */
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import FilterBar from "./index";
 import { SearchVariant, allVariantTypes } from "@/objects/enum/searchVariant";
 
@@ -11,6 +11,10 @@ import { SearchVariant, allVariantTypes } from "@/objects/enum/searchVariant";
 // assertions still exercise the control, with a dedicated off-path test
 // covering the shipped default (hidden).
 const homeLocationFlag = vi.hoisted(() => ({ enabled: true }));
+const { mockGetTypedParam, mockSetTypedParam } = vi.hoisted(() => ({
+    mockGetTypedParam: vi.fn<(property: string) => string | boolean>(() => ""),
+    mockSetTypedParam: vi.fn(),
+}));
 vi.mock("@/util/featureFlags", () => ({
     get HOME_LOCATION_UI_ENABLED() {
         return homeLocationFlag.enabled;
@@ -19,6 +23,9 @@ vi.mock("@/util/featureFlags", () => ({
 
 beforeEach(() => {
     homeLocationFlag.enabled = true;
+    mockGetTypedParam.mockReset();
+    mockGetTypedParam.mockReturnValue("");
+    mockSetTypedParam.mockReset();
 });
 
 vi.mock("@/ui/components/params/filter", () => ({
@@ -53,8 +60,8 @@ vi.mock("@/util/sort", () => ({
 }));
 vi.mock("@/hooks/useUrlParams", () => ({
     useUrlParams: () => ({
-        getTypedParam: () => "",
-        setTypedParam: vi.fn(),
+        getTypedParam: mockGetTypedParam,
+        setTypedParam: mockSetTypedParam,
         setMultipleTypedParams: vi.fn(),
     }),
 }));
@@ -192,7 +199,7 @@ describe("FilterBar", () => {
         ).not.toBeNull();
     });
 
-    it("renders the FilterModalButton for AllPodcasts even without tag filters", () => {
+    it("omits the FilterModalButton for AllPodcasts without tag filters", () => {
         const { container } = render(
             <FilterBar
                 variant={SearchVariant.AllPodcasts}
@@ -203,8 +210,56 @@ describe("FilterBar", () => {
 
         expect(
             container.querySelector('[data-testid="filter-modal-button"]'),
+        ).toBeNull();
+    });
+
+    it("renders the FilterModalButton for AllPodcasts when tag filters exist", () => {
+        const { container } = render(
+            <FilterBar
+                variant={SearchVariant.AllPodcasts}
+                total={5}
+                filterData={[{ id: 1, slug: "interview", name: "Interview" }]}
+            />,
+        );
+
+        expect(
+            container.querySelector('[data-testid="filter-modal-button"]'),
         ).not.toBeNull();
     });
+
+    it("keeps the Podcast Include all control authoritative", () => {
+        mockGetTypedParam.mockImplementation((property) =>
+            property === "includeEmpty" ? false : "",
+        );
+        const { container } = render(
+            <FilterBar
+                variant={SearchVariant.AllPodcasts}
+                total={5}
+                filterData={[]}
+            />,
+        );
+
+        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+        expect(checkboxes).toHaveLength(1);
+        fireEvent.click(checkboxes[0]);
+        expect(mockSetTypedParam).toHaveBeenCalledWith("includeEmpty", true);
+    });
+
+    it.each([SearchVariant.AllClubs, SearchVariant.AllComedians])(
+        "retains advanced Filter and Include all controls for variant %s",
+        (variant) => {
+            const { container } = render(
+                <FilterBar variant={variant} total={5} filterData={[]} />,
+            );
+
+            expect(
+                container.querySelector('[data-testid="filter-modal-button"]'),
+            ).not.toBeNull();
+            expect(
+                container.querySelector('input[type="checkbox"]'),
+            ).not.toBeNull();
+        },
+    );
 
     describe("home-city filter", () => {
         const homeCityFilters = [

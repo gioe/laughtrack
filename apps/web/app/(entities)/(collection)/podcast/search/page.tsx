@@ -58,7 +58,14 @@ export default async function PodcastsPage(props: PodcastsPageProps) {
     });
     const getCached = unstable_cache(
         async () =>
-            getSearchedPodcasts({ q, sort, includeEmpty, profileId, page, size }),
+            getSearchedPodcasts({
+                q,
+                sort,
+                includeEmpty,
+                profileId,
+                page,
+                size,
+            }),
         ["podcasts-search-page-data-v3", cacheKey],
         {
             revalidate: CACHE.search,
@@ -71,11 +78,9 @@ export default async function PodcastsPage(props: PodcastsPageProps) {
     return (
         <>
             <JsonLd data={[buildPodcastCollectionJsonLd(data)]} />
-            <FilterModal
-                filters={filters}
-                total={total}
-                variant={SearchVariant.AllPodcasts}
-            />
+            {filters.length > 0 && (
+                <FilterModal filters={filters} total={total} />
+            )}
             <SearchDetailHeader
                 title="Search podcasts"
                 subTitle={`${total.toLocaleString("en-US")} results`}
