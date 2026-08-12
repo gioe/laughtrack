@@ -168,6 +168,27 @@ struct ComedianDetailViewTests {
         #expect(shows.map(\.id) == [303, 301])
     }
 
+    @Test("notification detail keeps alert shows before the standard comedian search")
+    func notificationDetailKeepsAlertShowsBeforeStandardSearch() throws {
+        let source = try String(
+            contentsOf: appSourceURL(relativePath: "Detail/Views/ComedianDetailView.swift"),
+            encoding: .utf8
+        )
+        let scopedGuard = try #require(source.range(of: "if !scopedShowIDs.isEmpty"))
+        let alertPanel = try #require(
+            source.range(of: "ComedianNotificationShowsPanel(", range: scopedGuard.lowerBound..<source.endIndex)
+        )
+        let pinnedSearch = try #require(
+            source.range(of: "PinnedShowsList(", range: alertPanel.upperBound..<source.endIndex)
+        )
+        let alertGuardEnd = try #require(
+            source.range(of: "\n                                    }\n\n", range: alertPanel.upperBound..<pinnedSearch.lowerBound)
+        )
+
+        #expect(alertPanel.lowerBound < alertGuardEnd.lowerBound)
+        #expect(alertGuardEnd.upperBound <= pinnedSearch.lowerBound)
+    }
+
     @Test("comedian stats omit city count when no city is available")
     func comedianStatsOmitCityCountWhenMissing() {
         let comedian = DemoContent.primaryComedian
@@ -860,6 +881,21 @@ struct ComedianDetailViewTests {
                 guests: []
             )
         )
+    }
+
+    private func appSourceURL(relativePath: String, filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp")
+            .appendingPathComponent(relativePath)
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
     }
 }
 

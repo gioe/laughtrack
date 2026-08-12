@@ -82,14 +82,7 @@ struct ComedianDetailView: View {
 
                             ZStack(alignment: .top) {
                                 VStack(alignment: .leading, spacing: 20) {
-                                    if scopedShowIDs.isEmpty {
-                                        PinnedShowsList(
-                                            apiClient: apiClient,
-                                            nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                                            pinnedComedianName: comedian.name,
-                                            startsNationwide: true
-                                        )
-                                    } else {
+                                    if !scopedShowIDs.isEmpty {
                                         ComedianNotificationShowsPanel(
                                             shows: ComedianNotificationShowsPresentation.shows(
                                                 from: content.upcomingRuns,
@@ -98,6 +91,13 @@ struct ComedianDetailView: View {
                                             onOpenShow: { showID in coordinator.open(.show(showID)) }
                                         )
                                     }
+
+                                    PinnedShowsList(
+                                        apiClient: apiClient,
+                                        nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                                        pinnedComedianName: comedian.name,
+                                        startsNationwide: true
+                                    )
 
                                     ComedianRelatedPanel(
                                         relatedComedians: content.relatedComedians,
