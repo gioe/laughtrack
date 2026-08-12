@@ -21,6 +21,13 @@ SCREENSHOT_CACHE_PATH = File.expand_path("../../scripts/screenshots/cache.py", _
 SCREENSHOT_FIXTURE_SERVER_PATH = File.expand_path("../../scripts/screenshots/fixture_server.py", __dir__)
 SCREENSHOT_FIXTURE_PORT = 8765
 REPO_ROOT = File.expand_path("../..", __dir__)
+SCREENSHOT_SIMULATOR_BOOT_TIMEOUT_SECONDS = Integer(
+  ENV.fetch("LAUGHTRACK_SCREENSHOT_BOOT_TIMEOUT_SECONDS", "120"),
+  10,
+)
+unless SCREENSHOT_SIMULATOR_BOOT_TIMEOUT_SECONDS.positive?
+  raise "LAUGHTRACK_SCREENSHOT_BOOT_TIMEOUT_SECONDS must be positive"
+end
 SCREENSHOT_WORKTREE_HASH = Digest::SHA256.hexdigest(REPO_ROOT)[0, 12]
 SCREENSHOT_DERIVED_DATA_PATH = ENV.fetch(
   "LAUGHTRACK_SCREENSHOT_DERIVED_DATA_PATH",
@@ -92,6 +99,9 @@ IOS_SCREENSHOT_COLLECTION = load_ios_screenshot_collection
 CANONICAL_IOS_SCREENSHOT_IDS = IOS_SCREENSHOT_COLLECTION.fetch(:scenario_ids)
 IOS_SCREENSHOT_PROFILES = IOS_SCREENSHOT_COLLECTION.fetch(:profiles)
 IOS_SCREENSHOT_FIXTURE_MODES = IOS_SCREENSHOT_COLLECTION.fetch(:fixture_modes)
+
+class ScreenshotSimulatorBootTimeout < StandardError
+end
 
 def selected_screenshot_values!(raw_value, canonical_values, label)
   values = raw_value.to_s.split(",").map(&:strip).reject(&:empty?)
@@ -569,6 +579,54 @@ platform :ios do
     end
   end
 
+  def wait_for_screenshot_process_exit(pid, timeout_seconds:)
+    Timeout.timeout(timeout_seconds) { Process.wait(pid) }
+    true
+  rescue Errno::ECHILD
+    true
+  rescue Timeout::Error
+    false
+  end
+
+  def terminate_screenshot_process_group(pid)
+    Process.kill("TERM", -pid) rescue nil
+    return if wait_for_screenshot_process_exit(pid, timeout_seconds: 1)
+
+    Process.kill("KILL", -pid) rescue nil
+    wait_for_screenshot_process_exit(pid, timeout_seconds: 1)
+  end
+
+  def run_screenshot_command_with_timeout(command, timeout_seconds:, timeout_message:)
+    pid = Process.spawn(*command, pgroup: true)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout_seconds
+
+    loop do
+      if Process.waitpid(pid, Process::WNOHANG)
+        status = $?
+        return if status.success?
+
+        UI.user_error!(
+          "Screenshot simulator command failed with exit status #{status.exitstatus}: #{command.join(' ')}",
+        )
+      end
+
+      if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+        terminate_screenshot_process_group(pid)
+        raise ScreenshotSimulatorBootTimeout, timeout_message
+      end
+
+      sleep(0.1)
+    end
+  end
+
+  def wait_for_screenshot_simulator_boot(udid, timeout_seconds: SCREENSHOT_SIMULATOR_BOOT_TIMEOUT_SECONDS)
+    run_screenshot_command_with_timeout(
+      ["xcrun", "simctl", "bootstatus", udid, "-b"],
+      timeout_seconds: timeout_seconds,
+      timeout_message: "simctl bootstatus for #{udid} exceeded #{timeout_seconds} seconds",
+    )
+  end
+
   # Start the Snapfile device and remove the installed app so its one-hour home
   # feed cache cannot leak into a new store capture. Uninstalling only LaughTrack
   # preserves the booted simulator's OS state and avoids the several-minute data
@@ -576,7 +634,27 @@ platform :ios do
   def boot_screenshot_simulator(native_target, device_name)
     udid = native_target.fetch(:devices).fetch(device_name)
     UI.message("Booting #{device_name} on iOS #{native_target.fetch(:version)}…")
-    sh("xcrun simctl bootstatus #{udid} -b")
+    recovery_attempted = false
+    begin
+      wait_for_screenshot_simulator_boot(udid)
+    rescue ScreenshotSimulatorBootTimeout => error
+      if recovery_attempted
+        UI.user_error!(
+          "Screenshot simulator infrastructure failure after one restart: #{error.message}",
+        )
+      end
+
+      recovery_attempted = true
+      UI.message("Simulator boot readiness timed out; restarting #{device_name} once…")
+      system(
+        "xcrun", "simctl", "shutdown", udid,
+        out: File::NULL,
+        err: File::NULL,
+      )
+      booted = system("xcrun", "simctl", "boot", udid)
+      UI.user_error!("Screenshot simulator infrastructure failure: could not boot #{udid}") unless booted
+      retry
+    end
     UI.message("Clearing persisted LaughTrack screenshot state…")
     system(
       "xcrun", "simctl", "uninstall", udid, "app.laughtrack.ios",
