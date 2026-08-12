@@ -71,9 +71,9 @@ object PushNotifications {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 content.showId?.let { putExtra("showId", it) }
                 content.url?.let { putExtra("url", it) }
-                // Grouped pushes set route so the tap opens the Favorites tab;
-                // MainActivity routes it ahead of the showId fallback. showIds
-                // scope that tab to the push's shows.
+                // Grouped pushes set route so the tap opens Notifications;
+                // MainActivity routes it ahead of the showId fallback. Keep
+                // showIds in the payload for older clients.
                 content.route?.let { putExtra("route", it) }
                 content.showIds?.let { putExtra("showIds", it) }
             }

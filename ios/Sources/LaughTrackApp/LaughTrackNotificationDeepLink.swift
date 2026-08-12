@@ -2,12 +2,11 @@ import Foundation
 
 enum LaughTrackNotificationDeepLink {
     static func route(from userInfo: [AnyHashable: Any]) -> AppRoute? {
-        // Grouped-push tap → Favorites tab (renders upcoming shows from followed
-        // comedians). Checked before showId, which grouped pushes still carry as
-        // the fallback for older builds that predate this key.
+        // Grouped-push tap → Notifications. Checked before showId, which grouped
+        // pushes still carry as the fallback for older builds that predate this key.
         if let route = userInfo["route"] as? String,
            route.trimmingCharacters(in: .whitespacesAndNewlines) == "favorites" {
-            return .library(showIDs(from: userInfo["showIds"]))
+            return .notifications
         }
         if let showID = integerValue(userInfo["showId"]) {
             return .showDetail(showID)
@@ -32,14 +31,6 @@ enum LaughTrackNotificationDeepLink {
             return nil
         }
         return .showDetail(showID)
-    }
-
-    /// Parse a comma-joined "555,777" show-id string (grouped-push context).
-    private static func showIDs(from raw: Any?) -> [Int] {
-        guard let string = raw as? String else { return [] }
-        return string
-            .split(separator: ",")
-            .compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
     }
 
     private static func integerValue(_ raw: Any?) -> Int? {

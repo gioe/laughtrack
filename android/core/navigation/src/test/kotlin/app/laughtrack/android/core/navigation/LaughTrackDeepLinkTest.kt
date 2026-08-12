@@ -67,17 +67,17 @@ class LaughTrackDeepLinkTest {
     }
 
     @Test
-    fun push_payload_route_favorites_opens_favorites_tab() {
+    fun push_payload_route_favorites_opens_notification_center() {
         assertEquals(
-            AppRoute.Favorites(),
+            AppRoute.NotificationCenter,
             LaughTrackDeepLink.routeFromPush(mapOf("route" to "favorites")),
         )
     }
 
     @Test
-    fun push_payload_favorites_carries_show_ids() {
+    fun push_payload_favorites_show_ids_still_open_notification_center() {
         assertEquals(
-            AppRoute.Favorites(listOf(555, 777)),
+            AppRoute.NotificationCenter,
             LaughTrackDeepLink.routeFromPush(
                 mapOf("route" to "favorites", "showIds" to "555,777"),
             ),
@@ -89,7 +89,7 @@ class LaughTrackDeepLinkTest {
         // Grouped pushes still carry a url + showId as the older-client fallback;
         // a present route must take precedence over both.
         assertEquals(
-            AppRoute.Favorites(),
+            AppRoute.NotificationCenter,
             LaughTrackDeepLink.routeFromPush(
                 mapOf("route" to "favorites", "url" to "laughtrack://show/42", "showId" to "42"),
             ),
