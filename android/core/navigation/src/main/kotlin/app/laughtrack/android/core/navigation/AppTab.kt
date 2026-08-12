@@ -11,5 +11,5 @@ enum class AppTab(
 ) {
     DISCOVER(AppRoute.Discover, "Discover"),
     SEARCH(AppRoute.Search, "Search", ownsEntityPivots = true),
-    FAVORITES(AppRoute.Favorites(), "Library"),
+    FAVORITES(AppRoute.Favorites, "Library"),
 }

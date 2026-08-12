@@ -7,7 +7,6 @@ import app.laughtrack.android.core.network.generated.model.FavoriteClubListRespo
 import app.laughtrack.android.core.network.generated.model.FavoriteListResponse
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastListResponse
-import app.laughtrack.android.core.network.generated.model.FavoriteShowListResponse
 import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.core.testing.signedOutFavoritesRepository
 import app.laughtrack.android.core.testing.throwingApi
@@ -121,14 +120,6 @@ class LibraryViewModelTest {
             if (refreshFails) throw IOException("network down")
             return Response.success(FavoriteListResponse(listOf(comedian())))
         }
-
-        override suspend fun getFavoriteShows(
-            page: Int?,
-            size: Int?,
-        ): Response<FavoriteShowListResponse> =
-            Response.success(
-                FavoriteShowListResponse(data = emptyList(), total = 0, page = 1, propertySize = 20, totalPages = 0),
-            )
 
         override suspend fun getFavoriteClubs(): Response<FavoriteClubListResponse> =
             Response.success(

@@ -31,9 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,12 +50,6 @@ import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import java.math.BigDecimal
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.Locale
 
 private val LibraryMaxWidth = 760.dp
@@ -77,13 +68,6 @@ internal enum class LibrarySection(
             eyebrow = "Plans",
             title = "Next Up",
             subtitle = "The shows you chose are always first.",
-        ),
-    ),
-    FROM_FOLLOWS(
-        LibrarySectionPresentation(
-            eyebrow = "Following",
-            title = "From Your Follows",
-            subtitle = "Upcoming shows from comedians you follow.",
         ),
     ),
     SAVED(
@@ -111,13 +95,12 @@ internal enum class LibraryGroupResolution {
 
 internal data class LibraryContentState(
     val nextUp: LibraryGroupResolution,
-    val fromFollows: LibraryGroupResolution,
     val saved: LibraryGroupResolution,
     val history: LibraryGroupResolution,
 ) {
     val isFullyEmpty: Boolean
         get() =
-            listOf(nextUp, fromFollows, saved, history)
+            listOf(nextUp, saved, history)
                 .all { it == LibraryGroupResolution.EMPTY }
 }
 
@@ -194,12 +177,6 @@ internal fun libraryContentState(
                 savedShowsSnapshot.upcoming,
                 initialRefreshComplete,
             ),
-        fromFollows =
-            favoriteResolution(
-                hasContent = snapshot.shows.isNotEmpty(),
-                snapshot = snapshot,
-                initialRefreshComplete = initialRefreshComplete,
-            ),
         saved =
             favoriteResolution(
                 hasContent =
@@ -246,7 +223,6 @@ fun LibraryScreen(
     onOpenShow: (Int) -> Unit = {},
     onOpenSaved: (LibrarySavedDestination) -> Unit = {},
     onOpenSearch: (LibrarySearchSeed) -> Unit = {},
-    scopedShowIds: List<Int> = emptyList(),
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val snapshot by viewModel.snapshot.collectAsState()
@@ -264,7 +240,6 @@ fun LibraryScreen(
         savedShowsSnapshot = savedShowsSnapshot,
         message = message,
         initialRefreshComplete = initialRefreshComplete,
-        scopedShowIds = scopedShowIds,
         onOpenProfile = onOpenProfile,
         onOpenShow = onOpenShow,
         onOpenSaved = onOpenSaved,
@@ -288,7 +263,6 @@ fun LibraryScreen(
     onOpenSaved: (LibrarySavedDestination) -> Unit = {},
     onOpenSearch: (LibrarySearchSeed) -> Unit = {},
     initialRefreshComplete: Boolean = true,
-    scopedShowIds: List<Int> = emptyList(),
 ) {
     LibraryContent(
         signedIn = signedIn,
@@ -296,7 +270,6 @@ fun LibraryScreen(
         savedShowsSnapshot = savedShowsSnapshotOverride,
         message = null,
         initialRefreshComplete = initialRefreshComplete,
-        scopedShowIds = scopedShowIds,
         onOpenProfile = onOpenProfile,
         onOpenShow = onOpenShow,
         onOpenSaved = onOpenSaved,
@@ -316,7 +289,6 @@ private fun LibraryContent(
     savedShowsSnapshot: SavedShowsSnapshot,
     message: String?,
     initialRefreshComplete: Boolean,
-    scopedShowIds: List<Int>,
     onOpenProfile: () -> Unit,
     onOpenShow: (Int) -> Unit,
     onOpenSaved: (LibrarySavedDestination) -> Unit,
@@ -356,7 +328,6 @@ private fun LibraryContent(
                     snapshot = snapshot,
                     savedShowsSnapshot = savedShowsSnapshot,
                     initialRefreshComplete = initialRefreshComplete,
-                    scopedShowIds = scopedShowIds,
                     onOpenShow = onOpenShow,
                     onOpenSaved = onOpenSaved,
                     onOpenSearch = onOpenSearch,
@@ -381,7 +352,6 @@ private fun SignedInLibrary(
     snapshot: FavoritesSnapshot,
     savedShowsSnapshot: SavedShowsSnapshot,
     initialRefreshComplete: Boolean,
-    scopedShowIds: List<Int>,
     onOpenShow: (Int) -> Unit,
     onOpenSaved: (LibrarySavedDestination) -> Unit,
     onOpenSearch: (LibrarySearchSeed) -> Unit,
@@ -401,13 +371,6 @@ private fun SignedInLibrary(
                     initialRefreshComplete = initialRefreshComplete,
                     onOpenShow = onOpenShow,
                     onRetry = { onRetrySavedShows(SavedShowPeriod.UPCOMING) },
-                )
-            LibrarySection.FROM_FOLLOWS ->
-                FromFollowsSection(
-                    snapshot = snapshot,
-                    resolution = contentState.fromFollows,
-                    scopedShowIds = scopedShowIds,
-                    onOpenShow = onOpenShow,
                 )
             LibrarySection.SAVED ->
                 SavedEntitiesSection(
@@ -492,55 +455,6 @@ internal fun savedShowPriceLabel(prices: List<BigDecimal>?): String? {
         "\$${minimum.toBigInteger()}"
     } else {
         "\$$minimum"
-    }
-}
-
-@Composable
-private fun FromFollowsSection(
-    snapshot: FavoritesSnapshot,
-    resolution: LibraryGroupResolution,
-    scopedShowIds: List<Int>,
-    onOpenShow: (Int) -> Unit,
-) {
-    if (resolution == LibraryGroupResolution.EMPTY) return
-
-    var showAll by remember { mutableStateOf(false) }
-    val isScoped = scopedShowIds.isNotEmpty() && !showAll
-    val shows =
-        if (isScoped) {
-            val scoped = scopedShowIds.toSet()
-            snapshot.shows.filter { it.id in scoped }
-        } else {
-            snapshot.shows.take(4)
-        }
-    val presentation =
-        if (isScoped) {
-            LibrarySection.FROM_FOLLOWS.presentation.copy(title = "From Your Notification")
-        } else {
-            LibrarySection.FROM_FOLLOWS.presentation
-        }
-
-    FavoriteSection(presentation) {
-        when (resolution) {
-            LibraryGroupResolution.LOADING -> LoadingRow()
-            LibraryGroupResolution.FAILURE ->
-                EmptyText(
-                    snapshot.errorMessage ?: "Couldn’t load shows from your follows.",
-                )
-            LibraryGroupResolution.EMPTY -> Unit
-            LibraryGroupResolution.CONTENT -> {
-                if (isScoped) {
-                    TextButton(onClick = { showAll = true }) { Text("Show all follows") }
-                }
-                if (shows.isEmpty()) {
-                    EmptyText("Those shows aren’t in your upcoming follows right now.")
-                } else {
-                    shows.forEach { show ->
-                        ShowRow(show = show, onOpenShow = onOpenShow)
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -734,55 +648,6 @@ private fun FavoriteRow(
             TextButton(onClick = onRemove) { Text("Remove") }
         }
     }
-}
-
-@Composable
-private fun ShowRow(
-    show: Show,
-    onOpenShow: (Int) -> Unit,
-) {
-    FavoriteRow(
-        title = show.name ?: show.clubName ?: "Comedy show",
-        subtitle = favoriteShowSubtitle(show),
-        onOpen = { onOpenShow(show.id) },
-        onRemove = null,
-    )
-}
-
-internal fun favoriteShowSubtitle(
-    show: Show,
-    locale: Locale = Locale.getDefault(),
-): String {
-    val formattedDate = formatFavoriteShowDate(show, locale)
-    return listOfNotNull(show.clubName, show.clubCity, formattedDate).joinToString(" - ")
-}
-
-private fun formatFavoriteShowDate(
-    show: Show,
-    locale: Locale,
-): String? {
-    val raw = show.date.trim()
-    if (raw.isEmpty()) return null
-
-    val venueZone = show.timezone?.let { runCatching { ZoneId.of(it) }.getOrNull() }
-    val dateTime =
-        runCatching {
-            val parsed = OffsetDateTime.parse(raw)
-            venueZone?.let(parsed::atZoneSameInstant) ?: parsed.toZonedDateTime()
-        }
-            .recoverCatching {
-                val parsed = ZonedDateTime.parse(raw)
-                venueZone?.let(parsed::withZoneSameInstant) ?: parsed
-            }
-            .recoverCatching {
-                LocalDateTime.parse(raw).atZone(venueZone ?: ZoneId.systemDefault())
-            }
-            .getOrNull()
-            ?: return null
-
-    val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
-    val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
-    return "${dateTime.format(dateFormatter)} · ${dateTime.format(timeFormatter)}"
 }
 
 @Composable

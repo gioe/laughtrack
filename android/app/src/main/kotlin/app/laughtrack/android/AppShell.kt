@@ -169,12 +169,10 @@ fun AppShell(
                             onRequestedSearchConsumed = { pendingSearchRequest = null },
                         )
                     }
-                    composable<AppRoute.Favorites> { entry ->
-                        val scopedShowIds = entry.toRoute<AppRoute.Favorites>().showIds
+                    composable<AppRoute.Favorites> {
                         if (screenshotPersona == null) {
                             LibraryScreen(
                                 signedIn = signedIn,
-                                scopedShowIds = scopedShowIds,
                                 onOpenProfile = { navController.openEntity(AppRoute.Profile) },
                                 onOpenShow = { showId ->
                                     navController.openEntity(AppRoute.ShowDetail(showId))
@@ -190,7 +188,6 @@ fun AppShell(
                         } else {
                             LibraryScreen(
                                 signedIn = true,
-                                scopedShowIds = scopedShowIds,
                                 onOpenProfile = { navController.openEntity(AppRoute.Profile) },
                                 snapshotOverride = screenshotPersona.favoritesSnapshot,
                                 savedShowsSnapshotOverride = screenshotPersona.savedShowsSnapshot,

@@ -5,7 +5,6 @@ import app.laughtrack.android.core.data.profile.ProfileAccount
 import app.laughtrack.android.core.data.profile.ProfilePreferences
 import app.laughtrack.android.core.data.savedshows.SavedShowsCollection
 import app.laughtrack.android.core.data.savedshows.SavedShowsSnapshot
-import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
@@ -79,51 +78,6 @@ object AuthenticatedScreenshotPersona {
                         socialData = SocialData(id = 910_002),
                         showCount = 1,
                         isFavorite = true,
-                    ),
-                ),
-            shows =
-                listOf(
-                    Show(
-                        id = SHOW_ID,
-                        clubId = 910_201,
-                        date = "2026-07-18T20:00:00-04:00",
-                        imageUrl = "",
-                        clubName = "The Comedy Cellar",
-                        clubCity = "New York",
-                        clubState = "NY",
-                        name = "Taylor Tomlinson Live",
-                        lineup =
-                            listOf(
-                                ComedianLineup(
-                                    name = "Taylor Tomlinson",
-                                    imageUrl = "",
-                                    uuid = COMEDIAN_UUID,
-                                    id = 910_001,
-                                    isFavorite = true,
-                                ),
-                            ),
-                        timezone = "America/New_York",
-                    ),
-                    Show(
-                        id = SECOND_SHOW_ID,
-                        clubId = 910_202,
-                        date = "2026-07-19T19:30:00-04:00",
-                        imageUrl = "",
-                        clubName = "The Bell House",
-                        clubCity = "Brooklyn",
-                        clubState = "NY",
-                        name = "Sam Jay Live",
-                        lineup =
-                            listOf(
-                                ComedianLineup(
-                                    name = "Sam Jay",
-                                    imageUrl = "",
-                                    uuid = SECOND_COMEDIAN_UUID,
-                                    id = 910_002,
-                                    isFavorite = true,
-                                ),
-                            ),
-                        timezone = "America/New_York",
                     ),
                 ),
             clubs =

@@ -24,13 +24,11 @@ class AuthenticatedScreenshotPersonaTest {
     }
 
     @Test
-    fun `favorites are populated and use fixed ids without remote images`() {
+    fun `saved entities are populated without inferred shows or remote images`() {
         val favorites = AuthenticatedScreenshotPersona.favoritesSnapshot
 
         assertEquals(listOf("Taylor Tomlinson", "Sam Jay"), favorites.comedians.map { it.name })
-        assertEquals(listOf(910_101, 910_102), favorites.shows.map { it.id })
         assertTrue(favorites.comedians.all { it.imageUrl.isEmpty() })
-        assertTrue(favorites.shows.all { it.imageUrl.isEmpty() })
         assertTrue(favorites.clubs.all { it.imageUrl.isEmpty() })
         assertTrue(favorites.podcasts.all { it.imageUrl == null })
         assertFalse(favorites.isLoading)

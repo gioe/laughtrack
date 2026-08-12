@@ -90,7 +90,6 @@ class LibrarySavedShowsTest {
         assertEquals(
             listOf(
                 "Next Up",
-                "From Your Follows",
                 "Saved",
                 "History",
             ),

@@ -11,7 +11,6 @@ import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.FavoriteResponse
-import app.laughtrack.android.core.network.generated.model.Show
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +24,6 @@ import javax.inject.Singleton
 
 data class FavoritesSnapshot(
     val comedians: List<ComedianSearchItem> = emptyList(),
-    val shows: List<Show> = emptyList(),
     val clubs: List<FavoriteClubItem> = emptyList(),
     val podcasts: List<FavoritePodcastItem> = emptyList(),
     val comedianValues: Map<String, Boolean> = emptyMap(),
@@ -82,7 +80,6 @@ class FavoritesRepository
                     runCatchingCancellable {
                         RefreshData(
                             comedians = favoritesApi.getFavorites().bodyOrThrow().data,
-                            shows = favoritesApi.getFavoriteShows(page = 1, size = 20).bodyOrThrow().data,
                             clubs = favoritesApi.getFavoriteClubs().bodyOrThrow().data,
                             podcasts = favoritesApi.getFavoritePodcasts().bodyOrThrow().data,
                         )
@@ -546,12 +543,6 @@ class FavoritesRepository
             _snapshot.value =
                 current.copy(
                     comedians = comedians,
-                    shows =
-                        if (entityChangedSince(request, FavoriteEntity.COMEDIAN)) {
-                            current.shows
-                        } else {
-                            data.shows
-                        },
                     clubs = clubs,
                     podcasts = podcasts,
                     comedianValues =
@@ -631,16 +622,6 @@ class FavoritesRepository
             return mutationGenerations[key] != request.mutationGenerations[key]
         }
 
-        private fun entityChangedSince(
-            request: RefreshStart,
-            entity: FavoriteEntity,
-        ): Boolean {
-            val keys =
-                (mutationGenerations.keys + request.mutationGenerations.keys)
-                    .filter { it.entity == entity }
-            return keys.any { mutationGenerations[it] != request.mutationGenerations[it] }
-        }
-
         private fun <T> Response<T>.bodyOrThrow(): T {
             if (!isSuccessful) {
                 throw IOException("HTTP ${code()}")
@@ -670,7 +651,6 @@ class FavoritesRepository
 
         private data class RefreshData(
             val comedians: List<ComedianSearchItem>,
-            val shows: List<Show>,
             val clubs: List<FavoriteClubItem>,
             val podcasts: List<FavoritePodcastItem>,
         )
