@@ -228,3 +228,31 @@ def test_regenerate_comparisons_requests_comparison_only_capture() -> None:
     assert 'ios_lane_args=(screenshots "run_root:$ios_run" comparison_only:true)' in script
     assert 'android_lane_args=(screenshots "run_root:$android_run" comparison_only:true)' in script
     assert script.count("--require-complete") == 2
+
+
+def test_ios_search_capture_enters_the_real_tab_and_keeps_loaded_comedian_gates() -> None:
+    source = (
+        REPO_ROOT / "ios" / "Tests" / "LaughTrackUITests" / "AppStoreScreenshotTests.swift"
+    ).read_text()
+
+    assert 'relaunch(route: "search:0")' not in source
+    search_relaunch = source.split("private func relaunchOnSearchTab() {", 1)[1].split(
+        "\n    private func relaunch(", 1
+    )[0]
+    assert "relaunch()" in search_relaunch
+    assert 'app.buttons["Search"].firstMatch' in search_relaunch
+    assert "searchTab.tap()" in search_relaunch
+    assert "Identifier.primitiveFilterScroller" in search_relaunch
+    assert 'element("laughtrack.shows-search.screen")' in search_relaunch
+
+    search_comedians = source.split('try runScenario("03_SearchComedians") {', 1)[1].split(
+        'try runScenario("04_SearchClubs") {', 1
+    )[0]
+    assert (
+        'assertFirstResult(identifierPrefix: "laughtrack.comedians-search.result-", '
+        'description: "comedian")'
+    ) in search_comedians
+    assert (
+        'captureSearch("03_SearchComedians", resultIdentifierPrefix: '
+        '"laughtrack.comedians-search.result-", description: "comedian")'
+    ) in search_comedians

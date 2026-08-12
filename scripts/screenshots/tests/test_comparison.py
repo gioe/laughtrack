@@ -24,7 +24,7 @@ def test_documented_validator_is_sparse_safe_and_reads_local_catalog(
     tmp_path: Path,
 ) -> None:
     skill = (
-        REPO_ROOT / ".claude" / "skills" / "compare-screenshots" / "SKILL.md"
+        REPO_ROOT / ".agents" / "skills" / "compare-screenshots" / "SKILL.md"
     ).read_text()
     assert skill.count("python3 scripts/screenshots/comparison.py") == 2
     assert "skills/compare-screenshots/scripts/validate_pairs.py" not in skill

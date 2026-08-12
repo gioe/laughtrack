@@ -136,7 +136,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         }
 
         try runScenario("02_SearchShows") {
-            relaunch(route: "search:0")
+            relaunchOnSearchTab()
             assertFirstResult(identifierPrefix: "laughtrack.shows-search.result-", description: "show")
             try captureSearch(
                 "02_SearchShows",
@@ -523,7 +523,23 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     }
 
     private func relaunchOnSearchTab() {
-        relaunch(route: "search:0")
+        // Enter through the real tab instead of the DEBUG search route. The
+        // route mounts a second AppShellView whose initial-tab task races the
+        // root shell's Discover selection on the shared AppShellState.
+        relaunch()
+        // SwiftUI exposes this destination inside a tab bar on iPhone and as
+        // a regular button in the adaptive iPad navigation presentation.
+        let searchTab = app.buttons["Search"].firstMatch
+        XCTAssertTrue(searchTab.waitForExistence(timeout: 10), "Expected the Search tab")
+        searchTab.tap()
+        XCTAssertTrue(
+            element(Identifier.primitiveFilterScroller).waitForExistence(timeout: 10),
+            "Expected Search primitive filters"
+        )
+        XCTAssertTrue(
+            element("laughtrack.shows-search.screen").waitForExistence(timeout: 15),
+            "Expected the default Shows search screen"
+        )
     }
 
     private func relaunch(
