@@ -29,22 +29,21 @@ struct LibrarySavedShowsTests {
         #expect(source.contains(#".accessibilityLabel("Open \(ShowTitlePresentation.title(for: show))")"#))
     }
 
-    @Test("plans, follows, Saved, and History retain canonical priority")
-    func favoriteComedianShowsRemainDistinct() throws {
+    @Test("plans, Saved, and History retain canonical priority")
+    func explicitCollectionsRetainCanonicalPriority() throws {
         let source = try librarySource()
         let sectionsStart = try #require(source.range(of: "private struct FavoritePrimitiveSections"))
         let sectionsEnd = try #require(source.range(of: "private struct SavedShowsSection"))
         let sections = source[sectionsStart.lowerBound..<sectionsEnd.lowerBound]
 
         let nextUp = try #require(sections.range(of: "section: .nextUp"))
-        let follows = try #require(sections.range(of: "FavoriteShowsSection("))
         let saved = try #require(sections.range(of: "SavedFavoritesSection("))
         let history = try #require(sections.range(of: "section: .history"))
 
-        #expect(nextUp.lowerBound < follows.lowerBound)
-        #expect(follows.lowerBound < saved.lowerBound)
+        #expect(nextUp.lowerBound < saved.lowerBound)
         #expect(saved.lowerBound < history.lowerBound)
-        #expect(source.contains("Upcoming shows from comedians you follow."))
+        #expect(!source.contains("From Your Follows"))
+        #expect(!source.contains("HomeFavoriteShowsModel"))
     }
 
     @Test("signed-out Library does not load account-bound saved shows")

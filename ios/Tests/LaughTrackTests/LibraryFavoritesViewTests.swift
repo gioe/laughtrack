@@ -11,7 +11,7 @@ import LaughTrackBridge
 @Suite("Favorites view content")
 @MainActor
 struct LibraryFavoritesViewTests {
-    @Test("signed-in Library renders all live favorite stores and followed shows")
+    @Test("signed-in Library renders all live saved-entity stores")
     func signedInLibraryLoadsSavedFavorites() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
             name: "library-favorites"
@@ -42,37 +42,23 @@ struct LibraryFavoritesViewTests {
         await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
         await clubFavorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
         await podcastFavorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
-        let model = HomeFavoriteShowsModel()
-        await model.refresh(
-            apiClient: apiClient,
-            favoriteComedians: favorites.savedFavoriteComedians,
-            cache: nil,
-            cacheTTL: 0,
-            persistentCache: nil
-        )
-
         #expect(LibraryView.title == "Library")
         #expect(favorites.savedFavoriteComedians.map(\.name) == ["Taylor Tomlinson"])
         #expect(favorites.savedFavoriteComedians.map(\.showCount) == [5])
         #expect(clubFavorites.savedFavoriteClubs.map(\.name) == ["The Stand"])
         #expect(podcastFavorites.savedFavoritePodcasts.map(\.title) == ["Good One"])
 
-        guard case .success(let shows) = model.phase else {
-            Issue.record("Expected success phase, got \(model.phase)")
-            return
-        }
-        #expect(shows.map(\.name) == ["Taylor Tomlinson at The Stand"])
     }
 
-    @Test("Library owns the followed-show rail copy")
-    func favoritesTabOwnsFavoriteTouringRailCopy() throws {
+    @Test("Library excludes inferred followed-show presentation and loading")
+    func libraryContainsOnlyExplicitCollections() throws {
         let source = try String(contentsOf: libraryViewSourceURL(), encoding: .utf8)
 
-        #expect(source.contains("LibrarySection.fromFollows.title"))
-        #expect(source.contains("Upcoming shows from comedians you follow."))
-        #expect(!source.contains("Upcoming after tonight from comedians you saved."))
-        #expect(!source.contains("Loading favorite shows"))
-        #expect(!source.contains("No favorite shows yet"))
+        #expect(!source.contains("From Your Follows"))
+        #expect(!source.contains("FavoriteShowsSection"))
+        #expect(!source.contains("HomeFavoriteShowsModel"))
+        #expect(!source.contains("scopedShowIDs"))
+        #expect(source.contains("SavedFavoritesSection(apiClient: apiClient)"))
     }
 
     @Test("saved favorites section uses the shared rail card shell")
@@ -250,15 +236,6 @@ private struct MockLibraryFavoritesTransport: ClientTransport {
                     HTTPBody(try encoder.encode(payload))
                 )
             }
-            if operationID == "searchShows" {
-                return (
-                    HTTPResponse(
-                        status: .ok,
-                        headerFields: [.contentType: "application/json"]
-                    ),
-                    HTTPBody(try encoder.encode(Self.favoriteShowsResponse))
-                )
-            }
             if operationID == "getFavoriteClubs" {
                 return (
                     HTTPResponse(
@@ -289,43 +266,6 @@ private struct MockLibraryFavoritesTransport: ClientTransport {
                 headerFields: [.contentType: "application/json"]
             ),
             HTTPBody(#"{"error":"unexpected operation"}"#)
-        )
-    }
-
-    private static var favoriteShowsResponse: Components.Schemas.ShowSearchResponse {
-        .init(
-            data: [
-                .init(
-                    id: 901,
-                    clubId: 202,
-                    clubName: "The Stand",
-                    date: Date().addingTimeInterval(60 * 60 * 24),
-                    tickets: [],
-                    name: "Taylor Tomlinson at The Stand",
-                    socialData: nil,
-                    lineup: [
-                        .init(
-                            name: "Taylor Tomlinson",
-                            imageUrl: "https://example.com/taylor.png",
-                            uuid: "comedian-uuid-1",
-                            id: 101,
-                            userId: nil,
-                            socialData: .init(id: 101),
-                            isFavorite: true,
-                            showCount: 5
-                        ),
-                    ],
-                    description: "A favorite comedian is on this bill.",
-                    address: "116 E 16th St, New York, NY",
-                    room: "Main Room",
-                    imageUrl: "https://example.com/show.png",
-                    soldOut: false,
-                    distanceMiles: nil
-                ),
-            ],
-            total: 1,
-            filters: [],
-            zipCapTriggered: false
         )
     }
 

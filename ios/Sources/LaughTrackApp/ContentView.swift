@@ -80,7 +80,6 @@ enum LaughTrackViewTestID {
     static let settingsClearButton = "laughtrack.settings.clear-button"
     static let favoritesHeader = "laughtrack.favorites.header"
     static let favoritesComediansSection = "laughtrack.favorites.comedians-section"
-    static let favoritesShowsSection = "laughtrack.favorites.shows-section"
     static let favoritesClubsSection = "laughtrack.favorites.clubs-section"
     static let favoritesPodcastsSection = "laughtrack.favorites.podcasts-section"
     static let libraryFavoritesSection = favoritesComediansSection
@@ -389,13 +388,12 @@ struct ContentView: View {
                     shellState: shellState,
                     onInitialHomeLoadComplete: markInitialHomeLoaded
                 )
-            case .library(let scopedShowIDs):
+            case .library:
                 AppShellView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
                     initialTab: .favorites,
-                    scopedFavoriteShowIDs: scopedShowIDs,
                     shellState: shellState,
                     onInitialHomeLoadComplete: markInitialHomeLoaded
                 )

@@ -5,14 +5,12 @@ import LaughTrackCore
 
 enum LibrarySection: String, CaseIterable, Equatable {
     case nextUp
-    case fromFollows
     case saved
     case history
 
     var title: String {
         switch self {
         case .nextUp: return "Next Up"
-        case .fromFollows: return "From Your Follows"
         case .saved: return "Saved"
         case .history: return "History"
         }
@@ -28,12 +26,11 @@ enum LibraryGroupResolution: Equatable {
 
 struct LibraryContentState: Equatable {
     let nextUp: LibraryGroupResolution
-    let fromFollows: LibraryGroupResolution
     let saved: LibraryGroupResolution
     let history: LibraryGroupResolution
 
     var isFullyEmpty: Bool {
-        [nextUp, fromFollows, saved, history].allSatisfy { $0 == .empty }
+        [nextUp, saved, history].allSatisfy { $0 == .empty }
     }
 }
 
@@ -56,8 +53,6 @@ struct LibraryView: View {
     static let signedOutPromptTitle = "Sign in to build your Library"
 
     let apiClient: Client
-    /// Show ids from a notification tap; scopes the touring section (empty = all).
-    let scopedShowIDs: [Int]
     let searchNavigationBridge: SearchNavigationBridge
     let screenshotPersona: AuthenticatedScreenshotPersona?
 
@@ -70,12 +65,10 @@ struct LibraryView: View {
     init(
         apiClient: Client,
         selectedPrimitive _: SearchRootModel.Pivot? = nil,
-        scopedShowIDs: [Int] = [],
         searchNavigationBridge: SearchNavigationBridge,
         screenshotPersona: AuthenticatedScreenshotPersona? = nil
     ) {
         self.apiClient = apiClient
-        self.scopedShowIDs = scopedShowIDs
         self.searchNavigationBridge = searchNavigationBridge
         self.screenshotPersona = screenshotPersona
     }
@@ -90,11 +83,8 @@ struct LibraryView: View {
                 } else if authManager.currentSession != nil {
                     FavoritePrimitiveSections(
                         apiClient: apiClient,
-                        scopedShowIDs: scopedShowIDs,
                         searchNavigationBridge: searchNavigationBridge,
-                        savedShows: serviceContainer.resolve(SavedShowStore.self),
-                        cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
-                        persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
+                        savedShows: serviceContainer.resolve(SavedShowStore.self)
                     )
                 } else {
                     LibraryEmptyState(
@@ -131,25 +121,6 @@ private struct AuthenticatedFavoritesSnapshot: View {
                     section: .nextUp,
                     shows: persona.upcomingSavedShows
                 )
-            }
-
-            if !persona.favoriteShows.isEmpty {
-                TeaserSection(
-                    eyebrow: "Following",
-                    title: LibrarySection.fromFollows.title,
-                    subtitle: "Upcoming shows from comedians you follow."
-                ) {
-                    VStack(alignment: .leading, spacing: tokens.spacing.tight) {
-                        ForEach(persona.favoriteShows, id: \.title) { show in
-                            TeaserRow(
-                                title: show.title,
-                                subtitle: show.detail,
-                                systemImage: "calendar",
-                                isPlaceholder: false
-                            )
-                        }
-                    }
-                }
             }
 
             if !persona.favoriteComedians.isEmpty ||
@@ -241,28 +212,13 @@ private struct AuthenticatedFavoritesSnapshot: View {
 
 private struct FavoritePrimitiveSections: View {
     let apiClient: Client
-    let scopedShowIDs: [Int]
     let searchNavigationBridge: SearchNavigationBridge
     @ObservedObject var savedShows: SavedShowStore
-    let cache: DataCache<LaughTrackCacheKey>
-    let persistentCache: PersistentMainPageCache
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @EnvironmentObject private var clubFavorites: ClubFavoriteStore
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
-    @StateObject private var favoriteShowsModel = HomeFavoriteShowsModel()
-
-    private var favoriteComedians: [Components.Schemas.ComedianSearchItem] {
-        guard favorites.savedFavoritesPhase == .loaded else { return [] }
-
-        return favorites.savedFavoriteComedians
-    }
-
-    private var requestKey: String {
-        HomeFavoriteShowsModel.requestKey(for: favoriteComedians)
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: themeSpacing) {
             SavedShowsSection(
@@ -272,11 +228,6 @@ private struct FavoritePrimitiveSections: View {
                 shows: savedShows.upcomingPage?.shows ?? [],
                 apiClient: apiClient,
                 store: savedShows
-            )
-
-            FavoriteShowsSection(
-                phase: favoriteShowsModel.phase,
-                scopedShowIDs: scopedShowIDs
             )
 
             SavedFavoritesSection(apiClient: apiClient)
@@ -296,14 +247,6 @@ private struct FavoritePrimitiveSections: View {
                     requiresSignIn: false
                 )
             }
-        }
-        .task(id: requestKey) {
-            await favoriteShowsModel.refresh(
-                apiClient: apiClient,
-                favoriteComedians: favoriteComedians,
-                cache: cache,
-                persistentCache: persistentCache
-            )
         }
         .task {
             await savedShows.loadSavedShows(
@@ -331,26 +274,12 @@ private struct FavoritePrimitiveSections: View {
                 phase: savedShows.upcomingPhase,
                 hasContent: !(savedShows.upcomingPage?.shows.isEmpty ?? true)
             ),
-            fromFollows: favoriteShowsResolution,
             saved: savedFavoritesResolution,
             history: resolution(
                 phase: savedShows.pastPhase,
                 hasContent: !(savedShows.pastPage?.shows.isEmpty ?? true)
             )
         )
-    }
-
-    private var favoriteShowsResolution: LibraryGroupResolution {
-        switch favoriteShowsModel.phase {
-        case .idle:
-            return favorites.savedFavoritesPhase == .empty ? .empty : .loading
-        case .loading:
-            return .loading
-        case .success(let shows):
-            return shows.isEmpty ? .empty : .content
-        case .failure:
-            return .failure
-        }
     }
 
     private var savedFavoritesResolution: LibraryGroupResolution {
@@ -442,66 +371,6 @@ private struct SavedShowsSection: View {
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-private struct FavoriteShowsSection: View {
-    let phase: LoadPhase<[Components.Schemas.Show]>
-    /// Show ids from a notification tap; scopes the section to just those.
-    var scopedShowIDs: [Int] = []
-
-    @State private var showAll = false
-    @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
-
-    private var isScoped: Bool { !scopedShowIDs.isEmpty && !showAll }
-
-    var body: some View {
-        switch phase {
-        case .success(let shows) where !shows.isEmpty:
-            favoriteShowsContent(shows)
-        default:
-            EmptyView()
-        }
-    }
-
-    private func favoriteShowsContent(_ shows: [Components.Schemas.Show]) -> some View {
-        let scopedSet = Set(scopedShowIDs)
-        let filtered = isScoped ? shows.filter { scopedSet.contains($0.id) } : Array(shows.prefix(4))
-        return LaughTrackRailCard(
-            eyebrow: "Following",
-            title: isScoped ? "From Your Notification" : LibrarySection.fromFollows.title,
-            accessibilityIdentifier: LaughTrackViewTestID.favoritesShowsSection
-        ) {
-            VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                if isScoped {
-                    Button {
-                        showAll = true
-                    } label: {
-                        Text("Show all favorites")
-                            .font(theme.laughTrackTokens.typography.metadata)
-                            .foregroundColor(theme.colors.primary)
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                ForEach(filtered, id: \.id) { show in
-                    Button {
-                        coordinator.open(.show(show.id))
-                    } label: {
-                        ShowRow(show: show)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier(LaughTrackViewTestID.homeFavoriteShowButton(show.id))
-                }
-
-                if isScoped, filtered.isEmpty {
-                    Text("Those shows aren't in your upcoming favorites right now.")
-                        .font(theme.laughTrackTokens.typography.metadata)
-                        .foregroundColor(theme.colors.textSecondary)
                 }
             }
         }

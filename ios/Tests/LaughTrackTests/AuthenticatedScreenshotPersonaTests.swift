@@ -12,7 +12,10 @@ struct AuthenticatedScreenshotPersonaTests {
         #expect(first.user.displayName == "Jordan Rivera")
         #expect(first.user.zipCode == "10012")
         #expect(first.favoriteComedians.count >= 2)
-        #expect(first.favoriteShows.map(\.title) == ["Taylor Tomlinson Live", "Sam Jay Live"])
+        #expect(first.upcomingSavedShows.map(\.title) == [
+            "Atsuko Okatsuka: Full Grown Tour",
+            "Josh Johnson and Friends",
+        ])
         #expect(first.favoriteClubs == ["The Comedy Cellar"])
         #expect(first.favoritePodcasts == ["Good One: A Podcast About Jokes"])
         #expect(first.notifications.count == 2)

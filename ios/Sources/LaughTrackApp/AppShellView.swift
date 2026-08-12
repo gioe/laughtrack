@@ -100,8 +100,6 @@ struct AppShellView: View {
     let signedOutMessage: String?
     let favorites: ComedianFavoriteStore
     let initialTab: AppTab
-    /// Scopes the Library "touring" section to a notification's shows (empty = all).
-    let scopedFavoriteShowIDs: [Int]
     @ObservedObject var shellState: AppShellState
     let onInitialHomeLoadComplete: (() -> Void)?
 
@@ -122,7 +120,6 @@ struct AppShellView: View {
         signedOutMessage: String? = nil,
         favorites: ComedianFavoriteStore,
         initialTab: AppTab = .nearMe,
-        scopedFavoriteShowIDs: [Int] = [],
         shellState: AppShellState,
         onInitialHomeLoadComplete: (() -> Void)? = nil
     ) {
@@ -130,7 +127,6 @@ struct AppShellView: View {
         self.signedOutMessage = signedOutMessage
         self.favorites = favorites
         self.initialTab = initialTab
-        self.scopedFavoriteShowIDs = scopedFavoriteShowIDs
         self.shellState = shellState
         self.onInitialHomeLoadComplete = onInitialHomeLoadComplete
     }
@@ -201,7 +197,6 @@ struct AppShellView: View {
             LibraryView(
                 apiClient: apiClient,
                 selectedPrimitive: shellState.selectedPrimitive,
-                scopedShowIDs: scopedFavoriteShowIDs,
                 searchNavigationBridge: searchNavigationBridge,
                 screenshotPersona: AuthenticatedScreenshotPersona.active
             )

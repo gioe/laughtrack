@@ -23,7 +23,7 @@ struct AppShellViewTests {
         #expect(AppTab.allCases.map(\.title) == ["Discover", "Search", "Library"])
         #expect(AppRoute.nearMe.shellTab == .nearMe)
         #expect(AppRoute.search.shellTab == .search)
-        #expect(AppRoute.library([]).shellTab == .favorites)
+        #expect(AppRoute.library.shellTab == .favorites)
         #expect(AppRoute.profile.shellTab == nil)
     }
 

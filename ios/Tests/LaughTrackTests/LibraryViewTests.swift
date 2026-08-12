@@ -17,10 +17,9 @@ struct LibraryViewTests {
 
     @Test("Library groups have one canonical priority order")
     func librarySectionPriority() {
-        #expect(LibrarySection.allCases == [.nextUp, .fromFollows, .saved, .history])
+        #expect(LibrarySection.allCases == [.nextUp, .saved, .history])
         #expect(LibrarySection.allCases.map(\.title) == [
             "Next Up",
-            "From Your Follows",
             "Saved",
             "History",
         ])
@@ -30,7 +29,6 @@ struct LibraryViewTests {
     func fullyEmptyStateRequiresAllGroups() {
         #expect(LibraryContentState(
             nextUp: .empty,
-            fromFollows: .empty,
             saved: .empty,
             history: .empty
         ).isFullyEmpty)
@@ -42,7 +40,6 @@ struct LibraryViewTests {
         ] {
             #expect(!LibraryContentState(
                 nextUp: unresolved,
-                fromFollows: .empty,
                 saved: .empty,
                 history: .empty
             ).isFullyEmpty)

@@ -25,10 +25,6 @@ struct AuthenticatedScreenshotPersona: Equatable {
     )
 
     let favoriteComedians = ["Taylor Tomlinson", "Sam Jay"]
-    let favoriteShows = [
-        (title: "Taylor Tomlinson Live", detail: "July 18 · The Comedy Cellar · New York"),
-        (title: "Sam Jay Live", detail: "July 19 · The Bell House · Brooklyn"),
-    ]
     let upcomingSavedShows = [
         (title: "Atsuko Okatsuka: Full Grown Tour", detail: "July 21 · Town Hall · New York"),
         (title: "Josh Johnson and Friends", detail: "July 24 · The Bell House · Brooklyn"),
@@ -81,8 +77,6 @@ struct AuthenticatedScreenshotPersona: Equatable {
     static func == (lhs: AuthenticatedScreenshotPersona, rhs: AuthenticatedScreenshotPersona) -> Bool {
         lhs.user == rhs.user
             && lhs.favoriteComedians == rhs.favoriteComedians
-            && lhs.favoriteShows.map(\.title) == rhs.favoriteShows.map(\.title)
-            && lhs.favoriteShows.map(\.detail) == rhs.favoriteShows.map(\.detail)
             && lhs.upcomingSavedShows.map(\.title) == rhs.upcomingSavedShows.map(\.title)
             && lhs.upcomingSavedShows.map(\.detail) == rhs.upcomingSavedShows.map(\.detail)
             && lhs.pastSavedShows.map(\.title) == rhs.pastSavedShows.map(\.title)

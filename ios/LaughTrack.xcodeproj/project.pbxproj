@@ -217,7 +217,6 @@
 		C6BDC552CA2E02C18B2C5F2E /* ShowDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F507D3C7B4E507D8FA307075 /* ShowDetailView.swift */; };
 		C6FB9B34A0F4D1A23A580E19 /* LaughTrackAPIClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C843E624627FED8F6B6195FC /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
-		CC678D33FEDB41B15E7E7353 /* HomeFavoriteShowsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AD11F9BC77FA973392CEA28 /* HomeFavoriteShowsModel.swift */; };
 		CCD9C1C761E79456F5E69CE1 /* DMSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 259076C1485FA78A7B81B2CD /* DMSans-Medium.ttf */; };
 		CD180351B0B6171228503509 /* LoadFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EE3334A9C17B5E93FDB4F4 /* LoadFailure.swift */; };
 		CF2D1462F9F8A2ABF8163B42 /* ComedianDetailViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F6241EF98C5364C9ADF43F1 /* ComedianDetailViewTests.swift */; };
@@ -510,7 +509,6 @@
 		787B72EABFD79CFD44CEF1A1 /* ComediansDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryModel.swift; sourceTree = "<group>"; };
 		795D45DA517B38F8AE1861D2 /* PodcastEpisodeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastEpisodeDetailView.swift; sourceTree = "<group>"; };
 		7A6667B928C06BDF139513D4 /* PushPermissionTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionTestSupport.swift; sourceTree = "<group>"; };
-		7AD11F9BC77FA973392CEA28 /* HomeFavoriteShowsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeFavoriteShowsModel.swift; sourceTree = "<group>"; };
 		7AD4F317A2BF160B74FB31CE /* Urbanist-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Urbanist-OFL.txt"; sourceTree = "<group>"; };
 		7C90C7A147102BB1A983828E /* DMSans-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		7E115819A3E8E7A9D194E204 /* PushDeviceTokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushDeviceTokenManager.swift; sourceTree = "<group>"; };
@@ -832,7 +830,6 @@
 			isa = PBXGroup;
 			children = (
 				451293C2EFBB54FE9D786331 /* HomeDiscoverRailPlanModel.swift */,
-				7AD11F9BC77FA973392CEA28 /* HomeFavoriteShowsModel.swift */,
 				1C34F645AA5FAAD71CD51D6D /* HomeFeedRequestCoalescer.swift */,
 				93A3E67EC1F399BCD4FEBC41 /* HomePopularClubsModel.swift */,
 				2CAC3A753F6E28D44A33F2E5 /* HomeShowsTonightModel.swift */,
@@ -1487,7 +1484,6 @@
 				CF5C6C3A8C12A2BAFC1FBFD3 /* FavoriteButton.swift in Sources */,
 				B0C2E5C3CC28037EB88C7E75 /* HomeDiscoverPlannedRail.swift in Sources */,
 				76C11AE5B5C5A3063AB1B5BA /* HomeDiscoverRailPlanModel.swift in Sources */,
-				CC678D33FEDB41B15E7E7353 /* HomeFavoriteShowsModel.swift in Sources */,
 				5AFDB082808517D1D6ACEEA0 /* HomeFeedRequestCoalescer.swift in Sources */,
 				44286858D7372089A4CD13B2 /* HomeFollowedComedianShowsRail.swift in Sources */,
 				89BFD541C02ACD9553C3DE4E /* HomeLocationEditor.swift in Sources */,

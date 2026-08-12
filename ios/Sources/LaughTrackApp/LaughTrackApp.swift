@@ -200,7 +200,7 @@ enum DebugLaunchRoute {
         case "search":
             return .search
         case "favorites", "library":
-            return .library([])
+            return .library
         case "profile", "settings":
             return .profile
         case "notifications":

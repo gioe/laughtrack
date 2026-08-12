@@ -552,7 +552,6 @@ struct HomeContentSectionTests {
             "Views/Rails/HomeShowsTonightRail.swift",
             "Models/HomeDiscoverRailPlanModel.swift",
             "Models/HomeShowsTonightModel.swift",
-            "Models/HomeFavoriteShowsModel.swift",
             "Views/Rails/HomeFollowedComedianShowsRail.swift",
             "Views/Rails/HomeTrendingComediansRail.swift",
             "Models/HomeTrendingComediansModel.swift",

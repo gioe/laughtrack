@@ -1,9 +1,7 @@
 enum AppRoute: Hashable, Codable {
     case nearMe
     case search
-    // Associated show ids scope the Favorites "touring" section to a
-    // notification's shows; empty = the full Favorites tab.
-    case library([Int])
+    case library
     case profile
     case notifications
     case showDetail(Int)
