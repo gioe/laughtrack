@@ -85,6 +85,239 @@ struct SavedShowStoreTests {
         #expect(listPaths.contains { $0.contains("period=past") && $0.contains("page=1") })
     }
 
+    @Test("next pages append, deduplicate boundaries, and preserve chronological order")
+    func nextPagesAppendDeduplicatedChronologically() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let transport = StubClientTransport { request, _, _, operationID in
+            #expect(operationID == Operations.GetSavedShows.id)
+            let period = queryValue("period", from: request.path)
+            let page = Int(queryValue("page", from: request.path) ?? "") ?? 1
+            let shows: [Components.Schemas.Show]
+            if period == "past" {
+                shows = page == 1
+                    ? [makeShow(id: 21, date: Date(timeIntervalSince1970: 300)),
+                       makeShow(id: 20, date: Date(timeIntervalSince1970: 200))]
+                    : [makeShow(id: 20, date: Date(timeIntervalSince1970: 200)),
+                       makeShow(id: 22, date: Date(timeIntervalSince1970: 400)),
+                       makeShow(id: 19, date: Date(timeIntervalSince1970: 200))]
+            } else {
+                shows = page == 1
+                    ? [makeShow(id: 11, date: Date(timeIntervalSince1970: 300)),
+                       makeShow(id: 10, date: Date(timeIntervalSince1970: 200))]
+                    : [makeShow(id: 11, date: Date(timeIntervalSince1970: 300)),
+                       makeShow(id: 9, date: Date(timeIntervalSince1970: 100)),
+                       makeShow(id: 12, date: Date(timeIntervalSince1970: 300))]
+            }
+            return jsonResponse(
+                .ok,
+                Components.Schemas.SavedShowListResponse(
+                    data: shows,
+                    total: 4,
+                    page: page,
+                    size: 2,
+                    totalPages: 2
+                ),
+                encoder: APIMockEncoder.make()
+            )
+        }
+        let client = makeClient(transport: transport)
+        let harness = makeHarness()
+
+        await harness.store.loadSavedShows(
+            period: .upcoming,
+            size: 2,
+            apiClient: client,
+            authManager: auth
+        )
+        await harness.store.loadNextSavedShowsPage(
+            period: .upcoming,
+            apiClient: client,
+            authManager: auth
+        )
+        await harness.store.loadSavedShows(
+            period: .past,
+            size: 2,
+            apiClient: client,
+            authManager: auth
+        )
+        await harness.store.loadNextSavedShowsPage(
+            period: .past,
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(harness.store.upcomingPage?.shows.map(\.id) == [9, 10, 11, 12])
+        #expect(harness.store.pastPage?.shows.map(\.id) == [22, 21, 20, 19])
+        #expect(harness.store.upcomingPage?.page == 2)
+        #expect(harness.store.pastPage?.page == 2)
+    }
+
+    @Test("next-page failure preserves rows and retries without passing the page limit")
+    func nextPageFailurePreservesRowsAndRetriesWithinLimit() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let pageTwoAttempts = AttemptCounter()
+        let transport = StubClientTransport { request, _, _, operationID in
+            #expect(operationID == Operations.GetSavedShows.id)
+            let page = Int(queryValue("page", from: request.path) ?? "") ?? 1
+            if page == 2, await pageTwoAttempts.next() == 1 {
+                throw URLError(.notConnectedToInternet)
+            }
+            return jsonResponse(
+                .ok,
+                Components.Schemas.SavedShowListResponse(
+                    data: [makeShow(id: page)],
+                    total: 2,
+                    page: page,
+                    size: 1,
+                    totalPages: 2
+                ),
+                encoder: APIMockEncoder.make()
+            )
+        }
+        let client = makeClient(transport: transport)
+        let harness = makeHarness()
+
+        await harness.store.loadSavedShows(
+            period: .upcoming,
+            size: 1,
+            apiClient: client,
+            authManager: auth
+        )
+        await harness.store.loadNextSavedShowsPage(
+            period: .upcoming,
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(harness.store.upcomingPage?.shows.map(\.id) == [1])
+        #expect(harness.store.upcomingPage?.page == 1)
+        guard case .failure = harness.store.upcomingPhase else {
+            Issue.record("Expected the next-page failure to remain retryable")
+            return
+        }
+
+        await harness.store.loadNextSavedShowsPage(
+            period: .upcoming,
+            apiClient: client,
+            authManager: auth
+        )
+        await harness.store.loadNextSavedShowsPage(
+            period: .upcoming,
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(harness.store.upcomingPage?.shows.map(\.id) == [1, 2])
+        #expect(harness.store.upcomingPhase == .loaded)
+        #expect(await pageTwoAttempts.count == 2)
+        #expect(
+            transport.capturedRequests.filter {
+                $0.operationID == Operations.GetSavedShows.id
+            }.count == 3
+        )
+    }
+
+    @Test("an in-flight next page cannot re-add an optimistic unsave")
+    func inFlightNextPageDoesNotOverwriteOptimisticUnsave() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let pageTwoGate = SuspensionGate()
+        let transport = StubClientTransport { request, _, _, operationID in
+            switch operationID {
+            case Operations.GetSavedShows.id:
+                let page = Int(queryValue("page", from: request.path) ?? "") ?? 1
+                if page == 2 {
+                    await pageTwoGate.suspend()
+                }
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowListResponse(
+                        data: page == 1
+                            ? [makeShow(id: 1), makeShow(id: 2)]
+                            : [makeShow(id: 2), makeShow(id: 3)],
+                        total: 3,
+                        page: page,
+                        size: 2,
+                        totalPages: 2
+                    ),
+                    encoder: APIMockEncoder.make()
+                )
+            case Operations.UnsaveShow.id:
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowStateResponse(data: .init(isSaved: false)),
+                    encoder: APIMockEncoder.make()
+                )
+            default:
+                throw URLError(.badServerResponse)
+            }
+        }
+        let client = makeClient(transport: transport)
+        let harness = makeHarness()
+        await harness.store.loadSavedShows(
+            period: .upcoming,
+            size: 2,
+            apiClient: client,
+            authManager: auth
+        )
+
+        let nextPage = Task {
+            await harness.store.loadNextSavedShowsPage(
+                period: .upcoming,
+                apiClient: client,
+                authManager: auth
+            )
+        }
+        await pageTwoGate.waitUntilSuspended()
+        let result = await harness.store.setSaved(
+            showId: 2,
+            isSaved: false,
+            apiClient: client,
+            authManager: auth
+        )
+        await pageTwoGate.release()
+        await nextPage.value
+
+        #expect(result == .updated(false))
+        #expect(harness.store.value(for: 2) == false)
+        #expect(harness.store.upcomingPage?.shows.map(\.id) == [1, 3])
+    }
+
+    @Test("empty first page stays empty and does not request another page")
+    func emptyFirstPageDoesNotRequestAnotherPage() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let transport = StubClientTransport { _, _, _, operationID in
+            #expect(operationID == Operations.GetSavedShows.id)
+            return jsonResponse(
+                .ok,
+                Components.Schemas.SavedShowListResponse(
+                    data: [],
+                    total: 0,
+                    page: 1,
+                    size: 20,
+                    totalPages: 0
+                ),
+                encoder: APIMockEncoder.make()
+            )
+        }
+        let client = makeClient(transport: transport)
+        let harness = makeHarness()
+
+        await harness.store.loadSavedShows(
+            period: .past,
+            apiClient: client,
+            authManager: auth
+        )
+        await harness.store.loadNextSavedShowsPage(
+            period: .past,
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(harness.store.pastPage?.shows.isEmpty == true)
+        #expect(harness.store.pastPhase == .empty)
+        #expect(transport.capturedRequests.count == 1)
+    }
+
     @Test("memory and persistent collection caches remain scoped to the active account")
     func cachesAreAccountScoped() async {
         let harness = makeHarness()
@@ -397,6 +630,124 @@ struct SavedShowStoreTests {
         #expect(harness.store.pastPage?.shows.count == 2)
         #expect(harness.store.pastPage?.total == 3)
         #expect(harness.store.pastPage?.totalPages == 2)
+    }
+
+    @Test("optimistic insertion uses the capacity of all loaded pages")
+    func optimisticInsertionUsesAggregateLoadedCapacity() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let now = Date()
+        let transport = StubClientTransport { request, _, _, operationID in
+            switch operationID {
+            case Operations.GetSavedShows.id:
+                let page = Int(queryValue("page", from: request.path) ?? "") ?? 1
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowListResponse(
+                        data: page == 1
+                            ? [makeShow(id: 1, date: now.addingTimeInterval(100)),
+                               makeShow(id: 2, date: now.addingTimeInterval(200))]
+                            : [makeShow(id: 3, date: now.addingTimeInterval(300)),
+                               makeShow(id: 4, date: now.addingTimeInterval(400))],
+                        total: 4,
+                        page: page,
+                        size: 2,
+                        totalPages: 2
+                    ),
+                    encoder: APIMockEncoder.make()
+                )
+            case Operations.SaveShow.id:
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowStateResponse(data: .init(isSaved: true)),
+                    encoder: APIMockEncoder.make()
+                )
+            default:
+                throw URLError(.badServerResponse)
+            }
+        }
+        let client = makeClient(transport: transport)
+        let harness = makeHarness()
+        await harness.store.loadSavedShows(
+            period: .upcoming,
+            size: 2,
+            apiClient: client,
+            authManager: auth
+        )
+        await harness.store.loadNextSavedShowsPage(
+            period: .upcoming,
+            apiClient: client,
+            authManager: auth
+        )
+
+        let result = await harness.store.setSaved(
+            showId: 5,
+            isSaved: true,
+            show: makeShow(id: 5, date: now.addingTimeInterval(250)),
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(result == .updated(true))
+        #expect(harness.store.upcomingPage?.shows.map(\.id) == [1, 2, 5, 3])
+        #expect(harness.store.upcomingPage?.shows.count == 4)
+        #expect(harness.store.upcomingPage?.total == 5)
+    }
+
+    @Test("visible collection reload stops when the refreshed page count contracts")
+    func visibleCollectionReloadHandlesContractedPageCount() async {
+        let auth = await makeAuth(accountId: "account-a")
+        let listAttempts = AttemptCounter()
+        let transport = StubClientTransport { request, _, _, operationID in
+            switch operationID {
+            case Operations.GetSavedShowState.id:
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowStateResponse(data: .init(isSaved: false)),
+                    encoder: APIMockEncoder.make()
+                )
+            case Operations.GetSavedShows.id:
+                let attempt = await listAttempts.next()
+                let page = Int(queryValue("page", from: request.path) ?? "") ?? 1
+                let contracted = attempt >= 3
+                return jsonResponse(
+                    .ok,
+                    Components.Schemas.SavedShowListResponse(
+                        data: [makeShow(id: page)],
+                        total: contracted ? 1 : 2,
+                        page: page,
+                        size: 1,
+                        totalPages: contracted ? 1 : 2
+                    ),
+                    encoder: APIMockEncoder.make()
+                )
+            default:
+                throw URLError(.badServerResponse)
+            }
+        }
+        let client = makeClient(transport: transport)
+        let harness = makeHarness()
+        await harness.store.loadSavedShows(
+            period: .upcoming,
+            size: 1,
+            apiClient: client,
+            authManager: auth
+        )
+        await harness.store.loadNextSavedShowsPage(
+            period: .upcoming,
+            apiClient: client,
+            authManager: auth
+        )
+
+        await harness.store.handleReplayFailure(
+            accountId: "account-a",
+            showId: 99,
+            apiClient: client,
+            authManager: auth
+        )
+
+        #expect(await listAttempts.count == 3)
+        #expect(harness.store.upcomingPage?.page == 1)
+        #expect(harness.store.upcomingPage?.totalPages == 1)
     }
 
     @Test("queue identity coalesces one show without discarding another")

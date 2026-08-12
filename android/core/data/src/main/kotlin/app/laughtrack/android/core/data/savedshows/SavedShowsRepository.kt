@@ -15,6 +15,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import retrofit2.Response
 import java.io.IOException
+import java.time.OffsetDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -269,6 +270,15 @@ class SavedShowsRepository
             val request =
                 synchronized(stateLock) {
                     if (!authSessionManager.signedIn.value) return@synchronized null
+                    val current = collection(period)
+                    if (append &&
+                        (current.isLoading ||
+                            current.page == 0 ||
+                            current.page >= current.totalPages ||
+                            page != current.page + 1)
+                    ) {
+                        return@synchronized null
+                    }
                     val generation = (loadGenerations[period] ?: 0L) + 1L
                     loadGenerations[period] = generation
                     updateCollection(period) { it.copy(isLoading = true, errorMessage = null) }
@@ -309,9 +319,12 @@ class SavedShowsRepository
                         val current = collection(period)
                         val shows =
                             if (append) {
-                                (current.shows + effectiveData).distinctBy(Show::id)
+                                orderShows(
+                                    shows = (current.shows + effectiveData).distinctBy(Show::id),
+                                    period = period,
+                                )
                             } else {
-                                effectiveData
+                                orderShows(effectiveData, period)
                             }
                         updateCollection(period) {
                             SavedShowsCollection(
@@ -356,6 +369,34 @@ class SavedShowsRepository
                 }
             }
         }
+
+        private fun orderShows(
+            shows: List<Show>,
+            period: SavedShowPeriod,
+        ): List<Show> =
+            shows.sortedWith { left, right ->
+                val leftInstant = runCatching { OffsetDateTime.parse(left.date).toInstant() }.getOrNull()
+                val rightInstant = runCatching { OffsetDateTime.parse(right.date).toInstant() }.getOrNull()
+                val dateComparison =
+                    if (leftInstant != null && rightInstant != null) {
+                        leftInstant.compareTo(rightInstant)
+                    } else {
+                        left.date.compareTo(right.date)
+                    }
+                val orderedDateComparison =
+                    when (period) {
+                        SavedShowPeriod.UPCOMING -> dateComparison
+                        SavedShowPeriod.PAST -> -dateComparison
+                    }
+                if (orderedDateComparison != 0) {
+                    orderedDateComparison
+                } else {
+                    when (period) {
+                        SavedShowPeriod.UPCOMING -> left.id.compareTo(right.id)
+                        SavedShowPeriod.PAST -> right.id.compareTo(left.id)
+                    }
+                }
+            }
 
         private fun optimisticSnapshot(
             snapshot: SavedShowsSnapshot,

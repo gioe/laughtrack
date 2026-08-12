@@ -23,6 +23,8 @@ internal interface LibrarySavedShowsSource {
 
     suspend fun refresh(period: SavedShowPeriod): Boolean
 
+    suspend fun loadNextPage(period: SavedShowPeriod): Boolean
+
     fun resetSignedOut()
 }
 
@@ -33,6 +35,8 @@ private class RepositoryLibrarySavedShowsSource(
 
     override suspend fun refresh(period: SavedShowPeriod): Boolean = repository.refresh(period)
 
+    override suspend fun loadNextPage(period: SavedShowPeriod): Boolean = repository.loadNextPage(period)
+
     override fun resetSignedOut() {
         repository.resetSignedOut()
     }
@@ -42,6 +46,8 @@ private class EmptyLibrarySavedShowsSource : LibrarySavedShowsSource {
     override val snapshot = MutableStateFlow(SavedShowsSnapshot())
 
     override suspend fun refresh(period: SavedShowPeriod): Boolean = false
+
+    override suspend fun loadNextPage(period: SavedShowPeriod): Boolean = false
 
     override fun resetSignedOut() {
         snapshot.value = SavedShowsSnapshot()
@@ -102,6 +108,12 @@ class LibraryViewModel internal constructor(
     fun refreshSavedShows(period: SavedShowPeriod) {
         viewModelScope.launch {
             savedShowsSource.refresh(period)
+        }
+    }
+
+    fun loadNextSavedShowsPage(period: SavedShowPeriod) {
+        viewModelScope.launch {
+            savedShowsSource.loadNextPage(period)
         }
     }
 

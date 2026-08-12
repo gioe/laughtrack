@@ -86,6 +86,19 @@ class LibrarySavedShowsTest {
         }
 
     @Test
+    fun loadMoreRequestsOnlyTheRequestedSavedShowCollection() =
+        runTest {
+            val source = RecordingSavedShowsSource()
+            val viewModel = LibraryViewModel(signedOutFavoritesRepository(throwingApi()), source)
+
+            viewModel.loadNextSavedShowsPage(SavedShowPeriod.UPCOMING)
+            advanceUntilIdle()
+
+            assertEquals(listOf(SavedShowPeriod.UPCOMING), source.nextPagePeriods)
+            assertTrue(source.refreshedPeriods.isEmpty())
+        }
+
+    @Test
     fun savedShowCollectionsBookendTheCanonicalLibraryHierarchy() {
         assertEquals(
             listOf(
@@ -140,10 +153,13 @@ class LibrarySavedShowsTest {
             SavedShowCollectionPresentationState.Content(
                 shows = listOf(show),
                 errorMessage = "Try again",
+                canLoadMore = true,
             ),
             savedShowCollectionState(
                 SavedShowsCollection(
                     shows = listOf(show),
+                    page = 1,
+                    totalPages = 2,
                     errorMessage = "Try again",
                 ),
             ),
@@ -170,10 +186,16 @@ class LibrarySavedShowsTest {
     ) : LibrarySavedShowsSource {
         override val snapshot = MutableStateFlow(initial)
         val refreshedPeriods = mutableListOf<SavedShowPeriod>()
+        val nextPagePeriods = mutableListOf<SavedShowPeriod>()
         var resetCount = 0
 
         override suspend fun refresh(period: SavedShowPeriod): Boolean {
             refreshedPeriods += period
+            return true
+        }
+
+        override suspend fun loadNextPage(period: SavedShowPeriod): Boolean {
+            nextPagePeriods += period
             return true
         }
 

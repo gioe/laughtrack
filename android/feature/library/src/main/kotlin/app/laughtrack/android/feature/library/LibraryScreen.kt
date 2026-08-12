@@ -144,6 +144,7 @@ internal sealed interface SavedShowCollectionPresentationState {
         val shows: List<Show>,
         val isRefreshing: Boolean = false,
         val errorMessage: String? = null,
+        val canLoadMore: Boolean = false,
     ) : SavedShowCollectionPresentationState
 }
 
@@ -157,6 +158,7 @@ internal fun savedShowCollectionState(
                 shows = collection.shows,
                 isRefreshing = collection.isLoading,
                 errorMessage = collection.errorMessage,
+                canLoadMore = collection.page > 0 && collection.page < collection.totalPages,
             )
         collection.errorMessage != null ->
             SavedShowCollectionPresentationState.Error(collection.errorMessage.orEmpty())
@@ -245,6 +247,7 @@ fun LibraryScreen(
         onOpenSaved = onOpenSaved,
         onOpenSearch = onOpenSearch,
         onRetrySavedShows = viewModel::refreshSavedShows,
+        onLoadMoreSavedShows = viewModel::loadNextSavedShowsPage,
         onClearMessage = viewModel::clearMessage,
         onToggleComedian = viewModel::toggleComedian,
         onToggleClub = viewModel::toggleClub,
@@ -275,6 +278,7 @@ fun LibraryScreen(
         onOpenSaved = onOpenSaved,
         onOpenSearch = onOpenSearch,
         onRetrySavedShows = {},
+        onLoadMoreSavedShows = {},
         onClearMessage = {},
         onToggleComedian = {},
         onToggleClub = {},
@@ -294,6 +298,7 @@ private fun LibraryContent(
     onOpenSaved: (LibrarySavedDestination) -> Unit,
     onOpenSearch: (LibrarySearchSeed) -> Unit,
     onRetrySavedShows: (SavedShowPeriod) -> Unit,
+    onLoadMoreSavedShows: (SavedShowPeriod) -> Unit,
     onClearMessage: () -> Unit,
     onToggleComedian: (String) -> Unit,
     onToggleClub: (Int) -> Unit,
@@ -332,6 +337,7 @@ private fun LibraryContent(
                     onOpenSaved = onOpenSaved,
                     onOpenSearch = onOpenSearch,
                     onRetrySavedShows = onRetrySavedShows,
+                    onLoadMoreSavedShows = onLoadMoreSavedShows,
                     onToggleComedian = onToggleComedian,
                     onToggleClub = onToggleClub,
                     onTogglePodcast = onTogglePodcast,
@@ -356,6 +362,7 @@ private fun SignedInLibrary(
     onOpenSaved: (LibrarySavedDestination) -> Unit,
     onOpenSearch: (LibrarySearchSeed) -> Unit,
     onRetrySavedShows: (SavedShowPeriod) -> Unit,
+    onLoadMoreSavedShows: (SavedShowPeriod) -> Unit,
     onToggleComedian: (String) -> Unit,
     onToggleClub: (Int) -> Unit,
     onTogglePodcast: (Int) -> Unit,
@@ -371,6 +378,7 @@ private fun SignedInLibrary(
                     initialRefreshComplete = initialRefreshComplete,
                     onOpenShow = onOpenShow,
                     onRetry = { onRetrySavedShows(SavedShowPeriod.UPCOMING) },
+                    onLoadMore = { onLoadMoreSavedShows(SavedShowPeriod.UPCOMING) },
                 )
             LibrarySection.SAVED ->
                 SavedEntitiesSection(
@@ -388,6 +396,7 @@ private fun SignedInLibrary(
                     initialRefreshComplete = initialRefreshComplete,
                     onOpenShow = onOpenShow,
                     onRetry = { onRetrySavedShows(SavedShowPeriod.PAST) },
+                    onLoadMore = { onLoadMoreSavedShows(SavedShowPeriod.PAST) },
                 )
         }
     }
@@ -408,6 +417,7 @@ private fun SavedShowsSection(
     initialRefreshComplete: Boolean,
     onOpenShow: (Int) -> Unit,
     onRetry: () -> Unit,
+    onLoadMore: () -> Unit,
 ) {
     val state = savedShowCollectionState(collection, initialRefreshComplete)
     if (state == SavedShowCollectionPresentationState.Empty) return
@@ -421,13 +431,18 @@ private fun SavedShowsSection(
             }
             SavedShowCollectionPresentationState.Empty -> Unit
             is SavedShowCollectionPresentationState.Content -> {
-                if (state.isRefreshing) LoadingRow()
-                state.errorMessage?.let { error ->
-                    EmptyText(error)
-                    TextButton(onClick = onRetry) { Text("Retry ${section.presentation.title.lowercase()}") }
-                }
                 state.shows.forEach { show ->
                     SavedShowRow(show = show, onOpenShow = onOpenShow)
+                }
+                if (state.isRefreshing) {
+                    LoadingRow()
+                } else if (state.errorMessage != null) {
+                    EmptyText(state.errorMessage)
+                    TextButton(onClick = if (state.canLoadMore) onLoadMore else onRetry) {
+                        Text(if (state.canLoadMore) "Retry loading more" else "Retry ${section.presentation.title.lowercase()}")
+                    }
+                } else if (state.canLoadMore) {
+                    TextButton(onClick = onLoadMore) { Text("Load more") }
                 }
             }
         }

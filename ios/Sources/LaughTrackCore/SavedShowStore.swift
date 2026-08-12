@@ -65,6 +65,7 @@ public final class SavedShowStore: ObservableObject {
     private var accountCacheKeys: Set<LaughTrackCacheKey> = []
     private var authLifecycleCancellable: AnyCancellable?
     private var replayTask: Task<Void, Never>?
+    private var loadingAccounts: [Period: String] = [:]
 
     init(
         cache: DataCache<LaughTrackCacheKey>,
@@ -220,6 +221,19 @@ public final class SavedShowStore: ObservableObject {
             return
         }
 
+        if page > 1,
+           let current = currentPage(for: period),
+           page > current.totalPages {
+            return
+        }
+        guard loadingAccounts[period] == nil else { return }
+        loadingAccounts[period] = accountId
+        defer {
+            if loadingAccounts[period] == accountId {
+                loadingAccounts[period] = nil
+            }
+        }
+
         setPhase(.loading, for: period)
         let key = LaughTrackCacheKey.savedShows(
             accountId: accountId,
@@ -321,6 +335,35 @@ public final class SavedShowStore: ObservableObject {
                 for: period
             )
         }
+    }
+
+    public func loadNextSavedShowsPage(
+        period: Period,
+        size: Int = 20,
+        apiClient: Client,
+        authManager: AuthManager,
+        force: Bool = false
+    ) async {
+        guard let current = currentPage(for: period) else {
+            await loadSavedShows(
+                period: period,
+                size: size,
+                apiClient: apiClient,
+                authManager: authManager,
+                force: force
+            )
+            return
+        }
+        guard current.page < current.totalPages else { return }
+
+        await loadSavedShows(
+            period: period,
+            page: current.page + 1,
+            size: current.size,
+            apiClient: apiClient,
+            authManager: authManager,
+            force: force
+        )
     }
 
     public func setSaved(
@@ -658,24 +701,46 @@ public final class SavedShowStore: ObservableObject {
         authManager: AuthManager
     ) async {
         if let page = upcomingPage {
+            let lastLoadedPage = page.page
             await loadSavedShows(
                 period: .upcoming,
-                page: page.page,
                 size: page.size,
                 apiClient: apiClient,
                 authManager: authManager,
                 force: true
             )
+            let targetPage = min(lastLoadedPage, upcomingPage?.totalPages ?? 0)
+            while upcomingPage?.page ?? 0 < targetPage {
+                let pageBeforeLoad = upcomingPage?.page ?? 0
+                await loadNextSavedShowsPage(
+                    period: .upcoming,
+                    apiClient: apiClient,
+                    authManager: authManager,
+                    force: true
+                )
+                guard upcomingPage?.page ?? 0 > pageBeforeLoad else { break }
+            }
         }
         if let page = pastPage {
+            let lastLoadedPage = page.page
             await loadSavedShows(
                 period: .past,
-                page: page.page,
                 size: page.size,
                 apiClient: apiClient,
                 authManager: authManager,
                 force: true
             )
+            let targetPage = min(lastLoadedPage, pastPage?.totalPages ?? 0)
+            while pastPage?.page ?? 0 < targetPage {
+                let pageBeforeLoad = pastPage?.page ?? 0
+                await loadNextSavedShowsPage(
+                    period: .past,
+                    apiClient: apiClient,
+                    authManager: authManager,
+                    force: true
+                )
+                guard pastPage?.page ?? 0 > pageBeforeLoad else { break }
+            }
         }
     }
 
@@ -773,21 +838,62 @@ public final class SavedShowStore: ObservableObject {
         stateFailure = nil
         activeAccountId = nil
         accountCacheKeys = []
+        loadingAccounts = [:]
     }
 
     private func apply(
         _ response: Components.Schemas.SavedShowListResponse,
         period: Period
     ) {
-        let page = Page(response)
-        response.data.forEach { values[$0.id] = true }
+        let responseShows = response.data.filter { values[$0.id] != false }
+        let shows: [Components.Schemas.Show]
+        if response.page > 1, let current = currentPage(for: period) {
+            var showsById: [Int: Components.Schemas.Show] = [:]
+            current.shows
+                .filter { values[$0.id] != false }
+                .forEach { showsById[$0.id] = $0 }
+            responseShows.forEach { showsById[$0.id] = $0 }
+            shows = sorted(Array(showsById.values), for: period)
+        } else {
+            shows = sorted(responseShows, for: period)
+        }
+        let page = Page(.init(
+            data: shows,
+            total: max(
+                shows.count,
+                response.total - (response.data.count - responseShows.count)
+            ),
+            page: response.page,
+            size: response.size,
+            totalPages: response.totalPages
+        ))
+        responseShows.forEach { values[$0.id] = true }
         switch period {
         case .upcoming:
             upcomingPage = page
-            upcomingPhase = response.data.isEmpty ? .empty : .loaded
+            upcomingPhase = shows.isEmpty ? .empty : .loaded
         case .past:
             pastPage = page
-            pastPhase = response.data.isEmpty ? .empty : .loaded
+            pastPhase = shows.isEmpty ? .empty : .loaded
+        }
+    }
+
+    private func currentPage(for period: Period) -> Page? {
+        switch period {
+        case .upcoming: upcomingPage
+        case .past: pastPage
+        }
+    }
+
+    private func sorted(
+        _ shows: [Components.Schemas.Show],
+        for period: Period
+    ) -> [Components.Schemas.Show] {
+        shows.sorted { lhs, rhs in
+            if lhs.date == rhs.date {
+                return period == .upcoming ? lhs.id < rhs.id : lhs.id > rhs.id
+            }
+            return period == .upcoming ? lhs.date < rhs.date : lhs.date > rhs.date
         }
     }
 
@@ -831,19 +937,11 @@ public final class SavedShowStore: ObservableObject {
         }
 
         let total = page.total + 1
-        guard page.page == 1 else {
-            return replacing(page: page, shows: page.shows, total: total)
-        }
-
-        let sorted = (page.shows + [show]).sorted { lhs, rhs in
-            if lhs.date == rhs.date {
-                return period == .upcoming ? lhs.id < rhs.id : lhs.id > rhs.id
-            }
-            return period == .upcoming ? lhs.date < rhs.date : lhs.date > rhs.date
-        }
+        let sorted = sorted(page.shows + [show], for: period)
+        let loadedCapacity = max(page.shows.count, page.page * page.size)
         return replacing(
             page: page,
-            shows: Array(sorted.prefix(max(0, page.size))),
+            shows: Array(sorted.prefix(loadedCapacity)),
             total: total
         )
     }

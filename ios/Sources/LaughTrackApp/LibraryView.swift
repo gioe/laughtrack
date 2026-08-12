@@ -226,6 +226,7 @@ private struct FavoritePrimitiveSections: View {
                 period: .upcoming,
                 phase: savedShows.upcomingPhase,
                 shows: savedShows.upcomingPage?.shows ?? [],
+                canLoadMore: savedShows.upcomingPage.map { $0.page < $0.totalPages } ?? false,
                 apiClient: apiClient,
                 store: savedShows
             )
@@ -237,6 +238,7 @@ private struct FavoritePrimitiveSections: View {
                 period: .past,
                 phase: savedShows.pastPhase,
                 shows: savedShows.pastPage?.shows ?? [],
+                canLoadMore: savedShows.pastPage.map { $0.page < $0.totalPages } ?? false,
                 apiClient: apiClient,
                 store: savedShows
             )
@@ -317,6 +319,7 @@ private struct SavedShowsSection: View {
     let period: SavedShowStore.Period
     let phase: SavedShowStore.LoadPhase
     let shows: [Components.Schemas.Show]
+    let canLoadMore: Bool
     let apiClient: Client
     @ObservedObject var store: SavedShowStore
 
@@ -332,47 +335,100 @@ private struct SavedShowsSection: View {
                     title: section.title,
                     accessibilityIdentifier: "laughtrack.library.saved-shows-\(period.rawValue)"
                 ) {
-                    switch phase {
-                    case .idle, .loading:
-                        ShowsListSkeleton(rowCount: 2)
-                    case .empty:
-                        EmptyView()
-                    case .failure(let failure):
-                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                            LaughTrackStateView(
-                                tone: .error,
-                                title: "Couldn’t load \(section.title.lowercased())",
-                                message: failure.message
-                            )
-                            LaughTrackButton(
-                                "Retry \(section.title.lowercased())",
-                                systemImage: "arrow.clockwise"
-                            ) {
-                                Task {
-                                    await store.loadSavedShows(
-                                        period: period,
-                                        apiClient: apiClient,
-                                        authManager: authManager,
-                                        force: true
-                                    )
-                                }
-                            }
-                        }
-                    case .loaded:
-                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                            ForEach(shows, id: \.id) { show in
-                                Button {
-                                    coordinator.open(.show(show.id))
-                                } label: {
-                                    ShowRow(show: show, presentation: .compactTicket)
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel("Open \(ShowTitlePresentation.title(for: show))")
-                            }
-                        }
+                    if shows.isEmpty {
+                        initialContent
+                    } else {
+                        loadedContent
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var initialContent: some View {
+        switch phase {
+        case .idle, .loading:
+            ShowsListSkeleton(rowCount: 2)
+        case .empty, .loaded:
+            EmptyView()
+        case .failure(let failure):
+            failureContent(failure, loadingMore: false)
+        }
+    }
+
+    private var loadedContent: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            ForEach(shows, id: \.id) { show in
+                Button {
+                    coordinator.open(.show(show.id))
+                } label: {
+                    ShowRow(show: show, presentation: .compactTicket)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Open \(ShowTitlePresentation.title(for: show))")
+            }
+
+            switch phase {
+            case .loading:
+                ProgressView("Loading more…")
+            case .failure(let failure):
+                failureContent(failure, loadingMore: true)
+            case .loaded where canLoadMore:
+                LaughTrackButton(
+                    "Load more",
+                    systemImage: "chevron.down"
+                ) {
+                    loadNextPage()
+                }
+            case .idle, .loaded, .empty:
+                EmptyView()
+            }
+        }
+    }
+
+    private func failureContent(
+        _ failure: LoadFailure,
+        loadingMore: Bool
+    ) -> some View {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            LaughTrackStateView(
+                tone: .error,
+                title: loadingMore
+                    ? "Couldn’t load more \(section.title.lowercased())"
+                    : "Couldn’t load \(section.title.lowercased())",
+                message: failure.message
+            )
+            LaughTrackButton(
+                loadingMore
+                    ? "Retry loading more"
+                    : "Retry \(section.title.lowercased())",
+                systemImage: "arrow.clockwise"
+            ) {
+                if loadingMore {
+                    loadNextPage(force: true)
+                } else {
+                    Task {
+                        await store.loadSavedShows(
+                            period: period,
+                            apiClient: apiClient,
+                            authManager: authManager,
+                            force: true
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private func loadNextPage(force: Bool = false) {
+        Task {
+            await store.loadNextSavedShowsPage(
+                period: period,
+                apiClient: apiClient,
+                authManager: authManager,
+                force: force
+            )
         }
     }
 }

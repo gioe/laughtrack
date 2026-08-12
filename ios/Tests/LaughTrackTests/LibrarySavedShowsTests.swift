@@ -15,8 +15,35 @@ struct LibrarySavedShowsTests {
         #expect(source.contains("savedShows.pastPage?.shows"))
         #expect(source.contains("savedShows.loadSavedShows("))
         #expect(source.contains("ShowsListSkeleton(rowCount: 2)"))
-        #expect(source.contains("case .empty:\n                        EmptyView()"))
+        #expect(source.contains("if shows.isEmpty"))
         #expect(source.contains("case .failure(let failure):"))
+    }
+
+    @Test("saved-show collections progressively load pages without replacing rows")
+    func savedShowsProgressivelyLoadPages() throws {
+        let source = try librarySource()
+
+        #expect(source.contains("canLoadMore: savedShows.upcomingPage.map"))
+        #expect(source.contains("canLoadMore: savedShows.pastPage.map"))
+        #expect(source.contains("await store.loadNextSavedShowsPage("))
+        #expect(source.contains("\"Load more\""))
+        #expect(source.contains("ProgressView(\"Loading more…\")"))
+
+        let loadedContent = try #require(source.range(of: "private var loadedContent"))
+        let loadMore = try #require(source.range(of: "case .loading:", range: loadedContent.lowerBound..<source.endIndex))
+        let rows = try #require(source.range(of: "ForEach(shows, id: \\.id)", range: loadedContent.lowerBound..<source.endIndex))
+        #expect(rows.lowerBound < loadMore.lowerBound)
+    }
+
+    @Test("next-page errors keep rows visible and provide an in-place retry")
+    func nextPageErrorsPreserveRowsAndRetry() throws {
+        let source = try librarySource()
+
+        #expect(source.contains("failureContent(failure, loadingMore: true)"))
+        #expect(source.contains("\"Retry loading more\""))
+        #expect(source.contains("loadNextPage(force: true)"))
+        #expect(source.contains("failureContent(failure, loadingMore: false)"))
+        #expect(source.contains("await store.loadSavedShows("))
     }
 
     @Test("saved-show rows reuse canonical rows and open detail")

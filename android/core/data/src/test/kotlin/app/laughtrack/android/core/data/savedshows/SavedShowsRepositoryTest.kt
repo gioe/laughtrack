@@ -105,6 +105,135 @@ class SavedShowsRepositoryTest {
         }
 
     @Test
+    fun concurrent_next_page_requests_issue_only_one_api_call() =
+        runTest {
+            val pageTwoResponse = CompletableDeferred<Response<SavedShowListResponse>>()
+            val api =
+                ProgrammableSavedShowsApi(
+                    listBehavior = { _, page, _ ->
+                        if (page == 2) {
+                            pageTwoResponse.await()
+                        } else {
+                            listResponse(listOf(show(1)), page = 1, total = 2, totalPages = 2)
+                        }
+                    },
+                )
+            val repository = repository(api, signedIn = true)
+
+            assertTrue(repository.refresh(SavedShowPeriod.UPCOMING))
+            val firstRequest = async { repository.loadNextPage(SavedShowPeriod.UPCOMING) }
+            runCurrent()
+            val duplicateRequest = async { repository.loadNextPage(SavedShowPeriod.UPCOMING) }
+            runCurrent()
+
+            assertFalse(duplicateRequest.await())
+            assertEquals(1, api.listCalls.count { it.second == 2 })
+
+            pageTwoResponse.complete(listResponse(listOf(show(2)), page = 2, total = 2, totalPages = 2))
+            assertTrue(firstRequest.await())
+        }
+
+    @Test
+    fun next_page_deduplicates_page_boundaries_and_preserves_period_order() =
+        runTest {
+            val api =
+                ProgrammableSavedShowsApi(
+                    listBehavior = { period, page, _ ->
+                        when (period) {
+                            SavedShowsApi.PeriodGetSavedShows.UPCOMING ->
+                                if (page == 2) {
+                                    listResponse(
+                                        listOf(show(2, "2026-08-02T20:00:00.000Z"), show(3, "2026-08-03T20:00:00.000Z")),
+                                        page = 2,
+                                        total = 3,
+                                        totalPages = 2,
+                                    )
+                                } else {
+                                    listResponse(
+                                        listOf(show(2, "2026-08-02T20:00:00.000Z"), show(1, "2026-08-01T20:00:00.000Z")),
+                                        page = 1,
+                                        total = 3,
+                                        totalPages = 2,
+                                    )
+                                }
+                            SavedShowsApi.PeriodGetSavedShows.PAST ->
+                                if (page == 2) {
+                                    listResponse(
+                                        listOf(show(11, "2026-07-01T20:00:00.000Z")),
+                                        page = 2,
+                                        total = 2,
+                                        totalPages = 2,
+                                    )
+                                } else {
+                                    listResponse(
+                                        listOf(show(10, "2026-08-01T20:00:00.000Z")),
+                                        page = 1,
+                                        total = 2,
+                                        totalPages = 2,
+                                    )
+                                }
+                            null -> error("Period is required")
+                        }
+                    },
+                )
+            val repository = repository(api, signedIn = true)
+
+            assertTrue(repository.refresh(SavedShowPeriod.UPCOMING))
+            assertTrue(repository.loadNextPage(SavedShowPeriod.UPCOMING))
+            assertTrue(repository.refresh(SavedShowPeriod.PAST))
+            assertTrue(repository.loadNextPage(SavedShowPeriod.PAST))
+
+            assertEquals(listOf(1, 2, 3), repository.snapshot.value.upcoming.shows.map(Show::id))
+            assertEquals(listOf(10, 11), repository.snapshot.value.past.shows.map(Show::id))
+        }
+
+    @Test
+    fun next_page_failure_preserves_loaded_items_and_retries_the_same_page() =
+        runTest {
+            var pageTwoAttempts = 0
+            val api =
+                ProgrammableSavedShowsApi(
+                    listBehavior = { _, page, _ ->
+                        if (page == 2) {
+                            pageTwoAttempts += 1
+                            if (pageTwoAttempts == 1) throw IOException("offline")
+                            listResponse(listOf(show(2)), page = 2, total = 2, totalPages = 2)
+                        } else {
+                            listResponse(listOf(show(1)), page = 1, total = 2, totalPages = 2)
+                        }
+                    },
+                )
+            val repository = repository(api, signedIn = true)
+
+            assertTrue(repository.refresh(SavedShowPeriod.UPCOMING))
+            assertFalse(repository.loadNextPage(SavedShowPeriod.UPCOMING))
+            assertEquals(listOf(1), repository.snapshot.value.upcoming.shows.map(Show::id))
+            assertTrue(repository.snapshot.value.upcoming.errorMessage != null)
+
+            assertTrue(repository.loadNextPage(SavedShowPeriod.UPCOMING))
+            assertEquals(listOf(1, 2), repository.snapshot.value.upcoming.shows.map(Show::id))
+            assertEquals(2, pageTwoAttempts)
+        }
+
+    @Test
+    fun empty_first_page_stays_empty_and_does_not_request_another_page() =
+        runTest {
+            val api =
+                ProgrammableSavedShowsApi(
+                    listBehavior = { _, _, _ ->
+                        listResponse(emptyList(), page = 1, total = 0, totalPages = 0)
+                    },
+                )
+            val repository = repository(api, signedIn = true)
+
+            assertTrue(repository.refresh(SavedShowPeriod.PAST))
+            assertFalse(repository.loadNextPage(SavedShowPeriod.PAST))
+
+            assertTrue(repository.snapshot.value.past.shows.isEmpty())
+            assertEquals(1, api.listCalls.size)
+        }
+
+    @Test
     fun collection_failure_preserves_cached_items_and_exposes_an_error() =
         runTest {
             var shouldFail = false
@@ -583,11 +712,14 @@ class SavedShowsRepositoryTest {
                 expiresAtEpochSeconds = Long.MAX_VALUE,
             )
 
-        fun show(id: Int) =
+        fun show(
+            id: Int,
+            date: String = "2026-08-01T20:00:00.000Z",
+        ) =
             Show(
                 id = id,
                 clubId = 10,
-                date = "2026-08-01T20:00:00.000Z",
+                date = date,
                 imageUrl = "https://example.com/show-$id.jpg",
             )
 
