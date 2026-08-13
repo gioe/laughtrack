@@ -5,14 +5,16 @@ import LaughTrackCore
 
 enum LibrarySection: String, CaseIterable, Equatable {
     case nextUp
-    case saved
-    case history
+    case comedians
+    case clubs
+    case podcasts
 
     var title: String {
         switch self {
-        case .nextUp: return "Next Up"
-        case .saved: return "Saved"
-        case .history: return "History"
+        case .nextUp: return "Shows"
+        case .comedians: return "Comedians"
+        case .clubs: return "Clubs"
+        case .podcasts: return "Podcasts"
         }
     }
 }
@@ -26,11 +28,12 @@ enum LibraryGroupResolution: Equatable {
 
 struct LibraryContentState: Equatable {
     let nextUp: LibraryGroupResolution
-    let saved: LibraryGroupResolution
-    let history: LibraryGroupResolution
+    let comedians: LibraryGroupResolution
+    let clubs: LibraryGroupResolution
+    let podcasts: LibraryGroupResolution
 
     var isFullyEmpty: Bool {
-        [nextUp, saved, history].allSatisfy { $0 == .empty }
+        [nextUp, comedians, clubs, podcasts].allSatisfy { $0 == .empty }
     }
 }
 
@@ -112,6 +115,13 @@ private struct AuthenticatedFavoritesSnapshot: View {
     let persona: AuthenticatedScreenshotPersona
 
     @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
+    @State private var savedShowsPage = 0
+    @State private var favoriteComediansPage = 0
+    @State private var favoriteClubsPage = 0
+    @State private var favoritePodcastsPage = 0
+
+    private let pageSize = 5
 
     var body: some View {
         let tokens = theme.laughTrackTokens
@@ -123,91 +133,148 @@ private struct AuthenticatedFavoritesSnapshot: View {
                 )
             }
 
-            if !persona.favoriteComedians.isEmpty ||
-                !persona.favoriteClubs.isEmpty ||
-                !persona.favoritePodcasts.isEmpty {
-                TeaserSection(
-                    eyebrow: "Your collection",
-                    title: LibrarySection.saved.title,
-                    subtitle: "Comedians, clubs, and podcasts you want to keep close."
-                ) {
-                    VStack(alignment: .leading, spacing: tokens.spacing.tight) {
-                        if !persona.favoriteComedians.isEmpty {
-                            screenshotSavedGroupTitle("Comedians")
-                        }
-                        ForEach(persona.favoriteComedians, id: \.self) { name in
-                            TeaserRow(
-                                title: name,
-                                subtitle: "Following · notifications on",
-                                systemImage: "person.fill",
-                                isPlaceholder: false
-                            )
-                        }
-                        if !persona.favoriteClubs.isEmpty {
-                            screenshotSavedGroupTitle("Clubs")
-                        }
-                        ForEach(persona.favoriteClubs, id: \.self) { name in
-                            TeaserRow(
-                                title: name,
-                                subtitle: "Saved venue",
-                                systemImage: "building.2.fill",
-                                isPlaceholder: false
-                            )
-                        }
-                        if !persona.favoritePodcasts.isEmpty {
-                            screenshotSavedGroupTitle("Podcasts")
-                        }
-                        ForEach(persona.favoritePodcasts, id: \.self) { title in
-                            TeaserRow(
-                                title: title,
-                                subtitle: "Vulture · 248 episodes",
-                                systemImage: "mic.fill",
-                                isPlaceholder: false
-                            )
-                        }
-                    }
-                }
-            }
-
-            if !persona.pastSavedShows.isEmpty {
-                screenshotSavedShowsSection(
-                    section: .history,
-                    shows: persona.pastSavedShows
+            if !persona.favoriteComedians.isEmpty {
+                screenshotSavedEntitySection(
+                    section: .comedians,
+                    items: persona.favoriteComedians,
+                    page: $favoriteComediansPage,
+                    subtitle: "Following · notifications on",
+                    kind: .comedian,
+                    destination: { .comedian(101 + $0) }
                 )
             }
+
+            if !persona.favoriteClubs.isEmpty {
+                screenshotSavedEntitySection(
+                    section: .clubs,
+                    items: persona.favoriteClubs,
+                    page: $favoriteClubsPage,
+                    subtitle: "Saved venue",
+                    kind: .club,
+                    destination: { .club(201 + $0) }
+                )
+            }
+
+            if !persona.favoritePodcasts.isEmpty {
+                screenshotSavedEntitySection(
+                    section: .podcasts,
+                    items: persona.favoritePodcasts,
+                    page: $favoritePodcastsPage,
+                    subtitle: "Vulture · 248 episodes",
+                    kind: .podcast,
+                    destination: { .podcast(301 + $0) }
+                )
+            }
+
         }
     }
 
     private func screenshotSavedShowsSection(
         section: LibrarySection,
-        shows: [(title: String, detail: String)]
+        shows: [Components.Schemas.Show]
     ) -> some View {
-        TeaserSection(
-            eyebrow: section == .nextUp ? "Plans" : "Past plans",
-            title: section.title,
-            subtitle: section == .nextUp
-                ? "The shows you chose are always first."
-                : "Past shows you saved."
-        ) {
+        let pageCount = max(1, Int(ceil(Double(shows.count) / Double(pageSize))))
+        let clampedPage = min(savedShowsPage, pageCount - 1)
+        let start = clampedPage * pageSize
+        let visibleShows = Array(shows[start..<min(start + pageSize, shows.count)])
+
+        return LaughTrackRailCard(title: section.title) {
             VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.tight) {
-                ForEach(shows, id: \.title) { show in
-                    TeaserRow(
-                        title: show.title,
-                        subtitle: show.detail,
-                        systemImage: "bookmark.fill",
-                        isPlaceholder: false
+                ForEach(visibleShows, id: \.id) { show in
+                    Button {
+                        coordinator.open(.show(show.id))
+                    } label: {
+                        ShowRow(show: show, presentation: .compactTicket)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Open \(ShowTitlePresentation.title(for: show))")
+                }
+
+                if pageCount > 1 {
+                    LaughTrackPagedControls(
+                        currentPage: clampedPage,
+                        pageCount: pageCount,
+                        onPrevious: { savedShowsPage = max(0, clampedPage - 1) },
+                        onNext: { savedShowsPage = min(pageCount - 1, clampedPage + 1) }
                     )
                 }
             }
         }
     }
 
-    private func screenshotSavedGroupTitle(_ title: String) -> some View {
-        Text(title.uppercased())
-            .font(theme.laughTrackTokens.typography.eyebrow)
-            .foregroundStyle(theme.colors.textSecondary)
-            .padding(.top, theme.spacing.xs)
+    // TASK-3933 upgrades the deterministic screenshot fixture from lightweight
+    // tuples to real Shows. Keep the Library redesign compatible with both
+    // shapes so the two tasks can land independently.
+    private func screenshotSavedShowsSection(
+        section: LibrarySection,
+        shows: [(title: String, detail: String)]
+    ) -> some View {
+        let pageCount = max(1, Int(ceil(Double(shows.count) / Double(pageSize))))
+        let clampedPage = min(savedShowsPage, pageCount - 1)
+        let start = clampedPage * pageSize
+        let visibleShows = Array(shows[start..<min(start + pageSize, shows.count)])
+
+        return LaughTrackRailCard(title: section.title) {
+            VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.tight) {
+                ForEach(Array(visibleShows.enumerated()), id: \.offset) { _, show in
+                    TeaserRow(
+                        title: show.title,
+                        subtitle: show.detail,
+                        systemImage: "ticket",
+                        isPlaceholder: false
+                    )
+                }
+
+                if pageCount > 1 {
+                    LaughTrackPagedControls(
+                        currentPage: clampedPage,
+                        pageCount: pageCount,
+                        onPrevious: { savedShowsPage = max(0, clampedPage - 1) },
+                        onNext: { savedShowsPage = min(pageCount - 1, clampedPage + 1) }
+                    )
+                }
+            }
+        }
     }
+
+    private func screenshotSavedEntitySection(
+        section: LibrarySection,
+        items: [String],
+        page: Binding<Int>,
+        subtitle: String,
+        kind: LaughTrackSearchEntityKind,
+        destination: @escaping (Int) -> EntityNavigationTarget
+    ) -> some View {
+        let pageCount = max(1, Int(ceil(Double(items.count) / Double(pageSize))))
+        let clampedPage = min(page.wrappedValue, pageCount - 1)
+        let start = clampedPage * pageSize
+        let visibleItems = Array(items.enumerated())[start..<min(start + pageSize, items.count)]
+
+        return LaughTrackRailCard(title: section.title) {
+            VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.tight) {
+                ForEach(Array(visibleItems), id: \.offset) { index, name in
+                    LaughTrackSearchEntityRow(
+                        title: name,
+                        subtitle: subtitle,
+                        imageURL: nil,
+                        kind: kind,
+                        action: { coordinator.open(destination(index)) },
+                        accessibilityIdentifier: "laughtrack.library.fixture-\(section.rawValue)-\(index)"
+                    )
+                }
+
+                if pageCount > 1 {
+                    LaughTrackPagedControls(
+                        currentPage: clampedPage,
+                        pageCount: pageCount,
+                        onPrevious: { page.wrappedValue = max(0, clampedPage - 1) },
+                        onNext: { page.wrappedValue = min(pageCount - 1, clampedPage + 1) }
+                    )
+                }
+            }
+        }
+    }
+
 }
 
 private struct FavoritePrimitiveSections: View {
@@ -225,23 +292,12 @@ private struct FavoritePrimitiveSections: View {
                 section: .nextUp,
                 period: .upcoming,
                 phase: savedShows.upcomingPhase,
-                shows: savedShows.upcomingPage?.shows ?? [],
-                canLoadMore: savedShows.upcomingPage.map { $0.page < $0.totalPages } ?? false,
+                page: savedShows.upcomingPage,
                 apiClient: apiClient,
                 store: savedShows
             )
 
             SavedFavoritesSection(apiClient: apiClient)
-
-            SavedShowsSection(
-                section: .history,
-                period: .past,
-                phase: savedShows.pastPhase,
-                shows: savedShows.pastPage?.shows ?? [],
-                canLoadMore: savedShows.pastPage.map { $0.page < $0.totalPages } ?? false,
-                apiClient: apiClient,
-                store: savedShows
-            )
 
             if contentState.isFullyEmpty {
                 LibraryEmptyState(
@@ -253,11 +309,7 @@ private struct FavoritePrimitiveSections: View {
         .task {
             await savedShows.loadSavedShows(
                 period: .upcoming,
-                apiClient: apiClient,
-                authManager: authManager
-            )
-            await savedShows.loadSavedShows(
-                period: .past,
+                size: SavedShowsSection.pageSize,
                 apiClient: apiClient,
                 authManager: authManager
             )
@@ -276,29 +328,37 @@ private struct FavoritePrimitiveSections: View {
                 phase: savedShows.upcomingPhase,
                 hasContent: !(savedShows.upcomingPage?.shows.isEmpty ?? true)
             ),
-            saved: savedFavoritesResolution,
-            history: resolution(
-                phase: savedShows.pastPhase,
-                hasContent: !(savedShows.pastPage?.shows.isEmpty ?? true)
-            )
+            comedians: comedianFavoritesResolution,
+            clubs: clubFavoritesResolution,
+            podcasts: podcastFavoritesResolution
         )
     }
 
-    private var savedFavoritesResolution: LibraryGroupResolution {
-        let hasContent = !favorites.savedFavoriteComedians.isEmpty ||
-            !clubFavorites.savedFavoriteClubs.isEmpty ||
-            !podcastFavorites.savedFavoritePodcasts.isEmpty
-        if hasContent { return .content }
+    private var comedianFavoritesResolution: LibraryGroupResolution {
+        if !favorites.savedFavoriteComedians.isEmpty { return .content }
+        switch favorites.savedFavoritesPhase {
+        case .idle, .loading: return .loading
+        case .loaded, .empty: return .empty
+        case .failure: return .failure
+        }
+    }
 
-        let phasesAreEmpty = favorites.savedFavoritesPhase == .empty &&
-            clubFavorites.savedFavoritesPhase == .empty &&
-            podcastFavorites.savedFavoritesPhase == .empty
-        if phasesAreEmpty { return .empty }
+    private var clubFavoritesResolution: LibraryGroupResolution {
+        if !clubFavorites.savedFavoriteClubs.isEmpty { return .content }
+        switch clubFavorites.savedFavoritesPhase {
+        case .idle, .loading: return .loading
+        case .loaded, .empty: return .empty
+        case .failure: return .failure
+        }
+    }
 
-        let hasFailure = favorites.savedFavoritesPhase.hasFailure ||
-            clubFavorites.savedFavoritesPhase.hasFailure ||
-            podcastFavorites.savedFavoritesPhase.hasFailure
-        return hasFailure ? .failure : .loading
+    private var podcastFavoritesResolution: LibraryGroupResolution {
+        if !podcastFavorites.savedFavoritePodcasts.isEmpty { return .content }
+        switch podcastFavorites.savedFavoritesPhase {
+        case .idle, .loading: return .loading
+        case .loaded, .empty: return .empty
+        case .failure: return .failure
+        }
     }
 
     private func resolution(
@@ -315,23 +375,38 @@ private struct FavoritePrimitiveSections: View {
 }
 
 private struct SavedShowsSection: View {
+    static let pageSize = 5
+
     let section: LibrarySection
     let period: SavedShowStore.Period
     let phase: SavedShowStore.LoadPhase
-    let shows: [Components.Schemas.Show]
-    let canLoadMore: Bool
+    let page: SavedShowStore.Page?
     let apiClient: Client
     @ObservedObject var store: SavedShowStore
+    @State private var displayedPage = 0
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
 
+    private var shows: [Components.Schemas.Show] { page?.shows ?? [] }
+
+    private var pageCount: Int { max(1, page?.totalPages ?? 1) }
+
+    private var clampedDisplayedPage: Int {
+        min(displayedPage, max(0, pageCount - 1))
+    }
+
+    private var visibleShows: [Components.Schemas.Show] {
+        let start = clampedDisplayedPage * Self.pageSize
+        guard start < shows.count else { return [] }
+        return Array(shows[start..<min(start + Self.pageSize, shows.count)])
+    }
+
     var body: some View {
         Group {
             if phase != .empty {
                 LaughTrackRailCard(
-                    eyebrow: section == .nextUp ? "Plans" : "Past plans",
                     title: section.title,
                     accessibilityIdentifier: "laughtrack.library.saved-shows-\(period.rawValue)"
                 ) {
@@ -359,7 +434,7 @@ private struct SavedShowsSection: View {
 
     private var loadedContent: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            ForEach(shows, id: \.id) { show in
+            ForEach(visibleShows, id: \.id) { show in
                 Button {
                     coordinator.open(.show(show.id))
                 } label: {
@@ -369,20 +444,20 @@ private struct SavedShowsSection: View {
                 .accessibilityLabel("Open \(ShowTitlePresentation.title(for: show))")
             }
 
-            switch phase {
-            case .loading:
-                ProgressView("Loading more…")
-            case .failure(let failure):
+            if pageCount > 1 {
+                LaughTrackPagedControls(
+                    currentPage: clampedDisplayedPage,
+                    pageCount: pageCount,
+                    onPrevious: showPreviousPage,
+                    onNext: showNextPage
+                )
+                .disabled(phase == .loading)
+            }
+
+            if phase == .loading {
+                ProgressView("Loading page…")
+            } else if case .failure(let failure) = phase {
                 failureContent(failure, loadingMore: true)
-            case .loaded where canLoadMore:
-                LaughTrackButton(
-                    "Load more",
-                    systemImage: "chevron.down"
-                ) {
-                    loadNextPage()
-                }
-            case .idle, .loaded, .empty:
-                EmptyView()
             }
         }
     }
@@ -406,11 +481,12 @@ private struct SavedShowsSection: View {
                 systemImage: "arrow.clockwise"
             ) {
                 if loadingMore {
-                    loadNextPage(force: true)
+                    loadNextPage(force: true, displayAfterLoad: true)
                 } else {
                     Task {
                         await store.loadSavedShows(
                             period: period,
+                            size: Self.pageSize,
                             apiClient: apiClient,
                             authManager: authManager,
                             force: true
@@ -421,14 +497,37 @@ private struct SavedShowsSection: View {
         }
     }
 
-    private func loadNextPage(force: Bool = false) {
+    private func showPreviousPage() {
+        displayedPage = max(0, clampedDisplayedPage - 1)
+    }
+
+    private func showNextPage() {
+        let targetPage = min(pageCount - 1, clampedDisplayedPage + 1)
+        let highestLoadedPage = max(0, (page?.page ?? 1) - 1)
+        if targetPage <= highestLoadedPage {
+            displayedPage = targetPage
+        } else {
+            loadNextPage(displayAfterLoad: true)
+        }
+    }
+
+    private func loadNextPage(
+        force: Bool = false,
+        displayAfterLoad: Bool = false
+    ) {
+        let pageBeforeLoad = page?.page ?? 0
         Task {
             await store.loadNextSavedShowsPage(
                 period: period,
+                size: Self.pageSize,
                 apiClient: apiClient,
                 authManager: authManager,
                 force: force
             )
+            let loadedPage = period == .upcoming ? store.upcomingPage : store.pastPage
+            if displayAfterLoad, (loadedPage?.page ?? 0) > pageBeforeLoad {
+                displayedPage = pageBeforeLoad
+            }
         }
     }
 }
@@ -590,26 +689,5 @@ private struct FavoriteSectionCard<Content: View>: View {
             }
         }
         .accessibilityIdentifier(identifier)
-    }
-}
-
-private extension ComedianFavoriteStore.SavedFavoritesPhase {
-    var hasFailure: Bool {
-        if case .failure = self { return true }
-        return false
-    }
-}
-
-private extension ClubFavoriteStore.SavedFavoritesPhase {
-    var hasFailure: Bool {
-        if case .failure = self { return true }
-        return false
-    }
-}
-
-private extension PodcastFavoriteStore.SavedFavoritesPhase {
-    var hasFailure: Bool {
-        if case .failure = self { return true }
-        return false
     }
 }

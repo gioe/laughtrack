@@ -475,6 +475,212 @@ enum LaughTrackEntityRowArtworkShape: Equatable {
     case roundedRectangle(cornerRadius: CGFloat)
 }
 
+enum LaughTrackSearchEntityKind: Equatable {
+    case comedian
+    case club
+    case podcast
+
+    var fallback: ArtworkFallbackKind {
+        switch self {
+        case .comedian: return .comedian
+        case .club: return .club
+        case .podcast: return .podcast
+        }
+    }
+}
+
+/// The canonical rich entity row shared by Search and Library.
+struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
+    let title: String
+    let subtitle: String?
+    let imageURL: String?
+    let kind: LaughTrackSearchEntityKind
+    let action: () -> Void
+    let accessibilityIdentifier: String?
+    let trailingAccessory: TrailingAccessory
+    let hasTrailingAccessory: Bool
+
+    @Environment(\.appTheme) private var theme
+
+    init(
+        title: String,
+        subtitle: String? = nil,
+        imageURL: String?,
+        kind: LaughTrackSearchEntityKind,
+        action: @escaping () -> Void,
+        accessibilityIdentifier: String? = nil
+    ) where TrailingAccessory == EmptyView {
+        self.title = title
+        self.subtitle = subtitle
+        self.imageURL = imageURL
+        self.kind = kind
+        self.action = action
+        self.accessibilityIdentifier = accessibilityIdentifier
+        self.trailingAccessory = EmptyView()
+        self.hasTrailingAccessory = false
+    }
+
+    init(
+        title: String,
+        subtitle: String? = nil,
+        imageURL: String?,
+        kind: LaughTrackSearchEntityKind,
+        action: @escaping () -> Void,
+        accessibilityIdentifier: String? = nil,
+        @ViewBuilder trailingAccessory: () -> TrailingAccessory
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.imageURL = imageURL
+        self.kind = kind
+        self.action = action
+        self.accessibilityIdentifier = accessibilityIdentifier
+        self.trailingAccessory = trailingAccessory()
+        self.hasTrailingAccessory = true
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.md) {
+            Button(action: action) {
+                HStack(spacing: theme.spacing.md) {
+                    artwork
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(title)
+                            .font(laughTrack.typography.cardTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        if let subtitle, !subtitle.isEmpty {
+                            Text(subtitle)
+                                .font(laughTrack.typography.metadata)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(rowAccessibilityLabel)
+            .accessibilityIdentifier(accessibilityIdentifier ?? "")
+
+            if hasTrailingAccessory {
+                trailingAccessory
+            }
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+    }
+
+    private var rowAccessibilityLabel: String {
+        guard let subtitle = subtitle?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !subtitle.isEmpty
+        else { return title }
+        return "\(title), \(subtitle)"
+    }
+
+    @ViewBuilder
+    private var artwork: some View {
+        switch kind {
+        case .comedian:
+            ClubWallHeadshotFrame(
+                caption: title,
+                captionVisibility: .hidden,
+                photoWidth: 64,
+                photoHeight: 61,
+                frameWidth: 76,
+                frameHeight: 73
+            ) {
+                artworkImage
+            }
+        case .club, .podcast:
+            framedPoster
+        }
+    }
+
+    private var framedPoster: some View {
+        let frameColor = kind == .club
+            ? Color(red: 1.0, green: 0.78, blue: 0.24)
+            : theme.laughTrackTokens.colors.accentStrong
+
+        return ZStack {
+            artworkImage
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: kind == .club ? 8 : 5, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: kind == .club ? 8 : 5, style: .continuous)
+                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                )
+
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(
+                    frameColor,
+                    style: StrokeStyle(
+                        lineWidth: 1.5,
+                        lineCap: .round,
+                        lineJoin: .round,
+                        dash: kind == .club ? [1.2, 10] : [0.5, 4.5]
+                    )
+                )
+                .frame(width: 69, height: 69)
+                .shadow(color: frameColor.opacity(0.5), radius: 3)
+                .shadow(color: frameColor.opacity(0.25), radius: 7)
+        }
+        .frame(width: 69, height: 69)
+    }
+
+    @ViewBuilder
+    private var artworkImage: some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = imageURL?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let url = URL.normalizedExternalURL(trimmed) {
+            CachedAsyncImage(url: url) { image in
+                if kind == .club {
+                    image.resizable().scaledToFit()
+                } else {
+                    image.resizable().scaledToFill()
+                }
+            } placeholder: {
+                Rectangle()
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay { ProgressView().tint(laughTrack.colors.accent) }
+            } error: { _ in
+                fallbackArtwork
+            }
+        } else {
+            fallbackArtwork
+        }
+    }
+
+    private var fallbackArtwork: some View {
+        Rectangle()
+            .fill(theme.laughTrackTokens.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: kind.fallback.systemImage)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+            }
+    }
+}
+
 struct LaughTrackEntityRowDesign: Equatable {
     var artworkSize: CGFloat
     var artworkShape: LaughTrackEntityRowArtworkShape
@@ -853,6 +1059,7 @@ struct LaughTrackPagedControls: View {
                 fullWidth: false,
                 action: onPrevious
             )
+            .fixedSize(horizontal: true, vertical: false)
             .disabled(isFirstPage)
             .opacity(isFirstPage ? 0.5 : 1)
             .accessibilityLabel("Previous page")
@@ -874,6 +1081,7 @@ struct LaughTrackPagedControls: View {
                 fullWidth: false,
                 action: onNext
             )
+            .fixedSize(horizontal: true, vertical: false)
             .disabled(isLastPage)
             .opacity(isLastPage ? 0.5 : 1)
             .accessibilityLabel("Next page")

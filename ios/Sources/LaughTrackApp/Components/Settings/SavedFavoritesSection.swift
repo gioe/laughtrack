@@ -15,30 +15,10 @@ struct SavedFavoritesSection: View {
     @State private var feedbackMessage: String?
 
     var body: some View {
-        Group {
-            if shouldShowSection {
-                LaughTrackRailCard(
-                    eyebrow: "Your collection",
-                    title: LibrarySection.saved.title,
-                    accessibilityIdentifier: LaughTrackViewTestID.libraryFavoritesSection
-                ) {
-                    VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.itemGap) {
-                        savedComedians
-                        savedClubs
-                        savedPodcasts
-
-                        if isLoading, !hasSavedItems {
-                            LaughTrackStateView(
-                                tone: .loading,
-                                title: "Loading your saved favorites",
-                                message: "LaughTrack is fetching the comedians, clubs, and podcasts you follow."
-                            )
-                        }
-
-                        failures
-                    }
-                }
-            }
+        VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
+            comedianRail
+            clubRail
+            podcastRail
         }
         .alert(
             "Couldn’t update Saved",
@@ -53,47 +33,119 @@ struct SavedFavoritesSection: View {
         }
     }
 
-    private var hasSavedItems: Bool {
-        !comedianFavorites.savedFavoriteComedians.isEmpty ||
-            !clubFavorites.savedFavoriteClubs.isEmpty ||
-            !podcastFavorites.savedFavoritePodcasts.isEmpty
+    @ViewBuilder
+    private var comedianRail: some View {
+        let phase = comedianFavorites.savedFavoritesPhase
+        let isEmpty = comedianFavorites.savedFavoriteComedians.isEmpty
+
+        if !isEmpty || phase.isLoading || phase.failure != nil {
+            LaughTrackRailCard(
+                title: LibrarySection.comedians.title,
+                accessibilityIdentifier: LaughTrackViewTestID.favoritesComediansSection
+            ) {
+                VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.itemGap) {
+                    savedComedians
+                    if phase.isLoading, isEmpty {
+                        loadingState(
+                            title: "Loading saved comedians",
+                            message: "LaughTrack is fetching the comedians you follow."
+                        )
+                    }
+                    if let failure = phase.failure {
+                        failureState(failure, label: "comedian favorites") {
+                            await comedianFavorites.loadSavedFavorites(
+                                apiClient: apiClient,
+                                authManager: authManager,
+                                force: true
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    private var isLoading: Bool {
-        comedianFavorites.savedFavoritesPhase.isLoading ||
-            clubFavorites.savedFavoritesPhase.isLoading ||
-            podcastFavorites.savedFavoritesPhase.isLoading
+    @ViewBuilder
+    private var clubRail: some View {
+        let phase = clubFavorites.savedFavoritesPhase
+        let isEmpty = clubFavorites.savedFavoriteClubs.isEmpty
+
+        if !isEmpty || phase.isLoading || phase.failure != nil {
+            LaughTrackRailCard(
+                title: LibrarySection.clubs.title,
+                accessibilityIdentifier: LaughTrackViewTestID.favoritesClubsSection
+            ) {
+                VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.itemGap) {
+                    savedClubs
+                    if phase.isLoading, isEmpty {
+                        loadingState(
+                            title: "Loading saved clubs",
+                            message: "LaughTrack is fetching the clubs you saved."
+                        )
+                    }
+                    if let failure = phase.failure {
+                        failureState(failure, label: "club favorites") {
+                            await clubFavorites.loadSavedFavorites(
+                                apiClient: apiClient,
+                                authManager: authManager,
+                                force: true
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    private var shouldShowSection: Bool {
-        hasSavedItems || isLoading || hasFailure
-    }
+    @ViewBuilder
+    private var podcastRail: some View {
+        let phase = podcastFavorites.savedFavoritesPhase
+        let isEmpty = podcastFavorites.savedFavoritePodcasts.isEmpty
 
-    private var hasFailure: Bool {
-        comedianFavorites.savedFavoritesPhase.failure != nil ||
-            clubFavorites.savedFavoritesPhase.failure != nil ||
-            podcastFavorites.savedFavoritesPhase.failure != nil
+        if !isEmpty || phase.isLoading || phase.failure != nil {
+            LaughTrackRailCard(
+                title: LibrarySection.podcasts.title,
+                accessibilityIdentifier: LaughTrackViewTestID.favoritesPodcastsSection
+            ) {
+                VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.itemGap) {
+                    savedPodcasts
+                    if phase.isLoading, isEmpty {
+                        loadingState(
+                            title: "Loading saved podcasts",
+                            message: "LaughTrack is fetching the podcasts you saved."
+                        )
+                    }
+                    if let failure = phase.failure {
+                        failureState(failure, label: "podcast favorites") {
+                            await podcastFavorites.loadSavedFavorites(
+                                apiClient: apiClient,
+                                authManager: authManager,
+                                force: true
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @ViewBuilder
     private var savedComedians: some View {
         if !comedianFavorites.savedFavoriteComedians.isEmpty {
-            savedGroupTitle("Comedians")
             FavoriteSearchableSection(
                 items: comedianFavorites.savedFavoriteComedians,
                 id: \.uuid,
-                searchPlaceholder: "Search saved comedians"
+                searchPlaceholder: "Search saved comedians",
+                pageSize: 5
             ) { comedian, query in
                 comedian.name.localizedCaseInsensitiveContains(query)
             } row: { comedian in
-                LaughTrackEntityRow(
+                LaughTrackSearchEntityRow(
                     title: comedian.name,
-                    subtitle: Self.comedianSubtitle(for: comedian),
-                    systemImage: ArtworkFallbackKind.person.systemImage,
                     imageURL: comedian.imageUrl,
-                    showsDisclosureIndicator: true,
-                    design: .savedEntity,
-                    action: { coordinator.open(.comedian(comedian.id)) }
+                    kind: .comedian,
+                    action: { coordinator.open(.comedian(comedian.id)) },
+                    accessibilityIdentifier: "laughtrack.library.comedian-\(comedian.id)"
                 ) {
                     FavoriteButton(
                         isFavorite: true,
@@ -109,29 +161,27 @@ struct SavedFavoritesSection: View {
                     }
                 }
             }
-            .accessibilityIdentifier(LaughTrackViewTestID.favoritesComediansSection)
         }
     }
 
     @ViewBuilder
     private var savedClubs: some View {
         if !clubFavorites.savedFavoriteClubs.isEmpty {
-            savedGroupTitle("Clubs")
             FavoriteSearchableSection(
                 items: clubFavorites.savedFavoriteClubs,
                 id: \.id,
-                searchPlaceholder: "Search saved clubs"
+                searchPlaceholder: "Search saved clubs",
+                pageSize: 5
             ) { club, query in
                 club.name.localizedCaseInsensitiveContains(query)
             } row: { club in
-                LaughTrackEntityRow(
+                LaughTrackSearchEntityRow(
                     title: club.name,
                     subtitle: "Saved club",
-                    systemImage: ArtworkFallbackKind.club.systemImage,
                     imageURL: club.imageUrl,
-                    showsDisclosureIndicator: true,
-                    design: .savedEntity,
-                    action: { coordinator.open(.club(club.id)) }
+                    kind: .club,
+                    action: { coordinator.open(.club(club.id)) },
+                    accessibilityIdentifier: "laughtrack.library.club-\(club.id)"
                 ) {
                     FavoriteButton(
                         isFavorite: true,
@@ -147,31 +197,28 @@ struct SavedFavoritesSection: View {
                     }
                 }
             }
-            .accessibilityIdentifier(LaughTrackViewTestID.favoritesClubsSection)
         }
     }
 
     @ViewBuilder
     private var savedPodcasts: some View {
         if !podcastFavorites.savedFavoritePodcasts.isEmpty {
-            savedGroupTitle("Podcasts")
             FavoriteSearchableSection(
                 items: podcastFavorites.savedFavoritePodcasts,
                 id: \.id,
-                searchPlaceholder: "Search saved podcasts"
+                searchPlaceholder: "Search saved podcasts",
+                pageSize: 5
             ) { podcast, query in
                 podcast.title.localizedCaseInsensitiveContains(query) ||
                     (podcast.authorName?.localizedCaseInsensitiveContains(query) ?? false)
             } row: { podcast in
-                LaughTrackEntityRow(
+                LaughTrackSearchEntityRow(
                     title: podcast.title,
                     subtitle: podcast.authorName,
-                    metadata: [Self.episodeCount(for: podcast)],
-                    systemImage: ArtworkFallbackKind.podcast.systemImage,
                     imageURL: podcast.imageUrl,
-                    showsDisclosureIndicator: true,
-                    design: .savedEntity,
-                    action: { coordinator.open(.podcast(podcast.id)) }
+                    kind: .podcast,
+                    action: { coordinator.open(.podcast(podcast.id)) },
+                    accessibilityIdentifier: "laughtrack.library.podcast-\(podcast.id)"
                 ) {
                     FavoriteButton(
                         isFavorite: true,
@@ -187,46 +234,18 @@ struct SavedFavoritesSection: View {
                     }
                 }
             }
-            .accessibilityIdentifier(LaughTrackViewTestID.favoritesPodcastsSection)
         }
     }
 
-    @ViewBuilder
-    private var failures: some View {
-        if let failure = comedianFavorites.savedFavoritesPhase.failure {
-            failureState(failure, label: "comedian favorites") {
-                await comedianFavorites.loadSavedFavorites(
-                    apiClient: apiClient,
-                    authManager: authManager,
-                    force: true
-                )
-            }
-        }
-        if let failure = clubFavorites.savedFavoritesPhase.failure {
-            failureState(failure, label: "club favorites") {
-                await clubFavorites.loadSavedFavorites(
-                    apiClient: apiClient,
-                    authManager: authManager,
-                    force: true
-                )
-            }
-        }
-        if let failure = podcastFavorites.savedFavoritesPhase.failure {
-            failureState(failure, label: "podcast favorites") {
-                await podcastFavorites.loadSavedFavorites(
-                    apiClient: apiClient,
-                    authManager: authManager,
-                    force: true
-                )
-            }
-        }
-    }
-
-    private func savedGroupTitle(_ title: String) -> some View {
-        Text(title)
-            .font(theme.laughTrackTokens.typography.eyebrow)
-            .foregroundStyle(theme.colors.textSecondary)
-            .textCase(.uppercase)
+    private func loadingState(
+        title: String,
+        message: String
+    ) -> some View {
+        LaughTrackStateView(
+            tone: .loading,
+            title: title,
+            message: message
+        )
     }
 
     private func failureState(

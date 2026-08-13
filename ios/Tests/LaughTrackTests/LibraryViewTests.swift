@@ -17,11 +17,12 @@ struct LibraryViewTests {
 
     @Test("Library groups have one canonical priority order")
     func librarySectionPriority() {
-        #expect(LibrarySection.allCases == [.nextUp, .saved, .history])
+        #expect(LibrarySection.allCases == [.nextUp, .comedians, .clubs, .podcasts])
         #expect(LibrarySection.allCases.map(\.title) == [
-            "Next Up",
-            "Saved",
-            "History",
+            "Shows",
+            "Comedians",
+            "Clubs",
+            "Podcasts",
         ])
     }
 
@@ -29,8 +30,9 @@ struct LibraryViewTests {
     func fullyEmptyStateRequiresAllGroups() {
         #expect(LibraryContentState(
             nextUp: .empty,
-            saved: .empty,
-            history: .empty
+            comedians: .empty,
+            clubs: .empty,
+            podcasts: .empty
         ).isFullyEmpty)
 
         for unresolved in [
@@ -40,8 +42,30 @@ struct LibraryViewTests {
         ] {
             #expect(!LibraryContentState(
                 nextUp: unresolved,
-                saved: .empty,
-                history: .empty
+                comedians: .empty,
+                clubs: .empty,
+                podcasts: .empty
+            ).isFullyEmpty)
+
+            #expect(!LibraryContentState(
+                nextUp: .empty,
+                comedians: unresolved,
+                clubs: .empty,
+                podcasts: .empty
+            ).isFullyEmpty)
+
+            #expect(!LibraryContentState(
+                nextUp: .empty,
+                comedians: .empty,
+                clubs: unresolved,
+                podcasts: .empty
+            ).isFullyEmpty)
+
+            #expect(!LibraryContentState(
+                nextUp: .empty,
+                comedians: .empty,
+                clubs: .empty,
+                podcasts: unresolved
             ).isFullyEmpty)
         }
     }

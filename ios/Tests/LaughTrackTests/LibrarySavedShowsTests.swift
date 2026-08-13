@@ -3,36 +3,33 @@ import Testing
 
 @Suite("Library saved shows")
 struct LibrarySavedShowsTests {
-    @Test("authenticated Library renders plans and history from saved-show periods")
-    func rendersUpcomingAndPastSavedShows() throws {
+    @Test("authenticated Library renders upcoming saved-show plans only")
+    func rendersUpcomingSavedShows() throws {
         let source = try librarySource()
 
         #expect(source.contains("section: .nextUp"))
-        #expect(source.contains("section: .history"))
         #expect(source.contains("period: .upcoming"))
-        #expect(source.contains("period: .past"))
-        #expect(source.contains("savedShows.upcomingPage?.shows"))
-        #expect(source.contains("savedShows.pastPage?.shows"))
+        #expect(source.contains("page: savedShows.upcomingPage"))
+        #expect(!source.contains("savedShows.pastPage?.shows"))
+        #expect(!source.contains("From Your Follows"))
         #expect(source.contains("savedShows.loadSavedShows("))
         #expect(source.contains("ShowsListSkeleton(rowCount: 2)"))
         #expect(source.contains("if shows.isEmpty"))
         #expect(source.contains("case .failure(let failure):"))
     }
 
-    @Test("saved-show collections progressively load pages without replacing rows")
-    func savedShowsProgressivelyLoadPages() throws {
+    @Test("saved shows render five ticket rows per page with paging controls")
+    func savedShowsUseTicketPagination() throws {
         let source = try librarySource()
 
-        #expect(source.contains("canLoadMore: savedShows.upcomingPage.map"))
-        #expect(source.contains("canLoadMore: savedShows.pastPage.map"))
+        #expect(source.contains("static let pageSize = 5"))
+        #expect(source.contains("visibleShows"))
+        #expect(source.contains("LaughTrackPagedControls("))
+        #expect(source.contains("onPrevious: showPreviousPage"))
+        #expect(source.contains("onNext: showNextPage"))
         #expect(source.contains("await store.loadNextSavedShowsPage("))
-        #expect(source.contains("\"Load more\""))
-        #expect(source.contains("ProgressView(\"Loading more…\")"))
-
-        let loadedContent = try #require(source.range(of: "private var loadedContent"))
-        let loadMore = try #require(source.range(of: "case .loading:", range: loadedContent.lowerBound..<source.endIndex))
-        let rows = try #require(source.range(of: "ForEach(shows, id: \\.id)", range: loadedContent.lowerBound..<source.endIndex))
-        #expect(rows.lowerBound < loadMore.lowerBound)
+        #expect(source.contains("size: Self.pageSize"))
+        #expect(!source.contains("\"Load more\""))
     }
 
     @Test("next-page errors keep rows visible and provide an in-place retry")
@@ -41,7 +38,7 @@ struct LibrarySavedShowsTests {
 
         #expect(source.contains("failureContent(failure, loadingMore: true)"))
         #expect(source.contains("\"Retry loading more\""))
-        #expect(source.contains("loadNextPage(force: true)"))
+        #expect(source.contains("loadNextPage(force: true, displayAfterLoad: true)"))
         #expect(source.contains("failureContent(failure, loadingMore: false)"))
         #expect(source.contains("await store.loadSavedShows("))
     }
@@ -50,13 +47,13 @@ struct LibrarySavedShowsTests {
     func savedShowRowsOpenShowDetail() throws {
         let source = try librarySource()
 
-        #expect(source.contains("let shows: [Components.Schemas.Show]"))
+        #expect(source.contains("private var shows: [Components.Schemas.Show]"))
         #expect(source.contains("ShowRow(show: show, presentation: .compactTicket)"))
         #expect(source.contains("coordinator.open(.show(show.id))"))
         #expect(source.contains(#".accessibilityLabel("Open \(ShowTitlePresentation.title(for: show))")"#))
     }
 
-    @Test("plans, Saved, and History retain canonical priority")
+    @Test("Shows lead the independent saved-entity rails")
     func explicitCollectionsRetainCanonicalPriority() throws {
         let source = try librarySource()
         let sectionsStart = try #require(source.range(of: "private struct FavoritePrimitiveSections"))
@@ -65,10 +62,9 @@ struct LibrarySavedShowsTests {
 
         let nextUp = try #require(sections.range(of: "section: .nextUp"))
         let saved = try #require(sections.range(of: "SavedFavoritesSection("))
-        let history = try #require(sections.range(of: "section: .history"))
 
         #expect(nextUp.lowerBound < saved.lowerBound)
-        #expect(saved.lowerBound < history.lowerBound)
+        #expect(!sections.contains("section: .history"))
         #expect(!source.contains("From Your Follows"))
         #expect(!source.contains("HomeFavoriteShowsModel"))
     }
@@ -87,17 +83,16 @@ struct LibrarySavedShowsTests {
         #expect(guestSource.contains("Follow comedians"))
     }
 
-    @Test("authenticated screenshot persona covers both saved-show periods")
-    func screenshotPersonaCoversSavedShows() throws {
+    @Test("authenticated screenshot supports both saved-show fixture generations")
+    func screenshotPersonaSupportsSavedShows() throws {
         let library = try librarySource()
         let persona = try personaSource()
 
         #expect(library.contains("persona.upcomingSavedShows"))
-        #expect(library.contains("persona.pastSavedShows"))
-        #expect(persona.contains("let upcomingSavedShows = ["))
-        #expect(persona.contains("let pastSavedShows = ["))
-        #expect(persona.contains("lhs.upcomingSavedShows.map"))
-        #expect(persona.contains("lhs.pastSavedShows.map"))
+        #expect(library.contains("shows: [Components.Schemas.Show]"))
+        #expect(library.contains("shows: [(title: String, detail: String)]"))
+        #expect(persona.contains("upcomingSavedShows"))
+        #expect(!library.contains("persona.pastSavedShows"))
     }
 
     private func librarySource(filePath: String = #filePath) throws -> String {

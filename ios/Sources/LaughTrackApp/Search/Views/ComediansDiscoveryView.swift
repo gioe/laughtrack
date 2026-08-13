@@ -269,42 +269,17 @@ struct ComedianRow: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
-    @Environment(\.appTheme) private var theme
-
-    private static let headshotPhotoWidth: CGFloat = 64
-    private static let headshotPhotoHeight: CGFloat = 61
-    private static let headshotFrameWidth: CGFloat = 76
-    private static let headshotFrameHeight: CGFloat = 73
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
         let isFavorite = favorites.value(for: comedian.uuid, fallback: comedian.isFavorite)
 
-        HStack(spacing: theme.spacing.md) {
-            Button(action: openDetail) {
-                HStack(spacing: theme.spacing.md) {
-                    headshot
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(comedian.name)
-                            .font(laughTrack.typography.cardTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityLabel(comedian.name)
-            .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchResultButton(comedian.id))
-
+        LaughTrackSearchEntityRow(
+            title: comedian.name,
+            imageURL: comedian.imageUrl,
+            kind: .comedian,
+            action: openDetail,
+            accessibilityIdentifier: LaughTrackViewTestID.comediansSearchResultButton(comedian.id)
+        ) {
             FavoriteButton(
                 isFavorite: isFavorite,
                 isPending: favorites.isPending(comedian.uuid)
@@ -325,62 +300,5 @@ struct ComedianRow: View {
                 }
             }
         }
-        .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
     }
-
-    private var headshot: some View {
-        ClubWallHeadshotFrame(
-            caption: comedian.name,
-            captionVisibility: .hidden,
-            photoWidth: Self.headshotPhotoWidth,
-            photoHeight: Self.headshotPhotoHeight,
-            frameWidth: Self.headshotFrameWidth,
-            frameHeight: Self.headshotFrameHeight
-        ) {
-            posterImage
-        }
-    }
-
-    @ViewBuilder
-    private var posterImage: some View {
-        let laughTrack = theme.laughTrackTokens
-        let trimmed = comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if let url = URL.normalizedExternalURL(trimmed) {
-            CachedAsyncImage(url: url) { image in
-                image.resizable().scaledToFill()
-            } placeholder: {
-                Rectangle()
-                    .fill(laughTrack.colors.surfaceMuted)
-                    .overlay {
-                        ProgressView()
-                            .tint(laughTrack.colors.accent)
-                    }
-            } error: { _ in
-                posterFallback
-            }
-        } else {
-            posterFallback
-        }
-    }
-
-    private var posterFallback: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return Rectangle()
-            .fill(laughTrack.colors.surfaceMuted)
-            .overlay {
-                Image(systemName: ArtworkFallbackKind.comedian.systemImage)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-            }
-    }
-
 }

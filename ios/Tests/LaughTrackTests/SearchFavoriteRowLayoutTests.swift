@@ -18,29 +18,38 @@ struct SearchFavoriteRowLayoutTests {
     @Test("comedian search favorite button is integrated into the entity row")
     func comedianSearchFavoriteButtonIsIntegratedIntoEntityRow() throws {
         let source = try String(contentsOf: searchViewSourceURL(named: "ComediansDiscoveryView.swift"), encoding: .utf8)
-        let block = try sourceBlock(in: source, from: "struct ComedianRow: View", to: "private var headshot")
+        let block = source[source.range(of: "struct ComedianRow: View")!.lowerBound...]
 
-        #expect(block.contains("Button(action: openDetail)"))
+        #expect(block.contains("LaughTrackSearchEntityRow("))
+        #expect(block.contains("action: openDetail"))
         #expect(block.contains("FavoriteButton("))
     }
 
     @Test("comedian search row uses captionless club wall headshot frame")
     func comedianSearchRowUsesCaptionlessClubWallHeadshotFrame() throws {
-        let source = try String(contentsOf: searchViewSourceURL(named: "ComediansDiscoveryView.swift"), encoding: .utf8)
-        let block = try sourceBlock(in: source, from: "struct ComedianRow: View", to: "private var posterImage")
+        let source = try String(contentsOf: browseComponentsSourceURL(), encoding: .utf8)
+        let block = try sourceBlock(in: source, from: "struct LaughTrackSearchEntityRow", to: "struct LaughTrackEntityRowDesign")
 
         #expect(block.contains("ClubWallHeadshotFrame("))
-        #expect(block.contains("caption: comedian.name"))
+        #expect(block.contains("caption: title"))
         #expect(block.contains("captionVisibility: .hidden"))
-        #expect(block.contains("private static let headshotFrameWidth: CGFloat = 76"))
-        #expect(block.contains("private static let headshotFrameHeight: CGFloat = 73"))
-        #expect(block.contains("posterImage"))
-        #expect(block.contains("Text(comedian.name)"))
+        #expect(block.contains("frameWidth: 76"))
+        #expect(block.contains("frameHeight: 73"))
+        #expect(block.contains("artworkImage"))
+        #expect(block.contains("Text(title)"))
         #expect(!block.contains("upcomingShowsText"))
         #expect(!block.contains("upcoming show"))
         #expect(!block.contains("rotationDegrees:"))
         #expect(!block.contains("HomeClubWallHeadshotFrame("))
-        #expect(!block.contains("RoundedRectangle(cornerRadius: 8, style: .continuous)"))
+    }
+
+    @Test("shared entity rows announce distinguishing subtitle metadata")
+    func sharedEntityRowsIncludeSubtitleInAccessibilityLabel() throws {
+        let source = try String(contentsOf: browseComponentsSourceURL(), encoding: .utf8)
+        let block = try sourceBlock(in: source, from: "struct LaughTrackSearchEntityRow", to: "struct LaughTrackEntityRowDesign")
+
+        #expect(block.contains(".accessibilityLabel(rowAccessibilityLabel)"))
+        #expect(block.contains("return \"\\(title), \\(subtitle)\""))
     }
 
     @Test("club wall headshot frame supports visible and hidden nameplate variants")
@@ -102,6 +111,17 @@ struct SearchFavoriteRowLayoutTests {
             throw CocoaError(.fileNoSuchFile)
         }
         return sourceURL
+    }
+
+    private func browseComponentsSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        return iosRoot.appendingPathComponent(
+            "Sources/LaughTrackApp/DesignSystem/LaughTrackBrowseComponents.swift"
+        )
     }
 
     private func sourceBlock(in source: String, from startMarker: String, to endMarker: String) throws -> String {

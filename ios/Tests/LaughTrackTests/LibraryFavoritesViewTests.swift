@@ -61,13 +61,25 @@ struct LibraryFavoritesViewTests {
         #expect(source.contains("SavedFavoritesSection(apiClient: apiClient)"))
     }
 
-    @Test("saved favorites section uses the shared rail card shell")
-    func savedFavoritesSectionUsesRailCardShell() throws {
+    @Test("saved entity types use three independent rail card shells")
+    func savedFavoritesUseIndependentRailCardShells() throws {
         let source = try String(contentsOf: savedFavoritesSectionSourceURL(), encoding: .utf8)
 
-        #expect(source.contains("LaughTrackRailCard("))
+        #expect(source.components(separatedBy: "LaughTrackRailCard(").count - 1 == 3)
+        #expect(source.contains("title: LibrarySection.comedians.title"))
+        #expect(source.contains("title: LibrarySection.clubs.title"))
+        #expect(source.contains("title: LibrarySection.podcasts.title"))
+        #expect(source.contains("LaughTrackViewTestID.favoritesComediansSection"))
+        #expect(source.contains("LaughTrackViewTestID.favoritesClubsSection"))
+        #expect(source.contains("LaughTrackViewTestID.favoritesPodcastsSection"))
+        #expect(source.components(separatedBy: "pageSize: 5").count - 1 == 3)
+        #expect(!source.contains("eyebrow: \"Your collection\""))
+        #expect(!source.contains("you want to keep close"))
+        #expect(!source.contains("savedGroupTitle"))
         #expect(!source.contains("LaughTrackSectionHeader("))
         #expect(!source.contains("LaughTrackCard {"))
+        #expect(source.components(separatedBy: "LaughTrackSearchEntityRow(").count - 1 == 3)
+        #expect(!source.contains("design: .savedEntity"))
     }
 
     @Test("signed-out favorites view shows sign-in CTA and skips the favorites fetch")
@@ -101,14 +113,14 @@ struct LibraryFavoritesViewTests {
     @Test("favorite searchable section returns expected paged item slices")
     func favoriteSearchableSectionPagingSlicesItems() {
         typealias Section = FavoriteSearchableSection<Int, Int, EmptyView>
-        let items = Array(1...25)
+        let items = Array(1...11)
 
         #expect(
             Section.pagedItems(
                 items: Array(1...5),
                 query: "",
                 page: 0,
-                pageSize: 20,
+                pageSize: 5,
                 matchesQuery: { item, query in "\(item)".contains(query) }
             ) == [1, 2, 3, 4, 5]
         )
@@ -118,9 +130,9 @@ struct LibraryFavoritesViewTests {
                 items: items,
                 query: "",
                 page: 1,
-                pageSize: 20,
+                pageSize: 5,
                 matchesQuery: { item, query in "\(item)".contains(query) }
-            ) == [21, 22, 23, 24, 25]
+            ) == [6, 7, 8, 9, 10]
         )
 
         #expect(
@@ -128,7 +140,7 @@ struct LibraryFavoritesViewTests {
                 items: items,
                 query: "no-match",
                 page: 0,
-                pageSize: 20,
+                pageSize: 5,
                 matchesQuery: { item, query in "\(item)".contains(query) }
             ).isEmpty
         )

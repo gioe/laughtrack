@@ -103,16 +103,12 @@ struct ClubsDiscoveryView: View {
 
                             AdaptiveSearchResults(spacing: theme.spacing.md) {
                                 ForEach(Array(result.items.enumerated()), id: \.offset) { _, club in
-                                    Button {
+                                    ClubRow(club: club) {
                                         if let id = club.id {
                                             coordinator.open(.club(id))
                                         }
-                                    } label: {
-                                        ClubRow(club: club)
                                     }
-                                    .buttonStyle(.plain)
                                     .disabled(club.id == nil)
-                                    .accessibilityIdentifier(club.id.map(LaughTrackViewTestID.clubsSearchResultButton) ?? "laughtrack.clubs-search.result-missing-id")
                                 }
                             }
 
@@ -230,123 +226,18 @@ struct ClubsDiscoveryView: View {
 
 struct ClubRow: View {
     let club: Components.Schemas.ClubSearchItem
-
-    @Environment(\.appTheme) private var theme
-
-    private static let posterSize: CGFloat = 64
-    private static let posterFrameInset: CGFloat = 5
-    private static let posterCornerRadius: CGFloat = 8
-    private static let clubBulbColor = Color(red: 1.0, green: 0.78, blue: 0.24)
+    let action: () -> Void
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        HStack(spacing: theme.spacing.md) {
-            poster
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(Self.title(for: club))
-                    .font(laughTrack.typography.cardTitle)
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Text(Self.subtitle(for: club))
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(laughTrack.colors.textSecondary)
-        }
-        .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
+        LaughTrackSearchEntityRow(
+            title: Self.title(for: club),
+            subtitle: Self.subtitle(for: club),
+            imageURL: club.imageUrl,
+            kind: .club,
+            action: action,
+            accessibilityIdentifier: club.id.map(LaughTrackViewTestID.clubsSearchResultButton)
+                ?? "laughtrack.clubs-search.result-missing-id"
         )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(Self.title(for: club)), \(Self.subtitle(for: club))")
-    }
-
-    private var poster: some View {
-        return ZStack {
-            posterImage
-                .frame(width: Self.posterSize, height: Self.posterSize)
-                .clipShape(RoundedRectangle(cornerRadius: Self.posterCornerRadius, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Self.posterCornerRadius, style: .continuous)
-                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
-                )
-
-            RoundedRectangle(cornerRadius: Self.posterCornerRadius + Self.posterFrameInset / 2, style: .continuous)
-                .strokeBorder(
-                    Self.clubBulbColor,
-                    style: StrokeStyle(
-                        lineWidth: 1.5,
-                        lineCap: .round,
-                        lineJoin: .round,
-                        dash: [1.2, 10]
-                    )
-                )
-                .frame(
-                    width: Self.posterSize + Self.posterFrameInset,
-                    height: Self.posterSize + Self.posterFrameInset
-                )
-                .shadow(color: Self.clubBulbColor.opacity(0.70), radius: 4)
-                .shadow(color: Self.clubBulbColor.opacity(0.34), radius: 9)
-        }
-        .frame(
-            width: Self.posterSize + Self.posterFrameInset,
-            height: Self.posterSize + Self.posterFrameInset
-        )
-    }
-
-    @ViewBuilder
-    private var posterImage: some View {
-        let laughTrack = theme.laughTrackTokens
-        let trimmed = club.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if let url = URL.normalizedExternalURL(trimmed) {
-            CachedAsyncImage(url: url) { image in
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: Self.posterSize, height: Self.posterSize)
-                    .background(laughTrack.colors.surfaceMuted)
-            } placeholder: {
-                Rectangle()
-                    .fill(laughTrack.colors.surfaceMuted)
-                    .overlay {
-                        ProgressView()
-                            .tint(laughTrack.colors.accent)
-                    }
-            } error: { _ in
-                posterFallback
-            }
-        } else {
-            posterFallback
-        }
-    }
-
-    private var posterFallback: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return Rectangle()
-            .fill(laughTrack.colors.surfaceMuted)
-            .overlay {
-                Image(systemName: ArtworkFallbackKind.club.systemImage)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-            }
     }
 
     static func title(for club: Components.Schemas.ClubSearchItem) -> String {
