@@ -33,9 +33,11 @@ private class RepositoryLibrarySavedShowsSource(
 ) : LibrarySavedShowsSource {
     override val snapshot: StateFlow<SavedShowsSnapshot> = repository.snapshot
 
-    override suspend fun refresh(period: SavedShowPeriod): Boolean = repository.refresh(period)
+    override suspend fun refresh(period: SavedShowPeriod): Boolean =
+        repository.refresh(period, size = LIBRARY_RAIL_PAGE_SIZE)
 
-    override suspend fun loadNextPage(period: SavedShowPeriod): Boolean = repository.loadNextPage(period)
+    override suspend fun loadNextPage(period: SavedShowPeriod): Boolean =
+        repository.loadNextPage(period, size = LIBRARY_RAIL_PAGE_SIZE)
 
     override fun resetSignedOut() {
         repository.resetSignedOut()
@@ -97,7 +99,6 @@ class LibraryViewModel internal constructor(
                 supervisorScope {
                     launch { savedShowsSource.refresh(SavedShowPeriod.UPCOMING) }
                     launch { favoritesRepository.refreshSignedInFavorites() }
-                    launch { savedShowsSource.refresh(SavedShowPeriod.PAST) }
                 }
             } finally {
                 _initialRefreshComplete.value = true

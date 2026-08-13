@@ -1,7 +1,6 @@
 package app.laughtrack.android.feature.library
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +14,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -31,11 +28,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.laughtrack.android.core.data.favorites.FavoritesSnapshot
@@ -47,12 +47,15 @@ import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.components.TicketShowRow
+import app.laughtrack.android.core.ui.components.SearchEntityKind
+import app.laughtrack.android.core.ui.components.SearchEntityRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import java.math.BigDecimal
 import java.util.Locale
 
 private val LibraryMaxWidth = 760.dp
+internal const val LIBRARY_RAIL_PAGE_SIZE = 5
 
 internal data class LibrarySectionPresentation(
     val eyebrow: String,
@@ -65,23 +68,30 @@ internal enum class LibrarySection(
 ) {
     NEXT_UP(
         LibrarySectionPresentation(
-            eyebrow = "Plans",
-            title = "Next Up",
-            subtitle = "The shows you chose are always first.",
+            eyebrow = "",
+            title = "Shows",
+            subtitle = "",
         ),
     ),
-    SAVED(
+    COMEDIANS(
         LibrarySectionPresentation(
-            eyebrow = "Your collection",
-            title = "Saved",
-            subtitle = "Comedians, clubs, and podcasts you want to keep close.",
+            eyebrow = "",
+            title = "Comedians",
+            subtitle = "",
         ),
     ),
-    HISTORY(
+    CLUBS(
         LibrarySectionPresentation(
-            eyebrow = "Past plans",
-            title = "History",
-            subtitle = "Past shows you saved.",
+            eyebrow = "",
+            title = "Clubs",
+            subtitle = "",
+        ),
+    ),
+    PODCASTS(
+        LibrarySectionPresentation(
+            eyebrow = "",
+            title = "Podcasts",
+            subtitle = "",
         ),
     ),
 }
@@ -95,12 +105,13 @@ internal enum class LibraryGroupResolution {
 
 internal data class LibraryContentState(
     val nextUp: LibraryGroupResolution,
-    val saved: LibraryGroupResolution,
-    val history: LibraryGroupResolution,
+    val comedians: LibraryGroupResolution,
+    val clubs: LibraryGroupResolution,
+    val podcasts: LibraryGroupResolution,
 ) {
     val isFullyEmpty: Boolean
         get() =
-            listOf(nextUp, saved, history)
+            listOf(nextUp, comedians, clubs, podcasts)
                 .all { it == LibraryGroupResolution.EMPTY }
 }
 
@@ -168,6 +179,27 @@ internal fun savedShowCollectionState(
 
 internal fun savedShowNavigationId(show: Show): Int = show.id
 
+internal fun savedShowsForPage(
+    shows: List<Show>,
+    page: Int,
+): List<Show> = libraryItemsForPage(shows, page)
+
+internal fun <T> libraryItemsForPage(
+    items: List<T>,
+    page: Int,
+): List<T> =
+    items
+        .drop(page.coerceAtLeast(0) * LIBRARY_RAIL_PAGE_SIZE)
+        .take(LIBRARY_RAIL_PAGE_SIZE)
+
+internal fun libraryPageCount(itemCount: Int): Int =
+    maxOf(1, (itemCount + LIBRARY_RAIL_PAGE_SIZE - 1) / LIBRARY_RAIL_PAGE_SIZE)
+
+internal fun libraryPageAfterCollectionUpdate(
+    displayedPage: Int,
+    loadedItemCount: Int,
+): Int = if (displayedPage * LIBRARY_RAIL_PAGE_SIZE < loadedItemCount) displayedPage else 0
+
 internal fun libraryContentState(
     snapshot: FavoritesSnapshot,
     savedShowsSnapshot: SavedShowsSnapshot,
@@ -179,19 +211,23 @@ internal fun libraryContentState(
                 savedShowsSnapshot.upcoming,
                 initialRefreshComplete,
             ),
-        saved =
+        comedians =
             favoriteResolution(
-                hasContent =
-                    snapshot.comedians.isNotEmpty() ||
-                        snapshot.clubs.isNotEmpty() ||
-                        snapshot.podcasts.isNotEmpty(),
+                hasContent = snapshot.comedians.isNotEmpty(),
                 snapshot = snapshot,
                 initialRefreshComplete = initialRefreshComplete,
             ),
-        history =
-            savedShowResolution(
-                savedShowsSnapshot.past,
-                initialRefreshComplete,
+        clubs =
+            favoriteResolution(
+                hasContent = snapshot.clubs.isNotEmpty(),
+                snapshot = snapshot,
+                initialRefreshComplete = initialRefreshComplete,
+            ),
+        podcasts =
+            favoriteResolution(
+                hasContent = snapshot.podcasts.isNotEmpty(),
+                snapshot = snapshot,
+                initialRefreshComplete = initialRefreshComplete,
             ),
     )
 
@@ -380,23 +416,24 @@ private fun SignedInLibrary(
                     onRetry = { onRetrySavedShows(SavedShowPeriod.UPCOMING) },
                     onLoadMore = { onLoadMoreSavedShows(SavedShowPeriod.UPCOMING) },
                 )
-            LibrarySection.SAVED ->
-                SavedEntitiesSection(
+            LibrarySection.COMEDIANS,
+            LibrarySection.CLUBS,
+            LibrarySection.PODCASTS,
+            ->
+                SavedEntityRail(
+                    section = section,
                     snapshot = snapshot,
-                    resolution = contentState.saved,
+                    resolution =
+                        when (section) {
+                            LibrarySection.COMEDIANS -> contentState.comedians
+                            LibrarySection.CLUBS -> contentState.clubs
+                            LibrarySection.PODCASTS -> contentState.podcasts
+                            LibrarySection.NEXT_UP -> error("Saved shows use their own rail")
+                        },
                     onOpenSaved = onOpenSaved,
                     onToggleComedian = onToggleComedian,
                     onToggleClub = onToggleClub,
                     onTogglePodcast = onTogglePodcast,
-                )
-            LibrarySection.HISTORY ->
-                SavedShowsSection(
-                    section = section,
-                    collection = savedShowsSnapshot.past,
-                    initialRefreshComplete = initialRefreshComplete,
-                    onOpenShow = onOpenShow,
-                    onRetry = { onRetrySavedShows(SavedShowPeriod.PAST) },
-                    onLoadMore = { onLoadMoreSavedShows(SavedShowPeriod.PAST) },
                 )
         }
     }
@@ -422,6 +459,28 @@ private fun SavedShowsSection(
     val state = savedShowCollectionState(collection, initialRefreshComplete)
     if (state == SavedShowCollectionPresentationState.Empty) return
 
+    var displayedPage by remember { mutableIntStateOf(0) }
+    var requestedPage by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(collection.total, collection.shows.firstOrNull()?.id) {
+        displayedPage = 0
+        requestedPage = 0
+    }
+
+    LaunchedEffect(collection.page, collection.shows.size) {
+        val nextDisplayedPage = libraryPageAfterCollectionUpdate(displayedPage, collection.shows.size)
+        if (nextDisplayedPage != displayedPage) {
+            displayedPage = nextDisplayedPage
+            requestedPage = nextDisplayedPage
+        }
+    }
+
+    LaunchedEffect(collection.shows.size, requestedPage) {
+        if (collection.shows.size > requestedPage * LIBRARY_RAIL_PAGE_SIZE) {
+            displayedPage = requestedPage
+        }
+    }
+
     FavoriteSection(section.presentation) {
         when (state) {
             SavedShowCollectionPresentationState.Loading -> LoadingRow()
@@ -431,20 +490,80 @@ private fun SavedShowsSection(
             }
             SavedShowCollectionPresentationState.Empty -> Unit
             is SavedShowCollectionPresentationState.Content -> {
-                state.shows.forEach { show ->
+                val pageCount = collection.totalPages.coerceAtLeast(1)
+                val currentPage = displayedPage.coerceIn(0, pageCount - 1)
+
+                savedShowsForPage(state.shows, currentPage).forEach { show ->
                     SavedShowRow(show = show, onOpenShow = onOpenShow)
+                }
+                if (pageCount > 1) {
+                    LibraryPager(
+                        currentPage = currentPage,
+                        pageCount = pageCount,
+                        enabled = !state.isRefreshing,
+                        onPrevious = {
+                            requestedPage = (currentPage - 1).coerceAtLeast(0)
+                            displayedPage = requestedPage
+                        },
+                        onNext = {
+                            val targetPage = (currentPage + 1).coerceAtMost(pageCount - 1)
+                            requestedPage = targetPage
+                            if (state.shows.size > targetPage * LIBRARY_RAIL_PAGE_SIZE) {
+                                displayedPage = targetPage
+                            } else {
+                                onLoadMore()
+                            }
+                        },
+                    )
                 }
                 if (state.isRefreshing) {
                     LoadingRow()
                 } else if (state.errorMessage != null) {
                     EmptyText(state.errorMessage)
                     TextButton(onClick = if (state.canLoadMore) onLoadMore else onRetry) {
-                        Text(if (state.canLoadMore) "Retry loading more" else "Retry ${section.presentation.title.lowercase()}")
+                        Text(
+                            if (state.canLoadMore) {
+                                "Retry loading more"
+                            } else {
+                                "Retry ${section.presentation.title.lowercase()}"
+                            },
+                        )
                     }
-                } else if (state.canLoadMore) {
-                    TextButton(onClick = onLoadMore) { Text("Load more") }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun LibraryPager(
+    currentPage: Int,
+    pageCount: Int,
+    enabled: Boolean,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        TextButton(
+            onClick = onPrevious,
+            enabled = enabled && currentPage > 0,
+        ) {
+            Text("Previous")
+        }
+        Text(
+            text = "Page ${currentPage + 1} of $pageCount",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        TextButton(
+            onClick = onNext,
+            enabled = enabled && currentPage + 1 < pageCount,
+        ) {
+            Text("Next")
         }
     }
 }
@@ -474,7 +593,8 @@ internal fun savedShowPriceLabel(prices: List<BigDecimal>?): String? {
 }
 
 @Composable
-private fun SavedEntitiesSection(
+private fun SavedEntityRail(
+    section: LibrarySection,
     snapshot: FavoritesSnapshot,
     resolution: LibraryGroupResolution,
     onOpenSaved: (LibrarySavedDestination) -> Unit,
@@ -484,42 +604,94 @@ private fun SavedEntitiesSection(
 ) {
     if (resolution == LibraryGroupResolution.EMPTY) return
 
-    FavoriteSection(LibrarySection.SAVED.presentation) {
+    val itemCount =
+        when (section) {
+            LibrarySection.COMEDIANS -> snapshot.comedians.size
+            LibrarySection.CLUBS -> snapshot.clubs.size
+            LibrarySection.PODCASTS -> snapshot.podcasts.size
+            LibrarySection.NEXT_UP -> 0
+        }
+    val pageCount = libraryPageCount(itemCount)
+    var displayedPage by remember(section) { mutableIntStateOf(0) }
+    val currentPage = displayedPage.coerceIn(0, pageCount - 1)
+
+    LaunchedEffect(itemCount) {
+        displayedPage = displayedPage.coerceIn(0, pageCount - 1)
+    }
+
+    FavoriteSection(section.presentation) {
         when (resolution) {
             LibraryGroupResolution.LOADING -> LoadingRow()
-            LibraryGroupResolution.FAILURE -> EmptyText(snapshot.errorMessage ?: "Couldn’t load your saved collection.")
+            LibraryGroupResolution.FAILURE -> {
+                EmptyText(snapshot.errorMessage ?: "Couldn’t load saved ${section.presentation.title.lowercase()}.")
+            }
             LibraryGroupResolution.EMPTY -> Unit
             LibraryGroupResolution.CONTENT -> {
-                if (snapshot.comedians.isNotEmpty()) {
-                    SavedGroupTitle("Comedians")
-                    snapshot.comedians.forEach { comedian ->
-                        FavoriteRow(
-                            title = comedian.name,
-                            subtitle = "${comedian.showCount} upcoming shows",
-                            onOpen = { onOpenSaved(savedComedianDestination(comedian)) },
-                            onRemove = { onToggleComedian(comedian.uuid) },
-                        )
+                when (section) {
+                    LibrarySection.COMEDIANS -> {
+                        libraryItemsForPage(snapshot.comedians, currentPage).forEach { comedian ->
+                            SearchEntityRow(
+                                title = comedian.name,
+                                subtitle = null,
+                                artworkUrl = comedian.imageUrl,
+                                kind = SearchEntityKind.COMEDIAN,
+                                onOpen = { onOpenSaved(savedComedianDestination(comedian)) },
+                            ) {
+                                TextButton(
+                                    onClick = { onToggleComedian(comedian.uuid) },
+                                    modifier = Modifier.semantics {
+                                        contentDescription = "Remove ${comedian.name}"
+                                    },
+                                ) { Text("Remove") }
+                            }
+                        }
                     }
+                    LibrarySection.CLUBS -> {
+                        libraryItemsForPage(snapshot.clubs, currentPage).forEach { club ->
+                            SearchEntityRow(
+                                title = club.name,
+                                subtitle = "Saved club",
+                                artworkUrl = club.imageUrl,
+                                kind = SearchEntityKind.CLUB,
+                                onOpen = { onOpenSaved(savedClubDestination(club)) },
+                            ) {
+                                TextButton(
+                                    onClick = { onToggleClub(club.id) },
+                                    modifier = Modifier.semantics {
+                                        contentDescription = "Remove ${club.name}"
+                                    },
+                                ) { Text("Remove") }
+                            }
+                        }
+                    }
+                    LibrarySection.PODCASTS -> {
+                        libraryItemsForPage(snapshot.podcasts, currentPage).forEach { podcast ->
+                            SearchEntityRow(
+                                title = podcast.title,
+                                subtitle = podcast.authorName,
+                                artworkUrl = podcast.imageUrl,
+                                kind = SearchEntityKind.PODCAST,
+                                onOpen = { onOpenSaved(savedPodcastDestination(podcast)) },
+                            ) {
+                                TextButton(
+                                    onClick = { onTogglePodcast(podcast.id) },
+                                    modifier = Modifier.semantics {
+                                        contentDescription = "Remove ${podcast.title}"
+                                    },
+                                ) { Text("Remove") }
+                            }
+                        }
+                    }
+                    LibrarySection.NEXT_UP -> Unit
                 }
-                if (snapshot.clubs.isNotEmpty()) {
-                    SavedGroupTitle("Clubs")
-                    snapshot.clubs.forEach { club ->
-                        ClubRow(
-                            club = club,
-                            onOpen = { onOpenSaved(savedClubDestination(club)) },
-                            onRemove = { onToggleClub(club.id) },
-                        )
-                    }
-                }
-                if (snapshot.podcasts.isNotEmpty()) {
-                    SavedGroupTitle("Podcasts")
-                    snapshot.podcasts.forEach { podcast ->
-                        PodcastRow(
-                            podcast = podcast,
-                            onOpen = { onOpenSaved(savedPodcastDestination(podcast)) },
-                            onRemove = { onTogglePodcast(podcast.id) },
-                        )
-                    }
+                if (pageCount > 1) {
+                    LibraryPager(
+                        currentPage = currentPage,
+                        pageCount = pageCount,
+                        enabled = true,
+                        onPrevious = { displayedPage = (currentPage - 1).coerceAtLeast(0) },
+                        onNext = { displayedPage = (currentPage + 1).coerceAtMost(pageCount - 1) },
+                    )
                 }
             }
         }
@@ -577,12 +749,14 @@ private fun FavoriteSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(
-                presentation.eyebrow.uppercase(Locale.US),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = LaughTrackColors.AccentStrong,
-            )
+            if (presentation.eyebrow.isNotBlank()) {
+                Text(
+                    presentation.eyebrow.uppercase(Locale.US),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = LaughTrackColors.AccentStrong,
+                )
+            }
             Text(
                 presentation.title,
                 style = MaterialTheme.typography.titleLarge,
@@ -614,93 +788,6 @@ private fun FavoriteSection(
             )
         }
     }
-}
-
-@Composable
-private fun FavoriteRow(
-    title: String,
-    subtitle: String,
-    onOpen: () -> Unit,
-    onRemove: (() -> Unit)?,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .clickable(onClick = onOpen)
-                    .padding(vertical = 8.dp, horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        if (onRemove != null) {
-            TextButton(onClick = onRemove) { Text("Remove") }
-        }
-    }
-}
-
-@Composable
-private fun ClubRow(
-    club: FavoriteClubItem,
-    onOpen: () -> Unit,
-    onRemove: () -> Unit,
-) {
-    FavoriteRow(
-        title = club.name,
-        subtitle = "Saved club",
-        onOpen = onOpen,
-        onRemove = onRemove,
-    )
-}
-
-@Composable
-private fun PodcastRow(
-    podcast: FavoritePodcastItem,
-    onOpen: () -> Unit,
-    onRemove: () -> Unit,
-) {
-    FavoriteRow(
-        title = podcast.title,
-        subtitle = podcast.authorName ?: "${podcast.episodeCount} episodes",
-        onOpen = onOpen,
-        onRemove = onRemove,
-    )
-}
-
-@Composable
-private fun SavedGroupTitle(title: String) {
-    Text(
-        text = title.uppercase(Locale.US),
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
 }
 
 @Composable

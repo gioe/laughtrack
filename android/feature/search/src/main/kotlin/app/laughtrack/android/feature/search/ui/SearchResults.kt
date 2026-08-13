@@ -47,6 +47,8 @@ import app.laughtrack.android.core.data.favorites.FavoritesSnapshot
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
+import app.laughtrack.android.core.ui.components.SearchEntityKind
+import app.laughtrack.android.core.ui.components.SearchEntityRow
 import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
@@ -319,74 +321,35 @@ private fun ResultRow(
     val favoriteTarget = result.favoriteTarget
     val isFavorite = result.favoriteValue(favorites)
     val favoritePending = favoriteTarget?.let { favorites.pending.contains(it.pendingKey) } == true
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
-        color = LaughTrackColors.SurfaceElevated.copy(alpha = 0.96f),
-        shape = RoundedCornerShape(14.dp),
+    SearchEntityRow(
+        title = result.title,
+        subtitle = result.subtitle.takeIf { pivot == SearchPivot.CLUBS },
+        artworkUrl = result.artworkUrl,
+        kind =
+            when (pivot) {
+                SearchPivot.COMEDIANS -> SearchEntityKind.COMEDIAN
+                SearchPivot.CLUBS -> SearchEntityKind.CLUB
+                SearchPivot.PODCASTS -> SearchEntityKind.PODCAST
+                SearchPivot.SHOWS -> error("Shows use ticket rows")
+            },
+        onOpen = { onOpen(result.route) },
+        openTestTag = SEARCH_RESULT_ROW_TEST_TAG,
     ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(
-                Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .clickable { onOpen(result.route) }
-                    .testTag(SEARCH_RESULT_ROW_TEST_TAG),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
+        if (favoriteTarget != null) {
+            Surface(
+                modifier = Modifier.size(46.dp),
+                shape = CircleShape,
+                color = LaughTrackColors.Canvas.copy(alpha = 0.72f),
+                border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+                enabled = !favoritePending,
+                onClick = { onSetFavorite(favoriteTarget, isFavorite) },
             ) {
-                SearchArtwork(result = result, pivot = pivot)
-                Column(
-                    Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(
-                        result.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = LaughTrackColors.Foreground,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Remove favorite" else "Favorite",
+                        tint = if (isFavorite) LaughTrackColors.AccentStrong else LaughTrackColors.Foreground,
                     )
-                    if (pivot == SearchPivot.CLUBS) {
-                        result.subtitle?.takeIf { it.isNotBlank() }?.let { location ->
-                            Text(
-                                location,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = LaughTrackColors.ForegroundMuted,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = LaughTrackColors.ForegroundMuted,
-                )
-            }
-            if (favoriteTarget != null) {
-                Surface(
-                    modifier = Modifier.size(46.dp),
-                    shape = CircleShape,
-                    color = LaughTrackColors.Canvas.copy(alpha = 0.72f),
-                    border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
-                    enabled = !favoritePending,
-                    onClick = { onSetFavorite(favoriteTarget, isFavorite) },
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                            contentDescription = if (isFavorite) "Remove favorite" else "Favorite",
-                            tint = if (isFavorite) LaughTrackColors.AccentStrong else LaughTrackColors.Foreground,
-                        )
-                    }
                 }
             }
         }

@@ -36,7 +36,7 @@ class LibrarySavedShowsTest {
     }
 
     @Test
-    fun signedInRefreshLoadsUpcomingAndPastSavedShowsWithoutReplacingFavoritesSource() =
+    fun signedInRefreshLoadsUpcomingSavedShowsWithoutReplacingFavoritesSource() =
         runTest {
             val source = RecordingSavedShowsSource()
             val favorites = signedOutFavoritesRepository(throwingApi())
@@ -46,7 +46,7 @@ class LibrarySavedShowsTest {
             advanceUntilIdle()
 
             assertEquals(
-                listOf(SavedShowPeriod.UPCOMING, SavedShowPeriod.PAST),
+                listOf(SavedShowPeriod.UPCOMING),
                 source.refreshedPeriods,
             )
             assertTrue(viewModel.snapshot.value.comedians.isEmpty())
@@ -79,10 +79,10 @@ class LibrarySavedShowsTest {
             val source = RecordingSavedShowsSource()
             val viewModel = LibraryViewModel(signedOutFavoritesRepository(throwingApi()), source)
 
-            viewModel.refreshSavedShows(SavedShowPeriod.PAST)
+            viewModel.refreshSavedShows(SavedShowPeriod.UPCOMING)
             advanceUntilIdle()
 
-            assertEquals(listOf(SavedShowPeriod.PAST), source.refreshedPeriods)
+            assertEquals(listOf(SavedShowPeriod.UPCOMING), source.refreshedPeriods)
         }
 
     @Test
@@ -99,12 +99,13 @@ class LibrarySavedShowsTest {
         }
 
     @Test
-    fun savedShowCollectionsBookendTheCanonicalLibraryHierarchy() {
+    fun savedShowsLeadTheCanonicalLibraryHierarchy() {
         assertEquals(
             listOf(
-                "Next Up",
-                "Saved",
-                "History",
+                "Shows",
+                "Comedians",
+                "Clubs",
+                "Podcasts",
             ),
             LibrarySection.entries.map { it.presentation.title },
         )
@@ -169,6 +170,22 @@ class LibrarySavedShowsTest {
     @Test
     fun canonicalSavedShowRowNavigationUsesTheShowIdentifier() {
         assertEquals(73, savedShowNavigationId(show(id = 73)))
+    }
+
+    @Test
+    fun savedShowsArePagedFiveAtATime() {
+        val shows = (1..6).map(::show)
+
+        assertEquals(listOf(1, 2, 3, 4, 5), savedShowsForPage(shows, page = 0).map { it.id })
+        assertEquals(listOf(6), savedShowsForPage(shows, page = 1).map { it.id })
+        assertTrue(savedShowsForPage(shows, page = 2).isEmpty())
+    }
+
+    @Test
+    fun savedShowPagerReturnsToFirstPageWhenRefreshShrinksLoadedRows() {
+        assertEquals(1, libraryPageAfterCollectionUpdate(displayedPage = 1, loadedItemCount = 6))
+        assertEquals(0, libraryPageAfterCollectionUpdate(displayedPage = 1, loadedItemCount = 5))
+        assertEquals(0, libraryPageAfterCollectionUpdate(displayedPage = 2, loadedItemCount = 0))
     }
 
     @Test

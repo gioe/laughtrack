@@ -15,16 +15,16 @@ class LibraryPresentationTest {
     @Test
     fun librarySectionsUseTheCanonicalPriorityOrder() {
         assertEquals(
-            listOf("Next Up", "Saved", "History"),
+            listOf("Shows", "Comedians", "Clubs", "Podcasts"),
             LibrarySection.entries.map { it.presentation.title },
         )
         assertEquals(
-            listOf("Plans", "Your collection", "Past plans"),
+            listOf("", "", "", ""),
             LibrarySection.entries.map { it.presentation.eyebrow },
         )
         LibrarySection.entries.forEach { section ->
             assertFalse(section.presentation.title.isBlank())
-            assertFalse(section.presentation.subtitle.isBlank())
+            assertTrue(section.presentation.subtitle.isBlank())
         }
     }
 
@@ -33,8 +33,9 @@ class LibraryPresentationTest {
         val empty =
             LibraryContentState(
                 nextUp = LibraryGroupResolution.EMPTY,
-                saved = LibraryGroupResolution.EMPTY,
-                history = LibraryGroupResolution.EMPTY,
+                comedians = LibraryGroupResolution.EMPTY,
+                clubs = LibraryGroupResolution.EMPTY,
+                podcasts = LibraryGroupResolution.EMPTY,
             )
 
         assertTrue(empty.isFullyEmpty)
@@ -43,8 +44,9 @@ class LibraryPresentationTest {
             .filterNot { it == LibraryGroupResolution.EMPTY }
             .forEach { nonEmptyResolution ->
                 assertFalse(empty.copy(nextUp = nonEmptyResolution).isFullyEmpty)
-                assertFalse(empty.copy(saved = nonEmptyResolution).isFullyEmpty)
-                assertFalse(empty.copy(history = nonEmptyResolution).isFullyEmpty)
+                assertFalse(empty.copy(comedians = nonEmptyResolution).isFullyEmpty)
+                assertFalse(empty.copy(clubs = nonEmptyResolution).isFullyEmpty)
+                assertFalse(empty.copy(podcasts = nonEmptyResolution).isFullyEmpty)
             }
     }
 
@@ -61,6 +63,7 @@ class LibraryPresentationTest {
                 LibraryGroupResolution.LOADING,
                 LibraryGroupResolution.LOADING,
                 LibraryGroupResolution.LOADING,
+                LibraryGroupResolution.LOADING,
             ),
             initial.asOrderedList(),
         )
@@ -72,7 +75,7 @@ class LibraryPresentationTest {
                 savedShowsSnapshot = SavedShowsSnapshot(),
                 initialRefreshComplete = true,
             )
-        assertEquals(List(3) { LibraryGroupResolution.EMPTY }, settled.asOrderedList())
+        assertEquals(List(4) { LibraryGroupResolution.EMPTY }, settled.asOrderedList())
         assertTrue(settled.isFullyEmpty)
 
         val failed =
@@ -81,8 +84,30 @@ class LibraryPresentationTest {
                 savedShowsSnapshot = SavedShowsSnapshot(),
                 initialRefreshComplete = true,
             )
-        assertEquals(LibraryGroupResolution.FAILURE, failed.saved)
+        assertEquals(LibraryGroupResolution.FAILURE, failed.comedians)
+        assertEquals(LibraryGroupResolution.FAILURE, failed.clubs)
+        assertEquals(LibraryGroupResolution.FAILURE, failed.podcasts)
         assertFalse(failed.isFullyEmpty)
+    }
+
+    @Test
+    fun eachSavedEntityTypeResolvesAsAnIndependentRail() {
+        val state =
+            libraryContentState(
+                snapshot = FavoritesSnapshot(comedians = listOf(comedian(id = 31))),
+                savedShowsSnapshot = SavedShowsSnapshot(),
+                initialRefreshComplete = true,
+            )
+
+        assertEquals(
+            listOf(
+                LibraryGroupResolution.EMPTY,
+                LibraryGroupResolution.CONTENT,
+                LibraryGroupResolution.EMPTY,
+                LibraryGroupResolution.EMPTY,
+            ),
+            state.asOrderedList(),
+        )
     }
 
     @Test
@@ -127,7 +152,17 @@ class LibraryPresentationTest {
         )
     }
 
-    private fun LibraryContentState.asOrderedList() = listOf(nextUp, saved, history)
+    @Test
+    fun allLibraryRailsPageFiveItemsAtATime() {
+        val items = (1..11).toList()
+
+        assertEquals(listOf(1, 2, 3, 4, 5), libraryItemsForPage(items, page = 0))
+        assertEquals(listOf(6, 7, 8, 9, 10), libraryItemsForPage(items, page = 1))
+        assertEquals(listOf(11), libraryItemsForPage(items, page = 2))
+        assertEquals(3, libraryPageCount(items.size))
+    }
+
+    private fun LibraryContentState.asOrderedList() = listOf(nextUp, comedians, clubs, podcasts)
 
     private fun comedian(id: Int) =
         ComedianSearchItem(
