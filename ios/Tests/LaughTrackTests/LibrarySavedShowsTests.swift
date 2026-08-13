@@ -1,8 +1,31 @@
 import Foundation
 import Testing
+@testable import LaughTrackApp
 
 @Suite("Library saved shows")
 struct LibrarySavedShowsTests {
+    @Test("saved-show paging stays within the loaded collection after refresh")
+    func savedShowPagingClampsToLoadedRows() {
+        #expect(librarySavedShowsDisplayPage(
+            requestedPage: 1,
+            loadedItemCount: 6,
+            totalPages: 2,
+            pageSize: 5
+        ) == 1)
+        #expect(librarySavedShowsDisplayPage(
+            requestedPage: 1,
+            loadedItemCount: 5,
+            totalPages: 2,
+            pageSize: 5
+        ) == 0)
+        #expect(librarySavedShowsDisplayPage(
+            requestedPage: 2,
+            loadedItemCount: 6,
+            totalPages: 3,
+            pageSize: 5
+        ) == 1)
+    }
+
     @Test("authenticated Library renders upcoming saved-show plans only")
     func rendersUpcomingSavedShows() throws {
         let source = try librarySource()

@@ -374,6 +374,23 @@ private struct FavoritePrimitiveSections: View {
     }
 }
 
+func librarySavedShowsDisplayPage(
+    requestedPage: Int,
+    loadedItemCount: Int,
+    totalPages: Int,
+    pageSize: Int
+) -> Int {
+    let safePageSize = max(1, pageSize)
+    let loadedPageCount = loadedItemCount > 0
+        ? ((loadedItemCount - 1) / safePageSize) + 1
+        : 1
+    return min(
+        max(0, requestedPage),
+        max(0, totalPages - 1),
+        loadedPageCount - 1
+    )
+}
+
 private struct SavedShowsSection: View {
     static let pageSize = 5
 
@@ -394,7 +411,12 @@ private struct SavedShowsSection: View {
     private var pageCount: Int { max(1, page?.totalPages ?? 1) }
 
     private var clampedDisplayedPage: Int {
-        min(displayedPage, max(0, pageCount - 1))
+        librarySavedShowsDisplayPage(
+            requestedPage: displayedPage,
+            loadedItemCount: shows.count,
+            totalPages: pageCount,
+            pageSize: Self.pageSize
+        )
     }
 
     private var visibleShows: [Components.Schemas.Show] {
