@@ -78,6 +78,34 @@ class LibraryViewModelTest {
         }
 
     @Test
+    fun favoritesRetryPreservesLoadedRowsAndClearsTheErrorAfterRecovery() =
+        runTest {
+            val api = FakeFavoritesApi()
+            val viewModel = LibraryViewModel(signedOutFavoritesRepository(api))
+            collectSnapshot(viewModel)
+
+            viewModel.refresh(signedIn = true)
+            advanceUntilIdle()
+            assertEquals(1, viewModel.snapshot.value.comedians.size)
+
+            api.refreshFails = true
+            viewModel.refreshFavorites()
+            advanceUntilIdle()
+
+            assertEquals(1, viewModel.snapshot.value.comedians.size)
+            assertEquals(1, viewModel.snapshot.value.clubs.size)
+            assertEquals(1, viewModel.snapshot.value.podcasts.size)
+            assertNotNull(viewModel.snapshot.value.errorMessage)
+
+            api.refreshFails = false
+            viewModel.refreshFavorites()
+            advanceUntilIdle()
+
+            assertNull(viewModel.snapshot.value.errorMessage)
+            assertEquals(1, viewModel.snapshot.value.comedians.size)
+        }
+
+    @Test
     fun signed_out_refresh_resets_snapshot() =
         runTest {
             val api = FakeFavoritesApi()
@@ -114,7 +142,7 @@ class LibraryViewModelTest {
     }
 
     private class FakeFavoritesApi(
-        private val refreshFails: Boolean = false,
+        var refreshFails: Boolean = false,
     ) : FavoritesApi by throwingApi() {
         override suspend fun getFavorites(): Response<FavoriteListResponse> {
             if (refreshFails) throw IOException("network down")

@@ -112,6 +112,12 @@ class LibraryViewModel internal constructor(
         }
     }
 
+    fun refreshFavorites() {
+        viewModelScope.launch {
+            favoritesRepository.refreshSignedInFavorites()
+        }
+    }
+
     fun loadNextSavedShowsPage(period: SavedShowPeriod) {
         viewModelScope.launch {
             savedShowsSource.loadNextPage(period)

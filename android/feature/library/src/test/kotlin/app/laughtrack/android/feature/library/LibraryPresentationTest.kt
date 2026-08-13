@@ -51,7 +51,7 @@ class LibraryPresentationTest {
     }
 
     @Test
-    fun contentStateKeepsInitialAndFailedGroupsVisibleButOmitsSettledEmptyGroups() {
+    fun contentStateKeepsInitialGroupsVisibleButOmitsSettledEmptyGroups() {
         val initial =
             libraryContentState(
                 snapshot = FavoritesSnapshot(),
@@ -84,9 +84,30 @@ class LibraryPresentationTest {
                 savedShowsSnapshot = SavedShowsSnapshot(),
                 initialRefreshComplete = true,
             )
-        assertEquals(LibraryGroupResolution.FAILURE, failed.comedians)
-        assertEquals(LibraryGroupResolution.FAILURE, failed.clubs)
-        assertEquals(LibraryGroupResolution.FAILURE, failed.podcasts)
+        assertEquals(LibraryGroupResolution.EMPTY, failed.comedians)
+        assertEquals(LibraryGroupResolution.EMPTY, failed.clubs)
+        assertEquals(LibraryGroupResolution.EMPTY, failed.podcasts)
+        assertEquals("Try again", failed.favoritesErrorMessage)
+        assertFalse(failed.isFullyEmpty)
+    }
+
+    @Test
+    fun favoritesFailurePreservesLoadedRailsAndUsesOneSharedMessage() {
+        val failed =
+            libraryContentState(
+                snapshot =
+                    FavoritesSnapshot(
+                        comedians = listOf(comedian(id = 31)),
+                        errorMessage = "Try again",
+                    ),
+                savedShowsSnapshot = SavedShowsSnapshot(),
+                initialRefreshComplete = true,
+            )
+
+        assertEquals(LibraryGroupResolution.CONTENT, failed.comedians)
+        assertEquals(LibraryGroupResolution.EMPTY, failed.clubs)
+        assertEquals(LibraryGroupResolution.EMPTY, failed.podcasts)
+        assertEquals("Try again", failed.favoritesErrorMessage)
         assertFalse(failed.isFullyEmpty)
     }
 

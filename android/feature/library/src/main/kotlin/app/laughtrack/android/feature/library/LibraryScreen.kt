@@ -108,9 +108,11 @@ internal data class LibraryContentState(
     val comedians: LibraryGroupResolution,
     val clubs: LibraryGroupResolution,
     val podcasts: LibraryGroupResolution,
+    val favoritesErrorMessage: String? = null,
 ) {
     val isFullyEmpty: Boolean
         get() =
+            favoritesErrorMessage == null &&
             listOf(nextUp, comedians, clubs, podcasts)
                 .all { it == LibraryGroupResolution.EMPTY }
 }
@@ -229,6 +231,7 @@ internal fun libraryContentState(
                 snapshot = snapshot,
                 initialRefreshComplete = initialRefreshComplete,
             ),
+        favoritesErrorMessage = snapshot.errorMessage,
     )
 
 private fun savedShowResolution(
@@ -249,7 +252,6 @@ private fun favoriteResolution(
 ): LibraryGroupResolution =
     when {
         hasContent -> LibraryGroupResolution.CONTENT
-        snapshot.errorMessage != null -> LibraryGroupResolution.FAILURE
         snapshot.isLoading || !initialRefreshComplete -> LibraryGroupResolution.LOADING
         else -> LibraryGroupResolution.EMPTY
     }
@@ -282,6 +284,7 @@ fun LibraryScreen(
         onOpenShow = onOpenShow,
         onOpenSaved = onOpenSaved,
         onOpenSearch = onOpenSearch,
+        onRetryFavorites = viewModel::refreshFavorites,
         onRetrySavedShows = viewModel::refreshSavedShows,
         onLoadMoreSavedShows = viewModel::loadNextSavedShowsPage,
         onClearMessage = viewModel::clearMessage,
@@ -301,6 +304,7 @@ fun LibraryScreen(
     onOpenShow: (Int) -> Unit = {},
     onOpenSaved: (LibrarySavedDestination) -> Unit = {},
     onOpenSearch: (LibrarySearchSeed) -> Unit = {},
+    onRetryFavorites: () -> Unit = {},
     initialRefreshComplete: Boolean = true,
 ) {
     LibraryContent(
@@ -313,6 +317,7 @@ fun LibraryScreen(
         onOpenShow = onOpenShow,
         onOpenSaved = onOpenSaved,
         onOpenSearch = onOpenSearch,
+        onRetryFavorites = onRetryFavorites,
         onRetrySavedShows = {},
         onLoadMoreSavedShows = {},
         onClearMessage = {},
@@ -333,6 +338,7 @@ private fun LibraryContent(
     onOpenShow: (Int) -> Unit,
     onOpenSaved: (LibrarySavedDestination) -> Unit,
     onOpenSearch: (LibrarySearchSeed) -> Unit,
+    onRetryFavorites: () -> Unit,
     onRetrySavedShows: (SavedShowPeriod) -> Unit,
     onLoadMoreSavedShows: (SavedShowPeriod) -> Unit,
     onClearMessage: () -> Unit,
@@ -372,6 +378,7 @@ private fun LibraryContent(
                     onOpenShow = onOpenShow,
                     onOpenSaved = onOpenSaved,
                     onOpenSearch = onOpenSearch,
+                    onRetryFavorites = onRetryFavorites,
                     onRetrySavedShows = onRetrySavedShows,
                     onLoadMoreSavedShows = onLoadMoreSavedShows,
                     onToggleComedian = onToggleComedian,
@@ -397,6 +404,7 @@ private fun SignedInLibrary(
     onOpenShow: (Int) -> Unit,
     onOpenSaved: (LibrarySavedDestination) -> Unit,
     onOpenSearch: (LibrarySearchSeed) -> Unit,
+    onRetryFavorites: () -> Unit,
     onRetrySavedShows: (SavedShowPeriod) -> Unit,
     onLoadMoreSavedShows: (SavedShowPeriod) -> Unit,
     onToggleComedian: (String) -> Unit,
@@ -419,7 +427,13 @@ private fun SignedInLibrary(
             LibrarySection.COMEDIANS,
             LibrarySection.CLUBS,
             LibrarySection.PODCASTS,
-            ->
+            -> {
+                if (section == LibrarySection.COMEDIANS && contentState.favoritesErrorMessage != null) {
+                    FavoritesSyncFailure(
+                        message = contentState.favoritesErrorMessage,
+                        onRetry = onRetryFavorites,
+                    )
+                }
                 SavedEntityRail(
                     section = section,
                     snapshot = snapshot,
@@ -435,6 +449,7 @@ private fun SignedInLibrary(
                     onToggleClub = onToggleClub,
                     onTogglePodcast = onTogglePodcast,
                 )
+            }
         }
     }
 
@@ -444,6 +459,31 @@ private fun SignedInLibrary(
             onOpenSearch = onOpenSearch,
             onOpenProfile = null,
         )
+    }
+}
+
+@Composable
+private fun FavoritesSyncFailure(
+    message: String,
+    onRetry: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = LaughTrackColors.SurfaceMuted,
+                contentColor = LaughTrackColors.Foreground,
+            ),
+        border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            EmptyText(message)
+            TextButton(onClick = onRetry) { Text("Retry favorites") }
+        }
     }
 }
 
