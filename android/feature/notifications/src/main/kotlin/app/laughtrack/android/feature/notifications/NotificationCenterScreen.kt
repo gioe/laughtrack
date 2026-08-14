@@ -162,12 +162,7 @@ private fun NotificationList(
             modifier = Modifier.widthIn(max = layoutSpec.contentMaxWidth).fillMaxSize(),
             contentPadding =
                 PaddingValues(horizontal = layoutSpec.horizontalPadding, vertical = 12.dp),
-            verticalArrangement =
-                if (layoutSpec.centerSparseContent) {
-                    Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
-                } else {
-                    Arrangement.spacedBy(12.dp)
-                },
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item(key = "notification-sort-control") {
                 NotificationSortControl(
@@ -200,7 +195,6 @@ internal data class NotificationCenterLayoutSpec(
     val mode: NotificationCenterLayoutMode,
     val contentMaxWidth: Dp,
     val horizontalPadding: Dp,
-    val centerSparseContent: Boolean,
 )
 
 internal fun notificationCenterLayoutSpec(availableWidth: Dp): NotificationCenterLayoutSpec {
@@ -209,7 +203,6 @@ internal fun notificationCenterLayoutSpec(availableWidth: Dp): NotificationCente
             mode = NotificationCenterLayoutMode.Compact,
             contentMaxWidth = NOTIFICATION_LIST_MAX_WIDTH,
             horizontalPadding = 16.dp,
-            centerSparseContent = false,
         )
     }
 
@@ -223,7 +216,6 @@ internal fun notificationCenterLayoutSpec(availableWidth: Dp): NotificationCente
         mode = NotificationCenterLayoutMode.Expanded,
         contentMaxWidth = contentMaxWidth,
         horizontalPadding = 16.dp,
-        centerSparseContent = true,
     )
 }
 

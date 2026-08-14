@@ -16,7 +16,6 @@ class ProfileLayoutTest {
             assertEquals(24.dp, spec.horizontalPadding)
             assertEquals(18.dp, spec.paneSpacing)
             assertEquals(Dp.Infinity, spec.accountPaneWidth)
-            assertEquals(false, spec.centerContentVertically)
         }
     }
 
@@ -29,7 +28,6 @@ class ProfileLayoutTest {
         assertEquals(8.dp, spec.horizontalPadding)
         assertEquals(12.dp, spec.paneSpacing)
         assertEquals(264.dp, spec.accountPaneWidth)
-        assertEquals(true, spec.centerContentVertically)
     }
 
     @Test
@@ -41,7 +39,6 @@ class ProfileLayoutTest {
         assertEquals(32.dp, spec.horizontalPadding)
         assertEquals(32.dp, spec.paneSpacing)
         assertEquals(302.4.dp, spec.accountPaneWidth)
-        assertEquals(true, spec.centerContentVertically)
     }
 
     @Test

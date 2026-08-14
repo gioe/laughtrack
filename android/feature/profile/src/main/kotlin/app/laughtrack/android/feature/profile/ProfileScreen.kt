@@ -74,7 +74,6 @@ internal data class ProfileAdaptiveLayoutSpec(
     val horizontalPadding: Dp,
     val paneSpacing: Dp,
     val accountPaneWidth: Dp,
-    val centerContentVertically: Boolean,
 )
 
 private val PROFILE_EXPANDED_BREAKPOINT = 600.dp
@@ -90,7 +89,6 @@ internal fun profileAdaptiveLayoutSpec(availableWidth: Dp): ProfileAdaptiveLayou
             horizontalPadding = 24.dp,
             paneSpacing = 18.dp,
             accountPaneWidth = Dp.Infinity,
-            centerContentVertically = false,
         )
     }
 
@@ -104,7 +102,6 @@ internal fun profileAdaptiveLayoutSpec(availableWidth: Dp): ProfileAdaptiveLayou
         horizontalPadding = if (isWide) 32.dp else 8.dp,
         paneSpacing = if (isWide) 32.dp else 12.dp,
         accountPaneWidth = (boundedWidth * 0.42f).coerceIn(264.dp, 360.dp),
-        centerContentVertically = true,
     )
 }
 
@@ -223,12 +220,7 @@ private fun ProfileContent(
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(horizontal = layoutSpec.horizontalPadding, vertical = 24.dp),
-            verticalArrangement =
-                if (layoutSpec.centerContentVertically) {
-                    Arrangement.spacedBy(18.dp, Alignment.CenterVertically)
-                } else {
-                    Arrangement.spacedBy(18.dp)
-                },
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             if (state.isLoading) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
