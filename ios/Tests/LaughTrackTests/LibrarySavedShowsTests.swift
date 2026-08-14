@@ -8,22 +8,6 @@ import SwiftUI
 
 @Suite("Library saved shows")
 struct LibrarySavedShowsTests {
-    @Test("saved-show pager executes Previous and Next actions")
-    func savedShowPagerActionsAreExecutable() {
-        var page = 1
-        let controls = LaughTrackPagedControls(
-            currentPage: page,
-            pageCount: 2,
-            onPrevious: { page -= 1 },
-            onNext: { page += 1 }
-        )
-
-        controls.onPrevious()
-        #expect(page == 0)
-        controls.onNext()
-        #expect(page == 1)
-    }
-
     @Test("saved-show action opens the typed detail route")
     @MainActor
     func savedShowNavigationIsExecutable() {
@@ -180,6 +164,28 @@ struct LibrarySavedShowsTests {
 @Suite("Library hosted interactions", .serialized)
 @MainActor
 struct LibraryHostedInteractionTests {
+    @Test("rendered saved-show pager wires Previous and Next actions")
+    func savedShowPagerButtonsAreExecutable() async throws {
+        var actions: [String] = []
+        let host = HostedView(
+            LaughTrackPagedControls(
+                currentPage: 1,
+                pageCount: 3,
+                onPrevious: { actions.append("previous") },
+                onNext: { actions.append("next") },
+                accessibilityIdentifierPrefix: "test.library.pager"
+            )
+            .padding()
+            .environment(\.appTheme, LaughTrackTheme())
+        )
+        await host.settle(iterations: 4)
+
+        try host.tapControl(withIdentifier: "test.library.pager.previous")
+        try host.tapControl(withIdentifier: "test.library.pager.next")
+
+        #expect(actions == ["previous", "next"])
+    }
+
     @Test("fallback entity rows expose metadata labels and open typed routes")
     func fallbackEntityRowsOpenTypedRoutes() async throws {
         let coordinator = TypedNavigationCoordinator<AppRoute>()

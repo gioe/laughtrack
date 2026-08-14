@@ -78,13 +78,13 @@ class LibraryScreenInteractionTest {
         compose.onNodeWithText("Next").performScrollTo().performClick()
         compose.onNodeWithText("Page 2 of 2").assertIsDisplayed()
         compose.runOnIdle {
-            savedShows = savedShowsSnapshot(loadedIds = 1..5, page = 1, total = 5, totalPages = 1)
+            savedShows = savedShowsSnapshot(loadedIds = 1..5, page = 1, total = 6, totalPages = 2)
         }
         compose.waitForIdle()
 
         compose.onNodeWithText("Saved show 1").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Page 2 of 2").assertDoesNotExist()
-        compose.onNodeWithText("Next").assertDoesNotExist()
+        compose.onNodeWithText("Page 1 of 2").assertIsDisplayed()
+        compose.onNodeWithText("Saved show 6").assertDoesNotExist()
     }
 
     @Test
