@@ -57,8 +57,7 @@ struct NowPlayingView: View {
             titleBlock
             scrubber
             transport
-            routeAndSpeed
-            sleepTimer
+            secondaryControls
             tonightNearYouCard
             Spacer(minLength: 0)
         }
@@ -81,8 +80,7 @@ struct NowPlayingView: View {
                     titleBlock
                     scrubber
                     transport
-                    routeAndSpeed
-                    sleepTimer
+                    secondaryControls
                     tonightNearYouCard
                 }
                 .frame(maxWidth: 440)
@@ -289,41 +287,63 @@ struct NowPlayingView: View {
     }
 
     @ViewBuilder
-    private var routeAndSpeed: some View {
-        let laughTrack = theme.laughTrackTokens
+    private var secondaryControls: some View {
+        HStack(alignment: .top, spacing: theme.spacing.md) {
+            speedControl
+                .frame(maxWidth: .infinity)
 
-        HStack(spacing: theme.spacing.lg) {
-            Menu {
-                ForEach(PodcastPlaybackController.supportedRates, id: \.self) { rate in
-                    Button {
-                        player.setRate(rate)
-                    } label: {
-                        if abs(player.preferredRate - rate) < 0.01 {
-                            Label(formatRate(rate), systemImage: "checkmark")
-                        } else {
-                            Text(formatRate(rate))
-                        }
-                    }
-                }
-            } label: {
-                Text(formatRate(player.preferredRate))
-                    .font(laughTrack.typography.body.weight(.semibold))
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(laughTrack.colors.surfaceElevated)
-                    .clipShape(Capsule())
-            }
-            .accessibilityLabel("Playback speed \(formatRate(player.preferredRate))")
-            .accessibilityIdentifier("laughtrack.now-playing.speed")
+            airPlayControl
+                .frame(maxWidth: .infinity)
 
-            Spacer(minLength: 0)
-
-            routePicker
-                .frame(width: 44, height: 44)
-                .accessibilityIdentifier("laughtrack.now-playing.route-picker")
+            sleepTimer
+                .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, theme.spacing.sm)
+    }
+
+    @ViewBuilder
+    private var speedControl: some View {
+        Menu {
+            ForEach(PodcastPlaybackController.supportedRates, id: \.self) { rate in
+                Button {
+                    player.setRate(rate)
+                } label: {
+                    if abs(player.preferredRate - rate) < 0.01 {
+                        Label(formatRate(rate), systemImage: "checkmark")
+                    } else {
+                        Text(formatRate(rate))
+                    }
+                }
+            }
+        } label: {
+            secondaryControlLabel(
+                systemImage: "speedometer",
+                value: formatRate(player.preferredRate),
+                caption: "Speed"
+            )
+        }
+        .accessibilityLabel("Playback speed")
+        .accessibilityValue(formatRate(player.preferredRate))
+        .accessibilityIdentifier("laughtrack.now-playing.speed")
+    }
+
+    private var airPlayControl: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(spacing: 6) {
+            routePicker
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(laughTrack.colors.surfaceElevated)
+                .clipShape(Capsule())
+
+            Text("AirPlay")
+                .font(laughTrack.typography.metadata.weight(.semibold))
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .accessibilityHidden(true)
+        }
     }
 
     @ViewBuilder
@@ -331,17 +351,18 @@ struct NowPlayingView: View {
         #if canImport(UIKit) && !targetEnvironment(macCatalyst)
         AirPlayRoutePicker(tint: theme.laughTrackTokens.colors.accent)
             .accessibilityLabel("AirPlay")
+            .accessibilityIdentifier("laughtrack.now-playing.route-picker")
         #else
         Image(systemName: "airplayaudio")
             .font(.system(size: 22, weight: .semibold))
             .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+            .accessibilityLabel("AirPlay")
+            .accessibilityIdentifier("laughtrack.now-playing.route-picker")
         #endif
     }
 
     @ViewBuilder
     private var sleepTimer: some View {
-        let laughTrack = theme.laughTrackTokens
-
         Menu {
             ForEach(Array(Self.sleepIntervals.enumerated()), id: \.offset) { _, choice in
                 Button {
@@ -355,20 +376,45 @@ struct NowPlayingView: View {
                 }
             }
         } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "moon.zzz.fill")
+            secondaryControlLabel(
+                systemImage: "moon.zzz.fill",
+                value: sleepStatusLabel,
+                caption: "Sleep"
+            )
+        }
+        .accessibilityLabel("Sleep timer")
+        .accessibilityValue(sleepStatusLabel)
+        .accessibilityIdentifier("laughtrack.now-playing.sleep")
+    }
+
+    private func secondaryControlLabel(
+        systemImage: String,
+        value: String,
+        caption: String
+    ) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: systemImage)
                     .font(.system(size: 16, weight: .semibold))
-                Text(sleepLabel)
-                    .font(laughTrack.typography.metadata.weight(.semibold))
+                Text(value)
+                    .font(laughTrack.typography.body.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
             .foregroundStyle(laughTrack.colors.textPrimary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
             .background(laughTrack.colors.surfaceElevated)
             .clipShape(Capsule())
+
+            Text(caption)
+                .font(laughTrack.typography.metadata.weight(.semibold))
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
-        .accessibilityLabel("Sleep timer \(sleepLabel)")
-        .accessibilityIdentifier("laughtrack.now-playing.sleep")
     }
 
     @ViewBuilder
@@ -386,10 +432,10 @@ struct NowPlayingView: View {
         }
     }
 
-    private var sleepLabel: String {
-        guard let endsAt = player.sleepTimerEndsAt else { return "Sleep" }
+    private var sleepStatusLabel: String {
+        guard let endsAt = player.sleepTimerEndsAt else { return "Off" }
         let remaining = max(0, endsAt.timeIntervalSinceNow)
-        return "Sleep · " + formatTime(remaining)
+        return formatTime(remaining)
     }
 
     private func isCurrentSleep(_ seconds: TimeInterval?) -> Bool {

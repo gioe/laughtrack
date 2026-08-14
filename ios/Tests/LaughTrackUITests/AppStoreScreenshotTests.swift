@@ -379,6 +379,17 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                     "Expected the screenshot Now Playing surface to cover the full phone screen"
                 )
             }
+            let speedControl = element("laughtrack.now-playing.speed")
+            XCTAssertEqual(speedControl.label, "Playback speed")
+            XCTAssertEqual(speedControl.value as? String, "1x")
+
+            let routePicker = element("laughtrack.now-playing.route-picker")
+            XCTAssertEqual(routePicker.label, "AirPlay")
+
+            let sleepControl = element("laughtrack.now-playing.sleep")
+            XCTAssertEqual(sleepControl.label, "Sleep timer")
+            XCTAssertEqual(sleepControl.value as? String, "Off")
+
             // Intentional background override: this immersive media surface uses
             // an opaque semantic canvas instead of the inherited app atmosphere.
             try capture(
