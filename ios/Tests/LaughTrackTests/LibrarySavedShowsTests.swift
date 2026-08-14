@@ -187,7 +187,9 @@ struct LibraryHostedInteractionTests {
         )
         await host.settle(iterations: 4)
 
+        try host.requireLabel("Previous page")
         try host.requireLabel("Page 2 of 3")
+        try host.requireLabel("Next page")
         try host.tapControl(withIdentifier: "test.library.pager.previous")
         try host.tapControl(withIdentifier: "test.library.pager.next")
 
