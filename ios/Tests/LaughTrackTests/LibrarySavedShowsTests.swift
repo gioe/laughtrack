@@ -164,6 +164,13 @@ struct LibrarySavedShowsTests {
 @Suite("Library hosted interactions", .serialized)
 @MainActor
 struct LibraryHostedInteractionTests {
+    @Test("saved-show pager selects compact controls for accessibility text sizes")
+    func savedShowPagerPresentationAdaptsToDynamicType() {
+        #expect(LaughTrackPagedControlsPresentation.resolve(for: .large) == .expanded)
+        #expect(LaughTrackPagedControlsPresentation.resolve(for: .accessibility1) == .compact)
+        #expect(LaughTrackPagedControlsPresentation.resolve(for: .accessibility5) == .compact)
+    }
+
     @Test("rendered saved-show pager wires Previous and Next actions")
     func savedShowPagerButtonsAreExecutable() async throws {
         var actions: [String] = []
@@ -180,8 +187,40 @@ struct LibraryHostedInteractionTests {
         )
         await host.settle(iterations: 4)
 
+        try host.requireLabel("Page 2 of 3")
         try host.tapControl(withIdentifier: "test.library.pager.previous")
         try host.tapControl(withIdentifier: "test.library.pager.next")
+
+        #expect(actions == ["previous", "next"])
+    }
+
+    @Test("compact saved-show pager fits narrow accessibility layouts and keeps clear actions")
+    func compactSavedShowPagerFitsAndRemainsAccessible() async throws {
+        var actions: [String] = []
+        let controls = LaughTrackPagedControls(
+            currentPage: 1,
+            pageCount: 3,
+            onPrevious: { actions.append("previous") },
+            onNext: { actions.append("next") },
+            accessibilityIdentifierPrefix: "test.library.compact-pager"
+        )
+        .environment(\.appTheme, LaughTrackTheme())
+        .environment(\.dynamicTypeSize, .accessibility5)
+
+        let sizingController = UIHostingController(rootView: controls.fixedSize())
+        let fittingSize = sizingController.sizeThatFits(
+            in: CGSize(width: 1_000, height: 1_000)
+        )
+        #expect(fittingSize.width <= 320)
+
+        let host = HostedView(controls.frame(width: 320))
+        await host.settle(iterations: 4)
+
+        try host.requireLabel("Previous page")
+        try host.requireLabel("Page 2 of 3")
+        try host.requireLabel("Next page")
+        try host.tapControl(withIdentifier: "test.library.compact-pager.previous")
+        try host.tapControl(withIdentifier: "test.library.compact-pager.next")
 
         #expect(actions == ["previous", "next"])
     }
