@@ -1040,6 +1040,7 @@ struct LaughTrackInlineStateCard: View {
 
 struct LaughTrackPagedControls: View {
     @Environment(\.appTheme) private var theme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let currentPage: Int
     let pageCount: Int
@@ -1063,50 +1064,141 @@ struct LaughTrackPagedControls: View {
 
     private var isFirstPage: Bool { currentPage <= 0 }
     private var isLastPage: Bool { currentPage >= pageCount - 1 }
+    private var pageLabel: String { "Page \(currentPage + 1) of \(pageCount)" }
 
+    @ViewBuilder
     var body: some View {
+        if LaughTrackPagedControlsPresentation.resolve(for: dynamicTypeSize) == .compact {
+            compactControls
+        } else {
+            ViewThatFits(in: .horizontal) {
+                expandedControls
+                compactControls
+            }
+        }
+    }
+
+    private var expandedControls: some View {
         HStack(spacing: theme.spacing.sm) {
-            LaughTrackButton(
+            expandedButton(
                 "Previous",
                 systemImage: "chevron.left",
-                tone: .secondary,
-                density: .compact,
-                fullWidth: false,
+                isDisabled: isFirstPage,
+                identifierSuffix: "previous",
                 action: onPrevious
             )
-            .fixedSize(horizontal: true, vertical: false)
-            .disabled(isFirstPage)
-            .opacity(isFirstPage ? 0.5 : 1)
-            .accessibilityLabel("Previous page")
-            .modifier(PagedControlAccessibilityIdentifierModifier(
-                identifier: accessibilityIdentifierPrefix.map { "\($0).previous" }
-            ))
 
             Spacer(minLength: 0)
 
-            LaughTrackBrowseChip(
-                "Page \(currentPage + 1) of \(pageCount)",
-                tone: .subtle
-            )
+            pageStatus
 
             Spacer(minLength: 0)
 
-            LaughTrackButton(
+            expandedButton(
                 "Next",
                 systemImage: "chevron.right",
-                tone: .secondary,
-                density: .compact,
-                fullWidth: false,
+                isDisabled: isLastPage,
+                identifierSuffix: "next",
                 action: onNext
             )
-            .fixedSize(horizontal: true, vertical: false)
-            .disabled(isLastPage)
-            .opacity(isLastPage ? 0.5 : 1)
-            .accessibilityLabel("Next page")
-            .modifier(PagedControlAccessibilityIdentifierModifier(
-                identifier: accessibilityIdentifierPrefix.map { "\($0).next" }
-            ))
         }
+    }
+
+    private var compactControls: some View {
+        VStack(spacing: theme.spacing.sm) {
+            pageStatus
+
+            HStack(spacing: theme.spacing.sm) {
+                compactButton(
+                    systemImage: "chevron.left",
+                    accessibilityLabel: "Previous page",
+                    isDisabled: isFirstPage,
+                    identifierSuffix: "previous",
+                    action: onPrevious
+                )
+
+                Spacer(minLength: 0)
+
+                compactButton(
+                    systemImage: "chevron.right",
+                    accessibilityLabel: "Next page",
+                    isDisabled: isLastPage,
+                    identifierSuffix: "next",
+                    action: onNext
+                )
+            }
+        }
+    }
+
+    private var pageStatus: some View {
+        LaughTrackBrowseChip(pageLabel, tone: .subtle)
+            .accessibilityLabel(pageLabel)
+            .modifier(PagedControlAccessibilityIdentifierModifier(
+                identifier: accessibilityIdentifierPrefix.map { "\($0).current" }
+            ))
+    }
+
+    private func expandedButton(
+        _ title: String,
+        systemImage: String,
+        isDisabled: Bool,
+        identifierSuffix: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        LaughTrackButton(
+            title,
+            systemImage: systemImage,
+            tone: .secondary,
+            density: .compact,
+            fullWidth: false,
+            action: action
+        )
+            .fixedSize(horizontal: true, vertical: false)
+            .disabled(isDisabled)
+            .opacity(isDisabled ? 0.5 : 1)
+            .accessibilityLabel("\(title) page")
+            .modifier(PagedControlAccessibilityIdentifierModifier(
+                identifier: accessibilityIdentifierPrefix.map { "\($0).\(identifierSuffix)" }
+            ))
+    }
+
+    private func compactButton(
+        systemImage: String,
+        accessibilityLabel: String,
+        isDisabled: Bool,
+        identifierSuffix: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .frame(width: 44, height: 44)
+                .background(laughTrack.colors.surfaceElevated)
+                .overlay(
+                    Capsule(style: .continuous)
+                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                )
+                .clipShape(Capsule(style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(isDisabled)
+        .opacity(isDisabled ? 0.5 : 1)
+        .accessibilityLabel(accessibilityLabel)
+        .modifier(PagedControlAccessibilityIdentifierModifier(
+            identifier: accessibilityIdentifierPrefix.map { "\($0).\(identifierSuffix)" }
+        ))
+    }
+}
+
+enum LaughTrackPagedControlsPresentation: Equatable {
+    case expanded
+    case compact
+
+    static func resolve(for dynamicTypeSize: DynamicTypeSize) -> Self {
+        dynamicTypeSize.isAccessibilitySize ? .compact : .expanded
     }
 }
 
