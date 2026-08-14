@@ -13,6 +13,7 @@ struct AuthenticatedScreenshotPersonaTests {
         #expect(first.user.displayName == "Jordan Rivera")
         #expect(first.user.zipCode == "10012")
         #expect(first.favoriteComedians.count >= 2)
+        #expect(first.upcomingSavedShows.allSatisfy { $0.tickets?.count == 1 })
         let dateFormatter = ISO8601DateFormatter()
         let savedShowStory = first.upcomingSavedShows.map { show in
             let ticket = show.tickets?.first
