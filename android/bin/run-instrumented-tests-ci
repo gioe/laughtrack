@@ -170,5 +170,6 @@ adb -s "$SERIAL" logcat -v threadtime >"$LOGCAT_FILE" 2>&1 &
 LOGCAT_PID=$!
 
 run_suite "core UI instrumented tests" :core:ui:connectedDebugAndroidTest
+run_suite "library feature instrumented tests" :feature:library:connectedDebugAndroidTest
 start_fixture_server
 run_suite "app instrumented tests" :app:connectedDebugAndroidTest

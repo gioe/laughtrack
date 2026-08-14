@@ -120,8 +120,9 @@ jobs:
           pre-emulator-launch-script: adb start-server
           # Only modules that declare an AndroidJUnitRunner + androidTest sources
           # are targeted (currently :app with the Hilt-backed AppShellTest +
-          # AppStoreScreenshotTest, and :core:ui with RemoteImageFallbackTest from
-          # TASK-3716). A project-wide `connectedDebugAndroidTest` falls back to
+          # AppStoreScreenshotTest, :core:ui with RemoteImageFallbackTest, and
+          # :feature:library with its deterministic interaction tests). A
+          # project-wide `connectedDebugAndroidTest` falls back to
           # the legacy android.test.InstrumentationTestRunner in runner-less
           # modules, which ANRs at startup ("failed to complete startup") and
           # reports "Process crashed" — add modules here explicitly as they gain

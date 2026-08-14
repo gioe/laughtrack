@@ -19,7 +19,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -46,9 +45,9 @@ import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.Show
-import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.SearchEntityKind
 import app.laughtrack.android.core.ui.components.SearchEntityRow
+import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import java.math.BigDecimal
@@ -113,8 +112,8 @@ internal data class LibraryContentState(
     val isFullyEmpty: Boolean
         get() =
             favoritesErrorMessage == null &&
-            listOf(nextUp, comedians, clubs, podcasts)
-                .all { it == LibraryGroupResolution.EMPTY }
+                listOf(nextUp, comedians, clubs, podcasts)
+                    .all { it == LibraryGroupResolution.EMPTY }
 }
 
 /** One-shot Search requests emitted by the Library empty state. */
@@ -305,6 +304,11 @@ fun LibraryScreen(
     onOpenSaved: (LibrarySavedDestination) -> Unit = {},
     onOpenSearch: (LibrarySearchSeed) -> Unit = {},
     onRetryFavorites: () -> Unit = {},
+    onRetrySavedShows: (SavedShowPeriod) -> Unit = {},
+    onLoadMoreSavedShows: (SavedShowPeriod) -> Unit = {},
+    onToggleComedian: (String) -> Unit = {},
+    onToggleClub: (Int) -> Unit = {},
+    onTogglePodcast: (Int) -> Unit = {},
     initialRefreshComplete: Boolean = true,
 ) {
     LibraryContent(
@@ -318,12 +322,12 @@ fun LibraryScreen(
         onOpenSaved = onOpenSaved,
         onOpenSearch = onOpenSearch,
         onRetryFavorites = onRetryFavorites,
-        onRetrySavedShows = {},
-        onLoadMoreSavedShows = {},
+        onRetrySavedShows = onRetrySavedShows,
+        onLoadMoreSavedShows = onLoadMoreSavedShows,
         onClearMessage = {},
-        onToggleComedian = {},
-        onToggleClub = {},
-        onTogglePodcast = {},
+        onToggleComedian = onToggleComedian,
+        onToggleClub = onToggleClub,
+        onTogglePodcast = onTogglePodcast,
     )
 }
 
@@ -679,9 +683,10 @@ private fun SavedEntityRail(
                             ) {
                                 TextButton(
                                     onClick = { onToggleComedian(comedian.uuid) },
-                                    modifier = Modifier.semantics {
-                                        contentDescription = "Remove ${comedian.name}"
-                                    },
+                                    modifier =
+                                        Modifier.semantics {
+                                            contentDescription = "Remove ${comedian.name}"
+                                        },
                                 ) { Text("Remove") }
                             }
                         }
@@ -697,9 +702,10 @@ private fun SavedEntityRail(
                             ) {
                                 TextButton(
                                     onClick = { onToggleClub(club.id) },
-                                    modifier = Modifier.semantics {
-                                        contentDescription = "Remove ${club.name}"
-                                    },
+                                    modifier =
+                                        Modifier.semantics {
+                                            contentDescription = "Remove ${club.name}"
+                                        },
                                 ) { Text("Remove") }
                             }
                         }
@@ -715,9 +721,10 @@ private fun SavedEntityRail(
                             ) {
                                 TextButton(
                                     onClick = { onTogglePodcast(podcast.id) },
-                                    modifier = Modifier.semantics {
-                                        contentDescription = "Remove ${podcast.title}"
-                                    },
+                                    modifier =
+                                        Modifier.semantics {
+                                            contentDescription = "Remove ${podcast.title}"
+                                        },
                                 ) { Text("Remove") }
                             }
                         }
