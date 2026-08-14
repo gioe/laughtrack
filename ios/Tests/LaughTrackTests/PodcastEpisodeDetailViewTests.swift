@@ -175,6 +175,39 @@ struct PodcastEpisodeDetailViewTests {
         #expect(PodcastEpisodeDetailPresentation.metadata(for: response.episode) == "Mar 1, 2026 • 1 hr 2 min")
     }
 
+    @Test("date-only release metadata matches the screenshot fixture")
+    func dateOnlyReleaseMetadataIncludesDateAndDuration() {
+        let response = Self.makeResponse(
+            releaseDate: "2026-08-01",
+            durationSeconds: 8_940
+        )
+
+        #expect(
+            PodcastEpisodeDetailPresentation.metadata(for: response.episode)
+                == "Aug 1, 2026 • 2 hr 29 min"
+        )
+    }
+
+    @Test("partial release metadata keeps whichever valid value is available")
+    func partialReleaseMetadataStaysUseful() {
+        let dateOnly = Self.makeResponse(
+            releaseDate: "2026-08-01",
+            durationSeconds: nil
+        )
+        let malformedDate = Self.makeResponse(
+            releaseDate: "not-a-date",
+            durationSeconds: 8_940
+        )
+        let missingDate = Self.makeResponse(
+            releaseDate: nil,
+            durationSeconds: 8_940
+        )
+
+        #expect(PodcastEpisodeDetailPresentation.metadata(for: dateOnly.episode) == "Aug 1, 2026")
+        #expect(PodcastEpisodeDetailPresentation.metadata(for: malformedDate.episode) == "2 hr 29 min")
+        #expect(PodcastEpisodeDetailPresentation.metadata(for: missingDate.episode) == "2 hr 29 min")
+    }
+
     @Test("comedian episode rows preserve the episode id independently from appearance identity")
     func comedianEpisodeRowsPreserveEpisodeIdentity() throws {
         let appearance = Components.Schemas.PodcastAppearance(
@@ -235,7 +268,9 @@ struct PodcastEpisodeDetailViewTests {
 
     private static func makeResponse(
         audioURL: String? = "https://cdn.example.com/cellar.mp3",
-        episodeURL: String? = "https://podcasts.example.com/cellar"
+        episodeURL: String? = "https://podcasts.example.com/cellar",
+        releaseDate: String? = "2026-03-01T00:00:00.000Z",
+        durationSeconds: Int? = 3_720
     ) -> PodcastEpisodeDetailResponse {
         PodcastEpisodeDetailResponse(
             podcast: PodcastDetail(
@@ -260,8 +295,8 @@ struct PodcastEpisodeDetailViewTests {
                 id: 501,
                 title: "Comedy Cellar Stories",
                 description: "A full episode description.",
-                releaseDate: "2026-03-01T00:00:00.000Z",
-                durationSeconds: 3_720,
+                releaseDate: releaseDate,
+                durationSeconds: durationSeconds,
                 episodeUrl: episodeURL,
                 audioUrl: audioURL,
                 appearances: [

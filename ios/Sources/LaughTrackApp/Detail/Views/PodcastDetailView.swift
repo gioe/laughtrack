@@ -405,7 +405,11 @@ enum PodcastDetailPresentation {
     }
 
     private static func formattedReleaseDate(_ value: String?) -> String? {
-        guard let value, let date = Date.laughTrackISO8601(value) else { return nil }
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty,
+              let date = Date.laughTrackISO8601(value) ?? releaseDateOnlyParser.date(from: value) else {
+            return nil
+        }
 
         return releaseDateFormatter.string(from: date)
     }
@@ -427,9 +431,20 @@ enum PodcastDetailPresentation {
 
     private static let releaseDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "MMM d, yyyy"
+        return formatter
+    }()
+
+    private static let releaseDateOnlyParser: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.isLenient = false
         return formatter
     }()
 }
