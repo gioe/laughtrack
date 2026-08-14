@@ -6,6 +6,7 @@ import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.SocialData
+import app.laughtrack.android.core.ui.components.SearchEntityKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -26,6 +27,14 @@ class LibraryPresentationTest {
             assertFalse(section.presentation.title.isBlank())
             assertTrue(section.presentation.subtitle.isBlank())
         }
+    }
+
+    @Test
+    fun savedEntityRailsUseDistinctCanonicalArtworkKinds() {
+        assertEquals(null, libraryEntityKind(LibrarySection.NEXT_UP))
+        assertEquals(SearchEntityKind.COMEDIAN, libraryEntityKind(LibrarySection.COMEDIANS))
+        assertEquals(SearchEntityKind.CLUB, libraryEntityKind(LibrarySection.CLUBS))
+        assertEquals(SearchEntityKind.PODCAST, libraryEntityKind(LibrarySection.PODCASTS))
     }
 
     @Test

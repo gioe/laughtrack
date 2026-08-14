@@ -31,14 +31,25 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 
-enum class SearchEntityKind {
-    COMEDIAN,
-    CLUB,
-    PODCAST,
+enum class SearchEntityKind(
+    val fallback: RemoteImageFallback,
+) {
+    SHOW(RemoteImageFallback.Show),
+    COMEDIAN(RemoteImageFallback.Comedian),
+    CLUB(RemoteImageFallback.Club),
+    PODCAST(RemoteImageFallback.Podcast),
+}
+
+/** Stable tags for the visible icon inside an image-less [EntityArtwork]. */
+object EntityArtworkTestTags {
+    fun icon(kind: SearchEntityKind): String = "EntityArtworkIcon-${kind.name}"
 }
 
 /** Canonical rich entity row shared by Search and Library. */
@@ -75,8 +86,7 @@ fun SearchEntityRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SearchEntityArtwork(
-                    title = title,
+                EntityArtwork(
                     artworkUrl = artworkUrl,
                     kind = kind,
                 )
@@ -112,25 +122,50 @@ fun SearchEntityRow(
     }
 }
 
+/**
+ * Shared artwork treatment for Search and Library entity rows. Missing artwork
+ * gets a deliberately prominent, entity-specific mark while remote artwork
+ * continues through [RemoteImage] unchanged.
+ */
 @Composable
-private fun SearchEntityArtwork(
-    title: String,
+fun EntityArtwork(
     artworkUrl: String?,
     kind: SearchEntityKind,
+    artworkSize: Dp = 66.dp,
+    contentDescription: String? = null,
 ) {
     val shape = if (kind == SearchEntityKind.COMEDIAN) CircleShape else RoundedCornerShape(8.dp)
     val frameColor =
         when (kind) {
+            SearchEntityKind.SHOW -> LaughTrackColors.TicketAccent
             SearchEntityKind.CLUB -> Color(0xFFFFC247)
             SearchEntityKind.PODCAST -> LaughTrackColors.AccentStrong
             SearchEntityKind.COMEDIAN -> LaughTrackColors.AccentMuted
         }
+    val isArtworkMissing = artworkUrl.isNullOrBlank()
+    val fillColor =
+        when (kind) {
+            SearchEntityKind.SHOW -> LaughTrackColors.SurfaceMuted
+            SearchEntityKind.COMEDIAN -> LaughTrackColors.TicketPaper
+            SearchEntityKind.CLUB -> frameColor.copy(alpha = 0.16f)
+            SearchEntityKind.PODCAST -> LaughTrackColors.AccentStrong.copy(alpha = 0.16f)
+        }
     Box(
         modifier =
             Modifier
-                .size(66.dp)
+                .size(artworkSize)
                 .then(
                     when (kind) {
+                        SearchEntityKind.SHOW ->
+                            if (isArtworkMissing) {
+                                Modifier
+                                    .clip(shape)
+                                    .background(LaughTrackColors.SurfaceMuted)
+                                    .border(1.5.dp, frameColor, shape)
+                                    .padding(4.dp)
+                            } else {
+                                Modifier
+                            }
                         SearchEntityKind.COMEDIAN ->
                             Modifier
                                 .clip(shape)
@@ -160,22 +195,56 @@ private fun SearchEntityArtwork(
                     },
                 )
                 .clip(shape)
-                .background(LaughTrackColors.AccentStrong.copy(alpha = 0.14f)),
+                .background(fillColor),
         contentAlignment = Alignment.Center,
     ) {
-        RemoteImage(
-            url = artworkUrl,
-            contentDescription = null,
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .clip(shape),
-            fallback =
-                when (kind) {
-                    SearchEntityKind.COMEDIAN -> RemoteImageFallback.Comedian
-                    SearchEntityKind.CLUB -> RemoteImageFallback.Club
-                    SearchEntityKind.PODCAST -> RemoteImageFallback.Podcast
-                },
-        )
+        if (isArtworkMissing) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        // Keep the established fallback tag observable in the
+                        // merged tree even when artwork sits inside a clickable
+                        // row. The icon remains decorative because this node
+                        // carries no description unless the caller supplied one.
+                        .semantics(mergeDescendants = true) {
+                            if (contentDescription != null) {
+                                this.contentDescription = contentDescription
+                            }
+                        }
+                        .testTag(RemoteImageTestTags.fallback(kind.fallback)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = kind.fallback.icon,
+                    contentDescription = null,
+                    tint =
+                        when (kind) {
+                            SearchEntityKind.SHOW,
+                            SearchEntityKind.CLUB,
+                            -> LaughTrackColors.TicketAccent
+                            SearchEntityKind.COMEDIAN,
+                            SearchEntityKind.PODCAST,
+                            -> LaughTrackColors.AccentStrong
+                        },
+                    modifier =
+                        Modifier
+                            .size(artworkSize * FALLBACK_ICON_FRACTION)
+                            .testTag(EntityArtworkTestTags.icon(kind)),
+                )
+            }
+        } else {
+            RemoteImage(
+                url = artworkUrl,
+                contentDescription = contentDescription,
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clip(shape),
+                fallback = kind.fallback,
+            )
+        }
     }
 }
+
+private const val FALLBACK_ICON_FRACTION = 0.5f

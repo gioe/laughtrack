@@ -2,10 +2,14 @@ package app.laughtrack.android.core.ui.components
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -57,6 +61,42 @@ class RemoteImageFallbackTest {
 
         compose.waitForTag(RemoteImageTestTags.fallback(RemoteImageFallback.Comedian))
         compose.onNodeWithTag(RemoteImageTestTags.fallback(RemoteImageFallback.Comedian)).assertIsDisplayed()
+    }
+
+    @Test
+    fun imageLessEntityArtwork_rendersDistinctProminentFallbacks() {
+        compose.setContent {
+            Column {
+                EntityArtwork(
+                    artworkUrl = null,
+                    kind = SearchEntityKind.SHOW,
+                    artworkSize = 56.dp,
+                    contentDescription = "Saved show artwork",
+                )
+                SearchEntityKind.entries
+                    .filterNot { it == SearchEntityKind.SHOW }
+                    .forEach { kind ->
+                        EntityArtwork(
+                            artworkUrl = " ",
+                            kind = kind,
+                        )
+                    }
+            }
+        }
+
+        SearchEntityKind.entries.forEach { kind ->
+            compose
+                .onNodeWithTag(RemoteImageTestTags.fallback(kind.fallback))
+                .assertIsDisplayed()
+            compose
+                .onNodeWithTag(EntityArtworkTestTags.icon(kind), useUnmergedTree = true)
+                .assertIsDisplayed()
+                .assertWidthIsEqualTo(if (kind == SearchEntityKind.SHOW) 28.dp else 33.dp)
+                .assertHeightIsEqualTo(if (kind == SearchEntityKind.SHOW) 28.dp else 33.dp)
+        }
+        compose
+            .onNodeWithTag(RemoteImageTestTags.fallback(RemoteImageFallback.Show))
+            .assertContentDescriptionEquals("Saved show artwork")
     }
 
     @Test

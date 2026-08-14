@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.laughtrack.android.core.data.favorites.FavoritesSnapshot
@@ -45,9 +46,11 @@ import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.core.ui.components.EntityArtwork
 import app.laughtrack.android.core.ui.components.SearchEntityKind
 import app.laughtrack.android.core.ui.components.SearchEntityRow
 import app.laughtrack.android.core.ui.components.TicketShowRow
+import app.laughtrack.android.core.ui.components.TicketShowRowDefaults
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import java.math.BigDecimal
@@ -144,6 +147,14 @@ internal fun savedClubDestination(club: FavoriteClubItem): LibrarySavedDestinati
 
 internal fun savedPodcastDestination(podcast: FavoritePodcastItem): LibrarySavedDestination =
     LibrarySavedDestination.Podcast(podcast.id)
+
+internal fun libraryEntityKind(section: LibrarySection): SearchEntityKind? =
+    when (section) {
+        LibrarySection.NEXT_UP -> null
+        LibrarySection.COMEDIANS -> SearchEntityKind.COMEDIAN
+        LibrarySection.CLUBS -> SearchEntityKind.CLUB
+        LibrarySection.PODCASTS -> SearchEntityKind.PODCAST
+    }
 
 internal sealed interface SavedShowCollectionPresentationState {
     data object Loading : SavedShowCollectionPresentationState
@@ -617,14 +628,45 @@ private fun SavedShowRow(
     show: Show,
     onOpenShow: (Int) -> Unit,
 ) {
+    val title = show.name ?: show.clubName ?: "Comedy show"
+    val subtitle = listOfNotNull(show.clubName, show.clubCity).joinToString(" - ")
     TicketShowRow(
-        title = show.name ?: show.clubName ?: "Comedy show",
-        subtitle = listOfNotNull(show.clubName, show.clubCity).joinToString(" - "),
-        imageUrl = show.imageUrl,
         dateParts = ticketStubDateParts(show.date, show.timezone),
         priceLabel = savedShowPriceLabel(show.tickets?.mapNotNull { it.price }),
         onClick = { onOpenShow(savedShowNavigationId(show)) },
-    )
+        minHeight = TicketShowRowDefaults.CompactMinHeight,
+    ) { bodyModifier ->
+        Row(
+            modifier = bodyModifier.padding(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            EntityArtwork(
+                artworkUrl = show.imageUrl,
+                kind = SearchEntityKind.SHOW,
+                artworkSize = 56.dp,
+                contentDescription = title,
+            )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = LaughTrackColors.TicketInk,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                subtitle.takeIf(String::isNotBlank)?.let { value ->
+                    Text(
+                        value,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LaughTrackColors.TicketInkMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
 }
 
 internal fun savedShowPriceLabel(prices: List<BigDecimal>?): String? {
@@ -678,7 +720,7 @@ private fun SavedEntityRail(
                                 title = comedian.name,
                                 subtitle = null,
                                 artworkUrl = comedian.imageUrl,
-                                kind = SearchEntityKind.COMEDIAN,
+                                kind = requireNotNull(libraryEntityKind(section)),
                                 onOpen = { onOpenSaved(savedComedianDestination(comedian)) },
                             ) {
                                 TextButton(
@@ -697,7 +739,7 @@ private fun SavedEntityRail(
                                 title = club.name,
                                 subtitle = "Saved club",
                                 artworkUrl = club.imageUrl,
-                                kind = SearchEntityKind.CLUB,
+                                kind = requireNotNull(libraryEntityKind(section)),
                                 onOpen = { onOpenSaved(savedClubDestination(club)) },
                             ) {
                                 TextButton(
@@ -716,7 +758,7 @@ private fun SavedEntityRail(
                                 title = podcast.title,
                                 subtitle = podcast.authorName,
                                 artworkUrl = podcast.imageUrl,
-                                kind = SearchEntityKind.PODCAST,
+                                kind = requireNotNull(libraryEntityKind(section)),
                                 onOpen = { onOpenSaved(savedPodcastDestination(podcast)) },
                             ) {
                                 TextButton(
