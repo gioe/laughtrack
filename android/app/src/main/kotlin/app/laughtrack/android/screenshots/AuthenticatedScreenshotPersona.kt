@@ -14,7 +14,9 @@ import app.laughtrack.android.core.network.generated.model.NotificationListRespo
 import app.laughtrack.android.core.network.generated.model.NotificationShow
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.SocialData
+import app.laughtrack.android.core.network.generated.model.Ticket
 import app.laughtrack.android.feature.profile.ProfileUiState
+import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 /**
@@ -34,7 +36,53 @@ object AuthenticatedScreenshotPersona {
     const val SHOW_ID = 910_101
     const val SECOND_SHOW_ID = 910_102
     const val UPCOMING_SAVED_SHOW_ID = 910_103
-    const val PAST_SAVED_SHOW_ID = 910_104
+    const val UPCOMING_SAVED_SHOW_TITLE = "Atsuko Okatsuka: Full Grown Tour"
+
+    private val upcomingSavedShows =
+        listOf(
+            savedShow(
+                id = 910_103,
+                date = "2026-08-21T20:00:00-04:00",
+                name = UPCOMING_SAVED_SHOW_TITLE,
+                clubName = "Town Hall",
+                clubCity = "New York",
+            ),
+            savedShow(
+                id = 910_104,
+                date = "2026-08-24T20:00:00-04:00",
+                name = "Josh Johnson and Friends",
+                clubName = "The Bell House",
+                clubCity = "Brooklyn",
+            ),
+            savedShow(
+                id = 910_105,
+                date = "2026-08-28T20:00:00-04:00",
+                name = "Taylor Tomlinson Live",
+                clubName = "The Comedy Cellar",
+                clubCity = "New York",
+            ),
+            savedShow(
+                id = 910_106,
+                date = "2026-09-02T19:30:00-04:00",
+                name = "Sam Jay: Testing Material",
+                clubName = "Union Hall",
+                clubCity = "Brooklyn",
+            ),
+            savedShow(
+                id = 910_107,
+                date = "2026-09-05T20:00:00-04:00",
+                name = "Mike Birbiglia: Please Stop the Ride",
+                clubName = "Beacon Theatre",
+                clubCity = "New York",
+            ),
+            savedShow(
+                id = 910_108,
+                date = "2026-09-08T20:00:00-04:00",
+                name = "Michelle Wolf and Friends",
+                clubName = "Gotham Comedy Club",
+                clubCity = "New York",
+            ),
+        )
 
     val profileUiState =
         ProfileUiState(
@@ -107,52 +155,43 @@ object AuthenticatedScreenshotPersona {
 
     val savedShowsSnapshot =
         SavedShowsSnapshot(
-            values =
-                mapOf(
-                    UPCOMING_SAVED_SHOW_ID to true,
-                    PAST_SAVED_SHOW_ID to true,
-                ),
+            values = upcomingSavedShows.associate { it.id to true },
             upcoming =
                 SavedShowsCollection(
-                    shows =
-                        listOf(
-                            Show(
-                                id = UPCOMING_SAVED_SHOW_ID,
-                                clubId = 910_203,
-                                date = "2026-07-30T20:00:00-04:00",
-                                imageUrl = "",
-                                clubName = "Gotham Comedy Club",
-                                clubCity = "New York",
-                                clubState = "NY",
-                                name = "Thursday Night Stand-Up",
-                                timezone = "America/New_York",
-                            ),
-                        ),
+                    shows = upcomingSavedShows,
                     page = 1,
-                    total = 1,
-                    totalPages = 1,
-                ),
-            past =
-                SavedShowsCollection(
-                    shows =
-                        listOf(
-                            Show(
-                                id = PAST_SAVED_SHOW_ID,
-                                clubId = 910_204,
-                                date = "2026-07-12T19:30:00-04:00",
-                                imageUrl = "",
-                                clubName = "Union Hall",
-                                clubCity = "Brooklyn",
-                                clubState = "NY",
-                                name = "Sunday Comedy Showcase",
-                                timezone = "America/New_York",
-                            ),
-                        ),
-                    page = 1,
-                    total = 1,
-                    totalPages = 1,
+                    total = upcomingSavedShows.size,
+                    totalPages = 2,
                 ),
         )
+
+    private fun savedShow(
+        id: Int,
+        date: String,
+        name: String,
+        clubName: String,
+        clubCity: String,
+    ) = Show(
+        id = id,
+        clubId = id + 1_000,
+        date = date,
+        imageUrl = "",
+        clubName = clubName,
+        clubCity = clubCity,
+        clubState = "NY",
+        tickets =
+            listOf(
+                Ticket(
+                    price = BigDecimal("30"),
+                    purchaseUrl = "https://laughtrack.app/screenshot/tickets/$id",
+                    soldOut = false,
+                    type = "General admission",
+                ),
+            ),
+        name = name,
+        soldOut = false,
+        timezone = "America/New_York",
+    )
 
     val notificationListResponseData =
         NotificationListResponseData(

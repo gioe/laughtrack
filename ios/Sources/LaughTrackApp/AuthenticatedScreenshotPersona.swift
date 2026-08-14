@@ -1,4 +1,5 @@
 import Foundation
+import LaughTrackAPIClient
 import LaughTrackCore
 
 /// Credentials-free, immutable content used only by explicit screenshot launches.
@@ -26,11 +27,48 @@ struct AuthenticatedScreenshotPersona: Equatable {
 
     let favoriteComedians = ["Taylor Tomlinson", "Sam Jay"]
     let upcomingSavedShows = [
-        (title: "Atsuko Okatsuka: Full Grown Tour", detail: "July 21 · Town Hall · New York"),
-        (title: "Josh Johnson and Friends", detail: "July 24 · The Bell House · Brooklyn"),
-    ]
-    let pastSavedShows = [
-        (title: "Sam Jay: Testing Material", detail: "July 10 · Union Hall · Brooklyn"),
+        Self.savedShow(
+            id: 41_001,
+            title: "Atsuko Okatsuka: Full Grown Tour",
+            club: "Town Hall",
+            city: "New York",
+            date: "2026-08-21T20:00:00-04:00"
+        ),
+        Self.savedShow(
+            id: 41_002,
+            title: "Josh Johnson and Friends",
+            club: "The Bell House",
+            city: "Brooklyn",
+            date: "2026-08-24T20:00:00-04:00"
+        ),
+        Self.savedShow(
+            id: 41_003,
+            title: "Taylor Tomlinson Live",
+            club: "The Comedy Cellar",
+            city: "New York",
+            date: "2026-08-28T20:00:00-04:00"
+        ),
+        Self.savedShow(
+            id: 41_004,
+            title: "Sam Jay: Testing Material",
+            club: "Union Hall",
+            city: "Brooklyn",
+            date: "2026-09-02T19:30:00-04:00"
+        ),
+        Self.savedShow(
+            id: 41_005,
+            title: "Mike Birbiglia: Please Stop the Ride",
+            club: "Beacon Theatre",
+            city: "New York",
+            date: "2026-09-05T20:00:00-04:00"
+        ),
+        Self.savedShow(
+            id: 41_006,
+            title: "Michelle Wolf and Friends",
+            club: "Gotham Comedy Club",
+            city: "New York",
+            date: "2026-09-08T20:00:00-04:00"
+        ),
     ]
     let favoriteClubs = ["The Comedy Cellar"]
     let favoritePodcasts = ["Good One: A Podcast About Jokes"]
@@ -74,13 +112,39 @@ struct AuthenticatedScreenshotPersona: Equatable {
         ISO8601DateFormatter().date(from: value)!
     }
 
+    private static func savedShow(
+        id: Int,
+        title: String,
+        club: String,
+        city: String,
+        date: String
+    ) -> Components.Schemas.Show {
+        Components.Schemas.Show(
+            id: id,
+            clubId: id + 1_000,
+            clubName: club,
+            clubCity: city,
+            clubState: "NY",
+            date: Self.date(date),
+            tickets: [
+                .init(
+                    price: 30,
+                    purchaseUrl: "https://laughtrack.app/screenshot/tickets/\(id)",
+                    soldOut: false,
+                    _type: "General admission"
+                ),
+            ],
+            name: title,
+            imageUrl: "",
+            soldOut: false,
+            timezone: "America/New_York"
+        )
+    }
+
     static func == (lhs: AuthenticatedScreenshotPersona, rhs: AuthenticatedScreenshotPersona) -> Bool {
         lhs.user == rhs.user
             && lhs.favoriteComedians == rhs.favoriteComedians
-            && lhs.upcomingSavedShows.map(\.title) == rhs.upcomingSavedShows.map(\.title)
-            && lhs.upcomingSavedShows.map(\.detail) == rhs.upcomingSavedShows.map(\.detail)
-            && lhs.pastSavedShows.map(\.title) == rhs.pastSavedShows.map(\.title)
-            && lhs.pastSavedShows.map(\.detail) == rhs.pastSavedShows.map(\.detail)
+            && lhs.upcomingSavedShows == rhs.upcomingSavedShows
             && lhs.favoriteClubs == rhs.favoriteClubs
             && lhs.favoritePodcasts == rhs.favoritePodcasts
             && lhs.notifications == rhs.notifications

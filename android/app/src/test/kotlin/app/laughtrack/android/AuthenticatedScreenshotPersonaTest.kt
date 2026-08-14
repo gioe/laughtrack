@@ -1,6 +1,7 @@
 package app.laughtrack.android
 
 import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
+import java.math.BigDecimal
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -36,15 +37,39 @@ class AuthenticatedScreenshotPersonaTest {
     }
 
     @Test
-    fun `saved shows include deterministic upcoming and past collections`() {
+    fun `saved shows match the canonical two-page story`() {
         val savedShows = AuthenticatedScreenshotPersona.savedShowsSnapshot
 
-        assertEquals(listOf(910_103), savedShows.upcoming.shows.map { it.id })
-        assertEquals(listOf(910_104), savedShows.past.shows.map { it.id })
+        assertEquals((910_103..910_108).toList(), savedShows.upcoming.shows.map { it.id })
+        assertEquals(6, savedShows.upcoming.total)
+        assertEquals(2, savedShows.upcoming.totalPages)
+        assertTrue(savedShows.past.shows.isEmpty())
+        assertEquals(
+            listOf(
+                SavedShowStory("Atsuko Okatsuka: Full Grown Tour", "2026-08-21T20:00:00-04:00", "Town Hall", "New York"),
+                SavedShowStory("Josh Johnson and Friends", "2026-08-24T20:00:00-04:00", "The Bell House", "Brooklyn"),
+                SavedShowStory("Taylor Tomlinson Live", "2026-08-28T20:00:00-04:00", "The Comedy Cellar", "New York"),
+                SavedShowStory("Sam Jay: Testing Material", "2026-09-02T19:30:00-04:00", "Union Hall", "Brooklyn"),
+                SavedShowStory("Mike Birbiglia: Please Stop the Ride", "2026-09-05T20:00:00-04:00", "Beacon Theatre", "New York"),
+                SavedShowStory("Michelle Wolf and Friends", "2026-09-08T20:00:00-04:00", "Gotham Comedy Club", "New York"),
+            ),
+            savedShows.upcoming.shows.map { show ->
+                val ticket = show.tickets?.singleOrNull()
+                SavedShowStory(
+                    title = show.name,
+                    date = show.date,
+                    club = show.clubName,
+                    city = show.clubCity,
+                    state = show.clubState,
+                    timezone = show.timezone,
+                    price = ticket?.price,
+                    soldOut = ticket?.soldOut,
+                    ticketType = ticket?.type,
+                )
+            },
+        )
         assertTrue(savedShows.upcoming.shows.all { it.imageUrl.isEmpty() })
-        assertTrue(savedShows.past.shows.all { it.imageUrl.isEmpty() })
-        assertEquals(true, savedShows.values[910_103])
-        assertEquals(true, savedShows.values[910_104])
+        assertTrue((910_103..910_108).all { savedShows.values[it] == true })
         assertFalse(savedShows.upcoming.isLoading)
         assertFalse(savedShows.past.isLoading)
     }
@@ -77,4 +102,16 @@ class AuthenticatedScreenshotPersonaTest {
         assertTrue(notifications.items.flatMap { it.comedians }.all { it.comedianImageUrl.isEmpty() })
         assertTrue(notifications.items.flatMap { it.shows }.all { it.showPageUrl == null })
     }
+
+    private data class SavedShowStory(
+        val title: String?,
+        val date: String,
+        val club: String?,
+        val city: String?,
+        val state: String? = "NY",
+        val timezone: String? = "America/New_York",
+        val price: BigDecimal? = BigDecimal("30"),
+        val soldOut: Boolean? = false,
+        val ticketType: String? = "General admission",
+    )
 }

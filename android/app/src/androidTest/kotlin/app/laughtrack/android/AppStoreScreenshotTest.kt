@@ -392,8 +392,10 @@ class AppStoreScreenshotTest {
         }
 
         navigate(navController, AppRoute.Favorites)
-        waitFor(hasText("Thursday Night Stand-Up"))
-        composeRule.onNodeWithText("Thursday Night Stand-Up").performScrollTo()
+        waitFor(hasText(AuthenticatedScreenshotPersona.UPCOMING_SAVED_SHOW_TITLE))
+        composeRule
+            .onNodeWithText(AuthenticatedScreenshotPersona.UPCOMING_SAVED_SHOW_TITLE)
+            .performScrollTo()
         if (capture("15_AuthenticatedFavorites")) return
 
         navigate(navController, AppRoute.Profile)
