@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -315,13 +316,18 @@ private fun CuratedEntityArtwork(
                 },
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = curatedArtworkInitials(identity),
-            color = palette.foreground,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Black,
+        Box(
             modifier = Modifier.testTag(EntityArtworkTestTags.monogram(kind, identity)),
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = curatedArtworkInitials(identity),
+                color = palette.foreground,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.clearAndSetSemantics { },
+            )
+        }
     }
 }
 

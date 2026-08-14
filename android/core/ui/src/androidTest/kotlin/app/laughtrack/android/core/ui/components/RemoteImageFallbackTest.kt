@@ -9,11 +9,11 @@ import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
@@ -126,7 +126,7 @@ class RemoteImageFallbackTest {
             compose
                 .onNodeWithTag(EntityArtworkTestTags.monogram(kind, identity), useUnmergedTree = true)
                 .assertIsDisplayed()
-                .assertTextEquals(initials)
+            compose.onAllNodesWithText(initials, useUnmergedTree = true).assertCountEquals(0)
             compose
                 .onNodeWithContentDescription("$identity artwork")
                 .assertContentDescriptionEquals("$identity artwork")
