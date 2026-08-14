@@ -1,9 +1,39 @@
 import Foundation
 import Testing
+import LaughTrackBridge
 @testable import LaughTrackApp
+#if canImport(UIKit)
+import SwiftUI
+#endif
 
 @Suite("Library saved shows")
 struct LibrarySavedShowsTests {
+    @Test("saved-show pager executes Previous and Next actions")
+    func savedShowPagerActionsAreExecutable() {
+        var page = 1
+        let controls = LaughTrackPagedControls(
+            currentPage: page,
+            pageCount: 2,
+            onPrevious: { page -= 1 },
+            onNext: { page += 1 }
+        )
+
+        controls.onPrevious()
+        #expect(page == 0)
+        controls.onNext()
+        #expect(page == 1)
+    }
+
+    @Test("saved-show action opens the typed detail route")
+    @MainActor
+    func savedShowNavigationIsExecutable() {
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
+
+        openLibrarySnapshotShow(id: 41_002, coordinator: coordinator)
+
+        #expect(decodedRoutes(in: coordinator) == [.showDetail(41_002)])
+    }
+
     @Test("saved-show paging stays within the loaded collection after refresh")
     func savedShowPagingClampsToLoadedRows() {
         #expect(librarySavedShowsDisplayPage(
@@ -145,3 +175,61 @@ struct LibrarySavedShowsTests {
         return try String(contentsOf: sourceURL, encoding: .utf8)
     }
 }
+
+#if canImport(UIKit)
+@Suite("Library hosted interactions", .serialized)
+@MainActor
+struct LibraryHostedInteractionTests {
+    @Test("fallback entity rows expose metadata labels and open typed routes")
+    func fallbackEntityRowsOpenTypedRoutes() async throws {
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
+        let host = HostedView(
+            VStack {
+                LaughTrackSearchEntityRow(
+                    title: "Taylor Tomlinson",
+                    subtitle: "Following · notifications on",
+                    imageURL: nil,
+                    kind: .comedian,
+                    action: { coordinator.open(.comedian(101)) },
+                    accessibilityIdentifier: "test.library.comedian"
+                )
+                LaughTrackSearchEntityRow(
+                    title: "The Comedy Cellar",
+                    subtitle: "Saved venue",
+                    imageURL: nil,
+                    kind: .club,
+                    action: { coordinator.open(.club(201)) },
+                    accessibilityIdentifier: "test.library.club"
+                )
+                LaughTrackSearchEntityRow(
+                    title: "Good One: A Podcast About Jokes",
+                    subtitle: "Vulture · 248 episodes",
+                    imageURL: nil,
+                    kind: .podcast,
+                    action: { coordinator.open(.podcast(301)) },
+                    accessibilityIdentifier: "test.library.podcast"
+                )
+            }
+            .padding()
+            .environment(\.appTheme, LaughTrackTheme())
+        )
+        await host.settle(iterations: 4)
+
+        try host.requireLabel("Taylor Tomlinson, Following · notifications on")
+        try host.tapControl(withIdentifier: "test.library.comedian")
+        #expect(decodedRoutes(in: coordinator) == [.comedianDetail(101)])
+
+        try host.requireLabel("The Comedy Cellar, Saved venue")
+        try host.tapControl(withIdentifier: "test.library.club")
+        #expect(decodedRoutes(in: coordinator) == [.comedianDetail(101), .clubDetail(201)])
+
+        try host.requireLabel("Good One: A Podcast About Jokes, Vulture · 248 episodes")
+        try host.tapControl(withIdentifier: "test.library.podcast")
+        #expect(decodedRoutes(in: coordinator) == [
+            .comedianDetail(101),
+            .clubDetail(201),
+            .podcastDetail(301),
+        ])
+    }
+}
+#endif

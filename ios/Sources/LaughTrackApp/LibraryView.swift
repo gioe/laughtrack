@@ -182,12 +182,13 @@ private struct AuthenticatedFavoritesSnapshot: View {
             VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.tight) {
                 ForEach(visibleShows, id: \.id) { show in
                     Button {
-                        coordinator.open(.show(show.id))
+                        openLibrarySnapshotShow(show, coordinator: coordinator)
                     } label: {
                         ShowRow(show: show, presentation: .compactTicket)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Open \(ShowTitlePresentation.title(for: show))")
+                    .accessibilityIdentifier("laughtrack.library.fixture-shows-\(show.id)")
                 }
 
                 if pageCount > 1 {
@@ -195,7 +196,8 @@ private struct AuthenticatedFavoritesSnapshot: View {
                         currentPage: clampedPage,
                         pageCount: pageCount,
                         onPrevious: { savedShowsPage = max(0, clampedPage - 1) },
-                        onNext: { savedShowsPage = min(pageCount - 1, clampedPage + 1) }
+                        onNext: { savedShowsPage = min(pageCount - 1, clampedPage + 1) },
+                        accessibilityIdentifierPrefix: "laughtrack.library.fixture-shows.pager"
                     )
                 }
             }
@@ -212,17 +214,24 @@ private struct AuthenticatedFavoritesSnapshot: View {
         let pageCount = max(1, Int(ceil(Double(shows.count) / Double(pageSize))))
         let clampedPage = min(savedShowsPage, pageCount - 1)
         let start = clampedPage * pageSize
-        let visibleShows = Array(shows[start..<min(start + pageSize, shows.count)])
+        let indexedShows = Array(shows.enumerated())
+        let visibleShows = Array(indexedShows[start..<min(start + pageSize, shows.count)])
 
         return LaughTrackRailCard(title: section.title) {
             VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.tight) {
-                ForEach(Array(visibleShows.enumerated()), id: \.offset) { _, show in
-                    TeaserRow(
-                        title: show.title,
-                        subtitle: show.detail,
-                        systemImage: "ticket",
-                        isPlaceholder: false
-                    )
+                ForEach(visibleShows, id: \.offset) { index, show in
+                    Button {
+                        openLibrarySnapshotShow(id: 41_001 + index, coordinator: coordinator)
+                    } label: {
+                        TeaserRow(
+                            title: show.title,
+                            subtitle: show.detail,
+                            systemImage: "ticket",
+                            isPlaceholder: false
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Open \(show.title)")
                 }
 
                 if pageCount > 1 {
@@ -230,7 +239,8 @@ private struct AuthenticatedFavoritesSnapshot: View {
                         currentPage: clampedPage,
                         pageCount: pageCount,
                         onPrevious: { savedShowsPage = max(0, clampedPage - 1) },
-                        onNext: { savedShowsPage = min(pageCount - 1, clampedPage + 1) }
+                        onNext: { savedShowsPage = min(pageCount - 1, clampedPage + 1) },
+                        accessibilityIdentifierPrefix: "laughtrack.library.fixture-shows.pager"
                     )
                 }
             }
@@ -268,13 +278,30 @@ private struct AuthenticatedFavoritesSnapshot: View {
                         currentPage: clampedPage,
                         pageCount: pageCount,
                         onPrevious: { page.wrappedValue = max(0, clampedPage - 1) },
-                        onNext: { page.wrappedValue = min(pageCount - 1, clampedPage + 1) }
+                        onNext: { page.wrappedValue = min(pageCount - 1, clampedPage + 1) },
+                        accessibilityIdentifierPrefix: "laughtrack.library.fixture-\(section.rawValue).pager"
                     )
                 }
             }
         }
     }
 
+}
+
+@MainActor
+func openLibrarySnapshotShow(
+    _ show: Components.Schemas.Show,
+    coordinator: TypedNavigationCoordinator<AppRoute>
+) {
+    openLibrarySnapshotShow(id: show.id, coordinator: coordinator)
+}
+
+@MainActor
+func openLibrarySnapshotShow(
+    id: Int,
+    coordinator: TypedNavigationCoordinator<AppRoute>
+) {
+    coordinator.open(.show(id))
 }
 
 private struct FavoritePrimitiveSections: View {

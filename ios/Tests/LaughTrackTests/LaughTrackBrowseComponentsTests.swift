@@ -5,6 +5,13 @@ import LaughTrackBridge
 
 @Suite("Browse components")
 struct LaughTrackBrowseComponentsTests {
+    @Test("canonical entity kinds retain distinct fallback artwork")
+    func entityKindsResolveCanonicalFallbackArtwork() {
+        #expect(LaughTrackSearchEntityKind.comedian.fallback.systemImage == "music.mic")
+        #expect(LaughTrackSearchEntityKind.club.fallback.systemImage == "building.2.fill")
+        #expect(LaughTrackSearchEntityKind.podcast.fallback.systemImage == "headphones")
+    }
+
     @Test("hero module uses compact browse copy hierarchy")
     func heroModuleUsesCompactHierarchy() {
         let module = LaughTrackHeroModule(

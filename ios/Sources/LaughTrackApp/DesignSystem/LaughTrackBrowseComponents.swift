@@ -1045,6 +1045,21 @@ struct LaughTrackPagedControls: View {
     let pageCount: Int
     let onPrevious: () -> Void
     let onNext: () -> Void
+    let accessibilityIdentifierPrefix: String?
+
+    init(
+        currentPage: Int,
+        pageCount: Int,
+        onPrevious: @escaping () -> Void,
+        onNext: @escaping () -> Void,
+        accessibilityIdentifierPrefix: String? = nil
+    ) {
+        self.currentPage = currentPage
+        self.pageCount = pageCount
+        self.onPrevious = onPrevious
+        self.onNext = onNext
+        self.accessibilityIdentifierPrefix = accessibilityIdentifierPrefix
+    }
 
     private var isFirstPage: Bool { currentPage <= 0 }
     private var isLastPage: Bool { currentPage >= pageCount - 1 }
@@ -1063,6 +1078,9 @@ struct LaughTrackPagedControls: View {
             .disabled(isFirstPage)
             .opacity(isFirstPage ? 0.5 : 1)
             .accessibilityLabel("Previous page")
+            .modifier(PagedControlAccessibilityIdentifierModifier(
+                identifier: accessibilityIdentifierPrefix.map { "\($0).previous" }
+            ))
 
             Spacer(minLength: 0)
 
@@ -1085,6 +1103,21 @@ struct LaughTrackPagedControls: View {
             .disabled(isLastPage)
             .opacity(isLastPage ? 0.5 : 1)
             .accessibilityLabel("Next page")
+            .modifier(PagedControlAccessibilityIdentifierModifier(
+                identifier: accessibilityIdentifierPrefix.map { "\($0).next" }
+            ))
+        }
+    }
+}
+
+private struct PagedControlAccessibilityIdentifierModifier: ViewModifier {
+    let identifier: String?
+
+    func body(content: Content) -> some View {
+        if let identifier {
+            content.accessibilityIdentifier(identifier)
+        } else {
+            content
         }
     }
 }
