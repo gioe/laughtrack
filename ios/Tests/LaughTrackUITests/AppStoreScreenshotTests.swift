@@ -127,8 +127,12 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 screen: identified("laughtrack.home.screen", as: "Near Me screen"),
                 content: [
                     identified(
+                        "laughtrack.home.shows-tonight-rail",
+                        as: "Tonight hero rail"
+                    ),
+                    identified(
                         "laughtrack.home.shows-tonight-103",
-                        as: "populated show fixture"
+                        as: "representative secondary show content"
                     ),
                     noLoadingLabels(["Loading shows", "Loading trending comedians", "Loading popular clubs", "Loading trending podcasts"]),
                 ]

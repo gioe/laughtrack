@@ -22,6 +22,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.navigation.NavHostController
@@ -266,6 +267,10 @@ class AppStoreScreenshotTest {
                 )
                 waitFor(hasTestTag("homePodcastEpisodePlay-501"))
                 waitFor(hasContentDescription("Play episode #2520 - A Night of Comedy"))
+                composeRule
+                    .onNodeWithTag(HOME_DISCOVER_LIST_TEST_TAG)
+                    .performScrollToIndex(0)
+                waitForStable(hasText("TONIGHT!"), timeoutMs = 30_000)
             }
             if (capture("01_NearMe")) return
         } else {
