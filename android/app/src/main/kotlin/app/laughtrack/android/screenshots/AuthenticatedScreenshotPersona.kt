@@ -25,8 +25,8 @@ import java.time.ZonedDateTime
  * The persona deliberately contains no remote image URLs and never enters the
  * authentication or networking layers. It is passed explicitly by screenshot
  * tests; production navigation continues to use the Hilt-backed screen models.
- * Empty artwork values intentionally exercise the same branded fallback policy
- * as the iOS persona.
+ * Empty artwork values intentionally exercise deterministic, title-derived
+ * local artwork without requiring a network image cache.
  */
 object AuthenticatedScreenshotPersona {
     const val COMEDIAN_UUID = "00000000-0000-4000-8000-000000000101"

@@ -9,10 +9,12 @@ import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -71,7 +73,6 @@ class RemoteImageFallbackTest {
                     artworkUrl = null,
                     kind = SearchEntityKind.SHOW,
                     artworkSize = 56.dp,
-                    contentDescription = "Saved show artwork",
                 )
                 SearchEntityKind.entries
                     .filterNot { it == SearchEntityKind.SHOW }
@@ -94,9 +95,47 @@ class RemoteImageFallbackTest {
                 .assertWidthIsEqualTo(if (kind == SearchEntityKind.SHOW) 28.dp else 33.dp)
                 .assertHeightIsEqualTo(if (kind == SearchEntityKind.SHOW) 28.dp else 33.dp)
         }
-        compose
-            .onNodeWithTag(RemoteImageTestTags.fallback(RemoteImageFallback.Show))
-            .assertContentDescriptionEquals("Saved show artwork")
+    }
+
+    @Test
+    fun imageLessNamedShowsAndComedians_renderDistinctCuratedLocalArtwork() {
+        val fixtures =
+            listOf(
+                Triple(SearchEntityKind.SHOW, "Atsuko Okatsuka: Full Grown Tour", "AO"),
+                Triple(SearchEntityKind.SHOW, "Josh Johnson and Friends", "JJ"),
+                Triple(SearchEntityKind.COMEDIAN, "Taylor Tomlinson", "TT"),
+                Triple(SearchEntityKind.COMEDIAN, "Sam Jay", "SJ"),
+            )
+        compose.setContent {
+            Column {
+                fixtures.forEach { (kind, identity, _) ->
+                    EntityArtwork(
+                        artworkUrl = "",
+                        kind = kind,
+                        artworkIdentity = identity,
+                        contentDescription = "$identity artwork",
+                    )
+                }
+            }
+        }
+
+        fixtures.forEach { (kind, identity, initials) ->
+            compose
+                .onNodeWithTag(EntityArtworkTestTags.curated(kind, identity), useUnmergedTree = true)
+                .assertIsDisplayed()
+            compose
+                .onNodeWithTag(EntityArtworkTestTags.monogram(kind, identity), useUnmergedTree = true)
+                .assertIsDisplayed()
+                .assertTextEquals(initials)
+            compose
+                .onNodeWithContentDescription("$identity artwork")
+                .assertContentDescriptionEquals("$identity artwork")
+        }
+        compose.onAllNodesWithTag(EntityArtworkTestTags.icon(SearchEntityKind.SHOW), useUnmergedTree = true)
+            .assertCountEquals(0)
+        compose.onAllNodesWithTag(EntityArtworkTestTags.icon(SearchEntityKind.COMEDIAN), useUnmergedTree = true)
+            .assertCountEquals(0)
+        compose.onAllNodesWithTag(RemoteImageTestTags.SKELETON).assertCountEquals(0)
     }
 
     @Test

@@ -1,12 +1,12 @@
 package app.laughtrack.android
 
 import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
-import java.math.BigDecimal
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.math.BigDecimal
 
 class AuthenticatedScreenshotPersonaTest {
     @Test
@@ -30,6 +30,7 @@ class AuthenticatedScreenshotPersonaTest {
 
         assertEquals(listOf("Taylor Tomlinson", "Sam Jay"), favorites.comedians.map { it.name })
         assertTrue(favorites.comedians.all { it.imageUrl.isEmpty() })
+        assertEquals(favorites.comedians.size, favorites.comedians.map { it.name }.distinct().size)
         assertTrue(favorites.clubs.all { it.imageUrl.isEmpty() })
         assertTrue(favorites.podcasts.all { it.imageUrl == null })
         assertFalse(favorites.isLoading)
@@ -46,12 +47,27 @@ class AuthenticatedScreenshotPersonaTest {
         assertTrue(savedShows.past.shows.isEmpty())
         assertEquals(
             listOf(
-                SavedShowStory("Atsuko Okatsuka: Full Grown Tour", "2026-08-21T20:00:00-04:00", "Town Hall", "New York"),
+                SavedShowStory(
+                    "Atsuko Okatsuka: Full Grown Tour",
+                    "2026-08-21T20:00:00-04:00",
+                    "Town Hall",
+                    "New York",
+                ),
                 SavedShowStory("Josh Johnson and Friends", "2026-08-24T20:00:00-04:00", "The Bell House", "Brooklyn"),
                 SavedShowStory("Taylor Tomlinson Live", "2026-08-28T20:00:00-04:00", "The Comedy Cellar", "New York"),
                 SavedShowStory("Sam Jay: Testing Material", "2026-09-02T19:30:00-04:00", "Union Hall", "Brooklyn"),
-                SavedShowStory("Mike Birbiglia: Please Stop the Ride", "2026-09-05T20:00:00-04:00", "Beacon Theatre", "New York"),
-                SavedShowStory("Michelle Wolf and Friends", "2026-09-08T20:00:00-04:00", "Gotham Comedy Club", "New York"),
+                SavedShowStory(
+                    "Mike Birbiglia: Please Stop the Ride",
+                    "2026-09-05T20:00:00-04:00",
+                    "Beacon Theatre",
+                    "New York",
+                ),
+                SavedShowStory(
+                    "Michelle Wolf and Friends",
+                    "2026-09-08T20:00:00-04:00",
+                    "Gotham Comedy Club",
+                    "New York",
+                ),
             ),
             savedShows.upcoming.shows.map { show ->
                 val ticket = show.tickets?.singleOrNull()
@@ -69,6 +85,10 @@ class AuthenticatedScreenshotPersonaTest {
             },
         )
         assertTrue(savedShows.upcoming.shows.all { it.imageUrl.isEmpty() })
+        assertEquals(
+            savedShows.upcoming.shows.size,
+            savedShows.upcoming.shows.mapNotNull { it.name }.distinct().size,
+        )
         assertTrue((910_103..910_108).all { savedShows.values[it] == true })
         assertFalse(savedShows.upcoming.isLoading)
         assertFalse(savedShows.past.isLoading)
