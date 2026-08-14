@@ -1,8 +1,18 @@
 import Foundation
 import Testing
+@testable import LaughTrackApp
 
 @Suite("Search favorite row layout")
 struct SearchFavoriteRowLayoutTests {
+    @Test("shared entity rows use dense vertical padding without reducing readable text")
+    func sharedEntityRowsUseDenseVerticalMetrics() {
+        let metrics = LaughTrackSearchEntityRowMetrics.standard
+
+        #expect(metrics.verticalCardPadding == 4)
+        #expect(metrics.titleLineLimit == 2)
+        #expect(metrics.subtitleLineLimit == 2)
+    }
+
     @Test("entity search result rows use the shared adaptive composition")
     func entitySearchRowsUseSharedAdaptiveComposition() throws {
         for fileName in [
@@ -35,6 +45,9 @@ struct SearchFavoriteRowLayoutTests {
         #expect(block.contains("captionVisibility: .hidden"))
         #expect(block.contains("frameWidth: 76"))
         #expect(block.contains("frameHeight: 73"))
+        #expect(block.contains(".frame(width: 69, height: 69)"))
+        #expect(block.contains(".padding(.horizontal, laughTrack.browseDensity.compactCardPadding)"))
+        #expect(block.contains(".padding(.vertical, metrics.verticalCardPadding)"))
         #expect(block.contains("artworkImage"))
         #expect(block.contains("Text(title)"))
         #expect(!block.contains("upcomingShowsText"))

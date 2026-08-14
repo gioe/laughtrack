@@ -490,6 +490,18 @@ enum LaughTrackSearchEntityKind: Equatable {
 }
 
 /// The canonical rich entity row shared by Search and Library.
+struct LaughTrackSearchEntityRowMetrics: Equatable {
+    let verticalCardPadding: CGFloat
+    let titleLineLimit: Int
+    let subtitleLineLimit: Int
+
+    static let standard = Self(
+        verticalCardPadding: 4,
+        titleLineLimit: 2,
+        subtitleLineLimit: 2
+    )
+}
+
 struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
     let title: String
     let subtitle: String?
@@ -541,6 +553,7 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
+        let metrics = LaughTrackSearchEntityRowMetrics.standard
 
         HStack(spacing: theme.spacing.md) {
             Button(action: action) {
@@ -551,14 +564,14 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
                         Text(title)
                             .font(laughTrack.typography.cardTitle)
                             .foregroundStyle(laughTrack.colors.textPrimary)
-                            .lineLimit(2)
+                            .lineLimit(metrics.titleLineLimit)
                             .fixedSize(horizontal: false, vertical: true)
 
                         if let subtitle, !subtitle.isEmpty {
                             Text(subtitle)
                                 .font(laughTrack.typography.metadata)
                                 .foregroundStyle(laughTrack.colors.textSecondary)
-                                .lineLimit(2)
+                                .lineLimit(metrics.subtitleLineLimit)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -579,7 +592,8 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
                 trailingAccessory
             }
         }
-        .padding(laughTrack.browseDensity.compactCardPadding)
+        .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
+        .padding(.vertical, metrics.verticalCardPadding)
         .background(laughTrack.colors.surfaceElevated)
         .overlay(
             RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
