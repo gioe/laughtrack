@@ -133,9 +133,9 @@ struct ClubDetailViewTests {
         #expect(source.contains("bottomPadding: 0"))
         #expect(source.contains("Text(\"Tonight\")"))
         #expect(source.contains("summary: eveningSummary"))
-        #expect(source.contains("Text(viewAllLabel)"))
+        #expect(!source.contains("Text(viewAllLabel)"))
         #expect(!source.contains("coordinator.open(.show(show.id))"))
-        #expect(source.contains("proxy.scrollTo(Self.pinnedShowsAnchor, anchor: .top)"))
+        #expect(!source.contains("proxy.scrollTo("))
     }
 
     @Test("club detail surfaces API failures explicitly")
@@ -236,11 +236,6 @@ struct ClubDetailViewTests {
                 ).time
             ),
         ])
-        #expect(summary.remainingPerformerCount == 1)
-        #expect(summary.localizedStartTimes == [shows[1], shows[2], shows[0]].map {
-            ShowFormatting.dateStack($0.date, timezoneID: $0.timezone).time
-        })
-        #expect(summary.showCount == 4)
     }
 
     @Test("club evening summary handles one performer and missing-lineup fallback")
@@ -264,11 +259,6 @@ struct ClubDetailViewTests {
                 ).time
             ),
         ])
-        #expect(single.remainingPerformerCount == 0)
-        #expect(single.localizedStartTimes == [
-            ShowFormatting.dateStack(date, timezoneID: nil).time,
-        ])
-        #expect(single.showCount == 1)
 
         let earliest = show(id: 302, name: "Earliest fallback", date: date, lineup: nil)
         let later = show(
@@ -294,11 +284,6 @@ struct ClubDetailViewTests {
                 ).time
             ),
         ])
-        #expect(noLineup.remainingPerformerCount == 0)
-        #expect(noLineup.localizedStartTimes == [earliest, later].map {
-            ShowFormatting.dateStack($0.date, timezoneID: $0.timezone).time
-        })
-        #expect(noLineup.showCount == 2)
     }
 
     @Test("club evening summary stays absent without tonight shows")
@@ -311,8 +296,8 @@ struct ClubDetailViewTests {
         ) == nil)
     }
 
-    @Test("club marquee show-count action scopes pinned shows to today")
-    func clubPinnedShowsSupportMarqueeShowAll() throws {
+    @Test("club pinned shows remain scoped without a marquee show-count action")
+    func clubPinnedShowsHaveNoMarqueeAction() throws {
         let clubSource = try String(
             contentsOf: detailSourceURL(named: "ClubDetailView.swift"),
             encoding: .utf8
@@ -321,18 +306,13 @@ struct ClubDetailViewTests {
             contentsOf: appSourceURL(relativePath: "Components/PinnedShowsList.swift"),
             encoding: .utf8
         )
-        #expect(clubSource.contains("Text(viewAllLabel)"))
-        #expect(clubSource.contains("pinnedShowsTodayRequest"))
-        #expect(clubSource.contains("showAll:"))
-        #expect(clubSource.contains("proxy.scrollTo(Self.pinnedShowsAnchor, anchor: .top)"))
-        #expect(clubSource.contains("todayRequest: pinnedShowsTodayRequest"))
-        #expect(pinnedSource.contains("pinnedClubId: pinnedClubId"))
+        #expect(!clubSource.contains("Text(viewAllLabel)"))
+        #expect(!clubSource.contains("pinnedShowsTodayRequest"))
+        #expect(!clubSource.contains("showAll:"))
         #expect(pinnedSource.contains("pinnedClubName: pinnedClubName"))
         #expect(pinnedSource.contains("ShowsListView(apiClient: apiClient, model: model, compactMode: true)"))
         #expect(pinnedSource.contains("pageSize: 5"))
-        #expect(pinnedSource.contains("let todayRequest: Int"))
-        #expect(pinnedSource.contains(".onChange(of: todayRequest)"))
-        #expect(pinnedSource.contains("model.applyDateShortcut(\"Tonight\")"))
+        #expect(!pinnedSource.contains("todayRequest"))
     }
 
     @Test("club highlights expose only API-qualified frequent performers")
@@ -400,8 +380,7 @@ struct ClubDetailViewTests {
         #expect(source.contains("Color.black.opacity(0.3), radius: 8"))
         #expect(source.contains("ForEach(Array(summary.performers.enumerated())"))
         #expect(source.contains("Text(performer.name.uppercased())"))
-        #expect(source.contains("Text(\"+\\(summary.remainingPerformerCount) MORE\")"))
-        #expect(source.contains("summary.localizedStartTimes.joined(separator: \" • \")"))
+        #expect(source.contains("Text(performer.localizedStartTime.uppercased())"))
         #expect(source.contains("openShow(performer.showID)"))
         #expect(source.contains("LaughTrackViewTestID.clubDetailMarqueeShowButton("))
         #expect(source.contains(".accessibilityHint(\"Opens show details\")"))
@@ -415,8 +394,8 @@ struct ClubDetailViewTests {
         #expect(source.contains(".padding(ClubVenueMarqueeStyle.bulbInset)"))
         #expect(source.contains("ClubVenueMarqueeStyle.bulbColor.opacity(0.35)"))
         #expect(!source.contains(".inset(by: 6)"))
-        #expect(source.contains("Text(viewAllLabel)"))
-        #expect(source.contains("View all \\(summary.showCount)"))
+        #expect(!source.contains("Text(viewAllLabel)"))
+        #expect(!source.contains("View all \\(summary.showCount)"))
     }
 
     @Test("frequent performers render after pinned shows")
