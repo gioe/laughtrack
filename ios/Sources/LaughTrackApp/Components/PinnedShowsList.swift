@@ -15,6 +15,7 @@ import LaughTrackCore
 /// search-tab sort/filter chrome.
 struct PinnedShowsList: View {
     let apiClient: Client
+    let todayRequest: Int
     @StateObject private var model: ShowsListModel
 
     init(
@@ -23,9 +24,11 @@ struct PinnedShowsList: View {
         pinnedClubId: Int? = nil,
         pinnedClubName: String? = nil,
         pinnedComedianName: String? = nil,
-        startsNationwide: Bool = false
+        startsNationwide: Bool = false,
+        todayRequest: Int = 0
     ) {
         self.apiClient = apiClient
+        self.todayRequest = todayRequest
         // Pinned detail views default to "Any date" — the shows endpoint already
         // returns upcoming-only when no date filter is set, and the prior
         // "Today" default left most comedian/club pages near-empty.
@@ -42,5 +45,8 @@ struct PinnedShowsList: View {
 
     var body: some View {
         ShowsListView(apiClient: apiClient, model: model, compactMode: true)
+            .onChange(of: todayRequest) { _ in
+                model.applyDateShortcut("Tonight")
+            }
     }
 }
