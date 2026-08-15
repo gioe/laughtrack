@@ -11,13 +11,16 @@ import LaughTrackCore
 @Suite("Home favorite shows rail")
 @MainActor
 struct HomeFavoriteShowsRailTests {
-    @Test("followed-comedian rail is fail-soft, compact, and detail-linked")
+    @Test("followed-comedian rail is fail-soft, featured, and detail-linked")
     func followedComedianRailPresentationContract() throws {
         let source = try String(contentsOf: followedComedianRailSourceURL(), encoding: .utf8)
 
         #expect(source.contains("if case .success(let shows) = model.phase, !shows.isEmpty"))
-        #expect(source.contains("ShowRow(show: show, presentation: .compactTicket)"))
-        #expect(source.contains("coordinator.open(.show(show.id))"))
+        #expect(source.contains("HomeFeaturedShowsCarousel("))
+        #expect(source.contains("HomeFeaturedShowCarouselItem("))
+        #expect(source.contains("show: show"))
+        #expect(source.contains("preferredHeadlinerID: HomeDiscoverRailPlanPresentation.preferredFavoriteHeadlinerID("))
+        #expect(source.contains("accessibilityIdentifier: LaughTrackViewTestID.homeFavoriteShowButton(show.id)"))
         #expect(!source.contains("LaughTrackButton(\"See"))
         #expect(!source.contains("FailureCard("))
         #expect(!source.contains("ShowsListSkeleton("))
