@@ -51,9 +51,7 @@ class ClubDetailHighlightsPresentationTest {
                 ),
             )!!
 
-        assertEquals(listOf("First", "Second", "Third"), summary.performerNames)
-        assertEquals(2, summary.remainingPerformerCount)
-        assertEquals(2, summary.showCount)
+        assertEquals(listOf("First", "Second", "Third"), summary.performers.map { it.name })
     }
 
     @Test
@@ -77,24 +75,44 @@ class ClubDetailHighlightsPresentationTest {
                 ),
             )!!
 
-        assertEquals(listOf("Higher count", "Lower ID", "Higher ID"), summary.performerNames)
-        assertEquals(1, summary.remainingPerformerCount)
+        assertEquals(listOf("Higher count", "Lower ID", "Higher ID"), summary.performers.map { it.name })
     }
 
     @Test
-    fun marquee_displays_distinct_localized_times_in_chronological_show_order() {
+    fun marquee_pairs_each_ranked_performer_with_their_earliest_show_time() {
+        val canonical = lineup(1, "Canonical headliner", 100, 5)
         val later =
             show(
                 id = 1,
                 date = "2026-07-30T22:00:00-04:00",
                 timezone = "America/Los_Angeles",
-                lineup = listOf(lineup(1, "Local headliner", 100, 5)),
+                lineup =
+                    listOf(
+                        canonical,
+                        lineup(3, "Late set", 80, 5),
+                    ),
             )
-        val earlier = show(2, date = "2026-07-30T20:00:00-04:00", timezone = "America/New_York")
-        val duplicate = show(3, date = earlier.date, timezone = earlier.timezone)
-        val summary = clubMarqueeSummary(highlights(tonight = listOf(later, duplicate, earlier)))!!
+        val earlier =
+            show(
+                id = 2,
+                date = "2026-07-30T20:00:00-04:00",
+                timezone = "America/New_York",
+                lineup =
+                    listOf(
+                        lineup(99, "Alias", 1, 1, parent = canonical),
+                        lineup(2, "Early set", 90, 5),
+                    ),
+            )
+        val summary = clubMarqueeSummary(highlights(tonight = listOf(later, earlier)))!!
 
-        assertEquals(listOf(earlier, later).map(::localizedTime), summary.localizedStartTimes)
+        assertEquals(
+            listOf(
+                ClubMarqueePerformer("Canonical headliner", localizedTime(earlier)),
+                ClubMarqueePerformer("Early set", localizedTime(earlier)),
+                ClubMarqueePerformer("Late set", localizedTime(later)),
+            ),
+            summary.performers,
+        )
     }
 
     @Test
@@ -103,8 +121,10 @@ class ClubDetailHighlightsPresentationTest {
             clubMarqueeSummary(
                 highlights(tonight = listOf(show(1, lineup = listOf(lineup(1, "Solo", 5, 1))))),
             )!!
-        assertEquals(listOf("Solo"), single.performerNames)
-        assertEquals(0, single.remainingPerformerCount)
+        assertEquals(
+            listOf(ClubMarqueePerformer("Solo", localizedTime(show(1)))),
+            single.performers,
+        )
 
         val missing =
             clubMarqueeSummary(
@@ -116,10 +136,13 @@ class ClubDetailHighlightsPresentationTest {
                         ),
                 ),
             )!!
-        assertEquals(listOf("Early"), missing.performerNames)
         assertEquals(
-            listOf("Show"),
-            clubMarqueeSummary(highlights(tonight = listOf(show(3, name = " "))))!!.performerNames,
+            listOf(ClubMarqueePerformer("Early", localizedTime(show(1)))),
+            missing.performers,
+        )
+        assertEquals(
+            listOf(ClubMarqueePerformer("Show", localizedTime(show(3)))),
+            clubMarqueeSummary(highlights(tonight = listOf(show(3, name = " "))))!!.performers,
         )
     }
 
@@ -162,12 +185,14 @@ class ClubDetailHighlightsPresentationTest {
     }
 
     @Test
-    fun source_renders_an_evening_summary_instead_of_selecting_individual_shows() {
+    fun source_renders_three_performer_time_rows_without_a_summary_footer() {
         val source = clubDetailScreenSource()
 
-        assertTrue(source.contains("summary.performerNames.forEachIndexed"))
-        assertTrue(source.contains("summary.localizedStartTimes.joinToString(\" • \")"))
-        assertTrue(source.contains("+\${summary.remainingPerformerCount} MORE"))
+        assertTrue(source.contains("summary.performers.forEachIndexed"))
+        assertTrue(source.contains("performer.localizedStartTime.uppercase"))
+        assertFalse(source.contains("remainingPerformerCount"))
+        assertFalse(source.contains("localizedStartTimes.joinToString"))
+        assertFalse(source.contains("View all"))
         assertFalse(source.contains("AppRoute.ShowDetail(row.show.id)"))
         assertTrue(source.contains("AppRoute.ComedianDetail(it.id)"))
     }
@@ -198,15 +223,16 @@ class ClubDetailHighlightsPresentationTest {
     }
 
     @Test
-    fun source_wires_show_all_to_today_and_the_calendar_without_disabling_controls() {
+    fun source_preserves_the_independent_calendar_filter_without_a_marquee_action() {
         val source = clubDetailScreenSource()
 
-        assertTrue(source.contains("calendarFilter = ClubCalendarFilter.Today"))
-        assertTrue(source.contains("calendarBringIntoViewRequester.bringIntoView()"))
-        assertTrue(source.contains("bringIntoViewRequester(calendarBringIntoViewRequester)"))
+        assertTrue(source.contains("mutableStateOf(ClubCalendarFilter.AnyDate)"))
         assertTrue(source.contains("onFilter = { calendarFilter = it }"))
-        assertTrue(source.contains("\"View all \${summary.showCount}"))
+        assertTrue(source.contains("if (filter == ClubCalendarFilter.Today)"))
         assertTrue(source.contains("testTag(CLUB_CALENDAR_SECTION_TEST_TAG)"))
+        assertFalse(source.contains("onShowAll"))
+        assertFalse(source.contains("BringIntoViewRequester"))
+        assertFalse(source.contains("CLUB_HIGHLIGHT_SHOW_ALL_TEST_TAG"))
     }
 
     @Test

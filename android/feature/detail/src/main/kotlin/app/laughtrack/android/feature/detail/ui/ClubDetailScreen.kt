@@ -1,7 +1,6 @@
 package app.laughtrack.android.feature.detail.ui
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,8 +21,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,7 +39,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,7 +84,6 @@ import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
 import app.laughtrack.android.feature.detail.util.openMap
 import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.parseShowDateTime
-import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -143,7 +138,6 @@ fun ClubDetailScreen(
 }
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
 private fun ClubDetailBody(
     ui: ClubDetailUi,
     highlights: ClubHighlights?,
@@ -158,8 +152,6 @@ private fun ClubDetailBody(
 ) {
     val scrollState = rememberScrollState()
     val marqueeSummary = clubMarqueeSummary(highlights)
-    val calendarBringIntoViewRequester = remember { BringIntoViewRequester() }
-    val coroutineScope = rememberCoroutineScope()
     var calendarFilter by remember(ui.detail.id) { mutableStateOf(ClubCalendarFilter.AnyDate) }
 
     Column(
@@ -178,10 +170,6 @@ private fun ClubDetailBody(
                     onFavorite = onFavorite,
                     onBack = onBack,
                     onHome = onHome,
-                    onShowAll = {
-                        calendarFilter = ClubCalendarFilter.Today
-                        coroutineScope.launch { calendarBringIntoViewRequester.bringIntoView() }
-                    },
                 )
             },
             content = {
@@ -201,7 +189,6 @@ private fun ClubDetailBody(
                         onOpenEntity = onOpenEntity,
                         filter = calendarFilter,
                         onFilter = { calendarFilter = it },
-                        modifier = Modifier.bringIntoViewRequester(calendarBringIntoViewRequester),
                     )
                     ClubRelatedVenuesSection(
                         venues = ui.detail.relatedVenues.orEmpty(),
@@ -225,11 +212,18 @@ internal data class ClubFeaturedShow(
     val show: Show,
 )
 
+internal data class ClubMarqueePerformer(
+    val name: String,
+    val localizedStartTime: String,
+)
+
 internal data class ClubMarqueeSummary(
-    val performerNames: List<String>,
-    val remainingPerformerCount: Int,
-    val localizedStartTimes: List<String>,
-    val showCount: Int,
+    val performers: List<ClubMarqueePerformer>,
+)
+
+private data class ClubMarqueeCandidate(
+    val comedian: ComedianLineup,
+    val earliestShow: Show,
 )
 
 internal fun clubMarqueeSummary(highlights: ClubHighlights?): ClubMarqueeSummary? {
@@ -237,38 +231,46 @@ internal fun clubMarqueeSummary(highlights: ClubHighlights?): ClubMarqueeSummary
     if (tonightShows.isEmpty()) return null
 
     val chronologicalShows = tonightShows.sortedWith(Comparator(::compareClubMarqueeShows))
-    val uniquePerformers =
-        tonightShows
-            .flatMap { it.lineup.orEmpty() }
+    val performersById = mutableMapOf<Int, ClubMarqueeCandidate>()
+    chronologicalShows.forEach { show ->
+        show.lineup.orEmpty()
             .map(::effectiveClubShowComedian)
             .filter { it.name.isNotBlank() }
-            .groupBy { it.id }
-            .values
-            .map { duplicates -> duplicates.sortedWith(clubMarqueePerformerRanking).first() }
-            .sortedWith(clubMarqueePerformerRanking)
-    val performerNames =
-        uniquePerformers
+            .forEach { comedian ->
+                val existing = performersById[comedian.id]
+                if (existing == null) {
+                    performersById[comedian.id] = ClubMarqueeCandidate(comedian, show)
+                } else if (clubMarqueePerformerRanking.compare(comedian, existing.comedian) < 0) {
+                    performersById[comedian.id] = existing.copy(comedian = comedian)
+                }
+            }
+    }
+    val performers =
+        performersById.values
+            .sortedWith { left, right ->
+                clubMarqueePerformerRanking.compare(left.comedian, right.comedian)
+            }
             .take(3)
-            .map { it.name.trim() }
+            .map { candidate ->
+                ClubMarqueePerformer(
+                    name = candidate.comedian.name.trim(),
+                    localizedStartTime = clubMarqueeStartTime(candidate.earliestShow),
+                )
+            }
             .ifEmpty {
                 listOf(
-                    chronologicalShows.first().name
-                        ?.trim()
-                        ?.takeIf(String::isNotEmpty)
-                        ?: "Show",
+                    ClubMarqueePerformer(
+                        name =
+                            chronologicalShows.first().name
+                                ?.trim()
+                                ?.takeIf(String::isNotEmpty)
+                                ?: "Show",
+                        localizedStartTime = clubMarqueeStartTime(chronologicalShows.first()),
+                    ),
                 )
             }
 
-    return ClubMarqueeSummary(
-        performerNames = performerNames,
-        remainingPerformerCount = (uniquePerformers.size - performerNames.size).coerceAtLeast(0),
-        localizedStartTimes =
-            chronologicalShows
-                .map(::clubMarqueeStartTime)
-                .filter(String::isNotEmpty)
-                .distinct(),
-        showCount = tonightShows.size,
-    )
+    return ClubMarqueeSummary(performers = performers)
 }
 
 internal fun clubNextFeaturedShow(highlights: ClubHighlights?): ClubFeaturedShow? =
@@ -330,7 +332,6 @@ private fun ClubHighlightsSections(
 private fun ClubTonightMarqueeSection(
     club: ClubDetail,
     summary: ClubMarqueeSummary,
-    onShowAll: () -> Unit,
 ) {
     Surface(
         color = ClubMarqueePaper,
@@ -358,7 +359,7 @@ private fun ClubTonightMarqueeSection(
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
                     )
                 }
-                summary.performerNames.forEachIndexed { index, performerName ->
+                summary.performers.forEachIndexed { index, performer ->
                     if (index > 0) {
                         Box(
                             Modifier
@@ -372,9 +373,11 @@ private fun ClubTonightMarqueeSection(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 10.dp, vertical = 15.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            performerName.uppercase(Locale.getDefault()),
+                            performer.name.uppercase(Locale.getDefault()),
                             style =
                                 MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Black,
@@ -382,47 +385,17 @@ private fun ClubTonightMarqueeSection(
                                 ),
                             color = Color.Black,
                             modifier = Modifier.weight(1f),
-                            maxLines = 2,
+                            maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            performer.localizedStartTime.uppercase(Locale.getDefault()),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = ClubMarqueeInk.copy(alpha = 0.68f),
+                            maxLines = 1,
                         )
                     }
                 }
-                if (summary.remainingPerformerCount > 0) {
-                    Text(
-                        "+${summary.remainingPerformerCount} MORE",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
-                        color = ClubMarqueeInk.copy(alpha = 0.72f),
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                if (summary.localizedStartTimes.isNotEmpty()) {
-                    Text(
-                        summary.localizedStartTimes.joinToString(" • ").uppercase(Locale.getDefault()),
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = ClubMarqueeInk,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(ClubMarqueeInk.copy(alpha = 0.30f)),
-                )
-                Text(
-                    "View all ${summary.showCount} ${if (summary.showCount == 1) "show" else "shows"}",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
-                    color = ClubMarqueeInk,
-                    textAlign = TextAlign.Center,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .testTag(CLUB_HIGHLIGHT_SHOW_ALL_TEST_TAG)
-                            .clickable(role = Role.Button, onClick = onShowAll)
-                            .padding(vertical = 10.dp),
-                )
             }
             Canvas(Modifier.fillMaxSize()) {
                 val inset = 7.dp.toPx()
@@ -575,7 +548,6 @@ private fun ClubMarqueeHero(
     onFavorite: () -> Unit,
     onBack: () -> Unit,
     onHome: (() -> Unit)?,
-    onShowAll: () -> Unit,
 ) {
     val context = LocalContext.current
     BoxWithConstraints(
@@ -653,7 +625,6 @@ private fun ClubMarqueeHero(
                 ClubTonightMarqueeSection(
                     club = club,
                     summary = summary,
-                    onShowAll = onShowAll,
                 )
             }
         }
@@ -1051,7 +1022,6 @@ private fun ClubTicketPerforation(color: Color) {
 const val CLUB_SHOW_ROW_TEST_TAG = "club-show-row"
 const val CLUB_HIGHLIGHT_SECTION_TEST_TAG = "club-detail-highlight-section"
 const val CLUB_HIGHLIGHT_SHOW_TEST_TAG_PREFIX = "club-detail-highlight-show-"
-const val CLUB_HIGHLIGHT_SHOW_ALL_TEST_TAG = "club-detail-highlight-show-all"
 const val CLUB_CALENDAR_SECTION_TEST_TAG = "club-calendar-section"
 const val CLUB_CALENDAR_DATE_FILTER_TEST_TAG = "club-calendar-date-filter"
 const val CLUB_FREQUENT_PERFORMERS_SECTION_TEST_TAG = "club-detail-frequent-performers-section"
