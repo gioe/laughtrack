@@ -267,27 +267,7 @@ class SavedShowsRepository
             append: Boolean,
         ): Boolean {
             if (!authSessionManager.signedIn.value) return false
-            val request =
-                synchronized(stateLock) {
-                    if (!authSessionManager.signedIn.value) return@synchronized null
-                    val current = collection(period)
-                    if (append &&
-                        (current.isLoading ||
-                            current.page == 0 ||
-                            current.page >= current.totalPages ||
-                            page != current.page + 1)
-                    ) {
-                        return@synchronized null
-                    }
-                    val generation = (loadGenerations[period] ?: 0L) + 1L
-                    loadGenerations[period] = generation
-                    updateCollection(period) { it.copy(isLoading = true, errorMessage = null) }
-                    LoadStart(
-                        session = sessionGeneration,
-                        generation = generation,
-                        mutationGenerations = mutationGenerations.toMap(),
-                    )
-                } ?: return false
+            val request = beginPageLoad(period, page, append) ?: return false
 
             val result =
                 try {
@@ -358,6 +338,34 @@ class SavedShowsRepository
                 },
             )
         }
+
+        private fun beginPageLoad(
+            period: SavedShowPeriod,
+            page: Int,
+            append: Boolean,
+        ): LoadStart? =
+            synchronized(stateLock) {
+                if (!authSessionManager.signedIn.value) return@synchronized null
+                val current = collection(period)
+                if (append && isInvalidAppend(current, page)) return@synchronized null
+                val generation = (loadGenerations[period] ?: 0L) + 1L
+                loadGenerations[period] = generation
+                updateCollection(period) { it.copy(isLoading = true, errorMessage = null) }
+                LoadStart(
+                    session = sessionGeneration,
+                    generation = generation,
+                    mutationGenerations = mutationGenerations.toMap(),
+                )
+            }
+
+        private fun isInvalidAppend(
+            current: SavedShowsCollection,
+            page: Int,
+        ): Boolean =
+            current.isLoading ||
+                current.page == 0 ||
+                current.page >= current.totalPages ||
+                page != current.page + 1
 
         private fun clearLoadingAfterCancellation(
             period: SavedShowPeriod,

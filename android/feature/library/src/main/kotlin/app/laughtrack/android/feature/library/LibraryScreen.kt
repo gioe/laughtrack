@@ -690,13 +690,7 @@ private fun SavedEntityRail(
 ) {
     if (resolution == LibraryGroupResolution.EMPTY) return
 
-    val itemCount =
-        when (section) {
-            LibrarySection.COMEDIANS -> snapshot.comedians.size
-            LibrarySection.CLUBS -> snapshot.clubs.size
-            LibrarySection.PODCASTS -> snapshot.podcasts.size
-            LibrarySection.NEXT_UP -> 0
-        }
+    val itemCount = section.savedEntityCount(snapshot)
     val pageCount = libraryPageCount(itemCount)
     var displayedPage by remember(section) { mutableIntStateOf(0) }
     val currentPage = displayedPage.coerceIn(0, pageCount - 1)
@@ -786,6 +780,14 @@ private fun SavedEntityRail(
         }
     }
 }
+
+private fun LibrarySection.savedEntityCount(snapshot: FavoritesSnapshot): Int =
+    when (this) {
+        LibrarySection.COMEDIANS -> snapshot.comedians.size
+        LibrarySection.CLUBS -> snapshot.clubs.size
+        LibrarySection.PODCASTS -> snapshot.podcasts.size
+        LibrarySection.NEXT_UP -> 0
+    }
 
 @Composable
 private fun LibraryEmptyState(

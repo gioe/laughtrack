@@ -30,6 +30,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
@@ -176,45 +177,11 @@ fun EntityArtwork(
         modifier =
             Modifier
                 .size(artworkSize)
-                .then(
-                    when (kind) {
-                        SearchEntityKind.SHOW ->
-                            if (isArtworkMissing) {
-                                Modifier
-                                    .clip(shape)
-                                    .background(LaughTrackColors.SurfaceMuted)
-                                    .border(1.5.dp, frameColor, shape)
-                                    .padding(4.dp)
-                            } else {
-                                Modifier
-                            }
-                        SearchEntityKind.COMEDIAN ->
-                            Modifier
-                                .clip(shape)
-                                .background(LaughTrackColors.TicketPaper)
-                                .border(2.dp, LaughTrackColors.TicketBorder, shape)
-                                .padding(4.dp)
-                        SearchEntityKind.CLUB,
-                        SearchEntityKind.PODCAST,
-                        ->
-                            Modifier
-                                .drawBehind {
-                                    drawRoundRect(
-                                        color = frameColor,
-                                        cornerRadius = CornerRadius(8.dp.toPx()),
-                                        style =
-                                            Stroke(
-                                                width = 1.5.dp.toPx(),
-                                                cap = StrokeCap.Round,
-                                                pathEffect =
-                                                    PathEffect.dashPathEffect(
-                                                        floatArrayOf(1.dp.toPx(), 5.dp.toPx()),
-                                                    ),
-                                            ),
-                                    )
-                                }
-                                .padding(4.dp)
-                    },
+                .entityArtworkFrame(
+                    kind = kind,
+                    isArtworkMissing = isArtworkMissing,
+                    shape = shape,
+                    frameColor = frameColor,
                 )
                 .clip(shape)
                 .background(fillColor),
@@ -279,6 +246,53 @@ fun EntityArtwork(
         }
     }
 }
+
+private fun Modifier.entityArtworkFrame(
+    kind: SearchEntityKind,
+    isArtworkMissing: Boolean,
+    shape: Shape,
+    frameColor: Color,
+): Modifier =
+    then(
+        when (kind) {
+            SearchEntityKind.SHOW ->
+                if (isArtworkMissing) {
+                    Modifier
+                        .clip(shape)
+                        .background(LaughTrackColors.SurfaceMuted)
+                        .border(1.5.dp, frameColor, shape)
+                        .padding(4.dp)
+                } else {
+                    Modifier
+                }
+            SearchEntityKind.COMEDIAN ->
+                Modifier
+                    .clip(shape)
+                    .background(LaughTrackColors.TicketPaper)
+                    .border(2.dp, LaughTrackColors.TicketBorder, shape)
+                    .padding(4.dp)
+            SearchEntityKind.CLUB,
+            SearchEntityKind.PODCAST,
+            ->
+                Modifier
+                    .drawBehind {
+                        drawRoundRect(
+                            color = frameColor,
+                            cornerRadius = CornerRadius(8.dp.toPx()),
+                            style =
+                                Stroke(
+                                    width = 1.5.dp.toPx(),
+                                    cap = StrokeCap.Round,
+                                    pathEffect =
+                                        PathEffect.dashPathEffect(
+                                            floatArrayOf(1.dp.toPx(), 5.dp.toPx()),
+                                        ),
+                                ),
+                        )
+                    }
+                    .padding(4.dp)
+        },
+    )
 
 /**
  * Network-free artwork for named shows and comedians. A stable title hash picks

@@ -143,14 +143,20 @@ class SavedShowsRepositoryTest {
                             SavedShowsApi.PeriodGetSavedShows.UPCOMING ->
                                 if (page == 2) {
                                     listResponse(
-                                        listOf(show(2, "2026-08-02T20:00:00.000Z"), show(3, "2026-08-03T20:00:00.000Z")),
+                                        listOf(
+                                            show(2, "2026-08-02T20:00:00.000Z"),
+                                            show(3, "2026-08-03T20:00:00.000Z"),
+                                        ),
                                         page = 2,
                                         total = 3,
                                         totalPages = 2,
                                     )
                                 } else {
                                     listResponse(
-                                        listOf(show(2, "2026-08-02T20:00:00.000Z"), show(1, "2026-08-01T20:00:00.000Z")),
+                                        listOf(
+                                            show(2, "2026-08-02T20:00:00.000Z"),
+                                            show(1, "2026-08-01T20:00:00.000Z"),
+                                        ),
                                         page = 1,
                                         total = 3,
                                         totalPages = 2,
@@ -715,13 +721,12 @@ class SavedShowsRepositoryTest {
         fun show(
             id: Int,
             date: String = "2026-08-01T20:00:00.000Z",
-        ) =
-            Show(
-                id = id,
-                clubId = 10,
-                date = date,
-                imageUrl = "https://example.com/show-$id.jpg",
-            )
+        ) = Show(
+            id = id,
+            clubId = 10,
+            date = date,
+            imageUrl = "https://example.com/show-$id.jpg",
+        )
 
         fun stateResponse(isSaved: Boolean): Response<SavedShowStateResponse> =
             Response.success(SavedShowStateResponse(SavedShowState(isSaved)))
