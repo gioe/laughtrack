@@ -585,6 +585,7 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
             }
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel(rowAccessibilityLabel)
             .accessibilityIdentifier(accessibilityIdentifier ?? "")
 
@@ -1146,6 +1147,7 @@ struct LaughTrackPagedControls: View {
 
     private var pageStatus: some View {
         LaughTrackBrowseChip(pageLabel, tone: .subtle)
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel(pageLabel)
             .modifier(PagedControlAccessibilityIdentifierModifier(
                 identifier: accessibilityIdentifierPrefix.map { "\($0).current" }
@@ -1170,6 +1172,7 @@ struct LaughTrackPagedControls: View {
             .fixedSize(horizontal: true, vertical: false)
             .disabled(isDisabled)
             .opacity(isDisabled ? 0.5 : 1)
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel("\(title) page")
             .modifier(PagedControlAccessibilityIdentifierModifier(
                 identifier: accessibilityIdentifierPrefix.map { "\($0).\(identifierSuffix)" }
@@ -1200,6 +1203,7 @@ struct LaughTrackPagedControls: View {
         .buttonStyle(.plain)
         .disabled(isDisabled)
         .opacity(isDisabled ? 0.5 : 1)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
         .modifier(PagedControlAccessibilityIdentifierModifier(
             identifier: accessibilityIdentifierPrefix.map { "\($0).\(identifierSuffix)" }
