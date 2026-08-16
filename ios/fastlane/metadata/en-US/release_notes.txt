@@ -1,3 +1,4 @@
 Improvements
-• Consolidate Discover recommendation rails
-• Update iOS 2.7.0 release notes
+• Discover shows from your favorite comedians in one streamlined place
+• Browse richer venue pages with artwork and tonight's lineup
+• Enjoy refreshed search and podcast discovery
