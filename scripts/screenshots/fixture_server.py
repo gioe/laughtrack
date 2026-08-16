@@ -15,15 +15,15 @@ from urllib.parse import parse_qs, urlparse
 
 
 ASSET_ROOT = Path(__file__).with_name("assets")
-REVIEW_ANCHOR_DATE = date(2026, 8, 5)
-PRIMARY_SHOW_DATE = date(2026, 8, 14)
-SECONDARY_SHOW_DATE = date(2026, 8, 15)
+REVIEW_ANCHOR_DATE = date(2026, 8, 15)
+PRIMARY_SHOW_DATE = date(2026, 8, 16)
+SECONDARY_SHOW_DATE = date(2026, 8, 17)
 EPISODE_RELEASE_DATE = REVIEW_ANCHOR_DATE - timedelta(days=4)
 HOME_FEED_EPISODE_RELEASE_DATETIME = (
     f"{EPISODE_RELEASE_DATE.isoformat()}T12:00:00.000Z"
 )
-PRIMARY_SHOW_DATETIME = f"{PRIMARY_SHOW_DATE.isoformat()}T20:00:00-07:00"
-SECONDARY_SHOW_DATETIME = f"{SECONDARY_SHOW_DATE.isoformat()}T21:00:00-07:00"
+PRIMARY_SHOW_DATETIME = f"{PRIMARY_SHOW_DATE.isoformat()}T20:00:00-04:00"
+SECONDARY_SHOW_DATETIME = f"{SECONDARY_SHOW_DATE.isoformat()}T21:00:00-04:00"
 ARTWORK_ASSETS = {
     "ali-wong": {
         "filename": "ali-wong.png",
@@ -116,6 +116,13 @@ ARTWORK_ASSETS = {
         "height": 640,
         "category": "podcast_art",
     },
+    "history-hyenas": {
+        "filename": "history-hyenas.png",
+        "sha256": "053c091b05d8b02c89bbe2c990e18424599081133d24b67db2eb3fbb50cc251c",
+        "width": 640,
+        "height": 640,
+        "category": "podcast_art",
+    },
     "conan": {
         "filename": "conan.png",
         "sha256": "a27bdd937115eca586060cd633014f5124977f8542057323e08435a7c97bd227",
@@ -141,7 +148,7 @@ ARTWORK_ASSETS = {
 
 
 CONTENT_FIXTURE = {
-    "id": "native-screenshot-v3",
+    "id": "native-screenshot-v4",
     "default_mode": "curated",
     "review_anchor_date": REVIEW_ANCHOR_DATE.isoformat(),
     "profile_modes": {
@@ -159,18 +166,18 @@ CONTENT_FIXTURE = {
     },
     "modes": {
         "fallback-focused": {
-            "id": "native-screenshot-fallback-focused-v2",
+            "id": "native-screenshot-fallback-focused-v3",
             "result_count": 5,
             "featured_entities": {
-                "club": {"id": 201, "name": "The Comedy Store"},
+                "club": {"id": 202, "name": "Comedy Cellar"},
                 "show": {
-                    "id": 101,
+                    "id": 201,
                     "name": "Taylor Tomlinson & Friends",
                     "headliner": "Taylor Tomlinson",
                 },
                 "comedian": {"id": 301, "name": "Ali Wong"},
-                "podcast": {"id": 401, "name": "The Joe Rogan Experience"},
-                "episode": {"id": 501, "name": "#2520 - A Night of Comedy"},
+                "podcast": {"id": 401, "name": "History Hyenas"},
+                "episode": {"id": 501, "name": "The Wildest Feuds in History"},
             },
             "dates": {
                 "primary_show": PRIMARY_SHOW_DATETIME,
@@ -181,25 +188,26 @@ CONTENT_FIXTURE = {
                     "ali-wong",
                     "taylor",
                     "comedy-store",
+                    "comedy-cellar",
                     "show-friends",
-                    "joe-rogan",
+                    "history-hyenas",
                 ],
                 "fallback_policy": "Authenticated screenshot persona omits remote artwork and uses each platform's branded fallback.",
             },
         },
         "curated": {
-            "id": "native-screenshot-curated-v1",
+            "id": "native-screenshot-curated-v2",
             "result_count": 12,
             "featured_entities": {
-                "club": {"id": 201, "name": "The Comedy Store"},
+                "club": {"id": 202, "name": "Comedy Cellar"},
                 "show": {
-                    "id": 101,
+                    "id": 201,
                     "name": "Taylor Tomlinson & Friends",
                     "headliner": "Taylor Tomlinson",
                 },
                 "comedian": {"id": 301, "name": "Ali Wong"},
-                "podcast": {"id": 401, "name": "The Joe Rogan Experience"},
-                "episode": {"id": 501, "name": "#2520 - A Night of Comedy"},
+                "podcast": {"id": 401, "name": "History Hyenas"},
+                "episode": {"id": 501, "name": "The Wildest Feuds in History"},
             },
             "dates": {
                 "primary_show": PRIMARY_SHOW_DATETIME,
@@ -219,7 +227,7 @@ CONTENT_FIXTURE = {
                     "show-showcase",
                     "show-best-of-la",
                     "show-late-night",
-                    "joe-rogan",
+                    "history-hyenas",
                     "conan",
                     "jtrain",
                     "wtf",
@@ -238,7 +246,7 @@ CONTENT_FIXTURE = {
                         "show-best-of-la",
                         "show-late-night",
                     ],
-                    "podcast_art": ["joe-rogan", "conan", "jtrain", "wtf"],
+                    "podcast_art": ["history-hyenas", "conan", "jtrain", "wtf"],
                 },
             },
         },
@@ -282,7 +290,7 @@ CLUB_NAMES = [
 ]
 CLUB_ARTWORK = ["comedy-store", "comedy-cellar", "the-stand", "hollywood-improv"]
 PODCAST_TITLES = [
-    "The Joe Rogan Experience",
+    "History Hyenas",
     "Conan O'Brien Needs a Friend",
     "The JTrain Podcast",
     "WTF with Marc Maron",
@@ -295,7 +303,7 @@ PODCAST_TITLES = [
     "The HoneyDew",
     "Working It Out",
 ]
-PODCAST_ARTWORK = ["joe-rogan", "conan", "jtrain", "wtf"]
+PODCAST_ARTWORK = ["history-hyenas", "conan", "jtrain", "wtf"]
 SHOW_ARTWORK = ["show-friends", "show-showcase", "show-best-of-la", "show-late-night"]
 SHOW_NAMES = [
     "Taylor Tomlinson & Friends",
@@ -426,28 +434,56 @@ def _show(
     lineup: list[dict] | None = None,
     show_date: date | None = None,
     mode: str = DEFAULT_MODE,
+    club_id: int = 201,
+    club_name: str = "The Comedy Store",
+    club_city: str = "West Hollywood",
+    club_state: str = "CA",
+    club_timezone: str = "America/Los_Angeles",
+    utc_offset: str = "-07:00",
+    room: str = "Main Room",
 ) -> dict:
     resolved_date = show_date or (
         PRIMARY_SHOW_DATE if show_id == 101 else SECONDARY_SHOW_DATE
     )
     return {
         "id": show_id,
-        "clubId": 201,
-        "date": f"{resolved_date.isoformat()}T{hour:02d}:00:00-07:00",
+        "clubId": club_id,
+        "date": f"{resolved_date.isoformat()}T{hour:02d}:00:00{utc_offset}",
         "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
-        "clubName": "The Comedy Store",
-        "clubCity": "West Hollywood",
-        "clubState": "CA",
+        "clubName": club_name,
+        "clubCity": club_city,
+        "clubState": club_state,
         "name": name,
-        "room": "Main Room",
-        "timezone": "America/Los_Angeles",
+        "room": room,
+        "timezone": club_timezone,
         "soldOut": False,
         "tickets": [{"price": 40, "purchaseUrl": f"https://example.invalid/tickets/{show_id}", "soldOut": False, "type": "General Admission"}],
         "lineup": lineup if lineup is not None else [_lineup(base_url, mode=mode)],
     }
 
 
-def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
+def _club_shows(
+    base_url: str,
+    mode: str = DEFAULT_MODE,
+    *,
+    id_offset: int = 0,
+    club_id: int = 201,
+    club_name: str = "The Comedy Store",
+    club_city: str = "West Hollywood",
+    club_state: str = "CA",
+    club_timezone: str = "America/Los_Angeles",
+    utc_offset: str = "-07:00",
+    room: str = "Main Room",
+) -> list[dict]:
+    club_kwargs = {
+        "club_id": club_id,
+        "club_name": club_name,
+        "club_city": club_city,
+        "club_state": club_state,
+        "club_timezone": club_timezone,
+        "utc_offset": utc_offset,
+        "room": room,
+    }
     taylor = _lineup(base_url, mode=mode)
     ali = _lineup(base_url, 0, "Ali Wong", popularity=96, show_count=36, mode=mode)
     andrew = _lineup(base_url, 2, "Andrew Schulz", popularity=94, show_count=34, mode=mode)
@@ -457,48 +493,52 @@ def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
     tonight = [
         _show(
             base_url,
-            101,
+            101 + id_offset,
             "Taylor Tomlinson & Friends",
             20,
             tonight_artwork[0],
             lineup=[taylor],
             show_date=PRIMARY_SHOW_DATE,
             mode=mode,
+            **club_kwargs,
         ),
         _show(
             base_url,
-            106,
+            106 + id_offset,
             "Ali Wong: Live",
             19,
             tonight_artwork[1],
             lineup=[ali],
             show_date=PRIMARY_SHOW_DATE,
             mode=mode,
+            **club_kwargs,
         ),
         _show(
             base_url,
-            107,
+            107 + id_offset,
             "Andrew Schulz: New Material",
             21,
             tonight_artwork[2],
             lineup=[andrew],
             show_date=PRIMARY_SHOW_DATE,
             mode=mode,
+            **club_kwargs,
         ),
         _show(
             base_url,
-            108,
+            108 + id_offset,
             "Late Night with Taylor",
             22,
             tonight_artwork[3],
             lineup=[taylor],
             show_date=PRIMARY_SHOW_DATE,
             mode=mode,
+            **club_kwargs,
         ),
     ]
     later = []
     reserved_ids = {show["id"] for show in tonight}
-    show_id = 102
+    show_id = 102 + id_offset
     while len(later) < 41:
         if show_id in reserved_ids:
             show_id += 1
@@ -527,10 +567,26 @@ def _club_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
                 lineup=[] if index == 0 else [lineup],
                 show_date=SECONDARY_SHOW_DATE + timedelta(days=index // 5),
                 mode=mode,
+                **club_kwargs,
             )
         )
         show_id += 1
     return tonight + later
+
+
+def _comedy_cellar_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
+    return _club_shows(
+        base_url,
+        mode,
+        id_offset=100,
+        club_id=202,
+        club_name="Comedy Cellar",
+        club_city="New York",
+        club_state="NY",
+        club_timezone="America/New_York",
+        utc_offset="-04:00",
+        room="Main Room",
+    )
 
 
 def _club_tonight_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
@@ -540,27 +596,44 @@ def _club_tonight_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
     ]
 
 
-def _podcast_host(base_url: str) -> dict:
-    return {
-        "id": 304,
-        "uuid": "fixture-304",
-        "name": "Joe Rogan",
-        "imageUrl": f"{base_url}/artwork/joe-rogan.png",
-    }
+def _comedy_cellar_tonight_shows(
+    base_url: str, mode: str = DEFAULT_MODE
+) -> list[dict]:
+    return [
+        show for show in _comedy_cellar_shows(base_url, mode)
+        if show["date"].startswith(PRIMARY_SHOW_DATE.isoformat())
+    ]
+
+
+def _podcast_hosts(base_url: str) -> list[dict]:
+    return [
+        {
+            "id": 304,
+            "uuid": "fixture-304",
+            "name": "Chris Distefano",
+            "imageUrl": f"{base_url}/artwork/history-hyenas.png",
+        },
+        {
+            "id": 305,
+            "uuid": "fixture-305",
+            "name": "Yannis Pappas",
+            "imageUrl": f"{base_url}/artwork/history-hyenas.png",
+        },
+    ]
 
 
 def _podcast(base_url: str) -> dict:
     return {
         "id": 401,
-        "slug": "joe-rogan-experience",
-        "title": "The Joe Rogan Experience",
-        "episodeCount": 2520,
-        "hosts": [_podcast_host(base_url)],
-        "authorName": "Joe Rogan",
-        "websiteUrl": "https://example.invalid/podcasts/jre",
-        "feedUrl": "https://example.invalid/feeds/jre",
-        "imageUrl": f"{base_url}/artwork/joe-rogan.png",
-        "description": "Long-form conversations with comedians, artists, and fascinating guests.",
+        "slug": "history-hyenas",
+        "title": "History Hyenas",
+        "episodeCount": 130,
+        "hosts": _podcast_hosts(base_url),
+        "authorName": "Chris Distefano & Yannis Pappas",
+        "websiteUrl": "https://example.invalid/podcasts/history-hyenas",
+        "feedUrl": "https://example.invalid/feeds/history-hyenas",
+        "imageUrl": f"{base_url}/artwork/history-hyenas.png",
+        "description": "Comedians tear through history's strangest characters, rivalries, and disasters.",
         "isFavorite": False,
     }
 
@@ -568,18 +641,24 @@ def _podcast(base_url: str) -> dict:
 def _podcast_episode(base_url: str) -> dict:
     return {
         "id": 501,
-        "title": "#2520 - A Night of Comedy",
-        "description": "A conversation about stand-up, new material, and life on the road.",
+        "title": "The Wildest Feuds in History",
+        "description": "A fast, funny tour through the rivalries that changed history.",
         "releaseDate": EPISODE_RELEASE_DATE.isoformat(),
-        "durationSeconds": 8940,
+        "durationSeconds": 4260,
         "episodeUrl": "https://example.invalid/episodes/501",
         "audioUrl": "https://example.invalid/audio/501.mp3",
         "appearances": [
             {
                 "id": 304,
                 "uuid": "fixture-304",
-                "name": "Joe Rogan",
-                "imageUrl": f"{base_url}/artwork/joe-rogan.png",
+                "name": "Chris Distefano",
+                "imageUrl": f"{base_url}/artwork/history-hyenas.png",
+            },
+            {
+                "id": 305,
+                "uuid": "fixture-305",
+                "name": "Yannis Pappas",
+                "imageUrl": f"{base_url}/artwork/history-hyenas.png",
             },
             {
                 "id": 301,
@@ -595,7 +674,7 @@ def _home_feed_podcast_episode(base_url: str) -> dict:
     episode = _podcast_episode(base_url)
     episode["releaseDate"] = HOME_FEED_EPISODE_RELEASE_DATETIME
     podcast = _podcast(base_url)
-    guest = episode["appearances"][1]
+    guest = episode["appearances"][-1]
     return {
         key: episode[key]
         for key in (
@@ -675,17 +754,25 @@ def fixture_response(
                 )
             ],
             "podcastEpisodes": [_home_feed_podcast_episode(base_url)],
-            "trendingPodcasts": [{"id": 401, "slug": "joe-rogan-experience", "title": "The Joe Rogan Experience", "episodeCount": 2520, "authorName": "Joe Rogan", "imageUrl": f"{base_url}/artwork/joe-rogan.png"}],
+            "trendingPodcasts": [{"id": 401, "slug": "history-hyenas", "title": "History Hyenas", "episodeCount": 130, "authorName": "Chris Distefano & Yannis Pappas", "imageUrl": f"{base_url}/artwork/history-hyenas.png"}],
             "popularClubs": [{"id": 201, "address": "8433 Sunset Blvd, West Hollywood, CA", "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "activeComedianCount": 120, "zipCode": "90069"}],
         }}
     if path == f"{API_PREFIX}shows/search":
-        is_pinned_club_search = bool((query or {}).get("club"))
+        is_pinned_club_search = bool(
+            (query or {}).get("club") or (query or {}).get("clubId")
+        )
         total = 45 if is_pinned_club_search else result_count
         page = int((query or {}).get("page", ["0"])[0])
         size = int((query or {}).get("size", [str(total)])[0])
         start = max(0, page) * size
         end = min(start + size, total)
-        catalog = _club_shows(base_url, mode)
+        club_query = (query or {}).get("club", [""])[0]
+        club_id_query = (query or {}).get("clubId", [""])[0]
+        catalog = (
+            _comedy_cellar_shows(base_url, mode)
+            if "comedy cellar" in club_query.casefold() or club_id_query == "202"
+            else _club_shows(base_url, mode)
+        )
         shows = catalog[start:end]
         return {"data": shows, "total": total, "filters": [], "zipCapTriggered": False}
     if path in {f"{API_PREFIX}comedians/search", f"{API_PREFIX}comedians/suggestions"}:
@@ -699,38 +786,52 @@ def fixture_response(
             response.update({"total": result_count, "filters": [], "homeCityFilters": []})
         return response
     if path == f"{API_PREFIX}clubs/search":
-        return {"data": [
+        clubs = [
             {
                 "id": 201 + index,
                 "name": name,
-                "imageUrl": f"{base_url}/artwork/{'comedy-store' if mode == FALLBACK_MODE else CLUB_ARTWORK[index % len(CLUB_ARTWORK)]}.png",
-                "address": "8433 Sunset Blvd",
-                "zipCode": "90069",
+                "imageUrl": f"{base_url}/artwork/{'comedy-cellar' if name == 'Comedy Cellar' else ('comedy-store' if mode == FALLBACK_MODE else CLUB_ARTWORK[index % len(CLUB_ARTWORK)])}.png",
+                "address": "117 MacDougal St" if name == "Comedy Cellar" else "8433 Sunset Blvd",
+                "zipCode": "10012" if name == "Comedy Cellar" else "90069",
                 "showCount": 120 - index * (10 if mode == FALLBACK_MODE else 5),
                 "activeComedianCount": 80 - index,
-                "city": "West Hollywood",
-                "state": "CA",
+                "city": "New York" if name == "Comedy Cellar" else "West Hollywood",
+                "state": "NY" if name == "Comedy Cellar" else "CA",
                 "isFavorite": False,
             }
             for index, name in enumerate(CLUB_NAMES[:result_count])
-        ], "total": result_count, "filters": []}
+        ]
+        club_query = (query or {}).get("club", [""])[0].strip().casefold()
+        if club_query:
+            clubs = [club for club in clubs if club_query in club["name"].casefold()]
+        return {"data": clubs, "total": len(clubs), "filters": []}
     if path == f"{API_PREFIX}podcasts/search":
-        return {"data": [
+        podcasts = [
             {
                 "id": 401 + index,
                 "slug": f"fixture-{401 + index}",
                 "title": title,
-                "episodeCount": 2520 - index * 100,
-                "hosts": [_podcast_host(base_url)],
+                "episodeCount": 130 - index * 5,
+                "hosts": _podcast_hosts(base_url),
                 "authorName": "Comedy Podcast Network",
-                "imageUrl": f"{base_url}/artwork/{'joe-rogan' if mode == FALLBACK_MODE else PODCAST_ARTWORK[index % len(PODCAST_ARTWORK)]}.png",
+                "imageUrl": f"{base_url}/artwork/{'history-hyenas' if mode == FALLBACK_MODE else PODCAST_ARTWORK[index % len(PODCAST_ARTWORK)]}.png",
                 "description": "Stand-up conversations and new episodes every week.",
                 "isFavorite": False,
             }
             for index, title in enumerate(PODCAST_TITLES[:result_count])
-        ], "total": result_count, "filters": []}
+        ]
+        podcast_query = (query or {}).get("q", [""])[0].strip().casefold()
+        if podcast_query:
+            podcasts = [
+                podcast
+                for podcast in podcasts
+                if podcast_query in podcast["title"].casefold()
+            ]
+        return {"data": podcasts, "total": len(podcasts), "filters": []}
     if path == f"{API_PREFIX}clubs/201":
         return {"data": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "heroImageUrl": f"{base_url}/artwork/comedy-store.png", "website": "https://thecomedystore.com", "address": "8433 Sunset Blvd, West Hollywood, CA", "zipCode": "90069", "phoneNumber": "(323) 650-6268"}}
+    if path == f"{API_PREFIX}clubs/202":
+        return {"data": {"id": 202, "name": "Comedy Cellar", "imageUrl": f"{base_url}/artwork/comedy-cellar.png", "heroImageUrl": f"{base_url}/artwork/comedy-cellar.png", "website": "https://www.comedycellar.com", "address": "117 MacDougal St, New York, NY", "zipCode": "10012", "phoneNumber": "(212) 254-3480"}}
     if path == f"{API_PREFIX}clubs/201/highlights":
         return {
             "data": {
@@ -742,19 +843,41 @@ def fixture_response(
                 ],
             }
         }
+    if path == f"{API_PREFIX}clubs/202/highlights":
+        return {
+            "data": {
+                "tonightShows": _comedy_cellar_tonight_shows(base_url, mode),
+                "nextShow": _comedy_cellar_shows(base_url, mode)[4],
+                "frequentPerformers": [
+                    _comedian(base_url, index, name, mode)
+                    for index, name in enumerate(COMEDIAN_NAMES[:3])
+                ],
+            }
+        }
     if path == f"{API_PREFIX}clubs/201/shows":
         return {
             "data": _club_shows(base_url, mode)[:result_count],
             "total": result_count,
         }
+    if path == f"{API_PREFIX}clubs/202/shows":
+        return {
+            "data": _comedy_cellar_shows(base_url, mode)[:result_count],
+            "total": result_count,
+        }
     show_detail_prefix = f"{API_PREFIX}shows/"
     if path.startswith(show_detail_prefix) and path.removeprefix(show_detail_prefix).isdigit():
         show_id = int(path.removeprefix(show_detail_prefix))
+        all_shows = _club_shows(base_url, mode) + _comedy_cellar_shows(base_url, mode)
         show = next(
-            (item for item in _club_shows(base_url, mode) if item["id"] == show_id),
+            (item for item in all_shows if item["id"] == show_id),
             _show(base_url, show_id, mode=mode),
         )
-        return {"data": {**show, "showPageUrl": f"https://example.invalid/show/{show_id}", "club": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "address": "8433 Sunset Blvd, West Hollywood, CA", "timezone": "America/Los_Angeles"}, "cta": {"label": "Buy tickets", "isSoldOut": False, "url": f"https://example.invalid/tickets/{show_id}"}, "description": "A special night of new material and surprise guests."}, "relatedShows": []}
+        club = (
+            {"id": 202, "name": "Comedy Cellar", "imageUrl": f"{base_url}/artwork/comedy-cellar.png", "address": "117 MacDougal St, New York, NY", "timezone": "America/New_York"}
+            if show["clubId"] == 202
+            else {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "address": "8433 Sunset Blvd, West Hollywood, CA", "timezone": "America/Los_Angeles"}
+        )
+        return {"data": {**show, "showPageUrl": f"https://example.invalid/show/{show_id}", "club": club, "cta": {"label": "Buy tickets", "isSoldOut": False, "url": f"https://example.invalid/tickets/{show_id}"}, "description": "A special night of new material and surprise guests."}, "relatedShows": []}
     if path == f"{API_PREFIX}comedians/301":
         return {"data": {"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": f"{base_url}/artwork/ali-wong.png", "socialData": _social(301, "aliwong"), "podcastAppearances": [], "homeLocation": {"city": "San Francisco", "state": "CA", "country": "US"}}}
     if path == f"{API_PREFIX}comedians/301/upcoming-runs":

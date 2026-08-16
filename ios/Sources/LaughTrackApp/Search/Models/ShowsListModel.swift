@@ -313,7 +313,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
 
     func activeConstraints(availableFilters: [Components.Schemas.Filter]) -> [ShowActiveConstraint] {
         var constraints: [ShowActiveConstraint] = []
-        if let activeLocationLabel {
+        if allowsLocationFiltering, let activeLocationLabel {
             constraints.append(.init(kind: .location, label: "\(activeLocationLabel) · \(distance.title)"))
         }
         if dateRange.isActive {

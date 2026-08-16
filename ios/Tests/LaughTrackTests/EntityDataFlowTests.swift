@@ -3,6 +3,7 @@ import HTTPTypes
 import OpenAPIRuntime
 import Testing
 import LaughTrackAPIClient
+import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
@@ -375,9 +376,21 @@ struct EntityDataFlowTests {
                 """
             )
         }
+        let suiteName = "EntityDataFlowTests.pinned-club.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let nearbyStore = NearbyPreferenceStore(
+            appStateStorage: AppStateStorage(userDefaults: defaults)
+        )
+        nearbyStore.setManualZip(
+            "90028",
+            distanceMiles: 25,
+            city: "Los Angeles",
+            state: "CA"
+        )
         let model = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
-                store: NearbyPreferenceStore(),
+                store: nearbyStore,
                 resolver: StubNearbyLocationResolver(),
                 zipLocationResolver: StubZipLocationResolver()
             ),
@@ -396,6 +409,9 @@ struct EntityDataFlowTests {
         let path = transport.capturedRequests.last?.path
         #expect(model.isClubPinned)
         #expect(!model.allowsLocationFiltering)
+        #expect(!model.activeConstraints(availableFilters: []).contains { constraint in
+            constraint.kind == .location
+        })
         #expect(queryValue("club", from: path) == "Comedy Cellar")
         #expect(queryValue("comedian", from: path) == "Mark Normand")
     }

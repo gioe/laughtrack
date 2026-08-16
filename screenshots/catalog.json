@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "content_fixture": {
-    "id": "native-screenshot-v3",
+    "id": "native-screenshot-v4",
     "default_mode": "curated",
-    "review_anchor_date": "2026-08-05",
+    "review_anchor_date": "2026-08-15",
     "profile_modes": {
       "ios_phone": "curated",
       "ios_large_tablet": "curated",
@@ -107,6 +107,13 @@
           "height": 640,
           "category": "podcast_art"
         },
+        "history-hyenas": {
+          "filename": "history-hyenas.png",
+          "sha256": "053c091b05d8b02c89bbe2c990e18424599081133d24b67db2eb3fbb50cc251c",
+          "width": 640,
+          "height": 640,
+          "category": "podcast_art"
+        },
         "conan": {
           "filename": "conan.png",
           "sha256": "a27bdd937115eca586060cd633014f5124977f8542057323e08435a7c97bd227",
@@ -132,50 +139,50 @@
     },
     "modes": {
       "fallback-focused": {
-        "id": "native-screenshot-fallback-focused-v2",
+        "id": "native-screenshot-fallback-focused-v3",
         "result_count": 5,
         "featured_entities": {
-          "club": { "id": 201, "name": "The Comedy Store" },
-          "show": { "id": 101, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
+          "club": { "id": 202, "name": "Comedy Cellar" },
+          "show": { "id": 201, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
           "comedian": { "id": 301, "name": "Ali Wong" },
-          "podcast": { "id": 401, "name": "The Joe Rogan Experience" },
-          "episode": { "id": 501, "name": "#2520 - A Night of Comedy" }
+          "podcast": { "id": 401, "name": "History Hyenas" },
+          "episode": { "id": 501, "name": "The Wildest Feuds in History" }
         },
         "dates": {
-          "primary_show": "2026-08-14T20:00:00-07:00",
-          "secondary_show": "2026-08-15T21:00:00-07:00"
+          "primary_show": "2026-08-16T20:00:00-04:00",
+          "secondary_show": "2026-08-17T21:00:00-04:00"
         },
         "artwork": {
-          "required_keys": ["ali-wong", "taylor", "comedy-store", "show-friends", "joe-rogan"],
+          "required_keys": ["ali-wong", "taylor", "comedy-store", "comedy-cellar", "show-friends", "history-hyenas"],
           "fallback_policy": "Authenticated screenshot persona omits remote artwork and uses each platform's branded fallback."
         }
       },
       "curated": {
-        "id": "native-screenshot-curated-v1",
+        "id": "native-screenshot-curated-v2",
         "result_count": 12,
         "featured_entities": {
-          "club": { "id": 201, "name": "The Comedy Store" },
-          "show": { "id": 101, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
+          "club": { "id": 202, "name": "Comedy Cellar" },
+          "show": { "id": 201, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
           "comedian": { "id": 301, "name": "Ali Wong" },
-          "podcast": { "id": 401, "name": "The Joe Rogan Experience" },
-          "episode": { "id": 501, "name": "#2520 - A Night of Comedy" }
+          "podcast": { "id": 401, "name": "History Hyenas" },
+          "episode": { "id": 501, "name": "The Wildest Feuds in History" }
         },
         "dates": {
-          "primary_show": "2026-08-14T20:00:00-07:00",
-          "secondary_show": "2026-08-15T21:00:00-07:00"
+          "primary_show": "2026-08-16T20:00:00-04:00",
+          "secondary_show": "2026-08-17T21:00:00-04:00"
         },
         "artwork": {
           "required_keys": [
             "ali-wong", "taylor", "andrew-schulz", "josh-johnson",
             "comedy-store", "comedy-cellar", "the-stand", "hollywood-improv",
             "show-friends", "show-showcase", "show-best-of-la", "show-late-night",
-            "joe-rogan", "conan", "jtrain", "wtf"
+            "history-hyenas", "conan", "jtrain", "wtf"
           ],
           "categories": {
             "portraits": ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"],
             "club_logos": ["comedy-store", "comedy-cellar", "the-stand", "hollywood-improv"],
             "show_art": ["show-friends", "show-showcase", "show-best-of-la", "show-late-night"],
-            "podcast_art": ["joe-rogan", "conan", "jtrain", "wtf"]
+            "podcast_art": ["history-hyenas", "conan", "jtrain", "wtf"]
           }
         }
       }
@@ -216,7 +223,7 @@
       "capture_context": {
         "screen": "club_detail",
         "source_scenario_id": "04_SearchClubs",
-        "query": "The Comedy Store",
+        "query": "Comedy Cellar",
         "selection": "first_result"
       }
     },
@@ -254,7 +261,7 @@
       "capture_context": {
         "screen": "podcast_detail",
         "source_scenario_id": "08_SearchPodcasts",
-        "query": "The Joe Rogan Experience",
+        "query": "History Hyenas",
         "selection": "first_result"
       }
     },

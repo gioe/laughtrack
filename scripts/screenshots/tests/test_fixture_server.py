@@ -187,7 +187,7 @@ def test_shipping_profiles_share_storefront_narrative() -> None:
     }
     assert all(
         contract["featured_entities"]["show"] == {
-            "id": 101,
+            "id": 201,
             "name": "Taylor Tomlinson & Friends",
             "headliner": "Taylor Tomlinson",
         }
@@ -198,9 +198,9 @@ def test_shipping_profiles_share_storefront_narrative() -> None:
 def test_fixture_dates_are_plausible_and_deterministic() -> None:
     review_anchor = date.fromisoformat(CONTENT_FIXTURE["review_anchor_date"])
     assert REVIEW_ANCHOR_DATE == review_anchor
-    assert PRIMARY_SHOW_DATE == date(2026, 8, 14)
-    assert SECONDARY_SHOW_DATE == date(2026, 8, 15)
-    assert EPISODE_RELEASE_DATE == date(2026, 8, 1)
+    assert PRIMARY_SHOW_DATE == date(2026, 8, 16)
+    assert SECONDARY_SHOW_DATE == date(2026, 8, 17)
+    assert EPISODE_RELEASE_DATE == date(2026, 8, 11)
 
     payloads = {}
     for mode, contract in CONTENT_FIXTURE["modes"].items():
@@ -213,13 +213,18 @@ def test_fixture_dates_are_plausible_and_deterministic() -> None:
             key: datetime.fromisoformat(value)
             for key, value in contract["dates"].items()
         }
-        shows_by_id = {show["id"]: show for show in first["data"]}
+        shows_by_id = {
+            show_id: fixture_response(
+                f"/api/v1/shows/{show_id}", "http://fixture", mode
+            )["data"]
+            for show_id in (201, 202)
+        }
         assert (
-            datetime.fromisoformat(shows_by_id[101]["date"])
+            datetime.fromisoformat(shows_by_id[201]["date"])
             == contract_dates["primary_show"]
         )
         assert (
-            datetime.fromisoformat(shows_by_id[102]["date"])
+            datetime.fromisoformat(shows_by_id[202]["date"])
             == contract_dates["secondary_show"]
         )
         assert 0 < (contract_dates["primary_show"].date() - review_anchor).days <= 30
@@ -269,7 +274,7 @@ def test_show_101_contract_is_shared_across_native_capture_endpoints() -> None:
     } == {
         "id": 101,
         "name": "Taylor Tomlinson & Friends",
-        "date": "2026-08-14T20:00:00-07:00",
+        "date": "2026-08-16T20:00:00-07:00",
         "clubId": 201,
         "clubName": "The Comedy Store",
         "clubCity": "West Hollywood",
@@ -329,15 +334,15 @@ def test_home_feed_includes_deterministic_podcast_episode_discovery() -> None:
     assert len(home["podcastEpisodes"]) == 1
     episode = home["podcastEpisodes"][0]
     assert episode["id"] == 501
-    assert episode["title"] == "#2520 - A Night of Comedy"
+    assert episode["title"] == "The Wildest Feuds in History"
     assert episode["releaseDate"] == HOME_FEED_EPISODE_RELEASE_DATETIME
-    assert episode["durationSeconds"] == 8940
+    assert episode["durationSeconds"] == 4260
     assert episode["audioUrl"] == "https://example.invalid/audio/501.mp3"
     assert episode["podcast"] == {
         "id": 401,
-        "slug": "joe-rogan-experience",
-        "title": "The Joe Rogan Experience",
-        "imageUrl": "http://fixture/artwork/joe-rogan.png",
+        "slug": "history-hyenas",
+        "title": "History Hyenas",
+        "imageUrl": "http://fixture/artwork/history-hyenas.png",
     }
     assert episode["recommendation"] == {
         "reason": "guest_appearance",
@@ -418,11 +423,55 @@ def test_pinned_club_show_search_supports_multiple_pages() -> None:
     assert highlights["tonightShows"] == first["data"][:4]
 
 
+def test_comedy_cellar_search_detail_and_calendar_share_real_artwork() -> None:
+    base_url = "http://fixture"
+    search = fixture_response(
+        "/api/v1/clubs/search",
+        base_url,
+        query={"club": ["Comedy Cellar"]},
+    )
+    detail = fixture_response("/api/v1/clubs/202", base_url)["data"]
+    highlights = fixture_response("/api/v1/clubs/202/highlights", base_url)["data"]
+    shows = fixture_response(
+        "/api/v1/shows/search",
+        base_url,
+        query={"clubId": ["202"], "page": ["0"], "size": ["5"]},
+    )["data"]
+
+    assert search["total"] == 1
+    assert search["data"][0]["id"] == 202
+    assert search["data"][0]["imageUrl"] == f"{base_url}/artwork/comedy-cellar.png"
+    assert detail["name"] == "Comedy Cellar"
+    assert detail["imageUrl"] == f"{base_url}/artwork/comedy-cellar.png"
+    assert detail["heroImageUrl"] == f"{base_url}/artwork/comedy-cellar.png"
+    assert shows[0]["id"] == 201
+    assert shows[0]["clubId"] == 202
+    assert shows[0]["clubName"] == "Comedy Cellar"
+    assert shows[0]["clubCity"] == "New York"
+    assert shows[0]["clubState"] == "NY"
+    assert shows[0]["timezone"] == "America/New_York"
+    assert highlights["tonightShows"] == shows[:4]
+
+    show_detail = fixture_response("/api/v1/shows/201", base_url)["data"]
+    featured_show = CONTENT_FIXTURE["modes"][CURATED_MODE]["featured_entities"][
+        "show"
+    ]
+    assert show_detail["id"] == featured_show["id"] == 201
+    assert show_detail["name"] == featured_show["name"]
+    assert show_detail["club"] == {
+        "id": 202,
+        "name": "Comedy Cellar",
+        "imageUrl": f"{base_url}/artwork/comedy-cellar.png",
+        "address": "117 MacDougal St, New York, NY",
+        "timezone": "America/New_York",
+    }
+
+
 def test_every_mode_declares_the_deterministic_episode_entity() -> None:
     for contract in CONTENT_FIXTURE["modes"].values():
         assert contract["featured_entities"]["episode"] == {
             "id": 501,
-            "name": "#2520 - A Night of Comedy",
+            "name": "The Wildest Feuds in History",
         }
 
 
@@ -437,15 +486,19 @@ def test_episode_detail_matches_catalog_and_populates_lineup_media() -> None:
     podcast = episode_detail["podcast"]
     episode = episode_detail["episode"]
     assert podcast["id"] == 401
-    assert podcast["imageUrl"] == "http://fixture/artwork/joe-rogan.png"
-    assert [host["name"] for host in podcast["hosts"]] == ["Joe Rogan"]
+    assert podcast["imageUrl"] == "http://fixture/artwork/history-hyenas.png"
+    assert [host["name"] for host in podcast["hosts"]] == [
+        "Chris Distefano",
+        "Yannis Pappas",
+    ]
     assert episode["id"] == 501
     assert episode["audioUrl"] == "https://example.invalid/audio/501.mp3"
     assert episode["episodeUrl"] == "https://example.invalid/episodes/501"
     assert episode["description"]
-    assert episode["durationSeconds"] == 8940
+    assert episode["durationSeconds"] == 4260
     assert [appearance["name"] for appearance in episode["appearances"]] == [
-        "Joe Rogan",
+        "Chris Distefano",
+        "Yannis Pappas",
         "Ali Wong",
     ]
     host_ids = {host["id"] for host in podcast["hosts"]}
@@ -454,6 +507,25 @@ def test_episode_detail_matches_catalog_and_populates_lineup_media() -> None:
         for appearance in episode["appearances"]
         if appearance["id"] not in host_ids
     ] == ["Ali Wong"]
+
+
+def test_history_hyenas_search_and_detail_share_original_artwork() -> None:
+    base_url = "http://fixture"
+    search = fixture_response(
+        "/api/v1/podcasts/search",
+        base_url,
+        query={"q": ["History Hyenas"]},
+    )
+    detail = fixture_response("/api/v1/podcasts/401", base_url)["podcast"]
+
+    assert search["total"] == 1
+    assert search["data"][0]["id"] == 401
+    assert search["data"][0]["title"] == "History Hyenas"
+    assert search["data"][0]["imageUrl"] == (
+        f"{base_url}/artwork/history-hyenas.png"
+    )
+    assert detail["title"] == "History Hyenas"
+    assert detail["imageUrl"] == f"{base_url}/artwork/history-hyenas.png"
 
 
 def test_episode_detail_is_served_at_the_exact_native_api_path(

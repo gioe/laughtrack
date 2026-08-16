@@ -52,8 +52,7 @@ struct ClubDetailView: View {
                                 title: club.name,
                                 imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
                                 thumbnailStyle: .clubMarquee,
-                                // Set to true to restore venue artwork above the Tonight marquee.
-                                showsThumbnail: false,
+                                showsThumbnail: true,
                                 actions: clubHeroActions(club: club),
                                 actionPlacement: .belowTitle,
                                 actionStyle: .compactPill,

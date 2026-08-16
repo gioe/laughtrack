@@ -64,7 +64,7 @@ FIXTURE_CAPTURE_CONTEXTS: Mapping[str, Mapping[str, Any]] = {
     "05_ClubDetail": {
         "screen": "club_detail",
         "source_scenario_id": "04_SearchClubs",
-        "query": "The Comedy Store",
+        "query": "Comedy Cellar",
         "selection": "first_result",
     },
     "06_ShowDetail": {
@@ -81,7 +81,7 @@ FIXTURE_CAPTURE_CONTEXTS: Mapping[str, Mapping[str, Any]] = {
     "09_PodcastDetail": {
         "screen": "podcast_detail",
         "source_scenario_id": "08_SearchPodcasts",
-        "query": "The Joe Rogan Experience",
+        "query": "History Hyenas",
         "selection": "first_result",
     },
     "10_PodcastEpisodeDetail": {

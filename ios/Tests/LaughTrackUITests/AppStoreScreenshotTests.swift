@@ -151,9 +151,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         }
 
         try runScenario("03_SearchComedians") {
-            if selectedScenarioIDs != nil {
-                relaunchOnSearchTab()
-            }
+            relaunchOnSearchTab()
             // Filter pills sit at the top of the search header. Use identifiers
             // instead of coordinates so the flow survives pill-width changes.
             tapPrimitive("comedians")
@@ -162,25 +160,21 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         }
 
         try runScenario("04_SearchClubs") {
-            if selectedScenarioIDs != nil {
-                relaunchOnSearchTab()
-            }
+            relaunchOnSearchTab()
             tapPrimitive("clubs")
             assertFirstResult(identifierPrefix: "laughtrack.clubs-search.result-", description: "club")
             try captureSearch("04_SearchClubs", resultIdentifierPrefix: "laughtrack.clubs-search.result-", description: "club")
         }
 
         try runScenario("05_ClubDetail") {
-            if selectedScenarioIDs != nil {
-                relaunchOnSearchTab()
-                tapPrimitive("clubs")
-            }
-            openComedyStoreClub()
+            relaunchOnSearchTab()
+            tapPrimitive("clubs")
+            openComedyCellarClub()
             try capture(
                 "05_ClubDetail",
                 screen: identified(Identifier.clubDetailScreen, as: "club detail screen"),
                 content: [
-                    text("The Comedy Store", as: "club title"),
+                    text("Comedy Cellar", as: "club title"),
                     identified(Identifier.clubDetailHighlightSection, as: "club highlight section"),
                     identified(Identifier.clubDetailFrequentPerformersSection, as: "club frequent performers section"),
                     prefixed("laughtrack.club-detail.performer-", as: "club performer action"),
@@ -191,15 +185,13 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         }
 
         try runScenario("06_ShowDetail") {
-            if selectedScenarioIDs != nil {
-                relaunchOnSearchTab()
-                tapPrimitive("clubs")
-                openComedyStoreClub()
-            }
+            relaunchOnSearchTab()
+            tapPrimitive("clubs")
+            openComedyCellarClub()
             // Keep Show Detail tied to the same club fixture on both platforms.
             // ClubDetailView's pinned calendar reuses the shows-search row IDs.
             tapResult(
-                element("laughtrack.shows-search.result-101"),
+                element("laughtrack.shows-search.result-201"),
                 detailIdentifier: Identifier.showDetailScreen,
                 description: "show"
             )
@@ -250,12 +242,10 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         }
 
         try runScenario("09_PodcastDetail") {
-            if selectedScenarioIDs != nil {
-                relaunchOnSearchTab()
-                tapPrimitive("podcasts")
-            }
+            relaunchOnSearchTab()
+            tapPrimitive("podcasts")
             searchFor(
-                "The Joe Rogan Experience",
+                "History Hyenas",
                 resultIdentifierPrefix: "laughtrack.podcasts-search.result-"
             )
             tapFirstResult(
@@ -267,26 +257,24 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 "09_PodcastDetail",
                 screen: identified(Identifier.podcastDetailScreen, as: "podcast detail screen"),
                 content: [
-                    text("The Joe Rogan Experience", as: "podcast title"),
+                    text("History Hyenas", as: "podcast title"),
                     noLoadingLabels(["Loading"]),
                 ]
             )
         }
 
         try runScenario("10_PodcastEpisodeDetail") {
-            if selectedScenarioIDs != nil {
-                relaunchOnSearchTab()
-                tapPrimitive("podcasts")
-                searchFor(
-                    "The Joe Rogan Experience",
-                    resultIdentifierPrefix: "laughtrack.podcasts-search.result-"
-                )
-                tapFirstResult(
-                    identifierPrefix: "laughtrack.podcasts-search.result-",
-                    detailIdentifier: Identifier.podcastDetailScreen,
-                    description: "podcast"
-                )
-            }
+            relaunchOnSearchTab()
+            tapPrimitive("podcasts")
+            searchFor(
+                "History Hyenas",
+                resultIdentifierPrefix: "laughtrack.podcasts-search.result-"
+            )
+            tapFirstResult(
+                identifierPrefix: "laughtrack.podcasts-search.result-",
+                detailIdentifier: Identifier.podcastDetailScreen,
+                description: "podcast"
+            )
             let episode = element(Identifier.podcastEpisodeRow)
             XCTAssertTrue(episode.waitForExistence(timeout: 15), "Expected deterministic podcast episode")
             for _ in 0 ..< 3 where !episode.isHittable {
@@ -305,7 +293,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                     as: "podcast episode detail screen"
                 ),
                 content: [
-                    text("#2520 - A Night of Comedy", as: "podcast episode title"),
+                    text("The Wildest Feuds in History", as: "podcast episode title"),
                     identified(
                         Identifier.podcastEpisodeDetailPrimaryAction,
                         as: "podcast episode primary action"
@@ -503,9 +491,9 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         try body()
     }
 
-    private func openComedyStoreClub() {
+    private func openComedyCellarClub() {
         searchFor(
-            "The Comedy Store",
+            "Comedy Cellar",
             resultIdentifierPrefix: "laughtrack.clubs-search.result-"
         )
         tapFirstResult(
@@ -526,7 +514,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             }
         }
         XCTAssertTrue(button.isHittable, "Expected \(primitive) primitive filter to be hittable")
-        button.tap()
+        button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
 
     private func searchFor(_ query: String, resultIdentifierPrefix: String) {
@@ -535,6 +523,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         field.tap()
         field.typeText(query)
         assertFirstResult(identifierPrefix: resultIdentifierPrefix, description: query)
+        field.typeKey(.return, modifierFlags: [])
     }
 
     private func relaunchOnSearchTab() {
@@ -697,8 +686,9 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         for _ in 0..<3 where !result.isHittable {
             app.swipeUp()
         }
-        XCTAssertTrue(result.isHittable, "Expected \(description) result to be hittable")
-        result.tap()
+        let visibleFrame = app.windows.firstMatch.frame.intersection(result.frame)
+        XCTAssertFalse(visibleFrame.isNull, "Expected \(description) result to be visible")
+        result.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertExists(detailIdentifier, message: "Expected \(description) detail")
     }
 

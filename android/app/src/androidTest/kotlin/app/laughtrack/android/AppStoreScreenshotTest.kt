@@ -255,18 +255,18 @@ class AppStoreScreenshotTest {
                 waitForDiscoverAndScrollTo(hasText("Episodes for you"))
                 waitForStable(hasText("Episodes for you"), timeoutMs = 30_000)
                 composeRule.onNodeWithTag("homePodcastEpisodePlay-501").performScrollTo()
-                waitFor(hasContentDescription("The Joe Rogan Experience"))
-                waitFor(hasText("#2520 - A Night of Comedy"))
-                waitFor(hasText(" • 149 min", substring = true))
+                waitFor(hasContentDescription("History Hyenas"))
+                waitFor(hasText("The Wildest Feuds in History"))
+                waitFor(hasText(" • 71 min", substring = true))
                 waitFor(hasText("Guest: Ali Wong"))
                 waitFor(
                     hasContentDescription(
-                        "Open #2520 - A Night of Comedy",
+                        "Open The Wildest Feuds in History",
                         substring = true,
                     ),
                 )
                 waitFor(hasTestTag("homePodcastEpisodePlay-501"))
-                waitFor(hasContentDescription("Play episode #2520 - A Night of Comedy"))
+                waitFor(hasContentDescription("Play episode The Wildest Feuds in History"))
                 composeRule
                     .onNodeWithTag(HOME_DISCOVER_LIST_TEST_TAG)
                     .performScrollToIndex(0)
@@ -298,7 +298,7 @@ class AppStoreScreenshotTest {
         if (capture("04_SearchClubs")) return
 
         // 05 — Open the catalog's fixed club fixture.
-        searchFor("The Comedy Store")
+        searchFor("Comedy Cellar")
         openFirstResult()
         waitFor(hasTestTag(CLUB_HIGHLIGHT_SECTION_TEST_TAG), timeoutMs = 30_000)
         waitFor(hasTestTag(CLUB_FREQUENT_PERFORMERS_SECTION_TEST_TAG), timeoutMs = 30_000)
@@ -315,7 +315,7 @@ class AppStoreScreenshotTest {
         waitFor(hasContentDescription("Home"), timeoutMs = 20_000)
         waitForDetail()
         waitFor(hasText("TAYLOR TOMLINSON & FRIENDS"), timeoutMs = 20_000)
-        waitFor(hasText("Aug 14, 2026", substring = true), timeoutMs = 20_000)
+        waitFor(hasText("Aug 16, 2026", substring = true), timeoutMs = 20_000)
         if (capture("06_ShowDetail")) return
         goBackToClubDetail()
         goBack()
@@ -334,19 +334,19 @@ class AppStoreScreenshotTest {
         if (capture("08_SearchPodcasts")) return
 
         // 09 — Open the catalog's fixed podcast fixture.
-        searchFor("The Joe Rogan Experience")
+        searchFor("History Hyenas")
         openFirstResult()
         if (capture("09_PodcastDetail")) return
 
         // 10 — Open the same deterministic episode from podcast detail.
         waitFor(hasTestTag(podcastEpisodeRowTag), timeoutMs = 20_000)
         composeRule
-            .onNodeWithContentDescription("Open episode #2520 - A Night of Comedy")
+            .onNodeWithContentDescription("Open episode The Wildest Feuds in History")
             .performScrollTo()
             .performClick()
         waitFor(hasTestTag(podcastEpisodeDetailTag), timeoutMs = 20_000)
         waitUntilGone(hasTestTag(DETAIL_LOADING_TEST_TAG), timeoutMs = 30_000)
-        waitFor(hasText("#2520 - A Night of Comedy"), timeoutMs = 20_000)
+        waitFor(hasText("The Wildest Feuds in History"), timeoutMs = 20_000)
         waitFor(hasTestTag(podcastEpisodePrimaryActionTag), timeoutMs = 20_000)
         if (capture("10_PodcastEpisodeDetail")) return
 
