@@ -92,17 +92,25 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
                 sweep_keep_show_ids: List[int] = []
                 sweep_keep_types: List[str] = []
                 shows_with_incoming_tickets: Set[int] = set()
+                shows_with_positive_incoming_prices: Set[int] = set()
                 for ticket in deduplicated_tickets:
                     if ticket.show_id is None:
                         continue
                     sweep_keep_show_ids.append(ticket.show_id)
                     sweep_keep_types.append(ticket.type)
                     shows_with_incoming_tickets.add(ticket.show_id)
+                    if ticket.price is not None and ticket.price > 0:
+                        shows_with_positive_incoming_prices.add(ticket.show_id)
 
                 if shows_with_incoming_tickets:
                     self.execute_with_cursor(
                         TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS,
-                        (sorted(shows_with_incoming_tickets), sweep_keep_show_ids, sweep_keep_types),
+                        (
+                            sorted(shows_with_incoming_tickets),
+                            sweep_keep_show_ids,
+                            sweep_keep_types,
+                            sorted(shows_with_positive_incoming_prices),
+                        ),
                         conn=conn,
                     )
 

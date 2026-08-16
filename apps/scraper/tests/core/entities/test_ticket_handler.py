@@ -361,10 +361,11 @@ class TestStaleTicketSweep:
 
         second_sweep = cursor_calls[3]
         assert second_sweep.args[0] == TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS
-        affected_show_ids, keep_show_ids, keep_types = second_sweep.args[1]
+        affected_show_ids, keep_show_ids, keep_types, positive_price_show_ids = second_sweep.args[1]
         assert affected_show_ids == [show_id]
         assert keep_show_ids == [show_id, show_id]
         assert keep_types == ["Fri 7:30pm", "Fri 9:30pm"]
+        assert positive_price_show_ids == [show_id]
 
         # The BATCH_ADD on the second insert must carry only the 2 surviving
         # tickets — combined with the sweep, the DB ends with exactly 2 rows.
@@ -379,6 +380,8 @@ class TestStaleTicketSweep:
         assert "show_id = ANY(%s)" in sql
         assert "NOT EXISTS" in sql
         assert "unnest(%s::int[], %s::text[])" in sql
+        assert "COALESCE(t.price, 0) <= 0" in sql
+        assert "t.show_id = ANY(%s::int[])" in sql
 
     def test_sweep_runs_per_show_in_multi_show_batch(self):
         """Two shows in one batch — sweep includes both show_ids and parallel arrays of their (show_id, type) keep pairs."""
@@ -398,7 +401,7 @@ class TestStaleTicketSweep:
         # Sweep is the second execute_with_cursor call (after schema.org cleanup).
         sweep_call = handler.execute_with_cursor.call_args_list[1]
         assert sweep_call.args[0] == TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS
-        affected_show_ids, keep_show_ids, keep_types = sweep_call.args[1]
+        affected_show_ids, keep_show_ids, keep_types, positive_price_show_ids = sweep_call.args[1]
         assert affected_show_ids == [101, 202]
         # keep_show_ids / keep_types preserve insertion order from deduplicate_tickets.
         assert list(zip(keep_show_ids, keep_types)) == [
@@ -406,6 +409,7 @@ class TestStaleTicketSweep:
             (202, "VIP"),
             (202, "GA"),
         ]
+        assert positive_price_show_ids == [101, 202]
 
     def test_no_sweep_when_all_incoming_tickets_are_invalid_schema_org(self):
         """If every incoming ticket is filtered out as invalid schema.org, insert_tickets returns before scheduling a sweep — existing tickets for the show are left alone."""
@@ -425,6 +429,132 @@ class TestStaleTicketSweep:
             TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS
         )
         handler.execute_batch_operation.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Unpriced ticket preservation (TASK-3953)
+# ---------------------------------------------------------------------------
+
+class TestUnpricedTicketPreservation:
+    """Unpriced re-ingestion must not erase an existing positive ticket price."""
+
+    @pytest.fixture(autouse=True)
+    def _stub_transaction(self, monkeypatch):
+        @contextmanager
+        def _noop_transaction(_self):
+            yield MagicMock(name="tx_conn")
+
+        monkeypatch.setattr(TicketHandler, "transaction", _noop_transaction)
+
+    def test_null_price_does_not_overwrite_existing_positive_price(self):
+        """The conflict update preserves a paid price when the incoming value is not positive."""
+        normalized_sql = " ".join(TicketQueries.BATCH_ADD_TICKETS.split())
+
+        assert (
+            "WHEN tickets.price > 0 AND COALESCE(EXCLUDED.price, 0) <= 0 "
+            "THEN tickets.price ELSE EXCLUDED.price END"
+        ) in normalized_sql
+
+    def test_unpriced_fallback_does_not_sweep_existing_priced_tiers(self):
+        """A later unpriced fallback leaves earlier Side Splitters-style paid tiers protected."""
+        show_id = 1956627
+        handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        priced_show = _FakeShow(show_id, [
+            Ticket(
+                price=40.0,
+                purchase_url="https://tixologi.example/standard",
+                sold_out=False,
+                type="Standard",
+            ),
+            Ticket(
+                price=55.0,
+                purchase_url="https://tixologi.example/vip",
+                sold_out=False,
+                type="VIP",
+            ),
+        ])
+        unpriced_fallback = _FakeShow(show_id, [
+            Ticket(
+                price=None,
+                purchase_url="https://ticketmaster.example/general-admission",
+                sold_out=False,
+                type="General Admission",
+            ),
+        ])
+
+        handler.insert_tickets([priced_show])
+        handler.insert_tickets([unpriced_fallback])
+
+        second_sweep = handler.execute_with_cursor.call_args_list[3]
+        assert second_sweep.args[0] == TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS
+        affected_show_ids, keep_show_ids, keep_types, positive_price_show_ids = second_sweep.args[1]
+        assert affected_show_ids == [show_id]
+        assert keep_show_ids == [show_id]
+        assert keep_types == ["General Admission"]
+        assert positive_price_show_ids == []
+
+        normalized_sql = " ".join(TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS.split())
+        assert (
+            "COALESCE(t.price, 0) <= 0 OR t.show_id = ANY(%s::int[])"
+        ) in normalized_sql
+
+        inserted_tuples = handler.execute_batch_operation.call_args_list[1].args[1]
+        assert inserted_tuples[0][2] is None
+
+    def test_priced_reingestion_still_reconciles_ticket_set(self):
+        """A positive-priced refresh still authorizes stale-tier deletion and price updates."""
+        show_id = 1956627
+        handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        original_show = _FakeShow(show_id, [
+            Ticket(
+                price=40.0,
+                purchase_url="https://tickets.example/ga-v1",
+                sold_out=False,
+                type="General Admission",
+            ),
+            Ticket(
+                price=55.0,
+                purchase_url="https://tickets.example/vip",
+                sold_out=False,
+                type="VIP",
+            ),
+        ])
+        refreshed_show = _FakeShow(show_id, [
+            Ticket(
+                price=35.0,
+                purchase_url="https://tickets.example/ga-v2",
+                sold_out=False,
+                type="General Admission",
+            ),
+        ])
+
+        handler.insert_tickets([original_show])
+        handler.insert_tickets([refreshed_show])
+
+        second_sweep = handler.execute_with_cursor.call_args_list[3]
+        assert second_sweep.args[0] == TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS
+        affected_show_ids, keep_show_ids, keep_types, positive_price_show_ids = second_sweep.args[1]
+        assert affected_show_ids == [show_id]
+        assert keep_show_ids == [show_id]
+        assert keep_types == ["General Admission"]
+        assert positive_price_show_ids == [show_id]
+
+        inserted_tuples = handler.execute_batch_operation.call_args_list[1].args[1]
+        assert inserted_tuples == [
+            (
+                show_id,
+                "https://tickets.example/ga-v2",
+                35.0,
+                False,
+                "General Admission",
+            )
+        ]
 
 
 # ---------------------------------------------------------------------------

@@ -20,7 +20,11 @@ class TicketQueries:
         ON CONFLICT (show_id, type) 
         DO UPDATE SET
             purchase_url = EXCLUDED.purchase_url,
-            price = EXCLUDED.price,
+            price = CASE
+                WHEN tickets.price > 0 AND COALESCE(EXCLUDED.price, 0) <= 0
+                    THEN tickets.price
+                ELSE EXCLUDED.price
+            END,
             sold_out = EXCLUDED.sold_out
         RETURNING 
             id, show_id, purchase_url, price, sold_out, type
@@ -42,6 +46,10 @@ class TicketQueries:
               SELECT 1
               FROM unnest(%s::int[], %s::text[]) AS k(show_id, type)
               WHERE k.show_id = t.show_id AND k.type = t.type
+          )
+          AND (
+              COALESCE(t.price, 0) <= 0
+              OR t.show_id = ANY(%s::int[])
           )
     """
     
