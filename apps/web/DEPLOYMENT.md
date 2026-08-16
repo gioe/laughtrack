@@ -96,6 +96,14 @@ For Gmail, create an **App Password** at [myaccount.google.com/apppasswords](htt
 | Variable | Required | Description |
 |---|---|---|
 | `SECRET_KEY` | Yes | Secret used to sign JWT tokens (e.g. unsubscribe links). Generate with: `openssl rand -base64 32` |
+| `REVALIDATE_SECRET` | Yes (production) | Bearer secret for `POST /api/revalidate`. Use one generated value in both Vercel Production and the GitHub Actions repository secret of the same name. |
+
+When rotating `REVALIDATE_SECRET`:
+
+1. Generate a new value with `openssl rand -hex 32` without printing it in CI logs.
+2. Store the same value in Vercel Production and GitHub Actions.
+3. Redeploy production so the Vercel environment change reaches the running app.
+4. Send a status-only authenticated request with `{"tags": []}` and confirm HTTP 200. Do not use verbose curl output or print the authorization header.
 
 ### Public App Config (Required)
 
