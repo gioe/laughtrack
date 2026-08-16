@@ -59,6 +59,9 @@ _UPDATE_SCRAPING_URL_HEALTH = """
     WHERE uuid = %s
 """
 
+_DEFAULT_CONCURRENCY = 10
+_CONCURRENCY_ENV = "COMEDIAN_WEBSITE_HEALTH_CONCURRENCY"
+
 
 @dataclass(frozen=True)
 class URLHealthResult:
@@ -170,9 +173,9 @@ async def _fetch_url(session: Any, url: str, timeout: int) -> URLHealthResult:
     except TypeError:
         try:
             response = await session.get(url, timeout=timeout, allow_redirects=True)
-        except BaseException as exc:
+        except Exception as exc:
             return classify_fetch_exception(exc)
-    except BaseException as exc:
+    except Exception as exc:
         return classify_fetch_exception(exc)
     return classify_health_response(response, url)
 
@@ -183,22 +186,23 @@ def _update_query(field_name: URLFieldName) -> str:
     return _UPDATE_SCRAPING_URL_HEALTH
 
 
-async def run_health_check(
-    *,
-    session: Any | None = None,
-    limit: int | None = None,
-    hard_failure_threshold: int = 3,
-    timeout: int = 20,
-    commit: bool = True,
-) -> HealthCheckSummary:
-    conn = create_connection(autocommit=False)
-    close_session = False
-    if session is None:
-        from curl_cffi.requests import AsyncSession
+def _resolve_concurrency(concurrency: int | None) -> int:
+    """Resolve and validate the request cap at use time."""
+    value = concurrency
+    if value is None:
+        raw_value = os.environ.get(_CONCURRENCY_ENV, str(_DEFAULT_CONCURRENCY))
+        try:
+            value = int(raw_value)
+        except ValueError as exc:
+            raise ValueError(f"{_CONCURRENCY_ENV} must be a positive integer") from exc
+    if value <= 0:
+        raise ValueError("concurrency must be a positive integer")
+    return value
 
-        session = AsyncSession()
-        close_session = True
 
+def _load_targets(limit: int | None) -> list[ComedianURLTarget]:
+    """Load crawl targets without retaining a connection during network I/O."""
+    conn = create_connection(autocommit=True)
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             query = _GET_COMEDIAN_URL_TARGETS
@@ -207,57 +211,113 @@ async def run_health_check(
                 query += "\n    LIMIT %s"
                 params = (limit,)
             cur.execute(query, params)
-            rows = cur.fetchall()
+            return _iter_targets(cur.fetchall())
+    finally:
+        conn.close()
 
-        summary = HealthCheckSummary()
-        for target in _iter_targets(rows):
-            result = await _fetch_url(session, target.url, timeout)
-            update = plan_url_health_update(
-                target,
-                result,
-                hard_failure_threshold=hard_failure_threshold,
-            )
 
-            summary.checked_urls += 1
-            if result.status == "hard_failure":
-                summary.hard_failures += 1
-            elif result.status == "transient_failure":
-                summary.transient_failures += 1
-            elif result.status == "bot_block":
-                summary.bot_blocks += 1
-            if update.queue_for_rediscovery:
-                summary.queued_for_rediscovery += 1
+async def _fetch_targets(
+    session: Any,
+    targets: list[ComedianURLTarget],
+    timeout: int,
+    concurrency: int,
+) -> list[URLHealthResult]:
+    """Fetch targets concurrently while retaining their database order."""
+    semaphore = asyncio.Semaphore(concurrency)
 
-            Logger.info(
-                "comedian_url_health: "
-                f"{target.name} {target.field_name}={target.url} "
-                f"status={result.status} health_status={update.health_status} "
-                f"failures={update.new_failure_count}"
-            )
+    async def fetch_one(target: ComedianURLTarget) -> URLHealthResult:
+        async with semaphore:
+            return await _fetch_url(session, target.url, timeout)
 
-            if commit:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        _update_query(target.field_name),
-                        (update.health_status, update.new_failure_count, target.uuid),
-                    )
+    return await asyncio.gather(*(fetch_one(target) for target in targets))
 
-        if commit:
-            conn.commit()
 
-        Logger.info(
-            "comedian_url_health summary: "
-            f"checked_urls={summary.checked_urls}, "
-            f"hard_failures={summary.hard_failures}, "
-            f"transient_failures={summary.transient_failures}, "
-            f"bot_blocks={summary.bot_blocks}, "
-            f"queued_for_rediscovery={summary.queued_for_rediscovery}"
+def _persist_updates(
+    updates: list[tuple[ComedianURLTarget, URLHealthUpdate]],
+) -> None:
+    """Persist completed crawl results in deterministic target order."""
+    if not updates:
+        return
+    conn = create_connection(autocommit=True)
+    try:
+        with conn.cursor() as cur:
+            for target, update in updates:
+                cur.execute(
+                    _update_query(target.field_name),
+                    (update.health_status, update.new_failure_count, target.uuid),
+                )
+    finally:
+        conn.close()
+
+
+async def run_health_check(
+    *,
+    session: Any | None = None,
+    limit: int | None = None,
+    hard_failure_threshold: int = 3,
+    timeout: int = 20,
+    concurrency: int | None = None,
+    commit: bool = True,
+) -> HealthCheckSummary:
+    request_concurrency = _resolve_concurrency(concurrency)
+    targets = _load_targets(limit)
+    close_session = False
+    if session is None:
+        from curl_cffi.requests import AsyncSession
+
+        session = AsyncSession()
+        close_session = True
+
+    try:
+        results = await _fetch_targets(
+            session,
+            targets,
+            timeout,
+            request_concurrency,
         )
-        return summary
     finally:
         if close_session:
             await session.close()
-        conn.close()
+
+    summary = HealthCheckSummary()
+    updates: list[tuple[ComedianURLTarget, URLHealthUpdate]] = []
+    for target, result in zip(targets, results):
+        update = plan_url_health_update(
+            target,
+            result,
+            hard_failure_threshold=hard_failure_threshold,
+        )
+
+        summary.checked_urls += 1
+        if result.status == "hard_failure":
+            summary.hard_failures += 1
+        elif result.status == "transient_failure":
+            summary.transient_failures += 1
+        elif result.status == "bot_block":
+            summary.bot_blocks += 1
+        if update.queue_for_rediscovery:
+            summary.queued_for_rediscovery += 1
+
+        Logger.info(
+            "comedian_url_health: "
+            f"{target.name} {target.field_name}={target.url} "
+            f"status={result.status} health_status={update.health_status} "
+            f"failures={update.new_failure_count}"
+        )
+        updates.append((target, update))
+
+    if commit:
+        _persist_updates(updates)
+
+    Logger.info(
+        "comedian_url_health summary: "
+        f"checked_urls={summary.checked_urls}, "
+        f"hard_failures={summary.hard_failures}, "
+        f"transient_failures={summary.transient_failures}, "
+        f"bot_blocks={summary.bot_blocks}, "
+        f"queued_for_rediscovery={summary.queued_for_rediscovery}"
+    )
+    return summary
 
 
 def main() -> None:
@@ -265,6 +325,14 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="Maximum comedian records to check")
     parser.add_argument("--threshold", type=int, default=3, help="Hard failures before marking stale")
     parser.add_argument("--timeout", type=int, default=20, help="Per-request timeout in seconds")
+    parser.add_argument(
+        "--concurrency",
+        type=int,
+        help=(
+            "Maximum concurrent requests "
+            f"(default: ${_CONCURRENCY_ENV} or {_DEFAULT_CONCURRENCY})"
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true", help="Check URLs without writing health state")
     parser.add_argument("-v", "--verbose", action="store_true", help="Show INFO-level logs")
     args = parser.parse_args()
@@ -279,6 +347,7 @@ def main() -> None:
             limit=args.limit,
             hard_failure_threshold=args.threshold,
             timeout=args.timeout,
+            concurrency=args.concurrency,
             commit=not args.dry_run,
         )
     )
