@@ -880,6 +880,10 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     server = FixtureServer((args.host, args.port))
+    print(
+        f"Fixture server listening on http://{args.host}:{args.port}",
+        flush=True,
+    )
     try:
         server.serve_forever()
     except KeyboardInterrupt:

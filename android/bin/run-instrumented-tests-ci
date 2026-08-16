@@ -10,9 +10,18 @@ readonly FIXTURE_LOG="$DIAGNOSTICS_DIR/screenshot-fixture.txt"
 readonly GRADLE_BIN="${GRADLE_BIN:-gradle}"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+readonly FIXTURE_HOST="${FIXTURE_HOST:-10.0.2.2}"
+readonly FIXTURE_PORT="${FIXTURE_PORT:-8765}"
+readonly FIXTURE_WAIT_ATTEMPTS="${FIXTURE_WAIT_ATTEMPTS:-30}"
+readonly FIXTURE_RETRY_INTERVAL_SECONDS="${FIXTURE_RETRY_INTERVAL_SECONDS:-1}"
+readonly FIXTURE_WATCH_INTERVAL_SECONDS="${FIXTURE_WATCH_INTERVAL_SECONDS:-5}"
+readonly FIXTURE_WATCH_FAILURES="${FIXTURE_WATCH_FAILURES:-3}"
 
 LOGCAT_PID=""
 FIXTURE_PID=""
+FIXTURE_WATCHDOG_PID=""
+APP_GRADLE_PID=""
+FIXTURE_PROBE_DETAIL=""
 
 mkdir -p "$DIAGNOSTICS_DIR"
 
@@ -37,7 +46,25 @@ capture_diagnostics() {
     adb -s "$SERIAL" get-state
     adb -s "$SERIAL" shell getprop sys.boot_completed
     adb -s "$SERIAL" shell getprop
+    adb -s "$SERIAL" shell ip address
+    adb -s "$SERIAL" shell ip route
+    adb -s "$SERIAL" shell cmd wifi status
+    adb -s "$SERIAL" shell dumpsys connectivity
     adb -s "$SERIAL" shell dumpsys activity processes | head -n 500
+    echo
+
+    echo "=== Screenshot fixture ==="
+    echo "pid=${FIXTURE_PID:-unset}"
+    if [[ -n "$FIXTURE_PID" ]] && kill -0 "$FIXTURE_PID" 2>/dev/null; then
+      echo "state=alive"
+    else
+      echo "state=stopped"
+    fi
+    if [[ -f "$FIXTURE_LOG" ]]; then
+      cat "$FIXTURE_LOG"
+    else
+      echo "Fixture log was not created"
+    fi
     echo
 
     echo "=== Runner processes ==="
@@ -83,12 +110,39 @@ stop_fixture_server() {
   fi
 }
 
+stop_fixture_watchdog() {
+  if [[ -n "$FIXTURE_WATCHDOG_PID" ]]; then
+    kill "$FIXTURE_WATCHDOG_PID" 2>/dev/null || true
+    wait "$FIXTURE_WATCHDOG_PID" 2>/dev/null || true
+  fi
+}
+
+stop_app_gradle() {
+  if [[ -n "$APP_GRADLE_PID" ]]; then
+    kill "$APP_GRADLE_PID" 2>/dev/null || true
+    wait "$APP_GRADLE_PID" 2>/dev/null || true
+  fi
+}
+
+print_fixture_failure() {
+  if [[ -n "$FIXTURE_PROBE_DETAIL" ]]; then
+    echo "Last emulator fixture probe output:" >&2
+    echo "$FIXTURE_PROBE_DETAIL" >&2
+  fi
+  echo "Screenshot fixture log:" >&2
+  if [[ -s "$FIXTURE_LOG" ]]; then
+    cat "$FIXTURE_LOG" >&2
+  else
+    echo "(empty)" >&2
+  fi
+}
+
 start_fixture_server() {
   # HTTPServer resolves its bind address while constructing the server. The
   # wildcard address can stall on hosted macOS runners whose hostname has no
   # reverse-DNS entry; Android's 10.0.2.2 alias still reaches host loopback.
   python3 "$REPO_ROOT/scripts/screenshots/fixture_server.py" \
-    --host 127.0.0.1 --port 8765 >"$FIXTURE_LOG" 2>&1 &
+    --host 127.0.0.1 --port "$FIXTURE_PORT" >"$FIXTURE_LOG" 2>&1 &
   FIXTURE_PID=$!
 
   for _ in {1..100}; do
@@ -97,8 +151,10 @@ start_fixture_server() {
       cat "$FIXTURE_LOG" >&2
       return 1
     fi
-    if python3 -c 'import socket; socket.create_connection(("127.0.0.1", 8765), timeout=0.2).close()' 2>/dev/null; then
-      echo "Screenshot fixture server ready on 127.0.0.1:8765"
+    if python3 -c \
+      'import sys, urllib.request; urllib.request.urlopen(f"http://127.0.0.1:{sys.argv[1]}/health", timeout=0.2).read() == b"ok\n" or sys.exit(1)' \
+      "$FIXTURE_PORT" 2>/dev/null; then
+      echo "Screenshot fixture server ready on 127.0.0.1:$FIXTURE_PORT"
       return 0
     fi
     sleep 0.05
@@ -108,14 +164,105 @@ start_fixture_server() {
   return 1
 }
 
+repair_emulator_network() {
+  # sys.boot_completed can become 1 before the SDK setup app finishes creating
+  # AndroidWifi. Hosted emulators occasionally time out during that one-time
+  # setup, leaving no route to the host until Wi-Fi is explicitly reconnected.
+  adb -s "$SERIAL" shell svc wifi enable >/dev/null 2>&1 || true
+  adb -s "$SERIAL" shell cmd wifi connect-network AndroidWifi open >/dev/null 2>&1 || true
+}
+
+probe_fixture_from_emulator() {
+  local response=""
+
+  if [[ -z "$FIXTURE_PID" ]] || ! kill -0 "$FIXTURE_PID" 2>/dev/null; then
+    FIXTURE_PROBE_DETAIL="Fixture server process is not running"
+    return 1
+  fi
+
+  if ! response="$(
+    printf 'GET /health HTTP/1.0\r\nHost: %s\r\n\r\n' "$FIXTURE_HOST" |
+      adb -s "$SERIAL" shell toybox nc -w 2 -W 2 "$FIXTURE_HOST" "$FIXTURE_PORT" 2>&1 |
+      tr -d '\r'
+  )"; then
+    FIXTURE_PROBE_DETAIL="$response"
+    return 1
+  fi
+
+  FIXTURE_PROBE_DETAIL="$response"
+  [[ "$response" == *"HTTP/1.0 200 OK"* && "$response" == *$'\n\nok' ]]
+}
+
+wait_for_fixture_from_emulator() {
+  local attempt=1
+
+  if probe_fixture_from_emulator; then
+    echo "Screenshot fixture reachable from emulator at $FIXTURE_HOST:$FIXTURE_PORT"
+    return 0
+  fi
+  repair_emulator_network
+  while (( attempt <= FIXTURE_WAIT_ATTEMPTS )); do
+    if probe_fixture_from_emulator; then
+      echo "Screenshot fixture reachable from emulator at $FIXTURE_HOST:$FIXTURE_PORT"
+      return 0
+    fi
+    if [[ -z "$FIXTURE_PID" ]] || ! kill -0 "$FIXTURE_PID" 2>/dev/null; then
+      echo "Screenshot fixture server exited while waiting for emulator reachability" >&2
+      print_fixture_failure
+      return 1
+    fi
+    if (( attempt == 1 || attempt % 5 == 0 )); then
+      echo "Waiting for emulator route to screenshot fixture (attempt $attempt/$FIXTURE_WAIT_ATTEMPTS)"
+      repair_emulator_network
+    fi
+    sleep "$FIXTURE_RETRY_INTERVAL_SECONDS"
+    ((attempt += 1))
+  done
+
+  echo "Screenshot fixture did not become reachable from emulator at $FIXTURE_HOST:$FIXTURE_PORT" >&2
+  print_fixture_failure
+  return 1
+}
+
+watch_fixture_reachability() {
+  local gradle_pid="$1"
+  local consecutive_failures=0
+
+  while kill -0 "$gradle_pid" 2>/dev/null; do
+    sleep "$FIXTURE_WATCH_INTERVAL_SECONDS"
+    if ! kill -0 "$gradle_pid" 2>/dev/null; then
+      return 0
+    fi
+    if probe_fixture_from_emulator; then
+      if (( consecutive_failures > 0 )); then
+        echo "Screenshot fixture emulator route recovered"
+      fi
+      consecutive_failures=0
+      continue
+    fi
+
+    ((consecutive_failures += 1))
+    echo "Screenshot fixture emulator probe failed ($consecutive_failures/$FIXTURE_WATCH_FAILURES)" >&2
+    repair_emulator_network
+    if (( consecutive_failures >= FIXTURE_WATCH_FAILURES )); then
+      echo "Screenshot fixture lost emulator reachability during app tests" >&2
+      print_fixture_failure
+      kill "$gradle_pid" 2>/dev/null || true
+      return 1
+    fi
+  done
+}
+
 on_exit() {
   local exit_code=$?
   trap - EXIT
+  stop_fixture_watchdog
   stop_logcat
-  stop_fixture_server
   if (( exit_code != 0 )); then
     capture_diagnostics "$exit_code" "instrumented-test-script"
   fi
+  stop_app_gradle
+  stop_fixture_server
   exit "$exit_code"
 }
 
@@ -156,6 +303,42 @@ run_suite() {
   "$GRADLE_BIN" "$task" "${gradle_args[@]}"
 }
 
+run_fixture_suite() {
+  local label="$1"
+  local task="$2"
+  local gradle_exit=0
+  local watchdog_exit=0
+  local -a gradle_args=(
+    --no-daemon
+    --stacktrace
+    --max-workers=2
+    --no-parallel
+    "-Dorg.gradle.jvmargs=-Xmx2g -Dfile.encoding=UTF-8 -XX:+UseParallelGC"
+    -Pkotlin.compiler.execution.strategy=in-process
+  )
+
+  wait_for_online_device "$label"
+  wait_for_fixture_from_emulator
+  "$GRADLE_BIN" "$task" "${gradle_args[@]}" &
+  APP_GRADLE_PID=$!
+  watch_fixture_reachability "$APP_GRADLE_PID" &
+  FIXTURE_WATCHDOG_PID=$!
+
+  set +e
+  wait "$APP_GRADLE_PID"
+  gradle_exit=$?
+  APP_GRADLE_PID=""
+  wait "$FIXTURE_WATCHDOG_PID"
+  watchdog_exit=$?
+  FIXTURE_WATCHDOG_PID=""
+  set -e
+
+  if (( watchdog_exit != 0 )); then
+    return "$watchdog_exit"
+  fi
+  return "$gradle_exit"
+}
+
 if [[ "${1:-}" == "--diagnostics-only" ]]; then
   capture_diagnostics 1 "post-action-failure"
   exit 0
@@ -169,7 +352,8 @@ adb -s "$SERIAL" logcat -c || true
 adb -s "$SERIAL" logcat -v threadtime >"$LOGCAT_FILE" 2>&1 &
 LOGCAT_PID=$!
 
+start_fixture_server
+wait_for_fixture_from_emulator
 run_suite "core UI instrumented tests" :core:ui:connectedDebugAndroidTest
 run_suite "library feature instrumented tests" :feature:library:connectedDebugAndroidTest
-start_fixture_server
-run_suite "app instrumented tests" :app:connectedDebugAndroidTest
+run_fixture_suite "app instrumented tests" :app:connectedDebugAndroidTest
