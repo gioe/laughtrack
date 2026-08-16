@@ -179,7 +179,11 @@ export default async function HomePage() {
             : Promise.resolve({ shows: [], impressionContexts: {} }),
         getTrendingShowsThisWeek(timezone).catch(() => []),
         session?.profile?.id
-            ? getFavoriteComedianShows(session.profile.id).catch(() => [])
+            ? getFavoriteComedianShows(
+                  session.profile.id,
+                  zipCode,
+                  DEFAULT_HOME_RADIUS_MILES,
+              ).catch(() => [])
             : Promise.resolve([]),
         getTouringScarcityRails({
             zipCode: zipCode ?? "",

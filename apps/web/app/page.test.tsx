@@ -256,6 +256,25 @@ describe("HomePage favorite comedian rail", () => {
         });
     });
 
+    it("location-filters the followed-comedian rail to the resolved profile ZIP", async () => {
+        mocks.auth.mockResolvedValue({
+            profile: { id: "profile-1", zipCode: "10801" },
+        });
+        mocks.getHeroContext.mockResolvedValue({
+            city: "New Rochelle",
+            state: "NY",
+            zipCode: "10801",
+        });
+
+        await renderHomePage();
+
+        expect(mocks.getFavoriteComedianShows).toHaveBeenCalledWith(
+            "profile-1",
+            "10801",
+            25,
+        );
+    });
+
     it("renders extra nearby shows in one Nearby Shows rail instead of More Near You", async () => {
         mocks.auth.mockResolvedValue({
             profile: { id: "profile-1", zipCode: "10801" },
@@ -413,6 +432,8 @@ describe("HomePage favorite comedian rail", () => {
 
         expect(mocks.getFavoriteComedianShows).toHaveBeenCalledWith(
             "profile-1",
+            null,
+            25,
         );
         expect(markup).not.toContain("Your favorites are touring");
     });
