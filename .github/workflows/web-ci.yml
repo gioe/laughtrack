@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "apps/web/**"
+      - ".github/workflows/web-ci.yml"
       # /api/v1 contract source of truth — route tests validate responses
       # against it via openapiResponseValidator, so a spec-only edit must
       # re-run the web test suite (see the `changes` job for per-job gating)
@@ -14,6 +15,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "apps/web/**"
+      - ".github/workflows/web-ci.yml"
       - "ios/Sources/LaughTrackAPIClient/openapi.json"
   workflow_dispatch:
     inputs:
