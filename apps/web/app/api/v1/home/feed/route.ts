@@ -211,9 +211,11 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 logSectionError("getTrendingPodcasts"),
             ),
             profileId
-                ? getFavoriteComedianShows(profileId).catch(
-                      logSectionError("getFavoriteComedianShows"),
-                  )
+                ? getFavoriteComedianShows(
+                      profileId,
+                      zipCode,
+                      distanceMiles,
+                  ).catch(logSectionError("getFavoriteComedianShows"))
                 : Promise.resolve([]),
             getTouringScarcityRails({
                 zipCode: zipCode ?? "",

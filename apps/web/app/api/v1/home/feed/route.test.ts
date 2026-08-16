@@ -737,6 +737,8 @@ describe("GET /api/v1/home/feed", () => {
             );
             expect(mockGetFavoriteComedianShows).toHaveBeenCalledWith(
                 "profile-1",
+                null,
+                25,
             );
             expect(body.data.followedComedianShows).toEqual([
                 { id: 41, name: "Favorite Comic Night" },
@@ -795,9 +797,41 @@ describe("GET /api/v1/home/feed", () => {
 
             expect(mockGetFavoriteComedianShows).toHaveBeenCalledWith(
                 "profile-1",
+                null,
+                25,
             );
             expect(body.data.followedComedianShows).toEqual([]);
         });
+
+        it.each(["web", "ios", "android"] as const)(
+            "location-filters followed-comedian shows with the resolved ZIP and requested distance for %s",
+            async (platform) => {
+                mockResolveAuth.mockResolvedValue({
+                    profileId: "profile-1",
+                    userId: "user-1",
+                });
+                mockGetHeroContext.mockResolvedValue({
+                    zipCode: "10801",
+                    city: "New Rochelle",
+                    state: "NY",
+                });
+
+                const res = await GET(
+                    makeRequest({
+                        platform,
+                        zip: "10801",
+                        distance: "50",
+                    }),
+                );
+
+                expect(res.status).toBe(200);
+                expect(mockGetFavoriteComedianShows).toHaveBeenCalledWith(
+                    "profile-1",
+                    "10801",
+                    50,
+                );
+            },
+        );
 
         it("treats an authenticated user without a profile as signed out", async () => {
             mockResolveAuth.mockResolvedValue(PROFILE_MISSING);
