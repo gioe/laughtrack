@@ -120,17 +120,6 @@ STOREFRONT_SELECTIONS: dict[str, dict[str, tuple[str, ...]]] = {
             "08_SearchPodcasts",
             "09_PodcastDetail",
         ),
-        "ios_large_tablet": (
-            "01_NearMe",
-            "02_SearchShows",
-            "03_SearchComedians",
-            "04_SearchClubs",
-            "05_ClubDetail",
-            "06_ShowDetail",
-            "07_ComedianDetail",
-            "08_SearchPodcasts",
-            "09_PodcastDetail",
-        ),
     },
 }
 
@@ -499,6 +488,19 @@ def export_projection(
     validate_manifest(manifest, catalog, repo_root=repo_root, require_complete=True)
 
     selection = STOREFRONT_SELECTIONS[storefront]
+    profiles_by_id = {profile["id"]: profile for profile in catalog["profiles"]}
+    nonshipping_profiles = [
+        profile_id
+        for profile_id in selection
+        if not profiles_by_id[profile_id]["shipping"]
+    ]
+    if nonshipping_profiles:
+        raise ContractError(
+            [
+                f"{storefront} projection includes non-shipping profiles: "
+                f"{', '.join(nonshipping_profiles)}"
+            ]
+        )
     missing_profiles = [profile_id for profile_id in selection if profile_id not in manifest["profiles"]]
     if missing_profiles:
         raise ContractError([f"{storefront} projection requires profiles: {', '.join(missing_profiles)}"])

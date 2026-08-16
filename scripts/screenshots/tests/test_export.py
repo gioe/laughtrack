@@ -110,7 +110,7 @@ def test_episode_detail_remains_comparison_only() -> None:
     )
 
 
-def test_app_store_projection_exports_all_canonical_phone_and_ipad_images(
+def test_app_store_projection_exports_canonical_shipping_phone_images(
     tmp_path: Path,
 ) -> None:
     source, manifest = collect(tmp_path, "ios")
@@ -131,10 +131,20 @@ def test_app_store_projection_exports_all_canonical_phone_and_ipad_images(
         for profile_id, scenario_ids in STOREFRONT_SELECTIONS["app-store"].items()
         for scenario_id in scenario_ids
     }
-    assert len(exported) == 18
+    assert len(exported) == 9
     assert {path.name for path in (output / "en-US").glob("*.png")} == expected_names
     assert file_hashes(source) == source_before
     assert file_hashes(manifest.parent) == run_before
+
+
+def test_storefront_projections_only_select_shipping_profiles() -> None:
+    catalog = load_catalog(CATALOG_PATH)
+    shipping_profiles = {
+        profile["id"] for profile in catalog["profiles"] if profile["shipping"]
+    }
+
+    for selection in STOREFRONT_SELECTIONS.values():
+        assert set(selection) <= shipping_profiles
 
 
 def test_collection_serializes_normalized_validated_manifest(tmp_path: Path) -> None:
