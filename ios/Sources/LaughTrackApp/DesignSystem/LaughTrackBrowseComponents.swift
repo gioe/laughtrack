@@ -1,5 +1,75 @@
 import SwiftUI
 import LaughTrackBridge
+#if canImport(UIKit)
+import UIKit
+#endif
+
+private extension View {
+    @ViewBuilder
+    func hostedAccessibilityTestElement(
+        label: String,
+        identifier: String?,
+        action: (() -> Void)? = nil
+    ) -> some View {
+        #if DEBUG && canImport(UIKit)
+        if let identifier {
+            background {
+                LaughTrackHostedAccessibilityControl(
+                    label: label,
+                    identifier: identifier,
+                    action: action
+                )
+                .allowsHitTesting(false)
+            }
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+}
+
+#if DEBUG && canImport(UIKit)
+/// SwiftUI's synthetic accessibility nodes are not exposed through UIView
+/// traversal on the pinned iOS 18 test runtime. Give identifier-bearing
+/// controls a UIKit-backed debug representation so HostedView can verify the
+/// same label and action without changing release accessibility behavior.
+private struct LaughTrackHostedAccessibilityControl: UIViewRepresentable {
+    let label: String
+    let identifier: String
+    let action: (() -> Void)?
+
+    final class Coordinator: NSObject {
+        var action: (() -> Void)?
+
+        init(action: (() -> Void)?) {
+            self.action = action
+        }
+
+        @objc func activate() {
+            action?()
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(action: action)
+    }
+
+    func makeUIView(context: Context) -> UIControl {
+        let control = UIControl(frame: .zero)
+        control.isAccessibilityElement = true
+        control.addTarget(context.coordinator, action: #selector(Coordinator.activate), for: .touchUpInside)
+        return control
+    }
+
+    func updateUIView(_ control: UIControl, context: Context) {
+        context.coordinator.action = action
+        control.accessibilityLabel = label
+        control.accessibilityIdentifier = identifier
+    }
+}
+#endif
 
 enum LaughTrackBrowseChipTone: Equatable {
     case neutral
@@ -588,6 +658,11 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(rowAccessibilityLabel)
             .accessibilityIdentifier(accessibilityIdentifier ?? "")
+            .hostedAccessibilityTestElement(
+                label: rowAccessibilityLabel,
+                identifier: accessibilityIdentifier,
+                action: action
+            )
 
             if hasTrailingAccessory {
                 trailingAccessory
@@ -1146,12 +1221,15 @@ struct LaughTrackPagedControls: View {
     }
 
     private var pageStatus: some View {
-        LaughTrackBrowseChip(pageLabel, tone: .subtle)
+        let identifier = accessibilityIdentifierPrefix.map { "\($0).current" }
+
+        return LaughTrackBrowseChip(pageLabel, tone: .subtle)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(pageLabel)
             .modifier(PagedControlAccessibilityIdentifierModifier(
-                identifier: accessibilityIdentifierPrefix.map { "\($0).current" }
+                identifier: identifier
             ))
+            .hostedAccessibilityTestElement(label: pageLabel, identifier: identifier)
     }
 
     private func expandedButton(
@@ -1177,6 +1255,11 @@ struct LaughTrackPagedControls: View {
             .modifier(PagedControlAccessibilityIdentifierModifier(
                 identifier: accessibilityIdentifierPrefix.map { "\($0).\(identifierSuffix)" }
             ))
+            .hostedAccessibilityTestElement(
+                label: "\(title) page",
+                identifier: accessibilityIdentifierPrefix.map { "\($0).\(identifierSuffix)" },
+                action: action
+            )
     }
 
     private func compactButton(
@@ -1208,6 +1291,11 @@ struct LaughTrackPagedControls: View {
         .modifier(PagedControlAccessibilityIdentifierModifier(
             identifier: accessibilityIdentifierPrefix.map { "\($0).\(identifierSuffix)" }
         ))
+        .hostedAccessibilityTestElement(
+            label: accessibilityLabel,
+            identifier: accessibilityIdentifierPrefix.map { "\($0).\(identifierSuffix)" },
+            action: action
+        )
     }
 }
 
