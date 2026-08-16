@@ -41,7 +41,7 @@ jobs:
         run: python bin/migrate
 
   scrape_partition:
-    name: Scrape partition ${{ matrix.partition_number }} of 2
+    name: Scrape partition ${{ matrix.partition_number }} of 3
     needs: prepare
     runs-on: ubuntu-24.04
     timeout-minutes: 180
@@ -55,6 +55,8 @@ jobs:
             partition_number: 1
           - partition_index: 1
             partition_number: 2
+          - partition_index: 2
+            partition_number: 3
     defaults:
       run:
         working-directory: apps/scraper
@@ -96,12 +98,12 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           RESIDENTIAL_PROXY_URL: ${{ secrets.RESIDENTIAL_PROXY_URL }}
           CAPSOLVER_API_KEY: ${{ secrets.CAPSOLVER_API_KEY }}
-          # Two runners at six workers preserve the prior aggregate concurrency of 12.
+          # Three runners at six workers add headroom while keeping per-runner pressure bounded.
           MAX_CONCURRENT_CLUBS: "6"
         run: |
           python -m scripts.core.scrape_shows --all \
             --partition-index "${{ matrix.partition_index }}" \
-            --partition-count 2 \
+            --partition-count 3 \
             --skip-production-companies
 
       - name: Upload partition logs
@@ -129,7 +131,7 @@ jobs:
         continue-on-error: true
         uses: ./.github/actions/record-pipeline-run
         with:
-          pipeline-key: github_actions_scraper_pipeline_partition_${{ matrix.partition_index }}_of_2
+          pipeline-key: github_actions_scraper_pipeline_partition_${{ matrix.partition_index }}_of_3
           job-status: ${{ job.status }}
           database-name: ${{ secrets.DATABASE_NAME }}
           database-user: ${{ secrets.DATABASE_USER }}
@@ -273,7 +275,7 @@ jobs:
         run: |
           python -m scripts.core.scrape_shows \
             --merge-partition-metrics partition-metrics \
-            --expected-partitions 3
+            --expected-partitions 4
 
       - name: Revalidate home page cache
         if: always() && steps.merge_metrics.outcome == 'success'

@@ -59,29 +59,38 @@ def test_partitions_are_deterministic_disjoint_and_exhaustive():
     targets = [_target(i) for i in range(1, 31)]
     targets += [_target(0, source_target_id=91), _target(0, production_company_id=44)]
 
-    first = _select_scrape_partition(targets, 0, 2)
-    second = _select_scrape_partition(list(reversed(targets)), 1, 2)
-    first_keys = {_scrape_target_partition_key(target) for target in first}
-    second_keys = {_scrape_target_partition_key(target) for target in second}
+    partitions = [
+        _select_scrape_partition(list(reversed(targets)), index, 3)
+        for index in range(3)
+    ]
+    partition_keys = [
+        {_scrape_target_partition_key(target) for target in partition}
+        for partition in partitions
+    ]
     all_keys = {_scrape_target_partition_key(target) for target in targets}
 
-    assert first_keys.isdisjoint(second_keys)
-    assert first_keys | second_keys == all_keys
-    assert [_scrape_target_partition_key(target) for target in first] == sorted(first_keys)
+    assert all(
+        left.isdisjoint(right)
+        for index, left in enumerate(partition_keys)
+        for right in partition_keys[index + 1 :]
+    )
+    assert set().union(*partition_keys) == all_keys
+    for partition, keys in zip(partitions, partition_keys, strict=True):
+        assert [_scrape_target_partition_key(target) for target in partition] == sorted(keys)
 
 
 def test_adding_a_target_does_not_move_existing_partition_assignments():
     targets = [_target(i) for i in range(1, 20)]
     assignments = {
         _scrape_target_partition_key(target): index
-        for index in range(2)
-        for target in _select_scrape_partition(targets, index, 2)
+        for index in range(3)
+        for target in _select_scrape_partition(targets, index, 3)
     }
     with_new_target = targets + [_target(999)]
     new_assignments = {
         _scrape_target_partition_key(target): index
-        for index in range(2)
-        for target in _select_scrape_partition(with_new_target, index, 2)
+        for index in range(3)
+        for target in _select_scrape_partition(with_new_target, index, 3)
     }
 
     assert all(new_assignments[key] == index for key, index in assignments.items())
@@ -282,14 +291,16 @@ def test_workflow_gates_downstream_work_and_records_unique_partitions():
     assert "needs: [scrape_partition, scrape_production_companies]" in workflow
     assert "needs.scrape_production_companies.result == 'success'" in workflow
     assert 'MAX_CONCURRENT_CLUBS: "6"' in workflow
+    assert "partition_number: 3" in workflow
+    assert "--partition-count 3" in workflow
     assert "--skip-production-companies" in workflow
     assert "--production-companies-only" in workflow
     assert "if-no-files-found: error" in workflow
     assert "pattern: scraper-metrics-${{ github.run_id }}-*" in workflow
-    assert "--expected-partitions 3" in workflow
+    assert "--expected-partitions 4" in workflow
     merge_step = workflow.split("- name: Publish full scraper metrics snapshot", 1)[1]
     assert "EMAIL_SMTP_USERNAME: ${{ secrets.EMAIL_SMTP_USERNAME }}" in merge_step
     assert "ALERT_RECIPIENTS: ${{ secrets.ALERT_RECIPIENTS }}" in merge_step
-    assert "github_actions_scraper_pipeline_partition_${{ matrix.partition_index }}_of_2" in workflow
+    assert "github_actions_scraper_pipeline_partition_${{ matrix.partition_index }}_of_3" in workflow
     assert "actions/download-artifact@v8" in workflow
     assert "pipeline-key:" in action
