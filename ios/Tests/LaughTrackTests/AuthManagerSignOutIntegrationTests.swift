@@ -22,7 +22,7 @@ struct AuthManagerSignOutIntegrationTests {
 
         await harness.transport.seed([.response(status: .ok, bodyJSON: #"{"revoked":1}"#)])
 
-        await harness.authManager.signOut()
+        await harness.authManager.signOut(source: "profile")
 
         let recorded = await harness.transport.recordedRequests
         #expect(recorded.count == 1)
@@ -32,10 +32,17 @@ struct AuthManagerSignOutIntegrationTests {
         #expect(request.method == .post)
         #expect(request.path == "/api/v1/auth/signout")
 
-        // Criterion 2: the Bearer header must match the access token that was in
+        // The Bearer header must match the access token that was in
         // the keychain at the moment signOut() fired — proof that the real
         // AuthenticationMiddleware signed the request, not a closure mock.
         #expect(request.headers[.authorization] == "Bearer \(harness.initialAccess)")
+
+        let bodyData = try #require(request.bodyData)
+        let body = try JSONDecoder().decode(Components.Schemas.SignoutRequest.self, from: bodyData)
+        #expect(body.refreshToken == harness.initialRefresh)
+        #expect(body.platform == .ios)
+        #expect(body.appVersion == "test-version")
+        #expect(body.source == .profile)
 
         // Local state drained: keychain empty, authMiddleware empty, state .signedOut.
         guard case .signedOut = harness.authManager.state else {
@@ -63,7 +70,7 @@ struct AuthManagerSignOutIntegrationTests {
             await errorRecorder.record(error: error)
         }
 
-        await harness.authManager.signOut()
+        await harness.authManager.signOut(source: "profile")
 
         // The server call still went out — it just failed in flight. Verifying the
         // request was recorded protects the "attempt revocation while we still have
@@ -90,7 +97,10 @@ struct AuthManagerSignOutIntegrationTests {
         // so we don't pin the kind — the count + non-nil shape is enough to catch a
         // regression that silently swallowed the throw.
         #expect(await errorRecorder.callCount == 1)
-        #expect(await errorRecorder.lastError != nil)
+        let errorDescription = await errorRecorder.lastErrorDescription
+        #expect(errorDescription != nil)
+        #expect(errorDescription?.contains(harness.initialAccess) == false)
+        #expect(errorDescription?.contains(harness.initialRefresh) == false)
     }
 
     @Test("signOut() drains state to signedOut when the server returns 500")
@@ -139,7 +149,10 @@ struct AuthManagerSignOutIntegrationTests {
         // and non-nil shape are enough to catch a regression that swallows the
         // .undocumented branch.
         #expect(await errorRecorder.callCount == 1)
-        #expect(await errorRecorder.lastError != nil)
+        let errorDescription = await errorRecorder.lastErrorDescription
+        #expect(errorDescription != nil)
+        #expect(errorDescription?.contains(harness.initialAccess) == false)
+        #expect(errorDescription?.contains(harness.initialRefresh) == false)
     }
 
     @Test("handleUnauthorizedResponse() clears state without issuing POST /auth/signout")
@@ -318,10 +331,40 @@ private struct AuthSignOutHarness {
             ]
         )
 
-        authManager.signoutRequest = { [apiClient] in
-            let response = try await apiClient.signout()
+        // Mirrors AppBootstrap's token-safe sign-out client: generated transport
+        // errors describe their operation input, so this request intentionally
+        // omits LoggingMiddleware and maps thrown errors before observation.
+        let signoutClient = Client(
+            serverURL: serverURL,
+            transport: transport,
+            middlewares: [
+                APIVersionPathMiddleware(),
+                unauthorizedMiddleware,
+                tokenRefreshMiddleware,
+                factory.authMiddleware,
+                factory.retryMiddleware,
+            ]
+        )
+
+        authManager.signoutRequest = { [signoutClient] refreshToken, source in
+            guard let sourcePayload = Components.Schemas.SignoutRequest.SourcePayload(rawValue: source) else {
+                throw URLError(.badURL)
+            }
+            let response: Operations.Signout.Output
+            do {
+                response = try await signoutClient.signout(
+                    body: .json(.init(
+                        refreshToken: refreshToken,
+                        platform: .ios,
+                        appVersion: "test-version",
+                        source: sourcePayload
+                    ))
+                )
+            } catch {
+                throw HarnessSetupError("signout transport failed")
+            }
             guard case .ok = response else {
-                throw URLError(.badServerResponse)
+                throw HarnessSetupError("signout server failed")
             }
         }
         authManager.deleteAccountRequest = { [apiClient] in
@@ -349,11 +392,11 @@ private struct HarnessSetupError: Error, CustomStringConvertible {
 
 private actor IntegrationSignoutErrorRecorder {
     var callCount = 0
-    var lastError: Error?
+    var lastErrorDescription: String?
 
     func record(error: Error) {
         callCount += 1
-        lastError = error
+        lastErrorDescription = String(describing: error)
     }
 }
 

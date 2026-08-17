@@ -6,6 +6,9 @@ import LaughTrackCore
 @MainActor
 struct ProfileView: View {
     static let signOutButtonTitle = "Sign out"
+    static let signOutConfirmationTitle = "Sign out of LaughTrack?"
+    static let signOutConfirmationMessage = "You’ll need to sign in again to access your saved profile."
+    static let signOutSource = "profile"
     static let deleteAccountButtonTitle = "Delete account"
     static let signedOutAuthOptions = SignedOutAuthOption.all
     static let signedOutBenefitMessage = "Sign in to sync favorite comedians across devices."
@@ -23,6 +26,7 @@ struct ProfileView: View {
     @Environment(\.appTheme) private var theme
     @StateObject private var settingsModel: SettingsNearbyPreferenceModel
     @StateObject private var notificationModel: SettingsNotificationPreferenceModel
+    @State private var showingSignOutConfirmation = false
     @State private var showingDeleteAccountConfirmation = false
     @State private var isDeletingAccount = false
     @State private var deleteAccountErrorMessage: String?
@@ -94,6 +98,20 @@ struct ProfileView: View {
             refreshNotificationPreferences(from: user)
         }
         .confirmationDialog(
+            Self.signOutConfirmationTitle,
+            isPresented: $showingSignOutConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(Self.signOutButtonTitle, role: .destructive) {
+                Task {
+                    await authManager.signOut(source: Self.signOutSource)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(Self.signOutConfirmationMessage)
+        }
+        .confirmationDialog(
             "Delete your LaughTrack account?",
             isPresented: $showingDeleteAccountConfirmation,
             titleVisibility: .visible
@@ -142,9 +160,7 @@ struct ProfileView: View {
                         systemImage: "rectangle.portrait.and.arrow.right",
                         tone: .secondary
                     ) {
-                        Task {
-                            await authManager.signOut()
-                        }
+                        showingSignOutConfirmation = true
                     }
 
                     Button {

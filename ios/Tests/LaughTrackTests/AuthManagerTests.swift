@@ -369,15 +369,21 @@ struct AuthManagerTests {
         await manager.restoreSession()
 
         let recorder = SignoutRecorder()
-        manager.signoutRequest = { [authMiddleware] in
+        manager.signoutRequest = { [authMiddleware] refreshToken, source in
             let hadToken = await authMiddleware.hasAccessToken
-            await recorder.record(hadAccessToken: hadToken)
+            await recorder.record(
+                hadAccessToken: hadToken,
+                refreshToken: refreshToken,
+                source: source
+            )
         }
 
-        await manager.signOut()
+        await manager.signOut(source: "profile")
 
         #expect(await recorder.callCount == 1)
         #expect(await recorder.observedAccessToken == true)
+        #expect(await recorder.refreshToken?.hasPrefix("opaque-refresh-token-") == true)
+        #expect(await recorder.source == "profile")
         #expect(manager.state == .signedOut(message: nil))
         #expect(!tokenManager.isAuthenticated)
         #expect(!(await authMiddleware.hasAccessToken))
@@ -436,8 +442,12 @@ struct AuthManagerTests {
         await manager.restoreSession()
 
         let recorder = SignoutRecorder()
-        manager.signoutRequest = {
-            await recorder.record(hadAccessToken: true)
+        manager.signoutRequest = { refreshToken, source in
+            await recorder.record(
+                hadAccessToken: true,
+                refreshToken: refreshToken,
+                source: source
+            )
             throw URLError(.networkConnectionLost)
         }
 
@@ -802,10 +812,18 @@ struct AuthManagerTests {
 private actor SignoutRecorder {
     var callCount = 0
     var observedAccessToken = false
+    var refreshToken: String?
+    var source: String?
 
-    func record(hadAccessToken: Bool) {
+    func record(
+        hadAccessToken: Bool,
+        refreshToken: String? = nil,
+        source: String? = nil
+    ) {
         callCount += 1
         observedAccessToken = hadAccessToken
+        self.refreshToken = refreshToken
+        self.source = source
     }
 }
 

@@ -13,7 +13,7 @@ public final class AuthManager: ObservableObject {
         case authenticated(AuthSessionMetadata)
     }
 
-    public typealias SignoutRequest = @Sendable () async throws -> Void
+    public typealias SignoutRequest = @Sendable (_ refreshToken: String, _ source: String) async throws -> Void
     public typealias DeleteAccountRequest = @Sendable () async throws -> Void
     public typealias LoadUserRequest = @Sendable () async throws -> AuthenticatedUser?
     public typealias SignoutErrorObserver = @Sendable (Error) async -> Void
@@ -215,14 +215,14 @@ public final class AuthManager: ObservableObject {
     }
     #endif
 
-    public func signOut() async {
-        // Revoke server-side refresh tokens while we still have a valid Bearer
+    public func signOut(source: String = "profile") async {
+        // Revoke this session's refresh token while we still have a valid Bearer
         // access token. Transport or auth failures must not block the local
         // clear — the user expects to end up signed out regardless.
         await pushTokenManager?.deactivateCurrentDeviceToken()
-        if let signoutRequest {
+        if let refreshToken = tokenManager.retrieveRefreshToken(), let signoutRequest {
             do {
-                try await signoutRequest()
+                try await signoutRequest(refreshToken, source)
             } catch {
                 await signoutErrorObserver(error)
             }

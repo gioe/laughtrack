@@ -134,15 +134,52 @@ public struct AppBootstrap {
         )
         self.apiClient = apiClient
 
-        authManager.signoutRequest = { [apiClient] in
+        // Sign-out carries a refresh token in its JSON body. Keep it off the
+        // shared LoggingMiddleware path because generated transport errors
+        // include operation input (and therefore the body) in their description.
+        let signoutClient = Client(
+            serverURL: factory.serverURL,
+            configuration: .laughTrack,
+            transport: URLSessionTransport(),
+            middlewares: [
+                APIVersionPathMiddleware(),
+                XTimezoneHeaderNormalizationMiddleware(),
+                unauthorizedMiddleware,
+                tokenRefreshMiddleware,
+                factory.authMiddleware,
+                factory.retryMiddleware,
+            ]
+        )
+
+        authManager.signoutRequest = { [signoutClient] refreshToken, source in
             // Throw on any non-OK response so AuthManager.signOut()'s catch
             // block fires and signoutErrorObserver receives the error. The
             // OpenAPI spec has no 5xx branch for POST /auth/signout, so a 500
             // decodes as Output.undocumented and would otherwise return
             // silently — leaving the observer blind to server-side failures.
-            let response = try await apiClient.signout()
+            guard let sourcePayload = Components.Schemas.SignoutRequest.SourcePayload(rawValue: source) else {
+                throw URLError(.badURL)
+            }
+            let response: Operations.Signout.Output
+            do {
+                response = try await signoutClient.signout(
+                    body: .json(.init(
+                        refreshToken: refreshToken,
+                        platform: .ios,
+                        appVersion: AppConfiguration.sentryReleaseIdentifier
+                            .split(separator: "@")
+                            .last
+                            .map(String.init) ?? "0",
+                        source: sourcePayload
+                    ))
+                )
+            } catch {
+                // Never forward the generated ClientError: its description
+                // contains the operation input, including the refresh token.
+                throw SignoutRequestFailure.transport
+            }
             guard case .ok = response else {
-                throw URLError(.badServerResponse)
+                throw SignoutRequestFailure.server
             }
         }
 
@@ -334,4 +371,9 @@ public struct AppBootstrap {
         manager.addProvider(ConsoleAnalyticsProvider())
         #endif
     }
+}
+
+private enum SignoutRequestFailure: Error {
+    case transport
+    case server
 }

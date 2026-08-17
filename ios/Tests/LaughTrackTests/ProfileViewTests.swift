@@ -19,6 +19,9 @@ struct ProfileViewTests {
     @Test("profile settings and account copy seams stay stable")
     func profileCopySeamsStayStable() {
         #expect(ProfileView.signOutButtonTitle == "Sign out")
+        #expect(ProfileView.signOutConfirmationTitle == "Sign out of LaughTrack?")
+        #expect(ProfileView.signOutConfirmationMessage == "You’ll need to sign in again to access your saved profile.")
+        #expect(ProfileView.signOutSource == "profile")
         #expect(ProfileView.deleteAccountButtonTitle == "Delete account")
         #expect(ProfileView.signedOutBenefitMessage == "Sign in to sync favorite comedians across devices.")
         #expect(ProfileView.signedOutBenefitPreviews.map(\.title) == [
