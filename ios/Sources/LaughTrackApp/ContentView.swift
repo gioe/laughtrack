@@ -34,6 +34,7 @@ enum LaughTrackViewTestID {
     static let accountHeaderButton = "laughtrack.account.header-button"
     static let accountNotificationsMenuItem = "laughtrack.account.menu.notifications"
     static let accountSettingsMenuItem = "laughtrack.account.menu.settings"
+    static let accountSignUpButton = "laughtrack.account.sign-up-button"
     static let notificationCenterScreen = "laughtrack.notifications.screen"
     static let notificationRow = "laughtrack.notifications.row"
     static let locationPermissionPitch = "laughtrack.location-permission.pitch"

@@ -79,6 +79,13 @@ class AppShellTest {
         // guest state rather than disappearing from navigation.
         composeRule.onNodeWithText("Search").assertIsDisplayed()
         composeRule.onNodeWithText("Library").assertIsDisplayed()
+
+        // The account menu uses its authenticated-only notification slot to
+        // invite guests to create an account instead.
+        composeRule.onNodeWithText("Library").performClick()
+        composeRule.onNodeWithContentDescription("Profile menu").performClick()
+        composeRule.onNodeWithText("Sign up or sign in").assertIsDisplayed()
+        composeRule.onNodeWithText("Notifications").assertDoesNotExist()
     }
 
     @Test

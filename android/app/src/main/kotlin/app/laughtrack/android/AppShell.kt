@@ -117,7 +117,7 @@ fun AppShell(
                 if (AppShellChrome.showsTopAppBar(currentDestination)) {
                     TopAppBar(
                         title = { Text("LaughTrack") },
-                        actions = { ProfileMenu(navController) },
+                        actions = { ProfileMenu(navController, signedIn) },
                         colors =
                             TopAppBarDefaults.topAppBarColors(
                                 containerColor = topAppBarContainerColor,
@@ -361,26 +361,39 @@ private fun NavGraphBuilder.clubDetailDestination(
 }
 
 @Composable
-private fun ProfileMenu(navController: NavController) {
+private fun ProfileMenu(
+    navController: NavController,
+    signedIn: Boolean,
+) {
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = { expanded = true }) {
         Icon(Icons.Filled.Person, contentDescription = "Profile menu")
     }
     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-        DropdownMenuItem(
-            text = { Text("Profile") },
-            onClick = {
-                expanded = false
-                navController.openEntity(AppRoute.Profile)
-            },
-        )
-        DropdownMenuItem(
-            text = { Text("Notifications") },
-            onClick = {
-                expanded = false
-                navController.openEntity(AppRoute.NotificationCenter)
-            },
-        )
+        if (signedIn) {
+            DropdownMenuItem(
+                text = { Text("Profile") },
+                onClick = {
+                    expanded = false
+                    navController.openEntity(AppRoute.Profile)
+                },
+            )
+            DropdownMenuItem(
+                text = { Text("Notifications") },
+                onClick = {
+                    expanded = false
+                    navController.openEntity(AppRoute.NotificationCenter)
+                },
+            )
+        } else {
+            DropdownMenuItem(
+                text = { Text("Sign up or sign in") },
+                onClick = {
+                    expanded = false
+                    navController.openEntity(AppRoute.Profile)
+                },
+            )
+        }
     }
 }
 

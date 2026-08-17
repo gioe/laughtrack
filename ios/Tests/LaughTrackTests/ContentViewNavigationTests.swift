@@ -294,15 +294,20 @@ struct ContentViewNavigationTests {
         #expect(pushed == [.notifications, .showDetail(555)])
     }
 
-    @Test("Profile entry point presents a side drawer instead of a popup menu")
-    func profileEntryPointUsesSideDrawer() throws {
+    @Test("Profile side drawer replaces guest notification actions with account signup")
+    func profileEntryPointUsesAuthenticationAwareSideDrawer() throws {
         let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
 
         #expect(source.contains("@State private var isAccountDrawerPresented = false"))
         #expect(source.contains("private func accountSideDrawerOverlay"))
         #expect(source.contains("private func accountSideDrawer("))
+        #expect(source.contains("if authManager.currentSession != nil"))
         #expect(source.contains("LaughTrackViewTestID.accountNotificationsMenuItem"))
         #expect(source.contains("LaughTrackViewTestID.accountSettingsMenuItem"))
+        #expect(source.contains("private var accountDrawerSignUpPrompt: some View"))
+        #expect(source.contains("LibraryView.signedOutPromptTitle"))
+        #expect(source.contains("LaughTrackViewTestID.accountSignUpButton"))
+        #expect(source.contains("loginModalPresenter.present()"))
         #expect(!source.contains("return Menu {"))
     }
 

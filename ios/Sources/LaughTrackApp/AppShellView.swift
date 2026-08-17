@@ -107,6 +107,7 @@ struct AppShellView: View {
     @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @EnvironmentObject private var clubFavorites: ClubFavoriteStore
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
@@ -371,8 +372,9 @@ struct AppShellView: View {
         .background(Color.clear)
     }
 
-    // The profile button opens a side drawer: "Notifications" opens the notification
-    // center and "Settings" preserves the original tap destination (ProfileView).
+    // The profile button opens a side drawer. Authenticated users can open
+    // Notifications or Settings; guests get an account CTA instead of a dead-end
+    // notification destination.
     // An unread badge overlays the icon, driven by the /me notificationsUnreadCount
     // surfaced through currentUser; it clears once the center marks itself seen.
     private var accountHeaderButton: some View {
@@ -452,25 +454,29 @@ struct AppShellView: View {
                 .accessibilityLabel("Close account drawer")
             }
 
-            VStack(spacing: theme.spacing.xs) {
-                accountDrawerRow(
-                    title: "Notifications",
-                    systemImage: "bell",
-                    badgeCount: authManager.currentUser?.notificationsUnreadCount ?? 0,
-                    accessibilityIdentifier: LaughTrackViewTestID.accountNotificationsMenuItem
-                ) {
-                    isAccountDrawerPresented = false
-                    coordinator.push(.notifications)
-                }
+            if authManager.currentSession != nil {
+                VStack(spacing: theme.spacing.xs) {
+                    accountDrawerRow(
+                        title: "Notifications",
+                        systemImage: "bell",
+                        badgeCount: authManager.currentUser?.notificationsUnreadCount ?? 0,
+                        accessibilityIdentifier: LaughTrackViewTestID.accountNotificationsMenuItem
+                    ) {
+                        isAccountDrawerPresented = false
+                        coordinator.push(.notifications)
+                    }
 
-                accountDrawerRow(
-                    title: "Settings",
-                    systemImage: "gearshape",
-                    accessibilityIdentifier: LaughTrackViewTestID.accountSettingsMenuItem
-                ) {
-                    isAccountDrawerPresented = false
-                    coordinator.push(AppRoute.accountHeaderTarget())
+                    accountDrawerRow(
+                        title: "Settings",
+                        systemImage: "gearshape",
+                        accessibilityIdentifier: LaughTrackViewTestID.accountSettingsMenuItem
+                    ) {
+                        isAccountDrawerPresented = false
+                        coordinator.push(AppRoute.accountHeaderTarget())
+                    }
                 }
+            } else {
+                accountDrawerSignUpPrompt
             }
 
             Spacer(minLength: 0)
@@ -491,6 +497,32 @@ struct AppShellView: View {
                 .shadow(color: .black.opacity(0.2), radius: 24, x: 12, y: 0)
         }
         .ignoresSafeArea(edges: .vertical)
+    }
+
+    private var accountDrawerSignUpPrompt: some View {
+        let tokens = theme.laughTrackTokens
+
+        return LaughTrackCard(tone: .muted) {
+            VStack(alignment: .leading, spacing: tokens.spacing.itemGap) {
+                VStack(alignment: .leading, spacing: tokens.spacing.tight) {
+                    Text(LibraryView.signedOutPromptTitle)
+                        .font(tokens.typography.sectionTitle)
+                        .foregroundStyle(tokens.colors.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text("Save shows, follow comedians, and get alerts when they perform nearby.")
+                        .font(tokens.typography.body)
+                        .foregroundStyle(tokens.colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                LaughTrackButton("Sign up or sign in", systemImage: "person.badge.plus") {
+                    isAccountDrawerPresented = false
+                    loginModalPresenter.present()
+                }
+                .accessibilityIdentifier(LaughTrackViewTestID.accountSignUpButton)
+            }
+        }
     }
 
     private var accountDrawerAvatar: some View {
