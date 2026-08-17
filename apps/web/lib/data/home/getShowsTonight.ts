@@ -4,6 +4,7 @@ import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import { findShowsForHome } from "./findShowsForHome";
 import {
     HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    HOME_SHOW_RAIL_LIMIT,
     selectDiverseShowsByTime,
 } from "./showRailSelection";
 
@@ -37,5 +38,7 @@ export async function getShowsTonight(
             : { sortByHomeRelevance: false, requireLineup: true },
     );
 
-    return selectDiverseShowsByTime(candidates);
+    return selectDiverseShowsByTime(candidates, HOME_SHOW_RAIL_LIMIT, {
+        maxPerTimestamp: 1,
+    });
 }

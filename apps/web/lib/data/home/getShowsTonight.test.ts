@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { ShowDTO } from "@/objects/class/show/show.interface";
 
 vi.mock("./findShowsForHome", () => ({
     findShowsForHome: vi.fn(() => Promise.resolve([])),
@@ -29,6 +30,24 @@ afterEach(() => {
 function getDateClause() {
     const [where] = mockFindShowsForHome.mock.calls[0];
     return where.date as { gte: Date; lte: Date };
+}
+
+function show(id: number, date: string, headlinerId: number): ShowDTO {
+    return {
+        id,
+        clubId: 1,
+        date: new Date(date),
+        name: `Show ${id}`,
+        imageUrl: "",
+        lineup: [
+            {
+                id: headlinerId,
+                uuid: `comedian-${headlinerId}`,
+                name: `Comedian ${headlinerId}`,
+                imageUrl: "",
+            },
+        ],
+    };
 }
 
 describe("getShowsTonight", () => {
@@ -82,6 +101,18 @@ describe("getShowsTonight", () => {
         );
     });
 
+    it("returns no more than one show at an exact start timestamp", async () => {
+        mockFindShowsForHome.mockResolvedValue([
+            show(1, "2026-04-27T20:00:00Z", 1),
+            show(2, "2026-04-27T20:00:00Z", 2),
+            show(3, "2026-04-27T20:30:00Z", 3),
+        ]);
+
+        const result = await getShowsTonight("UTC");
+
+        expect(result.map(({ id }) => id)).toEqual([1, 3]);
+    });
+
     describe("tags emission (TASK-2567)", () => {
         // Comprehensive
         // tags-emission tests (PUBLIC filter, null filtering, empty case)
@@ -90,9 +121,12 @@ describe("getShowsTonight", () => {
 
         it("passes tags through from findShowsForHome unchanged", async () => {
             const tagged = [
-                { id: 1, tags: [{ slug: "open mic", name: "Open Mic" }] },
+                {
+                    ...show(1, "2026-04-27T20:00:00Z", 1),
+                    tags: [{ slug: "open mic", name: "Open Mic" }],
+                },
             ];
-            mockFindShowsForHome.mockResolvedValue(tagged as never);
+            mockFindShowsForHome.mockResolvedValue(tagged);
 
             const result = await getShowsTonight("UTC");
 

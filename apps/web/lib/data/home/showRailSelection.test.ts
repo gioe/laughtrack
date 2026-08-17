@@ -64,6 +64,36 @@ describe("selectDiverseShowsByTime", () => {
         expect(result.map(({ id }) => id)).toEqual([4, 9]);
     });
 
+    it("can limit a rail to one show per exact timestamp", () => {
+        const result = selectDiverseShowsByTime(
+            [
+                show(1, "2026-08-17T20:00:00Z", 1),
+                show(2, "2026-08-17T20:00:00Z", 2),
+                show(3, "2026-08-17T20:30:00Z", 3),
+                show(4, "2026-08-17T21:00:00Z", 4),
+            ],
+            3,
+            { maxPerTimestamp: 1 },
+        );
+
+        expect(result.map(({ id }) => id)).toEqual([1, 3, 4]);
+    });
+
+    it("prefers a new headliner when backfilling a timestamp slot", () => {
+        const result = selectDiverseShowsByTime(
+            [
+                show(1, "2026-08-17T19:00:00Z", 1),
+                show(2, "2026-08-17T20:00:00Z", 1),
+                show(3, "2026-08-17T20:00:00Z", 2),
+                show(4, "2026-08-17T21:00:00Z", 3),
+            ],
+            3,
+            { maxPerTimestamp: 1 },
+        );
+
+        expect(result.map(({ id }) => id)).toEqual([1, 3, 4]);
+    });
+
     it("applies the same selection rule to wrapped dynamic-rail items", () => {
         const items = [
             { show: show(2, "2026-08-17T10:30:00Z", 1), reason: "second" },
