@@ -1,6 +1,7 @@
 package app.laughtrack.android.core.network
 
 import android.content.Context
+import android.os.Build
 import app.laughtrack.android.core.network.auth.AuthSessionManager
 import app.laughtrack.android.core.network.auth.AuthTokenInterceptor
 import app.laughtrack.android.core.network.auth.EncryptedSharedPreferencesTokenStore
@@ -101,17 +102,32 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideAuthSessionManager(
+        @ApplicationContext context: Context,
         tokenStore: TokenStore,
         authApi: AuthApi,
     ): AuthSessionManager =
         AuthSessionManager(
             tokenStore = tokenStore,
             authApi = authApi,
+            appVersion = appVersion(context),
             websiteBaseUrl =
                 BuildConfig.API_BASE_URL
                     .removeSuffix("/api/v1/")
                     .removeSuffix("/api/v1"),
         )
+
+    private fun appVersion(context: Context): String =
+        runCatching {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            val buildNumber =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    packageInfo.longVersionCode
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageInfo.versionCode.toLong()
+                }
+            "${packageInfo.versionName ?: "0"}+$buildNumber"
+        }.getOrDefault("0")
 
     private fun baseOkHttpBuilder(): OkHttpClient.Builder {
         val loggingLevel =

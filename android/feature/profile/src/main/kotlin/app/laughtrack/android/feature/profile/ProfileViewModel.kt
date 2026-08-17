@@ -31,6 +31,7 @@ data class ProfileUiState(
     val isMutating: Boolean = false,
     val isResolvingCurrentLocation: Boolean = false,
     val message: String? = null,
+    val showSignOutConfirmation: Boolean = false,
     val showDeleteConfirmation: Boolean = false,
     val zipCodeDraftTouched: Boolean = false,
     val distanceTouched: Boolean = false,
@@ -224,9 +225,23 @@ class ProfileViewModel
             mutableState.update { it.copy(showDeleteConfirmation = false) }
         }
 
-        fun signOut() {
+        fun requestSignOut() {
+            mutableState.update { it.copy(showSignOutConfirmation = true) }
+        }
+
+        fun dismissSignOut() {
+            mutableState.update { it.copy(showSignOutConfirmation = false) }
+        }
+
+        fun confirmSignOut() {
             viewModelScope.launch {
-                mutableState.update { it.copy(isMutating = true, message = null) }
+                mutableState.update {
+                    it.copy(
+                        isMutating = true,
+                        message = null,
+                        showSignOutConfirmation = false,
+                    )
+                }
                 repository.signOut()
                 // Clear the analytics identity so the next session isn't attributed to
                 // the prior user (mirrors iOS reset() on sign-out).

@@ -92,7 +92,7 @@ class ProfileViewModelTest {
         }
 
     @Test
-    fun sign_out_resets_state_and_reports_message() =
+    fun request_sign_out_requires_confirmation_before_repository_call() =
         runTest {
             val accountService = FakeProfileAccountService(hasSession = true, me = meData())
             val viewModel = viewModel(accountService)
@@ -100,7 +100,30 @@ class ProfileViewModelTest {
             viewModel.refresh()
             advanceUntilIdle()
 
-            viewModel.signOut()
+            viewModel.requestSignOut()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.showSignOutConfirmation)
+            assertFalse(accountService.signOutCalled)
+
+            viewModel.dismissSignOut()
+            advanceUntilIdle()
+
+            assertFalse(viewModel.uiState.value.showSignOutConfirmation)
+            assertFalse(accountService.signOutCalled)
+        }
+
+    @Test
+    fun confirmed_sign_out_resets_state_and_reports_message() =
+        runTest {
+            val accountService = FakeProfileAccountService(hasSession = true, me = meData())
+            val viewModel = viewModel(accountService)
+            subscribe(viewModel)
+            viewModel.refresh()
+            advanceUntilIdle()
+
+            viewModel.requestSignOut()
+            viewModel.confirmSignOut()
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -109,6 +132,7 @@ class ProfileViewModelTest {
             assertNull(state.account)
             assertEquals("Signed out.", state.message)
             assertFalse(state.isMutating)
+            assertFalse(state.showSignOutConfirmation)
         }
 
     @Test

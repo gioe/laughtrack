@@ -122,13 +122,15 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
         state = state,
         actions =
             ProfileActions(
+                dismissSignOut = viewModel::dismissSignOut,
                 dismissDeleteAccount = viewModel::dismissDeleteAccount,
                 deleteAccount = viewModel::deleteAccount,
                 clearMessage = viewModel::clearMessage,
                 googleSignIn = { launchSignIn(context, viewModel.buildGoogleSignInUrl()) },
                 appleSignIn = { launchSignIn(context, viewModel.buildAppleSignInUrl()) },
                 emailSignIn = { launchSignIn(context, viewModel.buildEmailSignInUrl()) },
-                signOut = viewModel::signOut,
+                requestSignOut = viewModel::requestSignOut,
+                confirmSignOut = viewModel::confirmSignOut,
                 requestDeleteAccount = viewModel::requestDeleteAccount,
                 setZipCodeDraft = viewModel::setZipCodeDraft,
                 setSelectedDistance = viewModel::setSelectedDistance,
@@ -166,13 +168,15 @@ private fun launchSignIn(
 }
 
 private data class ProfileActions(
+    val dismissSignOut: () -> Unit = {},
     val dismissDeleteAccount: () -> Unit = {},
     val deleteAccount: () -> Unit = {},
     val clearMessage: () -> Unit = {},
     val googleSignIn: () -> Unit = {},
     val appleSignIn: () -> Unit = {},
     val emailSignIn: () -> Unit = {},
-    val signOut: () -> Unit = {},
+    val requestSignOut: () -> Unit = {},
+    val confirmSignOut: () -> Unit = {},
     val requestDeleteAccount: () -> Unit = {},
     val setZipCodeDraft: (String) -> Unit = {},
     val setSelectedDistance: (Int) -> Unit = {},
@@ -188,6 +192,27 @@ private fun ProfileContent(
     state: ProfileUiState,
     actions: ProfileActions,
 ) {
+    if (state.showSignOutConfirmation) {
+        AlertDialog(
+            onDismissRequest = actions.dismissSignOut,
+            title = { Text("Sign out of LaughTrack?") },
+            text = { Text("You will need to sign in again to access your saved shows and comedians on this device.") },
+            confirmButton = {
+                TextButton(
+                    enabled = !state.isMutating,
+                    onClick = actions.confirmSignOut,
+                ) {
+                    Text("Sign out")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = actions.dismissSignOut) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
     if (state.showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = actions.dismissDeleteAccount,
@@ -311,7 +336,7 @@ private fun ProfileAccountCard(
         onGoogleSignIn = actions.googleSignIn,
         onAppleSignIn = actions.appleSignIn,
         onEmailSignIn = actions.emailSignIn,
-        onSignOut = actions.signOut,
+        onSignOut = actions.requestSignOut,
         onDeleteAccount = actions.requestDeleteAccount,
     )
 }

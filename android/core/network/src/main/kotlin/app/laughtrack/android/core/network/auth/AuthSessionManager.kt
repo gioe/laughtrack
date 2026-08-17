@@ -2,6 +2,7 @@ package app.laughtrack.android.core.network.auth
 
 import app.laughtrack.android.core.network.generated.api.AuthApi
 import app.laughtrack.android.core.network.generated.model.MeResponse
+import app.laughtrack.android.core.network.generated.model.SignoutRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +18,7 @@ class AuthSessionManager(
     private val tokenStore: TokenStore,
     private val authApi: AuthApi,
     private val websiteBaseUrl: String,
+    private val appVersion: String = "0",
     private val clock: Clock = Clock.systemUTC(),
 ) {
     private val mutableSignedIn = MutableStateFlow(false)
@@ -106,7 +108,20 @@ class AuthSessionManager(
         }
 
     suspend fun signOut(): Boolean {
-        val response = runCatching { authApi.signout() }.getOrNull()
+        val refreshToken = tokenStore.read()?.refreshToken
+        val response =
+            refreshToken?.let {
+                runCatching {
+                    authApi.signout(
+                        SignoutRequest(
+                            refreshToken = it,
+                            platform = SignoutRequest.Platform.ANDROID,
+                            appVersion = appVersion,
+                            source = SignoutRequest.Source.PROFILE,
+                        ),
+                    )
+                }.getOrNull()
+            }
         tokenStore.clear()
         mutableSignedIn.value = false
         return response?.isSuccessful == true

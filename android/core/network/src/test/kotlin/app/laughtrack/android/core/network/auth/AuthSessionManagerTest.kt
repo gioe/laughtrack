@@ -15,6 +15,7 @@ import app.laughtrack.android.core.network.generated.model.PushTokenDeleteRespon
 import app.laughtrack.android.core.network.generated.model.PushTokenRegisterRequest
 import app.laughtrack.android.core.network.generated.model.PushTokenRegisterResponse
 import app.laughtrack.android.core.network.generated.model.RefreshTokenRequest
+import app.laughtrack.android.core.network.generated.model.SignoutRequest
 import app.laughtrack.android.core.network.generated.model.SignoutResponse
 import app.laughtrack.android.core.network.generated.model.TokenResponse
 import kotlinx.coroutines.test.runTest
@@ -168,6 +169,42 @@ class AuthSessionManagerTest {
             assertEquals(null, store.read())
         }
 
+    @Test
+    fun signOutSendsCurrentRefreshTokenAndSanitizedClientContext() =
+        runTest {
+            val store =
+                InMemoryTokenStore(
+                    SessionTokens(
+                        accessToken = "access-jwt",
+                        refreshToken = "current-refresh-token",
+                        expiresAtEpochSeconds = 1_700_000_900,
+                    ),
+                )
+            val authApi = RecordingAuthApi()
+            val manager =
+                AuthSessionManager(
+                    tokenStore = store,
+                    authApi = authApi,
+                    websiteBaseUrl = "https://www.laugh-track.com",
+                    appVersion = "2.17.0+57",
+                    clock = clock,
+                )
+
+            val succeeded = manager.signOut()
+
+            assertTrue(succeeded)
+            assertEquals(
+                SignoutRequest(
+                    refreshToken = "current-refresh-token",
+                    platform = SignoutRequest.Platform.ANDROID,
+                    appVersion = "2.17.0+57",
+                    source = SignoutRequest.Source.PROFILE,
+                ),
+                authApi.signoutRequest,
+            )
+            assertEquals(null, store.read())
+        }
+
     private fun newManager(store: TokenStore = InMemoryTokenStore()): AuthSessionManager =
         AuthSessionManager(
             tokenStore = store,
@@ -213,10 +250,20 @@ class AuthSessionManagerTest {
             pushTokenRegisterRequest: PushTokenRegisterRequest,
         ): Response<PushTokenRegisterResponse> = unsupported()
 
-        override suspend fun signout(): Response<SignoutResponse> = unsupported()
+        override suspend fun signout(signoutRequest: SignoutRequest?): Response<SignoutResponse> = unsupported()
 
         override suspend fun updateMe(meUpdateRequest: MeUpdateRequest): Response<MeUpdateResponse> = unsupported()
 
         private fun unsupported(): Nothing = error("not used in this test")
+    }
+
+    private class RecordingAuthApi : AuthApi by UnsupportedAuthApi {
+        var signoutRequest: SignoutRequest? = null
+            private set
+
+        override suspend fun signout(signoutRequest: SignoutRequest?): Response<SignoutResponse> {
+            this.signoutRequest = signoutRequest
+            return Response.success(SignoutResponse(revoked = 1))
+        }
     }
 }
