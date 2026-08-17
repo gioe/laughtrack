@@ -32,8 +32,8 @@ struct ShowsListViewPresentationTests {
         #expect(rowBlock.contains("AdaptiveSearchResults(spacing: theme.spacing.md)"))
     }
 
-    @Test("show explorer exposes primary facets before optional entity search")
-    func showExplorerExposesPrimaryFacetsFirst() throws {
+    @Test("show explorer keeps format facets in additional filters")
+    func showExplorerKeepsFormatFacetsInAdditionalFilters() throws {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
         let filters = try sourceBlock(
             in: source,
@@ -41,15 +41,16 @@ struct ShowsListViewPresentationTests {
             to: "private struct ShowResultsCalendarView: View"
         )
 
-        for label in ["Tonight", "This Weekend", "Location", "Max price", "Free"] {
+        for label in ["Tonight", "This Weekend", "Location", "Max price"] {
             #expect(filters.contains(label), "Missing directly discoverable facet: \(label)")
         }
         let tonight = try #require(filters.range(of: "title: \"Tonight\"")?.lowerBound)
         let weekend = try #require(filters.range(of: "title: \"This Weekend\"")?.lowerBound)
-        let free = try #require(filters.range(of: "title: \"Free\"")?.lowerBound)
-        let openMic = try #require(filters.range(of: "title: ShowFormatOption.openMic.title")?.lowerBound)
         let location = try #require(filters.range(of: "title: zipChipTitle")?.lowerBound)
-        #expect(tonight < weekend && weekend < free && free < openMic && openMic < location)
+        #expect(tonight < weekend && weekend < location)
+        #expect(!filters.contains("title: \"Free\""))
+        #expect(!filters.contains("title: ShowFormatOption.openMic.title"))
+        #expect(!filters.contains("ForEach(ShowFormatOption.allCases"))
         #expect(filters.contains("id: \"shows-distance\""))
         #expect(filters.contains("systemImage: \"calendar\""))
         #expect(ShowFormatOption.allCases.map(\.title) == ["Stand-up", "Improv", "Open mic"])
@@ -58,8 +59,8 @@ struct ShowsListViewPresentationTests {
         #expect(source.range(of: "ShowFiltersPanel(")!.lowerBound < source.range(of: "Comedian (optional)")!.lowerBound)
     }
 
-    @Test("more filters excludes primary aliases and legacy price buckets")
-    func moreFiltersExcludeRedundantShowFacets() throws {
+    @Test("additional filters include free and show formats but exclude legacy price buckets")
+    func additionalFiltersIncludeShowFacets() throws {
         let availableSlugs = [
             "standup", "improv", "open_mic", "open mic", "free",
             "0-20", "20-50", "50-100", ">100", "late-night", "clean"
@@ -71,7 +72,9 @@ struct ShowsListViewPresentationTests {
             separatedBy: "ShowFilterFacetTaxonomy.isSecondary(slug: $0.slug)"
         ).count - 1
 
-        #expect(secondarySlugs == ["late-night", "clean"])
+        #expect(secondarySlugs == [
+            "standup", "improv", "open_mic", "open mic", "free", "late-night", "clean"
+        ])
         #expect(taxonomyUsageCount == 2)
     }
 

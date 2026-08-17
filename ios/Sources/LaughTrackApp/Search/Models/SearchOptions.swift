@@ -104,9 +104,10 @@ enum ShowFormatOption: String, CaseIterable, Identifiable {
 }
 
 enum ShowFilterFacetTaxonomy {
-    private static let nonSecondarySlugs = Set(ShowFormatOption.allCases.map(\.rawValue)).union([
-        "free",
-        "open mic",
+    // These legacy price tags duplicate the dedicated maximum-price control.
+    // Every other show tag belongs in the Additional Filters sheet, including
+    // the first-class Free and format facets.
+    private static let nonSecondarySlugs = Set([
         "0-20",
         "20-50",
         "50-100",

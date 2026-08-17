@@ -14,7 +14,7 @@ import java.time.YearMonth
 
 class ShowSearchPresentationTest {
     @Test
-    fun `show controls put direct facets before optional entity fields`() {
+    fun `show controls keep format facets in the additional filters sheet`() {
         val source = readMainSource("ui/SearchScreen.kt")
         val showBlock =
             source
@@ -23,22 +23,23 @@ class ShowSearchPresentationTest {
 
         val intro = showBlock.indexOf("Start with what matters")
         val shortcuts = showBlock.indexOf("ShowDateShortcut.entries")
-        val free = showBlock.indexOf("label = \"Free\"")
-        val openMic = showBlock.indexOf("label = ShowFormatOption.OPEN_MIC.label")
         val location = showBlock.indexOf("LocationPill")
+        val additionalFilters = showBlock.indexOf("label = \"More filters\"")
         val optional = showBlock.indexOf("Add comedian or club")
         val comedianField = showBlock.indexOf("Comedian (optional)")
 
         assertTrue(intro >= 0)
         assertTrue(shortcuts > intro)
-        assertTrue(free > shortcuts)
-        assertTrue(openMic > free)
-        assertTrue(location > openMic)
+        assertTrue(location > shortcuts)
+        assertTrue(additionalFilters > location)
+        assertFalse(showBlock.contains("label = \"Free\""))
+        assertFalse(showBlock.contains("label = ShowFormatOption.OPEN_MIC.label"))
+        assertFalse(showBlock.contains("ShowFormatOption.entries.filterNot"))
+        assertTrue(showBlock.contains("filters.filterNot { it.slug in legacyPriceSlugs }"))
         assertTrue(optional > shortcuts)
         assertTrue(comedianField > optional)
         assertFalse(showBlock.contains("value = query.text"))
         assertTrue(showBlock.contains("ShowMaximumPriceOption"))
-        assertTrue(showBlock.contains("ShowFormatOption.entries"))
         assertEquals(listOf("Tonight", "This Weekend"), ShowDateShortcut.entries.map { it.label })
         assertEquals("Open mic", ShowFormatOption.OPEN_MIC.label)
     }

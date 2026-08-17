@@ -518,22 +518,6 @@ private struct ShowFiltersPanel: View {
                     ) {
                         model.applyDateShortcut("This Weekend")
                     }
-
-                    facetButton(
-                        title: "Free",
-                        systemImage: "ticket",
-                        isSelected: model.selectedFilterSlugs.contains("free")
-                    ) {
-                        toggleFilter("free")
-                    }
-
-                    facetButton(
-                        title: ShowFormatOption.openMic.title,
-                        systemImage: "mic",
-                        isSelected: model.selectedFilterSlugs.contains(ShowFormatOption.openMic.rawValue)
-                    ) {
-                        toggleFilter(ShowFormatOption.openMic.rawValue)
-                    }
                 }
 
                 if model.allowsLocationFiltering {
@@ -574,16 +558,6 @@ private struct ShowFiltersPanel: View {
                         accessibilityLabel: { $0 == .any ? "Maximum price" : $0.title },
                         openDropdownID: $openDropdownID
                     )
-
-                    ForEach(ShowFormatOption.allCases.filter { $0 != .openMic }) { format in
-                        facetButton(
-                            title: format.title,
-                            systemImage: formatSystemImage(format),
-                            isSelected: model.selectedFilterSlugs.contains(format.rawValue)
-                        ) {
-                            toggleFilter(format.rawValue)
-                        }
-                    }
 
                     if !secondaryFilters.isEmpty {
                         PillSheetTrigger(
@@ -660,25 +634,6 @@ private struct ShowFiltersPanel: View {
         let calendar = Calendar.current
         return calendar.component(.weekday, from: model.dateRange.to) == 1 &&
             calendar.dateComponents([.day], from: model.dateRange.from, to: model.dateRange.to).day.map { (0...2).contains($0) } == true
-    }
-
-    private func toggleFilter(_ slug: String) {
-        if model.selectedFilterSlugs.contains(slug) {
-            model.selectedFilterSlugs.remove(slug)
-        } else {
-            model.selectedFilterSlugs.insert(slug)
-        }
-    }
-
-    private func formatSystemImage(_ format: ShowFormatOption) -> String {
-        switch format {
-        case .standUp:
-            return "microphone"
-        case .improv:
-            return "theatermasks"
-        case .openMic:
-            return "person.wave.2"
-        }
     }
 
     private func facetButton(

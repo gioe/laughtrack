@@ -87,6 +87,28 @@ describe("FilterModal", () => {
         ).toBeNull();
     });
 
+    it("keeps the primary show facets inside the filter modal", () => {
+        const showFilters = [
+            { id: -1, slug: "free", name: "Free" },
+            { id: 1, slug: "open_mic", name: "Open mic" },
+            { id: 2, slug: "standup", name: "Stand-up" },
+            { id: 3, slug: "improv", name: "Improv" },
+        ];
+        const { container } = render(
+            <FilterModal
+                filters={showFilters}
+                total={42}
+                variant={SearchVariant.AllShows}
+            />,
+        );
+
+        for (const filter of showFilters) {
+            expect(
+                container.querySelector(`[data-testid="chip-${filter.name}"]`),
+            ).not.toBeNull();
+        }
+    });
+
     it("retains ClubProgrammingFilters for AllClubs", () => {
         const { container } = render(
             <FilterModal

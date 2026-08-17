@@ -83,7 +83,6 @@ import app.laughtrack.android.feature.search.model.SearchSort
 import app.laughtrack.android.feature.search.model.ShowActiveConstraint
 import app.laughtrack.android.feature.search.model.ShowActiveConstraintKind
 import app.laughtrack.android.feature.search.model.ShowDateShortcut
-import app.laughtrack.android.feature.search.model.ShowFormatOption
 import app.laughtrack.android.feature.search.model.ShowMaximumPriceOption
 import app.laughtrack.android.feature.search.model.ShowResultsPresentation
 import java.time.Instant
@@ -511,8 +510,8 @@ private fun ShowSearchControls(
     LaunchedEffect(query.comedian, query.club) {
         if (query.comedian.isNotBlank() || query.club.isNotBlank()) optionalSearchExpanded = true
     }
-    val primarySlugs = ShowFormatOption.entries.mapTo(mutableSetOf("free")) { it.slug }
-    val secondaryFilters = filters.filterNot { it.slug in primarySlugs }
+    val legacyPriceSlugs = setOf("0-20", "20-50", "50-100", ">100")
+    val secondaryFilters = filters.filterNot { it.slug in legacyPriceSlugs }
 
     Surface(
         color = LaughTrackColors.SurfaceElevated,
@@ -556,27 +555,10 @@ private fun ShowSearchControls(
                         onClick = { onDateShortcut(shortcut) },
                     )
                 }
-                ShowFacetChip(
-                    label = "Free",
-                    selected = "free" in query.filters,
-                    onClick = { onToggleFilter("free") },
-                )
-                ShowFacetChip(
-                    label = ShowFormatOption.OPEN_MIC.label,
-                    selected = ShowFormatOption.OPEN_MIC.slug in query.filters,
-                    onClick = { onToggleFilter(ShowFormatOption.OPEN_MIC.slug) },
-                )
                 LocationPill(zip = query.zip, locationLabel = locationLabel, onZip = onZip)
                 DistancePill(distance = query.distance, onDistance = onDistance)
                 DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
                 MaximumPricePill(selected = query.maxPrice, onSelect = onMaximumPrice)
-                ShowFormatOption.entries.filterNot { it == ShowFormatOption.OPEN_MIC }.forEach { format ->
-                    ShowFacetChip(
-                        label = format.label,
-                        selected = format.slug in query.filters,
-                        onClick = { onToggleFilter(format.slug) },
-                    )
-                }
                 if (secondaryFilters.isNotEmpty()) {
                     TagFilterPill(
                         available = secondaryFilters,
