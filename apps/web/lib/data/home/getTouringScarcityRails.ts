@@ -22,8 +22,7 @@ export const TOURING_SCARCITY_POPULARITY_FLOOR = 0.4;
 export type TouringScarcityReasonKind =
     | "just_passing_through"
     | "rare_return"
-    | "back_after_a_while"
-    | "only_chance_nearby";
+    | "back_after_a_while";
 
 export interface TouringScarcityMarket {
     city: string;
@@ -364,18 +363,6 @@ export function classifyTouringScarcityCandidates(
                     Math.min(options.limit, TOURING_SCARCITY_RAIL_LIMIT),
                 );
             }
-        }
-
-        if (meetsPopularityFloor && localCount === 1) {
-            appendUnique(
-                result.justPassingThrough,
-                baseItem(row, {
-                    kind: "only_chance_nearby",
-                    label: `Only local date in the next ${options.horizonDays} days`,
-                    evidence: evidence(row, options, null),
-                }),
-                Math.min(options.limit, TOURING_SCARCITY_RAIL_LIMIT),
-            );
         }
     }
 

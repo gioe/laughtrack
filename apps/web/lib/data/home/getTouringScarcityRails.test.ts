@@ -295,30 +295,14 @@ describe("getTouringScarcityRails", () => {
         }
     });
 
-    it("merges the only-upcoming-date signal into Rarely nearby", () => {
+    it("excludes single-date-only candidates from Rarely nearby", () => {
         const onlyUpcomingDate = withoutRareReturn({
             homeCity: null,
             homeLocationUpdatedAt: null,
         });
         expect(
             classifyTouringScarcityCandidates([onlyUpcomingDate], REQUEST)
-                .justPassingThrough[0].reason,
-        ).toMatchObject({
-            kind: "only_chance_nearby",
-            label: "Only local date in the next 90 days",
-            evidence: { localAppearanceCount: 1, horizonDays: 90 },
-        });
-        expect(
-            classifyTouringScarcityCandidates(
-                [
-                    withoutRareReturn({
-                        homeCity: null,
-                        homeLocationUpdatedAt: null,
-                        localAppearanceCount: 2,
-                    }),
-                ],
-                REQUEST,
-            ).justPassingThrough,
+                .justPassingThrough,
         ).toEqual([]);
     });
 
