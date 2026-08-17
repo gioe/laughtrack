@@ -1,7 +1,30 @@
 import { fromZonedTime, toZonedTime, format } from "date-fns-tz";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
+import { inferHeadliner } from "@/util/show/showHeroImage";
 import { findShowsForHome } from "./findShowsForHome";
+
+const TRENDING_SHOW_LIMIT = 8;
+const TRENDING_SHOW_CANDIDATE_TAKE = 50;
+
+function selectDiverseShows(shows: readonly ShowDTO[]): ShowDTO[] {
+    const selected: ShowDTO[] = [];
+    const repeatedHeadliners: ShowDTO[] = [];
+    const seenHeadlinerIDs = new Set<number>();
+
+    for (const show of shows) {
+        const headlinerID = inferHeadliner(show)?.id;
+        if (headlinerID === undefined || !seenHeadlinerIDs.has(headlinerID)) {
+            selected.push(show);
+            if (headlinerID !== undefined) seenHeadlinerIDs.add(headlinerID);
+            if (selected.length === TRENDING_SHOW_LIMIT) return selected;
+        } else {
+            repeatedHeadliners.push(show);
+        }
+    }
+
+    return selected.concat(repeatedHeadliners).slice(0, TRENDING_SHOW_LIMIT);
+}
 
 export async function getTrendingShowsThisWeek(
     timezone: string = "UTC",
@@ -23,7 +46,7 @@ export async function getTrendingShowsThisWeek(
             ? resolveNearbyZips(zipCode, radius)
             : null;
 
-    return findShowsForHome(
+    const candidates = await findShowsForHome(
         {
             date: { gte: now, lte: endOfWeekDay },
             club: {
@@ -32,7 +55,9 @@ export async function getTrendingShowsThisWeek(
             },
         },
         { popularity: "desc" },
-        undefined,
+        TRENDING_SHOW_CANDIDATE_TAKE,
         nearbyZips ? { zipCode } : {},
     );
+
+    return selectDiverseShows(candidates);
 }
