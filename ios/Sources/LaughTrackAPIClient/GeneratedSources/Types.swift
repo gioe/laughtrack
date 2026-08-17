@@ -25,9 +25,9 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /auth/refresh`.
     /// - Remark: Generated from `#/paths//auth/refresh/post(refreshToken)`.
     func refreshToken(_ input: Operations.RefreshToken.Input) async throws -> Operations.RefreshToken.Output
-    /// Revoke every active refresh token for the authenticated user
+    /// Revoke the current native session refresh token
     ///
-    /// Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.
+    /// Requires a valid Bearer access token. Current native clients provide their refresh token and sanitized client context so only that session is revoked. For compatibility, an omitted request body retains the legacy behavior of revoking every active refresh token for the caller. Clients should still clear local credentials after the call completes.
     ///
     /// - Remark: HTTP `POST /auth/signout`.
     /// - Remark: Generated from `#/paths//auth/signout/post(signout)`.
@@ -331,14 +331,20 @@ extension APIProtocol {
             body: body
         ))
     }
-    /// Revoke every active refresh token for the authenticated user
+    /// Revoke the current native session refresh token
     ///
-    /// Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.
+    /// Requires a valid Bearer access token. Current native clients provide their refresh token and sanitized client context so only that session is revoked. For compatibility, an omitted request body retains the legacy behavior of revoking every active refresh token for the caller. Clients should still clear local credentials after the call completes.
     ///
     /// - Remark: HTTP `POST /auth/signout`.
     /// - Remark: Generated from `#/paths//auth/signout/post(signout)`.
-    public func signout(headers: Operations.Signout.Input.Headers = .init()) async throws -> Operations.Signout.Output {
-        try await signout(Operations.Signout.Input(headers: headers))
+    public func signout(
+        headers: Operations.Signout.Input.Headers = .init(),
+        body: Operations.Signout.Input.Body? = nil
+    ) async throws -> Operations.Signout.Output {
+        try await signout(Operations.Signout.Input(
+            headers: headers,
+            body: body
+        ))
     }
     /// Get the authenticated user's identity (display name, email, avatar URL)
     ///
@@ -1314,6 +1320,54 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case refreshToken
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/SignoutRequest`.
+        public struct SignoutRequest: Codable, Hashable, Sendable {
+            /// The current session refresh token. It is never written to logs.
+            ///
+            /// - Remark: Generated from `#/components/schemas/SignoutRequest/refreshToken`.
+            public var refreshToken: Swift.String
+            /// - Remark: Generated from `#/components/schemas/SignoutRequest/platform`.
+            @frozen public enum PlatformPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case ios = "ios"
+                case android = "android"
+            }
+            /// - Remark: Generated from `#/components/schemas/SignoutRequest/platform`.
+            public var platform: Components.Schemas.SignoutRequest.PlatformPayload
+            /// Sanitized native marketing version and optional build number.
+            ///
+            /// - Remark: Generated from `#/components/schemas/SignoutRequest/appVersion`.
+            public var appVersion: Swift.String
+            /// - Remark: Generated from `#/components/schemas/SignoutRequest/source`.
+            @frozen public enum SourcePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case profile = "profile"
+            }
+            /// - Remark: Generated from `#/components/schemas/SignoutRequest/source`.
+            public var source: Components.Schemas.SignoutRequest.SourcePayload
+            /// Creates a new `SignoutRequest`.
+            ///
+            /// - Parameters:
+            ///   - refreshToken: The current session refresh token. It is never written to logs.
+            ///   - platform:
+            ///   - appVersion: Sanitized native marketing version and optional build number.
+            ///   - source:
+            public init(
+                refreshToken: Swift.String,
+                platform: Components.Schemas.SignoutRequest.PlatformPayload,
+                appVersion: Swift.String,
+                source: Components.Schemas.SignoutRequest.SourcePayload
+            ) {
+                self.refreshToken = refreshToken
+                self.platform = platform
+                self.appVersion = appVersion
+                self.source = source
+            }
+            public enum CodingKeys: String, CodingKey {
+                case refreshToken
+                case platform
+                case appVersion
+                case source
             }
         }
         /// - Remark: Generated from `#/components/schemas/SignoutResponse`.
@@ -5912,9 +5966,9 @@ public enum Operations {
             }
         }
     }
-    /// Revoke every active refresh token for the authenticated user
+    /// Revoke the current native session refresh token
     ///
-    /// Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.
+    /// Requires a valid Bearer access token. Current native clients provide their refresh token and sanitized client context so only that session is revoked. For compatibility, an omitted request body retains the legacy behavior of revoking every active refresh token for the caller. Clients should still clear local credentials after the call completes.
     ///
     /// - Remark: HTTP `POST /auth/signout`.
     /// - Remark: Generated from `#/paths//auth/signout/post(signout)`.
@@ -5933,12 +5987,23 @@ public enum Operations {
                 }
             }
             public var headers: Operations.Signout.Input.Headers
+            /// - Remark: Generated from `#/paths/auth/signout/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/signout/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.SignoutRequest)
+            }
+            public var body: Operations.Signout.Input.Body?
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - headers:
-            public init(headers: Operations.Signout.Input.Headers = .init()) {
+            ///   - body:
+            public init(
+                headers: Operations.Signout.Input.Headers = .init(),
+                body: Operations.Signout.Input.Body? = nil
+            ) {
                 self.headers = headers
+                self.body = body
             }
         }
         @frozen public enum Output: Sendable, Hashable {
@@ -5988,6 +6053,57 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/signout/POST/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/auth/signout/POST/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.Signout.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.Signout.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Malformed nonempty request body or invalid client context
+            ///
+            /// - Remark: Generated from `#/paths//auth/signout/post(signout)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.Signout.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.Signout.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
                             response: self
                         )
                     }

@@ -21,18 +21,28 @@ vi.mock("@/lib/auth/resolveAuth", () => ({
 
 vi.mock("@/lib/auth/refreshTokens", () => ({
     revokeAllRefreshTokens: vi.fn(),
+    revokeRefreshToken: vi.fn(),
 }));
 
 import { POST } from "./route";
 import { resolveAuth } from "@/lib/auth/resolveAuth";
-import { revokeAllRefreshTokens } from "@/lib/auth/refreshTokens";
+import {
+    revokeAllRefreshTokens,
+    revokeRefreshToken,
+} from "@/lib/auth/refreshTokens";
 
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockRevokeAll = vi.mocked(revokeAllRefreshTokens);
+const mockRevokeOne = vi.mocked(revokeRefreshToken);
 
-function makeRequest(): NextRequest {
+function makeRequest(body?: unknown): NextRequest {
     return new NextRequest("http://localhost/api/v1/auth/signout", {
         method: "POST",
+        body: body === undefined ? undefined : JSON.stringify(body),
+        headers:
+            body === undefined
+                ? undefined
+                : { "content-type": "application/json" },
     });
 }
 
@@ -57,7 +67,7 @@ describe("POST /api/v1/auth/signout", () => {
         expect(mockRevokeAll).not.toHaveBeenCalled();
     });
 
-    it("revokes refresh tokens and returns count on success", async () => {
+    it("keeps empty-body legacy requests compatible by revoking all tokens", async () => {
         mockResolveAuth.mockResolvedValue({
             profileId: "p1",
             userId: "user-1",
@@ -70,5 +80,80 @@ describe("POST /api/v1/auth/signout", () => {
         expect(res.status).toBe(200);
         expect(body).toEqual({ revoked: 3 });
         expect(mockRevokeAll).toHaveBeenCalledWith("user-1");
+        expect(mockRevokeOne).not.toHaveBeenCalled();
+    });
+
+    it("revokes only the caller-owned presented token and logs sanitized client context", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "p1",
+            userId: "user-1",
+        });
+        mockRevokeOne.mockResolvedValue(1);
+        const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+
+        const res = await POST(
+            makeRequest({
+                refreshToken: "secret-refresh-token",
+                platform: "ios",
+                appVersion: "2.17.0+57",
+                source: "profile",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body).toEqual({ revoked: 1 });
+        expect(mockRevokeOne).toHaveBeenCalledWith(
+            "user-1",
+            "secret-refresh-token",
+        );
+        expect(mockRevokeAll).not.toHaveBeenCalled();
+
+        const logged = infoSpy.mock.calls.flat().join(" ");
+        expect(logged).toContain("platform=ios");
+        expect(logged).toContain("appVersion=2.17.0+57");
+        expect(logged).toContain("source=profile");
+        expect(logged).not.toContain("secret-refresh-token");
+        infoSpy.mockRestore();
+    });
+
+    it("returns 400 for malformed nonempty JSON", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "p1",
+            userId: "user-1",
+        });
+        const req = new NextRequest("http://localhost/api/v1/auth/signout", {
+            method: "POST",
+            body: "not json",
+            headers: { "content-type": "application/json" },
+        });
+
+        const res = await POST(req);
+
+        expect(res.status).toBe(400);
+        expect(await res.json()).toEqual({ error: "invalid_body" });
+        expect(mockRevokeAll).not.toHaveBeenCalled();
+        expect(mockRevokeOne).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 for invalid or unsafe client metadata", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "p1",
+            userId: "user-1",
+        });
+
+        const res = await POST(
+            makeRequest({
+                refreshToken: "secret-refresh-token",
+                platform: "ios",
+                appVersion: "2.17.0\nforged=true",
+                source: "profile",
+            }),
+        );
+
+        expect(res.status).toBe(400);
+        expect(await res.json()).toEqual({ error: "invalid_body" });
+        expect(mockRevokeAll).not.toHaveBeenCalled();
+        expect(mockRevokeOne).not.toHaveBeenCalled();
     });
 });

@@ -125,10 +125,19 @@
     "/auth/signout": {
       "post": {
         "operationId": "signout",
-        "summary": "Revoke every active refresh token for the authenticated user",
-        "description": "Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.",
+        "summary": "Revoke the current native session refresh token",
+        "description": "Requires a valid Bearer access token. Current native clients provide their refresh token and sanitized client context so only that session is revoked. For compatibility, an omitted request body retains the legacy behavior of revoking every active refresh token for the caller. Clients should still clear local credentials after the call completes.",
         "tags": ["auth"],
         "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": false,
+          "description": "Current native session details. Omitted only by legacy clients.",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignoutRequest" }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Tokens revoked",
@@ -137,6 +146,14 @@
                 "schema": {
                   "$ref": "#/components/schemas/SignoutResponse"
                 }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed nonempty request body or invalid client context",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           },
@@ -3577,6 +3594,32 @@
           "refreshToken": {
             "type": "string",
             "description": "The refresh token previously issued by /auth/token or /auth/refresh."
+          }
+        }
+      },
+      "SignoutRequest": {
+        "type": "object",
+        "required": ["refreshToken", "platform", "appVersion", "source"],
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The current session refresh token. It is never written to logs."
+          },
+          "platform": {
+            "type": "string",
+            "enum": ["ios", "android"]
+          },
+          "appVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9._+()-]+$",
+            "description": "Sanitized native marketing version and optional build number."
+          },
+          "source": {
+            "type": "string",
+            "enum": ["profile"]
           }
         }
       },

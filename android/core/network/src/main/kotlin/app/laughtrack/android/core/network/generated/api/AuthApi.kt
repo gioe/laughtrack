@@ -22,6 +22,7 @@ import app.laughtrack.android.core.network.generated.model.PushTokenDeleteRespon
 import app.laughtrack.android.core.network.generated.model.PushTokenRegisterRequest
 import app.laughtrack.android.core.network.generated.model.PushTokenRegisterResponse
 import app.laughtrack.android.core.network.generated.model.RefreshTokenRequest
+import app.laughtrack.android.core.network.generated.model.SignoutRequest
 import app.laughtrack.android.core.network.generated.model.SignoutResponse
 import app.laughtrack.android.core.network.generated.model.TokenResponse
 
@@ -177,18 +178,20 @@ interface AuthApi {
     suspend fun registerMePushToken(@Body pushTokenRegisterRequest: PushTokenRegisterRequest): Response<PushTokenRegisterResponse>
 
     /**
-     * Revoke every active refresh token for the authenticated user
-     * Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.
+     * Revoke the current native session refresh token
+     * Requires a valid Bearer access token. Current native clients provide their refresh token and sanitized client context so only that session is revoked. For compatibility, an omitted request body retains the legacy behavior of revoking every active refresh token for the caller. Clients should still clear local credentials after the call completes.
      * Responses:
      *  - 200: Tokens revoked
+     *  - 400: Malformed nonempty request body or invalid client context
      *  - 401: Missing or invalid Bearer token
      *  - 422: Authenticated user has no UserProfile row
      *  - 429: Rate limit exceeded
      *
+     * @param signoutRequest Current native session details. Omitted only by legacy clients. (optional)
      * @return [SignoutResponse]
      */
     @POST("auth/signout")
-    suspend fun signout(): Response<SignoutResponse>
+    suspend fun signout(@Body signoutRequest: SignoutRequest? = null): Response<SignoutResponse>
 
     /**
      * Update authenticated user profile state

@@ -52,6 +52,7 @@ import {
     consumeRefreshToken,
     REFRESH_TOKEN_CLEANUP_REVOKED_GRACE_DAYS,
     revokeAllRefreshTokens,
+    revokeRefreshToken,
 } from "@/lib/auth/refreshTokens";
 
 beforeEach(() => {
@@ -179,6 +180,32 @@ describe("revokeAllRefreshTokens", () => {
             where: { userId: "user-9", revokedAt: null },
             data: { revokedAt: expect.any(Date) },
         });
+    });
+});
+
+describe("revokeRefreshToken", () => {
+    it("revokes only the active token owned by the given user", async () => {
+        mockUpdateMany.mockResolvedValue({ count: 1 });
+
+        const count = await revokeRefreshToken("user-9", "current-token");
+
+        expect(count).toBe(1);
+        expect(mockUpdateMany).toHaveBeenCalledWith({
+            where: {
+                userId: "user-9",
+                token: "current-token",
+                revokedAt: null,
+            },
+            data: { revokedAt: expect.any(Date) },
+        });
+    });
+
+    it("returns zero when the token is missing, revoked, or belongs to another user", async () => {
+        mockUpdateMany.mockResolvedValue({ count: 0 });
+
+        const count = await revokeRefreshToken("user-9", "unavailable-token");
+
+        expect(count).toBe(0);
     });
 });
 

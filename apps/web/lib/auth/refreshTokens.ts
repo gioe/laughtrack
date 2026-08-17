@@ -87,7 +87,19 @@ export async function consumeRefreshToken(
     });
 }
 
-/** Revoke every active refresh token for the given user. Used on sign-out. */
+/** Revoke one active refresh token owned by the given user. */
+export async function revokeRefreshToken(
+    userId: string,
+    token: string,
+): Promise<number> {
+    const result = await db.refreshToken.updateMany({
+        where: { userId, token, revokedAt: null },
+        data: { revokedAt: new Date() },
+    });
+    return result.count;
+}
+
+/** Revoke every active refresh token for the given user. Used by legacy sign-out clients. */
 export async function revokeAllRefreshTokens(userId: string): Promise<number> {
     const result = await db.refreshToken.updateMany({
         where: { userId, revokedAt: null },
