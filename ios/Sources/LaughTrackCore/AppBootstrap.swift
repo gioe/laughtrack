@@ -74,7 +74,6 @@ public struct AppBootstrap {
                 APIVersionPathMiddleware(),
                 XTimezoneHeaderNormalizationMiddleware(),
                 factory.retryMiddleware,
-                factory.loggingMiddleware,
             ]
         )
 
@@ -151,7 +150,7 @@ public struct AppBootstrap {
             ]
         )
 
-        authManager.signoutRequest = { [signoutClient] refreshToken, source in
+        authManager.signoutRequest = { [signoutClient, tokenManager] refreshToken, source in
             // Throw on any non-OK response so AuthManager.signOut()'s catch
             // block fires and signoutErrorObserver receives the error. The
             // OpenAPI spec has no 5xx branch for POST /auth/signout, so a 500
@@ -160,26 +159,31 @@ public struct AppBootstrap {
             guard let sourcePayload = Components.Schemas.SignoutRequest.SourcePayload(rawValue: source) else {
                 throw URLError(.badURL)
             }
-            let response: Operations.Signout.Output
-            do {
-                response = try await signoutClient.signout(
-                    body: .json(.init(
-                        refreshToken: refreshToken,
-                        platform: .ios,
-                        appVersion: AppConfiguration.sentryReleaseIdentifier
-                            .split(separator: "@")
-                            .last
-                            .map(String.init) ?? "0",
-                        source: sourcePayload
-                    ))
+            let appVersion = AppConfiguration.sentryReleaseIdentifier
+                .split(separator: "@")
+                .last
+                .map(String.init) ?? "0"
+            let revoked = try await Self.revokeNativeSession(
+                client: signoutClient,
+                refreshToken: refreshToken,
+                appVersion: appVersion,
+                source: sourcePayload
+            )
+
+            // A 401 can rotate credentials before TokenRefreshMiddleware retries
+            // the original request body. If that body then revokes zero rows,
+            // make one bounded attempt with the newly stored refresh token.
+            if revoked == 0,
+               let latestRefreshToken = await MainActor.run(body: {
+                   tokenManager.retrieveRefreshToken()
+               }),
+               latestRefreshToken != refreshToken {
+                _ = try await Self.revokeNativeSession(
+                    client: signoutClient,
+                    refreshToken: latestRefreshToken,
+                    appVersion: appVersion,
+                    source: sourcePayload
                 )
-            } catch {
-                // Never forward the generated ClientError: its description
-                // contains the operation input, including the refresh token.
-                throw SignoutRequestFailure.transport
-            }
-            guard case .ok = response else {
-                throw SignoutRequestFailure.server
             }
         }
 
@@ -370,6 +374,33 @@ public struct AppBootstrap {
         #if DEBUG
         manager.addProvider(ConsoleAnalyticsProvider())
         #endif
+    }
+
+    private static func revokeNativeSession(
+        client: Client,
+        refreshToken: String,
+        appVersion: String,
+        source: Components.Schemas.SignoutRequest.SourcePayload
+    ) async throws -> Int {
+        let response: Operations.Signout.Output
+        do {
+            response = try await client.signout(
+                body: .json(.init(
+                    refreshToken: refreshToken,
+                    platform: .ios,
+                    appVersion: appVersion,
+                    source: source
+                ))
+            )
+        } catch {
+            // Never forward the generated ClientError: its description contains
+            // the operation input, including the refresh token.
+            throw SignoutRequestFailure.transport
+        }
+        guard case .ok(let ok) = response, case .json(let body) = ok.body else {
+            throw SignoutRequestFailure.server
+        }
+        return body.revoked
     }
 }
 

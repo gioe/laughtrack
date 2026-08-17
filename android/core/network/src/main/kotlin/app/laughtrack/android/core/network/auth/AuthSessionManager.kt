@@ -109,23 +109,35 @@ class AuthSessionManager(
 
     suspend fun signOut(): Boolean {
         val refreshToken = tokenStore.read()?.refreshToken
+        val initialResponse = refreshToken?.let { requestSignOut(it) }
+        val latestRefreshToken = tokenStore.read()?.refreshToken
         val response =
-            refreshToken?.let {
-                runCatching {
-                    authApi.signout(
-                        SignoutRequest(
-                            refreshToken = it,
-                            platform = SignoutRequest.Platform.ANDROID,
-                            appVersion = appVersion,
-                            source = SignoutRequest.Source.PROFILE,
-                        ),
-                    )
-                }.getOrNull()
+            if (
+                initialResponse?.isSuccessful == true &&
+                initialResponse.body()?.revoked == 0 &&
+                latestRefreshToken != null &&
+                latestRefreshToken != refreshToken
+            ) {
+                requestSignOut(latestRefreshToken)
+            } else {
+                initialResponse
             }
         tokenStore.clear()
         mutableSignedIn.value = false
         return response?.isSuccessful == true
     }
+
+    private suspend fun requestSignOut(refreshToken: String) =
+        runCatching {
+            authApi.signout(
+                SignoutRequest(
+                    refreshToken = refreshToken,
+                    platform = SignoutRequest.Platform.ANDROID,
+                    appVersion = appVersion,
+                    source = SignoutRequest.Source.PROFILE,
+                ),
+            )
+        }.getOrNull()
 
     suspend fun deleteAccount(): Boolean {
         val response = runCatching { authApi.deleteMe() }.getOrNull()

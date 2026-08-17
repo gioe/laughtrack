@@ -103,6 +103,67 @@ struct AuthManagerSignOutIntegrationTests {
         #expect(errorDescription?.contains(harness.initialRefresh) == false)
     }
 
+    @Test("signOut() revokes the rotated refresh token after a 401 refresh retry")
+    @MainActor
+    func signOutRevokesRotatedRefreshToken() async throws {
+        let harness = try await AuthSignOutHarness.make()
+        let rotatedAccess = "rotated-access-token"
+        let rotatedRefresh = "rotated-refresh-token"
+        await harness.transport.seed([
+            .response(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
+            .response(
+                status: .ok,
+                bodyJSON: """
+                {"accessToken":"\(rotatedAccess)","refreshToken":"\(rotatedRefresh)","expiresIn":900}
+                """
+            ),
+            .response(status: .ok, bodyJSON: #"{"revoked":0}"#),
+            .response(status: .ok, bodyJSON: #"{"revoked":1}"#),
+        ])
+
+        await harness.authManager.signOut(source: "profile")
+
+        let recorded = await harness.transport.recordedRequests
+        #expect(recorded.map(\.operationID) == [
+            Operations.Signout.id,
+            Operations.RefreshToken.id,
+            Operations.Signout.id,
+            Operations.Signout.id,
+        ])
+        guard recorded.count == 4 else {
+            Issue.record("Expected four requests during sign-out token rotation, got \(recorded.count)")
+            return
+        }
+
+        let firstAttempt = recorded[0]
+        let refreshRequest = recorded[1]
+        let middlewareRetry = recorded[2]
+        let rotatedTokenRetry = recorded[3]
+        #expect(firstAttempt.headers[.authorization] == "Bearer \(harness.initialAccess)")
+        #expect(refreshRequest.headers[.authorization] == nil)
+        #expect(middlewareRetry.headers[.authorization] == "Bearer \(rotatedAccess)")
+        #expect(rotatedTokenRetry.headers[.authorization] == "Bearer \(rotatedAccess)")
+
+        let firstBody = try JSONDecoder().decode(
+            Components.Schemas.SignoutRequest.self,
+            from: try #require(firstAttempt.bodyData)
+        )
+        let middlewareRetryBody = try JSONDecoder().decode(
+            Components.Schemas.SignoutRequest.self,
+            from: try #require(middlewareRetry.bodyData)
+        )
+        let rotatedTokenRetryBody = try JSONDecoder().decode(
+            Components.Schemas.SignoutRequest.self,
+            from: try #require(rotatedTokenRetry.bodyData)
+        )
+        #expect(firstBody.refreshToken == harness.initialRefresh)
+        #expect(middlewareRetryBody.refreshToken == harness.initialRefresh)
+        #expect(rotatedTokenRetryBody.refreshToken == rotatedRefresh)
+
+        #expect(harness.tokenManager.retrieveAccessToken() == nil)
+        #expect(harness.tokenManager.retrieveRefreshToken() == nil)
+    }
+
     @Test("signOut() drains state to signedOut when the server returns 500")
     @MainActor
     func signOutClearsLocalStateEvenWhenServerReturns500() async throws {
@@ -298,7 +359,6 @@ private struct AuthSignOutHarness {
             middlewares: [
                 APIVersionPathMiddleware(),
                 factory.retryMiddleware,
-                factory.loggingMiddleware,
             ]
         )
 
@@ -346,25 +406,25 @@ private struct AuthSignOutHarness {
             ]
         )
 
-        authManager.signoutRequest = { [signoutClient] refreshToken, source in
+        authManager.signoutRequest = { [signoutClient, tokenManager] refreshToken, source in
             guard let sourcePayload = Components.Schemas.SignoutRequest.SourcePayload(rawValue: source) else {
                 throw URLError(.badURL)
             }
-            let response: Operations.Signout.Output
-            do {
-                response = try await signoutClient.signout(
-                    body: .json(.init(
-                        refreshToken: refreshToken,
-                        platform: .ios,
-                        appVersion: "test-version",
-                        source: sourcePayload
-                    ))
+            let revoked = try await requestSignout(
+                client: signoutClient,
+                refreshToken: refreshToken,
+                source: sourcePayload
+            )
+            if revoked == 0,
+               let latestRefreshToken = await MainActor.run(body: {
+                   tokenManager.retrieveRefreshToken()
+               }),
+               latestRefreshToken != refreshToken {
+                _ = try await requestSignout(
+                    client: signoutClient,
+                    refreshToken: latestRefreshToken,
+                    source: sourcePayload
                 )
-            } catch {
-                throw HarnessSetupError("signout transport failed")
-            }
-            guard case .ok = response else {
-                throw HarnessSetupError("signout server failed")
             }
         }
         authManager.deleteAccountRequest = { [apiClient] in
@@ -388,6 +448,30 @@ private struct AuthSignOutHarness {
 private struct HarnessSetupError: Error, CustomStringConvertible {
     let description: String
     init(_ description: String) { self.description = description }
+}
+
+private func requestSignout(
+    client: Client,
+    refreshToken: String,
+    source: Components.Schemas.SignoutRequest.SourcePayload
+) async throws -> Int {
+    let response: Operations.Signout.Output
+    do {
+        response = try await client.signout(
+            body: .json(.init(
+                refreshToken: refreshToken,
+                platform: .ios,
+                appVersion: "test-version",
+                source: source
+            ))
+        )
+    } catch {
+        throw HarnessSetupError("signout transport failed")
+    }
+    guard case .ok(let ok) = response, case .json(let body) = ok.body else {
+        throw HarnessSetupError("signout server failed")
+    }
+    return body.revoked
 }
 
 private actor IntegrationSignoutErrorRecorder {

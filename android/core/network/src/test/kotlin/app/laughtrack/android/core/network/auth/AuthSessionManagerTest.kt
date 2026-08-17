@@ -205,6 +205,37 @@ class AuthSessionManagerTest {
             assertEquals(null, store.read())
         }
 
+    @Test
+    fun signOutRetriesWithRotatedRefreshTokenWhenInitialRevocationMisses() =
+        runTest {
+            val store =
+                InMemoryTokenStore(
+                    SessionTokens(
+                        accessToken = "stale-access-token",
+                        refreshToken = "initial-refresh-token",
+                        expiresAtEpochSeconds = 1_700_000_900,
+                    ),
+                )
+            val authApi = RotatingSignoutAuthApi(store)
+            val manager =
+                AuthSessionManager(
+                    tokenStore = store,
+                    authApi = authApi,
+                    websiteBaseUrl = "https://www.laugh-track.com",
+                    appVersion = "2.17.0+57",
+                    clock = clock,
+                )
+
+            val succeeded = manager.signOut()
+
+            assertTrue(succeeded)
+            assertEquals(
+                listOf("initial-refresh-token", "rotated-refresh-token"),
+                authApi.signoutRequests.map { it.refreshToken },
+            )
+            assertEquals(null, store.read())
+        }
+
     private fun newManager(store: TokenStore = InMemoryTokenStore()): AuthSessionManager =
         AuthSessionManager(
             tokenStore = store,
@@ -264,6 +295,29 @@ class AuthSessionManagerTest {
         override suspend fun signout(signoutRequest: SignoutRequest?): Response<SignoutResponse> {
             this.signoutRequest = signoutRequest
             return Response.success(SignoutResponse(revoked = 1))
+        }
+    }
+
+    private class RotatingSignoutAuthApi(
+        private val tokenStore: TokenStore,
+    ) : AuthApi by UnsupportedAuthApi {
+        val signoutRequests = mutableListOf<SignoutRequest>()
+
+        override suspend fun signout(signoutRequest: SignoutRequest?): Response<SignoutResponse> {
+            val request = requireNotNull(signoutRequest)
+            signoutRequests += request
+            return if (signoutRequests.size == 1) {
+                tokenStore.save(
+                    SessionTokens(
+                        accessToken = "rotated-access-token",
+                        refreshToken = "rotated-refresh-token",
+                        expiresAtEpochSeconds = 1_700_001_800,
+                    ),
+                )
+                Response.success(SignoutResponse(revoked = 0))
+            } else {
+                Response.success(SignoutResponse(revoked = 1))
+            }
         }
     }
 }
