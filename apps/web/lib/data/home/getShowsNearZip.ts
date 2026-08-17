@@ -10,6 +10,10 @@ import {
 } from "./discoveryRanker";
 import { findShowsForHome } from "./findShowsForHome";
 import {
+    HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    selectDiverseShowsByTime,
+} from "./showRailSelection";
+import {
     type DiscoveryAssignmentReason,
     type DiscoveryAvailabilityAtImpression,
     type DiscoveryShowImpressionContexts,
@@ -70,12 +74,13 @@ export async function getShowsNearZip(
     };
 
     if (!candidateOptions) {
-        return findShowsForHome(
+        const candidates = await findShowsForHome(
             where,
-            [{ popularity: "desc" }, { date: "asc" }],
-            8,
-            { zipCode, sortByHomeRelevance: true },
+            [{ date: "asc" }, { id: "asc" }],
+            HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+            { zipCode, sortByHomeRelevance: false },
         );
+        return selectDiverseShowsByTime(candidates);
     }
 
     const candidates = await findShowsForHome(
@@ -97,7 +102,7 @@ export async function getShowsNearZip(
         snapshots.map((snapshot) => [snapshot.showId, snapshot]),
     );
 
-    return rankNearYouCandidates(
+    const rankedCandidates = rankNearYouCandidates(
         candidates.map((show) => ({
             show,
             snapshot: snapshotByShowId.get(show.id),
@@ -111,9 +116,10 @@ export async function getShowsNearZip(
             now,
             maxDistanceMiles: radius ?? 25,
             actorKey: candidateOptions.actorKey,
-            take: 8,
+            take: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
         },
     );
+    return selectDiverseShowsByTime(rankedCandidates);
 }
 
 function controlAvailability(show: ShowDTO): DiscoveryAvailabilityAtImpression {
@@ -152,12 +158,13 @@ export async function getShowsNearZipWithTelemetry(
     };
 
     if (options.experimentVariant === "control" || !options.actorKey) {
-        const shows = await findShowsForHome(
+        const candidates = await findShowsForHome(
             where,
-            [{ popularity: "desc" }, { date: "asc" }],
-            8,
-            { zipCode, sortByHomeRelevance: true },
+            [{ date: "asc" }, { id: "asc" }],
+            HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+            { zipCode, sortByHomeRelevance: false },
         );
+        const shows = selectDiverseShowsByTime(candidates);
         return {
             shows,
             impressionContexts: Object.fromEntries(
@@ -208,14 +215,25 @@ export async function getShowsNearZipWithTelemetry(
             now,
             maxDistanceMiles: radius,
             actorKey: options.actorKey,
-            take: 8,
+            take: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
         },
     );
 
+    const rankedByShowId = new Map(
+        ranked.map((rankedShow) => [rankedShow.show.id, rankedShow]),
+    );
+    const selectedShows = selectDiverseShowsByTime(
+        ranked.map(({ show }) => show),
+    );
+    const selectedRanked = selectedShows.flatMap((show) => {
+        const rankedShow = rankedByShowId.get(show.id);
+        return rankedShow ? [rankedShow] : [];
+    });
+
     return {
-        shows: ranked.map(({ show }) => show),
+        shows: selectedShows,
         impressionContexts: Object.fromEntries(
-            ranked.map(
+            selectedRanked.map(
                 ({ show, snapshot, featureVersion, explorationSelected }) => [
                     show.id,
                     {

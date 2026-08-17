@@ -53,14 +53,14 @@ describe("getShowsNearZip", () => {
         expect(where.date).toEqual({ gte: new Date("2026-04-30T12:00:00Z") });
     });
 
-    it("asks the shared home query to rank ZIP-scoped shows by popularity first", async () => {
+    it("queries a chronological candidate pool for the nearby rail", async () => {
         await getShowsNearZip("10801", 25);
 
         expect(mockFindShowsForHome).toHaveBeenCalledWith(
             expect.any(Object),
-            [{ popularity: "desc" }, { date: "asc" }],
-            8,
-            { zipCode: "10801", sortByHomeRelevance: true },
+            [{ date: "asc" }, { id: "asc" }],
+            50,
+            { zipCode: "10801", sortByHomeRelevance: false },
         );
     });
 
@@ -131,7 +131,7 @@ describe("getShowsNearZip", () => {
             experimentVariant: "control",
         });
 
-        expect(result.shows).toBe(shows);
+        expect(result.shows).toEqual(shows);
         expect(result.impressionContexts[1]).toEqual({
             assignmentEligible: false,
             assignmentReason: "cookieless_bootstrap",
@@ -144,7 +144,7 @@ describe("getShowsNearZip", () => {
     });
 
     describe("tags emission (TASK-2567)", () => {
-        // Wrapper is pure delegation to findShowsForHome; comprehensive
+        // Comprehensive
         // tags-emission tests (PUBLIC filter, null filtering, empty case)
         // live on findShowsForHome.test.ts. This block guards against a
         // future regression that adds a mapper here which strips tags.
@@ -157,7 +157,7 @@ describe("getShowsNearZip", () => {
 
             const result = await getShowsNearZip("10801", 25);
 
-            expect(result).toBe(tagged);
+            expect(result).toEqual(tagged);
             expect(result[0].tags).toEqual([
                 { slug: "open mic", name: "Open Mic" },
             ]);

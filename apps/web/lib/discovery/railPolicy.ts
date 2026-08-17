@@ -90,7 +90,7 @@ export const DISCOVERY_RAIL_CATALOG = {
     },
     just_passing_through: {
         key: "just_passing_through",
-        label: "Rarely nearby",
+        label: "Here for a Limited Time",
         contentKind: "show",
         requiresAuth: false,
         supportedPlatforms: ALL_PLATFORMS,

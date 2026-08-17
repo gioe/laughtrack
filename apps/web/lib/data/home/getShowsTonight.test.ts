@@ -67,19 +67,19 @@ describe("getShowsTonight", () => {
         });
     });
 
-    it("asks the shared home query to rank ZIP-scoped shows by home relevance", async () => {
+    it("queries a chronological candidate pool without a popularity rerank", async () => {
         await getShowsTonight("UTC", "10801", 25);
 
         expect(mockFindShowsForHome).toHaveBeenCalledWith(
             expect.any(Object),
-            [{ popularity: "desc" }, { date: "asc" }],
-            8,
-            { zipCode: "10801", sortByHomeRelevance: true },
+            [{ date: "asc" }, { id: "asc" }],
+            50,
+            { zipCode: "10801", sortByHomeRelevance: false },
         );
     });
 
     describe("tags emission (TASK-2567)", () => {
-        // Wrapper is pure delegation to findShowsForHome; comprehensive
+        // Comprehensive
         // tags-emission tests (PUBLIC filter, null filtering, empty case)
         // live on findShowsForHome.test.ts. This block guards against a
         // future regression that adds a mapper here which strips tags.
@@ -92,7 +92,7 @@ describe("getShowsTonight", () => {
 
             const result = await getShowsTonight("UTC");
 
-            expect(result).toBe(tagged);
+            expect(result).toEqual(tagged);
             expect(result[0].tags).toEqual([
                 { slug: "open mic", name: "Open Mic" },
             ]);

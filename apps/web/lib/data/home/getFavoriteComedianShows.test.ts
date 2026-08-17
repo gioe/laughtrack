@@ -31,11 +31,11 @@ describe("getFavoriteComedianShows", () => {
         expect(mockFindShowsForHome).not.toHaveBeenCalled();
     });
 
-    it("finds upcoming visible shows whose lineup includes a favorited canonical comedian", async () => {
+    it("finds followed-comedian shows ordered by time", async () => {
         const shows = [{ id: 7, name: "Favorite Comic Night" }];
         mockFindShowsForHome.mockResolvedValue(shows as never);
 
-        await expect(getFavoriteComedianShows("profile-1")).resolves.toBe(
+        await expect(getFavoriteComedianShows("profile-1")).resolves.toEqual(
             shows,
         );
 
@@ -68,9 +68,9 @@ describe("getFavoriteComedianShows", () => {
                     },
                 },
             },
-            [{ popularity: "desc" }, { date: "asc" }, { id: "asc" }],
-            8,
-            { profileId: "profile-1" },
+            [{ date: "asc" }, { id: "asc" }],
+            50,
+            { profileId: "profile-1", sortByHomeRelevance: false },
         );
     });
 
@@ -112,9 +112,13 @@ describe("getFavoriteComedianShows", () => {
                     },
                 },
             },
-            [{ popularity: "desc" }, { date: "asc" }, { id: "asc" }],
-            8,
-            { profileId: "profile-1", zipCode: "10801" },
+            [{ date: "asc" }, { id: "asc" }],
+            50,
+            {
+                profileId: "profile-1",
+                zipCode: "10801",
+                sortByHomeRelevance: false,
+            },
         );
     });
 
@@ -124,19 +128,19 @@ describe("getFavoriteComedianShows", () => {
 
         await expect(
             getFavoriteComedianShows("profile-1", "not-a-zip", 50),
-        ).resolves.toBe(shows);
+        ).resolves.toEqual(shows);
 
         expect(mockResolveNearbyZips).not.toHaveBeenCalled();
         expect(mockFindShowsForHome).toHaveBeenCalledWith(
             expect.objectContaining({ club: { visible: true } }),
-            [{ popularity: "desc" }, { date: "asc" }, { id: "asc" }],
-            8,
-            { profileId: "profile-1" },
+            [{ date: "asc" }, { id: "asc" }],
+            50,
+            { profileId: "profile-1", sortByHomeRelevance: false },
         );
     });
 
     describe("tags emission (TASK-2567)", () => {
-        // Wrapper is pure delegation to findShowsForHome; comprehensive
+        // Comprehensive
         // tags-emission tests (PUBLIC filter, null filtering, empty case)
         // live on findShowsForHome.test.ts. This block guards against a
         // future regression that adds a mapper here which strips tags.
@@ -149,7 +153,7 @@ describe("getFavoriteComedianShows", () => {
 
             const result = await getFavoriteComedianShows("profile-1");
 
-            expect(result).toBe(tagged);
+            expect(result).toEqual(tagged);
             expect(result[0].tags).toEqual([
                 { slug: "open mic", name: "Open Mic" },
             ]);

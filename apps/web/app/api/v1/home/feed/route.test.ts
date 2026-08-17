@@ -139,7 +139,7 @@ function primeHappyPath() {
     mockGetTouringScarcityRails.mockResolvedValue({
         justPassingThrough: {
             railKey: "just_passing_through",
-            label: "Rarely nearby",
+            label: "Here for a Limited Time",
             items: [],
         },
     });
@@ -271,7 +271,7 @@ describe("GET /api/v1/home/feed", () => {
             mockGetTouringScarcityRails.mockResolvedValue({
                 justPassingThrough: {
                     railKey: "just_passing_through",
-                    label: "Rarely nearby",
+                    label: "Here for a Limited Time",
                     items: [
                         {
                             show: sharedShow,

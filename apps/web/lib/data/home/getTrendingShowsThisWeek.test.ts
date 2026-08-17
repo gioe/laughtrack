@@ -26,24 +26,14 @@ function getDateClause() {
     return where.date as { gte: Date; lte: Date };
 }
 
-function show(id: number, headlinerID?: number): ShowDTO {
+function show(id: number): ShowDTO {
     return {
         id,
         clubId: 1,
         date: new Date("2026-04-28T00:00:00Z"),
         name: `Show ${id}`,
         imageUrl: "",
-        lineup:
-            headlinerID === undefined
-                ? []
-                : [
-                      {
-                          id: headlinerID,
-                          uuid: `comic-${headlinerID}`,
-                          name: `Comic ${headlinerID}`,
-                          imageUrl: "",
-                      },
-                  ],
+        lineup: [],
     };
 }
 
@@ -87,68 +77,24 @@ describe("getTrendingShowsThisWeek", () => {
                 in: expect.arrayContaining(["10001"]),
             },
         });
-        expect(orderBy).toEqual({ popularity: "desc" });
+        expect(orderBy).toEqual([{ date: "asc" }, { id: "asc" }]);
         expect(take).toBe(50);
-        expect(options).toEqual({ zipCode: "10001" });
+        expect(options).toEqual({
+            zipCode: "10001",
+            sortByHomeRelevance: false,
+        });
     });
 
-    it("prioritizes distinct inferred headliners before repeated performances", async () => {
-        mockFindShowsForHome.mockResolvedValue([
-            show(1, 1),
-            show(2, 1),
-            show(3, 1),
-            show(4, 1),
-            show(5, 1),
-            show(6, 2),
-            show(7, 3),
-            show(8, 4),
-            show(9, 5),
-            show(10, 6),
-            show(11, 7),
-            show(12, 8),
-        ]);
+    it("preserves the chronological order returned by the shared home query", async () => {
+        mockFindShowsForHome.mockResolvedValue([show(4), show(7), show(9)]);
 
         const result = await getTrendingShowsThisWeek("UTC");
 
-        expect(result.map(({ id }) => id)).toEqual([1, 6, 7, 8, 9, 10, 11, 12]);
-        expect(mockFindShowsForHome.mock.calls[0][2]).toBe(50);
-    });
-
-    it("backfills repeated headliners when unique inventory is insufficient", async () => {
-        mockFindShowsForHome.mockResolvedValue([
-            show(1, 1),
-            show(2, 1),
-            show(3, 2),
-            show(4, 2),
-            show(5, 3),
-            show(6, 3),
-            show(7, 1),
-            show(8, 2),
-            show(9, 3),
-            show(10, 4),
+        expect(result.map(({ id }) => id)).toEqual([4, 7, 9]);
+        expect(mockFindShowsForHome.mock.calls[0][1]).toEqual([
+            { date: "asc" },
+            { id: "asc" },
         ]);
-
-        const result = await getTrendingShowsThisWeek("UTC");
-
-        expect(result.map(({ id }) => id)).toEqual([1, 3, 5, 10, 2, 4, 6, 7]);
-    });
-
-    it("keeps shows without inferred headliners independently eligible", async () => {
-        mockFindShowsForHome.mockResolvedValue([
-            show(1),
-            show(2),
-            show(3),
-            show(4, 1),
-            show(5, 1),
-            show(6, 2),
-            show(7, 2),
-            show(8, 3),
-            show(9, 3),
-        ]);
-
-        const result = await getTrendingShowsThisWeek("UTC");
-
-        expect(result.map(({ id }) => id)).toEqual([1, 2, 3, 4, 6, 8, 5, 7]);
     });
 
     describe("tags emission (TASK-2567)", () => {

@@ -41,6 +41,13 @@ const REMOVE_DUPLICATE_FOLLOWED_RAIL_MIGRATION_SQL = readFileSync(
     ),
     "utf8",
 );
+const RENAME_RARELY_NEARBY_MIGRATION_SQL = readFileSync(
+    resolve(
+        WEB_ROOT,
+        "prisma/migrations/20260817110000_rename_rarely_nearby_rail/migration.sql",
+    ),
+    "utf8",
+);
 const SCHEMA_TEXT = readFileSync(
     resolve(WEB_ROOT, "prisma/schema.prisma"),
     "utf8",
@@ -714,5 +721,66 @@ describe("duplicate followed-comedian rail removal migration", () => {
                 VALUES ('followed_comedian_shows')
             `),
         ).resolves.toBeDefined();
+    });
+});
+
+describe("Here for a Limited Time rail rename migration", () => {
+    let db: PGlite;
+
+    beforeAll(async () => {
+        db = new PGlite();
+        await db.exec(BASE_SCHEMA_SQL);
+        await db.exec(MIGRATION_SQL);
+        await db.exec(DYNAMIC_MIGRATION_SQL);
+        await db.exec(REMOVE_STACKED_LINEUPS_MIGRATION_SQL);
+        await db.exec(MERGE_RARELY_NEARBY_MIGRATION_SQL);
+        await db.exec(`
+            CREATE TABLE discovery_impression_events (
+                id BIGSERIAL PRIMARY KEY,
+                surface TEXT NOT NULL,
+                CONSTRAINT discovery_impression_events_surface_check CHECK (
+                    surface IN ('because_you_follow_them', 'followed_comedian_shows')
+                )
+            );
+        `);
+        await db.exec(REMOVE_DUPLICATE_FOLLOWED_RAIL_MIGRATION_SQL);
+        await db.exec(RENAME_RARELY_NEARBY_MIGRATION_SQL);
+    });
+
+    afterAll(async () => {
+        await db.close();
+    });
+
+    it("renames the catalog entry and advances every platform policy", async () => {
+        const catalog = await db.query<{
+            label: string;
+            catalog_version: number;
+        }>(`
+            SELECT label, catalog_version
+            FROM discovery_rail_catalog
+            WHERE key = 'just_passing_through'
+        `);
+        const policies = await db.query<PolicyRow>(`
+            SELECT platform, policy_version, catalog_version, cycle_cadence_hours
+            FROM discovery_rail_platform_policies
+            ORDER BY platform
+        `);
+
+        expect(catalog.rows).toEqual([
+            { label: "Here for a Limited Time", catalog_version: 6 },
+        ]);
+        expect(
+            policies.rows.map(
+                ({ platform, policy_version, catalog_version }) => ({
+                    platform,
+                    policy_version,
+                    catalog_version,
+                }),
+            ),
+        ).toEqual([
+            { platform: "android", policy_version: 6, catalog_version: 6 },
+            { platform: "ios", policy_version: 6, catalog_version: 6 },
+            { platform: "web", policy_version: 6, catalog_version: 6 },
+        ]);
     });
 });

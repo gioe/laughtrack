@@ -1,6 +1,10 @@
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import { findShowsForHome } from "./findShowsForHome";
+import {
+    HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    selectDiverseShowsByTime,
+} from "./showRailSelection";
 
 export async function getFavoriteComedianShows(
     profileId?: string | null,
@@ -17,7 +21,7 @@ export async function getFavoriteComedianShows(
         ? resolveNearbyZips(usableZipCode, radius)
         : null;
 
-    return findShowsForHome(
+    const candidates = await findShowsForHome(
         {
             date: { gte: new Date() },
             club: {
@@ -47,8 +51,16 @@ export async function getFavoriteComedianShows(
                 },
             },
         },
-        [{ popularity: "desc" }, { date: "asc" }, { id: "asc" }],
-        8,
-        usableZipCode ? { profileId, zipCode: usableZipCode } : { profileId },
+        [{ date: "asc" }, { id: "asc" }],
+        HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+        usableZipCode
+            ? {
+                  profileId,
+                  zipCode: usableZipCode,
+                  sortByHomeRelevance: false,
+              }
+            : { profileId, sortByHomeRelevance: false },
     );
+
+    return selectDiverseShowsByTime(candidates);
 }

@@ -350,7 +350,7 @@ describe("DiscoveryRailPlan", () => {
         expect(screen.queryByText("See all →")).toBeNull();
     });
 
-    it("limits Rarely nearby to eight shows", () => {
+    it("limits Here for a Limited Time to eight shows", () => {
         const items = Array.from({ length: 10 }, (_, index) => ({
             id: index + 1,
             show: show(index + 1),
@@ -363,7 +363,7 @@ describe("DiscoveryRailPlan", () => {
         nextPayloads.dynamicRails = [
             {
                 railKey: "just_passing_through",
-                label: "Rarely nearby",
+                label: "Here for a Limited Time",
                 items,
             },
         ];

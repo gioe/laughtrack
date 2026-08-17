@@ -204,7 +204,7 @@ describe("getTouringScarcityRails", () => {
         }
     });
 
-    it("limits Rarely nearby to eight shows", () => {
+    it("limits Here for a Limited Time to eight shows", () => {
         const candidates = Array.from({ length: 10 }, (_, index) =>
             row({
                 showId: index + 1,
@@ -238,7 +238,7 @@ describe("getTouringScarcityRails", () => {
         expect(selected.justPassingThrough).toHaveLength(1);
     });
 
-    it("merges trustworthy rare-return evidence into Rarely nearby without inferring first-ever appearances", () => {
+    it("merges trustworthy rare-return evidence into Here for a Limited Time without inferring first-ever appearances", () => {
         const back = classifyTouringScarcityCandidates(
             [rareReturnOnly()],
             REQUEST,
@@ -295,7 +295,7 @@ describe("getTouringScarcityRails", () => {
         }
     });
 
-    it("excludes single-date-only candidates from Rarely nearby", () => {
+    it("excludes single-date-only candidates from Here for a Limited Time", () => {
         const onlyUpcomingDate = withoutRareReturn({
             homeCity: null,
             homeLocationUpdatedAt: null,
@@ -524,7 +524,56 @@ describe("getTouringScarcityRails", () => {
             performer: { id: 10, uuid: "canonical-comic" },
             reason: { kind: "just_passing_through" },
         });
-        expect(result.justPassingThrough.label).toBe("Rarely nearby");
+        expect(result.justPassingThrough.label).toBe("Here for a Limited Time");
+    });
+
+    it("returns a headliner-diverse Here for a Limited Time rail ordered by show time", async () => {
+        const dates = [
+            new Date("2026-08-10T20:00:00.000Z"),
+            new Date("2026-08-10T20:30:00.000Z"),
+            new Date("2026-08-10T21:00:00.000Z"),
+            new Date("2026-08-10T22:00:00.000Z"),
+        ];
+        mockQueryRaw.mockResolvedValue(
+            dates.map((date, index) =>
+                rawRow({
+                    show_id: 101 + index,
+                    show_date: date,
+                    run_start: date,
+                    run_end: date,
+                    canonical_comedian_id: 10 + index,
+                    canonical_comedian_uuid: `canonical-${10 + index}`,
+                    canonical_comedian_name: `Canonical ${10 + index}`,
+                }),
+            ) as never,
+        );
+        mockFindShowsForHome.mockResolvedValue(
+            dates.map((date, index) => ({
+                id: 101 + index,
+                clubId: 5,
+                date,
+                name: `Show ${101 + index}`,
+                imageUrl: "",
+                lineup: [
+                    {
+                        id: index < 2 ? 1 : index,
+                        uuid: `headliner-${index < 2 ? 1 : index}`,
+                        name: `Headliner ${index < 2 ? 1 : index}`,
+                        imageUrl: "",
+                    },
+                ],
+            })),
+        );
+
+        const result = await getTouringScarcityRails({
+            zipCode: "94103",
+            now: NOW,
+            limit: 3,
+        });
+
+        expect(
+            result.justPassingThrough.items.map(({ show }) => show.id),
+        ).toEqual([101, 103, 104]);
     });
 
     it("returns empty providers for invalid ZIPs without querying", async () => {

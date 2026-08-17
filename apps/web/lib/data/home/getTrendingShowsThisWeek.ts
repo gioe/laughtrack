@@ -1,30 +1,11 @@
 import { fromZonedTime, toZonedTime, format } from "date-fns-tz";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
-import { inferHeadliner } from "@/util/show/showHeroImage";
 import { findShowsForHome } from "./findShowsForHome";
-
-const TRENDING_SHOW_LIMIT = 8;
-const TRENDING_SHOW_CANDIDATE_TAKE = 50;
-
-function selectDiverseShows(shows: readonly ShowDTO[]): ShowDTO[] {
-    const selected: ShowDTO[] = [];
-    const repeatedHeadliners: ShowDTO[] = [];
-    const seenHeadlinerIDs = new Set<number>();
-
-    for (const show of shows) {
-        const headlinerID = inferHeadliner(show)?.id;
-        if (headlinerID === undefined || !seenHeadlinerIDs.has(headlinerID)) {
-            selected.push(show);
-            if (headlinerID !== undefined) seenHeadlinerIDs.add(headlinerID);
-            if (selected.length === TRENDING_SHOW_LIMIT) return selected;
-        } else {
-            repeatedHeadliners.push(show);
-        }
-    }
-
-    return selected.concat(repeatedHeadliners).slice(0, TRENDING_SHOW_LIMIT);
-}
+import {
+    HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    selectDiverseShowsByTime,
+} from "./showRailSelection";
 
 export async function getTrendingShowsThisWeek(
     timezone: string = "UTC",
@@ -54,10 +35,12 @@ export async function getTrendingShowsThisWeek(
                 ...(nearbyZips ? { zipCode: { in: nearbyZips } } : {}),
             },
         },
-        { popularity: "desc" },
-        TRENDING_SHOW_CANDIDATE_TAKE,
-        nearbyZips ? { zipCode } : {},
+        [{ date: "asc" }, { id: "asc" }],
+        HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+        nearbyZips
+            ? { zipCode, sortByHomeRelevance: false }
+            : { sortByHomeRelevance: false },
     );
 
-    return selectDiverseShows(candidates);
+    return selectDiverseShowsByTime(candidates);
 }

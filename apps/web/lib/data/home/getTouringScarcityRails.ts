@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import { findShowsForHome } from "./findShowsForHome";
+import {
+    HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    selectDiverseShowItemsByTime,
+} from "./showRailSelection";
 
 const DAY_MS = 24 * 60 * 60 * 1_000;
 const DEFAULT_HORIZON_DAYS = 90;
@@ -573,7 +577,7 @@ function emptyRails(): TouringScarcityRails {
     return {
         justPassingThrough: {
             railKey: "just_passing_through",
-            label: "Rarely nearby",
+            label: "Here for a Limited Time",
             items: [],
         },
     };
@@ -609,7 +613,7 @@ export async function getTouringScarcityRails(
             horizonDays,
             nearbyZips,
             requestedMarket: requestedMarket(options.zipCode),
-            limit,
+            limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
         },
     );
     const showIds = [
@@ -630,6 +634,10 @@ export async function getTouringScarcityRails(
             return show ? [{ ...item, show }] : [];
         });
 
-    rails.justPassingThrough.items = hydrate(classified.justPassingThrough);
+    rails.justPassingThrough.items = selectDiverseShowItemsByTime(
+        hydrate(classified.justPassingThrough),
+        ({ show }) => show,
+        limit,
+    );
     return rails;
 }

@@ -2,6 +2,10 @@ import { fromZonedTime, toZonedTime, format } from "date-fns-tz";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import { findShowsForHome } from "./findShowsForHome";
+import {
+    HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    selectDiverseShowsByTime,
+} from "./showRailSelection";
 
 export async function getShowsTonight(
     timezone: string = "UTC",
@@ -18,7 +22,7 @@ export async function getShowsTonight(
             ? resolveNearbyZips(zipCode, radius)
             : null;
 
-    return findShowsForHome(
+    const candidates = await findShowsForHome(
         {
             date: { gte: startOfDay, lte: endOfDay },
             club: {
@@ -26,10 +30,12 @@ export async function getShowsTonight(
                 ...(nearbyZips ? { zipCode: { in: nearbyZips } } : {}),
             },
         },
-        [{ popularity: "desc" }, { date: "asc" }],
-        8,
+        [{ date: "asc" }, { id: "asc" }],
+        HOME_SHOW_RAIL_CANDIDATE_LIMIT,
         nearbyZips
-            ? { zipCode, sortByHomeRelevance: true }
+            ? { zipCode, sortByHomeRelevance: false }
             : { sortByHomeRelevance: false },
     );
+
+    return selectDiverseShowsByTime(candidates);
 }
