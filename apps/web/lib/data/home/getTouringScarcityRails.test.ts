@@ -204,8 +204,8 @@ describe("getTouringScarcityRails", () => {
         }
     });
 
-    it("limits Rarely nearby to five shows", () => {
-        const candidates = Array.from({ length: 7 }, (_, index) =>
+    it("limits Rarely nearby to eight shows", () => {
+        const candidates = Array.from({ length: 10 }, (_, index) =>
             row({
                 showId: index + 1,
                 canonicalComedianId: index + 1,
@@ -216,7 +216,7 @@ describe("getTouringScarcityRails", () => {
         const selected = classifyTouringScarcityCandidates(candidates, REQUEST);
 
         expect(selected.justPassingThrough.map(({ showId }) => showId)).toEqual(
-            [1, 2, 3, 4, 5],
+            [1, 2, 3, 4, 5, 6, 7, 8],
         );
     });
 

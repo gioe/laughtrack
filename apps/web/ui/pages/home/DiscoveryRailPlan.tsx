@@ -73,6 +73,11 @@ const DYNAMIC_SHOW_RAIL_KEYS = new Set<string>([
     "starting_to_buzz",
     "from_your_podcasts",
 ]);
+const EIGHT_ITEM_SHOW_RAIL_KEYS = new Set<string>([
+    "shows_tonight",
+    "followed_comedian_shows",
+    "just_passing_through",
+]);
 
 function selectedItems<T>(
     items: readonly T[],
@@ -233,11 +238,14 @@ function renderRail(
         if (entry.payloadKey !== fixed.payloadKey) return null;
         const presentation = fixedShowPresentation(entry.railKey, props);
         if (!presentation) return null;
-        const shows = selectedItems(
+        const selectedShows = selectedItems(
             fixed.items,
             entry.itemIds,
             (show) => show.id,
         );
+        const shows = EIGHT_ITEM_SHOW_RAIL_KEYS.has(entry.railKey)
+            ? selectedShows.slice(0, 8)
+            : selectedShows;
         return showRail(
             entry.railKey as DiscoveryRailKey,
             plan,
@@ -257,7 +265,8 @@ function renderRail(
         entry.itemIds,
         (item) => item.id ?? item.show.id,
     );
-    const items = selectedDynamicItems.slice(0, 5);
+    const itemLimit = EIGHT_ITEM_SHOW_RAIL_KEYS.has(entry.railKey) ? 8 : 5;
+    const items = selectedDynamicItems.slice(0, itemLimit);
     if (items.length === 0) return null;
     return showRail(
         entry.railKey as DiscoveryRailKey,

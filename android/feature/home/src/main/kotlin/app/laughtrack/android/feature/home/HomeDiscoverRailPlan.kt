@@ -126,10 +126,11 @@ private fun resolveContent(
     when (railKey to payloadKey) {
         SHOWS_TONIGHT to PAYLOAD_SHOWS_TONIGHT ->
             select(entry.itemIds, feed.showsTonight) { it.id.toString() }
+                .take(HOME_DISCOVER_FEATURED_SHOW_RAIL_ITEM_LIMIT)
                 .ifNotEmpty(HomeDiscoverRailSection.Content::ShowsTonight)
         FOLLOWED_COMEDIAN_SHOWS to PAYLOAD_FOLLOWED_SHOWS ->
             select(entry.itemIds, feed.followedComedianShows) { it.id.toString() }
-                .take(HOME_DISCOVER_RAIL_ITEM_LIMIT)
+                .take(HOME_DISCOVER_FEATURED_SHOW_RAIL_ITEM_LIMIT)
                 .ifNotEmpty(HomeDiscoverRailSection.Content::FollowedComedianShows)
         TRENDING_THIS_WEEK to PAYLOAD_TRENDING_THIS_WEEK ->
             select(entry.itemIds, feed.trendingThisWeek) { it.id.toString() }
@@ -162,7 +163,17 @@ private fun resolveDynamicContent(
     val items =
         select(entry.itemIds, rail.items) { it.id.toString() }
             .let { selected ->
-                if (isTodayStyleDynamicShowRail(railKey)) selected.take(HOME_DISCOVER_RAIL_ITEM_LIMIT) else selected
+                if (isTodayStyleDynamicShowRail(railKey)) {
+                    val limit =
+                        if (railKey == "just_passing_through") {
+                            HOME_DISCOVER_RARELY_NEARBY_ITEM_LIMIT
+                        } else {
+                            HOME_DISCOVER_RAIL_ITEM_LIMIT
+                        }
+                    selected.take(limit)
+                } else {
+                    selected
+                }
             }
     return items
         .ifNotEmpty { HomeDiscoverRailSection.Content.DynamicShows(rail.label, it) }
@@ -201,6 +212,8 @@ private fun <T> select(
 private fun <T, R> List<T>.ifNotEmpty(transform: (List<T>) -> R): R? = takeIf { it.isNotEmpty() }?.let(transform)
 
 internal const val HOME_DISCOVER_RAIL_ITEM_LIMIT = 5
+internal const val HOME_DISCOVER_FEATURED_SHOW_RAIL_ITEM_LIMIT = 8
+internal const val HOME_DISCOVER_RARELY_NEARBY_ITEM_LIMIT = 8
 
 private const val SUPPORTED_RAIL_PLAN_VERSION = 1
 private const val SHOWS_TONIGHT = "shows_tonight"

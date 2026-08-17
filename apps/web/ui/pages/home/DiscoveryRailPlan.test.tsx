@@ -350,8 +350,8 @@ describe("DiscoveryRailPlan", () => {
         expect(screen.queryByText("See all →")).toBeNull();
     });
 
-    it("limits Rarely nearby to five shows", () => {
-        const items = Array.from({ length: 7 }, (_, index) => ({
+    it("limits Rarely nearby to eight shows", () => {
+        const items = Array.from({ length: 10 }, (_, index) => ({
             id: index + 1,
             show: show(index + 1),
             reason: {
@@ -384,7 +384,43 @@ describe("DiscoveryRailPlan", () => {
             mocks.renderedShows
                 .map(({ id }) => id)
                 .filter((id, index, ids) => ids.indexOf(id) === index),
-        ).toEqual([1, 2, 3, 4, 5]);
+        ).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    });
+
+    it("limits Tonight and followed-comedian rails to eight shows", () => {
+        const tonight = Array.from({ length: 10 }, (_, index) =>
+            show(index + 1),
+        );
+        const followed = Array.from({ length: 10 }, (_, index) =>
+            show(index + 11),
+        );
+        const nextPayloads = payloads();
+        nextPayloads.showsTonight = tonight;
+        nextPayloads.followedComedianShows = followed;
+
+        renderPlan(
+            plan([
+                {
+                    railKey: "shows_tonight",
+                    payloadKey: "showsTonight",
+                    position: 0,
+                    itemIds: tonight.map(({ id }) => String(id)),
+                },
+                {
+                    railKey: "followed_comedian_shows",
+                    payloadKey: "followedComedianShows",
+                    position: 1,
+                    itemIds: followed.map(({ id }) => String(id)),
+                },
+            ]),
+            nextPayloads,
+        );
+
+        expect(
+            mocks.renderedShows
+                .map(({ id }) => id)
+                .filter((id, index, ids) => ids.indexOf(id) === index),
+        ).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18]);
     });
 
     it("passes rail key, policy version, and rank for analytics attribution", () => {

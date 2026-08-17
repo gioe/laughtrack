@@ -196,10 +196,10 @@ struct HomeDiscoverRailPlanTests {
         #expect(HomePodcastEpisodeDiscoveryPresentation.item(from: episodes[0]).id == 701)
     }
 
-    @Test("Episodes for you and Rarely nearby are limited to five items")
-    func requestedRailsAreLimitedToFiveItems() throws {
+    @Test("Episodes for you is limited to five items and Rarely nearby to eight")
+    func requestedRailsUseTheirItemLimits() throws {
         let episodes = (1...7).map(makeEpisode)
-        let passingThroughItems = (11...17).map {
+        let passingThroughItems = (11...20).map {
             makeDynamicItem(id: $0, reason: "Comic \($0) is visiting")
         }
         let feed = makeFeed(
@@ -235,7 +235,7 @@ struct HomeDiscoverRailPlanTests {
         }
 
         #expect(limitedEpisodes.map(\.id) == [1, 2, 3, 4, 5])
-        #expect(limitedPassingThrough.map(\.id) == [11, 12, 13, 14, 15])
+        #expect(limitedPassingThrough.map(\.id) == [11, 12, 13, 14, 15, 16, 17, 18])
     }
 
     @Test("removed dynamic rails are ignored")
@@ -302,6 +302,29 @@ struct HomeDiscoverRailPlanTests {
         )
     }
 
+    @Test("shows tonight is limited to eight planned shows")
+    func showsTonightIsLimitedToEightPlannedShows() throws {
+        let shows = (1...10).map { makeShow($0) }
+        let feed = makeFeed(
+            showsTonight: shows,
+            railPlan: makePlan(rails: [
+                .init(
+                    railKey: "shows_tonight",
+                    payloadKey: "showsTonight",
+                    position: 0,
+                    itemIds: shows.map { String($0.id) }
+                )
+            ])
+        )
+
+        let sections = try #require(HomeDiscoverRailPlanPresentation.sections(from: feed))
+        guard case .showsTonight(let limitedShows) = sections[0].content else {
+            Issue.record("Expected shows-tonight rail")
+            return
+        }
+        #expect(limitedShows.map(\.id) == [1, 2, 3, 4, 5, 6, 7, 8])
+    }
+
     @Test("followed comedian shows are capped and feature the favorite lineup member")
     func followedComedianShowsAreCappedAndFeatureFavorite() throws {
         let favorite = Components.Schemas.ComedianLineup(
@@ -311,7 +334,7 @@ struct HomeDiscoverRailPlanTests {
             id: 81,
             isFavorite: true
         )
-        let shows = (1...7).map { id in
+        let shows = (1...10).map { id in
             makeShow(id, lineup: id == 1 ? [favorite] : [])
         }
         let feed = makeFeed(
@@ -331,7 +354,7 @@ struct HomeDiscoverRailPlanTests {
             Issue.record("Expected followed-comedian shows")
             return
         }
-        #expect(limitedShows.map(\.id) == [1, 2, 3, 4, 5])
+        #expect(limitedShows.map(\.id) == [1, 2, 3, 4, 5, 6, 7, 8])
         #expect(HomeDiscoverRailPlanPresentation.preferredFavoriteHeadlinerID(show: limitedShows[0]) == 81)
     }
 

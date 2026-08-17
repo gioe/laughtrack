@@ -400,7 +400,7 @@ private fun FollowedComedianShowsRail(
         FeaturedShowsCarousel(
             headline = "Because you follow them",
             items =
-                shows.take(HOME_DISCOVER_RAIL_ITEM_LIMIT).map { show ->
+                shows.take(HOME_DISCOVER_FEATURED_SHOW_RAIL_ITEM_LIMIT).map { show ->
                     FeaturedShowCarouselItem(
                         show = show,
                         preferredHeadlinerId = preferredFavoriteHeadlinerId(show),

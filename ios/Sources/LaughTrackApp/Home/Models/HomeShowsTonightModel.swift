@@ -8,7 +8,8 @@ import LaughTrackCore
 
 @MainActor
 final class HomeShowsTonightModel: ObservableObject {
-    static let displayLimit = 5
+    static let displayLimit = 8
+    static let thisWeekDisplayLimit = 5
 
     static func seeMoreSearchSeed(
         railKind: HomeShowRailKind,
@@ -113,9 +114,12 @@ final class HomeShowsTonightModel: ObservableObject {
         }
 
         var seenIDs: Set<Int> = []
+        let limit = railKind == .showsTonight
+            ? Self.displayLimit
+            : Self.thisWeekDisplayLimit
         return sourceShows.filter { show in
             !ShowAvailability.isSoldOut(show) && seenIDs.insert(show.id).inserted
-        }.prefix(Self.displayLimit).map { $0 }
+        }.prefix(limit).map { $0 }
     }
 
     private static func locationTitle(city: String?, state: String?) -> String? {

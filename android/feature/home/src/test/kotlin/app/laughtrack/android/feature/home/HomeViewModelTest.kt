@@ -102,7 +102,10 @@ class HomeViewModelTest {
                 show(5, "Available 5"),
                 show(6, "Available 6"),
                 show(7, "Available 7"),
-                show(8, "Capped 8"),
+                show(8, "Available 8"),
+                show(9, "Available 9"),
+                show(10, "Available 10"),
+                show(11, "Capped 11"),
             )
         val feed =
             homeFeed().copy(
@@ -113,7 +116,7 @@ class HomeViewModelTest {
 
         val state = HomeUiState(feed = UiState.Success(feed))
 
-        assertEquals(listOf(3, 4, 5, 6, 7), state.showsTonight.map { it.id })
+        assertEquals(listOf(3, 4, 5, 6, 7, 8, 9, 10), state.showsTonight.map { it.id })
     }
 
     @Test

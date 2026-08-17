@@ -167,6 +167,29 @@ class HomeDiscoverRailPlanTest {
     }
 
     @Test
+    fun shows_tonight_is_limited_to_eight_planned_shows() {
+        val shows = (1..10).map { id -> show(id) }
+        val sections =
+            resolveHomeDiscoverRails(
+                feed(
+                    showsTonight = shows,
+                    rails =
+                        listOf(
+                            entry(
+                                "shows_tonight",
+                                "showsTonight",
+                                0,
+                                shows.map { it.id.toString() },
+                            ),
+                        ),
+                ),
+            )!!
+
+        val content = sections.single().content as HomeDiscoverRailSection.Content.ShowsTonight
+        assertEquals(listOf(1, 2, 3, 4, 5, 6, 7, 8), content.shows.map { it.id })
+    }
+
+    @Test
     fun followed_comedian_shows_are_capped_and_feature_the_favorite_lineup_member() {
         val favorite =
             ComedianLineup(
@@ -176,7 +199,7 @@ class HomeDiscoverRailPlanTest {
                 id = 81,
                 isFavorite = true,
             )
-        val shows = (1..7).map { id -> show(id, lineup = if (id == 1) listOf(favorite) else emptyList()) }
+        val shows = (1..10).map { id -> show(id, lineup = if (id == 1) listOf(favorite) else emptyList()) }
         val sections =
             resolveHomeDiscoverRails(
                 feed(
@@ -194,14 +217,14 @@ class HomeDiscoverRailPlanTest {
             )!!
 
         val content = sections.single().content as HomeDiscoverRailSection.Content.FollowedComedianShows
-        assertEquals(listOf(1, 2, 3, 4, 5), content.shows.map { it.id })
+        assertEquals(listOf(1, 2, 3, 4, 5, 6, 7, 8), content.shows.map { it.id })
         assertEquals(81, preferredFavoriteHeadlinerId(content.shows.first()))
     }
 
     @Test
-    fun limits_rarely_nearby_to_five_shows() {
+    fun limits_rarely_nearby_to_eight_shows() {
         val items =
-            (1..7).map { id ->
+            (1..10).map { id ->
                 HomeFeedDynamicRailItem(
                     id = id,
                     show = show(id),
@@ -230,7 +253,7 @@ class HomeDiscoverRailPlanTest {
             )!!
 
         val content = sections.single().content as HomeDiscoverRailSection.Content.DynamicShows
-        assertEquals(listOf(1, 2, 3, 4, 5), content.items.map { it.id })
+        assertEquals(listOf(1, 2, 3, 4, 5, 6, 7, 8), content.items.map { it.id })
     }
 
     @Test

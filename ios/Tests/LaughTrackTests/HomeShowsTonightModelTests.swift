@@ -81,12 +81,12 @@ struct HomeShowsTonightModelTests {
         #expect(queryValue("distance", from: request.path) == "50")
     }
 
-    @Test("limits shows tonight to five unique shows")
-    func limitsShowsTonightToFiveUniqueShows() async {
+    @Test("limits shows tonight to eight unique shows")
+    func limitsShowsTonightToEightUniqueShows() async {
         let model = HomeShowsTonightModel()
 
         await model.refresh(
-            apiClient: makeHomeShowsTonightClient(showIDs: Array(801...808)),
+            apiClient: makeHomeShowsTonightClient(showIDs: Array(801...810)),
             zipCode: "10013",
             cache: DataCache<LaughTrackCacheKey>(),
             persistentCache: nil,
@@ -98,7 +98,7 @@ struct HomeShowsTonightModelTests {
             return
         }
 
-        #expect(shows.map(\.id) == [801, 802, 803, 804, 805])
+        #expect(shows.map(\.id) == [801, 802, 803, 804, 805, 806, 807, 808])
     }
 
     @Test("see more seed opens the this-week shows search")

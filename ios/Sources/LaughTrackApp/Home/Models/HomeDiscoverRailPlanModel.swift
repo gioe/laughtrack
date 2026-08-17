@@ -24,6 +24,8 @@ struct HomeDiscoverRailSection: Identifiable, Equatable {
 enum HomeDiscoverRailPlanPresentation {
     static let supportedVersion = 1
     static let itemLimit = 5
+    static let followedComedianShowsItemLimit = 8
+    static let rarelyNearbyItemLimit = 8
     private static let supportedDynamicRailKeys: Set<String> = [
         "just_passing_through",
         "starting_to_buzz",
@@ -99,19 +101,25 @@ enum HomeDiscoverRailPlanPresentation {
         switch (railKey, payloadKey) {
         case ("shows_tonight", "showsTonight"):
             if let shows = nonEmptyShows(itemIDs, from: feed.showsTonight) {
-                content = .showsTonight(shows)
+                content = .showsTonight(
+                    Array(shows.prefix(HomeShowsTonightModel.displayLimit))
+                )
             } else {
                 content = nil
             }
         case ("followed_comedian_shows", "followedComedianShows"):
             if let shows = nonEmptyShows(itemIDs, from: feed.followedComedianShows) {
-                content = .followedComedianShows(Array(shows.prefix(itemLimit)))
+                content = .followedComedianShows(
+                    Array(shows.prefix(followedComedianShowsItemLimit))
+                )
             } else {
                 content = nil
             }
         case ("trending_this_week", "trendingThisWeek"):
             if let shows = nonEmptyShows(itemIDs, from: feed.trendingThisWeek) {
-                content = .trendingThisWeek(Array(shows.prefix(HomeShowsTonightModel.displayLimit)))
+                content = .trendingThisWeek(
+                    Array(shows.prefix(HomeShowsTonightModel.thisWeekDisplayLimit))
+                )
             } else {
                 content = nil
             }
@@ -140,7 +148,10 @@ enum HomeDiscoverRailPlanPresentation {
             var values = select(itemIDs, from: rail.items) { String($0.id) }
                 .filter { !ShowAvailability.isSoldOut($0.show) }
             if usesTodayStyleShowCarousel(railKey: railKey) {
-                values = Array(values.prefix(itemLimit))
+                let limit = railKey == "just_passing_through"
+                    ? rarelyNearbyItemLimit
+                    : itemLimit
+                values = Array(values.prefix(limit))
             }
             content = values.isEmpty ? nil : .dynamicShows(label: rail.label, items: values)
         default:

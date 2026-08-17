@@ -12,6 +12,7 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcastEpisode
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
+import app.laughtrack.android.feature.home.HOME_DISCOVER_FEATURED_SHOW_RAIL_ITEM_LIMIT
 import app.laughtrack.android.feature.home.HOME_DISCOVER_RAIL_ITEM_LIMIT
 import app.laughtrack.android.feature.home.HomeDiscoverRailAttribution
 import app.laughtrack.android.feature.home.data.HomeFeedCache
@@ -82,7 +83,7 @@ data class HomeUiState(
                 ?.let { feed ->
                     dedupeShows(feed.showsTonight + feed.hero.shows + feed.trendingThisWeek)
                         .filterNot(::isSoldOut)
-                        .take(HOME_DISCOVER_RAIL_ITEM_LIMIT)
+                        .take(HOME_DISCOVER_FEATURED_SHOW_RAIL_ITEM_LIMIT)
                 }.orEmpty()
 
     val trendingThisWeek: List<Show>

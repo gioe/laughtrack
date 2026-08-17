@@ -41,20 +41,22 @@ struct HomeFollowedComedianShowsRail: View {
                 ) {
                     HomeFeaturedShowsCarousel(
                         headline: "Because you follow them",
-                        items: shows.prefix(HomeDiscoverRailPlanPresentation.itemLimit).map { show in
-                            HomeFeaturedShowCarouselItem(
-                                show: show,
-                                preferredHeadlinerID: HomeDiscoverRailPlanPresentation.preferredFavoriteHeadlinerID(
-                                    show: show
-                                ),
-                                accessibilityIdentifier: LaughTrackViewTestID.homeFavoriteShowButton(show.id),
-                                accessibilityLabel: ShowTitlePresentation.title(for: show),
-                                timestampLabel: ShowFormatting.featuredDateTime(
-                                    show.date,
-                                    timezoneID: show.timezone
+                        items: shows
+                            .prefix(HomeDiscoverRailPlanPresentation.followedComedianShowsItemLimit)
+                            .map { show in
+                                HomeFeaturedShowCarouselItem(
+                                    show: show,
+                                    preferredHeadlinerID: HomeDiscoverRailPlanPresentation.preferredFavoriteHeadlinerID(
+                                        show: show
+                                    ),
+                                    accessibilityIdentifier: LaughTrackViewTestID.homeFavoriteShowButton(show.id),
+                                    accessibilityLabel: ShowTitlePresentation.title(for: show),
+                                    timestampLabel: ShowFormatting.featuredDateTime(
+                                        show.date,
+                                        timezoneID: show.timezone
+                                    )
                                 )
-                            )
-                        }
+                            }
                     )
                 }
             }
