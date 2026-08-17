@@ -96,7 +96,7 @@ class SearchRepository
                             showTimezone = show.timezone,
                             showRoom = show.room,
                             showPriceLabel =
-                                formatPrice(
+                                formatSearchPrice(
                                     show.tickets
                                         ?.filter { it.soldOut != true }
                                         ?.mapNotNull { it.price },
@@ -248,24 +248,16 @@ class SearchRepository
 
         private companion object {
             const val PAGE_SIZE = 20
-
-            fun formatPrice(prices: List<BigDecimal>?): String? {
-                val sorted = prices?.filter { it >= BigDecimal.ZERO }?.sorted().orEmpty()
-                val lowest = sorted.firstOrNull() ?: return null
-                val highest = sorted.lastOrNull()
-                return when {
-                    lowest.compareTo(BigDecimal.ZERO) == 0 -> "Free"
-                    highest != null && highest != lowest -> "From ${formatSinglePrice(lowest)}"
-                    else -> formatSinglePrice(lowest)
-                }
-            }
-
-            private fun formatSinglePrice(price: BigDecimal): String {
-                val normalized = price.stripTrailingZeros()
-                return "$${normalized.toPlainString()}"
-            }
         }
     }
+
+internal fun formatSearchPrice(prices: List<BigDecimal>?): String? {
+    val lowest = prices?.filter { it >= BigDecimal.ZERO }?.minOrNull() ?: return null
+    if (lowest.compareTo(BigDecimal.ZERO) == 0) return "Free"
+
+    val normalized = lowest.stripTrailingZeros()
+    return "$${normalized.toPlainString()}"
+}
 
 internal fun showSearchArtworkUrl(show: Show): String? {
     val headliner =

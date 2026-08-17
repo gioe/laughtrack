@@ -503,8 +503,8 @@ struct ShowRowTests {
         #expect(ShowRow.priceLabel(for: show) == "$24")
     }
 
-    @Test("show row formats a ticket price range")
-    func showRowFormatsTicketPriceRange() {
+    @Test("show row exposes the cheapest ticket price")
+    func showRowExposesCheapestTicketPrice() {
         let show = makeShow(
             tickets: [
                 .init(price: 35, purchaseUrl: "https://example.com/vip", soldOut: false, _type: "VIP"),
@@ -513,7 +513,7 @@ struct ShowRowTests {
             lineup: []
         )
 
-        #expect(ShowRow.priceLabel(for: show) == "From $20")
+        #expect(ShowRow.priceLabel(for: show) == "$20")
     }
 
     @Test("show row formats free tickets")
@@ -550,7 +550,7 @@ struct ShowRowTests {
         )
 
         #expect(ShowRow.priceLabel(for: show) == nil)
-        #expect(ShowRow.previousPriceLabel(for: show) == "From $20")
+        #expect(ShowRow.previousPriceLabel(for: show) == "$20")
     }
 
     @Test("previous price label matches priceLabel when tickets are still available")

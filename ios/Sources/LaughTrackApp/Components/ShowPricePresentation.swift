@@ -3,11 +3,11 @@ import LaughTrackAPIClient
 
 enum ShowPricePresentation {
     static func rowPriceLabel(for show: Components.Schemas.Show) -> String? {
-        priceRangeLabel(from: show.tickets, includeSoldOut: false)
+        lowestPriceLabel(from: show.tickets, includeSoldOut: false)
     }
 
     static func rowPreviousPriceLabel(for show: Components.Schemas.Show) -> String? {
-        priceRangeLabel(from: show.tickets, includeSoldOut: true)
+        lowestPriceLabel(from: show.tickets, includeSoldOut: true)
     }
 
     static func detailTicketSummary(for show: Components.Schemas.ShowDetail) -> String {
@@ -33,35 +33,23 @@ enum ShowPricePresentation {
 
     static let priceUnavailableExplanation = "Price of these tickets was not made available to us by the venue."
 
-    // Rows stay compact for scannable lists and expose the lowest available
-    // tier as "From $X" rather than a "$X - $Y" range — the high end of the
-    // range is less useful at-a-glance than knowing the entry point. Detail
-    // shows a single summary fact and preserves "Price unavailable".
-    private static func priceRangeLabel(
+    // Rows stay compact for scannable lists and expose only the lowest
+    // available tier. Detail shows the same summary fact and preserves
+    // "Price unavailable".
+    private static func lowestPriceLabel(
         from tickets: [Components.Schemas.Ticket]?,
         includeSoldOut: Bool
     ) -> String? {
-        let prices = (tickets ?? [])
+        let lowestPrice = (tickets ?? [])
             .filter { includeSoldOut || $0.soldOut != true }
             .compactMap(\.price)
-            .sorted()
+            .min()
 
-        guard let lowestPrice = prices.first else {
+        guard let lowestPrice else {
             return nil
         }
 
-        guard let highestPrice = prices.last, highestPrice != lowestPrice else {
-            return formatPrice(lowestPrice)
-        }
-
-        // Multiple tiers. Free entry available → "Free" reads cleaner than
-        // "From Free" and matches the user's mental model ("you can get in
-        // free"). Otherwise: "From $X".
-        if lowestPrice == 0 {
-            return "Free"
-        }
-
-        return "From \(formatPrice(lowestPrice))"
+        return formatPrice(lowestPrice)
     }
 
     private static func formatPrice(_ price: Double) -> String {
