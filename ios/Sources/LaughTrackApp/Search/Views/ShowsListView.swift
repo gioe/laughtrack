@@ -502,24 +502,6 @@ private struct ShowFiltersPanel: View {
             }
 
             ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
-                if !compactMode {
-                    facetButton(
-                        title: "Tonight",
-                        systemImage: "moon.stars",
-                        isSelected: isTonightSelected
-                    ) {
-                        model.applyDateShortcut("Tonight")
-                    }
-
-                    facetButton(
-                        title: "This Weekend",
-                        systemImage: "sparkles",
-                        isSelected: isWeekendSelected
-                    ) {
-                        model.applyDateShortcut("This Weekend")
-                    }
-                }
-
                 if model.allowsLocationFiltering {
                     PillSheetTrigger(
                         title: zipChipTitle,
@@ -619,39 +601,6 @@ private struct ShowFiltersPanel: View {
 
     private var secondaryFilterCountTitle: String {
         "\(secondaryFilterCount) more"
-    }
-
-    private var isTonightSelected: Bool {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        return model.dateRange.isActive &&
-            calendar.isDate(model.dateRange.from, inSameDayAs: today) &&
-            calendar.isDate(model.dateRange.to, inSameDayAs: today)
-    }
-
-    private var isWeekendSelected: Bool {
-        guard model.dateRange.isActive else { return false }
-        let calendar = Calendar.current
-        return calendar.component(.weekday, from: model.dateRange.to) == 1 &&
-            calendar.dateComponents([.day], from: model.dateRange.from, to: model.dateRange.to).day.map { (0...2).contains($0) } == true
-    }
-
-    private func facetButton(
-        title: String,
-        systemImage: String,
-        isSelected: Bool,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            LaughTrackBrowseChip(
-                title,
-                systemImage: systemImage,
-                tone: isSelected ? .accent : .neutral
-            )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
 }
@@ -762,6 +711,18 @@ private struct ShowsDateRangeSheet: View {
             subtitle: "Choose the show dates to include.",
             showsByDate: mergedShowsByDate,
             minimumDate: Calendar.current.startOfDay(for: Date()),
+            todayTitle: "Tonight",
+            quickActions: [
+                DateRangeFilterQuickAction(
+                    title: "This Weekend",
+                    systemImage: "sparkles"
+                ) {
+                    model.applyDateShortcut("This Weekend")
+                },
+            ],
+            onApply: { _ in
+                model.sort = .earliest
+            },
             onDisplayedMonthChange: { newMonth in
                 Task { await loadDensity(for: newMonth) }
             }

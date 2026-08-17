@@ -9,7 +9,6 @@ import { getDateRangeFromParams } from "@/util/search/util";
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
 import ShowLocationComponent from "../../../components/area";
-import DateShortcutChips from "../../../components/dateShortcuts";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import SearchBarLayout, { SearchChipRow } from "../../../components/layout";
 import { DateRange, DistanceData } from "@/objects/interface";
@@ -112,7 +111,6 @@ export default function ShowSearchBar() {
                     value={state.dateRange}
                     onValueChange={handleDateRangeSelection}
                 />
-                <DateShortcutChips />
             </SearchChipRow>
         </SearchBarLayout>
     );

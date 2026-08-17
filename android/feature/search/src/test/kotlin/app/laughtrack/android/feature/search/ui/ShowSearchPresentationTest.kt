@@ -19,29 +19,39 @@ class ShowSearchPresentationTest {
         val showBlock =
             source
                 .substringAfter("private fun ShowSearchControls(")
-                .substringBefore("private fun ShowFacetChip(")
+                .substringBefore("private fun MaximumPricePill(")
 
         val intro = showBlock.indexOf("Start with what matters")
-        val shortcuts = showBlock.indexOf("ShowDateShortcut.entries")
         val location = showBlock.indexOf("LocationPill")
+        val date = showBlock.indexOf("DateRangePill")
         val additionalFilters = showBlock.indexOf("label = \"More filters\"")
         val optional = showBlock.indexOf("Add comedian or club")
         val comedianField = showBlock.indexOf("Comedian (optional)")
 
         assertTrue(intro >= 0)
-        assertTrue(shortcuts > intro)
-        assertTrue(location > shortcuts)
+        assertTrue(location > intro)
+        assertTrue(date > location)
         assertTrue(additionalFilters > location)
+        assertFalse(showBlock.contains("ShowDateShortcut.entries"))
         assertFalse(showBlock.contains("label = \"Free\""))
         assertFalse(showBlock.contains("label = ShowFormatOption.OPEN_MIC.label"))
         assertFalse(showBlock.contains("ShowFormatOption.entries.filterNot"))
         assertTrue(showBlock.contains("filters.filterNot { it.slug in legacyPriceSlugs }"))
-        assertTrue(optional > shortcuts)
+        assertTrue(optional > date)
         assertTrue(comedianField > optional)
         assertFalse(showBlock.contains("value = query.text"))
         assertTrue(showBlock.contains("ShowMaximumPriceOption"))
         assertEquals(listOf("Tonight", "This Weekend"), ShowDateShortcut.entries.map { it.label })
         assertEquals("Open mic", ShowFormatOption.OPEN_MIC.label)
+
+        val dateBlock =
+            source
+                .substringAfter("private fun DateRangePill(")
+                .substringBefore("private fun TagFilterPill(")
+        assertTrue(dateBlock.contains("Text(\"Any date\")"))
+        assertTrue(dateBlock.contains("ShowDateShortcut.entries"))
+        assertTrue(dateBlock.contains("onDateShortcut(shortcut)"))
+        assertTrue(dateBlock.contains("DateRangePicker"))
     }
 
     @Test

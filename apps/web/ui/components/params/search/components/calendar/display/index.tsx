@@ -21,7 +21,7 @@ import { DateRange } from "@/objects/interface";
 import { useDialogKeyboard } from "@/hooks";
 import { getChipPresets } from "./presets";
 
-const PLACEHOLDER = "When";
+const PLACEHOLDER = "Any date";
 const MOBILE_QUERY = "(max-width: 639px)";
 
 function subscribeToMobileQuery(callback: () => void): () => void {
@@ -74,7 +74,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
         containerRef: sheetRef,
     });
 
-    const handleChipSelect = (range: DateRange) => {
+    const handleChipSelect = (range: DateRange | undefined) => {
         onSelect(range);
         setSheetOpen(false);
         setPopoverOpen(false);
@@ -118,8 +118,8 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     const triggerClassName =
         "inline-flex h-9 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 shadow-sm transition-colors hover:border-white/30 hover:bg-white/10 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper";
 
-    // Fallback accessible name for triggers whose host no longer renders a
-    // visible WHEN label (chip-row hosts pass no ariaLabelledBy).
+    // Fallback accessible name for triggers whose host does not render a
+    // separate visible label (chip-row hosts pass no ariaLabelledBy).
     const triggerAriaProps = ariaLabelledBy
         ? { "aria-labelledby": ariaLabelledBy }
         : { "aria-label": "Select dates" };

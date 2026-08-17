@@ -1,6 +1,14 @@
 import SwiftUI
 import LaughTrackBridge
 
+struct DateRangeFilterQuickAction: Identifiable {
+    let title: String
+    let systemImage: String
+    let action: () -> Void
+
+    var id: String { title }
+}
+
 /// Single sheet used everywhere the app asks the user to pick a date or date
 /// range — search-tab date pill, comedian/club detail date filter, week-strip
 /// jump pill. Callers bind a `DateRangeFilter`, supply optional show-density
@@ -20,6 +28,8 @@ struct DateRangeFilterSheet: View {
     var subtitle: String
     var showsByDate: [Date: Int]
     var minimumDate: Date?
+    var todayTitle: String
+    var quickActions: [DateRangeFilterQuickAction]
     var onApply: ((DateRangeFilter) -> Void)?
     var onDisplayedMonthChange: ((Date) -> Void)?
 
@@ -34,6 +44,8 @@ struct DateRangeFilterSheet: View {
         subtitle: String = "Choose the show dates to include.",
         showsByDate: [Date: Int] = [:],
         minimumDate: Date? = nil,
+        todayTitle: String = "Today",
+        quickActions: [DateRangeFilterQuickAction] = [],
         onApply: ((DateRangeFilter) -> Void)? = nil,
         onDisplayedMonthChange: ((Date) -> Void)? = nil
     ) {
@@ -43,6 +55,8 @@ struct DateRangeFilterSheet: View {
         self.subtitle = subtitle
         self.showsByDate = showsByDate
         self.minimumDate = minimumDate
+        self.todayTitle = todayTitle
+        self.quickActions = quickActions
         self.onApply = onApply
         self.onDisplayedMonthChange = onDisplayedMonthChange
 
@@ -84,6 +98,48 @@ struct DateRangeFilterSheet: View {
                 .accessibilityLabel("Close")
             }
 
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: theme.spacing.sm) {
+                    LaughTrackButton(
+                        "Any date",
+                        systemImage: "calendar.badge.minus",
+                        tone: .tertiary,
+                        density: .compact,
+                        fullWidth: false
+                    ) {
+                        filter.isActive = false
+                        onApply?(filter)
+                        isPresented = false
+                    }
+
+                    LaughTrackButton(
+                        todayTitle,
+                        systemImage: "calendar",
+                        tone: .secondary,
+                        density: .compact,
+                        fullWidth: false
+                    ) {
+                        let today = Calendar.current.startOfDay(for: Date())
+                        draftFrom = today
+                        draftTo = today
+                        apply()
+                    }
+
+                    ForEach(quickActions) { quickAction in
+                        LaughTrackButton(
+                            quickAction.title,
+                            systemImage: quickAction.systemImage,
+                            tone: .secondary,
+                            density: .compact,
+                            fullWidth: false
+                        ) {
+                            quickAction.action()
+                            isPresented = false
+                        }
+                    }
+                }
+            }
+
             ScrollView {
                 MonthCalendarView(
                     selection: .range(
@@ -102,31 +158,6 @@ struct DateRangeFilterSheet: View {
             .font(laughTrack.typography.body)
 
             HStack(spacing: theme.spacing.sm) {
-                LaughTrackButton(
-                    "Any date",
-                    systemImage: "calendar.badge.minus",
-                    tone: .tertiary,
-                    density: .compact,
-                    fullWidth: false
-                ) {
-                    filter.isActive = false
-                    onApply?(filter)
-                    isPresented = false
-                }
-
-                LaughTrackButton(
-                    "Today",
-                    systemImage: "calendar",
-                    tone: .secondary,
-                    density: .compact,
-                    fullWidth: false
-                ) {
-                    let today = Calendar.current.startOfDay(for: Date())
-                    draftFrom = today
-                    draftTo = today
-                    apply()
-                }
-
                 Spacer(minLength: 0)
 
                 LaughTrackButton(

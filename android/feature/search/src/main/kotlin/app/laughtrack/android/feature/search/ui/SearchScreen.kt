@@ -548,16 +548,14 @@ private fun ShowSearchControls(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                ShowDateShortcut.entries.forEach { shortcut ->
-                    ShowFacetChip(
-                        label = shortcut.label,
-                        selected = isShowDateShortcutSelected(query, shortcut),
-                        onClick = { onDateShortcut(shortcut) },
-                    )
-                }
                 LocationPill(zip = query.zip, locationLabel = locationLabel, onZip = onZip)
                 DistancePill(distance = query.distance, onDistance = onDistance)
-                DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
+                DateRangePill(
+                    from = query.from,
+                    to = query.to,
+                    onDateRange = onDateRange,
+                    onDateShortcut = onDateShortcut,
+                )
                 MaximumPricePill(selected = query.maxPrice, onSelect = onMaximumPrice)
                 if (secondaryFilters.isNotEmpty()) {
                     TagFilterPill(
@@ -639,15 +637,6 @@ private fun ShowSearchControls(
 }
 
 @Composable
-private fun ShowFacetChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    FilterChip(selected = selected, onClick = onClick, label = { Text(label) })
-}
-
-@Composable
 private fun MaximumPricePill(
     selected: Int?,
     onSelect: (ShowMaximumPriceOption) -> Unit,
@@ -681,11 +670,12 @@ private fun MaximumPricePill(
 }
 
 private fun isShowDateShortcutSelected(
-    query: SearchQuery,
+    from: String?,
+    to: String?,
     shortcut: ShowDateShortcut,
 ): Boolean {
-    val (from, to) = showDateRangeForShortcut(shortcut)
-    return query.from == from && query.to == to
+    val (shortcutFrom, shortcutTo) = showDateRangeForShortcut(shortcut)
+    return from == shortcutFrom && to == shortcutTo
 }
 
 /**
@@ -857,12 +847,13 @@ private fun DistancePill(
 }
 
 /** Date-range pill (Shows only) — opens a Material date-range picker; label reflects the window. */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun DateRangePill(
     from: String?,
     to: String?,
     onDateRange: (String?, String?) -> Unit,
+    onDateShortcut: (ShowDateShortcut) -> Unit,
 ) {
     var showPicker by remember { mutableStateOf(false) }
     val active = from != null || to != null
@@ -889,13 +880,36 @@ private fun DateRangePill(
                 }) { Text("Apply") }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    onDateRange(null, null)
-                    showPicker = false
-                }) { Text("Clear") }
+                TextButton(onClick = { showPicker = false }) { Text("Cancel") }
             },
         ) {
-            DateRangePicker(state = pickerState, modifier = Modifier.heightIn(max = 520.dp))
+            Column {
+                FlowRow(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilterChip(
+                        selected = !active,
+                        onClick = {
+                            onDateRange(null, null)
+                            showPicker = false
+                        },
+                        label = { Text("Any date") },
+                    )
+                    ShowDateShortcut.entries.forEach { shortcut ->
+                        FilterChip(
+                            selected = isShowDateShortcutSelected(from, to, shortcut),
+                            onClick = {
+                                onDateShortcut(shortcut)
+                                showPicker = false
+                            },
+                            label = { Text(shortcut.label) },
+                        )
+                    }
+                }
+                DateRangePicker(state = pickerState, modifier = Modifier.heightIn(max = 520.dp))
+            }
         }
     }
 }

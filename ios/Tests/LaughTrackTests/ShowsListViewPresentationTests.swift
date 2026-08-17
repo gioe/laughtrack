@@ -32,7 +32,7 @@ struct ShowsListViewPresentationTests {
         #expect(rowBlock.contains("AdaptiveSearchResults(spacing: theme.spacing.md)"))
     }
 
-    @Test("show explorer keeps format facets in additional filters")
+    @Test("show explorer keeps date presets inside its single date sheet")
     func showExplorerKeepsFormatFacetsInAdditionalFilters() throws {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
         let filters = try sourceBlock(
@@ -41,13 +41,12 @@ struct ShowsListViewPresentationTests {
             to: "private struct ShowResultsCalendarView: View"
         )
 
-        for label in ["Tonight", "This Weekend", "Location", "Max price"] {
+        for label in ["Location", "Max price"] {
             #expect(filters.contains(label), "Missing directly discoverable facet: \(label)")
         }
-        let tonight = try #require(filters.range(of: "title: \"Tonight\"")?.lowerBound)
-        let weekend = try #require(filters.range(of: "title: \"This Weekend\"")?.lowerBound)
-        let location = try #require(filters.range(of: "title: zipChipTitle")?.lowerBound)
-        #expect(tonight < weekend && weekend < location)
+        #expect(!filters.contains("title: \"Tonight\""))
+        #expect(!filters.contains("title: \"This Weekend\""))
+        #expect(filters.components(separatedBy: "isDateEditorPresented = true").count - 1 == 1)
         #expect(!filters.contains("title: \"Free\""))
         #expect(!filters.contains("title: ShowFormatOption.openMic.title"))
         #expect(!filters.contains("ForEach(ShowFormatOption.allCases"))
@@ -57,6 +56,16 @@ struct ShowsListViewPresentationTests {
         #expect(source.contains("Comedian (optional)"))
         #expect(source.contains("Club (optional)"))
         #expect(source.range(of: "ShowFiltersPanel(")!.lowerBound < source.range(of: "Comedian (optional)")!.lowerBound)
+
+        let dateSheet = try sourceBlock(
+            in: source,
+            from: "private struct ShowsDateRangeSheet: View",
+            to: "private var mergedShowsByDate: [Date: Int]"
+        )
+        #expect(dateSheet.contains("todayTitle: \"Tonight\""))
+        #expect(dateSheet.contains("title: \"This Weekend\""))
+        #expect(dateSheet.contains("model.applyDateShortcut(\"This Weekend\")"))
+        #expect(dateSheet.contains("model.sort = .earliest"))
     }
 
     @Test("additional filters include free and show formats but exclude legacy price buckets")
