@@ -398,6 +398,7 @@ describe("getFreshAndRisingRails", () => {
             { id: { in: [101] }, club: { visible: true } },
             [{ date: "asc" }, { id: "asc" }],
             1,
+            { requireLineup: true },
         );
         expect(rails.startingToBuzz.items[0]).toMatchObject({
             show: { id: 101 },

@@ -74,7 +74,11 @@ describe("getShowsTonight", () => {
             expect.any(Object),
             [{ date: "asc" }, { id: "asc" }],
             50,
-            { zipCode: "10801", sortByHomeRelevance: false },
+            {
+                zipCode: "10801",
+                sortByHomeRelevance: false,
+                requireLineup: true,
+            },
         );
     });
 

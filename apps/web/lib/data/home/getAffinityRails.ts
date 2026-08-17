@@ -585,6 +585,7 @@ export async function getAffinityRails(
         { id: { in: showIds }, club: { visible: true } },
         [{ date: "asc" }, { id: "asc" }],
         showIds.length,
+        { requireLineup: true },
     );
     const showsById = new Map(shows.map((show) => [show.id, show]));
     rails.fromYourPodcasts.items = classified.fromYourPodcasts.flatMap(

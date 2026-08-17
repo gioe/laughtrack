@@ -625,7 +625,7 @@ export async function getTouringScarcityRails(
         { id: { in: showIds }, club: { visible: true } },
         [{ date: "asc" }, { id: "asc" }],
         showIds.length,
-        { zipCode: options.zipCode },
+        { zipCode: options.zipCode, requireLineup: true },
     );
     const showsById = new Map(shows.map((show) => [show.id, show]));
     const hydrate = (items: ClassifiedItem[]): TouringScarcityRailItem[] =>

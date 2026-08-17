@@ -60,7 +60,11 @@ describe("getShowsNearZip", () => {
             expect.any(Object),
             [{ date: "asc" }, { id: "asc" }],
             50,
-            { zipCode: "10801", sortByHomeRelevance: false },
+            {
+                zipCode: "10801",
+                sortByHomeRelevance: false,
+                requireLineup: true,
+            },
         );
     });
 
@@ -90,6 +94,7 @@ describe("getShowsNearZip", () => {
             {
                 zipCode: "10801",
                 profileId: "profile-1",
+                requireLineup: true,
             },
         );
         expect(mockFindSnapshots).toHaveBeenCalledOnce();

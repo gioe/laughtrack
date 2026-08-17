@@ -82,6 +82,7 @@ describe("getTrendingShowsThisWeek", () => {
         expect(options).toEqual({
             zipCode: "10001",
             sortByHomeRelevance: false,
+            requireLineup: true,
         });
     });
 

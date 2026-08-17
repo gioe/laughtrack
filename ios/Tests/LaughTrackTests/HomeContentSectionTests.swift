@@ -532,6 +532,42 @@ struct HomeContentSectionTests {
         )
     }
 
+    @Test("tonight hero never uses the event title as a headshot caption")
+    func tonightHeroNeverUsesEventTitleAsHeadshotCaption() {
+        let show = Components.Schemas.Show(
+            id: 903,
+            clubId: 301,
+            clubName: "New York Comedy Club East Village",
+            date: Date(timeIntervalSince1970: 1_777_590_000),
+            tickets: [],
+            name: "The Late Show",
+            socialData: nil,
+            lineup: [
+                .init(
+                    name: "Lineup Comedian",
+                    imageUrl: "",
+                    uuid: "lineup-comedian",
+                    id: 13,
+                    userId: nil,
+                    socialData: nil,
+                    isFavorite: false,
+                    showCount: 1
+                ),
+            ],
+            description: nil,
+            address: "85 E 4th St, New York, NY",
+            room: nil,
+            imageUrl: "https://cdn.example.com/club.jpg",
+            soldOut: false,
+            distanceMiles: nil
+        )
+
+        #expect(
+            HomeShowsTonightHeroPresentation.headshotCaption(for: show)
+                == "Lineup Comedian"
+        )
+    }
+
     // The Home surface was split out of the single HomeView.swift (TASK-3641)
     // into Home/Models and Home/Views/Rails. Source-inspection assertions read
     // the concatenation of every Home source file; the order interleaves each

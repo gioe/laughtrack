@@ -78,7 +78,11 @@ export async function getShowsNearZip(
             where,
             [{ date: "asc" }, { id: "asc" }],
             HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-            { zipCode, sortByHomeRelevance: false },
+            {
+                zipCode,
+                sortByHomeRelevance: false,
+                requireLineup: true,
+            },
         );
         return selectDiverseShowsByTime(candidates);
     }
@@ -90,6 +94,7 @@ export async function getShowsNearZip(
         {
             zipCode,
             profileId: candidateOptions.profileId,
+            requireLineup: true,
         },
     );
     if (candidates.length === 0) return [];
@@ -162,7 +167,11 @@ export async function getShowsNearZipWithTelemetry(
             where,
             [{ date: "asc" }, { id: "asc" }],
             HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-            { zipCode, sortByHomeRelevance: false },
+            {
+                zipCode,
+                sortByHomeRelevance: false,
+                requireLineup: true,
+            },
         );
         const shows = selectDiverseShowsByTime(candidates);
         return {
@@ -189,6 +198,7 @@ export async function getShowsNearZipWithTelemetry(
         {
             zipCode,
             profileId: options.profileId,
+            requireLineup: true,
         },
     );
     if (candidates.length === 0) {

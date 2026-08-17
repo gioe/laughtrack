@@ -54,7 +54,15 @@ internal fun heroArtworkUrl(
 internal fun heroArtworkCaption(
     show: Show,
     preferredComedianId: Int? = null,
-): String = heroArtworkComedian(show, preferredComedianId)?.name?.takeIf { it.isNotBlank() } ?: showListTitle(show)
+): String =
+    heroArtworkComedian(show, preferredComedianId)?.name?.takeIf { it.isNotBlank() }
+        ?: show.lineup
+            .orEmpty()
+            .map(::effectiveComedian)
+            .firstOrNull()
+            ?.name
+            ?.takeIf { it.isNotBlank() }
+        ?: "Comedian"
 
 internal fun showTicketBadges(show: Show): List<String> =
     buildList {

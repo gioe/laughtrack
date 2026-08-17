@@ -517,7 +517,7 @@ describe("getTouringScarcityRails", () => {
             { id: { in: [101] }, club: { visible: true } },
             [{ date: "asc" }, { id: "asc" }],
             1,
-            { zipCode: "94103" },
+            { zipCode: "94103", requireLineup: true },
         );
         expect(result.justPassingThrough.items[0]).toMatchObject({
             show: { id: 101 },

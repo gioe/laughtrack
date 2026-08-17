@@ -34,6 +34,14 @@ class HomePresentationTest {
     }
 
     @Test
+    fun featured_show_caption_never_falls_back_to_the_event_title() {
+        val comedian = comedian(id = 1, name = "Lineup Comedian", showCount = 1).copy(imageUrl = "")
+        val show = show(lineup = listOf(comedian))
+
+        assertEquals("Lineup Comedian", heroArtworkCaption(show))
+    }
+
+    @Test
     fun featured_show_date_time_includes_the_venue_date_and_timestamp() {
         val show =
             Show(

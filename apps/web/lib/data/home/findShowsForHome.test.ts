@@ -777,6 +777,38 @@ describe("findShowsForHome", () => {
         });
     });
 
+    describe("discovery lineup requirement", () => {
+        it("requires a public visible comedian when requested by a discovery rail", async () => {
+            mockFindMany.mockResolvedValue([] as never);
+
+            await findShowsForHome({}, { date: "asc" }, 8, {
+                requireLineup: true,
+            });
+
+            const query = mockFindMany.mock.calls[0]![0]!;
+            expect(query.where).toEqual({
+                AND: [
+                    {},
+                    availableShowWhere,
+                    {
+                        lineupItems: {
+                            some: {
+                                comedian: {
+                                    visible: true,
+                                    taggedComedians: {
+                                        none: {
+                                            tag: { userFacing: false },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
     describe("skip + sortByHomeRelevance guard", () => {
         it("sorts home relevance rows by show popularity before date", async () => {
             mockFindMany.mockResolvedValue([

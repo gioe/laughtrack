@@ -14,9 +14,23 @@ interface HomeShowQueryOptions {
     zipCode?: string;
     sortByHomeRelevance?: boolean;
     profileId?: string;
+    /** Discovery rails are comedian-first and must never emit empty lineups. */
+    requireLineup?: boolean;
 }
 
 const HOME_RELEVANCE_CANDIDATE_TAKE = 50;
+const DISCOVERABLE_LINEUP_WHERE: Prisma.ShowWhereInput = {
+    lineupItems: {
+        some: {
+            comedian: {
+                visible: true,
+                taggedComedians: {
+                    none: { tag: { userFacing: false } },
+                },
+            },
+        },
+    },
+};
 
 /**
  * Shared query + mapper for home-page show sections.
@@ -46,7 +60,13 @@ export async function findShowsForHome(
           })
         : PUBLIC_SHOW_SELECT;
     const shows = await db.show.findMany({
-        where: { AND: [where, AVAILABLE_SHOW_WHERE] },
+        where: {
+            AND: [
+                where,
+                AVAILABLE_SHOW_WHERE,
+                ...(options.requireLineup ? [DISCOVERABLE_LINEUP_WHERE] : []),
+            ],
+        },
         select: showSelect,
         orderBy,
         take: queryTake,

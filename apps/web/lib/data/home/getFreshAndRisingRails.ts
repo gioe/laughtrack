@@ -600,6 +600,7 @@ export async function getFreshAndRisingRails(
         { id: { in: showIds }, club: { visible: true } },
         [{ date: "asc" }, { id: "asc" }],
         showIds.length,
+        { requireLineup: true },
     );
     const showsById = new Map(shows.map((show) => [show.id, show]));
     const hydrate = (items: ClassifiedItem[]): FreshAndRisingRailItem[] =>

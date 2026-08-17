@@ -58,8 +58,13 @@ export async function getFavoriteComedianShows(
                   profileId,
                   zipCode: usableZipCode,
                   sortByHomeRelevance: false,
+                  requireLineup: true,
               }
-            : { profileId, sortByHomeRelevance: false },
+            : {
+                  profileId,
+                  sortByHomeRelevance: false,
+                  requireLineup: true,
+              },
     );
 
     return selectDiverseShowsByTime(candidates);

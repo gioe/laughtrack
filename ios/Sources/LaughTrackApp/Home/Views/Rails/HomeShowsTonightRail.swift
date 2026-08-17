@@ -658,7 +658,11 @@ enum HomeShowsTonightHeroPresentation {
             return comedianName
         }
 
-        return ShowTitlePresentation.title(for: show)
+        return ShowRow.topLineup(for: show, limit: 1)
+            .first?
+            .name
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nonEmpty ?? "Comedian"
     }
 
     private static func artworkComedian(

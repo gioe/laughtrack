@@ -70,7 +70,11 @@ describe("getFavoriteComedianShows", () => {
             },
             [{ date: "asc" }, { id: "asc" }],
             50,
-            { profileId: "profile-1", sortByHomeRelevance: false },
+            {
+                profileId: "profile-1",
+                sortByHomeRelevance: false,
+                requireLineup: true,
+            },
         );
     });
 
@@ -118,6 +122,7 @@ describe("getFavoriteComedianShows", () => {
                 profileId: "profile-1",
                 zipCode: "10801",
                 sortByHomeRelevance: false,
+                requireLineup: true,
             },
         );
     });
@@ -135,7 +140,11 @@ describe("getFavoriteComedianShows", () => {
             expect.objectContaining({ club: { visible: true } }),
             [{ date: "asc" }, { id: "asc" }],
             50,
-            { profileId: "profile-1", sortByHomeRelevance: false },
+            {
+                profileId: "profile-1",
+                sortByHomeRelevance: false,
+                requireLineup: true,
+            },
         );
     });
 

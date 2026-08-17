@@ -38,8 +38,8 @@ export async function getTrendingShowsThisWeek(
         [{ date: "asc" }, { id: "asc" }],
         HOME_SHOW_RAIL_CANDIDATE_LIMIT,
         nearbyZips
-            ? { zipCode, sortByHomeRelevance: false }
-            : { sortByHomeRelevance: false },
+            ? { zipCode, sortByHomeRelevance: false, requireLineup: true }
+            : { sortByHomeRelevance: false, requireLineup: true },
     );
 
     return selectDiverseShowsByTime(candidates);
