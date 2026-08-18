@@ -16,10 +16,10 @@ Each native lane starts the hermetic backend in `fixture_server.py` and points
 its app at that local server for the duration of the capture. The fixture pins
 result counts, featured entities, dates, narrative content, and bundled curated
 artwork across both platforms. The redistributable PNGs live under
-`scripts/screenshots/assets/`. The iOS `14_NowPlaying` capture intentionally
-downloads its podcast cover from the upstream HTTPS image URL; all other
-fixture artwork remains local. The fixture's declared contract lives in
-`screenshots/catalog.json`, and every completed run manifest records the
+`scripts/screenshots/assets/`. The iOS and Android `14_NowPlaying` captures
+intentionally download their podcast cover from the upstream HTTPS image URL;
+all other fixture artwork remains local. The fixture's declared contract lives
+in `screenshots/catalog.json`, and every completed run manifest records the
 contract fingerprint so fixture drift is rejected during collection/export.
 
 For focused local verification, use the separate `verify_screenshots` lane with
