@@ -346,7 +346,16 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         }
 
         try runScenario("14_NowPlaying") {
-            relaunch(comparisonScreens: true)
+            // Use the upstream cover rather than the app's artwork proxy or the
+            // local screenshot fixture so this capture exercises remote artwork.
+            let artworkURL = "https://megaphone.imgix.net/podcasts/48030056-989d-11ef-a614-3bc2f8865178/image/171a69e4231342ccae610db68861892b.jpeg?ixlib=rails-4.3.1&max-w=3000&max-h=3000&fit=crop&auto=format%2Ccompress"
+            let resolvedArtworkURL = try XCTUnwrap(URL(string: artworkURL))
+            XCTAssertEqual(resolvedArtworkURL.scheme, "https")
+            XCTAssertEqual(resolvedArtworkURL.host, "megaphone.imgix.net")
+            relaunch(
+                comparisonScreens: true,
+                environment: [UITestLaunchArgs.nowPlayingScreenshotArtworkURL: artworkURL]
+            )
             let miniPlayer = element("laughtrack.podcast-mini-player")
             XCTAssertTrue(miniPlayer.waitForExistence(timeout: 10), "Expected seeded podcast mini player")
             miniPlayer.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)).tap()
@@ -393,7 +402,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                         ["Skip back 15 seconds", "Play", "Skip forward 30 seconds"],
                         as: "podcast transport controls"
                     ),
-                    text("The LaughTrack Comedy Roundup", as: "seeded episode"),
+                    text("The Wildest Feuds in History", as: "seeded episode"),
                 ]
             )
             closeNowPlaying.tap()
@@ -555,6 +564,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         app.terminate()
         app.launchEnvironment.removeValue(forKey: "LAUNCHTRACK_DEBUG_ROUTE")
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComparisonScreens)
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.nowPlayingScreenshotArtworkURL)
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComedianOnboardingScreen)
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.authenticatedScreenshotPersona)
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceLoginPrompt)

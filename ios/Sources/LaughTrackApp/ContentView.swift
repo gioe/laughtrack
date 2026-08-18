@@ -459,9 +459,11 @@ struct ContentView: View {
             else { return }
             podcastPlayer.start(PodcastPlaybackItem(
                 id: -1,
-                episodeTitle: "The LaughTrack Comedy Roundup",
-                podcastName: "LaughTrack",
-                podcastImageURL: nil,
+                episodeTitle: "The Wildest Feuds in History",
+                podcastName: "History Hyenas",
+                podcastImageURL: ProcessInfo.processInfo.environment[
+                    UITestLaunchArgs.nowPlayingScreenshotArtworkURL
+                ],
                 displayRole: "Episode",
                 audioURL: nil,
                 episodeURL: nil,
