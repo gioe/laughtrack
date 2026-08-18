@@ -82,6 +82,8 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 private const val PODCAST_EPISODE_PAGE_SIZE = 10
+internal const val PODCAST_HOST_CARD_WIDTH_DP = 100
+internal const val PODCAST_HOST_NAME_MAX_LINES = 2
 private val PodcastStage = Color(0xFF211916)
 
 @Composable
@@ -396,7 +398,7 @@ private fun PodcastHosts(
         hosts.forEach { host ->
             Column(
                 Modifier
-                    .width(88.dp)
+                    .width(PODCAST_HOST_CARD_WIDTH_DP.dp)
                     .clickable { onOpenEntity(AppRoute.ComedianDetail(host.id)) },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -404,9 +406,11 @@ private fun PodcastHosts(
                 PodcastHostArtwork(host)
                 Text(
                     host.name,
+                    modifier = Modifier.fillMaxWidth(),
                     style = MaterialTheme.typography.labelLarge,
                     color = LaughTrackColors.Foreground,
-                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                    maxLines = PODCAST_HOST_NAME_MAX_LINES,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
