@@ -5,8 +5,8 @@ import LaughTrackCore
 /// Credentials-free, immutable content used only by explicit screenshot launches.
 /// Keeping this at the view boundary prevents capture runs from touching auth or
 /// mutable production APIs while still rendering the real authenticated pages.
-/// Remote artwork is intentionally absent so both platforms exercise their
-/// branded, deterministic fallback policy instead of a network image cache.
+/// Saved-show portraits use direct production CDN URLs so the Favorites capture
+/// exercises real comedian artwork while retaining one missing-art fallback.
 struct AuthenticatedScreenshotPersona: Equatable {
     static let launchEnvironmentKey = "UITEST_AUTHENTICATED_SCREENSHOT_PERSONA"
 
@@ -32,35 +32,40 @@ struct AuthenticatedScreenshotPersona: Equatable {
             title: "Atsuko Okatsuka: Full Grown Tour",
             club: "Town Hall",
             city: "New York",
-            date: "2026-08-21T20:00:00-04:00"
+            date: "2026-08-21T20:00:00-04:00",
+            imageURL: "https://laughtrack.b-cdn.net/comedians/Atsuko%20Okatsuka.png"
         ),
         Self.savedShow(
             id: 41_002,
             title: "Josh Johnson and Friends",
             club: "The Bell House",
             city: "Brooklyn",
-            date: "2026-08-24T20:00:00-04:00"
+            date: "2026-08-24T20:00:00-04:00",
+            imageURL: "https://laughtrack.b-cdn.net/comedians/Josh%20Johnson.png"
         ),
         Self.savedShow(
             id: 41_003,
             title: "Taylor Tomlinson Live",
             club: "The Comedy Cellar",
             city: "New York",
-            date: "2026-08-28T20:00:00-04:00"
+            date: "2026-08-28T20:00:00-04:00",
+            imageURL: "https://laughtrack.b-cdn.net/comedian-images/903740/79e27d03-1143-4633-a42f-f5569040fb44/avatar.jpg"
         ),
         Self.savedShow(
             id: 41_004,
             title: "Sam Jay: Testing Material",
             club: "Union Hall",
             city: "Brooklyn",
-            date: "2026-09-02T19:30:00-04:00"
+            date: "2026-09-02T19:30:00-04:00",
+            imageURL: "https://laughtrack.b-cdn.net/comedians/Sam%20Jay.png"
         ),
         Self.savedShow(
             id: 41_005,
             title: "Mike Birbiglia: Please Stop the Ride",
             club: "Beacon Theatre",
             city: "New York",
-            date: "2026-09-05T20:00:00-04:00"
+            date: "2026-09-05T20:00:00-04:00",
+            imageURL: "https://laughtrack.b-cdn.net/comedian-images/246654/da23a0ff-061c-4a8b-82b8-e8b197615ad7/avatar.jpg"
         ),
         Self.savedShow(
             id: 41_006,
@@ -117,7 +122,8 @@ struct AuthenticatedScreenshotPersona: Equatable {
         title: String,
         club: String,
         city: String,
-        date: String
+        date: String,
+        imageURL: String = ""
     ) -> Components.Schemas.Show {
         Components.Schemas.Show(
             id: id,
@@ -135,7 +141,7 @@ struct AuthenticatedScreenshotPersona: Equatable {
                 ),
             ],
             name: title,
-            imageUrl: "",
+            imageUrl: imageURL,
             soldOut: false,
             timezone: "America/New_York"
         )

@@ -37,6 +37,14 @@ struct AuthenticatedScreenshotPersonaTests {
             .init("Mike Birbiglia: Please Stop the Ride", "2026-09-06T00:00:00Z", "Beacon Theatre", "New York"),
             .init("Michelle Wolf and Friends", "2026-09-09T00:00:00Z", "Gotham Comedy Club", "New York"),
         ])
+        #expect(first.upcomingSavedShows.map(\.imageUrl) == [
+            "https://laughtrack.b-cdn.net/comedians/Atsuko%20Okatsuka.png",
+            "https://laughtrack.b-cdn.net/comedians/Josh%20Johnson.png",
+            "https://laughtrack.b-cdn.net/comedian-images/903740/79e27d03-1143-4633-a42f-f5569040fb44/avatar.jpg",
+            "https://laughtrack.b-cdn.net/comedians/Sam%20Jay.png",
+            "https://laughtrack.b-cdn.net/comedian-images/246654/da23a0ff-061c-4a8b-82b8-e8b197615ad7/avatar.jpg",
+            "",
+        ])
         #expect(first.favoriteClubs == ["The Comedy Cellar"])
         #expect(first.favoritePodcasts == ["Good One: A Podcast About Jokes"])
         #expect(first.notifications.count == 2)

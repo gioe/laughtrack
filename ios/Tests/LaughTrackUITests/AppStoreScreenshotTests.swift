@@ -423,7 +423,12 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             try capture(
                 "15_AuthenticatedFavorites",
                 screen: identified("laughtrack.favorites-tab.screen", as: "authenticated Favorites screen"),
-                content: [text("Atsuko Okatsuka: Full Grown Tour", as: "upcoming saved show")]
+                content: (41_001...41_005).map { showID in
+                    identified(
+                        "laughtrack.library.fixture-shows-\(showID)",
+                        as: "artwork-backed saved show \(showID)"
+                    )
+                }
             )
         }
 
