@@ -77,6 +77,11 @@ when "ios"
     $events << "patch_targeted_snapshot_one_shot"
   end
 
+  def with_targeted_screenshot_completion_watchdog(scenario_ids)
+    $events << {"watchdog" => scenario_ids}
+    yield
+  end
+
   def run_tests(**options)
     $events << {"run_tests" => options}
   end
@@ -177,6 +182,9 @@ def lane(name, &block)
 end
 
 module UI
+  def self.message(*)
+  end
+
   def self.user_error!(message)
     raise RuntimeError, message
   end
@@ -208,12 +216,7 @@ one_shot = Snapshot::SimulatorLauncher.new(0)
 phone = ["iPhone 16 Pro Max"]
 arguments = ["-UITestMockMode -ScreenshotScenarios 15_AuthenticatedFavorites"]
 one_shot.launch_simultaneously(phone, "en-US", nil, arguments)
-duplicate_error = nil
-begin
-  one_shot.launch_simultaneously(phone.dup, "en-US", nil, arguments.dup)
-rescue => error
-  duplicate_error = {"class" => error.class.name, "message" => error.message}
-end
+duplicate_result = one_shot.launch_simultaneously(phone.dup, "en-US", nil, arguments.dup)
 one_shot.launch_simultaneously(["iPad Pro 13-inch (M4)"], "en-US", nil, arguments)
 one_shot.launch_simultaneously(phone, "fr-FR", nil, arguments)
 
@@ -223,11 +226,115 @@ retryable = Snapshot::SimulatorLauncher.new(1)
 puts JSON.generate(
   {
     "one_shot_launches" => one_shot.launches,
-    "duplicate_error" => duplicate_error,
+    "duplicate_result" => duplicate_result,
     "retryable_launches" => retryable.launches,
     "guard_ancestor_count" => Snapshot::SimulatorLauncher.ancestors.count do |ancestor|
       ancestor == LaughTrackTargetedSnapshotOneShot
     end,
+  },
+)
+"""
+
+WATCHDOG_HARNESS = r"""
+require "json"
+require "tmpdir"
+
+$lanes = {}
+$messages = []
+
+def default_platform(*)
+end
+
+def platform(*)
+  yield
+end
+
+def before_all(*)
+end
+
+def desc(*)
+end
+
+def lane(name, &block)
+  $lanes[name] = block
+end
+
+module UI
+  def self.message(message)
+    $messages << message
+  end
+
+  def self.user_error!(message)
+    raise RuntimeError, message
+  end
+end
+
+load ARGV.fetch(0)
+
+process_table = <<~TABLE
+  100 /bin/sh -c xcodebuild -derivedDataPath #{SCREENSHOT_DERIVED_DATA_PATH} test-without-building
+  101 /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -derivedDataPath #{SCREENSHOT_DERIVED_DATA_PATH} test-without-building
+  102 /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -derivedDataPath /tmp/other test-without-building
+  103 /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -derivedDataPath #{SCREENSHOT_DERIVED_DATA_PATH} build-for-testing
+  104 /usr/bin/tee #{SCREENSHOT_DERIVED_DATA_PATH}/build.log test-without-building
+TABLE
+selected_pids = targeted_screenshot_xcodebuild_pids(process_table)
+
+$pid_scan_count = 0
+$process_alive = true
+$terminated_pids = []
+
+def targeted_screenshot_xcodebuild_pids(*)
+  $pid_scan_count += 1
+  $pid_scan_count == 1 ? [] : [4242]
+end
+
+def targeted_screenshot_process_alive?(pid)
+  pid == 4242 && $process_alive
+end
+
+def terminate_targeted_screenshot_xcodebuild(pid, **)
+  $terminated_pids << pid
+  $process_alive = false
+end
+
+premature_terminations = nil
+elapsed = nil
+Dir.mktmpdir("targeted-watchdog-test") do |directory|
+  log_path = File.join(directory, "LaughTrack-LaughTrack.log")
+  File.write(
+    log_path,
+    "Test Case '-[LaughTrackUITests.AppStoreScreenshotTests testGenerateAllScreenshots]' passed\n" \
+    "snapshot: 15_AuthenticatedFavorites\n",
+  )
+  started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  with_targeted_screenshot_completion_watchdog(
+    ["15_AuthenticatedFavorites", "16_Profile"],
+    log_path: log_path,
+    grace_seconds: 0.02,
+    poll_interval: 0.005,
+  ) do
+    sleep(0.05)
+    premature_terminations = $terminated_pids.dup
+    File.write(
+      log_path,
+      "Test Case '-[LaughTrackUITests.AppStoreScreenshotTests testGenerateAllScreenshots]' passed\n" \
+      "snapshot: 15_AuthenticatedFavorites\n" \
+      "snapshot: 16_Profile\n",
+    )
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 0.5
+    sleep(0.005) while $terminated_pids.empty? && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+  end
+  elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
+end
+
+puts JSON.generate(
+  {
+    "selected_pids" => selected_pids,
+    "premature_terminations" => premature_terminations,
+    "terminated_pids" => $terminated_pids,
+    "elapsed" => elapsed,
+    "messages" => $messages,
   },
 )
 """
@@ -257,6 +364,18 @@ def run_one_shot_launcher_harness() -> dict:
     fastfile = REPO_ROOT / "ios" / "fastlane" / "Fastfile"
     result = subprocess.run(
         ["ruby", "-e", ONE_SHOT_LAUNCHER_HARNESS, str(fastfile)],
+        cwd=fastfile.parent,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(result.stdout)
+
+
+def run_watchdog_harness() -> dict:
+    fastfile = REPO_ROOT / "ios" / "fastlane" / "Fastfile"
+    result = subprocess.run(
+        ["ruby", "-e", WATCHDOG_HARNESS, str(fastfile)],
         cwd=fastfile.parent,
         check=True,
         capture_output=True,
@@ -314,6 +433,7 @@ def test_ios_targeted_favorites_capture_is_one_shot(tmp_path: Path) -> None:
     events = run_screenshot_lane("ios", "targeted_favorites", tmp_path)
 
     assert events.count("patch_targeted_snapshot_one_shot") == 1
+    assert {"watchdog": ["15_AuthenticatedFavorites"]} in events
     capture = next(event["capture"] for event in events if isinstance(event, dict) and "capture" in event)
     collect = next(event["collect"] for event in events if isinstance(event, dict) and "collect" in event)
     assert capture["devices"] == ["iPhone 16 Pro Max"]
@@ -329,16 +449,10 @@ def test_ios_targeted_favorites_capture_is_one_shot(tmp_path: Path) -> None:
     )
 
 
-def test_ios_targeted_one_shot_guard_rejects_only_duplicate_launch_keys() -> None:
+def test_ios_targeted_one_shot_guard_skips_only_duplicate_launch_keys() -> None:
     result = run_one_shot_launcher_harness()
 
-    assert result["duplicate_error"] == {
-        "class": "RuntimeError",
-        "message": (
-            "Targeted screenshot capture attempted to retry iPhone 16 Pro Max "
-            "for en-US; refusing a duplicate XCTest run"
-        ),
-    }
+    assert result["duplicate_result"] is True
     assert [launch[:3] for launch in result["one_shot_launches"]] == [
         [["iPhone 16 Pro Max"], "en-US", None],
         [["iPad Pro 13-inch (M4)"], "en-US", None],
@@ -348,8 +462,21 @@ def test_ios_targeted_one_shot_guard_rejects_only_duplicate_launch_keys() -> Non
     assert result["guard_ancestor_count"] == 1
 
 
+def test_ios_targeted_watchdog_waits_for_complete_capture_then_terminates_exact_process() -> None:
+    result = run_watchdog_harness()
+
+    assert result["selected_pids"] == [101]
+    assert result["premature_terminations"] == []
+    assert result["terminated_pids"] == [4242]
+    assert result["elapsed"] < 1
+    assert any(
+        "xcodebuild 4242 remained alive" in message for message in result["messages"]
+    )
+
+
 def test_ios_cold_cache_bootstraps_only_pinned_package_revisions(tmp_path: Path) -> None:
     events = run_screenshot_lane("ios", "cold", tmp_path)
+    assert not any(isinstance(event, dict) and "watchdog" in event for event in events)
     run_tests_options = next(event["run_tests"] for event in events if isinstance(event, dict))
     capture_options = next(
         event["capture"]

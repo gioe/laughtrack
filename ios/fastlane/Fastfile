@@ -40,6 +40,15 @@ SCREENSHOT_DERIVED_DATA_PATH = ENV.fetch(
     "LaughTrack-screenshots-wt-#{SCREENSHOT_WORKTREE_HASH}",
   ),
 )
+TARGETED_SCREENSHOT_LOG_PATH = File.join(
+  Dir.home,
+  "Library",
+  "Logs",
+  "snapshot",
+  "#{SCHEME}-#{SCHEME}.log",
+)
+TARGETED_SCREENSHOT_COMPLETION_GRACE_SECONDS = 45
+TARGETED_SCREENSHOT_WATCHDOG_POLL_SECONDS = 0.5
 SCREENSHOT_PROFILE_CACHE_PATH = ENV.fetch(
   "LAUGHTRACK_SCREENSHOT_CACHE_PATH",
   File.join(REPO_ROOT, "apps", "screenshot-comparisons", ".profile-cache"),
@@ -105,9 +114,10 @@ end
 
 # Snapshot retries non-65 xcodebuild exits as simulator failures independently
 # of its configured number_of_retries. A manually terminated stale xcodebuild
-# therefore starts the same targeted XCTest capture again even when retries are
-# disabled. Keep each requested device/language/argument tuple one-shot while
-# still allowing a targeted lane to capture distinct tuples in sequence.
+# therefore asks for the same targeted XCTest capture again even when retries
+# are disabled. The failure cleanup has already copied the completed screenshot
+# by that point, so make an identical request a successful no-op while still
+# allowing a targeted lane to capture distinct tuples in sequence.
 module LaughTrackTargetedSnapshotOneShot
   def launch_simultaneously(devices, language, locale, launch_arguments)
     if launcher_config.number_of_retries.zero?
@@ -119,10 +129,11 @@ module LaughTrackTargetedSnapshotOneShot
         Array(launch_arguments).map(&:to_s).freeze,
       ].freeze
       if @laughtrack_targeted_snapshot_launches.key?(launch_key)
-        UI.user_error!(
-          "Targeted screenshot capture attempted to retry #{devices.join(', ')} " \
-          "for #{locale || language}; refusing a duplicate XCTest run",
+        UI.message(
+          "Targeted screenshot capture already completed #{devices.join(', ')} " \
+          "for #{locale || language}; skipping Snapshot's duplicate XCTest run",
         )
+        return true
       end
       @laughtrack_targeted_snapshot_launches[launch_key] = true
     end
@@ -137,6 +148,115 @@ def patch_targeted_snapshot_one_shot
   end
   launcher = Snapshot::SimulatorLauncher
   launcher.prepend(LaughTrackTargetedSnapshotOneShot) unless launcher.ancestors.include?(LaughTrackTargetedSnapshotOneShot)
+end
+
+def targeted_screenshot_xcodebuild_pids(process_table = nil)
+  if process_table.nil?
+    process_table, error, status = Open3.capture3("ps", "-axo", "pid=,command=")
+    UI.user_error!("Could not inspect targeted screenshot processes: #{error.strip}") unless status.success?
+  end
+
+  process_table.lines.each_with_object([]) do |line, pids|
+    match = line.strip.match(/\A(\d+)\s+(.+)\z/)
+    next if match.nil?
+
+    command = match[2]
+    next unless command.match?(%r{\A(?:\S*/)?xcodebuild(?:\s|\z)})
+    next unless command.include?("-derivedDataPath")
+    next unless command.include?(SCREENSHOT_DERIVED_DATA_PATH)
+    next unless command.include?("test-without-building")
+
+    pids << match[1].to_i
+  end
+end
+
+def targeted_screenshot_capture_complete?(log_path, scenario_ids, not_before: nil)
+  return false unless File.file?(log_path)
+  return false if not_before && File.mtime(log_path) < not_before
+
+  output = File.read(log_path)
+  test_passed = output.include?(
+    "Test Case '-[LaughTrackUITests.AppStoreScreenshotTests testGenerateAllScreenshots]' passed",
+  )
+  test_passed && scenario_ids.all? { |scenario_id| output.include?("snapshot: #{scenario_id}") }
+rescue Errno::ENOENT
+  false
+end
+
+def targeted_screenshot_process_alive?(pid)
+  Process.kill(0, pid)
+  true
+rescue Errno::ESRCH
+  false
+rescue Errno::EPERM
+  true
+end
+
+def terminate_targeted_screenshot_xcodebuild(pid, timeout_seconds: 5, poll_interval: 0.1)
+  Process.kill("TERM", pid)
+  deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout_seconds
+  while targeted_screenshot_process_alive?(pid) && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+    sleep(poll_interval)
+  end
+  Process.kill("KILL", pid) if targeted_screenshot_process_alive?(pid)
+rescue Errno::ESRCH
+  nil
+end
+
+def start_targeted_screenshot_completion_watchdog(
+  scenario_ids,
+  log_path: TARGETED_SCREENSHOT_LOG_PATH,
+  grace_seconds: TARGETED_SCREENSHOT_COMPLETION_GRACE_SECONDS,
+  poll_interval: TARGETED_SCREENSHOT_WATCHDOG_POLL_SECONDS
+)
+  existing_pids = targeted_screenshot_xcodebuild_pids
+  log_not_before = Time.now - 1
+  Thread.new do
+    Thread.current.report_on_exception = false
+    target_pid = nil
+    completed_at = nil
+    loop do
+      break if Thread.current[:stop]
+
+      target_pid ||= (targeted_screenshot_xcodebuild_pids - existing_pids).min
+      if target_pid
+        break unless targeted_screenshot_process_alive?(target_pid)
+
+        if targeted_screenshot_capture_complete?(log_path, scenario_ids, not_before: log_not_before)
+          completed_at ||= Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        end
+        if completed_at && Process.clock_gettime(Process::CLOCK_MONOTONIC) - completed_at >= grace_seconds
+          UI.message(
+            "Targeted screenshot XCTest completed but xcodebuild #{target_pid} remained alive for " \
+            "#{grace_seconds}s; terminating that capture process",
+          )
+          terminate_targeted_screenshot_xcodebuild(target_pid)
+          break
+        end
+      end
+      sleep(poll_interval)
+    end
+  end
+end
+
+def with_targeted_screenshot_completion_watchdog(
+  scenario_ids,
+  log_path: TARGETED_SCREENSHOT_LOG_PATH,
+  grace_seconds: TARGETED_SCREENSHOT_COMPLETION_GRACE_SECONDS,
+  poll_interval: TARGETED_SCREENSHOT_WATCHDOG_POLL_SECONDS
+)
+  watchdog = start_targeted_screenshot_completion_watchdog(
+    scenario_ids,
+    log_path: log_path,
+    grace_seconds: grace_seconds,
+    poll_interval: poll_interval,
+  )
+  yield
+ensure
+  if watchdog
+    watchdog[:stop] = true
+    watchdog.join(poll_interval + 1)
+  end
 end
 
 def selected_screenshot_values!(raw_value, canonical_values, label)
@@ -813,20 +933,22 @@ platform :ios do
           skip_package_repository_fetches: true,
         )
         patch_targeted_snapshot_one_shot
-        capture_screenshots(
-          output_directory: capture_root,
-          derived_data_path: SCREENSHOT_DERIVED_DATA_PATH,
-          test_without_building: true,
-          devices: profiles.map { |profile| profile.fetch(:device_name) },
-          ios_version: native_target.fetch(:version),
-          clear_previous_screenshots: true,
-          number_of_retries: 0,
-          stop_after_first_error: true,
-          launch_arguments: [
-            "-UITestMockMode -ScreenshotScenarios #{scenario_ids.join(',')} " \
-            "-ScreenshotFixtureMode #{fixture_mode}",
-          ],
-        )
+        with_targeted_screenshot_completion_watchdog(scenario_ids) do
+          capture_screenshots(
+            output_directory: capture_root,
+            derived_data_path: SCREENSHOT_DERIVED_DATA_PATH,
+            test_without_building: true,
+            devices: profiles.map { |profile| profile.fetch(:device_name) },
+            ios_version: native_target.fetch(:version),
+            clear_previous_screenshots: true,
+            number_of_retries: 0,
+            stop_after_first_error: true,
+            launch_arguments: [
+              "-UITestMockMode -ScreenshotScenarios #{scenario_ids.join(',')} " \
+              "-ScreenshotFixtureMode #{fixture_mode}",
+            ],
+          )
+        end
       end
 
       validate_ios_screenshot_collection(capture_root, profiles, scenario_ids)
