@@ -683,13 +683,13 @@ def _podcast_hosts(base_url: str) -> list[dict]:
             "id": 304,
             "uuid": "fixture-304",
             "name": "Chris Distefano",
-            "imageUrl": f"{base_url}/artwork/history-hyenas.png",
+            "imageUrl": "https://laughtrack.b-cdn.net/comedians/Chris%20Distefano.png",
         },
         {
             "id": 305,
             "uuid": "fixture-305",
             "name": "Yannis Pappas",
-            "imageUrl": f"{base_url}/artwork/history-hyenas.png",
+            "imageUrl": "https://laughtrack.b-cdn.net/comedians/Yannis%20Pappas.png",
         },
     ]
 
@@ -720,18 +720,7 @@ def _podcast_episode(base_url: str) -> dict:
         "episodeUrl": "https://example.invalid/episodes/501",
         "audioUrl": "https://example.invalid/audio/501.mp3",
         "appearances": [
-            {
-                "id": 304,
-                "uuid": "fixture-304",
-                "name": "Chris Distefano",
-                "imageUrl": f"{base_url}/artwork/history-hyenas.png",
-            },
-            {
-                "id": 305,
-                "uuid": "fixture-305",
-                "name": "Yannis Pappas",
-                "imageUrl": f"{base_url}/artwork/history-hyenas.png",
-            },
+            *_podcast_hosts(base_url),
             {
                 "id": 301,
                 "uuid": "fixture-301",

@@ -8,6 +8,7 @@ import urllib.error
 import urllib.request
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 
@@ -552,6 +553,28 @@ def test_episode_detail_matches_catalog_and_populates_lineup_media() -> None:
         for appearance in episode["appearances"]
         if appearance["id"] not in host_ids
     ] == ["Ali Wong"]
+
+
+def test_podcast_hosts_use_distinct_comedian_portraits() -> None:
+    base_url = "http://fixture"
+    detail = fixture_response("/api/v1/podcasts/401", base_url)
+    episode_detail = fixture_response("/api/v1/podcast-episodes/501", base_url)
+    podcast = detail["podcast"]
+    hosts = podcast["hosts"]
+    portrait_urls = [host["imageUrl"] for host in hosts]
+
+    assert portrait_urls == [
+        "https://laughtrack.b-cdn.net/comedians/Chris%20Distefano.png",
+        "https://laughtrack.b-cdn.net/comedians/Yannis%20Pappas.png",
+    ]
+    assert all(
+        urlparse(url).scheme == "https"
+        and urlparse(url).hostname == "laughtrack.b-cdn.net"
+        for url in portrait_urls
+    )
+    assert len(set(portrait_urls)) == len(portrait_urls)
+    assert all(url != podcast["imageUrl"] for url in portrait_urls)
+    assert episode_detail["episode"]["appearances"][: len(hosts)] == hosts
 
 
 def test_history_hyenas_search_and_detail_share_original_artwork() -> None:
