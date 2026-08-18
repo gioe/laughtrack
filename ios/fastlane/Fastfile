@@ -170,17 +170,38 @@ def targeted_screenshot_xcodebuild_pids(process_table = nil)
   end
 end
 
-def targeted_screenshot_capture_complete?(log_path, scenario_ids, not_before: nil)
-  return false unless File.file?(log_path)
-  return false if not_before && File.mtime(log_path) < not_before
-
-  output = File.read(log_path)
+def targeted_screenshot_capture_complete?(output, scenario_ids)
   test_passed = output.include?(
     "Test Case '-[LaughTrackUITests.AppStoreScreenshotTests testGenerateAllScreenshots]' passed",
   )
   test_passed && scenario_ids.all? { |scenario_id| output.include?("snapshot: #{scenario_id}") }
+end
+
+def targeted_screenshot_log_cursor(log_path)
+  output = File.binread(log_path)
+  anchor_size = [output.bytesize, 256].min
+  {
+    offset: output.bytesize,
+    anchor: output.byteslice(output.bytesize - anchor_size, anchor_size).to_s,
+  }
 rescue Errno::ENOENT
-  false
+  {offset: 0, anchor: ""}
+end
+
+def read_targeted_screenshot_log_append(log_path, cursor)
+  output = File.binread(log_path)
+  offset = cursor.fetch(:offset)
+  anchor = cursor.fetch(:anchor)
+  anchor_offset = offset - anchor.bytesize
+  truncated = output.bytesize < offset || output.byteslice(anchor_offset, anchor.bytesize).to_s != anchor
+  offset = 0 if truncated
+  appended = output.byteslice(offset, output.bytesize - offset).to_s
+  anchor_size = [output.bytesize, 256].min
+  cursor[:offset] = output.bytesize
+  cursor[:anchor] = output.byteslice(output.bytesize - anchor_size, anchor_size).to_s
+  [appended, truncated]
+rescue Errno::ENOENT
+  ["", false]
 end
 
 def targeted_screenshot_process_alive?(pid)
@@ -209,20 +230,29 @@ def start_targeted_screenshot_completion_watchdog(
   grace_seconds: TARGETED_SCREENSHOT_COMPLETION_GRACE_SECONDS,
   poll_interval: TARGETED_SCREENSHOT_WATCHDOG_POLL_SECONDS
 )
-  existing_pids = targeted_screenshot_xcodebuild_pids
-  log_not_before = Time.now - 1
+  seen_pids = targeted_screenshot_xcodebuild_pids.each_with_object({}) { |pid, seen| seen[pid] = true }
   Thread.new do
     Thread.current.report_on_exception = false
     target_pid = nil
+    log_cursor = nil
+    target_output = +""
     completed_at = nil
     loop do
       break if Thread.current[:stop]
 
-      target_pid ||= (targeted_screenshot_xcodebuild_pids - existing_pids).min
-      if target_pid
-        break unless targeted_screenshot_process_alive?(target_pid)
-
-        if targeted_screenshot_capture_complete?(log_path, scenario_ids, not_before: log_not_before)
+      if target_pid.nil?
+        target_pid = targeted_screenshot_xcodebuild_pids.reject { |pid| seen_pids.key?(pid) }.min
+        if target_pid
+          seen_pids[target_pid] = true
+          log_cursor = targeted_screenshot_log_cursor(log_path)
+          target_output = +""
+          completed_at = nil
+        end
+      elsif targeted_screenshot_process_alive?(target_pid)
+        appended, truncated = read_targeted_screenshot_log_append(log_path, log_cursor)
+        target_output = +"" if truncated
+        target_output << appended
+        if targeted_screenshot_capture_complete?(target_output, scenario_ids)
           completed_at ||= Process.clock_gettime(Process::CLOCK_MONOTONIC)
         end
         if completed_at && Process.clock_gettime(Process::CLOCK_MONOTONIC) - completed_at >= grace_seconds
@@ -231,8 +261,16 @@ def start_targeted_screenshot_completion_watchdog(
             "#{grace_seconds}s; terminating that capture process",
           )
           terminate_targeted_screenshot_xcodebuild(target_pid)
-          break
+          target_pid = nil
+          log_cursor = nil
+          target_output = +""
+          completed_at = nil
         end
+      else
+        target_pid = nil
+        log_cursor = nil
+        target_output = +""
+        completed_at = nil
       end
       sleep(poll_interval)
     end

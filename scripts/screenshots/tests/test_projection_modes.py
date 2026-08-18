@@ -280,50 +280,84 @@ process_table = <<~TABLE
 TABLE
 selected_pids = targeted_screenshot_xcodebuild_pids(process_table)
 
-$pid_scan_count = 0
-$process_alive = true
+$active_pids = []
+$process_alive = {}
 $terminated_pids = []
+$cursor_count = 0
 
 def targeted_screenshot_xcodebuild_pids(*)
-  $pid_scan_count += 1
-  $pid_scan_count == 1 ? [] : [4242]
+  $active_pids.dup
 end
 
 def targeted_screenshot_process_alive?(pid)
-  pid == 4242 && $process_alive
+  $process_alive.fetch(pid, false)
 end
 
 def terminate_targeted_screenshot_xcodebuild(pid, **)
   $terminated_pids << pid
-  $process_alive = false
+  $process_alive[pid] = false
+  $active_pids.delete(pid)
 end
 
-premature_terminations = nil
+alias original_targeted_screenshot_log_cursor targeted_screenshot_log_cursor
+def targeted_screenshot_log_cursor(log_path)
+  $cursor_count += 1
+  original_targeted_screenshot_log_cursor(log_path)
+end
+
+def wait_for_harness(timeout_seconds: 0.5)
+  deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout_seconds
+  until yield
+    raise "watchdog harness timed out" if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+
+    sleep(0.002)
+  end
+end
+
+first_pid_terminations = nil
+prior_marker_terminations = nil
+partial_marker_terminations = nil
 elapsed = nil
 Dir.mktmpdir("targeted-watchdog-test") do |directory|
   log_path = File.join(directory, "LaughTrack-LaughTrack.log")
-  File.write(
-    log_path,
-    "Test Case '-[LaughTrackUITests.AppStoreScreenshotTests testGenerateAllScreenshots]' passed\n" \
-    "snapshot: 15_AuthenticatedFavorites\n",
-  )
+  File.write(log_path, "")
   started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
   with_targeted_screenshot_completion_watchdog(
     ["15_AuthenticatedFavorites", "16_Profile"],
     log_path: log_path,
-    grace_seconds: 0.02,
-    poll_interval: 0.005,
+    grace_seconds: 0.04,
+    poll_interval: 0.002,
   ) do
-    sleep(0.05)
-    premature_terminations = $terminated_pids.dup
+    $process_alive[4242] = true
+    $active_pids << 4242
+    wait_for_harness { $cursor_count >= 1 }
     File.write(
       log_path,
       "Test Case '-[LaughTrackUITests.AppStoreScreenshotTests testGenerateAllScreenshots]' passed\n" \
       "snapshot: 15_AuthenticatedFavorites\n" \
       "snapshot: 16_Profile\n",
     )
-    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 0.5
-    sleep(0.005) while $terminated_pids.empty? && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+    sleep(0.01)
+    $process_alive[4242] = false
+    $active_pids.delete(4242)
+    sleep(0.01)
+    first_pid_terminations = $terminated_pids.dup
+
+    $process_alive[5252] = true
+    $active_pids << 5252
+    wait_for_harness { $cursor_count >= 2 }
+    sleep(0.06)
+    prior_marker_terminations = $terminated_pids.dup
+
+    File.write(
+      log_path,
+      "Test Case '-[LaughTrackUITests.AppStoreScreenshotTests testGenerateAllScreenshots]' passed\n" \
+      "snapshot: 15_AuthenticatedFavorites\n",
+    )
+    sleep(0.06)
+    partial_marker_terminations = $terminated_pids.dup
+    File.open(log_path, "a") { |file| file.write("snapshot: 16_Profile\n") }
+    wait_for_harness { $terminated_pids.include?(5252) }
   end
   elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
 end
@@ -331,8 +365,11 @@ end
 puts JSON.generate(
   {
     "selected_pids" => selected_pids,
-    "premature_terminations" => premature_terminations,
+    "first_pid_terminations" => first_pid_terminations,
+    "prior_marker_terminations" => prior_marker_terminations,
+    "partial_marker_terminations" => partial_marker_terminations,
     "terminated_pids" => $terminated_pids,
+    "cursor_count" => $cursor_count,
     "elapsed" => elapsed,
     "messages" => $messages,
   },
@@ -466,11 +503,14 @@ def test_ios_targeted_watchdog_waits_for_complete_capture_then_terminates_exact_
     result = run_watchdog_harness()
 
     assert result["selected_pids"] == [101]
-    assert result["premature_terminations"] == []
-    assert result["terminated_pids"] == [4242]
+    assert result["first_pid_terminations"] == []
+    assert result["prior_marker_terminations"] == []
+    assert result["partial_marker_terminations"] == []
+    assert result["terminated_pids"] == [5252]
+    assert result["cursor_count"] == 2
     assert result["elapsed"] < 1
     assert any(
-        "xcodebuild 4242 remained alive" in message for message in result["messages"]
+        "xcodebuild 5252 remained alive" in message for message in result["messages"]
     )
 
 
