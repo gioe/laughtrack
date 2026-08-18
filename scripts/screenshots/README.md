@@ -17,10 +17,12 @@ its app at that local server for the duration of the capture. The fixture pins
 result counts, featured entities, dates, narrative content, and bundled curated
 artwork across both platforms. The redistributable PNGs live under
 `scripts/screenshots/assets/`. The iOS and Android `14_NowPlaying` captures
-intentionally download their podcast cover from the upstream HTTPS image URL;
-all other fixture artwork remains local. The fixture's declared contract lives
-in `screenshots/catalog.json`, and every completed run manifest records the
-contract fingerprint so fixture drift is rejected during collection/export.
+download their podcast cover from an upstream HTTPS URL. Both
+`15_AuthenticatedFavorites` captures download visible headliner portraits from
+direct production HTTPS CDN URLs. Remaining fixture artwork stays local. The
+fixture's declared contract lives in `screenshots/catalog.json`, and every
+completed run manifest records the contract fingerprint so fixture drift is
+rejected during collection/export.
 
 For focused local verification, use the separate `verify_screenshots` lane with
 non-empty, comma-separated canonical profile and scenario selections:

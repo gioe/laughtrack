@@ -192,7 +192,7 @@ CONTENT_FIXTURE = {
                     "show-friends",
                     "history-hyenas",
                 ],
-                "fallback_policy": "Authenticated screenshot persona omits remote artwork and uses each platform's branded fallback.",
+                "fallback_policy": "Missing artwork in authenticated screenshot personas uses each platform's branded fallback; shipping captures may also seed direct production portraits.",
             },
         },
         "curated": {
