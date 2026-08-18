@@ -73,6 +73,10 @@ when "ios"
   def patch_snapshot_destination_for_18_3_1
   end
 
+  def patch_targeted_snapshot_one_shot
+    $events << "patch_targeted_snapshot_one_shot"
+  end
+
   def run_tests(**options)
     $events << {"run_tests" => options}
   end
@@ -134,14 +138,98 @@ end
 
 options = {run_root: ARGV.fetch(2)}
 options[:comparison_only] = true if ARGV.fetch(3) == "comparison"
-if ARGV.fetch(3) == "targeted"
-  options[:profiles] = ARGV.fetch(1) == "ios" ? "ios_phone,ios_large_tablet" : "android_phone"
-  options[:scenarios] = "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts,10_PodcastEpisodeDetail"
+if ARGV.fetch(3).start_with?("targeted")
+  if ARGV.fetch(3) == "targeted_favorites"
+    options[:profiles] = ARGV.fetch(1) == "ios" ? "ios_phone" : "android_phone"
+    options[:scenarios] = "15_AuthenticatedFavorites"
+    options[:fixture_mode] = "curated"
+  else
+    options[:profiles] = ARGV.fetch(1) == "ios" ? "ios_phone,ios_large_tablet" : "android_phone"
+    options[:scenarios] = "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts,10_PodcastEpisodeDetail"
+  end
   $lanes.fetch(:verify_screenshots).call(options)
 else
   $lanes.fetch(:screenshots).call(options)
 end
 puts JSON.generate($events)
+"""
+
+ONE_SHOT_LAUNCHER_HARNESS = r"""
+require "json"
+
+$lanes = {}
+
+def default_platform(*)
+end
+
+def platform(*)
+  yield
+end
+
+def before_all(*)
+end
+
+def desc(*)
+end
+
+def lane(name, &block)
+  $lanes[name] = block
+end
+
+module UI
+  def self.user_error!(message)
+    raise RuntimeError, message
+  end
+end
+
+load ARGV.fetch(0)
+
+LauncherConfig = Struct.new(:number_of_retries)
+
+module Snapshot
+  class SimulatorLauncher
+    attr_reader :launcher_config, :launches
+
+    def initialize(number_of_retries)
+      @launcher_config = LauncherConfig.new(number_of_retries)
+      @launches = []
+    end
+
+    def launch_simultaneously(devices, language, locale, launch_arguments)
+      @launches << [devices, language, locale, launch_arguments]
+    end
+  end
+end
+
+patch_targeted_snapshot_one_shot
+patch_targeted_snapshot_one_shot
+
+one_shot = Snapshot::SimulatorLauncher.new(0)
+phone = ["iPhone 16 Pro Max"]
+arguments = ["-UITestMockMode -ScreenshotScenarios 15_AuthenticatedFavorites"]
+one_shot.launch_simultaneously(phone, "en-US", nil, arguments)
+duplicate_error = nil
+begin
+  one_shot.launch_simultaneously(phone.dup, "en-US", nil, arguments.dup)
+rescue => error
+  duplicate_error = {"class" => error.class.name, "message" => error.message}
+end
+one_shot.launch_simultaneously(["iPad Pro 13-inch (M4)"], "en-US", nil, arguments)
+one_shot.launch_simultaneously(phone, "fr-FR", nil, arguments)
+
+retryable = Snapshot::SimulatorLauncher.new(1)
+2.times { retryable.launch_simultaneously(phone, "en-US", nil, arguments) }
+
+puts JSON.generate(
+  {
+    "one_shot_launches" => one_shot.launches,
+    "duplicate_error" => duplicate_error,
+    "retryable_launches" => retryable.launches,
+    "guard_ancestor_count" => Snapshot::SimulatorLauncher.ancestors.count do |ancestor|
+      ancestor == LaughTrackTargetedSnapshotOneShot
+    end,
+  },
+)
 """
 
 
@@ -157,6 +245,18 @@ def run_screenshot_lane(platform: str, mode: str, tmp_path: Path) -> list[str]:
             str(tmp_path / platform / "run"),
             mode,
         ],
+        cwd=fastfile.parent,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(result.stdout)
+
+
+def run_one_shot_launcher_harness() -> dict:
+    fastfile = REPO_ROOT / "ios" / "fastlane" / "Fastfile"
+    result = subprocess.run(
+        ["ruby", "-e", ONE_SHOT_LAUNCHER_HARNESS, str(fastfile)],
         cwd=fastfile.parent,
         check=True,
         capture_output=True,
@@ -199,6 +299,8 @@ def test_targeted_mode_captures_selected_subset_without_projecting_storefront(
     capture = next(event["capture"] for event in events if "capture" in event)
     if platform == "ios":
         assert capture["clear_previous_screenshots"] is True
+        assert capture["number_of_retries"] == 0
+        assert capture["stop_after_first_error"] is True
         assert capture["launch_arguments"] == [
             "-UITestMockMode -ScreenshotScenarios "
             "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts,"
@@ -208,15 +310,60 @@ def test_targeted_mode_captures_selected_subset_without_projecting_storefront(
         assert capture["scenario_ids"] == collect["scenario_ids"]
 
 
+def test_ios_targeted_favorites_capture_is_one_shot(tmp_path: Path) -> None:
+    events = run_screenshot_lane("ios", "targeted_favorites", tmp_path)
+
+    assert events.count("patch_targeted_snapshot_one_shot") == 1
+    capture = next(event["capture"] for event in events if isinstance(event, dict) and "capture" in event)
+    collect = next(event["collect"] for event in events if isinstance(event, dict) and "collect" in event)
+    assert capture["devices"] == ["iPhone 16 Pro Max"]
+    assert capture["number_of_retries"] == 0
+    assert capture["stop_after_first_error"] is True
+    assert capture["launch_arguments"] == [
+        "-UITestMockMode -ScreenshotScenarios 15_AuthenticatedFavorites "
+        "-ScreenshotFixtureMode curated",
+    ]
+    assert collect["scenario_ids"] == ["15_AuthenticatedFavorites"]
+    assert events.index("patch_targeted_snapshot_one_shot") < next(
+        index for index, event in enumerate(events) if isinstance(event, dict) and "capture" in event
+    )
+
+
+def test_ios_targeted_one_shot_guard_rejects_only_duplicate_launch_keys() -> None:
+    result = run_one_shot_launcher_harness()
+
+    assert result["duplicate_error"] == {
+        "class": "RuntimeError",
+        "message": (
+            "Targeted screenshot capture attempted to retry iPhone 16 Pro Max "
+            "for en-US; refusing a duplicate XCTest run"
+        ),
+    }
+    assert [launch[:3] for launch in result["one_shot_launches"]] == [
+        [["iPhone 16 Pro Max"], "en-US", None],
+        [["iPad Pro 13-inch (M4)"], "en-US", None],
+        [["iPhone 16 Pro Max"], "fr-FR", None],
+    ]
+    assert len(result["retryable_launches"]) == 2
+    assert result["guard_ancestor_count"] == 1
+
+
 def test_ios_cold_cache_bootstraps_only_pinned_package_revisions(tmp_path: Path) -> None:
     events = run_screenshot_lane("ios", "cold", tmp_path)
     run_tests_options = next(event["run_tests"] for event in events if isinstance(event, dict))
+    capture_options = next(
+        event["capture"]
+        for event in events
+        if isinstance(event, dict) and "capture" in event
+    )
 
     assert run_tests_options["build_for_testing"] is True
     assert run_tests_options["skip_package_dependencies_resolution"] is False
     assert run_tests_options["disable_package_automatic_updates"] is True
     assert run_tests_options["skip_package_repository_fetches"] is True
     assert run_tests_options["derived_data_path"]
+    assert "number_of_retries" not in capture_options
+    assert "stop_after_first_error" not in capture_options
 
 
 def test_regenerate_comparisons_requests_comparison_only_capture() -> None:

@@ -103,6 +103,42 @@ IOS_SCREENSHOT_FIXTURE_MODES = IOS_SCREENSHOT_COLLECTION.fetch(:fixture_modes)
 class ScreenshotSimulatorBootTimeout < StandardError
 end
 
+# Snapshot retries non-65 xcodebuild exits as simulator failures independently
+# of its configured number_of_retries. A manually terminated stale xcodebuild
+# therefore starts the same targeted XCTest capture again even when retries are
+# disabled. Keep each requested device/language/argument tuple one-shot while
+# still allowing a targeted lane to capture distinct tuples in sequence.
+module LaughTrackTargetedSnapshotOneShot
+  def launch_simultaneously(devices, language, locale, launch_arguments)
+    if launcher_config.number_of_retries.zero?
+      @laughtrack_targeted_snapshot_launches ||= {}
+      launch_key = [
+        Array(devices).map(&:to_s).freeze,
+        language.to_s,
+        locale.to_s,
+        Array(launch_arguments).map(&:to_s).freeze,
+      ].freeze
+      if @laughtrack_targeted_snapshot_launches.key?(launch_key)
+        UI.user_error!(
+          "Targeted screenshot capture attempted to retry #{devices.join(', ')} " \
+          "for #{locale || language}; refusing a duplicate XCTest run",
+        )
+      end
+      @laughtrack_targeted_snapshot_launches[launch_key] = true
+    end
+
+    super
+  end
+end
+
+def patch_targeted_snapshot_one_shot
+  unless defined?(Snapshot::SimulatorLauncher)
+    require "snapshot/simulator_launchers/simulator_launcher"
+  end
+  launcher = Snapshot::SimulatorLauncher
+  launcher.prepend(LaughTrackTargetedSnapshotOneShot) unless launcher.ancestors.include?(LaughTrackTargetedSnapshotOneShot)
+end
+
 def selected_screenshot_values!(raw_value, canonical_values, label)
   values = raw_value.to_s.split(",").map(&:strip).reject(&:empty?)
   UI.user_error!("verify_screenshots requires #{label}:id,id") if values.empty?
@@ -776,6 +812,7 @@ platform :ios do
           disable_package_automatic_updates: true,
           skip_package_repository_fetches: true,
         )
+        patch_targeted_snapshot_one_shot
         capture_screenshots(
           output_directory: capture_root,
           derived_data_path: SCREENSHOT_DERIVED_DATA_PATH,
@@ -783,6 +820,8 @@ platform :ios do
           devices: profiles.map { |profile| profile.fetch(:device_name) },
           ios_version: native_target.fetch(:version),
           clear_previous_screenshots: true,
+          number_of_retries: 0,
+          stop_after_first_error: true,
           launch_arguments: [
             "-UITestMockMode -ScreenshotScenarios #{scenario_ids.join(',')} " \
             "-ScreenshotFixtureMode #{fixture_mode}",
