@@ -1,4 +1,5 @@
 import contextlib
+import hashlib
 from importlib.machinery import SourceFileLoader
 import importlib.util
 import io
@@ -111,6 +112,26 @@ class RunXcodebuildTests(unittest.TestCase):
 
         self.assertEqual(result, 0)
         self.assertEqual(stderr, "")
+
+
+class DerivedDataTests(unittest.TestCase):
+    def test_xcodebuild_reuses_the_canonical_worktree_cache(self) -> None:
+        ios_dir = Path("/private/tmp/laughtrack-worktree/ios")
+        derived_data_root = Path("/private/tmp/DerivedData")
+        digest = hashlib.sha256(str(ios_dir.parent).encode()).hexdigest()[:12]
+
+        command = test_sim._xcodebuild_command(
+            ios_dir,
+            "simulator-udid",
+            derived_data_root,
+        )
+
+        path_index = command.index("-derivedDataPath") + 1
+        self.assertEqual(
+            command[path_index],
+            str(derived_data_root / f"LaughTrack-wt-{digest}"),
+        )
+        self.assertEqual(command.count("-derivedDataPath"), 1)
 
 
 class RunSelectedTestsTests(unittest.TestCase):

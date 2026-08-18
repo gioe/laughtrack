@@ -37,7 +37,7 @@ SCREENSHOT_DERIVED_DATA_PATH = ENV.fetch(
     "Developer",
     "Xcode",
     "DerivedData",
-    "LaughTrack-screenshots-wt-#{SCREENSHOT_WORKTREE_HASH}",
+    "LaughTrack-wt-#{SCREENSHOT_WORKTREE_HASH}",
   ),
 )
 TARGETED_SCREENSHOT_LOG_PATH = File.join(
@@ -407,6 +407,18 @@ def run_ios_screenshot_cache(*arguments)
   JSON.parse(output)
 rescue JSON::ParserError => e
   UI.user_error!("Screenshot profile cache returned invalid JSON: #{e.message}")
+end
+
+def prune_ios_derived_data
+  result = run_ios_screenshot_cache(
+    "prune-derived-data",
+    "--repo-root", REPO_ROOT,
+    "--preserve-path", SCREENSHOT_DERIVED_DATA_PATH,
+  )
+  UI.message(
+    "Pruned #{result.fetch('removed_caches').length} orphaned iOS DerivedData " \
+    "cache(s), reclaiming #{result.fetch('bytes_reclaimed')} bytes",
+  )
 end
 
 def plan_ios_screenshot_cache(capture_root, native_environment, force_fresh:)
@@ -880,6 +892,7 @@ platform :ios do
       build_duration = 0.0
       capture_duration = 0.0
       unless pending_profiles.empty?
+        prune_ios_derived_data
         fixture_mode = ios_screenshot_fixture_mode!(pending_profiles)
         with_screenshot_fixture_server do
           boot_screenshot_simulator(native_target, pending_profiles.first.fetch(:device_name))
@@ -952,6 +965,7 @@ platform :ios do
     Dir.mktmpdir("laughtrack-ios-targeted-screenshots") do |tmpdir|
       capture_root = File.join(tmpdir, "capture")
       native_target = ios_screenshot_native_target
+      prune_ios_derived_data
       with_screenshot_fixture_server do
         boot_screenshot_simulator(native_target, profiles.first.fetch(:device_name))
         patch_snapshot_destination_for_18_3_1

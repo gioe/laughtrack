@@ -45,9 +45,11 @@ FASTLANE_INPUTS = {
     "ios": {"Fastfile", "Snapfile", "SnapshotHelper.swift"},
     "android": {"Fastfile", "Screengrabfile"},
 }
+DERIVED_DATA_PREFIX = "LaughTrack-wt-"
 SCREENSHOT_DERIVED_DATA_PREFIX = "LaughTrack-screenshots-wt-"
-SCREENSHOT_DERIVED_DATA_NAME = re.compile(
-    rf"^{re.escape(SCREENSHOT_DERIVED_DATA_PREFIX)}[0-9a-f]{{12}}$"
+DERIVED_DATA_NAMES = tuple(
+    re.compile(rf"^{re.escape(prefix)}[0-9a-f]{{12}}$")
+    for prefix in (DERIVED_DATA_PREFIX, SCREENSHOT_DERIVED_DATA_PREFIX)
 )
 DEFAULT_DERIVED_DATA_ROOT = Path.home() / "Library" / "Developer" / "Xcode" / "DerivedData"
 
@@ -80,10 +82,17 @@ def _git_paths(repo_root: Path, *args: str) -> set[str]:
 
 
 def screenshot_derived_data_cache_name(worktree_path: str | os.PathLike[str]) -> str:
-    """Return the cache name used by the iOS Fastfile for a worktree path."""
+    """Return the legacy screenshot cache name for a worktree path."""
     absolute_path = os.path.abspath(os.fspath(worktree_path))
     digest = hashlib.sha256(os.fsencode(absolute_path)).hexdigest()[:12]
     return f"{SCREENSHOT_DERIVED_DATA_PREFIX}{digest}"
+
+
+def derived_data_cache_name(worktree_path: str | os.PathLike[str]) -> str:
+    """Return the canonical shared iOS cache name for a worktree path."""
+    absolute_path = os.path.abspath(os.fspath(worktree_path))
+    digest = hashlib.sha256(os.fsencode(absolute_path)).hexdigest()[:12]
+    return f"{DERIVED_DATA_PREFIX}{digest}"
 
 
 def _registered_worktree_paths(repo_root: Path) -> list[str]:
@@ -92,11 +101,12 @@ def _registered_worktree_paths(repo_root: Path) -> list[str]:
         stderr=subprocess.DEVNULL,
     )
     prefix = b"worktree "
-    return [
+    paths = [
         os.fsdecode(field[len(prefix) :])
         for field in output.split(b"\0")
         if field.startswith(prefix)
     ]
+    return [path for path in paths if Path(path).is_dir()]
 
 
 def _tree_size(path: Path) -> int:
@@ -122,12 +132,14 @@ def prune_derived_data_caches(
     derived_data_root: Path = DEFAULT_DERIVED_DATA_ROOT,
     preserve_paths: Sequence[Path] = (),
 ) -> dict[str, Any]:
-    """Remove screenshot DerivedData caches that do not belong to registered worktrees."""
+    """Remove task-specific iOS caches that do not belong to live worktrees."""
     repo_root = Path(os.path.abspath(repo_root))
     derived_data_root = Path(os.path.abspath(derived_data_root))
+    registered_worktrees = _registered_worktree_paths(repo_root)
     protected_names = {
-        screenshot_derived_data_cache_name(path)
-        for path in _registered_worktree_paths(repo_root)
+        cache_name(path)
+        for path in registered_worktrees
+        for cache_name in (derived_data_cache_name, screenshot_derived_data_cache_name)
     }
     protected_paths = {
         os.path.abspath(path)
@@ -138,7 +150,7 @@ def prune_derived_data_caches(
     if derived_data_root.is_dir():
         for candidate in sorted(derived_data_root.iterdir()):
             if (
-                not SCREENSHOT_DERIVED_DATA_NAME.fullmatch(candidate.name)
+                not any(pattern.fullmatch(candidate.name) for pattern in DERIVED_DATA_NAMES)
                 or candidate.name in protected_names
                 or os.path.abspath(candidate) in protected_paths
                 or candidate.is_symlink()
@@ -150,7 +162,7 @@ def prune_derived_data_caches(
             removed.append(str(candidate))
     return {
         "derived_data_root": str(derived_data_root),
-        "registered_worktrees": len(protected_names),
+        "registered_worktrees": len(registered_worktrees),
         "removed_caches": removed,
         "bytes_reclaimed": reclaimed,
     }

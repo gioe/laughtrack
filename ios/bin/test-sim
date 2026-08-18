@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,7 @@ from test_sim_destination import DestinationNotFoundError, select_destination
 DEFAULT_MODEL = "iPhone 16 Pro"
 DEFAULT_IOS_MAJOR = 18
 SWIFT_TEST_SUMMARY = re.compile(r"Test run with (\d+) tests?\b")
+DERIVED_DATA_PREFIX = "LaughTrack-wt-"
 
 
 def _simctl_json(*arguments: str) -> dict[str, object]:
@@ -116,6 +118,38 @@ def _command_with_selectors(command: list[str], selectors: list[str]) -> list[st
     return [*command, *(f"-only-testing:{selector}" for selector in selectors)]
 
 
+def _derived_data_path(
+    repo_root: Path,
+    derived_data_root: Path | None = None,
+) -> Path:
+    absolute_root = os.path.abspath(repo_root)
+    digest = hashlib.sha256(os.fsencode(absolute_root)).hexdigest()[:12]
+    root = derived_data_root or (
+        Path.home() / "Library" / "Developer" / "Xcode" / "DerivedData"
+    )
+    return root / f"{DERIVED_DATA_PREFIX}{digest}"
+
+
+def _xcodebuild_command(
+    ios_dir: Path,
+    destination_udid: str,
+    derived_data_root: Path | None = None,
+) -> list[str]:
+    return [
+        "xcodebuild",
+        "-project",
+        str(ios_dir / "LaughTrack.xcodeproj"),
+        "-scheme",
+        "LaughTrack",
+        "-destination",
+        f"platform=iOS Simulator,id={destination_udid}",
+        "-derivedDataPath",
+        str(_derived_data_path(ios_dir.parent, derived_data_root)),
+        "CODE_SIGNING_ALLOWED=NO",
+        "test",
+    ]
+
+
 def _run_selected_tests(command: list[str], selectors: list[str]) -> int:
     swift_selectors = [selector for selector in selectors if _requires_swift_testing_summary(selector)]
     if len(swift_selectors) <= 1:
@@ -168,17 +202,7 @@ def main() -> int:
         return 0
 
     ios_dir = Path(__file__).resolve().parent.parent
-    command = [
-        "xcodebuild",
-        "-project",
-        str(ios_dir / "LaughTrack.xcodeproj"),
-        "-scheme",
-        "LaughTrack",
-        "-destination",
-        f"platform=iOS Simulator,id={destination.udid}",
-        "CODE_SIGNING_ALLOWED=NO",
-        "test",
-    ]
+    command = _xcodebuild_command(ios_dir, destination.udid)
     return _run_selected_tests(command, args.selectors)
 
 

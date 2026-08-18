@@ -63,6 +63,10 @@ when "ios"
     }
   end
 
+  def prune_ios_derived_data
+    $events << "prune"
+  end
+
   def with_screenshot_fixture_server
     yield
   end
@@ -454,6 +458,7 @@ def test_targeted_mode_captures_selected_subset_without_projecting_storefront(
     ]
     capture = next(event["capture"] for event in events if "capture" in event)
     if platform == "ios":
+        assert events[0] == "prune"
         assert capture["clear_previous_screenshots"] is True
         assert capture["number_of_retries"] == 0
         assert capture["stop_after_first_error"] is True
@@ -524,13 +529,24 @@ def test_ios_cold_cache_bootstraps_only_pinned_package_revisions(tmp_path: Path)
         if isinstance(event, dict) and "capture" in event
     )
 
+    assert events[0] == "prune"
     assert run_tests_options["build_for_testing"] is True
     assert run_tests_options["skip_package_dependencies_resolution"] is False
     assert run_tests_options["disable_package_automatic_updates"] is True
     assert run_tests_options["skip_package_repository_fetches"] is True
-    assert run_tests_options["derived_data_path"]
+    assert "LaughTrack-wt-" in run_tests_options["derived_data_path"]
     assert "number_of_retries" not in capture_options
     assert "stop_after_first_error" not in capture_options
+
+
+def test_ios_screenshot_defaults_use_the_canonical_worktree_cache() -> None:
+    fastfile = (REPO_ROOT / "ios" / "fastlane" / "Fastfile").read_text()
+    snapfile = (REPO_ROOT / "ios" / "fastlane" / "Snapfile").read_text()
+
+    assert '"LaughTrack-wt-#{SCREENSHOT_WORKTREE_HASH}"' in fastfile
+    assert '"LaughTrack-wt-#{screenshot_worktree_hash}"' in snapfile
+    assert "LaughTrack-screenshots-wt-" not in fastfile
+    assert "LaughTrack-screenshots-wt-" not in snapfile
 
 
 def test_regenerate_comparisons_requests_comparison_only_capture() -> None:

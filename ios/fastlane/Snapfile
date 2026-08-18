@@ -22,15 +22,15 @@ scheme("LaughTrack")
 xcargs("TARGETED_DEVICE_FAMILY=1,2")
 
 # Snapshot otherwise creates and deletes a temporary DerivedData directory on
-# every run. Keep an isolated cache per worktree so repeated captures can reuse
-# build products without concurrent worktrees sharing incompatible artifacts.
+# every run. Reuse the task's isolated build cache so focused tests, Tusk gates,
+# and screenshots do not retain three copies of the same build products.
 require "digest"
 screenshot_worktree = File.expand_path("../..", __dir__)
 screenshot_worktree_hash = Digest::SHA256.hexdigest(screenshot_worktree)[0, 12]
 derived_data_path(
   ENV.fetch(
     "LAUGHTRACK_SCREENSHOT_DERIVED_DATA_PATH",
-    File.join(Dir.home, "Library", "Developer", "Xcode", "DerivedData", "LaughTrack-screenshots-wt-#{screenshot_worktree_hash}"),
+    File.join(Dir.home, "Library", "Developer", "Xcode", "DerivedData", "LaughTrack-wt-#{screenshot_worktree_hash}"),
   ),
 )
 

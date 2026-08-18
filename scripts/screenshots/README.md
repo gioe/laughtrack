@@ -110,6 +110,21 @@ profile cache for one run. Set `LAUGHTRACK_SCREENSHOT_CACHE_PATH` to relocate th
 cache; by default it lives under the gitignored
 `apps/screenshot-comparisons/.profile-cache/` directory.
 
+## iOS DerivedData retention
+
+iOS screenshot builds, focused `ios/bin/test-sim` runs, and Tusk iOS build
+gates reuse one `LaughTrack-wt-<worktree-hash>` DerivedData directory per live
+Git worktree. The hash keeps concurrent worktrees isolated while repeated work
+inside one task retains useful Xcode build products.
+
+Before a screenshot build or Tusk iOS gate, the tooling removes orphaned
+task-specific caches for worktrees whose directories no longer exist. Cleanup
+accepts only the exact canonical `LaughTrack-wt-<12 hex>` name and the legacy
+`LaughTrack-screenshots-wt-<12 hex>` name. It preserves caches for live
+worktrees, explicit screenshot cache overrides, symlinks, malformed lookalikes,
+and every unrelated Xcode DerivedData directory. The retained cache count is
+therefore bounded by live worktrees rather than by completed task runs.
+
 Completed-run manifests keep physical capture provenance separate from the
 current run's materialization time. Cached images therefore retain their
 original capture timestamp and revision instead of appearing newly captured.
