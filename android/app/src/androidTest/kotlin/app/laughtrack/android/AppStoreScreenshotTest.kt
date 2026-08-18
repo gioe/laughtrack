@@ -2,6 +2,7 @@ package app.laughtrack.android
 
 import android.Manifest
 import android.content.Context
+import android.net.Uri
 import android.os.SystemClock
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.runtime.getValue
@@ -371,20 +372,31 @@ class AppStoreScreenshotTest {
         waitForPopulatedOnboarding()
         if (capture("13_Onboarding")) return
 
+        // Use the upstream cover rather than the app's artwork proxy or the
+        // local screenshot fixture so this capture exercises remote artwork.
+        val nowPlayingArtworkUrl =
+            "https://megaphone.imgix.net/podcasts/48030056-989d-11ef-a614-3bc2f8865178/" +
+                "image/171a69e4231342ccae610db68861892b.jpeg?ixlib=rails-4.3.1&max-w=3000&max-h=3000&" +
+                "fit=crop&auto=format%2Ccompress"
+        val nowPlayingArtworkUri = Uri.parse(nowPlayingArtworkUrl)
+        check(nowPlayingArtworkUri.scheme == "https") { "Now Playing artwork must use HTTPS" }
+        check(nowPlayingArtworkUri.host == "megaphone.imgix.net") {
+            "Now Playing artwork must use the direct upstream host"
+        }
         composeRule.runOnIdle {
             playbackController.seedForScreenshot(
                 PodcastPlaybackItem(
                     episodeId = -1,
                     podcastId = -1,
-                    podcastTitle = "LaughTrack",
-                    episodeTitle = "The LaughTrack Comedy Roundup",
+                    podcastTitle = "History Hyenas",
+                    episodeTitle = "The Wildest Feuds in History",
                     audioUrl = "https://example.invalid/demo.mp3",
-                    artworkUrl = null,
+                    artworkUrl = nowPlayingArtworkUrl,
                 ),
             )
             navController.navigate(AppRoute.NowPlaying)
         }
-        waitFor(hasText("The LaughTrack Comedy Roundup"))
+        waitFor(hasText("The Wildest Feuds in History"))
         // Intentional background override: this immersive media destination is
         // the sole AppShell route that replaces the atmosphere with opaque Canvas.
         if (capture("14_NowPlaying")) return
