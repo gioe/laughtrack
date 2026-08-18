@@ -408,8 +408,18 @@ class AppStoreScreenshotTest {
             screenshotPersona = AuthenticatedScreenshotPersona
         }
 
+        val visibleSavedShows = AuthenticatedScreenshotPersona.savedShowsSnapshot.upcoming.shows.take(5)
+        check(visibleSavedShows.size == 5) { "Authenticated Favorites must expose five page-one shows" }
+        visibleSavedShows.forEach { show ->
+            val artworkUrl = show.imageUrl.orEmpty()
+            val artworkUri = Uri.parse(artworkUrl)
+            check(artworkUri.scheme == "https" && artworkUri.host == "laughtrack.b-cdn.net") {
+                "Authenticated Favorites artwork must use the direct LaughTrack CDN: $artworkUrl"
+            }
+        }
+
         navigate(navController, AppRoute.Favorites)
-        waitFor(hasText(AuthenticatedScreenshotPersona.UPCOMING_SAVED_SHOW_TITLE))
+        visibleSavedShows.forEach { show -> waitFor(hasText(checkNotNull(show.name))) }
         composeRule
             .onNodeWithText(AuthenticatedScreenshotPersona.UPCOMING_SAVED_SHOW_TITLE)
             .performScrollTo()

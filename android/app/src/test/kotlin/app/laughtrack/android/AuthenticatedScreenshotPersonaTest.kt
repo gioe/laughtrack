@@ -7,6 +7,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigDecimal
+import java.net.URI
 
 class AuthenticatedScreenshotPersonaTest {
     @Test
@@ -84,7 +85,26 @@ class AuthenticatedScreenshotPersonaTest {
                 )
             },
         )
-        assertTrue(savedShows.upcoming.shows.all { it.imageUrl.isEmpty() })
+        val artworkUrls = savedShows.upcoming.shows.map { it.imageUrl }
+        assertEquals(
+            listOf(
+                "https://laughtrack.b-cdn.net/comedians/Atsuko%20Okatsuka.png",
+                "https://laughtrack.b-cdn.net/comedians/Josh%20Johnson.png",
+                "https://laughtrack.b-cdn.net/comedian-images/903740/" +
+                    "79e27d03-1143-4633-a42f-f5569040fb44/avatar.jpg",
+                "https://laughtrack.b-cdn.net/comedians/Sam%20Jay.png",
+                "https://laughtrack.b-cdn.net/comedian-images/246654/" +
+                    "da23a0ff-061c-4a8b-82b8-e8b197615ad7/avatar.jpg",
+                "",
+            ),
+            artworkUrls,
+        )
+        assertTrue(
+            artworkUrls.dropLast(1).all { imageUrl ->
+                URI(imageUrl).let { it.scheme == "https" && it.host == "laughtrack.b-cdn.net" }
+            },
+        )
+        assertTrue(artworkUrls.last().isEmpty())
         assertEquals(
             savedShows.upcoming.shows.size,
             savedShows.upcoming.shows.mapNotNull { it.name }.distinct().size,

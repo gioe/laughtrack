@@ -22,11 +22,10 @@ import java.time.ZonedDateTime
 /**
  * Credentials-free, immutable content for authenticated screenshot captures.
  *
- * The persona deliberately contains no remote image URLs and never enters the
- * authentication or networking layers. It is passed explicitly by screenshot
- * tests; production navigation continues to use the Hilt-backed screen models.
- * Empty artwork values intentionally exercise deterministic, title-derived
- * local artwork without requiring a network image cache.
+ * The persona never enters the authentication or API layers. It is passed
+ * explicitly by screenshot tests; production navigation continues to use the
+ * Hilt-backed screen models. Visible saved shows use direct production CDN
+ * portraits, while an image-less show retains deterministic fallback coverage.
  */
 object AuthenticatedScreenshotPersona {
     const val COMEDIAN_UUID = "00000000-0000-4000-8000-000000000101"
@@ -46,6 +45,7 @@ object AuthenticatedScreenshotPersona {
                 name = UPCOMING_SAVED_SHOW_TITLE,
                 clubName = "Town Hall",
                 clubCity = "New York",
+                imageUrl = "https://laughtrack.b-cdn.net/comedians/Atsuko%20Okatsuka.png",
             ),
             savedShow(
                 id = 910_104,
@@ -53,6 +53,7 @@ object AuthenticatedScreenshotPersona {
                 name = "Josh Johnson and Friends",
                 clubName = "The Bell House",
                 clubCity = "Brooklyn",
+                imageUrl = "https://laughtrack.b-cdn.net/comedians/Josh%20Johnson.png",
             ),
             savedShow(
                 id = 910_105,
@@ -60,6 +61,9 @@ object AuthenticatedScreenshotPersona {
                 name = "Taylor Tomlinson Live",
                 clubName = "The Comedy Cellar",
                 clubCity = "New York",
+                imageUrl =
+                    "https://laughtrack.b-cdn.net/comedian-images/903740/" +
+                        "79e27d03-1143-4633-a42f-f5569040fb44/avatar.jpg",
             ),
             savedShow(
                 id = 910_106,
@@ -67,6 +71,7 @@ object AuthenticatedScreenshotPersona {
                 name = "Sam Jay: Testing Material",
                 clubName = "Union Hall",
                 clubCity = "Brooklyn",
+                imageUrl = "https://laughtrack.b-cdn.net/comedians/Sam%20Jay.png",
             ),
             savedShow(
                 id = 910_107,
@@ -74,6 +79,9 @@ object AuthenticatedScreenshotPersona {
                 name = "Mike Birbiglia: Please Stop the Ride",
                 clubName = "Beacon Theatre",
                 clubCity = "New York",
+                imageUrl =
+                    "https://laughtrack.b-cdn.net/comedian-images/246654/" +
+                        "da23a0ff-061c-4a8b-82b8-e8b197615ad7/avatar.jpg",
             ),
             savedShow(
                 id = 910_108,
@@ -171,11 +179,12 @@ object AuthenticatedScreenshotPersona {
         name: String,
         clubName: String,
         clubCity: String,
+        imageUrl: String = "",
     ) = Show(
         id = id,
         clubId = id + 1_000,
         date = date,
-        imageUrl = "",
+        imageUrl = imageUrl,
         clubName = clubName,
         clubCity = clubCity,
         clubState = "NY",
