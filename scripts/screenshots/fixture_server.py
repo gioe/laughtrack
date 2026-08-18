@@ -274,19 +274,91 @@ COMEDIAN_NAMES = [
 ]
 COMEDIAN_ARTWORK = ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"]
 FALLBACK_COMEDIAN_ARTWORK = ["ali-wong", "taylor"]
-CLUB_NAMES = [
-    "The Comedy Store",
-    "Comedy Cellar",
-    "The Stand",
-    "Hollywood Improv",
-    "Largo at the Coronet",
-    "Gotham Comedy Club",
-    "The Bell House",
-    "Laugh Factory",
-    "Punch Line",
-    "Helium Comedy Club",
-    "Zanies",
-    "Comedy Works",
+CLUB_FIXTURES = [
+    {
+        "name": "The Comedy Store",
+        "address": "8433 W Sunset Blvd, West Hollywood, CA 90069",
+        "zipCode": "90069",
+        "city": "West Hollywood",
+        "state": "CA",
+    },
+    {
+        "name": "Comedy Cellar",
+        "address": "117 MacDougal St, New York, NY 10012",
+        "zipCode": "10012",
+        "city": "New York",
+        "state": "NY",
+    },
+    {
+        "name": "The Stand",
+        "address": "116 E 16th St, New York, NY 10003",
+        "zipCode": "10003",
+        "city": "New York",
+        "state": "NY",
+    },
+    {
+        "name": "Hollywood Improv",
+        "address": "8162 Melrose Ave, Hollywood, CA 90046",
+        "zipCode": "90046",
+        "city": "Hollywood",
+        "state": "CA",
+    },
+    {
+        "name": "Largo at the Coronet",
+        "address": "366 N La Cienega Blvd, Los Angeles, CA 90048",
+        "zipCode": "90048",
+        "city": "Los Angeles",
+        "state": "CA",
+    },
+    {
+        "name": "Gotham Comedy Club",
+        "address": "208 W 23rd St, New York, NY 10011",
+        "zipCode": "10011",
+        "city": "New York",
+        "state": "NY",
+    },
+    {
+        "name": "The Bell House",
+        "address": "149 7th St, Brooklyn, NY 11215",
+        "zipCode": "11215",
+        "city": "Brooklyn",
+        "state": "NY",
+    },
+    {
+        "name": "Laugh Factory",
+        "address": "8001 W Sunset Blvd, Los Angeles, CA 90046",
+        "zipCode": "90046",
+        "city": "Los Angeles",
+        "state": "CA",
+    },
+    {
+        "name": "Punch Line",
+        "address": "444 Battery St, San Francisco, CA 94111",
+        "zipCode": "94111",
+        "city": "San Francisco",
+        "state": "CA",
+    },
+    {
+        "name": "Helium Comedy Club",
+        "address": "2031 Sansom St, Philadelphia, PA 19103",
+        "zipCode": "19103",
+        "city": "Philadelphia",
+        "state": "PA",
+    },
+    {
+        "name": "Zanies",
+        "address": "1548 N Wells St, Chicago, IL 60610",
+        "zipCode": "60610",
+        "city": "Chicago",
+        "state": "IL",
+    },
+    {
+        "name": "Comedy Works",
+        "address": "1226 15th St, Denver, CO 80202",
+        "zipCode": "80202",
+        "city": "Denver",
+        "state": "CO",
+    },
 ]
 CLUB_ARTWORK = ["comedy-store", "comedy-cellar", "the-stand", "hollywood-improv"]
 PODCAST_TITLES = [
@@ -789,17 +861,13 @@ def fixture_response(
         clubs = [
             {
                 "id": 201 + index,
-                "name": name,
-                "imageUrl": f"{base_url}/artwork/{'comedy-cellar' if name == 'Comedy Cellar' else ('comedy-store' if mode == FALLBACK_MODE else CLUB_ARTWORK[index % len(CLUB_ARTWORK)])}.png",
-                "address": "117 MacDougal St" if name == "Comedy Cellar" else "8433 Sunset Blvd",
-                "zipCode": "10012" if name == "Comedy Cellar" else "90069",
+                **club,
+                "imageUrl": f"{base_url}/artwork/{'comedy-cellar' if club['name'] == 'Comedy Cellar' else ('comedy-store' if mode == FALLBACK_MODE else CLUB_ARTWORK[index % len(CLUB_ARTWORK)])}.png",
                 "showCount": 120 - index * (10 if mode == FALLBACK_MODE else 5),
                 "activeComedianCount": 80 - index,
-                "city": "New York" if name == "Comedy Cellar" else "West Hollywood",
-                "state": "NY" if name == "Comedy Cellar" else "CA",
                 "isFavorite": False,
             }
-            for index, name in enumerate(CLUB_NAMES[:result_count])
+            for index, club in enumerate(CLUB_FIXTURES[:result_count])
         ]
         club_query = (query or {}).get("club", [""])[0].strip().casefold()
         if club_query:
@@ -828,10 +896,29 @@ def fixture_response(
                 if podcast_query in podcast["title"].casefold()
             ]
         return {"data": podcasts, "total": len(podcasts), "filters": []}
-    if path == f"{API_PREFIX}clubs/201":
-        return {"data": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "heroImageUrl": f"{base_url}/artwork/comedy-store.png", "website": "https://thecomedystore.com", "address": "8433 Sunset Blvd, West Hollywood, CA", "zipCode": "90069", "phoneNumber": "(323) 650-6268"}}
-    if path == f"{API_PREFIX}clubs/202":
-        return {"data": {"id": 202, "name": "Comedy Cellar", "imageUrl": f"{base_url}/artwork/comedy-cellar.png", "heroImageUrl": f"{base_url}/artwork/comedy-cellar.png", "website": "https://www.comedycellar.com", "address": "117 MacDougal St, New York, NY", "zipCode": "10012", "phoneNumber": "(212) 254-3480"}}
+    if path in {f"{API_PREFIX}clubs/201", f"{API_PREFIX}clubs/202"}:
+        club_id = int(path.rsplit("/", 1)[-1])
+        club = CLUB_FIXTURES[club_id - 201]
+        is_comedy_cellar = club_id == 202
+        artwork_key = "comedy-cellar" if is_comedy_cellar else "comedy-store"
+        return {
+            "data": {
+                "id": club_id,
+                "name": club["name"],
+                "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
+                "heroImageUrl": f"{base_url}/artwork/{artwork_key}.png",
+                "website": (
+                    "https://www.comedycellar.com"
+                    if is_comedy_cellar
+                    else "https://thecomedystore.com"
+                ),
+                "address": club["address"],
+                "zipCode": club["zipCode"],
+                "phoneNumber": (
+                    "(212) 254-3480" if is_comedy_cellar else "(323) 650-6268"
+                ),
+            }
+        }
     if path == f"{API_PREFIX}clubs/201/highlights":
         return {
             "data": {

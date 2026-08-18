@@ -153,6 +153,51 @@ def test_default_mode_uses_curated_artwork_for_every_shipping_profile() -> None:
         assert payload["total"] == 12
 
 
+def test_curated_clubs_use_real_locations() -> None:
+    base_url = "http://fixture"
+    clubs = fixture_response(
+        "/api/v1/clubs/search",
+        base_url,
+        CURATED_MODE,
+    )["data"]
+    expected_locations = {
+        "The Comedy Store": ("West Hollywood", "CA"),
+        "Comedy Cellar": ("New York", "NY"),
+        "The Stand": ("New York", "NY"),
+        "Hollywood Improv": ("Hollywood", "CA"),
+        "Largo at the Coronet": ("Los Angeles", "CA"),
+        "Gotham Comedy Club": ("New York", "NY"),
+        "The Bell House": ("Brooklyn", "NY"),
+        "Laugh Factory": ("Los Angeles", "CA"),
+        "Punch Line": ("San Francisco", "CA"),
+        "Helium Comedy Club": ("Philadelphia", "PA"),
+        "Zanies": ("Chicago", "IL"),
+        "Comedy Works": ("Denver", "CO"),
+    }
+
+    assert {
+        club["name"]: (club["city"], club["state"])
+        for club in clubs
+    } == expected_locations
+    assert [
+        club["name"]
+        for club in clubs
+        if (club["city"], club["state"]) == ("West Hollywood", "CA")
+    ] == ["The Comedy Store"]
+
+    clubs_by_id = {club["id"]: club for club in clubs}
+    for club_id in (201, 202):
+        search_club = clubs_by_id[club_id]
+        detail_club = fixture_response(
+            f"/api/v1/clubs/{club_id}",
+            base_url,
+            CURATED_MODE,
+        )["data"]
+        assert detail_club["name"] == search_club["name"]
+        assert detail_club["address"] == search_club["address"]
+        assert detail_club["zipCode"] == search_club["zipCode"]
+
+
 def test_shipping_profiles_share_storefront_narrative() -> None:
     catalog = json.loads(CATALOG_PATH.read_text())
     catalog_fixture = catalog["content_fixture"]
