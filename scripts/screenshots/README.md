@@ -19,8 +19,10 @@ artwork across both platforms. The redistributable PNGs live under
 `scripts/screenshots/assets/`. The iOS and Android `14_NowPlaying` captures
 download their podcast cover from an upstream HTTPS URL. Both
 `15_AuthenticatedFavorites` captures download visible headliner portraits from
-direct production HTTPS CDN URLs. Remaining fixture artwork stays local. The
-fixture's declared contract lives in `screenshots/catalog.json`, and every
+direct production HTTPS CDN URLs. Podcast Detail and Episode Detail also
+download host portraits from direct production HTTPS CDN URLs. Remaining
+fixture artwork stays local. The fixture's declared contract lives in
+`screenshots/catalog.json`, and every
 completed run manifest records the contract fingerprint so fixture drift is
 rejected during collection/export.
 
