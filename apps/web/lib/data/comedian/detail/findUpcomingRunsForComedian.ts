@@ -6,6 +6,7 @@ import { mapTickets } from "@/util/ticket/ticketUtil";
 import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 import { Prisma } from "@prisma/client";
 import { fromZonedTime } from "date-fns-tz";
+import { resolveCanonicalComedianIdentityById } from "./resolveCanonicalComedianIdentity";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -78,12 +79,8 @@ export async function findUpcomingRunsForComedian(
     comedianId: number,
     filters: UpcomingRunsFilters,
 ): Promise<UpcomingComedianRun[]> {
-    const comedian = await db.comedian.findUnique({
-        where: { id: comedianId },
-        select: { id: true, uuid: true, visible: true },
-    });
-
-    if (!comedian || !comedian.visible) return [];
+    const identity = await resolveCanonicalComedianIdentityById(comedianId);
+    if (!identity) return [];
 
     const where: Prisma.ShowWhereInput = {
         date: buildDateClause(filters),
@@ -111,13 +108,7 @@ export async function findUpcomingRunsForComedian(
         },
         lineupItems: {
             some: {
-                comedian: {
-                    OR: [
-                        { id: comedian.id },
-                        { uuid: comedian.uuid },
-                        { parentComedianId: comedian.id },
-                    ],
-                },
+                comedianId: { in: identity.memberUuids },
             },
         },
     };
