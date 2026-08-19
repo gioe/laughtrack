@@ -8,6 +8,7 @@ import { buildClubImageUrl } from "@/util/imageUtil";
 import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
 import { Prisma } from "@prisma/client";
+import { resolveCanonicalComedianIdentityByName } from "./resolveCanonicalComedianIdentity";
 
 export const PAST_SHOWS_PAGE_SIZE = 20;
 
@@ -31,13 +32,20 @@ export async function findPastShowsForComedian(
         return { shows: [], totalCount: 0 };
     }
 
+    const identity = await resolveCanonicalComedianIdentityByName(
+        helper.params.comedian,
+    );
+    if (!identity) {
+        return { shows: [], totalCount: 0 };
+    }
+
     const page = Math.max(0, options.page ?? 0);
     const size = Math.max(1, options.size ?? PAST_SHOWS_PAGE_SIZE);
 
     const whereClause: Prisma.ShowWhereInput = {
         date: { lt: new Date() },
         club: { visible: true },
-        ...helper.getLineupItemClause(),
+        ...helper.getLineupItemClause(identity.memberUuids),
     };
 
     const [totalCount, rows] = await Promise.all([

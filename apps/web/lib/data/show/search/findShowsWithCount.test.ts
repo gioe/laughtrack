@@ -28,9 +28,10 @@ type FindManyArgs = {
     };
 };
 
-const { mockCount, mockFindMany } = vi.hoisted(() => ({
+const { mockCount, mockFindMany, mockResolveIdentity } = vi.hoisted(() => ({
     mockCount: vi.fn(),
     mockFindMany: vi.fn(),
+    mockResolveIdentity: vi.fn(),
 }));
 
 const availableShowWhere = {
@@ -49,6 +50,9 @@ const availableShowWhere = {
 
 vi.mock("@/lib/db", () => ({
     db: { show: { count: mockCount, findMany: mockFindMany } },
+}));
+vi.mock("@/lib/data/comedian/detail/resolveCanonicalComedianIdentity", () => ({
+    resolveCanonicalComedianIdentityByName: mockResolveIdentity,
 }));
 vi.mock("@/util/imageUtil", () => ({
     buildClubImageUrl: vi.fn(
@@ -71,6 +75,7 @@ function makeHelper(
         zip: string | undefined;
         clubId: string | undefined;
         maxPrice: string | undefined;
+        comedian: string | undefined;
     }> = {},
 ) {
     return {
@@ -78,11 +83,16 @@ function makeHelper(
             zip: overrides.zip ?? undefined,
             clubId: overrides.clubId ?? undefined,
             maxPrice: overrides.maxPrice ?? undefined,
+            comedian: overrides.comedian ?? undefined,
         },
         getDateClause: vi.fn(() => ({})),
         getClubNameClause: vi.fn(() => ({})),
         getZipCodeClause: vi.fn(() => ({})),
-        getLineupItemClause: vi.fn(() => ({ lineupItems: {} })),
+        getLineupItemClause: vi.fn((memberUuids?: string[]) => ({
+            lineupItems: overrides.comedian
+                ? { some: { comedianId: { in: memberUuids ?? [] } } }
+                : {},
+        })),
         getShowTagsClause: vi.fn(() => ({})),
         getShowTypeClause: vi.fn(() => ({})),
         getFreeShowsClause: vi.fn(() => ({})),
@@ -147,10 +157,86 @@ beforeEach(() => {
     vi.clearAllMocks();
     mockFindMany.mockResolvedValue([]);
     mockCount.mockResolvedValue(0);
+    mockResolveIdentity.mockResolvedValue({
+        rootId: 1,
+        rootUuid: "canonical-uuid",
+        memberUuids: ["canonical-uuid", "alias-uuid"],
+    });
+});
+
+describe("QueryHelper canonical comedian lineup clause", () => {
+    it("matches only the resolved member UUID set", () => {
+        const helper = new QueryHelper({
+            params: { comedian: "Chris D'Elia" },
+            timezone: "UTC",
+        });
+
+        expect(
+            helper.getLineupItemClause(["canonical-uuid", "alias-uuid"]),
+        ).toEqual({
+            lineupItems: {
+                some: {
+                    comedianId: {
+                        in: ["canonical-uuid", "alias-uuid"],
+                    },
+                },
+            },
+        });
+    });
+
+    it("fails closed for an unresolved nonempty comedian filter", () => {
+        const helper = new QueryHelper({
+            params: { comedian: "Chris D" },
+            timezone: "UTC",
+        });
+
+        expect(helper.getLineupItemClause()).toEqual({
+            lineupItems: { some: { comedianId: { in: [] } } },
+        });
+    });
 });
 
 describe("findShowsWithCount", () => {
     describe("happy path", () => {
+        it("uses exact canonical UUIDs instead of substring name matching", async () => {
+            const helper = makeHelper({ comedian: "Chris D'Elia" });
+
+            await findShowsWithCount(helper as never);
+
+            expect(mockResolveIdentity).toHaveBeenCalledWith("Chris D'Elia");
+            expect(helper.getLineupItemClause).toHaveBeenCalledWith([
+                "canonical-uuid",
+                "alias-uuid",
+            ]);
+            expect(mockCount).toHaveBeenCalledWith({
+                where: expect.objectContaining({
+                    lineupItems: {
+                        some: {
+                            comedianId: {
+                                in: ["canonical-uuid", "alias-uuid"],
+                            },
+                        },
+                    },
+                }),
+            });
+        });
+
+        it("fails closed when the exact comedian name is unresolved", async () => {
+            mockResolveIdentity.mockResolvedValue(null);
+            const helper = makeHelper({ comedian: "Chris D" });
+
+            await findShowsWithCount(helper as never);
+
+            expect(helper.getLineupItemClause).toHaveBeenCalledWith(undefined);
+            expect(mockCount).toHaveBeenCalledWith({
+                where: expect.objectContaining({
+                    lineupItems: {
+                        some: { comedianId: { in: [] } },
+                    },
+                }),
+            });
+        });
+
         it("returns totalCount and mapped shows", async () => {
             const fakeShow = makeShow({
                 id: 42,

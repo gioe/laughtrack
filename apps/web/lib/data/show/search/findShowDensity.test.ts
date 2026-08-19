@@ -1,18 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockFindMany } = vi.hoisted(() => ({
+const { mockFindMany, mockResolveIdentity } = vi.hoisted(() => ({
     mockFindMany: vi.fn(),
+    mockResolveIdentity: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
     db: { show: { findMany: mockFindMany } },
 }));
+vi.mock("@/lib/data/comedian/detail/resolveCanonicalComedianIdentity", () => ({
+    resolveCanonicalComedianIdentityByName: mockResolveIdentity,
+}));
 
 import { findShowDensity } from "./findShowDensity";
 
-function makeHelper() {
+function makeHelper(comedian?: string) {
     return {
-        params: { clubId: undefined as string | undefined },
+        params: {
+            clubId: undefined as string | undefined,
+            comedian,
+        },
         timezone: "America/New_York",
         getDateClause: vi.fn(() => ({
             date: {
@@ -24,13 +31,22 @@ function makeHelper() {
             zipCode: { in: ["10001", "10002"] },
         })),
         getClubNameClause: vi.fn(() => ({})),
-        getLineupItemClause: vi.fn(() => ({ lineupItems: {} })),
+        getLineupItemClause: vi.fn((memberUuids?: string[]) => ({
+            lineupItems: comedian
+                ? { some: { comedianId: { in: memberUuids ?? [] } } }
+                : {},
+        })),
     };
 }
 
 beforeEach(() => {
     vi.clearAllMocks();
     mockFindMany.mockResolvedValue([]);
+    mockResolveIdentity.mockResolvedValue({
+        rootId: 1,
+        rootUuid: "canonical-uuid",
+        memberUuids: ["canonical-uuid", "alias-uuid"],
+    });
 });
 
 describe("findShowDensity", () => {
@@ -89,24 +105,12 @@ describe("findShowDensity", () => {
 
     it("applies the helper lineup clause when a comedian filter is set", async () => {
         const helper = {
-            ...makeHelper(),
+            ...makeHelper("Akaash Singh"),
             getZipCodeClause: vi.fn(() => ({})),
-            getLineupItemClause: vi.fn(() => ({
+            getLineupItemClause: vi.fn((memberUuids?: string[]) => ({
                 lineupItems: {
                     some: {
-                        comedian: {
-                            OR: [
-                                {
-                                    name: { contains: "Akaash" },
-                                    parentComedianId: null,
-                                },
-                                {
-                                    parentComedian: {
-                                        name: { contains: "Akaash" },
-                                    },
-                                },
-                            ],
-                        },
+                        comedianId: { in: memberUuids ?? [] },
                     },
                 },
             })),
@@ -120,24 +124,15 @@ describe("findShowDensity", () => {
                 where: expect.objectContaining({
                     lineupItems: {
                         some: {
-                            comedian: {
-                                OR: [
-                                    {
-                                        name: { contains: "Akaash" },
-                                        parentComedianId: null,
-                                    },
-                                    {
-                                        parentComedian: {
-                                            name: { contains: "Akaash" },
-                                        },
-                                    },
-                                ],
+                            comedianId: {
+                                in: ["canonical-uuid", "alias-uuid"],
                             },
                         },
                     },
                 }),
             }),
         );
+        expect(mockResolveIdentity).toHaveBeenCalledWith("Akaash Singh");
     });
 
     it("applies the helper club-name clause when a club filter is set", async () => {
@@ -191,23 +186,11 @@ describe("findShowDensity", () => {
 
     it("composes zip + comedian clauses together in a single where", async () => {
         const helper = {
-            ...makeHelper(),
-            getLineupItemClause: vi.fn(() => ({
+            ...makeHelper("Akaash Singh"),
+            getLineupItemClause: vi.fn((memberUuids?: string[]) => ({
                 lineupItems: {
                     some: {
-                        comedian: {
-                            OR: [
-                                {
-                                    name: { contains: "Akaash" },
-                                    parentComedianId: null,
-                                },
-                                {
-                                    parentComedian: {
-                                        name: { contains: "Akaash" },
-                                    },
-                                },
-                            ],
-                        },
+                        comedianId: { in: memberUuids ?? [] },
                     },
                 },
             })),
@@ -224,7 +207,9 @@ describe("findShowDensity", () => {
                     },
                     lineupItems: {
                         some: expect.objectContaining({
-                            comedian: expect.any(Object),
+                            comedianId: {
+                                in: ["canonical-uuid", "alias-uuid"],
+                            },
                         }),
                     },
                 }),

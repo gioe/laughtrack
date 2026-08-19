@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockCount, mockFindMany } = vi.hoisted(() => ({
+const { mockCount, mockFindMany, mockResolveIdentity } = vi.hoisted(() => ({
     mockCount: vi.fn(),
     mockFindMany: vi.fn(),
+    mockResolveIdentity: vi.fn(),
 }));
 
 type PastShowsFindManyArgs = {
@@ -15,6 +16,9 @@ type PastShowsFindManyArgs = {
 
 vi.mock("@/lib/db", () => ({
     db: { show: { count: mockCount, findMany: mockFindMany } },
+}));
+vi.mock("./resolveCanonicalComedianIdentity", () => ({
+    resolveCanonicalComedianIdentityByName: mockResolveIdentity,
 }));
 vi.mock("@/util/imageUtil", () => ({
     buildClubImageUrl: vi.fn(
@@ -40,7 +44,11 @@ function makeHelper(
         "comedian" in overrides ? overrides.comedian : "some-comedian-uuid";
     return {
         params: { comedian },
-        getLineupItemClause: vi.fn(() => ({ lineupItems: {} })),
+        getLineupItemClause: vi.fn((memberUuids?: string[]) => ({
+            lineupItems: comedian
+                ? { some: { comedianId: { in: memberUuids ?? [] } } }
+                : {},
+        })),
         getUserId: vi.fn(() => overrides.userId ?? undefined),
     };
 }
@@ -90,6 +98,11 @@ beforeEach(() => {
     vi.clearAllMocks();
     mockFindMany.mockResolvedValue([]);
     mockCount.mockResolvedValue(0);
+    mockResolveIdentity.mockResolvedValue({
+        rootId: 1,
+        rootUuid: "canonical-uuid",
+        memberUuids: ["canonical-uuid", "alias-uuid"],
+    });
 });
 
 describe("findPastShowsForComedian", () => {
@@ -106,6 +119,41 @@ describe("findPastShowsForComedian", () => {
     });
 
     describe("happy path", () => {
+        it("filters by the exact canonical member UUIDs", async () => {
+            const helper = makeHelper({ comedian: "Chris D'Elia" });
+
+            await findPastShowsForComedian(helper as never);
+
+            expect(mockResolveIdentity).toHaveBeenCalledWith("Chris D'Elia");
+            expect(helper.getLineupItemClause).toHaveBeenCalledWith([
+                "canonical-uuid",
+                "alias-uuid",
+            ]);
+            expect(mockCount).toHaveBeenCalledWith({
+                where: expect.objectContaining({
+                    lineupItems: {
+                        some: {
+                            comedianId: {
+                                in: ["canonical-uuid", "alias-uuid"],
+                            },
+                        },
+                    },
+                }),
+            });
+        });
+
+        it("returns no shows when an exact comedian identity is unresolved", async () => {
+            mockResolveIdentity.mockResolvedValue(null);
+
+            const result = await findPastShowsForComedian(
+                makeHelper({ comedian: "Chris D" }) as never,
+            );
+
+            expect(result).toEqual({ shows: [], totalCount: 0 });
+            expect(mockCount).not.toHaveBeenCalled();
+            expect(mockFindMany).not.toHaveBeenCalled();
+        });
+
         it("returns totalCount and mapped shows", async () => {
             const show = makeShow({ id: 42, name: "Old Show" });
             mockCount.mockResolvedValue(3);

@@ -10,6 +10,7 @@ import { SortParamValue } from "@/objects/enum/sortParamValue";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 import { Prisma } from "@prisma/client";
+import { resolveCanonicalComedianIdentityByName } from "@/lib/data/comedian/detail/resolveCanonicalComedianIdentity";
 
 interface ShowsResponse {
     shows: ShowDTO[];
@@ -39,6 +40,11 @@ export async function findShowsWithCount(
         const dateFilter =
             "date" in dateClause ? dateClause : { date: { gte: new Date() } };
         const maxPriceClause = helper.getMaxPriceShowsClause();
+        const comedianIdentity = helper.params.comedian
+            ? await resolveCanonicalComedianIdentityByName(
+                  helper.params.comedian,
+              )
+            : null;
         const searchWhereClause: Prisma.ShowWhereInput = {
             // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
             ...dateFilter,
@@ -53,7 +59,7 @@ export async function findShowsWithCount(
             },
 
             // If the 'comedian' param is provided, it means we're doing a search for shows that contain a specific comedian.
-            ...helper.getLineupItemClause(),
+            ...helper.getLineupItemClause(comedianIdentity?.memberUuids),
 
             // Match any shows with tags matching the display of the provided filter
             ...helper.getShowTagsClause(),

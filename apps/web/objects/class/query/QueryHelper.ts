@@ -502,51 +502,20 @@ export class QueryHelper {
     }
 
     /**
-     * Generates a Prisma query clause for filtering shows based on comedian lineup items.
-     * This method constructs a query that matches shows where either:
-     * 1. The comedian's name matches the search parameter directly (for parent comedians)
-     * 2. The comedian's parent name matches the search parameter (for child comedians)
-     *
-     * @returns An object containing the lineup items clause if a comedian search parameter exists,
-     * or an empty object if no comedian parameter is provided.
-     *
-     * @example
-     * // With comedian search parameter "John"
-     * // Returns shows where John is either directly in the lineup
-     * // or where a comedian with John as their parent is in the lineup
+     * Filters shows to an already-resolved canonical comedian identity.
+     * Callers resolve exact names to the root's complete UUID set before
+     * building the query. A nonempty comedian parameter with no resolved UUIDs
+     * deliberately emits `in: []`, which fails closed instead of falling back
+     * to substring matching.
      */
-    getLineupItemClause() {
+    getLineupItemClause(memberUuids?: readonly string[]) {
         const comedian = this.params.comedian;
         return {
             lineupItems: {
                 ...(comedian
                     ? {
-                          // Lineup items represent shows where the comedian is on the lineup.
-                          // For every comedian query, we want to return to possibilities:
                           some: {
-                              comedian: {
-                                  OR: [
-                                      // The comedian in the lineup item matches the supplieed query param and has no parent (meaning it is the parent)
-                                      {
-                                          name: {
-                                              contains: comedian,
-                                              mode: Prisma.QueryMode
-                                                  .insensitive,
-                                          },
-                                          parentComedianId: null,
-                                      },
-                                      // OR the comedian in the lineup's parent matches the query param.
-                                      {
-                                          parentComedian: {
-                                              name: {
-                                                  contains: comedian,
-                                                  mode: Prisma.QueryMode
-                                                      .insensitive,
-                                              },
-                                          },
-                                      },
-                                  ],
-                              },
+                              comedianId: { in: [...(memberUuids ?? [])] },
                           },
                       }
                     : {}),

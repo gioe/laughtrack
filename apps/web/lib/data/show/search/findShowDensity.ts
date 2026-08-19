@@ -2,6 +2,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { db } from "@/lib/db";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { Prisma } from "@prisma/client";
+import { resolveCanonicalComedianIdentityByName } from "@/lib/data/comedian/detail/resolveCanonicalComedianIdentity";
 
 export type ShowDensity = Record<string, number>;
 
@@ -15,6 +16,11 @@ export async function findShowDensity(
             ? Number(helper.params.clubId)
             : undefined;
         const dateClause = helper.getDateClause();
+        const comedianIdentity = helper.params.comedian
+            ? await resolveCanonicalComedianIdentityByName(
+                  helper.params.comedian,
+              )
+            : null;
         const whereClause: Prisma.ShowWhereInput = {
             ...dateClause,
             club: {
@@ -23,7 +29,7 @@ export async function findShowDensity(
                 ...(zipCodeClause.zipCode && zipCodeClause),
                 ...(clubNameClause.name && clubNameClause),
             },
-            ...helper.getLineupItemClause(),
+            ...helper.getLineupItemClause(comedianIdentity?.memberUuids),
         };
 
         const rows = await db.show.findMany({
