@@ -1047,6 +1047,33 @@ class TestPushCandidateSql:
         assert "sn.notification_type = 'email'" in sql_arg
         assert "AND sn.comedian_id = c.uuid" not in sql_arg
 
+    def test_fetch_candidates_expands_favorites_through_the_full_canonical_family(self):
+        service = ComedianArrivalNotificationService()
+
+        mock_conn = MagicMock()
+        mock_cur = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_cur.__enter__ = MagicMock(return_value=mock_cur)
+        mock_cur.__exit__ = MagicMock(return_value=False)
+        mock_conn.cursor.return_value = mock_cur
+        mock_cur.description = []
+        mock_cur.fetchall.return_value = []
+
+        with patch(
+            "laughtrack.core.services.notification.service.get_connection",
+            return_value=mock_conn,
+        ):
+            service._fetch_candidates(discovered_within_days=3)
+
+        sql_arg = mock_cur.execute.call_args.args[0]
+        assert "WITH RECURSIVE favorite_ancestors" in sql_arg
+        assert "parent.id = ancestors.parent_comedian_id" in sql_arg
+        assert "child.parent_comedian_id = members.member_id" in sql_arg
+        assert "li.comedian_id = members.member_uuid" in sql_arg
+        assert "SELECT DISTINCT members.profile_id, members.root_id, li.show_id" in sql_arg
+        assert sql_arg.count("first_discovered_at >= NOW() - INTERVAL '3 days'") == 1
+
     def test_fetch_candidates_filters_to_recently_discovered_shows(self):
         service = ComedianArrivalNotificationService()
 
@@ -1154,6 +1181,65 @@ class TestRunMultipleCandidates:
             show_id=1,
             notification_type="email",
             notification_group_id=ANY,
+        )
+
+    def test_parent_and_child_rows_produce_one_candidate_per_channel(self):
+        canonical = {
+            "comedian_uuid": "canonical-uuid",
+            "comedian_name": "Canonical Comic",
+            "show_id": 1,
+        }
+        rows = [
+            _make_row(**canonical),
+            _make_row(**canonical),
+            _make_row(
+                **canonical,
+                notification_type="push",
+                push_token_id="token-row-1",
+                push_token="device-token",
+                push_platform="ios",
+            ),
+            _make_row(
+                **canonical,
+                notification_type="push",
+                push_token_id="token-row-1",
+                push_token="device-token",
+                push_platform="ios",
+            ),
+        ]
+
+        mock_zip = MagicMock()
+        mock_zip.distance_miles.return_value = 5.0
+        push_sender = MagicMock()
+        push_sender.send_show_notification.return_value = PushDeliveryResult(
+            success=True,
+            status_code=200,
+        )
+        service = ComedianArrivalNotificationService(
+            zip_distance=mock_zip,
+            push_sender=push_sender,
+        )
+
+        with patch.object(service, "_fetch_candidates", return_value=rows):
+            with patch(
+                "laughtrack.core.services.notification.service.EmailService"
+            ) as mock_email:
+                with patch.object(service, "_record_notification") as mock_record:
+                    summary = service.run(radius_miles=50.0)
+
+        assert summary["candidates"] == 2
+        assert summary["emails_sent"] == 1
+        assert summary["push_candidates"] == 1
+        assert summary["push_sent"] == 1
+        mock_email.send_email.assert_called_once()
+        push_sender.send_show_notification.assert_called_once()
+        assert mock_record.call_count == 2
+        assert {
+            call.kwargs["notification_type"] for call in mock_record.call_args_list
+        } == {"email", "push"}
+        assert all(
+            call.kwargs["comedian_id"] == "canonical-uuid"
+            for call in mock_record.call_args_list
         )
 
     def test_sends_to_all_within_radius(self):

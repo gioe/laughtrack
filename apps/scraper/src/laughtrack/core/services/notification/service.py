@@ -25,6 +25,67 @@ from laughtrack.core.services.notification.geo import ZipCodeDistance
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.email.service import EmailService
 
+# Mirror the web canonical-identity resolver in SQL. UNION makes both traversals
+# cycle-safe; descendants intentionally remain eligible when hidden because
+# suppressed alias rows can still own legitimate lineup_items.
+_CANONICAL_FAMILY_CTE_SQL = """
+WITH RECURSIVE favorite_ancestors AS (
+    SELECT
+        fc.profile_id,
+        c.id AS comedian_id,
+        c.parent_comedian_id
+    FROM favorite_comedians fc
+    JOIN comedians c ON c.uuid = fc.comedian_id
+    WHERE c.visible = true
+
+    UNION
+
+    SELECT
+        ancestors.profile_id,
+        parent.id AS comedian_id,
+        parent.parent_comedian_id
+    FROM favorite_ancestors ancestors
+    JOIN comedians parent ON parent.id = ancestors.parent_comedian_id
+),
+favorite_roots AS (
+    SELECT DISTINCT
+        ancestors.profile_id,
+        root.id AS root_id
+    FROM favorite_ancestors ancestors
+    JOIN comedians root ON root.id = ancestors.comedian_id
+    WHERE ancestors.parent_comedian_id IS NULL
+      AND root.visible = true
+),
+favorite_comedian_members AS (
+    SELECT
+        roots.profile_id,
+        roots.root_id,
+        root.id AS member_id,
+        root.uuid AS member_uuid
+    FROM favorite_roots roots
+    JOIN comedians root ON root.id = roots.root_id
+
+    UNION
+
+    SELECT
+        members.profile_id,
+        members.root_id,
+        child.id AS member_id,
+        child.uuid AS member_uuid
+    FROM favorite_comedian_members members
+    JOIN comedians child ON child.parent_comedian_id = members.member_id
+),
+candidate_shows AS (
+    SELECT DISTINCT members.profile_id, members.root_id, li.show_id
+    FROM favorite_comedian_members members
+    JOIN lineup_items li ON li.comedian_id = members.member_uuid
+    JOIN shows s2 ON s2.id = li.show_id
+    WHERE s2.date >= NOW()
+      AND s2.first_discovered_at IS NOT NULL
+      AND s2.first_discovered_at >= NOW() - INTERVAL '%s days'
+)
+"""
+
 _BASE_CANDIDATES_SELECT_SQL = """
 SELECT
     u.id          AS user_id,
@@ -57,17 +118,11 @@ SELECT
     {push_token_id_sql} AS push_token_id,
     {push_token_sql} AS push_token,
     {push_platform_sql} AS push_platform
-FROM users u
-JOIN user_profiles up ON up.user_id = u.id
-JOIN favorite_comedians fc ON fc.profile_id = up.id
-JOIN comedians c ON c.uuid = fc.comedian_id
-JOIN lineup_items li ON li.comedian_id = c.uuid AND li.show_id IN (
-    SELECT s2.id FROM shows s2
-    WHERE s2.date >= NOW()
-      AND s2.first_discovered_at IS NOT NULL
-      AND s2.first_discovered_at >= NOW() - INTERVAL '%s days'
-)
-JOIN shows s ON s.id = li.show_id
+FROM candidate_shows candidate
+JOIN user_profiles up ON up.id = candidate.profile_id
+JOIN users u ON u.id = up.user_id
+JOIN comedians c ON c.id = candidate.root_id
+JOIN shows s ON s.id = candidate.show_id
 JOIN clubs cl ON cl.id = s.club_id
 {push_join_sql}
 WHERE up.email_show_notifications = true
@@ -102,6 +157,7 @@ _PUSH_CANDIDATES_SQL = (
 )
 
 _CANDIDATES_SQL = f"""
+{_CANONICAL_FAMILY_CTE_SQL}
 {_EMAIL_CANDIDATES_SQL}
 UNION ALL
 {_PUSH_CANDIDATES_SQL}
@@ -1627,10 +1683,7 @@ class ComedianArrivalNotificationService:
                 # substitution, so we use Python string formatting for INTERVAL values
                 # after coercing them to ints.
                 discovered_within_days = int(discovered_within_days)
-                sql = _CANDIDATES_SQL % (
-                    discovered_within_days,
-                    discovered_within_days,
-                )
+                sql = _CANDIDATES_SQL % (discovered_within_days,)
                 cur.execute(sql)
                 cols = [d[0] for d in cur.description]
                 for raw in cur.fetchall():
