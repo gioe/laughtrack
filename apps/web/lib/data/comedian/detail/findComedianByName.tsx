@@ -7,6 +7,9 @@ import { NotFoundError } from "@/objects/NotFoundError";
 import { PodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
 import { dedupePodcastAppearances } from "@/lib/data/podcast/dedupePodcastAppearances";
+import { resolveCanonicalComedianIdentityById } from "./resolveCanonicalComedianIdentity";
+import { AVAILABLE_SHOW_WHERE } from "@/lib/data/show/showSelect";
+import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 
 function buildComedianSelect() {
     return {
@@ -30,33 +33,6 @@ function buildComedianSelect() {
             select: {
                 id: true,
                 name: true,
-            },
-        },
-        lineupItems: {
-            select: {
-                id: true,
-                show: {
-                    select: {
-                        id: true,
-                        date: true,
-                        name: true,
-                        club: {
-                            select: {
-                                id: true,
-                                name: true,
-                                city: true,
-                                state: true,
-                            },
-                        },
-                    },
-                },
-            },
-            where: {
-                show: {
-                    date: {
-                        gt: new Date(),
-                    },
-                },
             },
         },
         episodeAppearances: {
@@ -205,6 +181,42 @@ export async function findComedianByName(
             throw new NotFoundError(`Comedian with name "${name}" not found`);
         }
 
+        const identity = await resolveCanonicalComedianIdentityById(
+            comedianData.id,
+        );
+        const canonicalUpcomingShows = identity
+            ? await db.show.findMany({
+                  where: {
+                      date: { gte: new Date() },
+                      club: { visible: true },
+                      lineupItems: {
+                          some: {
+                              comedianId: { in: identity.memberUuids },
+                          },
+                      },
+                      AND: [AVAILABLE_SHOW_WHERE],
+                  },
+                  select: {
+                      id: true,
+                      date: true,
+                      name: true,
+                      tickets: { select: { soldOut: true } },
+                      club: {
+                          select: {
+                              id: true,
+                              name: true,
+                              city: true,
+                              state: true,
+                          },
+                      },
+                  },
+                  orderBy: [{ date: "asc" }, { id: "asc" }],
+              })
+            : [];
+        const availableUpcomingShows = canonicalUpcomingShows.filter(
+            (show) => !computeShowSoldOut(show.name, show.tickets),
+        );
+
         return {
             name: comedianData.name,
             id: comedianData.id,
@@ -215,15 +227,15 @@ export async function findComedianByName(
             hasImage: Boolean(comedianData.hasImage),
             uuid: comedianData.uuid,
             isFavorite: Boolean(comedianData.favoriteComedians?.length),
-            showCount: comedianData.lineupItems.length,
-            dates: comedianData.lineupItems.map((item) => ({
-                id: item.show.id,
-                date: item.show.date,
-                name: item.show.name,
-                clubId: item.show.club.id,
-                clubName: item.show.club.name,
-                clubCity: item.show.club.city,
-                clubState: item.show.club.state,
+            showCount: availableUpcomingShows.length,
+            dates: availableUpcomingShows.map((show) => ({
+                id: show.id,
+                date: show.date,
+                name: show.name,
+                clubId: show.club.id,
+                clubName: show.club.name,
+                clubCity: show.club.city,
+                clubState: show.club.state,
                 imageUrl: buildComedianImageUrl(
                     comedianData.name,
                     comedianData.hasImage,

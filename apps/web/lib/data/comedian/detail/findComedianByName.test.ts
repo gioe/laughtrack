@@ -1,7 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/db", () => ({
-    db: { comedian: { findFirst: vi.fn() } },
+    db: {
+        comedian: { findFirst: vi.fn() },
+        show: { findMany: vi.fn() },
+    },
+}));
+const { mockResolveIdentity } = vi.hoisted(() => ({
+    mockResolveIdentity: vi.fn(),
+}));
+vi.mock("./resolveCanonicalComedianIdentity", () => ({
+    resolveCanonicalComedianIdentityById: mockResolveIdentity,
 }));
 vi.mock("@/util/imageUtil", () => ({
     buildComedianImageUrl: vi.fn(
@@ -16,6 +25,14 @@ import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { defaultComedianWebsiteHealthFields } from "@/test/comedianFixtures";
 
 const mockFindFirst = vi.mocked(db.comedian.findFirst);
+const mockFindShows = vi.mocked(db.show.findMany);
+
+function showsFromLineupItems(row: ReturnType<typeof makeComedianRow>) {
+    return row.lineupItems.map((item) => ({
+        ...item.show,
+        tickets: [],
+    }));
+}
 
 function makeHelper(
     slug: string | undefined = "alice-smith",
@@ -211,11 +228,19 @@ function makeComedianRow(
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockResolveIdentity.mockResolvedValue({
+        rootId: 1,
+        rootUuid: "uuid-1",
+        memberUuids: ["uuid-1", "alias-uuid"],
+    });
+    mockFindShows.mockResolvedValue(
+        showsFromLineupItems(makeComedianRow()) as never,
+    );
 });
 
 describe("findComedianByName", () => {
     describe("showCount", () => {
-        it("equals lineupItems.length from the mocked Prisma response", async () => {
+        it("equals the canonical unique Show result length", async () => {
             const row = makeComedianRow({
                 lineupItems: [
                     ...makeComedianRow().lineupItems,
@@ -250,15 +275,17 @@ describe("findComedianByName", () => {
                 ],
             });
             mockFindFirst.mockResolvedValue(row);
+            mockFindShows.mockResolvedValue(showsFromLineupItems(row) as never);
 
             const result = await findComedianByName(makeHelper());
 
             expect(result.showCount).toBe(5);
         });
 
-        it("is 0 when lineupItems is empty", async () => {
+        it("is 0 when the canonical upcoming Show query is empty", async () => {
             const row = makeComedianRow({ lineupItems: [] });
             mockFindFirst.mockResolvedValue(row);
+            mockFindShows.mockResolvedValue([] as never);
 
             const result = await findComedianByName(makeHelper());
 
@@ -303,6 +330,52 @@ describe("findComedianByName", () => {
     });
 
     describe("dates", () => {
+        it("uses the same descendant-aware unique Show set for count and dates", async () => {
+            const row = makeComedianRow();
+            mockFindFirst.mockResolvedValue(row);
+            mockResolveIdentity.mockResolvedValue({
+                rootId: 854864,
+                rootUuid: "jesus-root",
+                memberUuids: ["jesus-root", "jesus-child", "jesus-grandchild"],
+            });
+            mockFindShows.mockResolvedValue([
+                {
+                    id: 9001,
+                    date: new Date("2026-09-01T20:00:00.000Z"),
+                    name: "Grandchild-only show",
+                    tickets: [],
+                    club: {
+                        id: 301,
+                        name: "Descendant Club",
+                        city: "Madrid",
+                        state: null,
+                    },
+                },
+            ] as never);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(mockFindShows).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        lineupItems: {
+                            some: {
+                                comedianId: {
+                                    in: [
+                                        "jesus-root",
+                                        "jesus-child",
+                                        "jesus-grandchild",
+                                    ],
+                                },
+                            },
+                        },
+                    }),
+                }),
+            );
+            expect(result.showCount).toBe(1);
+            expect(result.dates?.map((show) => show.id)).toEqual([9001]);
+        });
+
         it("maps upcoming show city data into dates for header city counts", async () => {
             const row = makeComedianRow();
             mockFindFirst.mockResolvedValue(row);
