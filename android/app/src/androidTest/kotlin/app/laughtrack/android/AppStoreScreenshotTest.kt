@@ -355,11 +355,8 @@ class AppStoreScreenshotTest {
         waitFor(hasText("Guest mode"))
         if (capture("11_Profile")) return
 
-        // Present the protected-action prompt over a neutral app destination instead
-        // of making the guest Profile hierarchy compete with the modal. No provider
-        // is clicked, so Custom Tabs / external OAuth never launches.
-        navigate(navController, AppRoute.Discover)
-        waitFor(hasContentDescription("Edit location"), timeoutMs = 20_000)
+        // Retain the guest Profile context behind the protected-action prompt.
+        // No provider is clicked, so Custom Tabs / external OAuth never launches.
         composeRule.runOnIdle { showLoginPrompt = true }
         waitFor(hasText("Sign in to save favorites"))
         listOf("Continue with Google", "Continue with Apple", "Email me a sign-in link").forEach { option ->
