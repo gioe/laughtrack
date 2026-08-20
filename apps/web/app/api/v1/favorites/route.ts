@@ -5,6 +5,7 @@ import { NO_STORE_CACHE_CONTROL } from "@/lib/httpCache";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { resolveCanonicalComedianIdentityById } from "@/lib/data/comedian/detail/resolveCanonicalComedianIdentity";
 
 const favoriteComedianSelect = {
     id: true,
@@ -25,11 +26,6 @@ const favoriteComedianSelect = {
         orderBy: { publishedAt: "desc" },
         take: 1,
         select: { avatarPath: true, heroPath: true, isActive: true },
-    },
-    _count: {
-        select: {
-            lineupItems: true,
-        },
     },
 } as const;
 
@@ -66,33 +62,57 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 },
             },
         });
+        const favoritesWithShowCounts = await Promise.all(
+            favorites.map(async ({ comedian }) => {
+                const identity = await resolveCanonicalComedianIdentityById(
+                    comedian.id,
+                );
+                const showCount = identity
+                    ? await db.show.count({
+                          where: {
+                              lineupItems: {
+                                  some: {
+                                      comedianId: {
+                                          in: identity.memberUuids,
+                                      },
+                                  },
+                              },
+                          },
+                      })
+                    : 0;
+
+                return { comedian, showCount };
+            }),
+        );
 
         return NextResponse.json(
             {
-                data: favorites.map(({ comedian }) => ({
-                    id: comedian.id,
-                    uuid: comedian.uuid,
-                    name: comedian.name,
-                    imageUrl: buildComedianImageUrls({
-                        name: comedian.name,
-                        hasImage: comedian.hasImage,
-                        activeAsset: comedian.imageAssets?.[0] ?? null,
-                    }).imageUrl,
-                    socialData: {
+                data: favoritesWithShowCounts.map(
+                    ({ comedian, showCount }) => ({
                         id: comedian.id,
-                        instagramAccount: comedian.instagramAccount,
-                        instagramFollowers: comedian.instagramFollowers,
-                        tiktokAccount: comedian.tiktokAccount,
-                        tiktokFollowers: comedian.tiktokFollowers,
-                        youtubeAccount: comedian.youtubeAccount,
-                        youtubeFollowers: comedian.youtubeFollowers,
-                        website: comedian.website,
-                        popularity: comedian.popularity,
-                        linktree: comedian.linktree,
-                    },
-                    showCount: comedian._count.lineupItems,
-                    isFavorite: true,
-                })),
+                        uuid: comedian.uuid,
+                        name: comedian.name,
+                        imageUrl: buildComedianImageUrls({
+                            name: comedian.name,
+                            hasImage: comedian.hasImage,
+                            activeAsset: comedian.imageAssets?.[0] ?? null,
+                        }).imageUrl,
+                        socialData: {
+                            id: comedian.id,
+                            instagramAccount: comedian.instagramAccount,
+                            instagramFollowers: comedian.instagramFollowers,
+                            tiktokAccount: comedian.tiktokAccount,
+                            tiktokFollowers: comedian.tiktokFollowers,
+                            youtubeAccount: comedian.youtubeAccount,
+                            youtubeFollowers: comedian.youtubeFollowers,
+                            website: comedian.website,
+                            popularity: comedian.popularity,
+                            linktree: comedian.linktree,
+                        },
+                        showCount,
+                        isFavorite: true,
+                    }),
+                ),
             },
             {
                 headers: {

@@ -9,7 +9,11 @@ vi.mock("@/lib/db", () => ({
     db: {
         favoriteComedian: { findMany: vi.fn(), upsert: vi.fn() },
         comedian: { findUnique: vi.fn() },
+        show: { count: vi.fn() },
     },
+}));
+vi.mock("@/lib/data/comedian/detail/resolveCanonicalComedianIdentity", () => ({
+    resolveCanonicalComedianIdentityById: vi.fn(),
 }));
 vi.mock("@/lib/rateLimit", () => ({
     applyPublicReadRateLimit: vi.fn(() =>
@@ -27,11 +31,16 @@ import { GET, POST } from "./route";
 import { resolveAuth } from "@/lib/auth/resolveAuth";
 import { db } from "@/lib/db";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { resolveCanonicalComedianIdentityById } from "@/lib/data/comedian/detail/resolveCanonicalComedianIdentity";
 
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockFindUnique = vi.mocked(db.comedian.findUnique);
 const mockFindMany = vi.mocked(db.favoriteComedian.findMany);
 const mockUpsert = vi.mocked(db.favoriteComedian.upsert);
+const mockShowCount = vi.mocked(db.show.count);
+const mockResolveCanonicalComedianIdentityById = vi.mocked(
+    resolveCanonicalComedianIdentityById,
+);
 const mockApplyPublicReadRateLimit = vi.mocked(applyPublicReadRateLimit);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 
@@ -47,6 +56,7 @@ function makeRequest(
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockResolveCanonicalComedianIdentityById.mockResolvedValue(null);
 });
 
 describe("POST /api/v1/favorites", () => {
@@ -149,10 +159,15 @@ describe("POST /api/v1/favorites", () => {
                     popularity: 42,
                     linktree: null,
                     hasImage: true,
-                    _count: { lineupItems: 5 },
                 },
             },
         ] as never);
+        mockResolveCanonicalComedianIdentityById.mockResolvedValue({
+            rootId: 101,
+            rootUuid: "comedian-uuid-1",
+            memberUuids: ["comedian-uuid-1"],
+        });
+        mockShowCount.mockResolvedValue(5);
 
         const res = await GET(
             new NextRequest("http://localhost/api/v1/favorites"),
@@ -194,6 +209,66 @@ describe("POST /api/v1/favorites", () => {
                 },
             ],
         });
+    });
+
+    it("counts each show once across the full canonical descendant family", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockFindMany.mockResolvedValue([
+            {
+                comedian: {
+                    id: 854864,
+                    uuid: "jesus-root",
+                    name: "Jesús Sepúlveda",
+                    instagramAccount: null,
+                    instagramFollowers: null,
+                    tiktokAccount: null,
+                    tiktokFollowers: null,
+                    youtubeAccount: null,
+                    youtubeFollowers: null,
+                    website: null,
+                    popularity: 0,
+                    linktree: null,
+                    hasImage: false,
+                    imageAssets: [],
+                },
+            },
+        ] as never);
+        mockResolveCanonicalComedianIdentityById.mockResolvedValue({
+            rootId: 854864,
+            rootUuid: "jesus-root",
+            memberUuids: ["jesus-root", "jesus-child", "jesus-grandchild"],
+        });
+        // Prisma Show.count counts one Show row even when more than one matching
+        // canonical-family LineupItem exists for that show.
+        mockShowCount.mockResolvedValue(1);
+
+        const res = await GET(
+            new NextRequest("http://localhost/api/v1/favorites"),
+        );
+        const body = await res.json();
+
+        expect(mockResolveCanonicalComedianIdentityById).toHaveBeenCalledWith(
+            854864,
+        );
+        expect(mockShowCount).toHaveBeenCalledWith({
+            where: {
+                lineupItems: {
+                    some: {
+                        comedianId: {
+                            in: [
+                                "jesus-root",
+                                "jesus-child",
+                                "jesus-grandchild",
+                            ],
+                        },
+                    },
+                },
+            },
+        });
+        expect(body.data[0].showCount).toBe(1);
     });
 
     it('invokes applyPublicReadRateLimit with the "favorites" route prefix for POST', async () => {
