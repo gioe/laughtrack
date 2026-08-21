@@ -5,7 +5,77 @@ import { NO_STORE_CACHE_CONTROL } from "@/lib/httpCache";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-import { resolveCanonicalComedianIdentityById } from "@/lib/data/comedian/detail/resolveCanonicalComedianIdentity";
+import { Prisma } from "@prisma/client";
+
+type FavoriteShowCountRow = {
+    favorite_id: number;
+    show_count: bigint | number;
+};
+
+async function findCanonicalShowCounts(
+    comedianIds: number[],
+): Promise<Map<number, number>> {
+    if (comedianIds.length === 0) return new Map();
+
+    const rows = await db.$queryRaw<FavoriteShowCountRow[]>(Prisma.sql`
+        WITH RECURSIVE favorite_ancestors AS (
+            SELECT
+                seed.id AS favorite_id,
+                seed.id AS comedian_id,
+                seed.parent_comedian_id
+            FROM comedians seed
+            WHERE seed.id IN (${Prisma.join(comedianIds)})
+              AND seed.visible = true
+
+            UNION
+
+            SELECT
+                ancestors.favorite_id,
+                parent.id AS comedian_id,
+                parent.parent_comedian_id
+            FROM favorite_ancestors ancestors
+            JOIN comedians parent ON parent.id = ancestors.parent_comedian_id
+        ),
+        favorite_roots AS (
+            SELECT DISTINCT
+                ancestors.favorite_id,
+                root.id AS root_id
+            FROM favorite_ancestors ancestors
+            JOIN comedians root ON root.id = ancestors.comedian_id
+            WHERE ancestors.parent_comedian_id IS NULL
+              AND root.visible = true
+        ),
+        favorite_comedian_members AS (
+            SELECT
+                roots.favorite_id,
+                roots.root_id,
+                root.id AS member_id,
+                root.uuid AS member_uuid
+            FROM favorite_roots roots
+            JOIN comedians root ON root.id = roots.root_id
+
+            UNION
+
+            SELECT
+                members.favorite_id,
+                members.root_id,
+                child.id AS member_id,
+                child.uuid AS member_uuid
+            FROM favorite_comedian_members members
+            JOIN comedians child ON child.parent_comedian_id = members.member_id
+        )
+        SELECT
+            members.favorite_id,
+            COUNT(DISTINCT li.show_id) AS show_count
+        FROM favorite_comedian_members members
+        LEFT JOIN lineup_items li ON li.comedian_id = members.member_uuid
+        GROUP BY members.favorite_id
+    `);
+
+    return new Map(
+        rows.map((row) => [row.favorite_id, Number(row.show_count)]),
+    );
+}
 
 const favoriteComedianSelect = {
     id: true,
@@ -62,33 +132,15 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 },
             },
         });
-        const favoritesWithShowCounts = await Promise.all(
-            favorites.map(async ({ comedian }) => {
-                const identity = await resolveCanonicalComedianIdentityById(
-                    comedian.id,
-                );
-                const showCount = identity
-                    ? await db.show.count({
-                          where: {
-                              lineupItems: {
-                                  some: {
-                                      comedianId: {
-                                          in: identity.memberUuids,
-                                      },
-                                  },
-                              },
-                          },
-                      })
-                    : 0;
-
-                return { comedian, showCount };
-            }),
+        const showCounts = await findCanonicalShowCounts(
+            favorites.map(({ comedian }) => comedian.id),
         );
 
         return NextResponse.json(
             {
-                data: favoritesWithShowCounts.map(
-                    ({ comedian, showCount }) => ({
+                data: favorites.map(({ comedian }) => {
+                    const showCount = showCounts.get(comedian.id) ?? 0;
+                    return {
                         id: comedian.id,
                         uuid: comedian.uuid,
                         name: comedian.name,
@@ -111,8 +163,8 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                         },
                         showCount,
                         isFavorite: true,
-                    }),
-                ),
+                    };
+                }),
             },
             {
                 headers: {
