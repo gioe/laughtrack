@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockQueryRaw } = vi.hoisted(() => ({
+const { mockQueryRaw, mockResolveIdentity } = vi.hoisted(() => ({
     mockQueryRaw: vi.fn(),
+    mockResolveIdentity: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
     db: { $queryRaw: mockQueryRaw },
+}));
+vi.mock("./resolveCanonicalComedianIdentity", () => ({
+    resolveCanonicalComedianIdentityByName: mockResolveIdentity,
 }));
 vi.mock("@/util/imageUtil", () => ({
     buildClubImageUrl: vi.fn(
@@ -15,9 +19,7 @@ vi.mock("@/util/imageUtil", () => ({
 
 import { findRoomHistoryForComedian } from "./findRoomHistoryForComedian";
 
-function makeHelper(
-    overrides: Partial<{ comedian: string | undefined }> = {},
-) {
+function makeHelper(overrides: Partial<{ comedian: string | undefined }> = {}) {
     const comedian =
         "comedian" in overrides ? overrides.comedian : "Jane Comic";
     return {
@@ -60,9 +62,22 @@ function getQueryStrings(): string {
         .join(" ");
 }
 
+function getQueryValues(): readonly unknown[] {
+    const query = mockQueryRaw.mock.calls[0]?.[0] as
+        | { values?: readonly unknown[] }
+        | undefined;
+    return query?.values ?? [];
+}
+
 describe("findRoomHistoryForComedian", () => {
     beforeEach(() => {
         mockQueryRaw.mockReset();
+        mockResolveIdentity.mockReset();
+        mockResolveIdentity.mockResolvedValue({
+            rootId: 1,
+            rootUuid: "root-uuid",
+            memberUuids: ["root-uuid", "child-uuid"],
+        });
     });
 
     it("returns an empty array when no comedian is set on the helper", async () => {
@@ -70,29 +85,67 @@ describe("findRoomHistoryForComedian", () => {
         const result = await findRoomHistoryForComedian(helper as never);
 
         expect(result).toEqual([]);
+        expect(mockResolveIdentity).not.toHaveBeenCalled();
         expect(mockQueryRaw).not.toHaveBeenCalled();
     });
 
-    it("queries past shows for visible clubs scoped by lineup", async () => {
+    it("queries past shows for visible clubs using exact canonical member UUIDs", async () => {
         mockQueryRaw.mockResolvedValue([]);
 
         const helper = makeHelper();
         await findRoomHistoryForComedian(helper as never);
 
+        expect(mockResolveIdentity).toHaveBeenCalledWith("Jane Comic");
         expect(mockQueryRaw).toHaveBeenCalledTimes(1);
 
         const sql = getQueryStrings();
         expect(sql).toMatch(/FROM "shows"/);
         expect(sql).toMatch(/JOIN "clubs"/);
         expect(sql).toMatch(/JOIN "lineup_items"/);
-        expect(sql).toMatch(/JOIN "comedians"/);
+        expect(sql).toMatch(/li\."comedian_id" IN/);
+        expect(sql).not.toMatch(/ILIKE/);
+        expect(sql).not.toMatch(/JOIN "comedians"/);
+        expect(getQueryValues()).toEqual(
+            expect.arrayContaining(["root-uuid", "child-uuid"]),
+        );
         expect(sql).toMatch(/cl\.visible = true/);
         expect(sql).toMatch(/s\.date </);
         expect(sql).toMatch(/GROUP BY/);
         expect(sql).toMatch(/ORDER BY/);
     });
 
-    it("groups distinct shows per (comedian, club) pair and tracks the per-club max date", async () => {
+    it("includes deeper descendant UUIDs from canonical identity resolution", async () => {
+        mockResolveIdentity.mockResolvedValue({
+            rootId: 1,
+            rootUuid: "root-uuid",
+            memberUuids: ["root-uuid", "child-uuid", "grandchild-uuid"],
+        });
+        mockQueryRaw.mockResolvedValue([]);
+
+        await findRoomHistoryForComedian(makeHelper() as never);
+
+        expect(getQueryValues()).toEqual(
+            expect.arrayContaining([
+                "root-uuid",
+                "child-uuid",
+                "grandchild-uuid",
+            ]),
+        );
+    });
+
+    it("returns no history when an exact comedian identity is unresolved", async () => {
+        mockResolveIdentity.mockResolvedValue(null);
+
+        const result = await findRoomHistoryForComedian(
+            makeHelper({ comedian: "Jane" }) as never,
+        );
+
+        expect(mockResolveIdentity).toHaveBeenCalledWith("Jane");
+        expect(result).toEqual([]);
+        expect(mockQueryRaw).not.toHaveBeenCalled();
+    });
+
+    it("counts each show once per club across canonical family members and tracks the max date", async () => {
         const cellarMax = new Date("2025-02-14T20:00:00Z");
         const standMax = new Date("2023-09-01T20:00:00Z");
 
@@ -119,6 +172,9 @@ describe("findRoomHistoryForComedian", () => {
 
         const result = await findRoomHistoryForComedian(makeHelper() as never);
 
+        expect(getQueryStrings()).toMatch(
+            /COUNT\(DISTINCT s\.id\) AS play_count/,
+        );
         expect(result).toHaveLength(2);
         const cellar = result[0];
         expect(cellar.clubId).toBe(10);

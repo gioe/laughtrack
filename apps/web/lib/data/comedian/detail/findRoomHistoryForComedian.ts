@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { RoomHistoryDTO } from "@/objects/class/comedian/roomHistory.interface";
 import { buildClubImageUrl } from "@/util/imageUtil";
+import { resolveCanonicalComedianIdentityByName } from "./resolveCanonicalComedianIdentity";
 
 interface RoomHistoryRow {
     club_id: number;
@@ -22,7 +23,11 @@ export async function findRoomHistoryForComedian(
         return [];
     }
 
-    const namePattern = `%${comedian}%`;
+    const identity = await resolveCanonicalComedianIdentityByName(comedian);
+    if (!identity) {
+        return [];
+    }
+
     const now = new Date();
 
     const rows = await db.$queryRaw<RoomHistoryRow[]>(Prisma.sql`
@@ -37,15 +42,9 @@ export async function findRoomHistoryForComedian(
         FROM "shows" s
         JOIN "clubs" cl ON cl.id = s."club_id"
         JOIN "lineup_items" li ON li."show_id" = s.id
-        JOIN "comedians" c ON c.uuid = li."comedian_id"
-        LEFT JOIN "comedians" parent ON parent.id = c."parent_comedian_id"
         WHERE s.date < ${now}
           AND cl.visible = true
-          AND c.visible = true
-          AND (
-            (c.name ILIKE ${namePattern} AND c."parent_comedian_id" IS NULL)
-            OR (parent.name ILIKE ${namePattern} AND parent.visible = true)
-          )
+          AND li."comedian_id" IN (${Prisma.join(identity.memberUuids)})
         GROUP BY cl.id, cl.name, cl.city, cl.state, cl."has_image"
         ORDER BY play_count DESC, last_played_date DESC
     `);
