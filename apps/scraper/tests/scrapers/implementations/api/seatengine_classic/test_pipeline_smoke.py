@@ -155,6 +155,22 @@ async def test_transform_data_extracts_show_name_and_ticket():
 
 
 @pytest.mark.asyncio
+async def test_dated_event_title_is_not_persisted_as_comedian():
+    """Classic event titles are not structured performer evidence."""
+    title = "CARIE KARAVAS - SATURDAY, 9/5 @ 7:00PM"
+    scraper = SeatEngineClassicScraper(_club())
+    scraper.fetch_html = AsyncMock(return_value=_classic_html(event_name=title))
+    scraper._enrich_with_prices = AsyncMock()
+
+    page_data = await scraper.get_data(SCRAPING_URL)
+    shows = scraper.transform_data(page_data, source_url=SCRAPING_URL)
+
+    assert len(shows) == 1
+    assert shows[0].name == title
+    assert shows[0].lineup == []
+
+
+@pytest.mark.asyncio
 async def test_transform_data_returns_empty_for_empty_page_data():
     """transform_data() returns [] when page_data has no events."""
     scraper = SeatEngineClassicScraper(_club())

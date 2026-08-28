@@ -9,7 +9,6 @@ from dateutil import parser as dateutil_parser
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.utilities.datetime.utils import DateTimeUtils
 from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
-from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -107,9 +106,10 @@ class SeatEngineClassicTransformer(DataTransformer[JSONDict]):
                     )
                 )
 
-            # Treat event name as the headliner's name
+            # Classic SeatEngine exposes an event title, not structured talent.
+            # Canonical performers are added later by ShowHandler's existing
+            # title matcher when the title credibly names someone we know.
             name = raw_data.get("name") or ""
-            lineup = [Comedian(name)] if name else []
 
             return Show.create(
                 name=name,
@@ -117,7 +117,7 @@ class SeatEngineClassicTransformer(DataTransformer[JSONDict]):
                 show_page_url=show_url,
                 description=None,
                 tickets=tickets,
-                lineup=lineup,
+                lineup=[],
                 timezone=self.club.timezone,
                 club_id=self.club.id,
                 room=None,
