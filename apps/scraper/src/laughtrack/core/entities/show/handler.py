@@ -19,6 +19,7 @@ from sql.show_queries import ShowQueries
 
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 from laughtrack.utilities.domain.show.classifier import apply_show_type
+from laughtrack.utilities.domain.show.headliner import is_title_shaped_performer_name
 from laughtrack.utilities.domain.show.utils import ShowUtils
 from laughtrack.utilities.domain.show.validator import ShowValidator
 from laughtrack.foundation.infrastructure.database.operation import DatabaseOperationLogger
@@ -790,10 +791,22 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             if show_name_comedians := show_name_comedians_map.get(show.name, []):
                 existing_comedian_uuids = {comedian.uuid for comedian in show.lineup}
                 novel_comedians = [
-                    comedian for comedian in show_name_comedians if comedian.uuid not in existing_comedian_uuids
+                    comedian
+                    for comedian in show_name_comedians
+                    if comedian.uuid not in existing_comedian_uuids
+                    and not is_title_shaped_performer_name(comedian.name, show.name)
                 ]
                 if novel_comedians:
                     show.lineup.extend(novel_comedians)
+
+    def _remove_title_shaped_lineup_entries(self, shows: List[Show]) -> None:
+        """Strip event-title values before they can become comedian rows."""
+        for show in shows:
+            show.lineup = [
+                comedian
+                for comedian in show.lineup
+                if not is_title_shaped_performer_name(comedian.name, show.name)
+            ]
 
     def _headliner_from_empty_lineup_title(self, title: Optional[str]) -> Optional[str]:
         """Derive a headliner from narrowly recognized empty-lineup show titles."""
@@ -893,7 +906,9 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             show_names = [(show.name,) for show in shows]
             show_name_comedians_map = self.lineup_handler.get_comedians_from_show_names(show_names)
 
-            # Process comedian additions in memory
+            # Remove source fields that repeat a decorated event title before
+            # adding credible existing comedians found within that title.
+            self._remove_title_shaped_lineup_entries(shows)
             self._process_comedian_additions(shows, show_name_comedians_map)
             self._seed_headliners_from_empty_lineup_titles(shows)
 
