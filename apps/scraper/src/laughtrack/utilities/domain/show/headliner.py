@@ -28,6 +28,18 @@ _DASH_NAME_COMEDY_SPECIAL_RE = re.compile(
     rf"[-\u2013]\s*(?P<name>{_NAME_RE})\s+Comedy\s+Special\b",
     re.IGNORECASE,
 )
+_NUMERIC_DATE_RE = re.compile(
+    r"\b(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[12]\d|3[01])(?:/\d{2,4})?\b"
+)
+_WEEKDAY_RE = re.compile(
+    r"\b(?:mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|"
+    r"sat(?:urday)?|sun(?:day)?)\b",
+    re.IGNORECASE,
+)
+_CLOCK_TIME_RE = re.compile(
+    r"\b(?:0?[1-9]|1[0-2])(?::[0-5]\d)?\s*(?:a\.?m\.?|p\.?m\.?)\b",
+    re.IGNORECASE,
+)
 _TITLE_WORDS = frozenset(
     {
         "comedy",
@@ -87,6 +99,33 @@ def extract_explicit_headliner_from_title(title: Optional[str]) -> Optional[str]
         if candidate:
             return candidate
     return None
+
+
+def is_title_shaped_performer_name(
+    performer_name: Optional[str], show_title: Optional[str]
+) -> bool:
+    """Return whether a performer value is actually a decorated event title.
+
+    Exact title equality alone is not enough: structured feeds legitimately
+    repeat a headliner's name as both the event and talent. Requiring structural
+    show language or a date plus weekday/clock signal keeps that case while
+    rejecting schedule-decorated values such as
+    ``CARIE KARAVAS - SATURDAY, 9/5 @ 7:00PM``.
+    """
+    performer = " ".join((performer_name or "").split())
+    title = " ".join((show_title or "").split())
+    if not performer or performer.casefold() != title.casefold():
+        return False
+
+    if detect_false_positive(performer):
+        return True
+
+    has_date = _NUMERIC_DATE_RE.search(performer) is not None
+    has_schedule_context = (
+        _WEEKDAY_RE.search(performer) is not None
+        or _CLOCK_TIME_RE.search(performer) is not None
+    )
+    return has_date and has_schedule_context
 
 
 def _strip_title_noise(title: Optional[str]) -> str:

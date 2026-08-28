@@ -222,6 +222,32 @@ async def test_transform_extracts_lineup_and_tickets(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_title_shaped_talent_is_dropped_but_real_talents_remain():
+    """A decorated event title in talents does not erase genuine performers."""
+    title = "CARIE KARAVAS - FRIDAY, 8/28 @ 8:00PM"
+    scraper = SeatEngineScraper(_club())
+    show = _show_dict(show_id=56)
+    show["event"]["name"] = title
+    show["event"]["talents"] = [
+        {"name": title},
+        {"name": "Carie Karavas"},
+        {"name": "Mike Britt"},
+    ]
+    scraper.seatengine_client.venue_website = VENUE_WEBSITE
+
+    shows = scraper.transform_data(
+        SeatEnginePageData(event_list=[show]),
+        source_url=VENUE_ID,
+    )
+
+    assert len(shows) == 1
+    assert [comedian.name for comedian in shows[0].lineup] == [
+        "Carie Karavas",
+        "Mike Britt",
+    ]
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("room_slug", "expected_room"),
     [

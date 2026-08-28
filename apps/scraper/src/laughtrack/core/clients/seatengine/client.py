@@ -17,6 +17,7 @@ from laughtrack.core.clients.seatengine.price import coerce_inventory_price_cent
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.infrastructure.config.config_manager import ConfigManager
+from laughtrack.utilities.domain.show.headliner import is_title_shaped_performer_name
 
 
 class SeatEngineClient(BaseApiClient):
@@ -178,7 +179,13 @@ class SeatEngineClient(BaseApiClient):
         # Extract performers from the event's talents array
         event_data = show_dict.get("event", {})
         talents = event_data.get("talents", [])
-        lineup = [Comedian(talent.get("name", "")) for talent in talents if talent.get("name")]
+        show_title = event_data.get("name")
+        lineup = [
+            Comedian(talent["name"])
+            for talent in talents
+            if talent.get("name")
+            and not is_title_shaped_performer_name(talent["name"], show_title)
+        ]
 
         room = self._check_room(event_data)
 
