@@ -9,6 +9,7 @@ export const PGLITE_TEST_FILES = [
     "lib/discovery/features.test.ts",
     "lib/discovery/railPolicyMigration.test.ts",
     "prisma/adminActionAudit.test.ts",
+    "prisma/comedianVisibleConsolidation.test.ts",
     "prisma/discoveryEventsMigration.test.ts",
     "prisma/improvAsylumSourceMigration.test.ts",
     "prisma/podcastEpisodeUniqueRelease.test.ts",
