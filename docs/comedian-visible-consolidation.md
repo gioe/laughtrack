@@ -42,7 +42,7 @@ This document resolves three design questions before any code lands:
 
 ## Decision 1: Keep a residual `comedian_deny_list` for name-only orphans
 
-Add `comedians.visible Boolean? @default(true)` with `@@index([visible])`,
+Add `comedians.visible Boolean @default(true)` with `@@index([visible])`,
 mirroring the `clubs.visible` pattern. Migrate the ~348 deny-list rows whose
 normalized name matches an existing `comedians.name` to `visible=false` on
 that comedian row. **Leave the ~1,642 name-only orphan rows in
@@ -143,7 +143,7 @@ unchanged; only the user-facing labels and the filter option value moved.
    ```prisma
    model Comedian {
      // ... existing fields ...
-     visible Boolean? @default(true)
+     visible Boolean @default(true)
      blockReason String? @map("block_reason")
      blockAddedBy String? @map("block_added_by")
      blockAddedAt DateTime? @map("block_added_at")
@@ -230,51 +230,77 @@ unchanged; only the user-facing labels and the filter option value moved.
 
 ### Rollback
 
-The rollback is data-safe because step 2 snapshots the original deny-list
-before step 3 mutates it:
+The rollback is data-safe because the original consolidation snapshot and the
+repair archive retain migrated deny-list evidence, while the comedian row
+retains the latest block metadata written after this repair:
 
-1. **Application code**: standard `git revert` of the application PRs.
-2. **Data**: restore the deny-list from the archive snapshots, choosing the
-   newest archived record per normalized name, then unhide only comedians
-   that were promoted from the deny-list. The `visible=true` update is
-   scoped through the archives so that
-   any comedians an admin operator legitimately hid after the migration
-   (during the soak period) stay hidden through the rollback:
+1. **Data, phase A (before reverting application code)**: leave the live
+   residual deny-list intact so orphan-only blocks created during the soak
+   period survive. Snapshot the currently
+   visibility-blocked comedians into a staging table, using current block
+   metadata first and archived evidence as a fallback. Upsert those exact
+   names into the deny-list while the new application still suppresses them
+   through `visible=false`. Comedians explicitly unblocked during the soak
+   period are not recreated in the deny-list:
 
    ```sql
-   TRUNCATE comedian_deny_list;
-   INSERT INTO comedian_deny_list (name, reason, deleted_at, added_by)
-     SELECT DISTINCT ON (
-              lower(btrim(regexp_replace(replace(name, chr(160), ' '),
-                                         '[[:space:]]+', ' ', 'g')))
-            )
-            name, reason, deleted_at, added_by
-     FROM (
-       SELECT name, reason, deleted_at, added_by, archived_at
-       FROM comedian_deny_list_archive_pre_consolidation
-       UNION ALL
-       SELECT name, reason, deleted_at, added_by, archived_at
-       FROM comedian_visibility_block_archive
-     ) archived_blocks
-     ORDER BY lower(btrim(regexp_replace(replace(name, chr(160), ' '),
-                                         '[[:space:]]+', ' ', 'g'))),
-              archived_at DESC;
+   BEGIN;
 
-   UPDATE comedians SET visible = true
-   WHERE id IN (
-     SELECT c.id
-     FROM   comedians c
-     JOIN   comedian_deny_list_archive_pre_consolidation a
-       ON lower(btrim(regexp_replace(replace(c.name, chr(160), ' '),
-                                     '[[:space:]]+', ' ', 'g')))
-        = lower(btrim(regexp_replace(replace(a.name, chr(160), ' '),
-                                     '[[:space:]]+', ' ', 'g')))
-   );
+   CREATE TABLE comedian_visibility_block_rollback AS
+   SELECT c.id AS comedian_id,
+          c.name,
+          coalesce(c.block_reason, evidence.reason,
+                   'Restored visibility block') AS reason,
+          coalesce(c.block_added_at, evidence.deleted_at, now()) AS deleted_at,
+          coalesce(c.block_added_by, evidence.added_by, 'rollback') AS added_by
+   FROM comedians c
+   LEFT JOIN LATERAL (
+     SELECT archived.reason, archived.deleted_at, archived.added_by
+     FROM (
+       SELECT a.reason, a.deleted_at, a.added_by
+       FROM comedian_deny_list_archive_pre_consolidation a
+       WHERE lower(btrim(regexp_replace(replace(a.name, chr(160), ' '),
+                                        '[[:space:]]+', ' ', 'g')))
+           = lower(btrim(regexp_replace(replace(c.name, chr(160), ' '),
+                                        '[[:space:]]+', ' ', 'g')))
+       UNION ALL
+       SELECT a.reason, a.deleted_at, a.added_by
+       FROM comedian_visibility_block_archive a
+       WHERE a.comedian_id = c.id
+     ) archived
+     ORDER BY archived.deleted_at DESC
+     LIMIT 1
+   ) evidence ON true
+   WHERE c.visible = false
+     AND (c.block_reason IS NOT NULL OR evidence.reason IS NOT NULL);
+
+   INSERT INTO comedian_deny_list (name, reason, deleted_at, added_by)
+   SELECT name, reason, deleted_at, added_by
+   FROM comedian_visibility_block_rollback
+   ON CONFLICT (name) DO UPDATE
+     SET reason = excluded.reason,
+         deleted_at = excluded.deleted_at,
+         added_by = excluded.added_by;
+
+   COMMIT;
    ```
 
-3. **Schema**: drop `block_reason`, `block_added_by`, `block_added_at`, and
-   `visible` only after the reverted application is live. Retain the repair
-   archive as immutable operator evidence.
+2. **Application code**: deploy the standard `git revert` of the application
+   PRs. At this point both mechanisms suppress the staged comedians, so there
+   is no exposure window during the handoff.
+3. **Data, phase B**: after the reverted application is live, unhide only rows
+   recorded in `comedian_visibility_block_rollback`. Comedians hidden for
+   another reason remain hidden. Then drop `block_reason`, `block_added_by`,
+   `block_added_at`, and `visible`; retain both the repair archive and rollback
+   staging table as immutable operator evidence.
+
+   ```sql
+   UPDATE comedians
+   SET visible = true
+   WHERE id IN (
+     SELECT comedian_id FROM comedian_visibility_block_rollback
+   );
+   ```
 
 The archive table is retained indefinitely as an audit artifact; a follow-up
 chore task can drop it once the consolidation has soaked in production for an
@@ -282,27 +308,26 @@ agreed period (e.g., one quarter).
 
 ## Cross-client lockstep summary
 
-| Surface                                            | Touched by this consolidation?                                                                       | Action                                                                     |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `apps/web` comedian admin API                      | **No** — `isBlocked` field and `blocklist-add`/`blocklist-remove` actions kept (Decision 2 inverted) | n/a                                                                        |
-| `apps/web` club admin UI                           | Yes — "Hidden" label/filter/chip renamed to "Blocked"                                                | TASK-2640                                                                  |
-| `apps/web` `/api/v1` public read paths             | Yes — `visible: true` filter added to comedian queries                                               | shipped with the `comedians.visible` migration                             |
-| `apps/scraper` ingest filter                       | Yes — two-stage check                                                                                | shipped in `apps/scraper/src/laughtrack/core/entities/comedian/handler.py` |
-| `ios/Sources/LaughTrackAPIClient` (OpenAPI client) | **No** — no `isBlocked`/`isHidden` in `openapi.json` or Swift today                                  | TASK-2642 → `wont_do`                                                      |
-| `ios/` Swift call sites                            | **No** — no `.isBlocked` references                                                                  | TASK-2642 → `wont_do`                                                      |
+| Surface                                            | Touched by this consolidation?                                                       | Action                                                                     |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `apps/web` comedian admin API                      | Yes — stable actions now write `visible` and `isBlocked` derives only from that flag | TASK-3981                                                                  |
+| `apps/web` club admin UI                           | Yes — "Hidden" label/filter/chip renamed to "Blocked"                                | TASK-2640                                                                  |
+| `apps/web` `/api/v1` public read paths             | Yes — `visible: true` filter added to comedian queries                               | shipped with the `comedians.visible` migration                             |
+| `apps/scraper` ingest filter                       | Yes — two-stage check                                                                | shipped in `apps/scraper/src/laughtrack/core/entities/comedian/handler.py` |
+| `ios/Sources/LaughTrackAPIClient` (OpenAPI client) | **No** — no `isBlocked`/`isHidden` in `openapi.json` or Swift today                  | TASK-2642 → `wont_do`                                                      |
+| `ios/` Swift call sites                            | **No** — no `.isBlocked` references                                                  | TASK-2642 → `wont_do`                                                      |
 
-The cross-client parity rule in the repo `CLAUDE.md` is observed: the rename
-is being made deliberately on one client (web admin), the other client (iOS)
-is checked and explicitly noted as not requiring a mirror change, with the
-reason recorded here.
+The cross-client parity rule in the repo `CLAUDE.md` is observed: the web admin
+keeps its existing contract while changing the storage behind it, and the iOS
+client is checked and explicitly noted as not requiring a mirror change.
 
 ## Reversibility summary
 
 | Concern                                                       | Reversibility                                                      |
 | ------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Schema (add `comedians.visible`)                              | Trivially droppable; nullable with a default.                      |
-| Backfilled `visible=false` rows                               | Reversible from the archive snapshot.                              |
-| Deny-list rows promoted into `comedians.visible=false`        | Reversible from the archive snapshot.                              |
+| Schema (add `comedians.visible`)                              | Trivially droppable; non-null with a default.                      |
+| Backfilled `visible=false` rows                               | Reversible from archive evidence plus current block metadata.      |
+| Deny-list rows promoted into `comedians.visible=false`        | Reversible from archive evidence plus current block metadata.      |
 | Orphan name-only deny-list rows                               | Untouched by migration; reversibility N/A.                         |
 | Club admin "Hidden" → "Blocked" vocabulary rename (TASK-2640) | Reversible by git revert; UI labels only, no schema or DTO change. |
 
@@ -312,8 +337,8 @@ reason recorded here.
   `LineupItem`, etc.) when a comedian is hidden. This ADR treats `visible`
   as a read-time filter on the parent only; child rows remain intact so
   unhide is a no-op restore. If a future requirement demands "user
-  favorited comedian X who is now hidden", the existing `where: { visible:
-true }` filter on the favorites query already handles UI suppression
+  favorited comedian X who is now hidden", the existing
+  `where: { visible: true }` filter on the favorites query already handles UI suppression
   without touching `FavoriteComedian` rows.
 - **A dedicated admin surface for the residual orphan deny-list.** The
   existing admin deny-list endpoints
