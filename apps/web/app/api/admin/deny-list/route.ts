@@ -67,6 +67,20 @@ async function findEntry(
     return rows[0] ?? null;
 }
 
+async function findExistingComedian(
+    tx: Pick<Prisma.TransactionClient, "$queryRaw">,
+    name: string,
+) {
+    const rows = await tx.$queryRaw<Array<{ id: number }>>`
+        SELECT id
+        FROM comedians
+        WHERE lower(btrim(regexp_replace(replace(name, chr(160), ' '), '[[:space:]]+', ' ', 'g'))) =
+              lower(btrim(regexp_replace(replace(${name}, chr(160), ' '), '[[:space:]]+', ' ', 'g')))
+        LIMIT 1
+    `;
+    return rows[0] ?? null;
+}
+
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
@@ -110,6 +124,9 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
 
     try {
         const result = await db.$transaction(async (tx: DenyListWriter) => {
+            if (await findExistingComedian(tx, name)) {
+                return { conflict: true as const };
+            }
             const before = await findEntry(tx, name);
             const nameToWrite = before?.name ?? name;
             const rows = await tx.$queryRaw<DenyListRow[]>`
@@ -142,6 +159,15 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
 
             return { entry: after, deniedPodcasts };
         });
+
+        if ("conflict" in result) {
+            return NextResponse.json(
+                {
+                    error: "Existing comedians must be blocked through visibility",
+                },
+                { status: 409 },
+            );
+        }
 
         revalidatePodcastSurfaces();
         return NextResponse.json({ ok: true, ...result }, { status: 201 });

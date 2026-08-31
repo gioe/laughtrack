@@ -173,6 +173,7 @@ describe("POST /api/admin/deny-list", () => {
         const txQueryRaw = vi
             .fn()
             .mockResolvedValueOnce([])
+            .mockResolvedValueOnce([])
             .mockResolvedValueOnce([
                 {
                     name: "Open Mic",
@@ -228,6 +229,7 @@ describe("POST /api/admin/deny-list", () => {
         const tx = {
             $queryRaw: vi
                 .fn()
+                .mockResolvedValueOnce([])
                 .mockResolvedValueOnce([])
                 .mockResolvedValueOnce([
                     {
@@ -300,6 +302,77 @@ describe("POST /api/admin/deny-list", () => {
                 }),
             }),
         });
+    });
+
+    it("rejects a normalized name that belongs to an existing comedian", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const txQueryRaw = vi.fn().mockResolvedValueOnce([{ id: 42 }]);
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                $queryRaw: txQueryRaw,
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await POST(
+            makeRequest("POST", {
+                name: "  ALIAS\u00a0Comic ",
+                reason: "Existing identity",
+            }),
+        );
+
+        expect(res.status).toBe(409);
+        expect(txQueryRaw).toHaveBeenCalledTimes(1);
+        expect(mockDenyHostedPodcasts).not.toHaveBeenCalled();
+    });
+});
+
+describe("orphan name lifecycle", () => {
+    it("preserves orphan name blocking", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const row = {
+            name: "Open Mic",
+            reason: "Event title",
+            added_by: "profile-1",
+            deleted_at: new Date("2026-08-28T12:00:00Z"),
+        };
+        const postQuery = vi
+            .fn()
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce([row]);
+        const deleteQuery = vi
+            .fn()
+            .mockResolvedValueOnce([row])
+            .mockResolvedValueOnce([row]);
+        mockTransaction
+            .mockImplementationOnce(async (callback) =>
+                callback({
+                    $queryRaw: postQuery,
+                    adminActionAudit: { create: vi.fn() },
+                } as never),
+            )
+            .mockImplementationOnce(async (callback) =>
+                callback({
+                    $queryRaw: deleteQuery,
+                    adminActionAudit: { create: vi.fn() },
+                } as never),
+            );
+
+        const created = await POST(
+            makeRequest("POST", { name: "Open Mic", reason: "Event title" }),
+        );
+        const removed = await DELETE(
+            makeRequest("DELETE", {
+                name: "Open Mic",
+                reason: "Reviewed orphan block",
+            }),
+        );
+
+        expect(created.status).toBe(201);
+        expect(removed.status).toBe(200);
+        expect(postQuery).toHaveBeenCalledTimes(3);
+        expect(deleteQuery).toHaveBeenCalledTimes(2);
     });
 });
 
