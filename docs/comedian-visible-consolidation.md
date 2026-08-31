@@ -144,6 +144,9 @@ unchanged; only the user-facing labels and the filter option value moved.
    model Comedian {
      // ... existing fields ...
      visible Boolean? @default(true)
+     blockReason String? @map("block_reason")
+     blockAddedBy String? @map("block_added_by")
+     blockAddedAt DateTime? @map("block_added_at")
 
      @@index([visible])
    }
@@ -203,16 +206,17 @@ unchanged; only the user-facing labels and the filter option value moved.
 
 ### Application changes that ship with the migration
 
-- `apps/web/app/api/admin/comedians/route.ts`: **unchanged from the pre-ADR
-  state** — the admin serializer continues to expose `isBlocked: Boolean(denyListEntry)`
-  and the actions remain `blocklist-add`/`blocklist-remove` (see Decision 2's
-  inverted scope). The new `comedians.visible` column is **not** read on the
-  admin path; the deny-list remains the suppression source of truth for the
-  admin UI. Setting `comedians.visible=false` is performed by the migration's
-  backfill statement, not by an admin action.
+- `apps/web/app/api/admin/comedians/route.ts`: keeps the stable
+  `blocklist-add`/`blocklist-remove` action names, but those actions write
+  `comedians.visible=false/true`. `isBlocked` is derived only from `visible`;
+  the nullable block fields preserve reason, actor, and timestamp without
+  becoming a second suppression signal.
 - `apps/web/app/api/admin/deny-list/route.ts`: continues to manage the
-  residual orphan table; admin docs note that the table is now
-  orphan-only.
+  residual orphan table. It rejects a normalized name that already belongs
+  to a comedian, preventing the suppression mechanisms from overlapping.
+- Comedian create and rename actions reject residual orphan-blocked names.
+  An operator must remove the orphan block first, making that transition
+  explicit and audited.
 - `apps/scraper/src/laughtrack/core/entities/comedian/handler.py`:
   `_filter_denied_comedians` becomes the two-stage check described under
   Decision 1.
@@ -230,17 +234,31 @@ The rollback is data-safe because step 2 snapshots the original deny-list
 before step 3 mutates it:
 
 1. **Application code**: standard `git revert` of the application PRs.
-2. **Data**: restore the deny-list from the archive snapshot, then unhide
-   only the comedians that were promoted from the deny-list at migration
-   time. The `visible=true` update is scoped through the archive so that
+2. **Data**: restore the deny-list from the archive snapshots, choosing the
+   newest archived record per normalized name, then unhide only comedians
+   that were promoted from the deny-list. The `visible=true` update is
+   scoped through the archives so that
    any comedians an admin operator legitimately hid after the migration
    (during the soak period) stay hidden through the rollback:
 
    ```sql
    TRUNCATE comedian_deny_list;
    INSERT INTO comedian_deny_list (name, reason, deleted_at, added_by)
-     SELECT name, reason, deleted_at, added_by
-     FROM   comedian_deny_list_archive_pre_consolidation;
+     SELECT DISTINCT ON (
+              lower(btrim(regexp_replace(replace(name, chr(160), ' '),
+                                         '[[:space:]]+', ' ', 'g')))
+            )
+            name, reason, deleted_at, added_by
+     FROM (
+       SELECT name, reason, deleted_at, added_by, archived_at
+       FROM comedian_deny_list_archive_pre_consolidation
+       UNION ALL
+       SELECT name, reason, deleted_at, added_by, archived_at
+       FROM comedian_visibility_block_archive
+     ) archived_blocks
+     ORDER BY lower(btrim(regexp_replace(replace(name, chr(160), ' '),
+                                         '[[:space:]]+', ' ', 'g'))),
+              archived_at DESC;
 
    UPDATE comedians SET visible = true
    WHERE id IN (
@@ -254,9 +272,9 @@ before step 3 mutates it:
    );
    ```
 
-3. **Schema**: `ALTER TABLE comedians DROP COLUMN visible;`. No application
-   code depends on the column at this point because step 1 already reverted
-   it.
+3. **Schema**: drop `block_reason`, `block_added_by`, `block_added_at`, and
+   `visible` only after the reverted application is live. Retain the repair
+   archive as immutable operator evidence.
 
 The archive table is retained indefinitely as an audit artifact; a follow-up
 chore task can drop it once the consolidation has soaked in production for an
@@ -264,14 +282,14 @@ agreed period (e.g., one quarter).
 
 ## Cross-client lockstep summary
 
-| Surface | Touched by this consolidation? | Action |
-| --- | --- | --- |
-| `apps/web` comedian admin API | **No** — `isBlocked` field and `blocklist-add`/`blocklist-remove` actions kept (Decision 2 inverted) | n/a |
-| `apps/web` club admin UI | Yes — "Hidden" label/filter/chip renamed to "Blocked" | TASK-2640 |
-| `apps/web` `/api/v1` public read paths | Yes — `visible: true` filter added to comedian queries | shipped with the `comedians.visible` migration |
-| `apps/scraper` ingest filter | Yes — two-stage check | shipped in `apps/scraper/src/laughtrack/core/entities/comedian/handler.py` |
-| `ios/Sources/LaughTrackAPIClient` (OpenAPI client) | **No** — no `isBlocked`/`isHidden` in `openapi.json` or Swift today | TASK-2642 → `wont_do` |
-| `ios/` Swift call sites | **No** — no `.isBlocked` references | TASK-2642 → `wont_do` |
+| Surface                                            | Touched by this consolidation?                                                                       | Action                                                                     |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `apps/web` comedian admin API                      | **No** — `isBlocked` field and `blocklist-add`/`blocklist-remove` actions kept (Decision 2 inverted) | n/a                                                                        |
+| `apps/web` club admin UI                           | Yes — "Hidden" label/filter/chip renamed to "Blocked"                                                | TASK-2640                                                                  |
+| `apps/web` `/api/v1` public read paths             | Yes — `visible: true` filter added to comedian queries                                               | shipped with the `comedians.visible` migration                             |
+| `apps/scraper` ingest filter                       | Yes — two-stage check                                                                                | shipped in `apps/scraper/src/laughtrack/core/entities/comedian/handler.py` |
+| `ios/Sources/LaughTrackAPIClient` (OpenAPI client) | **No** — no `isBlocked`/`isHidden` in `openapi.json` or Swift today                                  | TASK-2642 → `wont_do`                                                      |
+| `ios/` Swift call sites                            | **No** — no `.isBlocked` references                                                                  | TASK-2642 → `wont_do`                                                      |
 
 The cross-client parity rule in the repo `CLAUDE.md` is observed: the rename
 is being made deliberately on one client (web admin), the other client (iOS)
@@ -280,12 +298,12 @@ reason recorded here.
 
 ## Reversibility summary
 
-| Concern | Reversibility |
-| --- | --- |
-| Schema (add `comedians.visible`) | Trivially droppable; nullable with a default. |
-| Backfilled `visible=false` rows | Reversible from the archive snapshot. |
-| Deny-list rows promoted into `comedians.visible=false` | Reversible from the archive snapshot. |
-| Orphan name-only deny-list rows | Untouched by migration; reversibility N/A. |
+| Concern                                                       | Reversibility                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Schema (add `comedians.visible`)                              | Trivially droppable; nullable with a default.                      |
+| Backfilled `visible=false` rows                               | Reversible from the archive snapshot.                              |
+| Deny-list rows promoted into `comedians.visible=false`        | Reversible from the archive snapshot.                              |
+| Orphan name-only deny-list rows                               | Untouched by migration; reversibility N/A.                         |
 | Club admin "Hidden" → "Blocked" vocabulary rename (TASK-2640) | Reversible by git revert; UI labels only, no schema or DTO change. |
 
 ## Open items deliberately out of scope
@@ -295,14 +313,12 @@ reason recorded here.
   as a read-time filter on the parent only; child rows remain intact so
   unhide is a no-op restore. If a future requirement demands "user
   favorited comedian X who is now hidden", the existing `where: { visible:
-  true }` filter on the favorites query already handles UI suppression
+true }` filter on the favorites query already handles UI suppression
   without touching `FavoriteComedian` rows.
 - **A dedicated admin surface for the residual orphan deny-list.** The
   existing admin deny-list endpoints
   (`apps/web/app/api/admin/deny-list/route.ts`) continue to manage it
   unchanged; UI work, if any, belongs to a separate task.
-- **Backfilling `Reason` / `added_by` onto `comedians.visible=false`
-  rows.** The audit metadata moves into the archive snapshot rather than
-  into the `comedians` table to avoid widening that table. If reason-on-
-  comedian-row becomes important later, it can be added in a focused
-  follow-up migration without revisiting this ADR's core decisions.
+- **A separate suppression flag derived from block metadata.** The metadata
+  fields are historical context only. `visible` remains the sole signal used
+  to decide whether an existing comedian is blocked.
