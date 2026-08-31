@@ -64,6 +64,10 @@ type ComedianSnapshot = {
     }>;
     popularity: number;
     totalShows: number;
+    visible: boolean;
+    blockReason: string | null;
+    blockAddedBy: string | null;
+    blockAddedAt: Date | null;
     parentComedianId: number | null;
     parentComedian: { id: number; name: string } | null;
     comedianPodcasts: Array<{
@@ -277,16 +281,17 @@ function snapshotForAudit(comedian: ComedianSnapshot) {
         activeImageAsset: comedian.imageAssets?.[0] ?? null,
         popularity: comedian.popularity,
         totalShows: comedian.totalShows,
+        visible: comedian.visible,
+        blockReason: comedian.blockReason,
+        blockAddedBy: comedian.blockAddedBy,
+        blockAddedAt: serializeDate(comedian.blockAddedAt),
         parentComedianId: comedian.parentComedianId,
         parent: comedian.parentComedian,
         childCount: comedian._count.alternativeNames,
     };
 }
 
-function serializeComedian(
-    comedian: ComedianSnapshot,
-    denyListEntry: DenyListRow | null,
-): AdminComedianListItem {
+function serializeComedian(comedian: ComedianSnapshot): AdminComedianListItem {
     const activeImageAsset = comedian.imageAssets?.[0] ?? null;
     const nameImageUrl = buildComedianImageUrls({
         name: comedian.name,
@@ -335,10 +340,12 @@ function serializeComedian(
         totalShows: comedian.totalShows,
         parent: comedian.parentComedian,
         childCount: comedian._count.alternativeNames,
-        isBlocked: Boolean(denyListEntry),
-        blockReason: denyListEntry?.reason ?? null,
-        blockAddedBy: denyListEntry?.added_by ?? null,
-        blockAddedAt: serializeDate(denyListEntry?.deleted_at),
+        isBlocked: !comedian.visible,
+        blockReason: comedian.visible ? null : comedian.blockReason,
+        blockAddedBy: comedian.visible ? null : comedian.blockAddedBy,
+        blockAddedAt: comedian.visible
+            ? null
+            : serializeDate(comedian.blockAddedAt),
         attributedPodcasts: comedian.comedianPodcasts.map((link) => ({
             id: link.podcast.id,
             slug: link.podcast.slug,
@@ -448,6 +455,10 @@ const comedianSnapshotSelect = {
     },
     popularity: true,
     totalShows: true,
+    visible: true,
+    blockReason: true,
+    blockAddedBy: true,
+    blockAddedAt: true,
     parentComedianId: true,
     parentComedian: {
         select: {
@@ -877,12 +888,8 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                         },
                     });
 
-                    const denyListEntry = await findDenyListEntry(
-                        tx,
-                        after.name,
-                    );
                     return {
-                        comedian: serializeComedian(after, denyListEntry),
+                        comedian: serializeComedian(after),
                         attributionComedian:
                             attributionResolution?.comedian ?? null,
                         name: after.name,
@@ -944,99 +951,66 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
                         after: snapshotForAudit(after),
                     });
 
-                    const denyListEntry = await findDenyListEntry(
-                        tx,
-                        after.name,
-                    );
                     return {
-                        comedian: serializeComedian(after, denyListEntry),
+                        comedian: serializeComedian(after),
                         name: after.name,
                     };
                 }
 
-                const beforeDenyListEntry = await findDenyListEntry(
-                    tx,
-                    before.name,
-                );
-
                 if (parsed.data.action === "blocklist-remove") {
-                    if (!beforeDenyListEntry) {
+                    if (before.visible) {
                         return {
-                            comedian: serializeComedian(before, null),
+                            comedian: serializeComedian(before),
                             name: before.name,
                         };
                     }
 
-                    const deletedRows = await tx.$queryRaw<DenyListRow[]>`
-                        DELETE FROM comedian_deny_list
-                        WHERE lower(btrim(regexp_replace(replace(name, chr(160), ' '), '[[:space:]]+', ' ', 'g'))) =
-                              lower(btrim(regexp_replace(replace(${before.name}, chr(160), ' '), '[[:space:]]+', ' ', 'g')))
-                        RETURNING name, reason, added_by, deleted_at
-                    `;
-                    const deletedEntry = deletedRows[0] ?? beforeDenyListEntry;
+                    const after = await tx.comedian.update({
+                        where: { id: before.id },
+                        data: { visible: true },
+                        select: comedianSnapshotSelect,
+                    });
 
                     await writeAdminActionAudit(tx, {
                         actorProfileId: profileId,
-                        action: "comedian_deny_list.delete",
-                        entityType: "comedian_deny_list",
-                        entityId: deletedEntry.name,
+                        action: "comedian.visibility.unblock",
+                        entityType: "comedian",
+                        entityId: before.id,
                         reason: parsed.data.reason?.trim() || null,
-                        before: {
-                            name: deletedEntry.name,
-                            reason: deletedEntry.reason,
-                            addedBy: deletedEntry.added_by,
-                            addedAt: serializeDate(deletedEntry.deleted_at),
-                        },
-                        after: {},
+                        before: snapshotForAudit(before),
+                        after: snapshotForAudit(after),
                     });
 
                     return {
-                        comedian: serializeComedian(before, null),
+                        comedian: serializeComedian(after),
                         name: before.name,
                     };
                 }
 
                 const reason = parsed.data.reason?.trim() ?? "";
-                const name = normalizeName(before.name);
-                const rows = await tx.$queryRaw<DenyListRow[]>`
-                INSERT INTO comedian_deny_list (name, reason, added_by)
-                VALUES (${beforeDenyListEntry?.name ?? name}, ${reason}, ${profileId})
-                ON CONFLICT (name) DO UPDATE
-                SET reason = EXCLUDED.reason,
-                    added_by = EXCLUDED.added_by,
-                    deleted_at = now()
-                RETURNING name, reason, added_by, deleted_at
-            `;
-                const afterDenyListEntry = rows[0];
+                const after = await tx.comedian.update({
+                    where: { id: before.id },
+                    data: {
+                        visible: false,
+                        blockReason: reason,
+                        blockAddedBy: profileId,
+                        blockAddedAt: new Date(),
+                    },
+                    select: comedianSnapshotSelect,
+                });
 
                 await writeAdminActionAudit(tx, {
                     actorProfileId: profileId,
-                    action: beforeDenyListEntry
-                        ? "comedian_deny_list.update"
-                        : "comedian_deny_list.create",
-                    entityType: "comedian_deny_list",
-                    entityId: afterDenyListEntry.name,
+                    action: "comedian.visibility.block",
+                    entityType: "comedian",
+                    entityId: before.id,
                     reason,
-                    before: beforeDenyListEntry
-                        ? {
-                              name: beforeDenyListEntry.name,
-                              reason: beforeDenyListEntry.reason,
-                              addedBy: beforeDenyListEntry.added_by,
-                              addedAt: serializeDate(
-                                  beforeDenyListEntry.deleted_at,
-                              ),
-                          }
-                        : {},
-                    after: {
-                        name: afterDenyListEntry.name,
-                        reason: afterDenyListEntry.reason,
-                        addedBy: afterDenyListEntry.added_by,
-                        addedAt: serializeDate(afterDenyListEntry.deleted_at),
-                    },
+                    before: snapshotForAudit(before),
+                    after: snapshotForAudit(after),
                 });
 
                 return {
-                    comedian: serializeComedian(before, afterDenyListEntry),
+                    comedian: serializeComedian(after),
                     name: before.name,
                 };
             },
@@ -1098,6 +1072,13 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                     };
                 }
 
+                if (await findDenyListEntry(tx, name)) {
+                    return {
+                        error: "That name is blocked as an orphan identity",
+                        status: 409,
+                    };
+                }
+
                 const created = await tx.comedian.create({
                     data: {
                         name,
@@ -1116,9 +1097,8 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                     after: snapshotForAudit(created),
                 });
 
-                const denyListEntry = await findDenyListEntry(tx, created.name);
                 return {
-                    comedian: serializeComedian(created, denyListEntry),
+                    comedian: serializeComedian(created),
                     name: created.name,
                 };
             },
@@ -1232,6 +1212,16 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                     };
                 }
 
+                if (
+                    name !== before.name &&
+                    (await findDenyListEntry(tx, name))
+                ) {
+                    return {
+                        error: "That name is blocked as an orphan identity",
+                        status: 409,
+                    };
+                }
+
                 const shouldResolveYoutubeChannelId =
                     Boolean(youtubeAccount) &&
                     (youtubeChannelId === undefined ||
@@ -1326,9 +1316,8 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                     after: snapshotForAudit(after),
                 });
 
-                const denyListEntry = await findDenyListEntry(tx, after.name);
                 return {
-                    comedian: serializeComedian(after, denyListEntry),
+                    comedian: serializeComedian(after),
                     previousName: before.name,
                     name: after.name,
                     instagramFollowerRefresh:

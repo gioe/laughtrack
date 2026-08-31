@@ -81,6 +81,10 @@ function makeComedian(overrides: Record<string, unknown> = {}) {
         imageAssets: [],
         popularity: 12,
         totalShows: 1,
+        visible: true,
+        blockReason: null,
+        blockAddedBy: null,
+        blockAddedAt: null,
         parentComedianId: null,
         parentComedian: null,
         comedianPodcasts: [],
@@ -176,24 +180,23 @@ describe("PATCH /api/admin/comedians", () => {
         );
     });
 
-    it("adds the comedian name to the deny list", async () => {
+    it("blocks an existing comedian through visibility", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
         const auditCreate = vi.fn();
+        const blockAddedAt = new Date("2026-05-19T12:00:00Z");
+        const update = vi.fn().mockResolvedValue(
+            makeComedian({
+                visible: false,
+                blockReason: "Not a comedian",
+                blockAddedBy: "profile-1",
+                blockAddedAt,
+            }),
+        );
         const findUnique = vi.fn().mockResolvedValueOnce(makeComedian());
-        const txQueryRaw = vi
-            .fn()
-            .mockResolvedValueOnce([])
-            .mockResolvedValueOnce([
-                {
-                    name: "Alias Comic",
-                    reason: "Not a comedian",
-                    added_by: "profile-1",
-                    deleted_at: new Date("2026-05-19T12:00:00Z"),
-                },
-            ]);
+        const txQueryRaw = vi.fn();
         mockTransaction.mockImplementation(async (callback) =>
             callback({
-                comedian: { findUnique },
+                comedian: { findUnique, update },
                 $queryRaw: txQueryRaw,
                 adminActionAudit: { create: auditCreate },
             } as never),
@@ -211,34 +214,50 @@ describe("PATCH /api/admin/comedians", () => {
         expect(res.status).toBe(200);
         expect(body.comedian.isBlocked).toBe(true);
         expect(body.comedian.blockReason).toBe("Not a comedian");
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: {
+                visible: false,
+                blockReason: "Not a comedian",
+                blockAddedBy: "profile-1",
+                blockAddedAt: expect.any(Date),
+            },
+            select: expect.any(Object),
+        });
+        expect(txQueryRaw).not.toHaveBeenCalled();
         expect(auditCreate).toHaveBeenCalledWith(
             expect.objectContaining({
                 data: expect.objectContaining({
-                    action: "comedian_deny_list.create",
-                    entityType: "comedian_deny_list",
-                    entityId: "Alias Comic",
+                    action: "comedian.visibility.block",
+                    entityType: "comedian",
+                    entityId: "2",
                 }),
             }),
         );
     });
 
-    it("removes the comedian name from the deny list", async () => {
+    it("unblocks an existing comedian through visibility", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
         const auditCreate = vi.fn();
-        const findUnique = vi.fn().mockResolvedValueOnce(makeComedian());
-        const denyListEntry = {
-            name: "Alias Comic",
-            reason: "Not a comedian",
-            added_by: "profile-1",
-            deleted_at: new Date("2026-05-19T12:00:00Z"),
-        };
-        const txQueryRaw = vi
-            .fn()
-            .mockResolvedValueOnce([denyListEntry])
-            .mockResolvedValueOnce([denyListEntry]);
+        const blocked = makeComedian({
+            visible: false,
+            blockReason: "Not a comedian",
+            blockAddedBy: "profile-1",
+            blockAddedAt: new Date("2026-05-19T12:00:00Z"),
+        });
+        const update = vi.fn().mockResolvedValue(
+            makeComedian({
+                visible: true,
+                blockReason: "Not a comedian",
+                blockAddedBy: "profile-1",
+                blockAddedAt: new Date("2026-05-19T12:00:00Z"),
+            }),
+        );
+        const findUnique = vi.fn().mockResolvedValueOnce(blocked);
+        const txQueryRaw = vi.fn();
         mockTransaction.mockImplementation(async (callback) =>
             callback({
-                comedian: { findUnique },
+                comedian: { findUnique, update },
                 $queryRaw: txQueryRaw,
                 adminActionAudit: { create: auditCreate },
             } as never),
@@ -255,12 +274,18 @@ describe("PATCH /api/admin/comedians", () => {
         expect(res.status).toBe(200);
         expect(body.comedian.isBlocked).toBe(false);
         expect(body.comedian.blockReason).toBeNull();
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: { visible: true },
+            select: expect.any(Object),
+        });
+        expect(txQueryRaw).not.toHaveBeenCalled();
         expect(auditCreate).toHaveBeenCalledWith(
             expect.objectContaining({
                 data: expect.objectContaining({
-                    action: "comedian_deny_list.delete",
-                    entityType: "comedian_deny_list",
-                    entityId: "Alias Comic",
+                    action: "comedian.visibility.unblock",
+                    entityType: "comedian",
+                    entityId: "2",
                 }),
             }),
         );
@@ -640,6 +665,31 @@ describe("POST /api/admin/comedians", () => {
 
         expect(res.status).toBe(409);
         expect(body.error).toContain("Generated UUID already belongs to");
+        expect(create).not.toHaveBeenCalled();
+    });
+
+    it("rejects creation while the name has an orphan block", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const create = vi.fn();
+        const findUnique = vi.fn().mockResolvedValueOnce(null);
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { create, findUnique },
+                $queryRaw: vi.fn().mockResolvedValueOnce([
+                    {
+                        name: "Open Mic",
+                        reason: "event title",
+                        added_by: "profile-1",
+                        deleted_at: new Date(),
+                    },
+                ]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await POST(makeRequest({ name: "Open Mic" }));
+
+        expect(res.status).toBe(409);
         expect(create).not.toHaveBeenCalled();
     });
 });
@@ -1224,6 +1274,34 @@ describe("PUT /api/admin/comedians", () => {
 
         expect(res.status).toBe(409);
         expect(body.error).toContain("Generated UUID already belongs to");
+        expect(update).not.toHaveBeenCalled();
+    });
+
+    it("rejects a rename while the destination name has an orphan block", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce(null);
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn().mockResolvedValueOnce([
+                    {
+                        name: "Open Mic",
+                        reason: "event title",
+                        added_by: "profile-1",
+                        deleted_at: new Date(),
+                    },
+                ]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(makeRequest({ comedianId: 2, name: "Open Mic" }));
+
+        expect(res.status).toBe(409);
         expect(update).not.toHaveBeenCalled();
     });
 });

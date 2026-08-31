@@ -112,10 +112,6 @@ function serializeDate(value: Date | string | null | undefined) {
         : new Date(value).toISOString();
 }
 
-function normalizeDenyListName(name: string) {
-    return name.replace(/\s+/g, " ").trim().toLowerCase();
-}
-
 export async function listAdminComedians(): Promise<AdminComedianListResult> {
     const [comedians, denyListRows] = await Promise.all([
         db.comedian.findMany({
@@ -166,6 +162,10 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 },
                 popularity: true,
                 totalShows: true,
+                visible: true,
+                blockReason: true,
+                blockAddedBy: true,
+                blockAddedAt: true,
                 parentComedian: {
                     select: {
                         id: true,
@@ -293,15 +293,8 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
         `,
     ]);
 
-    const denyListByName = new Map(
-        denyListRows.map((row) => [normalizeDenyListName(row.name), row]),
-    );
-
     return {
         comedians: comedians.map((comedian) => {
-            const denyListEntry = denyListByName.get(
-                normalizeDenyListName(comedian.name),
-            );
             const latestTicketShow = comedian.lineupItems[0]?.show ?? null;
             const latestTicketUrl =
                 latestTicketShow?.tickets[0]?.purchaseUrl ?? null;
@@ -358,10 +351,19 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 totalShows: comedian.totalShows,
                 parent: comedian.parentComedian,
                 childCount: comedian._count.alternativeNames,
-                isBlocked: Boolean(denyListEntry),
-                blockReason: denyListEntry?.reason ?? null,
-                blockAddedBy: denyListEntry?.added_by ?? null,
-                blockAddedAt: serializeDate(denyListEntry?.deleted_at),
+                isBlocked: comedian.visible === false,
+                blockReason:
+                    comedian.visible === false
+                        ? (comedian.blockReason ?? null)
+                        : null,
+                blockAddedBy:
+                    comedian.visible === false
+                        ? (comedian.blockAddedBy ?? null)
+                        : null,
+                blockAddedAt:
+                    comedian.visible === false
+                        ? serializeDate(comedian.blockAddedAt)
+                        : null,
                 attributedPodcasts: comedian.comedianPodcasts.map((link) => ({
                     id: link.podcast.id,
                     slug: link.podcast.slug,

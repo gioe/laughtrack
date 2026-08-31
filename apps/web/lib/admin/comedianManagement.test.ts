@@ -26,7 +26,7 @@ import { db } from "@/lib/db";
 const mockFindMany = vi.mocked(db.comedian.findMany);
 const mockQueryRaw = vi.mocked(db.$queryRaw);
 
-function comedianRow(name: string) {
+function comedianRow(name: string, overrides: Record<string, unknown> = {}) {
     return {
         id: 1,
         uuid: "uuid-1",
@@ -38,6 +38,10 @@ function comedianRow(name: string) {
         imageAssets: [],
         popularity: 0,
         totalShows: 0,
+        visible: true,
+        blockReason: null,
+        blockAddedBy: null,
+        blockAddedAt: null,
         instagramAccount: null,
         instagramFollowers: null,
         instagramFollowersRefreshedAt: null,
@@ -65,6 +69,7 @@ function comedianRow(name: string) {
         podcastCandidateReviews: [],
         lineupItems: [],
         _count: { alternativeNames: 0 },
+        ...overrides,
     };
 }
 
@@ -73,14 +78,19 @@ describe("listAdminComedians", () => {
         vi.clearAllMocks();
     });
 
-    it("matches deny-list rows when internal whitespace differs", async () => {
+    it("derives block state from comedian visibility metadata", async () => {
         mockFindMany.mockResolvedValueOnce([
-            comedianRow("🔥👀\u00a0TEASE ME TUESDAYS…👀🔥"),
+            comedianRow("🔥👀\u00a0TEASE ME TUESDAYS…👀🔥", {
+                visible: false,
+                blockReason: "not a comic",
+                blockAddedBy: "admin",
+                blockAddedAt: new Date("2026-05-24T13:56:11.706Z"),
+            }),
         ] as never);
         mockQueryRaw.mockResolvedValueOnce([
             {
-                name: "🔥👀 TEASE ME TUESDAYS…👀🔥",
-                reason: "not a comic",
+                name: "Unrelated Open Mic",
+                reason: "orphan title",
                 added_by: "admin",
                 deleted_at: new Date("2026-05-24T13:56:11.706Z"),
             },
