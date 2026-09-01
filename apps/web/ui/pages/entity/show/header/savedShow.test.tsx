@@ -59,7 +59,7 @@ vi.mock("@/ui/pages/entity/MarqueeHero", () => ({
 const show: ShowDetailDTO = {
     id: 42,
     clubId: 24,
-    date: "2026-08-28T20:00:00Z" as never as Date,
+    date: new Date(Date.now() + 24 * 60 * 60 * 1000) as never as Date,
     name: "Late Show",
     clubName: "The Copper Room",
     address: "123 Main St",
@@ -97,13 +97,16 @@ afterEach(() => {
 describe("ShowDetailHeader saved-show action", () => {
     it("disables saving at the exact show start boundary", async () => {
         vi.useFakeTimers();
-        vi.setSystemTime(new Date("2026-08-28T19:59:30Z"));
         const mockFetch = vi
             .fn()
             .mockResolvedValueOnce(response({ data: { isSaved: false } }));
         vi.stubGlobal("fetch", mockFetch);
+        const boundaryShow = {
+            ...show,
+            date: new Date(Date.now() + 30_000) as never as Date,
+        };
 
-        render(<ShowDetailHeader show={show} />);
+        render(<ShowDetailHeader show={boundaryShow} />);
 
         await act(async () => {
             await vi.advanceTimersByTimeAsync(0);
