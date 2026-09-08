@@ -67,12 +67,40 @@ def test_validator_rejects_generic_comedian_name_fragments(name: str):
     assert detect_false_positive(name) is not None
 
 
+@pytest.mark.parametrize(
+    ("name", "expected_rejected"),
+    [
+        ("Cancelled Sureni", True),
+        ("Sureni Cancelled", True),
+        ("cAnCeLlEd Sureni", True),
+        ("Canceled Nico Carney", True),
+        ("Nico Carney Canceled", True),
+        ("cAnCeLeD Nico Carney", True),
+        ("Sureni Weerasekera", False),
+        ("Nico Carney", False),
+    ],
+)
+def test_validator_rejects_cancelled_status_markers(name: str, expected_rejected: bool):
+    assert (detect_false_positive(name) is not None) is expected_rejected
+
+
 def test_comedian_write_boundary_does_not_insert_generic_fragment():
     handler = ComedianHandler.__new__(ComedianHandler)
     handler.execute_with_cursor = MagicMock()
     handler.execute_batch_operation = MagicMock()
 
     result = handler.insert_comedians([_make_comedian("Music")])
+
+    assert result == []
+    handler.execute_batch_operation.assert_not_called()
+
+
+def test_comedian_write_boundary_does_not_insert_cancelled_status_name():
+    handler = ComedianHandler.__new__(ComedianHandler)
+    handler.execute_with_cursor = MagicMock()
+    handler.execute_batch_operation = MagicMock()
+
+    result = handler.insert_comedians([_make_comedian("**Cancelled** Sureni")])
 
     assert result == []
     handler.execute_batch_operation.assert_not_called()

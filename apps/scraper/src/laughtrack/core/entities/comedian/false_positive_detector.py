@@ -8,7 +8,7 @@ Importable by:
 Detection criteria (any one match → false positive):
   1. Exact match against PLACEHOLDER_NAMES (case-insensitive)
   1b. Exact match against GENERIC_SINGLE_TOKEN_NAMES (case-insensitive)
-  2. Substring match against PLACEHOLDER_SUBSTRINGS (open mic, open-mic)
+  2. Substring match against PLACEHOLDER_SUBSTRINGS (open mic, cancellation status)
   3. Substring match against STRUCTURAL_KEYWORDS (showcase, variety, improv, etc.)
   4. Decoration pattern: name contains '***'
   5. Pipe character in name
@@ -101,6 +101,8 @@ GENERIC_SINGLE_TOKEN_NAMES: frozenset[str] = frozenset({
 PLACEHOLDER_SUBSTRINGS: tuple[str, ...] = (
     "open mic",
     "open-mic",
+    "cancelled",
+    "canceled",
 )
 
 # Structural keywords (case-insensitive substring match; names containing these are not real
@@ -222,7 +224,7 @@ def detect_false_positive(name: str) -> Optional[str]:
     lower = stripped.lower()
 
     if lower in PLACEHOLDER_NAMES:
-        return f"placeholder_name"
+        return "placeholder_name"
 
     if lower in GENERIC_SINGLE_TOKEN_NAMES:
         return f"generic_single_token:{lower!r}"
