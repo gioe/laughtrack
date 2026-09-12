@@ -7,12 +7,17 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import androidx.test.platform.app.InstrumentationRegistry
+import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -40,6 +45,48 @@ class AppShellTest {
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<HiltTestActivity>()
+
+    @Test
+    fun cold_show_entry_owns_its_chrome_and_keeps_discover_back_destination() {
+        assertColdFullScreenEntry(AppRoute.ShowDetail(1))
+    }
+
+    @Test
+    fun cold_onboarding_entry_owns_its_chrome_and_keeps_discover_back_destination() {
+        assertColdFullScreenEntry(AppRoute.ComedianOnboarding)
+    }
+
+    @Test
+    fun cold_playback_entry_owns_its_chrome_and_keeps_discover_back_destination() {
+        assertColdFullScreenEntry(AppRoute.NowPlaying)
+    }
+
+    private fun assertColdFullScreenEntry(route: AppRoute) {
+        hiltRule.inject()
+        lateinit var navController: NavHostController
+        var consumed = false
+        composeRule.setContent {
+            navController = rememberNavController()
+            LaughTrackTheme {
+                AppShell(
+                    navController = navController,
+                    pendingRoute = route,
+                    onRouteConsumed = { consumed = true },
+                )
+            }
+        }
+        composeRule.runOnIdle {
+            assertTrue(consumed)
+            assertTrue(navController.currentDestination?.hasRoute(route::class) == true)
+        }
+        composeRule.onNodeWithContentDescription("Profile menu").assertDoesNotExist()
+        composeRule.onNodeWithText("Search").assertDoesNotExist()
+        composeRule.onNodeWithText("Library").assertDoesNotExist()
+        composeRule.runOnIdle { assertTrue(navController.popBackStack()) }
+        composeRule.onNodeWithText("Search").assertIsDisplayed()
+        composeRule.onNodeWithText("Library").assertIsDisplayed()
+        composeRule.onNodeWithText("LaughTrack").assertDoesNotExist()
+    }
 
     @Test
     fun renders_tabs_and_profile_menu_actions() {
