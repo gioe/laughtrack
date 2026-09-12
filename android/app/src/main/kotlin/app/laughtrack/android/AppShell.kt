@@ -67,6 +67,7 @@ import app.laughtrack.android.feature.profile.LoginPromptSheet
 import app.laughtrack.android.feature.profile.ProfileScreen
 import app.laughtrack.android.feature.search.ui.SearchScreen
 import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
+import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
 /**
@@ -88,7 +89,8 @@ fun AppShell(
     screenshotPersona: AuthenticatedScreenshotPersona? = null,
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = backStackEntry?.destination
+    // The state flow may not have emitted an already initialized/restored entry yet.
+    val currentDestination = backStackEntry?.destination ?: navController.currentDestination
     var pendingExternalClubId by remember { mutableStateOf<Int?>(null) }
     var pendingSearchRequest by remember { mutableStateOf<SearchLaunchRequest?>(null) }
     val usesOpaqueCanvas = AppShellBackgrounds.usesOpaqueCanvas(currentDestination)
@@ -98,6 +100,8 @@ fun AppShell(
     // recomposition or config change doesn't re-navigate.
     LaunchedEffect(pendingRoute) {
         pendingRoute?.let {
+            // Scaffold composes NavHost later; cold links can arrive before its graph exists.
+            navController.currentBackStackEntryFlow.first()
             pendingExternalClubId = (it as? AppRoute.ClubDetail)?.id
             navController.openEntity(it)
             onRouteConsumed()
@@ -130,10 +134,7 @@ fun AppShell(
                 if (AppShellChrome.showsBottomBar(currentDestination)) {
                     NavigationBar {
                         AppShellTabs.visibleTabs.forEach { tab ->
-                            val selected =
-                                currentDestination?.hierarchy?.any {
-                                    it.hasRoute(tab.rootRoute::class)
-                                } == true
+                            val selected = AppShellTabs.isSelected(currentDestination, tab)
                             NavigationBarItem(
                                 selected = selected,
                                 onClick = { navController.switchTab(tab) },
@@ -148,7 +149,7 @@ fun AppShell(
             Box(Modifier.fillMaxSize().padding(padding)) {
                 NavHost(
                     navController = navController,
-                    startDestination = AppRoute.Discover,
+                    startDestination = appShellStartRoute,
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     composable<AppRoute.Discover> {
@@ -454,9 +455,21 @@ fun NavController.openEntity(route: AppRoute) {
     }
 }
 
+// Keep unresolved chrome aligned with the actual graph start, not a pending
+// external route that has not been navigated to yet.
+private val appShellStartRoute: AppRoute = AppRoute.Discover
+
 internal object AppShellTabs {
     /** Stable top-level information architecture, independent of auth or library contents. */
     val visibleTabs: List<AppTab> = AppTab.entries
+
+    fun isSelected(
+        destination: NavDestination?,
+        tab: AppTab,
+        initialRoute: AppRoute = appShellStartRoute,
+    ): Boolean =
+        destination?.hierarchy?.any { it.hasRoute(tab.rootRoute::class) }
+            ?: (initialRoute::class == tab.rootRoute::class)
 }
 
 internal object AppShellChrome {
@@ -496,14 +509,26 @@ internal object AppShellChrome {
     /** Expanded playback owns the whole surface; every other destination keeps the mini-player. */
     val miniPlayerHiddenRoutes: Set<KClass<out AppRoute>> = setOf(AppRoute.NowPlaying::class)
 
-    fun showsTopAppBar(destination: NavDestination?): Boolean =
-        destination == null || topAppBarRoutes.any { destination.hasRoute(it) }
+    fun showsTopAppBar(
+        destination: NavDestination?,
+        initialRoute: AppRoute = appShellStartRoute,
+    ): Boolean =
+        destination?.let { resolved -> topAppBarRoutes.any { resolved.hasRoute(it) } }
+            ?: (initialRoute::class in topAppBarRoutes)
 
-    fun showsBottomBar(destination: NavDestination?): Boolean =
-        destination == null || bottomBarRoutes.any { destination.hasRoute(it) }
+    fun showsBottomBar(
+        destination: NavDestination?,
+        initialRoute: AppRoute = appShellStartRoute,
+    ): Boolean =
+        destination?.let { resolved -> bottomBarRoutes.any { resolved.hasRoute(it) } }
+            ?: (initialRoute::class in bottomBarRoutes)
 
-    fun showsMiniPlayer(destination: NavDestination?): Boolean =
-        destination == null || miniPlayerHiddenRoutes.none { destination.hasRoute(it) }
+    fun showsMiniPlayer(
+        destination: NavDestination?,
+        initialRoute: AppRoute = appShellStartRoute,
+    ): Boolean =
+        destination?.let { resolved -> miniPlayerHiddenRoutes.none { resolved.hasRoute(it) } }
+            ?: (initialRoute::class !in miniPlayerHiddenRoutes)
 
     /** Home is redundant only for an in-app Discover -> ClubDetail push. */
     fun showsClubDetailHome(
@@ -518,6 +543,10 @@ internal object AppShellBackgrounds {
     /** Specialized immersive routes that intentionally replace the inherited app atmosphere. */
     val opaqueRoutes: Set<KClass<out AppRoute>> = setOf(AppRoute.NowPlaying::class)
 
-    fun usesOpaqueCanvas(destination: NavDestination?): Boolean =
-        destination != null && opaqueRoutes.any { destination.hasRoute(it) }
+    fun usesOpaqueCanvas(
+        destination: NavDestination?,
+        initialRoute: AppRoute = appShellStartRoute,
+    ): Boolean =
+        destination?.let { resolved -> opaqueRoutes.any { resolved.hasRoute(it) } }
+            ?: (initialRoute::class in opaqueRoutes)
 }

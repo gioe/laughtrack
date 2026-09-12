@@ -1,6 +1,7 @@
 package app.laughtrack.android
 
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.navigation.AppTab
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -73,9 +74,52 @@ class AppShellChromeTest {
     }
 
     @Test
-    fun missing_destination_defaults_to_full_chrome() {
-        assertTrue(AppShellChrome.showsTopAppBar(null))
+    fun missing_destination_uses_discover_chrome_without_a_temporary_top_bar() {
+        assertFalse(AppShellChrome.showsTopAppBar(null))
         assertTrue(AppShellChrome.showsBottomBar(null))
+        assertTrue(AppShellChrome.showsMiniPlayer(null))
+        assertFalse(AppShellBackgrounds.usesOpaqueCanvas(null))
+        assertEquals(
+            listOf(AppTab.DISCOVER),
+            AppShellTabs.visibleTabs.filter { AppShellTabs.isSelected(null, it) },
+        )
+    }
+
+    @Test
+    fun unresolved_full_screen_entries_do_not_reserve_shell_bar_space() {
+        val initialRoutes =
+            listOf(
+                AppRoute.ShowDetail(1),
+                AppRoute.ClubDetail(1),
+                AppRoute.ComedianOnboarding,
+            )
+        initialRoutes.forEach { route ->
+            assertFalse(AppShellChrome.showsTopAppBar(null, route))
+            assertFalse(AppShellChrome.showsBottomBar(null, route))
+            assertTrue(AppShellChrome.showsMiniPlayer(null, route))
+            assertFalse(AppShellBackgrounds.usesOpaqueCanvas(null, route))
+            assertTrue(AppShellTabs.visibleTabs.none { AppShellTabs.isSelected(null, it, route) })
+        }
+    }
+
+    @Test
+    fun unresolved_expanded_playback_uses_opaque_canvas_without_shell_bars_or_mini_player() {
+        val route = AppRoute.NowPlaying
+        assertFalse(AppShellChrome.showsTopAppBar(null, route))
+        assertFalse(AppShellChrome.showsBottomBar(null, route))
+        assertFalse(AppShellChrome.showsMiniPlayer(null, route))
+        assertTrue(AppShellBackgrounds.usesOpaqueCanvas(null, route))
+    }
+
+    @Test
+    fun unresolved_library_entry_keeps_its_own_chrome_and_selected_tab() {
+        val route = AppRoute.Favorites
+        assertTrue(AppShellChrome.showsTopAppBar(null, route))
+        assertTrue(AppShellChrome.showsBottomBar(null, route))
+        assertEquals(
+            listOf(AppTab.FAVORITES),
+            AppShellTabs.visibleTabs.filter { AppShellTabs.isSelected(null, it, route) },
+        )
     }
 
     /**
