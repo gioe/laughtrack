@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "content_fixture": {
-    "id": "native-screenshot-v4",
+    "id": "native-screenshot-v5",
     "default_mode": "curated",
     "review_anchor_date": "2026-08-15",
     "profile_modes": {
@@ -13,8 +13,9 @@
     },
     "artwork": {
       "root": "scripts/screenshots/assets",
-      "provenance": "Original fictional illustrations generated for LaughTrack; no third-party logos or celebrity likenesses.",
-      "license": "Project fixture artwork; redistribution permitted with this repository.",
+      "provenance": "Curated captures use pinned HTTPS artwork sources read from the public production API on 2026-08-19, normalized to native-compatible raster formats when required. Bundled generated artwork is reserved for fallback-focused diagnostics.",
+      "license": "Remote artwork follows its production source terms; bundled fallback artwork is project-owned and redistributable with this repository.",
+      "curated_source": "https://www.laugh-track.com/api/v1",
       "assets": {
         "ali-wong": {
           "filename": "ali-wong.png",
@@ -146,7 +147,7 @@
           "show": { "id": 201, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
           "comedian": { "id": 301, "name": "Ali Wong" },
           "podcast": { "id": 401, "name": "History Hyenas" },
-          "episode": { "id": 501, "name": "The Wildest Feuds in History" }
+          "episode": { "id": 501, "name": "Watch Your Tone with Ryan Sickler | History Hyenas" }
         },
         "dates": {
           "primary_show": "2026-08-16T20:00:00-04:00",
@@ -158,14 +159,14 @@
         }
       },
       "curated": {
-        "id": "native-screenshot-curated-v2",
+        "id": "native-screenshot-curated-v3",
         "result_count": 12,
         "featured_entities": {
           "club": { "id": 202, "name": "Comedy Cellar" },
           "show": { "id": 201, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
           "comedian": { "id": 301, "name": "Ali Wong" },
           "podcast": { "id": 401, "name": "History Hyenas" },
-          "episode": { "id": 501, "name": "The Wildest Feuds in History" }
+          "episode": { "id": 501, "name": "Watch Your Tone with Ryan Sickler | History Hyenas" }
         },
         "dates": {
           "primary_show": "2026-08-16T20:00:00-04:00",
@@ -173,17 +174,34 @@
         },
         "artwork": {
           "required_keys": [
-            "ali-wong", "taylor", "andrew-schulz", "josh-johnson",
-            "comedy-store", "comedy-cellar", "the-stand", "hollywood-improv",
-            "show-friends", "show-showcase", "show-best-of-la", "show-late-night",
-            "history-hyenas", "conan", "jtrain", "wtf"
+            "ali-wong", "taylor-tomlinson", "andrew-schulz", "josh-johnson",
+            "trevor-noah", "sam-jay", "nate-bargatze", "nicole-byer",
+            "hasan-minhaj", "atsuko-okatsuka", "roy-wood-jr", "michelle-wolf",
+            "hollywood-improv", "comedy-cellar", "the-stand", "gotham-comedy-club",
+            "ice-house-comedy-club", "comedy-and-magic-club", "american-comedy-company", "irvine-improv",
+            "cobbs-comedy-club", "laugh-boston", "comedy-vault", "goodnights-comedy-club",
+            "history-hyenas", "jtrain", "wtf", "blocks",
+            "fly-on-the-wall", "we-might-be-drunk", "you-made-it-weird", "honeydew",
+            "joe-rogan", "doug-loves-movies", "bonfire", "are-you-garbage"
           ],
           "categories": {
-            "portraits": ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"],
-            "club_logos": ["comedy-store", "comedy-cellar", "the-stand", "hollywood-improv"],
-            "show_art": ["show-friends", "show-showcase", "show-best-of-la", "show-late-night"],
-            "podcast_art": ["history-hyenas", "conan", "jtrain", "wtf"]
-          }
+            "portraits": [
+              "ali-wong", "taylor-tomlinson", "andrew-schulz", "josh-johnson",
+              "trevor-noah", "sam-jay", "nate-bargatze", "nicole-byer",
+              "hasan-minhaj", "atsuko-okatsuka", "roy-wood-jr", "michelle-wolf"
+            ],
+            "club_logos": [
+              "hollywood-improv", "comedy-cellar", "the-stand", "gotham-comedy-club",
+              "ice-house-comedy-club", "comedy-and-magic-club", "american-comedy-company", "irvine-improv",
+              "cobbs-comedy-club", "laugh-boston", "comedy-vault", "goodnights-comedy-club"
+            ],
+            "podcast_art": [
+              "history-hyenas", "jtrain", "wtf", "blocks",
+              "fly-on-the-wall", "we-might-be-drunk", "you-made-it-weird", "honeydew",
+              "joe-rogan", "doug-loves-movies", "bonfire", "are-you-garbage"
+            ]
+          },
+          "url_policy": "Every curated imageUrl is an absolute HTTPS artwork source derived from a public production API record and normalized for native decoding when required; show art follows the production lineup-first, venue-fallback selection rule."
         }
       }
     }

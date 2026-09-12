@@ -1,8 +1,12 @@
-# Screenshot fixture artwork
+# Screenshot fallback-diagnostic artwork
 
 These PNGs are original, fictional illustrations created for LaughTrack's
 hermetic native screenshot fixtures. They are checked in so capture runs stay
 offline, byte-for-byte reproducible, and independent of third-party CDNs.
+
+These generated images are reserved for the explicit `fallback-focused`
+verification mode. Shipping screenshot profiles use pinned HTTPS artwork read
+from the production backend instead.
 
 The source prompts requested polished, square editorial artwork in four sets:
 

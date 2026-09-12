@@ -18,10 +18,12 @@ ASSET_ROOT = Path(__file__).with_name("assets")
 REVIEW_ANCHOR_DATE = date(2026, 8, 15)
 PRIMARY_SHOW_DATE = date(2026, 8, 16)
 SECONDARY_SHOW_DATE = date(2026, 8, 17)
-EPISODE_RELEASE_DATE = REVIEW_ANCHOR_DATE - timedelta(days=4)
-HOME_FEED_EPISODE_RELEASE_DATETIME = (
-    f"{EPISODE_RELEASE_DATE.isoformat()}T12:00:00.000Z"
-)
+# Production episode 47467, verified 2026-09-11:
+# https://www.laugh-track.com/api/v1/podcast-episodes/47467
+# Only the routing ID is remapped to the stable screenshot fixture ID (501).
+EPISODE_RELEASE_DATE = date(2025, 10, 23)
+HOME_FEED_EPISODE_RELEASE_DATETIME = "2025-10-23T19:00:00.000Z"
+EPISODE_AUDIO_URL = "https://pdst.fm/e/pfx.vpixl.com/u8u9X/pscrb.fm/rss/p/mgln.ai/e/1118/clrtpod.com/m/arttrk.com/p/YMH00/traffic.megaphone.fm/YMH7734324090.mp3?updated=1730821365"
 PRIMARY_SHOW_DATETIME = f"{PRIMARY_SHOW_DATE.isoformat()}T20:00:00-04:00"
 SECONDARY_SHOW_DATETIME = f"{SECONDARY_SHOW_DATE.isoformat()}T21:00:00-04:00"
 ARTWORK_ASSETS = {
@@ -146,9 +148,54 @@ ARTWORK_ASSETS = {
     },
 }
 
+# Pinned from the public production API on 2026-08-19. Curated storefront
+# captures deliberately keep their records and dates deterministic while using
+# HTTPS artwork sources read from real production records. Imgix sources that
+# negotiate AVIF are pinned to JPEG so both native clients exercise real art
+# rather than platform-specific decode fallbacks. The generated assets above
+# remain available only to the explicit fallback-focused diagnostic mode.
+CURATED_HTTPS_ASSETS = {
+    "ali-wong": "https://laughtrack.b-cdn.net/comedians/Ali%20Wong.png",
+    "taylor-tomlinson": "https://laughtrack.b-cdn.net/comedian-images/903740/79e27d03-1143-4633-a42f-f5569040fb44/avatar.jpg",
+    "andrew-schulz": "https://laughtrack.b-cdn.net/comedians/Andrew%20Schulz.png",
+    "josh-johnson": "https://laughtrack.b-cdn.net/comedians/Josh%20Johnson.png",
+    "trevor-noah": "https://laughtrack.b-cdn.net/comedians/Trevor%20Noah.png",
+    "sam-jay": "https://laughtrack.b-cdn.net/comedians/Sam%20Jay.png",
+    "nate-bargatze": "https://laughtrack.b-cdn.net/comedians/Nate%20Bargatze.png",
+    "nicole-byer": "https://laughtrack.b-cdn.net/comedian-images/939229/81929c9b-e4b4-4a83-b55f-27f861562532/avatar.jpg",
+    "hasan-minhaj": "https://laughtrack.b-cdn.net/comedians/Hasan%20Minhaj.png",
+    "atsuko-okatsuka": "https://laughtrack.b-cdn.net/comedians/Atsuko%20Okatsuka.png",
+    "roy-wood-jr": "https://laughtrack.b-cdn.net/comedians/Roy%20Wood%20Jr..png",
+    "michelle-wolf": "https://laughtrack.b-cdn.net/comedians/Michelle%20Wolf.png",
+    "hollywood-improv": "https://laughtrack.b-cdn.net/clubs/Hollywood%20Improv.png",
+    "comedy-cellar": "https://laughtrack.b-cdn.net/clubs/Comedy%20Cellar%20New%20York.png",
+    "the-stand": "https://laughtrack.b-cdn.net/clubs/The%20Stand.png",
+    "gotham-comedy-club": "https://laughtrack.b-cdn.net/clubs/Gotham%20Comedy%20Club.png",
+    "ice-house-comedy-club": "https://laughtrack.b-cdn.net/clubs/Ice%20House%20Comedy%20Club.png",
+    "comedy-and-magic-club": "https://laughtrack.b-cdn.net/clubs/The%20Comedy%20%26%20Magic%20Club.png",
+    "american-comedy-company": "https://laughtrack.b-cdn.net/clubs/American%20Comedy%20Company.png",
+    "irvine-improv": "https://laughtrack.b-cdn.net/clubs/Irvine%20Improv.png",
+    "cobbs-comedy-club": "https://laughtrack.b-cdn.net/clubs/Cobb's%20Comedy%20Club.png",
+    "laugh-boston": "https://laughtrack.b-cdn.net/clubs/Laugh%20Boston.png",
+    "comedy-vault": "https://laughtrack.b-cdn.net/clubs/The%20Comedy%20Vault.png",
+    "goodnights-comedy-club": "https://laughtrack.b-cdn.net/clubs/Goodnights%20Comedy%20Club.png",
+    "history-hyenas": "https://megaphone.imgix.net/podcasts/48030056-989d-11ef-a614-3bc2f8865178/image/171a69e4231342ccae610db68861892b.jpeg?ixlib=rails-4.3.1&max-w=3000&max-h=3000&fit=crop&auto=compress&fm=jpg",
+    "jtrain": "https://www.laugh-track.com/api/v1/podcast-artwork?url=https%3A%2F%2Fcontent.production.cdn.art19.com%2Fimages%2F25%2Ff1%2Fb6%2F91%2F25f1b691-87cd-4e74-be13-59508ccf02fc%2Ff2d8fcb6eaad9869b0281db26e4dd937862940e852f3c84aa97e36f52855dd18ac7f1be5e830a73c5235e2c86f19e79c7cafc2c32cdc202aadee0037f9caad98.jpeg",
+    "wtf": "https://www.laugh-track.com/api/v1/podcast-artwork?url=https%3A%2F%2Fassets.pippa.io%2Fshows%2F62a222737c02140013aa4c03%2F1656679440477-8e0e5db81e3f07c927b0032af2591499.jpeg",
+    "blocks": "https://www.laugh-track.com/api/v1/podcast-artwork?url=https%3A%2F%2Fis1-ssl.mzstatic.com%2Fimage%2Fthumb%2FPodcasts112%2Fv4%2F72%2F3f%2F0a%2F723f0a7e-d02c-b4b9-28e8-7a66bf34b6af%2Fmza_3060685158421747566.png%2F600x600bb.jpg",
+    "fly-on-the-wall": "https://www.laugh-track.com/api/v1/podcast-artwork?url=https%3A%2F%2Fimages.castfire.com%2Fimage%2F661%2F0%2F0%2F0%2F0-8382872.jpg",
+    "we-might-be-drunk": "https://megaphone.imgix.net/podcasts/594c7c94-98d7-11f0-a551-63ec77ca5cfb/image/207c13a897c640dcd7722654d69bd50b.png?ixlib=rails-4.3.1&max-w=3000&max-h=3000&fit=crop&auto=compress&fm=jpg",
+    "you-made-it-weird": "https://megaphone.imgix.net/podcasts/7926a820-34fc-11f1-8539-7b77a5fb5bbd/image/83ee44c93ec0e1cd9fb30c344269c404.jpg?ixlib=rails-4.3.1&max-w=3000&max-h=3000&fit=crop&auto=compress&fm=jpg",
+    "honeydew": "https://megaphone.imgix.net/podcasts/d009ef14-01ec-11f1-b436-335cf3c14c8d/image/4359e422f56f9e6d149cf16dede772e3.jpg?ixlib=rails-4.3.1&max-w=3000&max-h=3000&fit=crop&auto=compress&fm=jpg",
+    "joe-rogan": "https://www.laugh-track.com/api/v1/podcast-artwork?url=https%3A%2F%2Fis1-ssl.mzstatic.com%2Fimage%2Fthumb%2FPodcasts221%2Fv4%2Fce%2F0a%2Fdb%2Fce0adb4e-6006-8749-6bd1-dda692ce5db4%2Fmza_6849326212804063748.jpg%2F600x600bb.jpg",
+    "doug-loves-movies": "https://www.laugh-track.com/api/v1/podcast-artwork?url=https%3A%2F%2Fcontent.production.cdn.art19.com%2Fimages%2F1a%2F96%2F5f%2F27%2F1a965f27-77f3-43de-87cc-8582b2db01a1%2Fc8cf407764c279fe444a806df7c14e885e590b72da03753b17c95948163702edc41458bae996e9d514312eaef1c8037823e68683ab41db61c84f0254bed61823.jpeg",
+    "bonfire": "https://www.laugh-track.com/api/v1/podcast-artwork?url=https%3A%2F%2Fimage.simplecastcdn.com%2Fimages%2F47708613-ba9d-4eba-9223-a8682fff8b08%2F8d29e0d2-70cc-446e-8cd3-e3ce4a3659c2%2F3000x3000%2Fbonfirepodcast-3000x3000.jpg%3Faid%3Drss_feed",
+    "are-you-garbage": "https://megaphone.imgix.net/podcasts/c2b31d4e-c3fd-11ec-b9c7-6f068016304f/image/387eaf025719eac2071f142cf5ffd635.png?ixlib=rails-4.3.1&max-w=3000&max-h=3000&fit=crop&auto=compress&fm=jpg",
+}
+
 
 CONTENT_FIXTURE = {
-    "id": "native-screenshot-v4",
+    "id": "native-screenshot-v5",
     "default_mode": "curated",
     "review_anchor_date": REVIEW_ANCHOR_DATE.isoformat(),
     "profile_modes": {
@@ -160,8 +207,9 @@ CONTENT_FIXTURE = {
     },
     "artwork": {
         "root": "scripts/screenshots/assets",
-        "provenance": "Original fictional illustrations generated for LaughTrack; no third-party logos or celebrity likenesses.",
-        "license": "Project fixture artwork; redistribution permitted with this repository.",
+        "provenance": "Curated captures use pinned HTTPS artwork sources read from the public production API on 2026-08-19, normalized to native-compatible raster formats when required. Bundled generated artwork is reserved for fallback-focused diagnostics.",
+        "license": "Remote artwork follows its production source terms; bundled fallback artwork is project-owned and redistributable with this repository.",
+        "curated_source": "https://www.laugh-track.com/api/v1",
         "assets": ARTWORK_ASSETS,
     },
     "modes": {
@@ -177,7 +225,7 @@ CONTENT_FIXTURE = {
                 },
                 "comedian": {"id": 301, "name": "Ali Wong"},
                 "podcast": {"id": 401, "name": "History Hyenas"},
-                "episode": {"id": 501, "name": "The Wildest Feuds in History"},
+                "episode": {"id": 501, "name": "Watch Your Tone with Ryan Sickler | History Hyenas"},
             },
             "dates": {
                 "primary_show": PRIMARY_SHOW_DATETIME,
@@ -196,7 +244,7 @@ CONTENT_FIXTURE = {
             },
         },
         "curated": {
-            "id": "native-screenshot-curated-v2",
+            "id": "native-screenshot-curated-v3",
             "result_count": 12,
             "featured_entities": {
                 "club": {"id": 202, "name": "Comedy Cellar"},
@@ -207,7 +255,7 @@ CONTENT_FIXTURE = {
                 },
                 "comedian": {"id": 301, "name": "Ali Wong"},
                 "podcast": {"id": 401, "name": "History Hyenas"},
-                "episode": {"id": 501, "name": "The Wildest Feuds in History"},
+                "episode": {"id": 501, "name": "Watch Your Tone with Ryan Sickler | History Hyenas"},
             },
             "dates": {
                 "primary_show": PRIMARY_SHOW_DATETIME,
@@ -215,39 +263,34 @@ CONTENT_FIXTURE = {
             },
             "artwork": {
                 "required_keys": [
-                    "ali-wong",
-                    "taylor",
-                    "andrew-schulz",
-                    "josh-johnson",
-                    "comedy-store",
-                    "comedy-cellar",
-                    "the-stand",
-                    "hollywood-improv",
-                    "show-friends",
-                    "show-showcase",
-                    "show-best-of-la",
-                    "show-late-night",
-                    "history-hyenas",
-                    "conan",
-                    "jtrain",
-                    "wtf",
+                    "ali-wong", "taylor-tomlinson", "andrew-schulz", "josh-johnson",
+                    "trevor-noah", "sam-jay", "nate-bargatze", "nicole-byer",
+                    "hasan-minhaj", "atsuko-okatsuka", "roy-wood-jr", "michelle-wolf",
+                    "hollywood-improv", "comedy-cellar", "the-stand", "gotham-comedy-club",
+                    "ice-house-comedy-club", "comedy-and-magic-club", "american-comedy-company", "irvine-improv",
+                    "cobbs-comedy-club", "laugh-boston", "comedy-vault", "goodnights-comedy-club",
+                    "history-hyenas", "jtrain", "wtf", "blocks",
+                    "fly-on-the-wall", "we-might-be-drunk", "you-made-it-weird", "honeydew",
+                    "joe-rogan", "doug-loves-movies", "bonfire", "are-you-garbage",
                 ],
                 "categories": {
-                    "portraits": ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"],
+                    "portraits": [
+                        "ali-wong", "taylor-tomlinson", "andrew-schulz", "josh-johnson",
+                        "trevor-noah", "sam-jay", "nate-bargatze", "nicole-byer",
+                        "hasan-minhaj", "atsuko-okatsuka", "roy-wood-jr", "michelle-wolf"
+                    ],
                     "club_logos": [
-                        "comedy-store",
-                        "comedy-cellar",
-                        "the-stand",
-                        "hollywood-improv",
+                        "hollywood-improv", "comedy-cellar", "the-stand", "gotham-comedy-club",
+                        "ice-house-comedy-club", "comedy-and-magic-club", "american-comedy-company", "irvine-improv",
+                        "cobbs-comedy-club", "laugh-boston", "comedy-vault", "goodnights-comedy-club"
                     ],
-                    "show_art": [
-                        "show-friends",
-                        "show-showcase",
-                        "show-best-of-la",
-                        "show-late-night",
+                    "podcast_art": [
+                        "history-hyenas", "jtrain", "wtf", "blocks",
+                        "fly-on-the-wall", "we-might-be-drunk", "you-made-it-weird", "honeydew",
+                        "joe-rogan", "doug-loves-movies", "bonfire", "are-you-garbage"
                     ],
-                    "podcast_art": ["history-hyenas", "conan", "jtrain", "wtf"],
                 },
+                    "url_policy": "Every curated imageUrl is an absolute HTTPS artwork source derived from a public production API record and normalized for native decoding when required; show art follows the production lineup-first, venue-fallback selection rule.",
             },
         },
     },
@@ -272,15 +315,29 @@ COMEDIAN_NAMES = [
     "Roy Wood Jr.",
     "Michelle Wolf",
 ]
-COMEDIAN_ARTWORK = ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"]
+COMEDIAN_ARTWORK = [
+    "ali-wong",
+    "taylor-tomlinson",
+    "andrew-schulz",
+    "josh-johnson",
+    "trevor-noah",
+    "sam-jay",
+    "nate-bargatze",
+    "nicole-byer",
+    "hasan-minhaj",
+    "atsuko-okatsuka",
+    "roy-wood-jr",
+    "michelle-wolf",
+]
 FALLBACK_COMEDIAN_ARTWORK = ["ali-wong", "taylor"]
 CLUB_FIXTURES = [
     {
-        "name": "The Comedy Store",
-        "address": "8433 W Sunset Blvd, West Hollywood, CA 90069",
-        "zipCode": "90069",
-        "city": "West Hollywood",
+        "name": "Hollywood Improv",
+        "address": "8162 Melrose Ave, Hollywood, CA 90046",
+        "zipCode": "90046",
+        "city": "Hollywood",
         "state": "CA",
+        "artworkKey": "hollywood-improv",
     },
     {
         "name": "Comedy Cellar",
@@ -288,6 +345,7 @@ CLUB_FIXTURES = [
         "zipCode": "10012",
         "city": "New York",
         "state": "NY",
+        "artworkKey": "comedy-cellar",
     },
     {
         "name": "The Stand",
@@ -295,20 +353,7 @@ CLUB_FIXTURES = [
         "zipCode": "10003",
         "city": "New York",
         "state": "NY",
-    },
-    {
-        "name": "Hollywood Improv",
-        "address": "8162 Melrose Ave, Hollywood, CA 90046",
-        "zipCode": "90046",
-        "city": "Hollywood",
-        "state": "CA",
-    },
-    {
-        "name": "Largo at the Coronet",
-        "address": "366 N La Cienega Blvd, Los Angeles, CA 90048",
-        "zipCode": "90048",
-        "city": "Los Angeles",
-        "state": "CA",
+        "artworkKey": "the-stand",
     },
     {
         "name": "Gotham Comedy Club",
@@ -316,66 +361,87 @@ CLUB_FIXTURES = [
         "zipCode": "10011",
         "city": "New York",
         "state": "NY",
+        "artworkKey": "gotham-comedy-club",
     },
     {
-        "name": "The Bell House",
-        "address": "149 7th St, Brooklyn, NY 11215",
-        "zipCode": "11215",
-        "city": "Brooklyn",
-        "state": "NY",
-    },
-    {
-        "name": "Laugh Factory",
-        "address": "8001 W Sunset Blvd, Los Angeles, CA 90046",
-        "zipCode": "90046",
-        "city": "Los Angeles",
+        "name": "Ice House Comedy Club",
+        "address": "24 N Mentor Ave, Pasadena, CA 91106",
+        "zipCode": "91106",
+        "city": "Pasadena",
         "state": "CA",
+        "artworkKey": "ice-house-comedy-club",
     },
     {
-        "name": "Punch Line",
-        "address": "444 Battery St, San Francisco, CA 94111",
-        "zipCode": "94111",
+        "name": "The Comedy & Magic Club",
+        "address": "1018 Hermosa Ave, Hermosa Beach, CA 90254",
+        "zipCode": "90254",
+        "city": "Hermosa Beach",
+        "state": "CA",
+        "artworkKey": "comedy-and-magic-club",
+    },
+    {
+        "name": "American Comedy Company",
+        "address": "818 Sixth Ave, San Diego, CA 92101",
+        "zipCode": "92101",
+        "city": "San Diego",
+        "state": "CA",
+        "artworkKey": "american-comedy-company",
+    },
+    {
+        "name": "Irvine Improv",
+        "address": "527 Spectrum Center Dr, Irvine, CA 92618",
+        "zipCode": "92618",
+        "city": "Irvine",
+        "state": "CA",
+        "artworkKey": "irvine-improv",
+    },
+    {
+        "name": "Cobb's Comedy Club",
+        "address": "915 Columbus Ave, San Francisco, CA 94133",
+        "zipCode": "94133",
         "city": "San Francisco",
         "state": "CA",
+        "artworkKey": "cobbs-comedy-club",
     },
     {
-        "name": "Helium Comedy Club",
-        "address": "2031 Sansom St, Philadelphia, PA 19103",
-        "zipCode": "19103",
-        "city": "Philadelphia",
-        "state": "PA",
+        "name": "Laugh Boston",
+        "address": "425 Summer St, Boston, MA 02210",
+        "zipCode": "02210",
+        "city": "Boston",
+        "state": "MA",
+        "artworkKey": "laugh-boston",
     },
     {
-        "name": "Zanies",
-        "address": "1548 N Wells St, Chicago, IL 60610",
-        "zipCode": "60610",
-        "city": "Chicago",
+        "name": "The Comedy Vault",
+        "address": "18 E Wilson St, Batavia, IL 60510",
+        "zipCode": "60510",
+        "city": "Batavia",
         "state": "IL",
+        "artworkKey": "comedy-vault",
     },
     {
-        "name": "Comedy Works",
-        "address": "1226 15th St, Denver, CO 80202",
-        "zipCode": "80202",
-        "city": "Denver",
-        "state": "CO",
+        "name": "Goodnights Comedy Club",
+        "address": "401 Woodburn Rd, Raleigh, NC 27605",
+        "zipCode": "27605",
+        "city": "Raleigh",
+        "state": "NC",
+        "artworkKey": "goodnights-comedy-club",
     },
 ]
-CLUB_ARTWORK = ["comedy-store", "comedy-cellar", "the-stand", "hollywood-improv"]
-PODCAST_TITLES = [
-    "History Hyenas",
-    "Conan O'Brien Needs a Friend",
-    "The JTrain Podcast",
-    "WTF with Marc Maron",
-    "SmartLess",
-    "Good One",
-    "Blocks",
-    "Fly on the Wall",
-    "We Might Be Drunk",
-    "You Made It Weird",
-    "The HoneyDew",
-    "Working It Out",
+PODCAST_FIXTURES = [
+    ("History Hyenas", "Chris Distefano & Yannis Pappas", "history-hyenas"),
+    ("The JTrain Podcast", "Jared Freid", "jtrain"),
+    ("WTF with Marc Maron", "Marc Maron", "wtf"),
+    ("Blocks w/ Neal Brennan", "Neal Brennan", "blocks"),
+    ("Fly on the Wall", "Dana Carvey & David Spade", "fly-on-the-wall"),
+    ("We Might Be Drunk", "Sam Morril & Mark Normand", "we-might-be-drunk"),
+    ("You Made It Weird", "Pete Holmes", "you-made-it-weird"),
+    ("The HoneyDew", "Ryan Sickler", "honeydew"),
+    ("The Joe Rogan Experience", "Joe Rogan", "joe-rogan"),
+    ("Doug Loves Movies", "Doug Benson", "doug-loves-movies"),
+    ("The Bonfire", "Big Jay Oakerson & Robert Kelly", "bonfire"),
+    ("Are You Garbage?", "Kevin Ryan & H. Foley", "are-you-garbage"),
 ]
-PODCAST_ARTWORK = ["history-hyenas", "conan", "jtrain", "wtf"]
 SHOW_ARTWORK = ["show-friends", "show-showcase", "show-best-of-la", "show-late-night"]
 SHOW_NAMES = [
     "Taylor Tomlinson & Friends",
@@ -427,10 +493,10 @@ def fixture_contract(mode: str = DEFAULT_MODE) -> dict:
 def fixture_mode_fingerprint(mode: str = DEFAULT_MODE) -> str:
     """Return a stable fingerprint for the selected fixture mode."""
     contract = fixture_contract(mode)
-    assets = {
-        key: ARTWORK_ASSETS[key]
-        for key in contract["artwork"]["required_keys"]
-    }
+    asset_source = (
+        CURATED_HTTPS_ASSETS if mode == CURATED_MODE else ARTWORK_ASSETS
+    )
+    assets = {key: asset_source[key] for key in contract["artwork"]["required_keys"]}
     encoded = json.dumps(
         {"contract": contract, "assets": assets},
         sort_keys=True,
@@ -453,6 +519,12 @@ def _social(entity_id: int, handle: str) -> dict:
     return {"id": entity_id, "instagramAccount": handle, "website": f"https://example.invalid/{handle}"}
 
 
+def _artwork_url(base_url: str, key: str, mode: str) -> str:
+    if mode == CURATED_MODE:
+        return CURATED_HTTPS_ASSETS[key]
+    return f"{base_url}/artwork/{key}.png"
+
+
 def _lineup(
     base_url: str,
     index: int = 1,
@@ -462,9 +534,7 @@ def _lineup(
     mode: str = DEFAULT_MODE,
 ) -> dict:
     entity_id = 301 + index
-    artwork_pool = (
-        FALLBACK_COMEDIAN_ARTWORK if mode == FALLBACK_MODE else COMEDIAN_ARTWORK
-    )
+    artwork_pool = FALLBACK_COMEDIAN_ARTWORK if mode == FALLBACK_MODE else COMEDIAN_ARTWORK
     artwork_key = artwork_pool[index % len(artwork_pool)]
     social_data = _social(entity_id, name.lower().replace(" ", ""))
     social_data["popularity"] = popularity
@@ -472,7 +542,7 @@ def _lineup(
         "id": entity_id,
         "uuid": f"fixture-{entity_id}",
         "name": name,
-        "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
+        "imageUrl": _artwork_url(base_url, artwork_key, mode),
         "showCount": show_count,
         "socialData": social_data,
         "isFavorite": False,
@@ -490,7 +560,7 @@ def _comedian(base_url: str, index: int, name: str, mode: str = DEFAULT_MODE) ->
         "id": entity_id,
         "uuid": f"fixture-{entity_id}",
         "name": name,
-        "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
+        "imageUrl": _artwork_url(base_url, artwork_key, mode),
         "socialData": _social(entity_id, name.lower().replace(" ", "")),
         "showCount": 28 - index,
         "isFavorite": False,
@@ -507,21 +577,32 @@ def _show(
     show_date: date | None = None,
     mode: str = DEFAULT_MODE,
     club_id: int = 201,
-    club_name: str = "The Comedy Store",
-    club_city: str = "West Hollywood",
+    club_name: str = "Hollywood Improv",
+    club_city: str = "Hollywood",
     club_state: str = "CA",
     club_timezone: str = "America/Los_Angeles",
     utc_offset: str = "-07:00",
     room: str = "Main Room",
+    club_artwork_key: str = "hollywood-improv",
 ) -> dict:
     resolved_date = show_date or (
         PRIMARY_SHOW_DATE if show_id == 101 else SECONDARY_SHOW_DATE
+    )
+    resolved_lineup = lineup if lineup is not None else [_lineup(base_url, mode=mode)]
+    image_url = (
+        resolved_lineup[0]["imageUrl"]
+        if mode == CURATED_MODE and resolved_lineup
+        else _artwork_url(
+            base_url,
+            club_artwork_key if mode == CURATED_MODE else artwork_key,
+            mode,
+        )
     )
     return {
         "id": show_id,
         "clubId": club_id,
         "date": f"{resolved_date.isoformat()}T{hour:02d}:00:00{utc_offset}",
-        "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
+        "imageUrl": image_url,
         "clubName": club_name,
         "clubCity": club_city,
         "clubState": club_state,
@@ -530,7 +611,7 @@ def _show(
         "timezone": club_timezone,
         "soldOut": False,
         "tickets": [{"price": 40, "purchaseUrl": f"https://example.invalid/tickets/{show_id}", "soldOut": False, "type": "General Admission"}],
-        "lineup": lineup if lineup is not None else [_lineup(base_url, mode=mode)],
+        "lineup": resolved_lineup,
     }
 
 
@@ -540,12 +621,13 @@ def _club_shows(
     *,
     id_offset: int = 0,
     club_id: int = 201,
-    club_name: str = "The Comedy Store",
-    club_city: str = "West Hollywood",
+    club_name: str = "Hollywood Improv",
+    club_city: str = "Hollywood",
     club_state: str = "CA",
     club_timezone: str = "America/Los_Angeles",
     utc_offset: str = "-07:00",
     room: str = "Main Room",
+    club_artwork_key: str = "hollywood-improv",
 ) -> list[dict]:
     club_kwargs = {
         "club_id": club_id,
@@ -555,6 +637,7 @@ def _club_shows(
         "club_timezone": club_timezone,
         "utc_offset": utc_offset,
         "room": room,
+        "club_artwork_key": club_artwork_key,
     }
     taylor = _lineup(base_url, mode=mode)
     ali = _lineup(base_url, 0, "Ali Wong", popularity=96, show_count=36, mode=mode)
@@ -658,6 +741,7 @@ def _comedy_cellar_shows(base_url: str, mode: str = DEFAULT_MODE) -> list[dict]:
         club_timezone="America/New_York",
         utc_offset="-04:00",
         room="Main Room",
+        club_artwork_key="comedy-cellar",
     )
 
 
@@ -694,7 +778,7 @@ def _podcast_hosts(base_url: str) -> list[dict]:
     ]
 
 
-def _podcast(base_url: str) -> dict:
+def _podcast(base_url: str, mode: str = DEFAULT_MODE) -> dict:
     return {
         "id": 401,
         "slug": "history-hyenas",
@@ -704,37 +788,38 @@ def _podcast(base_url: str) -> dict:
         "authorName": "Chris Distefano & Yannis Pappas",
         "websiteUrl": "https://example.invalid/podcasts/history-hyenas",
         "feedUrl": "https://example.invalid/feeds/history-hyenas",
-        "imageUrl": f"{base_url}/artwork/history-hyenas.png",
+        "imageUrl": _artwork_url(base_url, "history-hyenas", mode),
         "description": "Comedians tear through history's strangest characters, rivalries, and disasters.",
         "isFavorite": False,
     }
 
 
-def _podcast_episode(base_url: str) -> dict:
+def _podcast_episode(base_url: str, mode: str = DEFAULT_MODE) -> dict:
     return {
         "id": 501,
-        "title": "The Wildest Feuds in History",
-        "description": "A fast, funny tour through the rivalries that changed history.",
-        "releaseDate": EPISODE_RELEASE_DATE.isoformat(),
-        "durationSeconds": 4260,
-        "episodeUrl": "https://example.invalid/episodes/501",
-        "audioUrl": "https://example.invalid/audio/501.mp3",
+        "title": "Watch Your Tone with Ryan Sickler | History Hyenas",
+        # Original episode synopsis, excluding the trailing sponsor/social links.
+        "description": "The boys sit down with comedian Ryan Sickler to discuss his new comedy special, near death experiences, and how to monitor your tone when talking your significant other. Check out his new special Live and Alive here: https://www.youtube.com/watch?v=PMGWVyM2NJo",
+        "releaseDate": HOME_FEED_EPISODE_RELEASE_DATETIME,
+        "durationSeconds": 4654,
+        "episodeUrl": None,
+        "audioUrl": EPISODE_AUDIO_URL,
         "appearances": [
             *_podcast_hosts(base_url),
             {
-                "id": 301,
-                "uuid": "fixture-301",
-                "name": "Ali Wong",
-                "imageUrl": f"{base_url}/artwork/ali-wong.png",
+                "id": 249148,
+                "uuid": "6713c3fbed5bc17713cca3ba90ecd5b0",
+                "name": "Ryan Sickler",
+                "imageUrl": "https://laughtrack.b-cdn.net/comedian-images/249148/8d0ef3db-606f-4357-84a3-9eee79a9d3b2/avatar.jpg",
             },
         ],
     }
 
 
-def _home_feed_podcast_episode(base_url: str) -> dict:
-    episode = _podcast_episode(base_url)
+def _home_feed_podcast_episode(base_url: str, mode: str = DEFAULT_MODE) -> dict:
+    episode = _podcast_episode(base_url, mode)
     episode["releaseDate"] = HOME_FEED_EPISODE_RELEASE_DATETIME
-    podcast = _podcast(base_url)
+    podcast = _podcast(base_url, mode)
     guest = episode["appearances"][-1]
     return {
         key: episode[key]
@@ -790,7 +875,7 @@ def fixture_response(
         ]
         return {"data": {
             "hero": {"zipCode": "90028", "city": "Los Angeles", "state": "CA", "shows": [primary]},
-            "trendingComedians": [{"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": f"{base_url}/artwork/ali-wong.png", "socialData": _social(301, "aliwong"), "showCount": 28}],
+            "trendingComedians": [{"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": _artwork_url(base_url, "ali-wong", mode), "socialData": _social(301, "aliwong"), "showCount": 28}],
             "comediansNearYou": [],
             "showsTonight": [primary],
             "moreNearYou": nearby or [_show(base_url, 102, "Comedy Store Showcase", 21, mode=mode)],
@@ -814,9 +899,9 @@ def fixture_response(
                     mode=mode,
                 )
             ],
-            "podcastEpisodes": [_home_feed_podcast_episode(base_url)],
-            "trendingPodcasts": [{"id": 401, "slug": "history-hyenas", "title": "History Hyenas", "episodeCount": 130, "authorName": "Chris Distefano & Yannis Pappas", "imageUrl": f"{base_url}/artwork/history-hyenas.png"}],
-            "popularClubs": [{"id": 201, "address": "8433 Sunset Blvd, West Hollywood, CA", "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "activeComedianCount": 120, "zipCode": "90069"}],
+            "podcastEpisodes": [_home_feed_podcast_episode(base_url, mode)],
+            "trendingPodcasts": [{"id": 401, "slug": "history-hyenas", "title": "History Hyenas", "episodeCount": 130, "authorName": "Chris Distefano & Yannis Pappas", "imageUrl": _artwork_url(base_url, "history-hyenas", mode)}],
+            "popularClubs": [{"id": 201, "address": "8162 Melrose Ave, Hollywood, CA", "name": "Hollywood Improv", "imageUrl": _artwork_url(base_url, "hollywood-improv" if mode == CURATED_MODE else "comedy-store", mode), "activeComedianCount": 120, "zipCode": "90046"}],
         }}
     if path == f"{API_PREFIX}shows/search":
         is_pinned_club_search = bool(
@@ -850,8 +935,14 @@ def fixture_response(
         clubs = [
             {
                 "id": 201 + index,
-                **club,
-                "imageUrl": f"{base_url}/artwork/{'comedy-cellar' if club['name'] == 'Comedy Cellar' else ('comedy-store' if mode == FALLBACK_MODE else CLUB_ARTWORK[index % len(CLUB_ARTWORK)])}.png",
+                **{key: value for key, value in club.items() if key != "artworkKey"},
+                "imageUrl": _artwork_url(
+                    base_url,
+                    club["artworkKey"]
+                    if mode == CURATED_MODE
+                    else ("comedy-cellar" if club["name"] == "Comedy Cellar" else "comedy-store"),
+                    mode,
+                ),
                 "showCount": 120 - index * (10 if mode == FALLBACK_MODE else 5),
                 "activeComedianCount": 80 - index,
                 "isFavorite": False,
@@ -870,12 +961,16 @@ def fixture_response(
                 "title": title,
                 "episodeCount": 130 - index * 5,
                 "hosts": _podcast_hosts(base_url),
-                "authorName": "Comedy Podcast Network",
-                "imageUrl": f"{base_url}/artwork/{'history-hyenas' if mode == FALLBACK_MODE else PODCAST_ARTWORK[index % len(PODCAST_ARTWORK)]}.png",
+                "authorName": author_name,
+                "imageUrl": _artwork_url(
+                    base_url,
+                    artwork_key if mode == CURATED_MODE else "history-hyenas",
+                    mode,
+                ),
                 "description": "Stand-up conversations and new episodes every week.",
                 "isFavorite": False,
             }
-            for index, title in enumerate(PODCAST_TITLES[:result_count])
+            for index, (title, author_name, artwork_key) in enumerate(PODCAST_FIXTURES[:result_count])
         ]
         podcast_query = (query or {}).get("q", [""])[0].strip().casefold()
         if podcast_query:
@@ -889,22 +984,24 @@ def fixture_response(
         club_id = int(path.rsplit("/", 1)[-1])
         club = CLUB_FIXTURES[club_id - 201]
         is_comedy_cellar = club_id == 202
-        artwork_key = "comedy-cellar" if is_comedy_cellar else "comedy-store"
+        artwork_key = "comedy-cellar" if is_comedy_cellar else "hollywood-improv"
+        if mode == FALLBACK_MODE and not is_comedy_cellar:
+            artwork_key = "comedy-store"
         return {
             "data": {
                 "id": club_id,
                 "name": club["name"],
-                "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
-                "heroImageUrl": f"{base_url}/artwork/{artwork_key}.png",
+                "imageUrl": _artwork_url(base_url, artwork_key, mode),
+                "heroImageUrl": _artwork_url(base_url, artwork_key, mode),
                 "website": (
                     "https://www.comedycellar.com"
                     if is_comedy_cellar
-                    else "https://thecomedystore.com"
+                    else "https://improv.com/hollywood"
                 ),
                 "address": club["address"],
                 "zipCode": club["zipCode"],
                 "phoneNumber": (
-                    "(212) 254-3480" if is_comedy_cellar else "(323) 650-6268"
+                    "(212) 254-3480" if is_comedy_cellar else "(323) 651-2583"
                 ),
             }
         }
@@ -949,27 +1046,27 @@ def fixture_response(
             _show(base_url, show_id, mode=mode),
         )
         club = (
-            {"id": 202, "name": "Comedy Cellar", "imageUrl": f"{base_url}/artwork/comedy-cellar.png", "address": "117 MacDougal St, New York, NY", "timezone": "America/New_York"}
+            {"id": 202, "name": "Comedy Cellar", "imageUrl": _artwork_url(base_url, "comedy-cellar", mode), "address": "117 MacDougal St, New York, NY", "timezone": "America/New_York"}
             if show["clubId"] == 202
-            else {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "address": "8433 Sunset Blvd, West Hollywood, CA", "timezone": "America/Los_Angeles"}
+            else {"id": 201, "name": "Hollywood Improv", "imageUrl": _artwork_url(base_url, "hollywood-improv" if mode == CURATED_MODE else "comedy-store", mode), "address": "8162 Melrose Ave, Hollywood, CA", "timezone": "America/Los_Angeles"}
         )
         return {"data": {**show, "showPageUrl": f"https://example.invalid/show/{show_id}", "club": club, "cta": {"label": "Buy tickets", "isSoldOut": False, "url": f"https://example.invalid/tickets/{show_id}"}, "description": "A special night of new material and surprise guests."}, "relatedShows": []}
     if path == f"{API_PREFIX}comedians/301":
-        return {"data": {"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": f"{base_url}/artwork/ali-wong.png", "socialData": _social(301, "aliwong"), "podcastAppearances": [], "homeLocation": {"city": "San Francisco", "state": "CA", "country": "US"}}}
+        return {"data": {"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": _artwork_url(base_url, "ali-wong", mode), "socialData": _social(301, "aliwong"), "podcastAppearances": [], "homeLocation": {"city": "San Francisco", "state": "CA", "country": "US"}}}
     if path == f"{API_PREFIX}comedians/301/upcoming-runs":
-        return {"data": [{"clubId": 201, "clubName": "The Comedy Store", "clubImageUrl": f"{base_url}/artwork/comedy-store.png", "shows": [_show(base_url, 106, "Ali Wong: Live", 20, mode=mode)]}]}
+        return {"data": [{"clubId": 201, "clubName": "Hollywood Improv", "clubImageUrl": _artwork_url(base_url, "hollywood-improv" if mode == CURATED_MODE else "comedy-store", mode), "shows": [_show(base_url, 106, "Ali Wong: Live", 20, mode=mode)]}]}
     if path in {f"{API_PREFIX}comedians/301/co-bill", f"{API_PREFIX}comedians/past-shows"}:
         return {"data": [], **({"total": 0} if path.endswith("past-shows") else {})}
     if path == f"{API_PREFIX}podcasts/401":
         return {
-            "podcast": _podcast(base_url),
-            "episodes": [_podcast_episode(base_url)],
+            "podcast": _podcast(base_url, mode),
+            "episodes": [_podcast_episode(base_url, mode)],
             "relatedComedians": [
                 {
                     "id": 301,
                     "uuid": "fixture-301",
                     "name": "Ali Wong",
-                    "imageUrl": f"{base_url}/artwork/ali-wong.png",
+                    "imageUrl": _artwork_url(base_url, "ali-wong", mode),
                     "socialData": _social(301, "aliwong"),
                     "showCount": 28,
                     "isFavorite": False,
@@ -978,8 +1075,8 @@ def fixture_response(
         }
     if path == f"{API_PREFIX}podcast-episodes/501":
         return {
-            "podcast": _podcast(base_url),
-            "episode": _podcast_episode(base_url),
+            "podcast": _podcast(base_url, mode),
+            "episode": _podcast_episode(base_url, mode),
         }
     return None
 
@@ -1077,7 +1174,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--list-curated-assets", action="store_true")
     args = parser.parse_args()
+    if args.list_curated_assets:
+        for key, url in CURATED_HTTPS_ASSETS.items():
+            print(f"{key}\t{url}")
+        return 0
     server = FixtureServer((args.host, args.port))
     print(
         f"Fixture server listening on http://{args.host}:{args.port}",

@@ -102,11 +102,11 @@ def test_play_projection_exports_eight_phone_and_four_per_tablet(tmp_path: Path)
     assert file_hashes(manifest.parent) == run_before
 
 
-def test_episode_detail_remains_comparison_only() -> None:
+def test_episode_detail_is_included_in_app_store_projection() -> None:
+    assert "10_PodcastEpisodeDetail" in STOREFRONT_SELECTIONS["app-store"]["ios_phone"]
     assert all(
         "10_PodcastEpisodeDetail" not in scenario_ids
-        for storefront in STOREFRONT_SELECTIONS.values()
-        for scenario_ids in storefront.values()
+        for scenario_ids in STOREFRONT_SELECTIONS["play"].values()
     )
 
 
@@ -131,7 +131,7 @@ def test_app_store_projection_exports_canonical_shipping_phone_images(
         for profile_id, scenario_ids in STOREFRONT_SELECTIONS["app-store"].items()
         for scenario_id in scenario_ids
     }
-    assert len(exported) == 9
+    assert len(exported) == 10
     assert {path.name for path in (output / "en-US").glob("*.png")} == expected_names
     assert file_hashes(source) == source_before
     assert file_hashes(manifest.parent) == run_before

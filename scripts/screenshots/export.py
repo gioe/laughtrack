@@ -119,6 +119,7 @@ STOREFRONT_SELECTIONS: dict[str, dict[str, tuple[str, ...]]] = {
             "07_ComedianDetail",
             "08_SearchPodcasts",
             "09_PodcastDetail",
+            "10_PodcastEpisodeDetail",
         ),
     },
 }

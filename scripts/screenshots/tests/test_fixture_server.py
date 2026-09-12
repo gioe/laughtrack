@@ -16,6 +16,7 @@ from scripts.screenshots.fixture_server import (
     ARTWORK_ASSETS,
     ASSET_ROOT,
     CONTENT_FIXTURE,
+    CURATED_HTTPS_ASSETS,
     CURATED_MODE,
     DEFAULT_MODE,
     EPISODE_RELEASE_DATE,
@@ -73,6 +74,17 @@ def artwork_keys(value: object) -> set[str]:
         return set().union(*(artwork_keys(item) for item in value))
     if isinstance(value, str) and value.startswith("http://fixture/artwork/"):
         return {value.rsplit("/", 1)[-1].removesuffix(".png")}
+    return set()
+
+
+def https_artwork_keys(value: object) -> set[str]:
+    keys_by_url = {url: key for key, url in CURATED_HTTPS_ASSETS.items()}
+    if isinstance(value, dict):
+        return set().union(*(https_artwork_keys(item) for item in value.values()))
+    if isinstance(value, list):
+        return set().union(*(https_artwork_keys(item) for item in value))
+    if isinstance(value, str) and value in keys_by_url:
+        return {keys_by_url[value]}
     return set()
 
 
@@ -162,18 +174,18 @@ def test_curated_clubs_use_real_locations() -> None:
         CURATED_MODE,
     )["data"]
     expected_locations = {
-        "The Comedy Store": ("West Hollywood", "CA"),
+        "Hollywood Improv": ("Hollywood", "CA"),
         "Comedy Cellar": ("New York", "NY"),
         "The Stand": ("New York", "NY"),
-        "Hollywood Improv": ("Hollywood", "CA"),
-        "Largo at the Coronet": ("Los Angeles", "CA"),
         "Gotham Comedy Club": ("New York", "NY"),
-        "The Bell House": ("Brooklyn", "NY"),
-        "Laugh Factory": ("Los Angeles", "CA"),
-        "Punch Line": ("San Francisco", "CA"),
-        "Helium Comedy Club": ("Philadelphia", "PA"),
-        "Zanies": ("Chicago", "IL"),
-        "Comedy Works": ("Denver", "CO"),
+        "Ice House Comedy Club": ("Pasadena", "CA"),
+        "The Comedy & Magic Club": ("Hermosa Beach", "CA"),
+        "American Comedy Company": ("San Diego", "CA"),
+        "Irvine Improv": ("Irvine", "CA"),
+        "Cobb's Comedy Club": ("San Francisco", "CA"),
+        "Laugh Boston": ("Boston", "MA"),
+        "The Comedy Vault": ("Batavia", "IL"),
+        "Goodnights Comedy Club": ("Raleigh", "NC"),
     }
 
     assert {
@@ -183,8 +195,8 @@ def test_curated_clubs_use_real_locations() -> None:
     assert [
         club["name"]
         for club in clubs
-        if (club["city"], club["state"]) == ("West Hollywood", "CA")
-    ] == ["The Comedy Store"]
+        if (club["city"], club["state"]) == ("Hollywood", "CA")
+    ] == ["Hollywood Improv"]
 
     clubs_by_id = {club["id"]: club for club in clubs}
     for club_id in (201, 202):
@@ -246,7 +258,7 @@ def test_fixture_dates_are_plausible_and_deterministic() -> None:
     assert REVIEW_ANCHOR_DATE == review_anchor
     assert PRIMARY_SHOW_DATE == date(2026, 8, 16)
     assert SECONDARY_SHOW_DATE == date(2026, 8, 17)
-    assert EPISODE_RELEASE_DATE == date(2026, 8, 11)
+    assert EPISODE_RELEASE_DATE == date(2025, 10, 23)
 
     payloads = {}
     for mode, contract in CONTENT_FIXTURE["modes"].items():
@@ -285,9 +297,9 @@ def test_fixture_dates_are_plausible_and_deterministic() -> None:
         episode = fixture_response(
             "/api/v1/podcast-episodes/501", "http://fixture", mode
         )["episode"]
-        release_date = date.fromisoformat(episode["releaseDate"])
+        release_date = datetime.fromisoformat(episode["releaseDate"]).date()
         assert release_date == EPISODE_RELEASE_DATE
-        assert review_anchor - timedelta(days=30) <= release_date <= review_anchor
+        assert release_date <= review_anchor
 
     assert [show["date"] for show in payloads[CURATED_MODE]["data"][:5]] == [
         show["date"] for show in payloads[FALLBACK_MODE]["data"]
@@ -322,11 +334,11 @@ def test_show_101_contract_is_shared_across_native_capture_endpoints() -> None:
         "name": "Taylor Tomlinson & Friends",
         "date": "2026-08-16T20:00:00-07:00",
         "clubId": 201,
-        "clubName": "The Comedy Store",
-        "clubCity": "West Hollywood",
+        "clubName": "Hollywood Improv",
+        "clubCity": "Hollywood",
         "clubState": "CA",
         "timezone": "America/Los_Angeles",
-        "imageUrl": f"{base_url}/artwork/show-friends.png",
+        "imageUrl": CURATED_HTTPS_ASSETS["taylor-tomlinson"],
         "tickets": [
             {
                 "price": 40,
@@ -337,12 +349,12 @@ def test_show_101_contract_is_shared_across_native_capture_endpoints() -> None:
         ],
     }
     assert club_show["lineup"][0]["name"] == "Taylor Tomlinson"
-    assert club_show["lineup"][0]["imageUrl"] == f"{base_url}/artwork/taylor.png"
+    assert club_show["lineup"][0]["imageUrl"] == CURATED_HTTPS_ASSETS["taylor-tomlinson"]
     assert detail["club"] == {
         "id": 201,
-        "name": "The Comedy Store",
-        "imageUrl": f"{base_url}/artwork/comedy-store.png",
-        "address": "8433 Sunset Blvd, West Hollywood, CA",
+        "name": "Hollywood Improv",
+        "imageUrl": CURATED_HTTPS_ASSETS["hollywood-improv"],
+        "address": "8162 Melrose Ave, Hollywood, CA",
         "timezone": "America/Los_Angeles",
     }
     assert detail["cta"] == {
@@ -380,23 +392,23 @@ def test_home_feed_includes_deterministic_podcast_episode_discovery() -> None:
     assert len(home["podcastEpisodes"]) == 1
     episode = home["podcastEpisodes"][0]
     assert episode["id"] == 501
-    assert episode["title"] == "The Wildest Feuds in History"
+    assert episode["title"] == "Watch Your Tone with Ryan Sickler | History Hyenas"
     assert episode["releaseDate"] == HOME_FEED_EPISODE_RELEASE_DATETIME
-    assert episode["durationSeconds"] == 4260
-    assert episode["audioUrl"] == "https://example.invalid/audio/501.mp3"
+    assert episode["durationSeconds"] == 4654
+    assert "YMH7734324090.mp3" in episode["audioUrl"]
     assert episode["podcast"] == {
         "id": 401,
         "slug": "history-hyenas",
         "title": "History Hyenas",
-        "imageUrl": "http://fixture/artwork/history-hyenas.png",
+        "imageUrl": CURATED_HTTPS_ASSETS["history-hyenas"],
     }
     assert episode["recommendation"] == {
         "reason": "guest_appearance",
         "comedian": {
-            "id": 301,
-            "uuid": "fixture-301",
-            "name": "Ali Wong",
-            "imageUrl": "http://fixture/artwork/ali-wong.png",
+            "id": 249148,
+            "uuid": "6713c3fbed5bc17713cca3ba90ecd5b0",
+            "name": "Ryan Sickler",
+            "imageUrl": "https://laughtrack.b-cdn.net/comedian-images/249148/8d0ef3db-606f-4357-84a3-9eee79a9d3b2/avatar.jpg",
         },
         "appearanceRole": "guest",
         "followedComedian": False,
@@ -425,7 +437,7 @@ def test_club_highlights_fixture_populates_tonight_and_qualified_performers() ->
     assert highlights["tonightShows"][0]["lineup"][0]["socialData"]["popularity"] == 98
     assert highlights["nextShow"]["id"] == 102
     assert highlights["nextShow"]["lineup"] == []
-    assert highlights["nextShow"]["imageUrl"].endswith("/artwork/show-friends.png")
+    assert highlights["nextShow"]["imageUrl"] == CURATED_HTTPS_ASSETS["hollywood-improv"]
     assert len(highlights["frequentPerformers"]) == 3
     assert [performer["id"] for performer in highlights["frequentPerformers"]] == [
         301,
@@ -443,17 +455,17 @@ def test_pinned_club_show_search_supports_multiple_pages() -> None:
     first = fixture_response(
         "/api/v1/shows/search",
         "http://fixture",
-        query={"club": ["The Comedy Store"], "page": ["0"], "size": ["5"]},
+        query={"club": ["Hollywood Improv"], "page": ["0"], "size": ["5"]},
     )
     second = fixture_response(
         "/api/v1/shows/search",
         "http://fixture",
-        query={"club": ["The Comedy Store"], "page": ["1"], "size": ["5"]},
+        query={"club": ["Hollywood Improv"], "page": ["1"], "size": ["5"]},
     )
     last = fixture_response(
         "/api/v1/shows/search",
         "http://fixture",
-        query={"club": ["The Comedy Store"], "page": ["8"], "size": ["5"]},
+        query={"club": ["Hollywood Improv"], "page": ["8"], "size": ["5"]},
     )
 
     assert first["total"] == second["total"] == last["total"] == 45
@@ -486,10 +498,10 @@ def test_comedy_cellar_search_detail_and_calendar_share_real_artwork() -> None:
 
     assert search["total"] == 1
     assert search["data"][0]["id"] == 202
-    assert search["data"][0]["imageUrl"] == f"{base_url}/artwork/comedy-cellar.png"
+    assert search["data"][0]["imageUrl"] == CURATED_HTTPS_ASSETS["comedy-cellar"]
     assert detail["name"] == "Comedy Cellar"
-    assert detail["imageUrl"] == f"{base_url}/artwork/comedy-cellar.png"
-    assert detail["heroImageUrl"] == f"{base_url}/artwork/comedy-cellar.png"
+    assert detail["imageUrl"] == CURATED_HTTPS_ASSETS["comedy-cellar"]
+    assert detail["heroImageUrl"] == CURATED_HTTPS_ASSETS["comedy-cellar"]
     assert shows[0]["id"] == 201
     assert shows[0]["clubId"] == 202
     assert shows[0]["clubName"] == "Comedy Cellar"
@@ -507,7 +519,7 @@ def test_comedy_cellar_search_detail_and_calendar_share_real_artwork() -> None:
     assert show_detail["club"] == {
         "id": 202,
         "name": "Comedy Cellar",
-        "imageUrl": f"{base_url}/artwork/comedy-cellar.png",
+        "imageUrl": CURATED_HTTPS_ASSETS["comedy-cellar"],
         "address": "117 MacDougal St, New York, NY",
         "timezone": "America/New_York",
     }
@@ -517,7 +529,7 @@ def test_every_mode_declares_the_deterministic_episode_entity() -> None:
     for contract in CONTENT_FIXTURE["modes"].values():
         assert contract["featured_entities"]["episode"] == {
             "id": 501,
-            "name": "The Wildest Feuds in History",
+            "name": "Watch Your Tone with Ryan Sickler | History Hyenas",
         }
 
 
@@ -532,27 +544,27 @@ def test_episode_detail_matches_catalog_and_populates_lineup_media() -> None:
     podcast = episode_detail["podcast"]
     episode = episode_detail["episode"]
     assert podcast["id"] == 401
-    assert podcast["imageUrl"] == "http://fixture/artwork/history-hyenas.png"
+    assert podcast["imageUrl"] == CURATED_HTTPS_ASSETS["history-hyenas"]
     assert [host["name"] for host in podcast["hosts"]] == [
         "Chris Distefano",
         "Yannis Pappas",
     ]
     assert episode["id"] == 501
-    assert episode["audioUrl"] == "https://example.invalid/audio/501.mp3"
-    assert episode["episodeUrl"] == "https://example.invalid/episodes/501"
+    assert "YMH7734324090.mp3" in episode["audioUrl"]
+    assert episode["episodeUrl"] is None
     assert episode["description"]
-    assert episode["durationSeconds"] == 4260
+    assert episode["durationSeconds"] == 4654
     assert [appearance["name"] for appearance in episode["appearances"]] == [
         "Chris Distefano",
         "Yannis Pappas",
-        "Ali Wong",
+        "Ryan Sickler",
     ]
     host_ids = {host["id"] for host in podcast["hosts"]}
     assert [
         appearance["name"]
         for appearance in episode["appearances"]
         if appearance["id"] not in host_ids
-    ] == ["Ali Wong"]
+    ] == ["Ryan Sickler"]
 
 
 def test_podcast_hosts_use_distinct_comedian_portraits() -> None:
@@ -589,11 +601,9 @@ def test_history_hyenas_search_and_detail_share_original_artwork() -> None:
     assert search["total"] == 1
     assert search["data"][0]["id"] == 401
     assert search["data"][0]["title"] == "History Hyenas"
-    assert search["data"][0]["imageUrl"] == (
-        f"{base_url}/artwork/history-hyenas.png"
-    )
+    assert search["data"][0]["imageUrl"] == CURATED_HTTPS_ASSETS["history-hyenas"]
     assert detail["title"] == "History Hyenas"
-    assert detail["imageUrl"] == f"{base_url}/artwork/history-hyenas.png"
+    assert detail["imageUrl"] == CURATED_HTTPS_ASSETS["history-hyenas"]
 
 
 def test_episode_detail_is_served_at_the_exact_native_api_path(
@@ -614,7 +624,7 @@ def test_curated_mode_populates_dense_search_results_with_distinct_artwork() -> 
         payload = fixture_response(path, "http://fixture", CURATED_MODE)
         assert len(payload["data"]) == 12
         assert payload["total"] == 12
-        referenced_artwork.update(artwork_keys(payload))
+        referenced_artwork.update(https_artwork_keys(payload))
 
     required = set(contract["artwork"]["required_keys"])
     assert required == {
@@ -623,8 +633,11 @@ def test_curated_mode_populates_dense_search_results_with_distinct_artwork() -> 
         for key in category
     }
     assert required == referenced_artwork
-    assert len({artwork_png(key) for key in required}) == len(required)
-    assert all(artwork_png(key).startswith(b"\x89PNG\r\n\x1a\n") for key in required)
+    assert len({CURATED_HTTPS_ASSETS[key] for key in required}) == len(required)
+    assert all(
+        urlparse(CURATED_HTTPS_ASSETS[key]).scheme == "https"
+        for key in required
+    )
 
 
 def test_curated_artwork_contract_matches_bundled_checksummed_files() -> None:

@@ -257,17 +257,17 @@ class AppStoreScreenshotTest {
                 waitForStable(hasText("Episodes for you"), timeoutMs = 30_000)
                 composeRule.onNodeWithTag("homePodcastEpisodePlay-501").performScrollTo()
                 waitFor(hasContentDescription("History Hyenas"))
-                waitFor(hasText("The Wildest Feuds in History"))
-                waitFor(hasText(" • 71 min", substring = true))
-                waitFor(hasText("Guest: Ali Wong"))
+                waitFor(hasText("Watch Your Tone with Ryan Sickler | History Hyenas"))
+                waitFor(hasText(" • 77 min", substring = true))
+                waitFor(hasText("Guest: Ryan Sickler"))
                 waitFor(
                     hasContentDescription(
-                        "Open The Wildest Feuds in History",
+                        "Open Watch Your Tone with Ryan Sickler | History Hyenas",
                         substring = true,
                     ),
                 )
                 waitFor(hasTestTag("homePodcastEpisodePlay-501"))
-                waitFor(hasContentDescription("Play episode The Wildest Feuds in History"))
+                waitFor(hasContentDescription("Play episode Watch Your Tone with Ryan Sickler | History Hyenas"))
                 composeRule
                     .onNodeWithTag(HOME_DISCOVER_LIST_TEST_TAG)
                     .performScrollToIndex(0)
@@ -342,12 +342,12 @@ class AppStoreScreenshotTest {
         // 10 — Open the same deterministic episode from podcast detail.
         waitFor(hasTestTag(podcastEpisodeRowTag), timeoutMs = 20_000)
         composeRule
-            .onNodeWithContentDescription("Open episode The Wildest Feuds in History")
+            .onNodeWithContentDescription("Open episode Watch Your Tone with Ryan Sickler | History Hyenas")
             .performScrollTo()
             .performClick()
         waitFor(hasTestTag(podcastEpisodeDetailTag), timeoutMs = 20_000)
         waitUntilGone(hasTestTag(DETAIL_LOADING_TEST_TAG), timeoutMs = 30_000)
-        waitFor(hasText("The Wildest Feuds in History"), timeoutMs = 20_000)
+        waitFor(hasText("Watch Your Tone with Ryan Sickler | History Hyenas"), timeoutMs = 20_000)
         waitFor(hasTestTag(podcastEpisodePrimaryActionTag), timeoutMs = 20_000)
         if (capture("10_PodcastEpisodeDetail")) return
 
@@ -386,14 +386,14 @@ class AppStoreScreenshotTest {
                     episodeId = -1,
                     podcastId = -1,
                     podcastTitle = "History Hyenas",
-                    episodeTitle = "The Wildest Feuds in History",
+                    episodeTitle = "Watch Your Tone with Ryan Sickler | History Hyenas",
                     audioUrl = "https://example.invalid/demo.mp3",
                     artworkUrl = nowPlayingArtworkUrl,
                 ),
             )
             navController.navigate(AppRoute.NowPlaying)
         }
-        waitFor(hasText("The Wildest Feuds in History"))
+        waitFor(hasText("Watch Your Tone with Ryan Sickler | History Hyenas"))
         // Intentional background override: this immersive media destination is
         // the sole AppShell route that replaces the atmosphere with opaque Canvas.
         if (capture("14_NowPlaying")) return

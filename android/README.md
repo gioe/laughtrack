@@ -295,11 +295,12 @@ validated internal build, matching the iOS `beta` / `release` split.
   `@TestInstallIn` fake `HomeLocationResolver` (`FakeHomeLocationModule`, from the
   isolated `HomeLocationModule`) that returns `90028` unconditionally; the test
   pre-grants location and taps *Use location* to route through it, so captures never
-  leak the runner's geo-IP. The Fastlane lane starts the shared hermetic fixture
+  leak the runner's geo-IP. The Fastlane lane starts the shared deterministic fixture
   backend in `scripts/screenshots/fixture_server.py`, and the screenshot test replaces
   the production API client with `http://10.0.2.2:8765/api/v1/`. Result counts,
-  featured entities, dates, narrative content, and generated artwork therefore match
-  the iOS catalog instead of varying with production data.
+  featured entities, dates, and narrative content therefore match the iOS catalog,
+  while curated artwork uses HTTPS URLs pinned from the public production backend.
+  The generated artwork bundle is reserved for explicit fallback diagnostics.
 - **Output** lands under the `phoneScreenshots/`, `sevenInchScreenshots/`, and
   `tenInchScreenshots/` directories below
   `fastlane/metadata/android/<locale>/images/`. Every profile uses the same stable

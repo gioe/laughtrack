@@ -459,7 +459,7 @@ struct ContentView: View {
             else { return }
             podcastPlayer.start(PodcastPlaybackItem(
                 id: -1,
-                episodeTitle: "The Wildest Feuds in History",
+                episodeTitle: "Watch Your Tone with Ryan Sickler | History Hyenas",
                 podcastName: "History Hyenas",
                 podcastImageURL: ProcessInfo.processInfo.environment[
                     UITestLaunchArgs.nowPlayingScreenshotArtworkURL
@@ -468,7 +468,7 @@ struct ContentView: View {
                 audioURL: nil,
                 episodeURL: nil,
                 failedAudioURL: nil,
-                releaseDate: "Today"
+                releaseDate: "Oct 23, 2025"
             ))
         }
         .task {

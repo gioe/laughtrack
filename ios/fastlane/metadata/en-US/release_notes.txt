@@ -1,4 +1,2 @@
 Improvements
-• Discover shows from your favorite comedians in one streamlined place
-• Browse richer venue pages with artwork and tonight's lineup
-• Enjoy refreshed search and podcast discovery
+• Replace guest notification menus with sign-up prompts

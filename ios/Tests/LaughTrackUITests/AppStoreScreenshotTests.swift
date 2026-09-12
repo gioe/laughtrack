@@ -293,7 +293,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                     as: "podcast episode detail screen"
                 ),
                 content: [
-                    text("The Wildest Feuds in History", as: "podcast episode title"),
+                    text("Watch Your Tone with Ryan Sickler | History Hyenas", as: "podcast episode title"),
                     identified(
                         Identifier.podcastEpisodeDetailPrimaryAction,
                         as: "podcast episode primary action"
@@ -402,7 +402,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                         ["Skip back 15 seconds", "Play", "Skip forward 30 seconds"],
                         as: "podcast transport controls"
                     ),
-                    text("The Wildest Feuds in History", as: "seeded episode"),
+                    text("Watch Your Tone with Ryan Sickler | History Hyenas", as: "seeded episode"),
                 ]
             )
             closeNowPlaying.tap()

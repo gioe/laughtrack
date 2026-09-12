@@ -95,6 +95,7 @@ struct PodcastMiniPlayerView: View {
 
                 progressBar
             }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)

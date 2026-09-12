@@ -140,6 +140,10 @@ def _checkout_fixture(tmp_path: Path) -> tuple[Path, Path]:
     shutil.copy2(REGENERATE_SCRIPT, script)
     for helper in ("cache.py", "manifest.py"):
         (script.parent / helper).write_text("", encoding="utf-8")
+    (script.parent / "fixture_server.py").write_text(
+        'print("fixture\\thttps://cdn.example.com/fixture.png")\n',
+        encoding="utf-8",
+    )
     (script.parent / "comparison.py").write_text(
         'print("{}")\n',
         encoding="utf-8",
@@ -162,6 +166,10 @@ fi
     _executable(repo / "android" / "bin" / "lane", lane)
     for command in ("xcrun", "adb", "magick"):
         _executable(repo / "test-bin" / command, "#!/usr/bin/env bash\nexit 0\n")
+    _executable(
+        repo / "test-bin" / "curl",
+        "#!/usr/bin/env bash\nprintf 'image/png'\n",
+    )
     (repo / "tracked.txt").write_text("base\n", encoding="utf-8")
     _git(repo, "add", ".")
     _git(repo, "commit", "-qm", "base")
@@ -310,6 +318,19 @@ def test_dirty_explicit_checkout_rejects_additional_capture_time_changes(
     provenance = json.loads((output / "checkout-provenance.json").read_text())
     assert provenance["status"] == "preflight_passed"
     assert "checkout_unchanged" not in provenance
+
+
+def test_capture_rejects_android_incompatible_curated_avif(tmp_path: Path) -> None:
+    repo, _ = _checkout_fixture(tmp_path)
+    _executable(
+        repo / "test-bin" / "curl",
+        "#!/usr/bin/env bash\nprintf 'image/avif'\n",
+    )
+
+    result = _run_capture(repo, tmp_path / "output")
+
+    assert result.returncode != 0
+    assert "Android-incompatible AVIF" in result.stderr
 
 
 def test_generates_18_scenario_labeled_sheets_in_profile_order(tmp_path: Path, monkeypatch) -> None:

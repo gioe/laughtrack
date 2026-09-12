@@ -12,16 +12,19 @@ generates 18 labeled cross-platform scenario sheets, writes delta-aware audit
 metadata, and opens them. It never uploads screenshots or
 metadata to App Store Connect or Google Play.
 
-Each native lane starts the hermetic backend in `fixture_server.py` and points
-its app at that local server for the duration of the capture. The fixture pins
-result counts, featured entities, dates, narrative content, and bundled curated
-artwork across both platforms. The redistributable PNGs live under
-`scripts/screenshots/assets/`. The iOS and Android `14_NowPlaying` captures
-download their podcast cover from an upstream HTTPS URL. Both
-`15_AuthenticatedFavorites` captures download visible headliner portraits from
-direct production HTTPS CDN URLs. Podcast Detail and Episode Detail also
-download host portraits from direct production HTTPS CDN URLs. Remaining
-fixture artwork stays local. The fixture's declared contract lives in
+Each native lane starts the deterministic backend in `fixture_server.py` and
+points its app at that local server for the duration of the capture. The fixture
+pins result counts, featured entities, dates, and narrative content across both
+platforms, but every curated `imageUrl` is an absolute HTTPS artwork source
+pinned from a record returned by the public production API. Comedian portraits
+and club images use the production LaughTrack CDN; podcast covers use the
+production artwork proxy except where an Imgix source is pinned to JPEG for
+cross-platform native decoding. Shows
+follow the production lineup-first, venue-fallback image rule. This preserves a
+repeatable storefront narrative while exercising real network image loading,
+decoding, caching, and failure behavior. The generated PNGs under
+`scripts/screenshots/assets/` are used only by the explicit
+`fallback-focused` diagnostic mode. The fixture's declared contract lives in
 `screenshots/catalog.json`, and every
 completed run manifest records the contract fingerprint so fixture drift is
 rejected during collection/export.
@@ -91,7 +94,7 @@ Both native lanes persist successful captures in a content-addressed cache by
 profile. An unchanged run materializes every validated profile without building
 or launching native tests. Cache keys hash the current contents of each
 platform's render-affecting app and UI-test sources, the shared catalog and
-fixture server, every nested curated artwork asset, that profile's adapter
+fixture server, the fallback-diagnostic artwork bundle, that profile's adapter
 configuration, and a normalized native environment identity. The iOS identity
 records the active Xcode version/build
 and the selected simulator runtime identifier/version/build. The Android

@@ -85,6 +85,7 @@ fi
 
 command -v git >/dev/null || fail "git is required"
 command -v python3 >/dev/null || fail "python3 is required"
+command -v curl >/dev/null || fail "curl is required"
 
 inspect_checkout() {
   revision="$(git -C "$repo_root" rev-parse HEAD)" ||
@@ -264,6 +265,26 @@ command -v magick >/dev/null || fail "ImageMagick's magick command is required"
 ios_run="$output_root/runs/ios"
 android_run="$output_root/runs/android"
 mkdir -p "$output_root/runs"
+
+curated_assets="$output_root/curated-assets.tsv"
+python3 "$repo_root/scripts/screenshots/fixture_server.py" \
+  --list-curated-assets > "$curated_assets"
+echo "Validating pinned curated HTTPS artwork..."
+while IFS=$'\t' read -r asset_key asset_url; do
+  [[ "$asset_url" == https://* ]] || fail "$asset_key does not use HTTPS: $asset_url"
+  if ! content_type="$(
+    curl --head --location --silent --show-error --fail \
+      --max-time 30 --output /dev/null --write-out '%{content_type}' \
+      "$asset_url"
+  )"; then
+    fail "curated HTTPS artwork is unavailable: $asset_key ($asset_url)"
+  fi
+  [[ "$content_type" == image/* ]] ||
+    fail "curated HTTPS artwork returned $content_type instead of an image: $asset_key ($asset_url)"
+  [[ "$content_type" != image/avif ]] ||
+    fail "curated HTTPS artwork returned Android-incompatible AVIF: $asset_key ($asset_url)"
+done < "$curated_assets"
+echo "Validated $(wc -l < "$curated_assets" | tr -d ' ') curated HTTPS artwork URLs."
 
 echo "Pruning orphaned iOS screenshot DerivedData caches..."
 prune_args=(prune-derived-data --repo-root "$repo_root")
