@@ -139,6 +139,7 @@
 		81438189E9144731336F4867 /* ShowDetailViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E1670E2DC2AFEA73AB1A3E /* ShowDetailViewTests.swift */; };
 		823210050E7D637780B6B9A7 /* PushPermissionPromptCadence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FADA6CF6C175F11DC3FF04 /* PushPermissionPromptCadence.swift */; };
 		8327AF474D76C38707EE0262 /* ServiceRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE6ED3B8ED09F12D8A03111F /* ServiceRegistrationTests.swift */; };
+		837A71E3549E6881535AB786 /* LaunchReadinessUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561E38A98BA9A6BE936E3D27 /* LaunchReadinessUITests.swift */; };
 		84583D2BFAB07ACA108C3CFA /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFD6F86573233BBC5DAFD03B /* Types.swift */; };
 		86C75F3B71BF229686DB88CD /* LineupAvatarStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EEAA636F7147ADDA0C8CC3 /* LineupAvatarStrip.swift */; };
 		87A52A26C28E621FFF07B848 /* NearbyLocationControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BF672FCBD4D1FC71AC695A /* NearbyLocationControllerTests.swift */; };
@@ -477,6 +478,7 @@
 		50F23924A8A716577DB3ED8B /* LaughTrack.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LaughTrack.entitlements; sourceTree = "<group>"; };
 		528FFEA1D198B7E47EDBDA81 /* PushAnalyticsEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushAnalyticsEvents.swift; sourceTree = "<group>"; };
 		561D473C1C08608F79C5271E /* ZipLocationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipLocationResolver.swift; sourceTree = "<group>"; };
+		561E38A98BA9A6BE936E3D27 /* LaunchReadinessUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchReadinessUITests.swift; sourceTree = "<group>"; };
 		585D8619C93C9C77641450CD /* AuthRouteConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRouteConfiguration.swift; sourceTree = "<group>"; };
 		5984C96F90F11803C896B6D2 /* HostedViewDumpTreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostedViewDumpTreeTests.swift; sourceTree = "<group>"; };
 		59B97BD6A9A65CD575EA8F07 /* LaughTrackNavigationChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackNavigationChrome.swift; sourceTree = "<group>"; };
@@ -1178,6 +1180,7 @@
 			isa = PBXGroup;
 			children = (
 				D1FFFD53ABCF24A2967DAA9C /* AppStoreScreenshotTests.swift */,
+				561E38A98BA9A6BE936E3D27 /* LaunchReadinessUITests.swift */,
 				E91B048256574CA18BBFD65E /* PushPromptCadenceUITests.swift */,
 				A74BC487918A42A77595DEB3 /* SnapshotHelper.swift */,
 			);
@@ -1619,6 +1622,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E191C2955846F090EA48101A /* AppStoreScreenshotTests.swift in Sources */,
+				837A71E3549E6881535AB786 /* LaunchReadinessUITests.swift in Sources */,
 				F8263EC163E80042BE91DD3B /* PushPromptCadenceUITests.swift in Sources */,
 				528AF747B0A0687C9C11078B /* SnapshotHelper.swift in Sources */,
 				060E26704371704BB8B5F950 /* UITestLaunchArgs.swift in Sources */,

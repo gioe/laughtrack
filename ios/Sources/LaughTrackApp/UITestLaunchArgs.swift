@@ -19,7 +19,9 @@ import Foundation
 enum UITestLaunchArgs {
     /// Launch argument: wipes UserDefaults keys that drive the auth gate,
     /// first-entry guest choice, session metadata, and soft push-prompt
-    /// cadence so the test starts deterministically. Every test method MUST
+    /// cadence, plus the persisted feed cache in DEBUG, so cold-launch tests
+    /// start deterministically. Omit this argument on later relaunches when
+    /// testing cache reuse or persisted state. Every test method MUST
     /// pass this on its first `XCUIApplication.launch()` — XCTest runs the
     /// suite's methods in one process and UserDefaults.standard survives
     /// terminate+launch.

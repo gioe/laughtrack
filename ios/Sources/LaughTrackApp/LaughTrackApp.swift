@@ -106,6 +106,24 @@ struct LaughTrackApp: App {
         let arguments = ProcessInfo.processInfo.arguments
         guard arguments.contains(UITestLaunchArgs.resetState) || arguments.contains(MockModeDetector.mockModeArgument) else { return }
 
+        #if DEBUG
+        // A cold-launch UI test must not inherit a feed from a previous run:
+        // cached content would hide a regression that blocks navigation on HTTP.
+        // Screenshot mock mode alone deliberately preserves its cache behavior.
+        if arguments.contains(UITestLaunchArgs.resetState),
+           let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
+        {
+            let feedCache = caches.appendingPathComponent("LaughTrackMainPageCache", isDirectory: true)
+            if FileManager.default.fileExists(atPath: feedCache.path) {
+                do {
+                    try FileManager.default.removeItem(at: feedCache)
+                } catch {
+                    assertionFailure("Could not reset UI-test feed cache: \(error)")
+                }
+            }
+        }
+        #endif
+
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: "laughtrack.discovery.nearby-preference")
         defaults.removeObject(forKey: "laughtrack.discovery.home-nearby-prompt-dismissed")
