@@ -264,6 +264,30 @@ final class HostedView {
         pumpRunLoop()
     }
 
+    /// Captures this host's rendered view, never whichever window happens to
+    /// be key. Attaching an otherwise scene-less test window is necessary for
+    /// SwiftUI's display server to render its contents into drawHierarchy.
+    func snapshot() throws -> UIImage {
+        if window.windowScene == nil,
+           let scene = UIApplication.shared.connectedScenes
+               .compactMap({ $0 as? UIWindowScene }).first {
+            window.windowScene = scene
+            window.makeKeyAndVisible()
+        }
+        render()
+        let view = hostingController.view!
+        #expect(view.window === window, "The snapshot must render this HostedView's own window")
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: view.bounds.size, format: format)
+        var rendered = false
+        let image = renderer.image { _ in
+            rendered = view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
+        }
+        try #require(rendered, "The hosted hierarchy did not produce a complete rendered snapshot")
+        return image
+    }
+
     /// Yields the actor and pumps the run loop repeatedly so SwiftUI `.task` and
     /// `.onAppear` lifecycle hooks have a chance to dispatch and complete. Pure
     /// run-loop pumping during synchronous waitUntil is not always enough — the

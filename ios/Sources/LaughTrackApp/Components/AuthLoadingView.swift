@@ -113,16 +113,45 @@ private struct FilmGrain: View {
 }
 
 struct AuthLoadingView: View {
-    @Environment(\.appTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let logoNamespace: Namespace.ID
 
+    var body: some View {
+        LaunchLoadingArtwork(logoNamespace: logoNamespace, reduceMotion: reduceMotion)
+    }
+}
+
+/// Receives the live system preference from AuthLoadingView. Keeping artwork
+/// separate lets hosted rendering tests exercise preference changes directly.
+struct LaunchLoadingArtwork: View {
+    @Environment(\.appTheme) private var theme
+
+    let logoNamespace: Namespace.ID
+    let reduceMotion: Bool
+
     @State private var spotlightLit = false
 
     var body: some View {
-        let isAnimating = spotlightLit && !reduceMotion
+        // A distinct static branch tears down any in-flight bloom immediately
+        // when Reduce Motion changes, rather than waiting for its old deadline.
+        if reduceMotion {
+            artwork(isAnimating: false, intensity: 1)
+                .transaction { transaction in
+                    transaction.animation = nil
+                    transaction.disablesAnimations = true
+                }
+        } else {
+            artwork(isAnimating: spotlightLit, intensity: spotlightLit ? 1 : 0)
+                .onAppear {
+                    withAnimation(.easeOut(duration: 0.9).delay(0.12)) {
+                        spotlightLit = true
+                    }
+                }
+        }
+    }
 
+    private func artwork(isAnimating: Bool, intensity: Double) -> some View {
         ZStack {
             // Match the static UILaunchScreen exactly at first render so the
             // system-splash handoff is invisible; the spotlight then blooms in.
@@ -130,35 +159,27 @@ struct AuthLoadingView: View {
                 .ignoresSafeArea()
 
             LaughTrackSpotlightBackdrop(
-                intensity: spotlightLit ? 1 : 0,
+                intensity: intensity,
                 lightCenter: .center
             )
             .ignoresSafeArea()
 
             AnimatedLaunchSpotlight(isAnimating: isAnimating)
-                .opacity(spotlightLit ? 1 : 0)
+                .opacity(intensity)
                 .ignoresSafeArea()
 
             VStack(spacing: theme.spacing.lg) {
                 AnimatedLaunchLogo(
                     logoNamespace: logoNamespace,
-                    isAnimating: isAnimating
+                    isAnimating: isAnimating,
+                    reduceMotion: reduceMotion
                 )
 
                 LoadingMarqueeBulbs(isAnimating: isAnimating)
-                    .opacity(spotlightLit ? 1 : 0)
+                    .opacity(intensity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            guard !reduceMotion else {
-                spotlightLit = true
-                return
-            }
-            withAnimation(.easeOut(duration: 0.9).delay(0.12)) {
-                spotlightLit = true
-            }
-        }
     }
 }
 
@@ -167,6 +188,7 @@ private struct AnimatedLaunchLogo: View {
 
     let logoNamespace: Namespace.ID
     let isAnimating: Bool
+    let reduceMotion: Bool
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -178,7 +200,7 @@ private struct AnimatedLaunchLogo: View {
             Image("LaunchLogo")
                 .accessibilityLabel("LaughTrack is starting")
                 .accessibilityIdentifier(LaughTrackViewTestID.launchLoadingLogo)
-                .matchedGeometryEffect(id: "launch-logo", in: logoNamespace)
+                .matchedGeometryEffect(id: "launch-logo", in: logoNamespace, properties: reduceMotion ? [] : .frame)
                 .scaleEffect(1 + pulse * 0.018)
                 .shadow(
                     color: laughTrack.colors.accent.opacity(glow),

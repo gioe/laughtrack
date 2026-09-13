@@ -186,6 +186,7 @@ struct ContentView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var favorites = ComedianFavoriteStore()
     @StateObject private var podcastFavorites = PodcastFavoriteStore()
@@ -206,7 +207,7 @@ struct ContentView: View {
             switch surface {
             case .loading:
                 AuthLoadingView(logoNamespace: authLogoNamespace)
-                    .transition(.opacity)
+                    .transition(reduceMotion ? .identity : .opacity)
             case .authChoiceGate(let message):
                 FirstEntryAuthChoiceView(
                     message: message,
@@ -218,20 +219,20 @@ struct ContentView: View {
                         }
                     }
                 )
-                .transition(.opacity.combined(with: .scale(scale: 0.985, anchor: .center)))
+                .transition(reduceMotion ? .identity : .opacity.combined(with: .scale(scale: 0.985, anchor: .center)))
             case .signedOutShell(let message):
                 appShell(signedOutMessage: message)
-                    .transition(.opacity)
+                    .transition(reduceMotion ? .identity : .opacity)
             case .comedianOnboarding:
                 ComedianOnboardingView(
                     apiClient: apiClient,
                     favorites: favorites
                 )
                 .environmentObject(favorites)
-                .transition(.opacity)
+                .transition(reduceMotion ? .identity : .opacity)
             case .authenticatedShell:
                 appShell(signedOutMessage: nil)
-                    .transition(.opacity)
+                    .transition(reduceMotion ? .identity : .opacity)
             }
         }
         // Destination readiness belongs to authentication. Home owns its local
@@ -241,7 +242,8 @@ struct ContentView: View {
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .tint(theme.colors.primary)
         .laughTrackKeyboardDismissToolbar()
-        .animation(.easeInOut(duration: 0.42), value: surface)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.42), value: surface)
+        .animation(nil, value: reduceMotion)
         .task {
             await authManager.restoreSessionIfNeeded()
         }
@@ -574,7 +576,7 @@ private struct FirstEntryAuthChoiceView: View {
                     .scaledToFit()
                     .frame(width: 223)
                     .accessibilityLabel("LaughTrack microphone logo")
-                    .matchedGeometryEffect(id: "launch-logo", in: logoNamespace)
+                    .matchedGeometryEffect(id: "launch-logo", in: logoNamespace, properties: reduceMotion ? [] : .frame)
                     .shadow(color: laughTrack.colors.accent.opacity(0.42), radius: 38, y: 8)
                     // Reclaim the transparent glow margin (~33pt top and bottom
                     // at this frame size) so layout rhythm tracks the visible
@@ -647,11 +649,11 @@ private extension View {
     /// per-element delay. Collapses to an instant cut under Reduce Motion.
     func entrance(_ hasAppeared: Bool, delay: Double, reduceMotion: Bool) -> some View {
         self
-            .opacity(hasAppeared ? 1 : 0)
+            .opacity(hasAppeared || reduceMotion ? 1 : 0)
             .offset(y: hasAppeared || reduceMotion ? 0 : 14)
             .animation(
                 reduceMotion
-                    ? .easeOut(duration: 0.1)
+                    ? nil
                     : .spring(response: 0.5, dampingFraction: 0.86).delay(0.08 + delay),
                 value: hasAppeared
             )

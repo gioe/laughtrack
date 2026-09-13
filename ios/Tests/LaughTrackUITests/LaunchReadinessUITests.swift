@@ -80,6 +80,64 @@ final class LaunchReadinessUITests: XCTestCase {
         assertSearchIsUsable(app)
     }
 
+    func testNativeReduceMotionFirstEntryAndLiveGuestHandoff() throws {
+        continueAfterFailure = false
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        settings.launch()
+        for _ in 0..<5 { settings.swipeDown() }
+        let accessibility = settings.staticTexts["Accessibility"].firstMatch
+        for _ in 0..<8 where !accessibility.isHittable { settings.swipeUp() }
+        XCTAssertTrue(accessibility.waitForExistence(timeout: 5))
+        accessibility.tap()
+        settings.staticTexts["Motion"].firstMatch.tap()
+        let toggle = settings.switches["Reduce Motion"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        let originallyEnabled = toggle.value as? String == "1"
+        if !originallyEnabled { toggle.tap() }
+        XCTAssertEqual(toggle.value as? String, "1")
+        defer {
+            settings.activate()
+            if (toggle.value as? String == "1") != originallyEnabled { toggle.tap() }
+            settings.terminate()
+        }
+
+        let server = try HeldLaunchServer()
+        defer { server.stop() }
+        wait(for: [server.ready], timeout: 5)
+        let app = configuredApp(server: server, guest: false)
+        defer { app.terminate() }
+        app.launch()
+        let guest = app.buttons["Continue as guest"]
+        XCTAssertTrue(guest.waitForExistence(timeout: 10))
+        attachScreenshot(app, named: "Native Reduce Motion — first entry")
+        app.buttons["Continue with Apple"].tap()
+        let cancel = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Cancel"].firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10), "Authentication must provide a cancellation action")
+        attachScreenshot(app, named: "Native Reduce Motion — signing in")
+        cancel.tap()
+        XCTAssertTrue(guest.waitForExistence(timeout: 10))
+        attachScreenshot(app, named: "Native Reduce Motion — cancelled sign in")
+        guest.tap()
+        wait(for: [server.feedRequested], timeout: 10)
+        attachScreenshot(app, named: "Native Reduce Motion — guest handoff")
+        assertSearchIsUsable(app)
+
+        // Change the native preference while this app remains alive.
+        settings.activate()
+        toggle.tap()
+        XCTAssertEqual(toggle.value as? String, "0")
+        app.activate()
+        XCTAssertTrue(app.tabBars.buttons["Search"].isSelected)
+        attachScreenshot(app, named: "Reduce Motion disabled live — Search retained")
+        settings.activate()
+        toggle.tap()
+        XCTAssertEqual(toggle.value as? String, "1")
+        app.activate()
+        XCTAssertTrue(app.tabBars.buttons["Search"].isSelected)
+        XCTAssertFalse(loadingLogo(in: app).exists)
+        attachScreenshot(app, named: "Reduce Motion re-enabled live — Search retained")
+    }
+
     private func attachScreenshot(_ app: XCUIApplication, named name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name

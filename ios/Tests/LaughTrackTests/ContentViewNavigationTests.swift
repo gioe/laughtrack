@@ -1,5 +1,9 @@
 import Foundation
 import Testing
+import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
@@ -431,6 +435,68 @@ struct ContentViewNavigationTests {
         #expect(coordinator.routes.isEmpty)
     }
 
+    #if canImport(UIKit)
+    @Test("loading settles when Reduce Motion is enabled during its entrance and resumes when disabled")
+    func loadingRespondsToLiveReduceMotionChanges() async throws {
+        let preference = LaunchMotionPreference()
+        let host = HostedView(LaunchMotionHarness(preference: preference))
+        // Change the preference while the normal delayed spotlight bloom is
+        // still in flight. This tests the artwork input, not native Settings propagation.
+        await host.settle(iterations: 3)
+        preference.reduceMotion = true
+        await host.settle(iterations: 4)
+        let settled = try launchPixels(host, name: "reduced-early")
+        await host.settle(iterations: 12)
+        let later = try launchPixels(host, name: "reduced-later")
+        await host.settle(iterations: 20)
+        let afterOriginalBloom = try launchPixels(host, name: "reduced-after-bloom")
+
+        #expect(settled.meanDifference(from: later) < 0.25,
+                "Enabling Reduce Motion must stop the in-flight bloom and decorative motion")
+        #expect(settled.meanDifference(from: afterOriginalBloom) < 0.25,
+                "Reduced loading must remain visually static after the original animation deadline")
+        #expect(Set(settled.bytes).count > 32, "The sampled view must contain rendered artwork, not a blank window")
+
+        preference.reduceMotion = false
+        await host.settle(iterations: 8)
+        let resumed = try launchPixels(host, name: "normal-resumed")
+        await host.settle(iterations: 12)
+        let resumedLater = try launchPixels(host, name: "normal-resumed-later")
+        #expect(resumed.meanDifference(from: resumedLater) > 0.02,
+                "Disabling Reduce Motion must resume the existing decorative animation")
+
+        preference.reduceMotion = true
+        await host.settle(iterations: 4)
+        let reducedAgain = try launchPixels(host, name: "reduced-again")
+        #expect(settled.meanDifference(from: reducedAgain) < 0.25,
+                "Repeated toggles must return to the same static loading appearance")
+    }
+
+    private func launchPixels(_ host: HostedView, name: String) throws -> LaunchPixelSample {
+        let image = try host.snapshot()
+        // Retained in the test runner's temporary directory for visual review.
+        // These captures explicitly use a hosted artwork-preference harness.
+        let artifact = FileManager.default.temporaryDirectory
+            .appendingPathComponent("task3992-hosted-loading-\(name).png")
+        try image.pngData()?.write(to: artifact)
+        print("Reduce Motion hosted-view capture: \(artifact.path)")
+        let cgImage = try #require(image.cgImage)
+        let width = 156
+        let height = Int(Double(width) * Double(cgImage.height) / Double(cgImage.width))
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        try bytes.withUnsafeMutableBytes { buffer in
+            let context = try #require(CGContext(
+                data: buffer.baseAddress, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ))
+            context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+        }
+        return LaunchPixelSample(bytes: bytes)
+    }
+    #endif
+
     private func assertPushedRoutes(_ routes: [AppRoute]) {
         let coordinator = TypedNavigationCoordinator<AppRoute>()
         routes.forEach { coordinator.push($0) }
@@ -451,3 +517,32 @@ struct ContentViewNavigationTests {
         return sourceURL
     }
 }
+
+#if canImport(UIKit)
+@MainActor
+private final class LaunchMotionPreference: ObservableObject {
+    @Published var reduceMotion = false
+}
+
+private struct LaunchMotionHarness: View {
+    @ObservedObject var preference: LaunchMotionPreference
+    @Namespace private var logoNamespace
+
+    var body: some View {
+        LaunchLoadingArtwork(logoNamespace: logoNamespace, reduceMotion: preference.reduceMotion)
+            .environment(\.appTheme, LaughTrackTheme())
+    }
+}
+
+private struct LaunchPixelSample {
+    let bytes: [UInt8]
+
+    func meanDifference(from other: Self) -> Double {
+        guard bytes.count == other.bytes.count, !bytes.isEmpty else { return .infinity }
+        let total = zip(bytes, other.bytes).reduce(0) { sum, pair in
+            sum + abs(Int(pair.0) - Int(pair.1))
+        }
+        return Double(total) / Double(bytes.count)
+    }
+}
+#endif
