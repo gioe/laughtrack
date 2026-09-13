@@ -33,8 +33,10 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -106,22 +108,26 @@ fun HomeScreen(
 
     Box(modifier = modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize().statusBarsPadding()) {
-            when (state.feed) {
-                is UiState.Failure -> HomeError(onRetry = viewModel::retry)
-                is UiState.Success ->
-                    HomeContent(
-                        state = state,
-                        listState = listState,
-                        onOpenEntity = onOpenEntity,
-                        onPlay = onPlay,
-                        onOpenSearch = onOpenSearch,
-                        onManualZip = viewModel::setManualZip,
-                        onUseLocation = viewModel::useDeviceLocation,
-                        onSetDistance = viewModel::setDistance,
-                        onClearLocation = viewModel::clearLocation,
-                        onRailSelected = viewModel::onDiscoverRailSelected,
-                    )
-                else -> HomeLoading()
+            HomeContent(
+                state = state,
+                listState = listState,
+                onOpenEntity = onOpenEntity,
+                onPlay = onPlay,
+                onOpenSearch = onOpenSearch,
+                onManualZip = viewModel::setManualZip,
+                onUseLocation = viewModel::useDeviceLocation,
+                onSetDistance = viewModel::setDistance,
+                onClearLocation = viewModel::clearLocation,
+                onRailSelected = viewModel::onDiscoverRailSelected,
+                onRetry = viewModel::retry,
+            )
+            if (state.refreshFailed) {
+                Snackbar(
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
+                    action = { TextButton(onClick = viewModel::retry) { Text("Retry") } },
+                ) {
+                    Text("Couldn’t refresh. Showing saved discoveries.")
+                }
             }
         }
     }
@@ -139,6 +145,7 @@ private fun HomeContent(
     onSetDistance: (Int) -> Unit,
     onClearLocation: () -> Unit,
     onRailSelected: (HomeDiscoverRailAttribution) -> Unit,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val plannedRails = remember(state.loadedFeed) { resolveHomeDiscoverRails(state.loadedFeed) }
@@ -152,27 +159,39 @@ private fun HomeContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item(key = "discover-header") {
-                DiscoverHeader(onOpenEntity = onOpenEntity)
+                Box(Modifier.testTag("homeDiscoverHeader")) {
+                    DiscoverHeader(onOpenEntity = onOpenEntity)
+                }
             }
             item(key = "location") {
-                LocationHeader(
-                    title = state.locationTitle,
-                    subtitle = state.locationSubtitle,
-                    // activeZip (not the requested zip) so the sheet prefills the same
-                    // ZIP the Saved ZIP subtitle reports, including the hero fallback;
-                    // the requested zip separately drives the sheet's apply guard.
-                    zip = state.activeZip,
-                    requestedZip = state.zip,
-                    hasExplicitLocation = state.hasExplicitLocation,
-                    distanceMiles = state.distanceMiles,
-                    isResolving = state.isResolvingLocation,
-                    onManualZip = onManualZip,
-                    onUseLocation = onUseLocation,
-                    onSetDistance = onSetDistance,
-                    onClearLocation = onClearLocation,
-                )
+                Box(Modifier.testTag("homeDiscoverLocation")) {
+                    LocationHeader(
+                        title = state.locationTitle,
+                        subtitle = state.locationSubtitle,
+                        // activeZip (not the requested zip) so the sheet prefills the same
+                        // ZIP the Saved ZIP subtitle reports, including the hero fallback;
+                        // the requested zip separately drives the sheet's apply guard.
+                        zip = state.activeZip,
+                        requestedZip = state.zip,
+                        hasExplicitLocation = state.hasExplicitLocation,
+                        distanceMiles = state.distanceMiles,
+                        isResolving = state.isResolvingLocation,
+                        onManualZip = onManualZip,
+                        onUseLocation = onUseLocation,
+                        onSetDistance = onSetDistance,
+                        onClearLocation = onClearLocation,
+                    )
+                }
             }
-            if (plannedRails == null) {
+            if (state.loadedFeed == null) {
+                item(key = "tonight") {
+                    HomeFeedPlaceholder(
+                        failed = state.feed is UiState.Failure,
+                        onRetry = onRetry,
+                        onOpenSearch = { onOpenSearch(homeRailSearchRequest(HomeExpandableRail.TONIGHT, state)) },
+                    )
+                }
+            } else if (plannedRails == null) {
                 item(key = "tonight") {
                     ShowsTonightRail(
                         shows = state.showsTonight,
@@ -375,15 +394,27 @@ private fun ShowsTonightRail(
     FeedRailCard(
         title = null,
         emptyMessage = "No shows are listed for tonight yet.",
-        itemCount = shows.size,
+        itemCount = 1,
         actionLabel = "See all",
         onAction = onOpenSearch,
     ) {
-        FeaturedShowsCarousel(
-            headline = "Tonight!",
-            items = shows.map { show -> FeaturedShowCarouselItem(show = show) },
-            onOpenEntity = onOpenEntity,
-        )
+        if (shows.isEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                FeaturedSurface(headline = "Tonight!") {
+                    HomeFeedMessage(
+                        title = "More laughs soon",
+                        message = "No shows are listed for tonight yet. Try another date or update your location.",
+                    )
+                }
+                TonightPageIndicator(itemCount = 0, selectedIndex = 0)
+            }
+        } else {
+            FeaturedShowsCarousel(
+                headline = "Tonight!",
+                items = shows.map { show -> FeaturedShowCarouselItem(show = show) },
+                onOpenEntity = onOpenEntity,
+            )
+        }
     }
 }
 
@@ -637,56 +668,63 @@ private fun FeaturedShowsCarousel(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Surface(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(432.dp),
-            color = LaughTrackColors.Surface,
-            shape = RoundedCornerShape(12.dp),
-        ) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+        FeaturedSurface(headline = headline) {
+            BoxWithConstraints(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
             ) {
-                Text(
-                    text = headline.uppercase(Locale.US),
-                    color = LaughTrackColors.AccentStrong,
-                    fontWeight = FontWeight.Black,
-                    fontSize = if (headline.length > 14) 18.sp else 22.sp,
-                    letterSpacing = if (headline.length > 14) 1.8.sp else 2.4.sp,
-                    maxLines = 1,
-                )
-
-                BoxWithConstraints(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
+                val pageWidth = maxWidth
+                LazyRow(
+                    modifier = Modifier.fillMaxSize(),
+                    state = listState,
+                    flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
                 ) {
-                    val pageWidth = maxWidth
-                    LazyRow(
-                        modifier = Modifier.fillMaxSize(),
-                        state = listState,
-                        flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
-                    ) {
-                        items(items, key = { it.show.id }) { item ->
-                            FeaturedShowHeroPage(
-                                item = item,
-                                modifier =
-                                    Modifier
-                                        .width(pageWidth)
-                                        .fillParentMaxHeight(),
-                                onClick = { onOpenEntity(AppRoute.ShowDetail(item.show.id)) },
-                            )
-                        }
+                    items(items, key = { it.show.id }) { item ->
+                        FeaturedShowHeroPage(
+                            item = item,
+                            modifier =
+                                Modifier
+                                    .width(pageWidth)
+                                    .fillParentMaxHeight(),
+                            onClick = { onOpenEntity(AppRoute.ShowDetail(item.show.id)) },
+                        )
                     }
                 }
             }
         }
 
         TonightPageIndicator(itemCount = items.size, selectedIndex = selectedIndex)
+    }
+}
+
+/** Identical hero bounds for pending, empty, failed and populated feeds. */
+@Composable
+private fun FeaturedSurface(
+    headline: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().height(432.dp).testTag("homeFeaturedSurface"),
+        color = LaughTrackColors.Surface,
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = headline.uppercase(Locale.US),
+                color = LaughTrackColors.AccentStrong,
+                fontWeight = FontWeight.Black,
+                fontSize = if (headline.length > 14) 18.sp else 22.sp,
+                letterSpacing = if (headline.length > 14) 1.8.sp else 2.4.sp,
+                maxLines = 1,
+            )
+            content()
+        }
     }
 }
 
@@ -736,25 +774,27 @@ private fun TonightPageIndicator(
     itemCount: Int,
     selectedIndex: Int,
 ) {
-    if (itemCount > 1) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            repeat(itemCount) { index ->
-                Box(
-                    modifier =
-                        Modifier
-                            .size(7.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (index == selectedIndex) {
-                                    MaterialTheme.colorScheme.onSurface
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
-                                },
-                            ),
-                )
+    Box(Modifier.fillMaxWidth().height(7.dp), contentAlignment = Alignment.Center) {
+        if (itemCount > 1) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                repeat(itemCount) { index ->
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(7.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (index == selectedIndex) {
+                                        MaterialTheme.colorScheme.onSurface
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                                    },
+                                ),
+                    )
+                }
             }
         }
     }
@@ -1021,51 +1061,72 @@ internal fun FeedCard(
 }
 
 @Composable
-private fun HomeLoading(modifier: Modifier = Modifier) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+private fun HomeFeedPlaceholder(
+    failed: Boolean,
+    onRetry: () -> Unit,
+    onOpenSearch: () -> Unit,
+) {
+    FeedRailCard(
+        title = null,
+        emptyMessage = "",
+        itemCount = 1,
+        actionLabel = "See all",
+        onAction = onOpenSearch,
     ) {
-        Text(text = "Discover", style = MaterialTheme.typography.headlineLarge)
-        Text(
-            text = "Comedy near you",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        repeat(3) {
-            SkeletonLine(Modifier.fillMaxWidth(0.4f))
-            SkeletonBox(Modifier.fillMaxWidth().height(140.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            FeaturedSurface(headline = "Tonight!") {
+                if (failed) {
+                    HomeFeedMessage(
+                        title = "Discover could not load",
+                        message = "Check your connection and try again.",
+                        onRetry = onRetry,
+                    )
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxSize().semantics { contentDescription = "Loading discoveries" },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(198.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            SkeletonBox(Modifier.width(154.dp).height(170.dp))
+                        }
+                        SkeletonLine(Modifier.width(100.dp).height(30.dp))
+                        SkeletonLine(Modifier.fillMaxWidth(0.8f).height(20.dp))
+                        SkeletonLine(Modifier.fillMaxWidth(0.55f).height(12.dp))
+                        Spacer(Modifier.weight(1f))
+                        SkeletonBox(Modifier.width(90.dp).height(38.dp))
+                    }
+                }
+            }
+            TonightPageIndicator(itemCount = 0, selectedIndex = 0)
         }
     }
 }
 
 @Composable
-private fun HomeError(
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier,
+private fun HomeFeedMessage(
+    title: String,
+    message: String,
+    onRetry: (() -> Unit)? = null,
 ) {
     Column(
-        modifier = modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize().padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Surface(
-            modifier = Modifier.size(44.dp),
-            color = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-            shape = CircleShape,
-        ) {
-            Text("!", modifier = Modifier.padding(horizontal = 18.dp, vertical = 9.dp))
-        }
-        Text("Discover could not load.", style = MaterialTheme.typography.headlineSmall)
+        Text(title, style = MaterialTheme.typography.titleLarge)
         Text(
-            "Check your connection and try again.",
+            message,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
-        Button(onClick = onRetry) { Text("Retry") }
+        if (onRetry != null) {
+            Button(onClick = onRetry) { Text("Retry") }
+        }
     }
 }
 
@@ -1073,6 +1134,6 @@ private fun HomeError(
 @Composable
 private fun HomeScreenPreview() {
     LaughTrackTheme {
-        HomeLoading()
+        HomeFeedPlaceholder(failed = false, onRetry = {}, onOpenSearch = {})
     }
 }

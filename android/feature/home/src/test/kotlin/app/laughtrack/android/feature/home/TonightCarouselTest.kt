@@ -25,8 +25,8 @@ class TonightCarouselTest {
         val lazyRowIndex = carousel.indexOf("LazyRow(")
 
         assertTrue(lazyRowIndex >= 0)
-        assertTrue(carousel.indexOf("Surface(") in 0 until lazyRowIndex)
-        assertTrue(carousel.indexOf("text = headline.uppercase(Locale.US)") in 0 until lazyRowIndex)
+        assertTrue(carousel.indexOf("FeaturedSurface(headline = headline)") in 0 until lazyRowIndex)
+        assertTrue(functionSource(source, "FeaturedSurface").contains("text = headline.uppercase(Locale.US)"))
         assertTrue(carousel.indexOf("TonightPageIndicator(") > lazyRowIndex)
         assertTrue(carousel.contains("rememberSnapFlingBehavior(lazyListState = listState)"))
         assertTrue(carousel.contains("onClick = { onOpenEntity(AppRoute.ShowDetail(item.show.id)) }"))
