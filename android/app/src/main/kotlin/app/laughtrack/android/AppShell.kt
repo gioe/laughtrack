@@ -87,6 +87,7 @@ fun AppShell(
     showLoginPrompt: Boolean = false,
     onLoginPromptDismiss: () -> Unit = {},
     screenshotPersona: AuthenticatedScreenshotPersona? = null,
+    onNotificationPermissionResult: (Boolean) -> Unit = {},
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     // The state flow may not have emitted an already initialized/restored entry yet.
@@ -274,7 +275,9 @@ fun AppShell(
 
                     composable<AppRoute.Profile> {
                         if (screenshotPersona == null) {
-                            ProfileScreen()
+                            ProfileScreen(notificationPermissionControl = {
+                                NotificationPermissionControl(onResult = onNotificationPermissionResult)
+                            })
                         } else {
                             ProfileScreen(stateOverride = screenshotPersona.profileUiState)
                         }

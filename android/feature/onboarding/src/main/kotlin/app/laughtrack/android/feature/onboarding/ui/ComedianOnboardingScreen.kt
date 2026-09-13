@@ -1,9 +1,5 @@
 package app.laughtrack.android.feature.onboarding.ui
 
-import android.Manifest
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -33,7 +29,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -136,42 +131,8 @@ fun ComedianOnboardingScreen(
     viewModel: ComedianOnboardingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val notificationPermissionLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestPermission(),
-        ) { granted ->
-            viewModel.onPushPermissionResult(granted)
-        }
-
     LaunchedEffect(state.isComplete) {
         if (state.isComplete) onComplete()
-    }
-
-    if (state.showSoftPushPrompt) {
-        AlertDialog(
-            onDismissRequest = viewModel::deferSoftPushPrompt,
-            title = { Text("Get show alerts?") },
-            text = { Text("LaughTrack can let you know when comedians you follow add shows near you.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.softPushEnableTapped()
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        } else {
-                            viewModel.dismissSoftPushPrompt()
-                        }
-                    },
-                ) {
-                    Text("Enable")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::deferSoftPushPrompt) {
-                    Text("Maybe later")
-                }
-            },
-        )
     }
 
     Scaffold(

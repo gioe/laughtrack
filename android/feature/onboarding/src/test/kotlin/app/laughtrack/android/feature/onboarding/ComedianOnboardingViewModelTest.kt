@@ -1,10 +1,12 @@
 package app.laughtrack.android.feature.onboarding
 
+import app.laughtrack.android.core.analytics.AnalyticsEvent
+import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.analytics.AnalyticsProvider
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.feature.onboarding.data.ComedianOnboardingRepository
-import app.laughtrack.android.feature.onboarding.push.SoftPushPromptCoordinator
 import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,7 +49,6 @@ class ComedianOnboardingViewModelTest {
             val viewModel =
                 ComedianOnboardingViewModel(
                     repository = repository,
-                    softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
                     analytics = AnalyticsManager(emptyList()),
                 )
 
@@ -72,7 +73,6 @@ class ComedianOnboardingViewModelTest {
             val viewModel =
                 ComedianOnboardingViewModel(
                     repository = repository,
-                    softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
                     analytics = AnalyticsManager(emptyList()),
                 )
 
@@ -85,9 +85,9 @@ class ComedianOnboardingViewModelTest {
         }
 
     @Test
-    fun third_new_favorite_requests_soft_prompt() =
+    fun third_favorite_and_completion_do_not_interrupt_onboarding_with_push_prompt() =
         runTest {
-            val prompt = FakeSoftPushPromptCoordinator()
+            val analytics = RecordingAnalyticsProvider()
             val repository =
                 FakeRepository(
                     suggestionPages =
@@ -98,8 +98,7 @@ class ComedianOnboardingViewModelTest {
             val viewModel =
                 ComedianOnboardingViewModel(
                     repository = repository,
-                    softPushPromptCoordinator = prompt,
-                    analytics = AnalyticsManager(emptyList()),
+                    analytics = AnalyticsManager(listOf(analytics)),
                 )
 
             advanceUntilIdle()
@@ -108,9 +107,16 @@ class ComedianOnboardingViewModelTest {
             viewModel.toggleFavorite("c")
             advanceUntilIdle()
 
-            assertEquals(3, prompt.favoriteSignals)
-            assertTrue(prompt.shouldShowPrompt)
-            assertTrue(viewModel.state.value.showSoftPushPrompt)
+            assertEquals(listOf("a", "b", "c"), repository.favoriteAdds)
+            assertEquals(3, viewModel.state.value.favoriteCount)
+            assertTrue(analytics.events.isEmpty())
+
+            viewModel.continueOnboarding()
+            advanceUntilIdle()
+
+            assertTrue(repository.completed)
+            assertTrue(viewModel.state.value.isComplete)
+            assertEquals(listOf(AnalyticsEvents.Onboarding.COMPLETED), analytics.events.map { it.name })
         }
 
     @Test
@@ -124,7 +130,6 @@ class ComedianOnboardingViewModelTest {
             val viewModel =
                 ComedianOnboardingViewModel(
                     repository = repository,
-                    softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
                     analytics = AnalyticsManager(emptyList()),
                 )
 
@@ -147,7 +152,6 @@ class ComedianOnboardingViewModelTest {
             val viewModel =
                 ComedianOnboardingViewModel(
                     repository = repository,
-                    softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
                     analytics = AnalyticsManager(emptyList()),
                 )
 
@@ -173,7 +177,6 @@ class ComedianOnboardingViewModelTest {
             val viewModel =
                 ComedianOnboardingViewModel(
                     repository = repository,
-                    softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
                     analytics = AnalyticsManager(emptyList()),
                 )
 
@@ -211,19 +214,21 @@ class ComedianOnboardingViewModelTest {
         }
     }
 
-    private class FakeSoftPushPromptCoordinator : SoftPushPromptCoordinator {
-        var favoriteSignals = 0
-        var shouldShowPrompt = false
+    private class RecordingAnalyticsProvider : AnalyticsProvider {
+        val events = mutableListOf<AnalyticsEvent>()
 
-        override suspend fun onFavoriteAdded(): Boolean {
-            favoriteSignals += 1
-            shouldShowPrompt = favoriteSignals >= 3
-            return shouldShowPrompt
+        override fun logEvent(event: AnalyticsEvent) {
+            events += event
         }
 
-        override suspend fun deferPrompt() {
-            shouldShowPrompt = false
-        }
+        override fun setUserId(userId: String?) = Unit
+
+        override fun setUserProperty(
+            name: String,
+            value: String?,
+        ) = Unit
+
+        override fun reset() = Unit
     }
 
     private fun comedian(

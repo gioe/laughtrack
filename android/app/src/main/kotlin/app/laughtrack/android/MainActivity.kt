@@ -1,13 +1,10 @@
 package app.laughtrack.android
 
-import android.Manifest
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -15,14 +12,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.splashscreen.SplashScreenViewProvider
 import androidx.lifecycle.lifecycleScope
@@ -91,17 +86,6 @@ class MainActivity : ComponentActivity() {
     private val hasResolvedFirstEntryChoice = mutableStateOf(false)
     private lateinit var firstEntryAuthChoiceStore: FirstEntryAuthChoiceStore
 
-    // POST_NOTIFICATIONS runtime prompt (Android 13+). Registered at construction
-    // so it is available before the activity is STARTED. Logs the OS-prompt result
-    // to the push funnel (iOS push_os_prompt_result parity).
-    private val requestNotificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            analytics.logEvent(
-                AnalyticsEvents.Push.OS_PROMPT_RESULT,
-                mapOf(AnalyticsEvents.Push.Param.GRANTED to granted),
-            )
-        }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -164,6 +148,12 @@ class MainActivity : ComponentActivity() {
                                 onRouteConsumed = {
                                     pendingRoute = null
                                     pendingNavigationIntent = null
+                                },
+                                onNotificationPermissionResult = { granted ->
+                                    analytics.logEvent(
+                                        AnalyticsEvents.Push.OS_PROMPT_RESULT,
+                                        mapOf(AnalyticsEvents.Push.Param.GRANTED to granted),
+                                    )
                                 },
                                 signedIn = signedIn.value,
                                 playbackController = playbackController,
@@ -297,7 +287,6 @@ class MainActivity : ComponentActivity() {
                                     launch { favoritesRepository.refreshSignedInFavorites() }
                                 }
                         }
-                        if (state.response.data.comedianOnboardingCompleted) maybeRequestNotificationPermission()
                     }
                     StartupSessionState.SignedOut -> {
                         authenticatedEffects?.cancel()
@@ -336,16 +325,6 @@ class MainActivity : ComponentActivity() {
             onboardingCompleted = response.data.comedianOnboardingCompleted,
             hasZip = response.data.zipCode?.isNotBlank() == true,
         )
-    }
-
-    private fun maybeRequestNotificationPermission() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-        val granted =
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS,
-            ) == PackageManager.PERMISSION_GRANTED
-        if (!granted) requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     private companion object {

@@ -106,7 +106,10 @@ internal fun profileAdaptiveLayoutSpec(availableWidth: Dp): ProfileAdaptiveLayou
 }
 
 @Composable
-fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileScreen(
+    viewModel: ProfileViewModel = hiltViewModel(),
+    notificationPermissionControl: @Composable () -> Unit = {},
+) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val permissionLauncher =
@@ -150,6 +153,7 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
                 clearLocation = viewModel::clearLocation,
                 setEmailNotifications = viewModel::setEmailNotifications,
                 setPushNotifications = viewModel::setPushNotifications,
+                notificationPermissionControl = notificationPermissionControl,
             ),
     )
 }
@@ -185,6 +189,7 @@ private data class ProfileActions(
     val clearLocation: () -> Unit = {},
     val setEmailNotifications: (Boolean) -> Unit = {},
     val setPushNotifications: (Boolean) -> Unit = {},
+    val notificationPermissionControl: @Composable () -> Unit = {},
 )
 
 @Composable
@@ -308,6 +313,7 @@ private fun ProfileExpandedContent(
                     enabled = !state.isMutating,
                     onEmailChange = actions.setEmailNotifications,
                     onPushChange = actions.setPushNotifications,
+                    notificationPermissionControl = actions.notificationPermissionControl,
                 )
             }
         }
@@ -353,6 +359,7 @@ private fun ProfileSettings(
             enabled = !state.isMutating,
             onEmailChange = actions.setEmailNotifications,
             onPushChange = actions.setPushNotifications,
+            notificationPermissionControl = actions.notificationPermissionControl,
         )
     } else {
         GuestPreview()
@@ -585,6 +592,7 @@ private fun NotificationsSection(
     enabled: Boolean,
     onEmailChange: (Boolean) -> Unit,
     onPushChange: (Boolean) -> Unit,
+    notificationPermissionControl: @Composable () -> Unit,
 ) {
     SettingsSection(title = "Notifications") {
         Text(
@@ -604,6 +612,7 @@ private fun NotificationsSection(
             enabled = enabled,
             onCheckedChange = onPushChange,
         )
+        if (preferences.pushShowNotifications) notificationPermissionControl()
         Text(
             "Alert preferences are saved to your profile.",
             style = MaterialTheme.typography.bodySmall,

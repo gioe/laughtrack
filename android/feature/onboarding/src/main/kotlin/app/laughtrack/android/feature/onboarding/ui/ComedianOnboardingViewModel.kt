@@ -7,7 +7,6 @@ import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.feature.onboarding.data.ComedianOnboardingRepository
-import app.laughtrack.android.feature.onboarding.push.SoftPushPromptCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,9 +29,6 @@ data class ComedianOnboardingUiState(
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val isComplete: Boolean = false,
-    val emailAlertsEnabled: Boolean = true,
-    val pushAlertsEnabled: Boolean = true,
-    val showSoftPushPrompt: Boolean = false,
     val errorMessage: String? = null,
 ) {
     val visibleComedians: List<ComedianSearchItem>
@@ -47,7 +43,6 @@ class ComedianOnboardingViewModel
     @Inject
     constructor(
         private val repository: ComedianOnboardingRepository,
-        private val softPushPromptCoordinator: SoftPushPromptCoordinator,
         private val analytics: AnalyticsManager,
     ) : ViewModel() {
         private val _state = MutableStateFlow(ComedianOnboardingUiState())
@@ -102,21 +97,6 @@ class ComedianOnboardingViewModel
                 runCatchingCancellable { repository.setFavorite(uuid, next) }
                     .onSuccess { persisted ->
                         _state.update { it.copy(favorites = it.favorites + (uuid to persisted)) }
-                        if (
-                            !current &&
-                            persisted &&
-                            _state.value.pushAlertsEnabled &&
-                            softPushPromptCoordinator.onFavoriteAdded()
-                        ) {
-                            _state.update { it.copy(showSoftPushPrompt = true) }
-                            analytics.logEvent(
-                                AnalyticsEvents.Push.SOFT_PROMPT_SHOWN,
-                                mapOf(
-                                    AnalyticsEvents.Push.Param.TRIGGER to
-                                        AnalyticsEvents.Push.Trigger.ENGAGEMENT_MOMENT,
-                                ),
-                            )
-                        }
                     }
                     .onFailure {
                         _state.update {
@@ -144,40 +124,6 @@ class ComedianOnboardingViewModel
                     passed = state.passed - last,
                     passHistory = state.passHistory.dropLast(1),
                 )
-            }
-        }
-
-        fun setEmailAlertsEnabled(enabled: Boolean) {
-            _state.update { it.copy(emailAlertsEnabled = enabled) }
-        }
-
-        fun setPushAlertsEnabled(enabled: Boolean) {
-            _state.update { it.copy(pushAlertsEnabled = enabled) }
-        }
-
-        fun dismissSoftPushPrompt() {
-            _state.update { it.copy(showSoftPushPrompt = false) }
-        }
-
-        /** User tapped Enable on the soft prompt (before the OS dialog). iOS parity. */
-        fun softPushEnableTapped() {
-            analytics.logEvent(AnalyticsEvents.Push.SOFT_PROMPT_ENABLE_TAPPED)
-        }
-
-        /** OS push-authorization dialog resolved from the onboarding soft prompt. */
-        fun onPushPermissionResult(granted: Boolean) {
-            analytics.logEvent(
-                AnalyticsEvents.Push.OS_PROMPT_RESULT,
-                mapOf(AnalyticsEvents.Push.Param.GRANTED to granted),
-            )
-            dismissSoftPushPrompt()
-        }
-
-        fun deferSoftPushPrompt() {
-            analytics.logEvent(AnalyticsEvents.Push.SOFT_PROMPT_DEFER_TAPPED)
-            viewModelScope.launch {
-                softPushPromptCoordinator.deferPrompt()
-                dismissSoftPushPrompt()
             }
         }
 
