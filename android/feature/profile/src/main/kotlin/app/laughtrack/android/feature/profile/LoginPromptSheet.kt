@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,8 +28,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -40,6 +45,7 @@ import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
+import kotlinx.coroutines.launch
 
 internal enum class LoginPromptProvider {
     Google,
@@ -74,6 +80,9 @@ fun LoginPromptSheet(
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    // Show the complete sign-in choice instead of opening with its dismiss action below the fold.
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
 
     fun launch(url: String) {
         CustomTabsIntent.Builder().build().launchUrl(context, Uri.parse(url))
@@ -88,6 +97,7 @@ fun LoginPromptSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        sheetState = sheetState,
         containerColor = LaughTrackColors.Surface,
         contentColor = LaughTrackColors.Foreground,
         scrimColor = Color.Black.copy(alpha = 0.76f),
@@ -106,6 +116,7 @@ fun LoginPromptSheet(
         Column(
             Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .background(
                     Brush.verticalGradient(
                         listOf(
@@ -155,7 +166,15 @@ fun LoginPromptSheet(
                 )
             }
 
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+            TextButton(
+                onClick = {
+                    coroutineScope.launch {
+                        sheetState.hide()
+                        if (!sheetState.isVisible) onDismiss()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
                 Text("Not now", color = LaughTrackColors.ForegroundMuted)
             }
         }
@@ -190,7 +209,7 @@ private fun LoginPromptProviderButton(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(52.dp)
+                .heightIn(min = 52.dp)
                 .then(
                     if (option.isPrimary) {
                         Modifier
