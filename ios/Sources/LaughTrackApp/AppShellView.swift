@@ -101,7 +101,6 @@ struct AppShellView: View {
     let favorites: ComedianFavoriteStore
     let initialTab: AppTab
     @ObservedObject var shellState: AppShellState
-    let onInitialHomeLoadComplete: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
@@ -121,15 +120,13 @@ struct AppShellView: View {
         signedOutMessage: String? = nil,
         favorites: ComedianFavoriteStore,
         initialTab: AppTab = .nearMe,
-        shellState: AppShellState,
-        onInitialHomeLoadComplete: (() -> Void)? = nil
+        shellState: AppShellState
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.favorites = favorites
         self.initialTab = initialTab
         self.shellState = shellState
-        self.onInitialHomeLoadComplete = onInitialHomeLoadComplete
     }
 
     var body: some View {
@@ -171,8 +168,7 @@ struct AppShellView: View {
                     signedOutMessage: signedOutMessage,
                     selectedPrimitive: shellState.selectedPrimitive,
                     searchNavigationBridge: searchNavigationBridge,
-                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
-                    onInitialHomeLoadComplete: onInitialHomeLoadComplete
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
                 )
             }
             .tabItem { Label("Discover", systemImage: "sparkles") }

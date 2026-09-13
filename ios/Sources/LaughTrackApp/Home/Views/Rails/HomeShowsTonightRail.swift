@@ -13,7 +13,6 @@ struct HomeShowsTonightRail: View {
     let searchNavigationBridge: SearchNavigationBridge
     let cache: DataCache<LaughTrackCacheKey>
     let persistentCache: PersistentMainPageCache
-    let onInitialHomeLoadComplete: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
@@ -77,23 +76,10 @@ struct HomeShowsTonightRail: View {
                 nearbyPreferenceStore.setDefaultPreference(model.feedNearbyPreference)
             }
         }
-        .task(id: hasFinishedInitialLoad) {
-            guard railKind == .showsTonight, hasFinishedInitialLoad else { return }
-            onInitialHomeLoadComplete?()
-        }
     }
 
     private var title: String? {
         railKind.title
-    }
-
-    private var hasFinishedInitialLoad: Bool {
-        switch model.phase {
-        case .idle, .loading:
-            return false
-        case .success, .failure:
-            return true
-        }
     }
 
     @ViewBuilder

@@ -176,6 +176,8 @@ private struct AnimatedLaunchLogo: View {
             let glow = 0.34 + pulse * 0.14
 
             Image("LaunchLogo")
+                .accessibilityLabel("LaughTrack is starting")
+                .accessibilityIdentifier(LaughTrackViewTestID.launchLoadingLogo)
                 .matchedGeometryEffect(id: "launch-logo", in: logoNamespace)
                 .scaleEffect(1 + pulse * 0.018)
                 .shadow(

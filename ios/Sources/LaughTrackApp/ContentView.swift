@@ -7,6 +7,7 @@ import UIKit
 #endif
 
 enum LaughTrackViewTestID {
+    static let launchLoadingLogo = "laughtrack.launch.loading-logo"
     static let homeScreen = "laughtrack.home.screen"
     static let searchTabScreen = "laughtrack.search-tab.screen"
     static let searchHeader = "laughtrack.search.header"
@@ -191,7 +192,6 @@ struct ContentView: View {
     @StateObject private var shellState = AppShellState()
     @StateObject private var firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore()
     @StateObject private var podcastPlayer = PodcastPlaybackController()
-    @State private var hasLoadedInitialHome = false
     @Namespace private var authLogoNamespace
 
     var body: some View {
@@ -234,20 +234,14 @@ struct ContentView: View {
                     .transition(.opacity)
             }
         }
-        .overlay {
-            if Self.shouldShowLaunchSplash(
-                surface: surface,
-                hasLoadedInitialHome: hasLoadedInitialHome,
-                isHomeTabSelected: shellState.selectedTab == .nearMe
-            ) {
-                AuthLoadingView(logoNamespace: authLogoNamespace)
-                    .transition(.opacity)
-            }
-        }
+        // Destination readiness belongs to authentication. Home owns its local
+        // skeletons, cached content, and retry states once the shell is visible.
+        // Keep one canvas behind the crossfade so the window never flashes through.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .tint(theme.colors.primary)
         .laughTrackKeyboardDismissToolbar()
         .animation(.easeInOut(duration: 0.42), value: surface)
-        .animation(.easeInOut(duration: 0.42), value: hasLoadedInitialHome)
         .task {
             await authManager.restoreSessionIfNeeded()
         }
@@ -322,20 +316,6 @@ struct ContentView: View {
         }
     }
 
-    static func shouldShowLaunchSplash(
-        surface: RootSurface,
-        hasLoadedInitialHome: Bool,
-        isHomeTabSelected: Bool
-    ) -> Bool {
-        guard !hasLoadedInitialHome, isHomeTabSelected else { return false }
-        switch surface {
-        case .signedOutShell, .authenticatedShell:
-            return true
-        case .loading, .authChoiceGate, .comedianOnboarding:
-            return false
-        }
-    }
-
     static func shouldPresentComedianOnboarding(
         authState: AuthManager.State,
         currentUser: AuthenticatedUser?
@@ -377,8 +357,7 @@ struct ContentView: View {
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
                     initialTab: .nearMe,
-                    shellState: shellState,
-                    onInitialHomeLoadComplete: markInitialHomeLoaded
+                    shellState: shellState
                 )
             case .search:
                 AppShellView(
@@ -386,8 +365,7 @@ struct ContentView: View {
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
                     initialTab: .search,
-                    shellState: shellState,
-                    onInitialHomeLoadComplete: markInitialHomeLoaded
+                    shellState: shellState
                 )
             case .library:
                 AppShellView(
@@ -395,8 +373,7 @@ struct ContentView: View {
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
                     initialTab: .favorites,
-                    shellState: shellState,
-                    onInitialHomeLoadComplete: markInitialHomeLoaded
+                    shellState: shellState
                 )
             case .profile:
                 ProfileView(
@@ -431,8 +408,7 @@ struct ContentView: View {
                 apiClient: apiClient,
                 signedOutMessage: signedOutMessage,
                 favorites: favorites,
-                shellState: shellState,
-                onInitialHomeLoadComplete: markInitialHomeLoaded
+                shellState: shellState
             )
         }
         // Mount the persistent podcast mini player on the navigation stack
@@ -481,10 +457,6 @@ struct ContentView: View {
 
     private var nearbyLocationController: NearbyLocationController {
         serviceContainer.resolve(NearbyLocationController.self)
-    }
-
-    private func markInitialHomeLoaded() {
-        hasLoadedInitialHome = true
     }
 }
 

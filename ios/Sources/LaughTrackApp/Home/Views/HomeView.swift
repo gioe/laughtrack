@@ -167,7 +167,6 @@ struct HomeView: View {
     let signedOutMessage: String?
     let selectedPrimitive: SearchRootModel.Pivot?
     let searchNavigationBridge: SearchNavigationBridge
-    let onInitialHomeLoadComplete: (() -> Void)?
 
     @ObservedObject private var nearbyPreferenceStore: NearbyPreferenceStore
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
@@ -178,22 +177,19 @@ struct HomeView: View {
     @StateObject private var railPlanModel = HomeDiscoverRailPlanModel()
     @State private var retainedSectionID: String?
     @State private var hasAppeared = false
-    @State private var hasReportedInitialLoad = false
 
     init(
         apiClient: Client,
         signedOutMessage: String?,
         selectedPrimitive: SearchRootModel.Pivot? = nil,
         searchNavigationBridge: SearchNavigationBridge,
-        nearbyPreferenceStore: NearbyPreferenceStore,
-        onInitialHomeLoadComplete: (() -> Void)? = nil
+        nearbyPreferenceStore: NearbyPreferenceStore
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.selectedPrimitive = selectedPrimitive
         self.searchNavigationBridge = searchNavigationBridge
         self.nearbyPreferenceStore = nearbyPreferenceStore
-        self.onInitialHomeLoadComplete = onInitialHomeLoadComplete
     }
 
     var body: some View {
@@ -245,7 +241,6 @@ struct HomeView: View {
                 cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
                 persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
             )
-            reportInitialLoad()
         }
         .rootScrollBottomClearance(
             theme: theme,
@@ -349,8 +344,7 @@ struct HomeView: View {
             nearbyPreferenceStore: nearbyPreferenceStore,
             searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
-            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self),
-            onInitialHomeLoadComplete: reportInitialLoad
+            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
         )
     }
 
@@ -407,12 +401,6 @@ struct HomeView: View {
             return sections.map(\.id)
         }
         return HomeContentSection.sections(for: selectedPrimitive).map(\.rawValue)
-    }
-
-    private func reportInitialLoad() {
-        guard !hasReportedInitialLoad else { return }
-        hasReportedInitialLoad = true
-        onInitialHomeLoadComplete?()
     }
 }
 

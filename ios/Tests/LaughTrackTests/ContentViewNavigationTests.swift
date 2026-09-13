@@ -21,38 +21,37 @@ struct ContentViewNavigationTests {
         ) == .loading)
     }
 
-    @Test("shell launch keeps splash visible until initial home load completes")
-    func shellLaunchKeepsSplashVisibleUntilInitialHomeLoadCompletes() async throws {
-        #expect(ContentView.shouldShowLaunchSplash(
-            surface: .signedOutShell(message: nil),
-            hasLoadedInitialHome: false,
-            isHomeTabSelected: true
-        ))
-        #expect(ContentView.shouldShowLaunchSplash(
-            surface: .authenticatedShell,
-            hasLoadedInitialHome: false,
-            isHomeTabSelected: true
-        ))
-        #expect(!ContentView.shouldShowLaunchSplash(
-            surface: .signedOutShell(message: nil),
-            hasLoadedInitialHome: true,
-            isHomeTabSelected: true
-        ))
-        #expect(!ContentView.shouldShowLaunchSplash(
-            surface: .signedOutShell(message: nil),
-            hasLoadedInitialHome: false,
-            isHomeTabSelected: false
-        ))
-        #expect(!ContentView.shouldShowLaunchSplash(
-            surface: .loading,
-            hasLoadedInitialHome: false,
-            isHomeTabSelected: true
-        ))
-        #expect(!ContentView.shouldShowLaunchSplash(
-            surface: .authChoiceGate(message: nil),
-            hasLoadedInitialHome: false,
-            isHomeTabSelected: true
-        ))
+    @Test("resolved guest entry selects usable home before any feed request")
+    func resolvedGuestEntrySelectsHome() {
+        #expect(ContentView.rootSurface(
+            authState: .signedOut(message: nil),
+            hasLoadedCurrentUser: false,
+            currentUser: nil,
+            hasResolvedFirstEntryChoice: true
+        ) == .signedOutShell(message: nil))
+    }
+
+    @Test("restored session keeps private destinations protected until profile resolution")
+    func restoredSessionWaitsForProfile() {
+        let session = AuthSessionMetadata(provider: nil, signedInAt: Date(), expiresAt: nil)
+        #expect(ContentView.rootSurface(
+            authState: .authenticated(session),
+            hasLoadedCurrentUser: false,
+            currentUser: nil,
+            hasResolvedFirstEntryChoice: true
+        ) == .loading)
+        for completed in [false, true] {
+            let user = AuthenticatedUser(
+                userId: "launch-user", displayName: "Maya", email: "maya@example.com",
+                avatarURL: nil, comedianOnboardingCompleted: completed
+            )
+            #expect(ContentView.rootSurface(
+                authState: .authenticated(session),
+                hasLoadedCurrentUser: true,
+                currentUser: user,
+                hasResolvedFirstEntryChoice: true
+            ) == (completed ? .authenticatedShell : .comedianOnboarding))
+        }
     }
 
     @Test("signing in from the shell keeps the shell visible instead of flashing the splash")
