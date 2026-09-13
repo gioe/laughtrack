@@ -211,6 +211,117 @@ class HomeViewModelTest {
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.feed is UiState.Success)
+            assertTrue(viewModel.state.value.refreshFailed)
+        }
+
+    @Test
+    fun cold_load_keeps_cached_content_visible_while_network_is_pending() =
+        runTest {
+            val response = CompletableDeferred<HomeFeed>()
+            val cachedFeed = homeFeed()
+            val repository = DeferredHomeFeedRepository(response)
+            val viewModel = viewModel(repository, FakeHomeFeedCache(stored = cachedFeed))
+
+            advanceUntilIdle()
+
+            assertEquals(UiState.Success(cachedFeed), viewModel.state.value.feed)
+
+            val refreshedFeed = homeFeed(city = "Brooklyn")
+            response.complete(refreshedFeed)
+            advanceUntilIdle()
+
+            assertEquals(UiState.Success(refreshedFeed), viewModel.state.value.feed)
+        }
+
+    @Test
+    fun same_scope_retry_keeps_live_content_until_fresh_response_arrives() =
+        runTest {
+            val initialResponse = CompletableDeferred<HomeFeed>()
+            val refreshResponse = CompletableDeferred<HomeFeed>()
+            val repository = DeferredHomeFeedRepository(initialResponse, refreshResponse)
+            val cachedFeed = homeFeed()
+            val liveFeed = cachedFeed.copy(podcastEpisodes = listOf(podcastEpisode()))
+            val viewModel = viewModel(repository, ReadOnlyHomeFeedCache(cachedFeed))
+            initialResponse.complete(liveFeed)
+            advanceUntilIdle()
+
+            viewModel.retry()
+            advanceUntilIdle()
+
+            assertEquals(UiState.Success(liveFeed), viewModel.state.value.feed)
+
+            val refreshedFeed = liveFeed.copy(hero = liveFeed.hero.copy(city = "Brooklyn"))
+            refreshResponse.complete(refreshedFeed)
+            advanceUntilIdle()
+
+            assertEquals(UiState.Success(refreshedFeed), viewModel.state.value.feed)
+        }
+
+    @Test
+    fun failed_same_scope_refresh_preserves_live_content_instead_of_older_cache() =
+        runTest {
+            val initialResponse = CompletableDeferred<HomeFeed>()
+            val refreshResponse = CompletableDeferred<HomeFeed>()
+            val retryResponse = CompletableDeferred<HomeFeed>()
+            val repository = DeferredHomeFeedRepository(initialResponse, refreshResponse, retryResponse)
+            val cachedFeed = homeFeed()
+            val liveFeed = cachedFeed.copy(podcastEpisodes = listOf(podcastEpisode()))
+            val viewModel = viewModel(repository, ReadOnlyHomeFeedCache(cachedFeed))
+            initialResponse.complete(liveFeed)
+            advanceUntilIdle()
+
+            viewModel.retry()
+            advanceUntilIdle()
+            refreshResponse.completeExceptionally(IOException("Offline"))
+            advanceUntilIdle()
+
+            assertEquals(UiState.Success(liveFeed), viewModel.state.value.feed)
+            assertTrue(viewModel.state.value.refreshFailed)
+
+            viewModel.retry()
+            advanceUntilIdle()
+
+            assertEquals(UiState.Success(liveFeed), viewModel.state.value.feed)
+            assertTrue(!viewModel.state.value.refreshFailed)
+
+            retryResponse.complete(liveFeed)
+            advanceUntilIdle()
+
+            assertTrue(!viewModel.state.value.refreshFailed)
+        }
+
+    @Test
+    fun sign_out_refresh_keeps_account_content_removed_while_network_is_pending() =
+        runTest {
+            val initialResponse = CompletableDeferred<HomeFeed>()
+            val signInResponse = CompletableDeferred<HomeFeed>()
+            val signOutResponse = CompletableDeferred<HomeFeed>()
+            val repository = DeferredHomeFeedRepository(initialResponse, signInResponse, signOutResponse)
+            val viewModel = viewModel(repository)
+            initialResponse.complete(homeFeed())
+            advanceUntilIdle()
+            val personalizedFeed =
+                homeFeed().copy(
+                    followedComedianShows = listOf(show(40, "Followed favorite")),
+                    podcastEpisodes = listOf(podcastEpisode()),
+                )
+            viewModel.onAuthStateChanged(signedIn = true)
+            signInResponse.complete(personalizedFeed)
+            advanceUntilIdle()
+
+            viewModel.onAuthStateChanged(signedIn = false)
+            advanceUntilIdle()
+
+            assertTrue(viewModel.state.value.followedComedianShows.isEmpty())
+            assertTrue(viewModel.state.value.podcastEpisodes.isEmpty())
+            assertTrue(viewModel.state.value.feed is UiState.Success)
+
+            signOutResponse.completeExceptionally(IOException("Offline"))
+            advanceUntilIdle()
+
+            assertTrue(viewModel.state.value.followedComedianShows.isEmpty())
+            assertTrue(viewModel.state.value.podcastEpisodes.isEmpty())
+            assertTrue(viewModel.state.value.refreshFailed)
         }
 
     @Test
@@ -425,6 +536,33 @@ class HomeViewModelTest {
             }
             return feed
         }
+    }
+
+    private class DeferredHomeFeedRepository(
+        vararg responses: CompletableDeferred<HomeFeed>,
+    ) : HomeFeedRepository {
+        private val responses = responses.iterator()
+
+        override suspend fun getHomeFeed(
+            zip: String?,
+            distance: Int?,
+        ): HomeFeed = responses.next().await()
+    }
+
+    /** Models a persisted snapshot that does not contain the live episode rail. */
+    private class ReadOnlyHomeFeedCache(
+        private val stored: HomeFeed,
+    ) : HomeFeedCache {
+        override suspend fun get(
+            zip: String?,
+            distance: Int?,
+        ): HomeFeed = stored
+
+        override suspend fun set(
+            zip: String?,
+            distance: Int?,
+            feed: HomeFeed,
+        ) = Unit
     }
 
     private class FakeHomeFeedCache(

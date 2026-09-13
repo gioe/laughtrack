@@ -33,6 +33,7 @@ data class HomeUiState(
     val zip: String? = null,
     val distanceMiles: Int = HomeFeedRepository.DEFAULT_DISTANCE_MILES,
     val isResolvingLocation: Boolean = false,
+    val refreshFailed: Boolean = false,
 ) {
     internal val loadedFeed: HomeFeed?
         get() = (feed as? UiState.Success<HomeFeed>)?.value
@@ -226,14 +227,19 @@ class HomeViewModel
         private fun load(zip: String?) {
             loadJob?.cancel()
             val distance = currentDistance
-            val previousFeed = (_state.value.feed as? UiState.Success<HomeFeed>)?.value
+            val previousState = _state.value
+            val previousFeed = previousState.loadedFeed
+            val sameScope = previousState.zip == zip && previousState.distanceMiles == distance
             loadJob =
                 viewModelScope.launch {
                     // Render the persisted snapshot immediately, if any, so relaunch is instant;
                     // otherwise keep the last feed mounted during a refresh. Only show the
                     // skeleton when there is no prior content to preserve.
                     val cached = cache.get(zip, distance)
-                    val fallbackFeed = cached ?: previousFeed
+                    // The persisted cache omits live recommendation rails. Keep the
+                    // mounted snapshot for same-scope refreshes so those rails do not
+                    // disappear while the request is pending or offline.
+                    val fallbackFeed = if (sameScope) previousFeed ?: cached else cached ?: previousFeed
                     _state.value =
                         HomeUiState(
                             feed = fallbackFeed?.let { UiState.Success(it) } ?: UiState.Loading,
@@ -254,7 +260,9 @@ class HomeViewModel
                         .onFailure { error ->
                             // Keep fallback content visible on a refresh failure; only surface an
                             // error when there was nothing to fall back on.
-                            if (fallbackFeed == null) {
+                            if (fallbackFeed != null) {
+                                _state.update { it.copy(refreshFailed = true) }
+                            } else {
                                 _state.value =
                                     HomeUiState(
                                         feed = UiState.Failure(error),
