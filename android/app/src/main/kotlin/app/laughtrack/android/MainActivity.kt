@@ -1,10 +1,16 @@
 package app.laughtrack.android
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.animation.DecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -16,7 +22,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.splashscreen.SplashScreenViewProvider
 import androidx.lifecycle.lifecycleScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
@@ -69,6 +78,10 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var currentUserState: CurrentUserState
 
+    private val launchHandoff = LaunchHandoff()
+    private var splashExitAnimator: ObjectAnimator? = null
+    private var splashOverlay: SplashScreenViewProvider? = null
+
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
     private var pendingNavigationIntent: Intent? = null
     private val signedIn = mutableStateOf(false)
@@ -91,7 +104,10 @@ class MainActivity : ComponentActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        splash.setKeepOnScreenCondition { launchHandoff.keepSplashVisible }
+        splash.setOnExitAnimationListener(::animateSplashExit)
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
@@ -119,13 +135,16 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             LaughTrackTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                val rootSurface = firstEntryRootSurface(startupSession, hasResolvedFirstEntryChoice.value)
+                val hasPendingRoute = pendingRoute != null
+                Surface(
+                    modifier =
+                        Modifier.fillMaxSize().onGloballyPositioned {
+                            launchHandoff.destinationLaidOut(rootSurface, hasPendingRoute)
+                        },
+                ) {
                     FirstEntryRootContent(
-                        surface =
-                            firstEntryRootSurface(
-                                session = startupSession,
-                                hasResolvedFirstEntryChoice = hasResolvedFirstEntryChoice.value,
-                            ),
+                        surface = rootSurface,
                         onRetry = startupResolver::resolve,
                         authChoice = {
                             FirstEntryAuthChoiceScreen(
@@ -155,6 +174,39 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun animateSplashExit(provider: SplashScreenViewProvider) {
+        splashOverlay = provider
+        if (!ValueAnimator.areAnimatorsEnabled() || isDestroyed) {
+            removeSplashOverlay()
+            return
+        }
+        splashExitAnimator =
+            ObjectAnimator.ofFloat(provider.view, View.ALPHA, 1f, 0f).apply {
+                duration = 240L
+                interpolator = DecelerateInterpolator()
+                addListener(
+                    object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) = removeSplashOverlay()
+
+                        override fun onAnimationCancel(animation: Animator) = removeSplashOverlay()
+                    },
+                )
+                start()
+            }
+    }
+
+    private fun removeSplashOverlay() {
+        splashOverlay?.remove()
+        splashOverlay = null
+        splashExitAnimator = null
+    }
+
+    override fun onDestroy() {
+        splashExitAnimator?.cancel()
+        removeSplashOverlay()
+        super.onDestroy()
     }
 
     override fun onNewIntent(intent: Intent) {

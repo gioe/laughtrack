@@ -8,4 +8,14 @@
         <item name="android:statusBarColor">@color/canvas</item>
         <item name="android:navigationBarColor">@color/canvas</item>
     </style>
+    <!-- The system launch surface remains in place until the destination is laid out. -->
+    <style name="Theme.LaughTrack.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/canvas</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.LaughTrack</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:statusBarColor">@color/canvas</item>
+        <item name="android:navigationBarColor">@color/canvas</item>
+    </style>
 </resources>
