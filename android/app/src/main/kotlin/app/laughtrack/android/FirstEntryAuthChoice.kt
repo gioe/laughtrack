@@ -63,24 +63,47 @@ internal const val FIRST_ENTRY_BRAND_LOGO_CONTENT_DESCRIPTION = "LaughTrack micr
 /** Root surfaces shown while the app resolves its first-entry authentication choice. */
 internal enum class FirstEntryRootSurface {
     Loading,
+    Recovery,
     AuthChoice,
+    Onboarding,
     AppShell,
 }
 
-/**
- * Keep the first-entry gate outside navigation chrome, matching iOS. Session restoration must
- * finish before a signed-out surface is selected or returning users briefly see the auth gate.
- */
+/** Authentication is ready only once the current-user response has selected the destination. */
 internal fun firstEntryRootSurface(
-    sessionRestoreCompleted: Boolean,
-    signedIn: Boolean,
+    session: StartupSessionState,
     hasResolvedFirstEntryChoice: Boolean,
 ): FirstEntryRootSurface =
-    when {
-        !sessionRestoreCompleted -> FirstEntryRootSurface.Loading
-        signedIn || hasResolvedFirstEntryChoice -> FirstEntryRootSurface.AppShell
-        else -> FirstEntryRootSurface.AuthChoice
+    when (session) {
+        StartupSessionState.Loading -> FirstEntryRootSurface.Loading
+        StartupSessionState.Failure -> FirstEntryRootSurface.Recovery
+        StartupSessionState.SignedOut ->
+            if (hasResolvedFirstEntryChoice) FirstEntryRootSurface.AppShell else FirstEntryRootSurface.AuthChoice
+        is StartupSessionState.Authenticated ->
+            if (session.response.data.comedianOnboardingCompleted) {
+                FirstEntryRootSurface.AppShell
+            } else {
+                FirstEntryRootSurface.Onboarding
+            }
     }
+
+/** One root decision keeps navigation and its chrome unmounted until authentication resolves. */
+@Composable
+internal fun FirstEntryRootContent(
+    surface: FirstEntryRootSurface,
+    onRetry: () -> Unit,
+    authChoice: @Composable () -> Unit,
+    onboarding: @Composable () -> Unit,
+    appShell: @Composable () -> Unit,
+) {
+    when (surface) {
+        FirstEntryRootSurface.Loading -> FirstEntryLoadingScreen()
+        FirstEntryRootSurface.Recovery -> FirstEntryRecoveryScreen(onRetry)
+        FirstEntryRootSurface.AuthChoice -> authChoice()
+        FirstEntryRootSurface.Onboarding -> onboarding()
+        FirstEntryRootSurface.AppShell -> appShell()
+    }
+}
 
 /** Persists whether this install has chosen guest browsing or completed sign-in. */
 internal class FirstEntryAuthChoiceStore(
@@ -116,9 +139,29 @@ internal class FirstEntryAuthChoiceStore(
 
 @Composable
 internal fun FirstEntryLoadingScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxSize().testTag("startup-loading"), contentAlignment = Alignment.Center) {
         LaughTrackAtmosphereBackground()
         CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun FirstEntryRecoveryScreen(onRetry: () -> Unit) {
+    Box(Modifier.fillMaxSize().testTag("startup-recovery"), contentAlignment = Alignment.Center) {
+        LaughTrackAtmosphereBackground()
+        Column(
+            modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing).padding(32.dp).widthIn(max = 420.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text("Let’s try that again", style = MaterialTheme.typography.headlineSmall)
+            Text(
+                "We couldn’t finish signing you in. Check your connection and try again.",
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Button(onClick = onRetry) { Text("Retry") }
+        }
     }
 }
 

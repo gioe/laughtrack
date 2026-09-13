@@ -1,5 +1,7 @@
 package app.laughtrack.android
 
+import app.laughtrack.android.core.network.generated.model.MeData
+import app.laughtrack.android.core.network.generated.model.MeResponse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -11,8 +13,7 @@ class FirstEntryAuthChoiceTest {
         assertEquals(
             FirstEntryRootSurface.Loading,
             firstEntryRootSurface(
-                sessionRestoreCompleted = false,
-                signedIn = false,
+                session = StartupSessionState.Loading,
                 hasResolvedFirstEntryChoice = false,
             ),
         )
@@ -23,8 +24,7 @@ class FirstEntryAuthChoiceTest {
         assertEquals(
             FirstEntryRootSurface.AuthChoice,
             firstEntryRootSurface(
-                sessionRestoreCompleted = true,
-                signedIn = false,
+                session = StartupSessionState.SignedOut,
                 hasResolvedFirstEntryChoice = false,
             ),
         )
@@ -43,8 +43,7 @@ class FirstEntryAuthChoiceTest {
         assertEquals(
             FirstEntryRootSurface.AppShell,
             firstEntryRootSurface(
-                sessionRestoreCompleted = true,
-                signedIn = false,
+                session = StartupSessionState.SignedOut,
                 hasResolvedFirstEntryChoice = store.hasResolvedFirstEntryChoice,
             ),
         )
@@ -62,10 +61,53 @@ class FirstEntryAuthChoiceTest {
         assertEquals(
             FirstEntryRootSurface.AppShell,
             firstEntryRootSurface(
-                sessionRestoreCompleted = true,
-                signedIn = false,
+                session = StartupSessionState.SignedOut,
                 hasResolvedFirstEntryChoice = store.hasResolvedFirstEntryChoice,
             ),
         )
     }
+
+    @Test
+    fun `previous first entry choice never bypasses unresolved or failed startup`() {
+        assertEquals(
+            FirstEntryRootSurface.Loading,
+            firstEntryRootSurface(StartupSessionState.Loading, hasResolvedFirstEntryChoice = true),
+        )
+        assertEquals(
+            FirstEntryRootSurface.Recovery,
+            firstEntryRootSurface(StartupSessionState.Failure, hasResolvedFirstEntryChoice = true),
+        )
+    }
+
+    @Test
+    fun `incomplete onboarding precedes shell even after a previous first entry choice`() {
+        assertEquals(
+            FirstEntryRootSurface.Onboarding,
+            firstEntryRootSurface(authenticated(completed = false), hasResolvedFirstEntryChoice = true),
+        )
+    }
+
+    @Test
+    fun `completed account opens shell without an auth choice`() {
+        assertEquals(
+            FirstEntryRootSurface.AppShell,
+            firstEntryRootSurface(authenticated(completed = true), hasResolvedFirstEntryChoice = false),
+        )
+    }
+
+    private fun authenticated(completed: Boolean) =
+        StartupSessionState.Authenticated(
+            MeResponse(
+                MeData(
+                    userId = "user-1",
+                    email = "test@example.com",
+                    isAdmin = false,
+                    emailShowNotifications = false,
+                    pushShowNotifications = false,
+                    comedianOnboardingCompleted = completed,
+                    zipCode = null,
+                    nearbyDistanceMiles = null,
+                ),
+            ),
+        )
 }

@@ -27,11 +27,14 @@ import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.LaughTrackDeepLink
 import app.laughtrack.android.core.network.auth.AuthCallbackResult
 import app.laughtrack.android.core.network.auth.AuthSessionManager
+import app.laughtrack.android.core.network.generated.model.MeResponse
 import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
+import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingScreen
 import app.laughtrack.android.push.PushNotifications
 import app.laughtrack.android.push.PushTokenManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -67,9 +70,12 @@ class MainActivity : ComponentActivity() {
     lateinit var currentUserState: CurrentUserState
 
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
+    private var pendingNavigationIntent: Intent? = null
     private val signedIn = mutableStateOf(false)
     private val showLoginPrompt = mutableStateOf(false)
-    private val sessionRestoreCompleted = mutableStateOf(false)
+    private var startupSession by mutableStateOf<StartupSessionState>(StartupSessionState.Loading)
+    private lateinit var startupResolver: StartupSessionResolver
+    private var authenticatedEffects: Job? = null
     private val hasResolvedFirstEntryChoice = mutableStateOf(false)
     private lateinit var firstEntryAuthChoiceStore: FirstEntryAuthChoiceStore
 
@@ -93,42 +99,59 @@ class MainActivity : ComponentActivity() {
         PushNotifications.ensureChannel(this)
         firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore.create(this)
         hasResolvedFirstEntryChoice.value = firstEntryAuthChoiceStore.hasResolvedFirstEntryChoice
+        startupResolver =
+            StartupSessionResolver(
+                scope = lifecycleScope,
+                restoreSession = { authSessionManager.restoreSession() != null },
+                getMe = authSessionManager::getMe,
+            )
+        restoreSession()
         // Seed deep-link routing / auth-callback handling only on a fresh start; a
         // config-change recreation re-delivers the launch Intent and must not
         // re-navigate or re-handle the original link (3258). onNewIntent covers
         // links arriving while running.
         if (savedInstanceState == null) {
             handleIntent(intent)
+        } else {
+            @Suppress("DEPRECATION")
+            val savedNavigationIntent = savedInstanceState.getParcelable<Intent>(PENDING_NAVIGATION_INTENT)
+            savedNavigationIntent?.let { handleIntent(it) }
         }
-        restoreSession()
         setContent {
             LaughTrackTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    when (
-                        firstEntryRootSurface(
-                            sessionRestoreCompleted = sessionRestoreCompleted.value,
-                            signedIn = signedIn.value,
-                            hasResolvedFirstEntryChoice = hasResolvedFirstEntryChoice.value,
-                        )
-                    ) {
-                        FirstEntryRootSurface.Loading -> FirstEntryLoadingScreen()
-                        FirstEntryRootSurface.AuthChoice ->
+                    FirstEntryRootContent(
+                        surface =
+                            firstEntryRootSurface(
+                                session = startupSession,
+                                hasResolvedFirstEntryChoice = hasResolvedFirstEntryChoice.value,
+                            ),
+                        onRetry = startupResolver::resolve,
+                        authChoice = {
                             FirstEntryAuthChoiceScreen(
                                 onContinueAsGuest = {
                                     firstEntryAuthChoiceStore.continueAsGuest()
                                     hasResolvedFirstEntryChoice.value = true
                                 },
                             )
-                        FirstEntryRootSurface.AppShell ->
+                        },
+                        onboarding = {
+                            ComedianOnboardingScreen(onComplete = startupResolver::completeOnboarding)
+                        },
+                        appShell = {
                             AppShell(
                                 pendingRoute = pendingRoute,
-                                onRouteConsumed = { pendingRoute = null },
+                                onRouteConsumed = {
+                                    pendingRoute = null
+                                    pendingNavigationIntent = null
+                                },
                                 signedIn = signedIn.value,
                                 playbackController = playbackController,
                                 showLoginPrompt = showLoginPrompt.value,
                                 onLoginPromptDismiss = { loginPromptController.dismiss() },
                             )
-                    }
+                        },
+                    )
                 }
             }
         }
@@ -140,13 +163,21 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        pendingNavigationIntent?.let { outState.putParcelable(PENDING_NAVIGATION_INTENT, it) }
+        super.onSaveInstanceState(outState)
+    }
+
     /** Route an OAuth callback to the session manager, otherwise a nav deep-link to the shell. */
     private fun handleIntent(intent: Intent?) {
         val dataString = intent?.dataString
         if (dataString != null && AuthSessionManager.isAuthCallback(dataString)) {
             handleAuthRedirect(dataString)
         } else {
-            routeFromIntent(intent)?.let { pendingRoute = it }
+            routeFromIntent(intent)?.let {
+                pendingRoute = it
+                pendingNavigationIntent = intent
+            }
         }
     }
 
@@ -172,7 +203,10 @@ class MainActivity : ComponentActivity() {
             loginPromptController.visible.collectLatest { showLoginPrompt.value = it }
         }
         lifecycleScope.launch {
+            var previouslySignedIn = false
             authSessionManager.signedIn.collectLatest { isSignedIn ->
+                val signingOut = previouslySignedIn && !isSignedIn
+                previouslySignedIn = isSignedIn
                 signedIn.value = isSignedIn
                 // A completed sign-in resolves any open prompt.
                 if (isSignedIn) {
@@ -182,15 +216,46 @@ class MainActivity : ComponentActivity() {
                 }
                 // Keep the shared Library snapshot aligned with auth so its content is
                 // ready whenever the permanent Library destination is opened.
-                if (isSignedIn) {
-                    favoritesRepository.refreshSignedInFavorites()
-                } else {
+                if (!isSignedIn) {
+                    authenticatedEffects?.cancel()
+                    if (signingOut) startupResolver.signedOut()
                     favoritesRepository.resetSignedOut()
                     currentUserState.reset()
                 }
             }
         }
-        lifecycleScope.launch { refreshSignedInUser() }
+        lifecycleScope.launch {
+            var identifiedUserId: String? = null
+            startupResolver.state.collectLatest { state ->
+                startupSession = state
+                when (state) {
+                    is StartupSessionState.Authenticated -> {
+                        signedIn.value = true
+                        firstEntryAuthChoiceStore.markSignedIn()
+                        hasResolvedFirstEntryChoice.value = true
+                        applyCurrentUser(state.response)
+                        if (identifiedUserId != state.response.data.userId) {
+                            identifiedUserId = state.response.data.userId
+                            // Destination resolution must not wait for push registration.
+                            authenticatedEffects?.cancel()
+                            authenticatedEffects =
+                                lifecycleScope.launch {
+                                    launch { pushTokenManager.syncCurrentToken() }
+                                    launch { favoritesRepository.refreshSignedInFavorites() }
+                                }
+                        }
+                        if (state.response.data.comedianOnboardingCompleted) maybeRequestNotificationPermission()
+                    }
+                    StartupSessionState.SignedOut -> {
+                        authenticatedEffects?.cancel()
+                        signedIn.value = false
+                        identifiedUserId = null
+                    }
+                    else -> Unit
+                }
+            }
+        }
+        startupResolver.resolve()
     }
 
     private fun handleAuthRedirect(callbackUrl: String) {
@@ -199,43 +264,25 @@ class MainActivity : ComponentActivity() {
                 is AuthCallbackResult.Authenticated -> {
                     firstEntryAuthChoiceStore.markSignedIn()
                     hasResolvedFirstEntryChoice.value = true
-                    refreshSignedInUser()
+                    startupResolver.resolve()
                 }
-                is AuthCallbackResult.Error -> signedIn.value = false
+                is AuthCallbackResult.Error -> Unit
                 AuthCallbackResult.Ignored -> Unit
             }
         }
     }
 
-    private suspend fun refreshSignedInUser() {
-        val hasSession = authSessionManager.restoreSession() != null
-        signedIn.value = hasSession
-        if (hasSession) {
-            firstEntryAuthChoiceStore.markSignedIn()
-            hasResolvedFirstEntryChoice.value = true
-        }
-        sessionRestoreCompleted.value = true
-        if (!hasSession) return
-
-        // Sync the FCM token while authenticated (no-ops without a Firebase
-        // project), and prompt for the notification permission on Android 13+.
-        maybeRequestNotificationPermission()
-        pushTokenManager.syncCurrentToken()
-        authSessionManager.getMe().onSuccess { response ->
-            // Cache the admin role so admin-only UI (the Show-ID badge) can gate on it
-            // without re-fetching /me per screen.
-            currentUserState.setAdmin(response.data.isAdmin)
-            // Set the analytics identity from the server-issued userId (no email-hash
-            // fallback) + cross-client cohort properties.
-            analytics.identify(
-                userId = response.data.userId,
-                onboardingCompleted = response.data.comedianOnboardingCompleted,
-                hasZip = response.data.zipCode?.isNotBlank() == true,
-            )
-            if (!response.data.comedianOnboardingCompleted) {
-                pendingRoute = AppRoute.ComedianOnboarding
-            }
-        }
+    private fun applyCurrentUser(response: MeResponse) {
+        // Cache the admin role so admin-only UI (the Show-ID badge) can gate on it
+        // without re-fetching /me per screen.
+        currentUserState.setAdmin(response.data.isAdmin)
+        // Set the analytics identity from the server-issued userId (no email-hash
+        // fallback) + cross-client cohort properties.
+        analytics.identify(
+            userId = response.data.userId,
+            onboardingCompleted = response.data.comedianOnboardingCompleted,
+            hasZip = response.data.zipCode?.isNotBlank() == true,
+        )
     }
 
     private fun maybeRequestNotificationPermission() {
@@ -246,5 +293,9 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.POST_NOTIFICATIONS,
             ) == PackageManager.PERMISSION_GRANTED
         if (!granted) requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    private companion object {
+        const val PENDING_NAVIGATION_INTENT = "pending-navigation-intent"
     }
 }
