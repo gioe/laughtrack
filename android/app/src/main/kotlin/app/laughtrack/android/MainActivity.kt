@@ -22,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.splashscreen.SplashScreenViewProvider
@@ -139,9 +138,11 @@ class MainActivity : ComponentActivity() {
                 val hasPendingRoute = pendingRoute != null
                 Surface(
                     modifier =
-                        Modifier.fillMaxSize().onGloballyPositioned {
-                            launchHandoff.destinationLaidOut(rootSurface, hasPendingRoute)
-                        },
+                        Modifier.fillMaxSize().launchDestinationLayout(
+                            launchHandoff,
+                            rootSurface,
+                            hasPendingRoute,
+                        ),
                 ) {
                     FirstEntryRootContent(
                         surface = rootSurface,
