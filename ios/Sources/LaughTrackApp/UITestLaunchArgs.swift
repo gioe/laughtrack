@@ -70,6 +70,9 @@ enum UITestLaunchArgs {
     /// seeds a deterministic podcast episode for the Now Playing capture.
     static let forceComparisonScreens = "UITEST_FORCE_COMPARISON_SCREENS"
 
+    /// Seeds the paused player without changing its native phone-sheet presentation.
+    static let seedPodcastPlayer = "UITEST_SEED_PODCAST_PLAYER"
+
     /// Direct artwork URL for the DEBUG-only Now Playing screenshot seed.
     /// Leaving this unset preserves the production missing-art fallback.
     static let nowPlayingScreenshotArtworkURL = "UITEST_NOW_PLAYING_SCREENSHOT_ARTWORK_URL"

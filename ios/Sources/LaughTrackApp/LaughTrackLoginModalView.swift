@@ -18,6 +18,7 @@ struct LaughTrackLoginModalView: View {
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedDetent: PresentationDetent = .large
 
     static func presentationDetents(for interfaceIdiom: LoginModalInterfaceIdiom) -> Set<PresentationDetent> {
         interfaceIdiom == .pad ? [.large] : [.medium, .large]
@@ -38,42 +39,43 @@ struct LaughTrackLoginModalView: View {
             laughTrack.colors.canvas
                 .ignoresSafeArea()
 
-            VStack(spacing: laughTrack.spacing.sectionGap) {
-                VStack(spacing: laughTrack.spacing.itemGap) {
-                    Image("LaunchLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 120, height: 120)
+            ScrollView {
+                VStack(spacing: laughTrack.spacing.sectionGap) {
+                    VStack(spacing: laughTrack.spacing.itemGap) {
+                        Image("LaunchLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 120, height: 120)
 
-                    VStack(spacing: laughTrack.spacing.tight) {
-                        Text("Pick up where you left off")
-                            .font(laughTrack.typography.screenTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
+                        VStack(spacing: laughTrack.spacing.tight) {
+                            Text("Pick up where you left off")
+                                .font(laughTrack.typography.screenTitle)
+                                .foregroundStyle(laughTrack.colors.textPrimary)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
 
-                        Text("Sign in to favorite comedians, get alerts when they tour near you, and sync your saves across devices.")
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
+                            Text("Sign in to favorite comedians, get alerts when they tour near you, and sync your saves across devices.")
+                                .font(laughTrack.typography.body)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
-                }
 
-                VStack(spacing: laughTrack.spacing.itemGap) {
-                    ForEach(Self.signedOutAuthOptions) { option in
-                        SignedOutAuthOptionButton(option: option, action: signIn)
+                    VStack(spacing: laughTrack.spacing.itemGap) {
+                        ForEach(Self.signedOutAuthOptions) { option in
+                            SignedOutAuthOptionButton(option: option, action: signIn)
+                        }
+                        #if DEBUG
+                        DebugTestAuthButton()
+                        #endif
                     }
-                    #if DEBUG
-                    DebugTestAuthButton()
-                    #endif
-                }
 
-                Spacer(minLength: 0)
+                }
+                .padding(.horizontal, theme.spacing.xl)
+                .padding(.top, theme.spacing.xl * 1.5)
+                .padding(.bottom, theme.spacing.xl)
             }
-            .padding(.horizontal, theme.spacing.xl)
-            .padding(.top, theme.spacing.xl * 1.5)
-            .padding(.bottom, theme.spacing.xl)
 
             Button {
                 loginModalPresenter.dismiss()
@@ -82,7 +84,7 @@ struct LaughTrackLoginModalView: View {
                 Image(systemName: "xmark")
                     .font(.system(size: theme.iconSizes.sm, weight: .bold))
                     .foregroundStyle(laughTrack.colors.textPrimary)
-                    .frame(width: 42, height: 42)
+                    .frame(width: 44, height: 44)
                     .background(laughTrack.colors.surfaceElevated)
                     .clipShape(Circle())
                     .overlay(
@@ -92,9 +94,10 @@ struct LaughTrackLoginModalView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Close")
+            .accessibilityIdentifier("laughtrack.login.close")
             .padding(theme.spacing.lg)
         }
-        .presentationDetents(Self.presentationDetents(for: Self.currentInterfaceIdiom))
+        .presentationDetents(Self.presentationDetents(for: Self.currentInterfaceIdiom), selection: $selectedDetent)
         .presentationDragIndicator(.hidden)
     }
 

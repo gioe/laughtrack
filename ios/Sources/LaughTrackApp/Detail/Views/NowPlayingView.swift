@@ -15,6 +15,7 @@ struct NowPlayingView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var isScrubbing = false
     @State private var scrubValue: Double = 0
@@ -40,7 +41,7 @@ struct NowPlayingView: View {
         ZStack(alignment: .top) {
             laughTrack.colors.canvas.ignoresSafeArea()
 
-            if horizontalSizeClass == .regular {
+            if horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize {
                 regularLayout
             } else {
                 compactLayout
@@ -50,53 +51,68 @@ struct NowPlayingView: View {
     }
 
     private var compactLayout: some View {
-        VStack(spacing: theme.spacing.lg) {
+        VStack(spacing: theme.spacing.sm) {
             grabber
             header(closeSymbol: "chevron.down", layoutDescription: "Compact layout")
-            artwork
-            titleBlock
-            scrubber
-            transport
-            secondaryControls
-            tonightNearYouCard
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, theme.spacing.lg)
-        .padding(.top, theme.spacing.sm)
-        .padding(.bottom, theme.spacing.lg)
-    }
+                .padding(.horizontal, theme.spacing.lg)
 
-    private var regularLayout: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return VStack(spacing: theme.spacing.xl) {
-            header(closeSymbol: "xmark", layoutDescription: "Regular layout")
-
-            HStack(alignment: .center, spacing: theme.spacing.xl * 2) {
-                artwork
-                    .frame(maxWidth: 460)
-
+            ScrollView {
                 VStack(spacing: theme.spacing.lg) {
+                    artwork
+                        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? 220 : .infinity)
                     titleBlock
                     scrubber
                     transport
                     secondaryControls
                     tonightNearYouCard
                 }
-                .frame(maxWidth: 440)
-                .padding(theme.spacing.xl)
-                .background(laughTrack.colors.surfaceElevated.opacity(0.72))
-                .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-                }
-                .shadowStyle(laughTrack.shadows.floating)
+                .padding(.horizontal, theme.spacing.lg)
+                .padding(.top, theme.spacing.sm)
+                .padding(.bottom, theme.spacing.lg)
             }
-            .frame(maxWidth: 1040, maxHeight: .infinity)
         }
-        .padding(.horizontal, theme.spacing.xl)
-        .padding(.vertical, theme.spacing.lg)
+        .padding(.top, theme.spacing.sm)
+    }
+
+    private var regularLayout: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(spacing: theme.spacing.lg) {
+            header(closeSymbol: "xmark", layoutDescription: "Regular layout")
+                .padding(.horizontal, theme.spacing.xl)
+
+            GeometryReader { viewport in
+                ScrollView {
+                    HStack(alignment: .center, spacing: theme.spacing.xl * 2) {
+                        artwork
+                            .frame(maxWidth: 460)
+
+                        VStack(spacing: theme.spacing.lg) {
+                            titleBlock
+                            scrubber
+                            transport
+                            secondaryControls
+                            tonightNearYouCard
+                        }
+                        .frame(maxWidth: 440)
+                        .padding(theme.spacing.xl)
+                        .background(laughTrack.colors.surfaceElevated.opacity(0.72))
+                        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                        }
+                        .shadowStyle(laughTrack.shadows.floating)
+                    }
+                    .frame(maxWidth: 1040)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, theme.spacing.xl)
+                    .padding(.vertical, theme.spacing.lg)
+                    .frame(minHeight: viewport.size.height, alignment: .center)
+                }
+            }
+        }
+        .padding(.top, theme.spacing.lg)
     }
 
     private var grabber: some View {
@@ -116,7 +132,7 @@ struct NowPlayingView: View {
                 Image(systemName: closeSymbol)
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.textPrimary)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 44, height: 44)
                     .background(laughTrack.colors.surfaceElevated)
                     .clipShape(Circle())
             }
@@ -135,7 +151,7 @@ struct NowPlayingView: View {
             Spacer(minLength: 0)
 
             Color.clear
-                .frame(width: 36, height: 36)
+                .frame(width: 44, height: 44)
         }
     }
 
@@ -195,7 +211,7 @@ struct NowPlayingView: View {
                 .font(.system(.title2, design: .serif, weight: .heavy))
                 .foregroundStyle(laughTrack.colors.textPrimary)
                 .multilineTextAlignment(.center)
-                .lineLimit(3)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 3)
 
             Text(player.currentItem?.podcastName ?? "")
                 .font(laughTrack.typography.body)
@@ -288,7 +304,10 @@ struct NowPlayingView: View {
 
     @ViewBuilder
     private var secondaryControls: some View {
-        HStack(alignment: .top, spacing: theme.spacing.md) {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: theme.spacing.md))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: theme.spacing.md))
+        layout {
             speedControl
                 .frame(maxWidth: .infinity)
 
@@ -405,7 +424,7 @@ struct NowPlayingView: View {
             }
             .foregroundStyle(laughTrack.colors.textPrimary)
             .frame(maxWidth: .infinity)
-            .frame(height: 44)
+            .frame(minHeight: 44)
             .background(laughTrack.colors.surfaceElevated)
             .clipShape(Capsule())
 

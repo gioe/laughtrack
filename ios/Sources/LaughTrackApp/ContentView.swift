@@ -193,6 +193,9 @@ struct ContentView: View {
     @StateObject private var shellState = AppShellState()
     @StateObject private var firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore()
     @StateObject private var podcastPlayer = PodcastPlaybackController()
+    #if canImport(UIKit)
+    @StateObject private var navigationPlayerChrome = NavigationPlayerChrome()
+    #endif
     @Namespace private var authLogoNamespace
 
     var body: some View {
@@ -412,19 +415,29 @@ struct ContentView: View {
                 favorites: favorites,
                 shellState: shellState
             )
+            #if canImport(UIKit)
+            .background(NativeInteractivePopSupport(playerChrome: navigationPlayerChrome).frame(width: 0, height: 0))
+            #endif
         }
-        // Mount the persistent podcast mini player on the navigation stack
-        // itself, not on AppShellView, so it survives detail-route pushes
-        // (showDetail/comedianDetail/clubDetail/podcastDetail replace the
-        // shell at the top of the stack). Bottom padding clears the tab
-        // bar on the root and the home indicator on pushed details.
+        // Keep one player across destinations. Its reserved region stays stable
+        // while UIKit moves the hosted player alongside native navigation.
         .safeAreaInset(edge: .bottom) {
+            #if canImport(UIKit)
+            NavigationPlayerContainer(
+                chrome: navigationPlayerChrome,
+                isVisible: podcastPlayer.currentItem != nil,
+                player: PodcastMiniPlayerView(player: podcastPlayer, apiClient: apiClient)
+                    .padding(.horizontal, theme.spacing.md)
+                    .padding(.bottom, theme.spacing.md)
+            )
+            #else
             PodcastMiniPlayerView(player: podcastPlayer, apiClient: apiClient)
                 .padding(.horizontal, theme.spacing.md)
                 .padding(.bottom, PodcastMiniPlayerLayout.bottomPadding(
                     theme: theme,
                     clearsRootTabBar: coordinator.routes.isEmpty
                 ))
+            #endif
         }
         .environmentObject(favorites)
         .environmentObject(podcastFavorites)
@@ -432,11 +445,14 @@ struct ContentView: View {
         .environmentObject(serviceContainer.resolve(SoftPushPromptCoordinator.self))
         #if DEBUG
         .task {
-            guard ProcessInfo.processInfo.environment[UITestLaunchArgs.forceComparisonScreens] == "1",
+            let environment = ProcessInfo.processInfo.environment
+            guard environment[UITestLaunchArgs.forceComparisonScreens] == "1"
+                || environment[UITestLaunchArgs.seedPodcastPlayer] == "1",
                   podcastPlayer.currentItem == nil
             else { return }
             podcastPlayer.start(PodcastPlaybackItem(
                 id: -1,
+                podcastID: environment[UITestLaunchArgs.seedPodcastPlayer] == "1" ? 401 : nil,
                 episodeTitle: "Watch Your Tone with Ryan Sickler | History Hyenas",
                 podcastName: "History Hyenas",
                 podcastImageURL: ProcessInfo.processInfo.environment[

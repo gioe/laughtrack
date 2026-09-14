@@ -11,8 +11,10 @@ struct PodcastMiniPlayerView: View {
 
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isExpanded = false
-    @State private var dragOffset: CGFloat = 0
+    @GestureState(resetTransaction: Transaction(animation: .easeOut(duration: 0.18)))
+    private var dragOffset: CGFloat = 0
 
     private static let dismissThreshold: CGFloat = 60
 
@@ -40,7 +42,13 @@ struct PodcastMiniPlayerView: View {
     private func presentedContent(item: PodcastPlaybackItem) -> some View {
         let miniPlayer = content(item: item)
             .offset(y: dragOffset)
-            .gesture(dismissGesture)
+            .highPriorityGesture(dismissGesture)
+            .transaction { transaction in
+                if reduceMotion { transaction.animation = nil }
+            }
+            .accessibilityAction(named: Text("Dismiss player")) {
+                player.dismiss()
+            }
 
         #if canImport(UIKit)
         if presentsNowPlayingFullScreen {
@@ -224,24 +232,15 @@ struct PodcastMiniPlayerView: View {
 
     private var dismissGesture: some Gesture {
         DragGesture()
-            .onChanged { value in
-                guard value.translation.height > 0 else { return }
-                dragOffset = value.translation.height
+            .updating($dragOffset) { value, offset, _ in
+                offset = max(0, value.translation.height)
             }
             .onEnded { value in
-                if value.translation.height > Self.dismissThreshold {
-                    withAnimation(.easeIn(duration: 0.18)) {
-                        dragOffset = 240
-                    }
-                    Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 180_000_000)
-                        dragOffset = 0
-                        player.dismiss()
-                    }
-                } else {
-                    withAnimation(.spring(response: 0.32, dampingFraction: 0.85)) {
-                        dragOffset = 0
-                    }
+                guard value.translation.height > Self.dismissThreshold else { return }
+                // Commit to the current interaction immediately. A delayed task
+                // could otherwise dismiss a replacement episode after navigation.
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                    player.dismiss()
                 }
             }
     }
