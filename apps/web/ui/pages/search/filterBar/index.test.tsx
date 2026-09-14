@@ -227,6 +227,20 @@ describe("FilterBar", () => {
         ).not.toBeNull();
     });
 
+    it("does not require Include all to find comedians without upcoming shows", () => {
+        const { container } = render(
+            <FilterBar
+                variant={SearchVariant.AllComedians}
+                total={5}
+                filterData={[]}
+            />,
+        );
+        expect(container.querySelector('input[type="checkbox"]')).toBeNull();
+        expect(
+            container.querySelector('[data-testid="filter-modal-button"]'),
+        ).not.toBeNull();
+    });
+
     it("keeps the Podcast Include all control authoritative", () => {
         mockGetTypedParam.mockImplementation((property) =>
             property === "includeEmpty" ? false : "",
@@ -245,7 +259,7 @@ describe("FilterBar", () => {
         expect(mockSetTypedParam).toHaveBeenCalledWith("includeEmpty", true);
     });
 
-    it.each([SearchVariant.AllClubs, SearchVariant.AllComedians])(
+    it.each([SearchVariant.AllClubs])(
         "retains advanced Filter and Include all controls for variant %s",
         (variant) => {
             const { container } = render(

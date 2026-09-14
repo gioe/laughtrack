@@ -125,7 +125,6 @@ export async function findComediansWithCount(
         ? COMEDIAN_SORT_MAP_ADMIN
         : COMEDIAN_SORT_MAP;
     try {
-        const includeEmpty = helper.params.includeEmpty === "true";
         const deniedNames = await fetchDeniedComedianNames();
         // Compose with AND: name-contains search and name-notIn deny list both target
         // the `name` column, so spreading them as sibling keys would clobber one.
@@ -140,22 +139,13 @@ export async function findComediansWithCount(
         const hasDateFilter = Boolean(
             helper.params.fromDate || helper.params.toDate,
         );
-        const needsLineupItemsFilter =
-            !includeEmpty || hasZipFilter || hasDateFilter;
-
-        // Filter shows by date range (explicit) or restrict to upcoming when
-        // !includeEmpty (default comedian-search path, where we don't want to
-        // surface comedians whose only shows are in the past). Optionally also
-        // restrict to clubs in the zip-code radius.
+        // Profiles remain searchable without upcoming shows, including for
+        // older clients that still send includeEmpty=false. Only explicit
+        // show-location/date filters require a matching appearance.
+        const needsLineupItemsFilter = hasZipFilter || hasDateFilter;
         const showFilter: Prisma.ShowWhereInput = {};
         if (hasDateFilter) {
             Object.assign(showFilter, helper.getDateClause());
-        }
-        // Apply upcoming-only default when no effective date filter landed —
-        // covers both no-params and set-but-invalid-params cases, since
-        // getDateClause returns {} in both.
-        if (!showFilter.date && !includeEmpty) {
-            showFilter.date = { gte: new Date() };
         }
         if (hasZipFilter) {
             showFilter.club = helper.getZipCodeClause();
@@ -172,7 +162,7 @@ export async function findComediansWithCount(
         // WHERE all count the same set of shows. Hoisted above both branches so
         // the Prisma path's pre-fetch can share it.
         const showWhereParts: Prisma.Sql[] = [];
-        if (hasDateFilter || !includeEmpty) {
+        if (hasDateFilter) {
             const dateBounds = (showFilter as { date?: Prisma.DateTimeFilter })
                 .date;
             const gte = dateBounds?.gte;

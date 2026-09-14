@@ -83,8 +83,7 @@ const FilterBar = ({
     const isClubSearch = variant === SearchVariant.AllClubs;
     const isComedianSearch = variant === SearchVariant.AllComedians;
     const isPodcastSearch = variant === SearchVariant.AllPodcasts;
-    const includeEmptyApplies =
-        isClubSearch || isComedianSearch || isPodcastSearch;
+    const includeEmptyApplies = isClubSearch || isPodcastSearch;
     const includeEmpty = includeEmptyApplies
         ? (getTypedParam("includeEmpty") ?? false)
         : false;

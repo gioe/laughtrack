@@ -77,6 +77,37 @@ function makeComedianRow(id: number, showCount = 0, name = `Comedian ${id}`) {
 }
 
 describe("findComediansWithCount", () => {
+    it.each([
+        SortParamValue.PopularityDesc,
+        SortParamValue.ShowCountAsc,
+        SortParamValue.ShowCountDesc,
+    ])(
+        "finds profiles without upcoming shows with %s sorting, including legacy includeEmpty=false",
+        async (sort) => {
+            const ray = makeComedianRow(1192, 0, "Ray Devito");
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([ray] as never);
+            mockQueryRaw.mockResolvedValueOnce([] as never);
+            if (sort !== SortParamValue.PopularityDesc)
+                mockQueryRaw.mockResolvedValueOnce([{ id: 1192 }] as never);
+            const result = await findComediansWithCount(
+                makeHelper(sort, "Ray Devito", undefined, undefined, false, {
+                    includeEmpty: "false",
+                }),
+            );
+            expect(result.comedians.map((c) => c.name)).toEqual(["Ray Devito"]);
+            expect(
+                mockCount.mock.calls[0]?.[0]?.where?.lineupItems,
+            ).toBeUndefined();
+            if (sort !== SortParamValue.PopularityDesc) {
+                const query = mockQueryRaw.mock.calls[1][0] as {
+                    strings: string[];
+                };
+                expect(query.strings.join(" ")).not.toContain("HAVING");
+            }
+        },
+    );
+
     beforeEach(() => {
         vi.clearAllMocks();
         // Default: empty deny-list. Individual tests override for the show-count
@@ -581,9 +612,8 @@ describe("findComediansWithCount", () => {
             };
             const sql = filterCall.strings.join(" ");
             expect(sql).toContain('FROM "lineup_items"');
-            // Default helper applies the upcoming-only bound (showFilter.date = NOW)
-            // so the scoped form uses s.date >= <Date> rather than the bare fallback.
-            expect(sql).toContain("s.date >=");
+            // Upcoming counts remain future-only without restricting profile visibility.
+            expect(sql).toContain("s.date > NOW()");
             expect(filterCall.values).toContain(5);
 
             const call = mockFindMany.mock.calls[0]?.[0];
@@ -722,9 +752,8 @@ describe("findComediansWithCount", () => {
             );
             expect(sql).toContain("GROUP BY c.id, c.name");
             expect(sql).toContain("HAVING COUNT(s.id) FILTER");
-            // Default helper applies the upcoming-only bound (showFilter.date = NOW)
-            // so the scoped form uses s.date >= <Date> rather than the bare fallback.
-            expect(sql).toContain("s.date >=");
+            // Upcoming counts remain future-only without restricting profile visibility.
+            expect(sql).toContain("s.date > NOW()");
             // Guard against regression: old implementation filtered on c."total_shows".
             expect(sql).not.toContain('c."total_shows" >=');
             // Guard against regression: the hot path should aggregate once, not
