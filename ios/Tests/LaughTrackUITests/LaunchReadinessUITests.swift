@@ -21,12 +21,8 @@ final class LaunchReadinessUITests: XCTestCase {
 
         wait(for: [server.feedRequested], timeout: 10)
         attachScreenshot(app, named: "Returning guest — feed pending")
-        // Capture the lower loading rails too: their portrait, ticket, and
-        // episode layouts should use the same card geometry as loaded content.
-        for index in 1...4 {
-            app.swipeUp()
-            attachScreenshot(app, named: "Discover loading rails — scroll \(index)")
-        }
+        XCTAssertTrue(app.descendants(matching: .any)["laughtrack.home.plan-loading"].firstMatch.exists)
+        XCTAssertFalse(app.staticTexts["Popular local clubs"].exists, "Unknown rail order must not flash legacy shelves")
         assertSearchIsUsable(app)
         attachScreenshot(app, named: "Search — feed pending")
 
@@ -42,6 +38,43 @@ final class LaunchReadinessUITests: XCTestCase {
         XCTAssertFalse(loadingLogo(in: app).exists, "An ordinary resume must not replay the launch overlay")
         attachScreenshot(app, named: "Search — resumed")
     }
+
+    func testDiscoverRetainsServerOrderDuringHeldRefresh() throws {
+        continueAfterFailure = false
+        let server = try HeldLaunchServer()
+        defer { server.stop() }
+        wait(for: [server.ready], timeout: 5)
+        let app = configuredApp(server: server, guest: true)
+        defer { app.terminate() }
+        app.launch()
+        wait(for: [server.feedRequested], timeout: 10)
+        let loading = app.descendants(matching: .any)["laughtrack.home.plan-loading"].firstMatch
+        XCTAssertTrue(loading.waitForExistence(timeout: 5))
+        attachScreenshot(app, named: "Discover — unknown order pending")
+
+        server.respondWithFeed(Self.orderedFeed)
+        let firstRail = app.staticTexts["Best shows this week"].firstMatch
+        XCTAssertTrue(firstRail.waitForExistence(timeout: 10))
+        XCTAssertFalse(loading.exists)
+        attachScreenshot(app, named: "Discover — server order loaded")
+
+        let refresh = server.holdNextFeedRequest()
+        let scroll = app.scrollViews.firstMatch
+        scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
+            .press(forDuration: 0.1, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9)))
+        wait(for: [refresh], timeout: 10)
+        XCTAssertTrue(firstRail.isHittable, "A held refresh must retain the loaded first rail")
+        XCTAssertFalse(loading.exists, "Refresh must not replace cached rails with first-load UI")
+        XCTAssertFalse(app.staticTexts["Popular local clubs"].exists)
+        attachScreenshot(app, named: "Discover — same order during held refresh")
+        server.respondWithFeed(Self.orderedFeed)
+        XCTAssertTrue(firstRail.isHittable)
+        assertSearchIsUsable(app)
+    }
+
+    private static let orderedFeed = #"""
+    {"data":{"hero":{"zipCode":"10012","city":"New York","state":"NY","shows":[]},"trendingComedians":[],"comediansNearYou":[],"showsTonight":[{"id":992,"clubId":301,"clubName":"New York Comedy Club","date":"2099-09-14T23:00:00Z","tickets":[],"name":"Tonight comedy","lineup":[],"imageUrl":""}],"moreNearYou":[],"trendingThisWeek":[{"id":991,"clubId":301,"clubName":"New York Comedy Club","date":"2099-09-14T23:00:00Z","tickets":[],"name":"A night of comedy","lineup":[],"imageUrl":""}],"followedComedianShows":[],"podcastEpisodes":[],"trendingPodcasts":[],"popularClubs":[],"railPlan":{"version":1,"catalogVersion":5,"policyVersion":9,"platform":"ios","cycleIndex":0,"rails":[{"railKey":"trending_this_week","payloadKey":"trendingThisWeek","position":0,"itemIds":["991"]},{"railKey":"shows_tonight","payloadKey":"showsTonight","position":1,"itemIds":["992"]}]}}}
+    """#
 
     func testFirstEntryGuestChoiceOpensUsableShellBeforeFeedResponds() throws {
         continueAfterFailure = false
@@ -196,6 +229,7 @@ private final class HeldLaunchServer: @unchecked Sendable {
     enum Mode {
         case held
         case unavailable
+        case feed(String)
     }
 
     let ready = XCTestExpectation(description: "Loopback launch server ready")
@@ -204,6 +238,7 @@ private final class HeldLaunchServer: @unchecked Sendable {
     private let queue = DispatchQueue(label: "laughtrack.tests.held-launch-server")
     private let listener: NWListener
     private var connections: [NWConnection] = []
+    private var pendingFeedConnections: [NWConnection] = []
     private var sawFeedRequest = false
     private var mode: Mode
     private var nextFeedRequest: XCTestExpectation?
@@ -236,6 +271,19 @@ private final class HeldLaunchServer: @unchecked Sendable {
         return request
     }
 
+    func respondWithFeed(_ body: String) {
+        queue.sync {
+            mode = .feed(body)
+            pendingFeedConnections.forEach { send(body, status: "200 OK", to: $0) }
+            pendingFeedConnections.removeAll()
+        }
+    }
+
+    private func send(_ body: String, status: String, to connection: NWConnection) {
+        let response = "HTTP/1.1 \(status)\r\nContent-Type: application/json\r\nContent-Length: \(body.utf8.count)\r\nConnection: close\r\n\r\n\(body)"
+        connection.send(content: Data(response.utf8), completion: .contentProcessed { _ in connection.cancel() })
+    }
+
     func stop() {
         queue.sync {
             listener.cancel()
@@ -258,8 +306,13 @@ private final class HeldLaunchServer: @unchecked Sendable {
                     }
                     nextFeedRequest?.fulfill()
                     nextFeedRequest = nil
+                    switch mode {
+                    case .held: pendingFeedConnections.append(connection)
+                    case .feed(let body): send(body, status: "200 OK", to: connection)
+                    case .unavailable: break
+                    }
                 }
-                if mode == .unavailable {
+                if case .unavailable = mode {
                     let body = "{\"error\":\"Service unavailable\"}"
                     let response = "HTTP/1.1 503 Service Unavailable\r\nContent-Type: application/json\r\nContent-Length: \(body.utf8.count)\r\nConnection: close\r\n\r\n\(body)"
                     connection.send(content: Data(response.utf8), completion: .contentProcessed { _ in
