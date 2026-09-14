@@ -79,7 +79,7 @@ struct HomeShowsTonightRail: View {
     }
 
     private var title: String? {
-        railKind.title
+        railKind.title ?? "Tonight!"
     }
 
     @ViewBuilder
@@ -87,7 +87,8 @@ struct HomeShowsTonightRail: View {
         if railKind == .showsTonight {
             HomeFeaturedShowsCarousel(
                 headline: "Tonight!",
-                items: HomeFeaturedShowCarouselItem.tonightItems(shows)
+                items: HomeFeaturedShowCarouselItem.tonightItems(shows),
+                showsHeadline: false
             )
         } else {
             VStack(spacing: theme.spacing.sm) {
@@ -147,15 +148,18 @@ struct HomeFeaturedShowsCarousel: View {
     let headline: String
     let items: [HomeFeaturedShowCarouselItem]
     var onSelect: (() -> Void)?
+    var showsHeadline: Bool
 
     init(
         headline: String,
         items: [HomeFeaturedShowCarouselItem],
-        onSelect: (() -> Void)? = nil
+        onSelect: (() -> Void)? = nil,
+        showsHeadline: Bool = true
     ) {
         self.headline = headline
         self.items = items
         self.onSelect = onSelect
+        self.showsHeadline = showsHeadline
     }
 
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
@@ -174,14 +178,16 @@ struct HomeFeaturedShowsCarousel: View {
                 )
 
                 VStack(alignment: .center, spacing: theme.spacing.md) {
-                    Text(headline)
-                        .font(.system(size: 22, weight: .heavy, design: .rounded))
-                        .tracking(2.4)
-                        .textCase(.uppercase)
-                        .foregroundStyle(laughTrack.colors.accentStrong)
-                        .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.65)
+                    if showsHeadline {
+                        Text(headline)
+                            .font(.system(size: 22, weight: .heavy, design: .rounded))
+                            .tracking(2.4)
+                            .textCase(.uppercase)
+                            .foregroundStyle(laughTrack.colors.accentStrong)
+                            .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.65)
+                    }
 
                     ZStack(alignment: .top) {
                         HomeMarqueeStageBackground(glowRadius: 200, glowOpacity: 0.22)
@@ -206,7 +212,7 @@ struct HomeFeaturedShowsCarousel: View {
                     )
                 }
                 .padding(laughTrack.browseDensity.compactCardPadding)
-                .frame(width: pageWidth, height: 456, alignment: .top)
+                .frame(width: pageWidth, height: showsHeadline ? 456 : 414, alignment: .top)
                 .background(laughTrack.colors.surface)
                 .overlay(
                     RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
@@ -214,7 +220,7 @@ struct HomeFeaturedShowsCarousel: View {
                 )
                 .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
             }
-            .frame(height: 456)
+            .frame(height: showsHeadline ? 456 : 414)
         }
         #else
         ScrollView(.horizontal, showsIndicators: false) {
@@ -259,7 +265,8 @@ struct HomeFeaturedShowsCarousel: View {
                     item: item,
                     width: cardWidth,
                     pageIndicatorCount: items.count,
-                    selectedPageIndex: selectedShowIndex
+                    selectedPageIndex: selectedShowIndex,
+                    showsHeadline: showsHeadline
                 )
             }
             .frame(width: cardWidth)
@@ -365,6 +372,7 @@ private struct HomeShowsTonightScrollingCard: View {
     let width: CGFloat
     let pageIndicatorCount: Int
     let selectedPageIndex: Int
+    let showsHeadline: Bool
 
     @Environment(\.appTheme) private var theme
 
@@ -376,14 +384,16 @@ private struct HomeShowsTonightScrollingCard: View {
         )
 
         VStack(alignment: .center, spacing: theme.spacing.md) {
-            Text(headline)
-                .font(.system(size: 22, weight: .heavy, design: .rounded))
-                .tracking(2.4)
-                .textCase(.uppercase)
-                .foregroundStyle(laughTrack.colors.accentStrong)
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
-                .lineLimit(1)
-                .minimumScaleFactor(0.65)
+            if showsHeadline {
+                Text(headline)
+                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .tracking(2.4)
+                    .textCase(.uppercase)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
+            }
 
             ZStack(alignment: .top) {
                 HomeMarqueeStageBackground(glowRadius: 200, glowOpacity: 0.22)
@@ -406,7 +416,7 @@ private struct HomeShowsTonightScrollingCard: View {
             )
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
-        .frame(width: width, height: 456, alignment: .top)
+        .frame(width: width, height: showsHeadline ? 456 : 414, alignment: .top)
         .background(laughTrack.colors.surface)
         .overlay(
             RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)

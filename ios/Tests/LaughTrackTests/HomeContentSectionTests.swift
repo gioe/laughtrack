@@ -35,7 +35,6 @@ struct HomeContentSectionTests {
         let source = try homeSourceText()
 
         #expect(source.contains("struct HomeDiscoverRailAction"))
-        #expect(source.contains("systemImage: \"magnifyingglass\""))
         #expect(source.components(separatedBy: "actionTitle: \"See all\"").count - 1 >= 2)
         #expect(source.contains("HomeDiscoverPlannedRail("))
         #expect(source.contains("actionTitle: displaysBrowsePodcastsAction ? \"Browse podcasts\" : nil"))
@@ -235,7 +234,6 @@ struct HomeContentSectionTests {
         #expect(carouselBlock.contains("UIScreen.main.bounds.width - 64"))
         #expect(carouselBlock.contains(".frame(width: pageWidth"))
         #expect(carouselBlock.contains(".clipped()"))
-        #expect(carouselBlock.contains(".frame(height: 456)"))
         #expect(carouselBlock.contains(".highPriorityGesture(pagerDragGesture(pageWidth: contentWidth))"))
         #expect(heroBlock.contains(".scaledToFill()"))
         #expect(source.contains("HomeDiscoverHeader("))

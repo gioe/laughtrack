@@ -151,20 +151,22 @@ struct HomeDiscoverRailCard<Content: View>: View {
                 HomeDiscoverSectionHeader(
                     eyebrow: eyebrow,
                     title: title,
-                    subtitle: subtitle
+                    subtitle: subtitle,
+                    accessibilityIdentifier: accessibilityIdentifier,
+                    actionTitle: actionTitle,
+                    actionAccessibilityIdentifier: actionAccessibilityIdentifier,
+                    action: action
                 )
-                .modifier(HomeRailAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
-            }
-
-            content
-
-            if let actionTitle, let action {
+            } else if let actionTitle, let action {
                 HomeDiscoverRailAction(
                     title: actionTitle,
+                    sectionTitle: nil,
                     accessibilityIdentifier: actionAccessibilityIdentifier,
                     action: action
                 )
             }
+
+            content
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
         .background(railBackground)
@@ -231,67 +233,113 @@ private struct HomeDiscoverSectionHeader: View {
     let eyebrow: String?
     let title: String
     let subtitle: String?
+    let accessibilityIdentifier: String?
+    let actionTitle: String?
+    let actionAccessibilityIdentifier: String?
+    let action: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .title2) private var titleSize: CGFloat = 22
+    @ScaledMetric(relativeTo: .caption2) private var eyebrowSize: CGFloat = 10
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(alignment: .leading, spacing: 7) {
             if let eyebrow {
-                Text(eyebrow)
-                    .font(.system(size: 10, weight: .heavy, design: .rounded))
-                    .tracking(2.0)
-                    .textCase(.uppercase)
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-                    .lineLimit(1)
+                HStack(alignment: .firstTextBaseline, spacing: theme.spacing.sm) {
+                    Text(eyebrow)
+                        .font(.system(size: eyebrowSize, weight: .heavy, design: .rounded))
+                        .tracking(2.0)
+                        .textCase(.uppercase)
+                        .foregroundStyle(laughTrack.colors.accentStrong)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Spacer(minLength: 0)
+
+                    HStack(spacing: 4) {
+                        ForEach(0..<5, id: \.self) { index in
+                            Circle()
+                                .fill(laughTrack.colors.accentStrong.opacity(0.85 - Double(index) * 0.11))
+                                .frame(width: 4, height: 4)
+                                .shadow(color: laughTrack.colors.accentStrong.opacity(0.34), radius: 4)
+                        }
+                    }
+                    .accessibilityHidden(true)
+                }
             }
 
-            HStack(alignment: .firstTextBaseline, spacing: theme.spacing.sm) {
-                Text(title)
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
-                    .tracking(0.3)
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Spacer(minLength: 0)
-
-                HStack(spacing: 4) {
-                    ForEach(0..<5, id: \.self) { index in
-                        Circle()
-                            .fill(laughTrack.colors.accentStrong.opacity(0.85 - Double(index) * 0.11))
-                            .frame(width: 4, height: 4)
-                            .shadow(color: laughTrack.colors.accentStrong.opacity(0.34), radius: 4)
-                    }
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    heading
+                    headerAction
                 }
-                .accessibilityHidden(true)
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: theme.spacing.sm) {
+                    heading
+                    Spacer(minLength: 0)
+                    headerAction
+                        .fixedSize(horizontal: true, vertical: false)
+                }
             }
 
             if let subtitle {
                 Text(subtitle)
                     .font(laughTrack.typography.metadata)
                     .foregroundStyle(laughTrack.colors.textSecondary)
-                    .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
+        }
+    }
+
+    private var heading: some View {
+        Text(title)
+            .font(.system(size: titleSize, weight: .heavy, design: .rounded))
+            .tracking(0.3)
+            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+            .modifier(HomeRailAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
+    }
+
+    @ViewBuilder
+    private var headerAction: some View {
+        if let actionTitle, let action {
+            HomeDiscoverRailAction(
+                title: actionTitle,
+                sectionTitle: title,
+                accessibilityIdentifier: actionAccessibilityIdentifier,
+                action: action
+            )
         }
     }
 }
 
 private struct HomeDiscoverRailAction: View {
     let title: String
+    let sectionTitle: String?
     let accessibilityIdentifier: String?
     let action: () -> Void
 
+    @Environment(\.appTheme) private var theme
+
     var body: some View {
-        LaughTrackButton(
-            title,
-            systemImage: "magnifyingglass",
-            tone: .secondary,
-            density: .compact,
-            action: action
-        )
+        Button(action: action) {
+            HStack(alignment: .firstTextBaseline, spacing: 5) {
+                Text(title)
+                    .fixedSize(horizontal: false, vertical: true)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .accessibilityHidden(true)
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+            .frame(minWidth: 44, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(sectionTitle.map { "\(title), \($0)" } ?? title)
         .modifier(HomeRailAccessibilityIdentifierModifier(
             identifier: accessibilityIdentifier
         ))

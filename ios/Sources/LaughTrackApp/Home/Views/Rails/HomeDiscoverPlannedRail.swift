@@ -23,7 +23,7 @@ struct HomeDiscoverPlannedRail: View {
             HomeDiscoverRailCard(
                 variant: .spotlight,
                 eyebrow: nil,
-                title: nil,
+                title: "Tonight!",
                 subtitle: nil,
                 accessibilityIdentifier: LaughTrackViewTestID.homeShowsTonightRail,
                 actionTitle: "See all",
@@ -33,7 +33,8 @@ struct HomeDiscoverPlannedRail: View {
                 HomeFeaturedShowsCarousel(
                     headline: "Tonight!",
                     items: HomeFeaturedShowCarouselItem.tonightItems(shows),
-                    onSelect: trackSelection
+                    onSelect: trackSelection,
+                    showsHeadline: false
                 )
             }
 
