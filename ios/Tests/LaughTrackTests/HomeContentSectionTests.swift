@@ -30,23 +30,6 @@ struct HomeContentSectionTests {
         #expect(HomeContentSection.sections(for: .podcasts) == [.podcasts])
     }
 
-    @Test("discover section anchors retain the nearest section at the viewport top")
-    func discoverSectionAnchorsRetainNearestSectionAtViewportTop() {
-        #expect(HomeScrollRetention.visibleSection(from: [
-            .showsTonight: -280,
-            .followedComedianShows: -12,
-            .thisWeek: 220,
-        ]) == .followedComedianShows)
-        #expect(HomeScrollRetention.restorableSection(
-            .clubs,
-            among: HomeContentSection.sections(for: nil)
-        ) == .clubs)
-        #expect(HomeScrollRetention.restorableSection(
-            .clubs,
-            among: HomeContentSection.sections(for: .shows)
-        ) == .showsTonight)
-    }
-
     @Test("expandable Discover rails expose See all and typed Search handoff")
     func expandableDiscoverRailsExposeSeeAllAndTypedSearchHandoff() throws {
         let source = try homeSourceText()
@@ -61,8 +44,6 @@ struct HomeContentSectionTests {
         #expect(source.contains(".discoverEntity(.podcasts)"))
         #expect(!source.contains("HomeDiscoveryIdeas("))
         #expect(!source.contains("Text(\"Explore by\")"))
-        #expect(source.contains("ScrollViewReader"))
-        #expect(source.contains("proxy.scrollTo(sectionID, anchor: .top)"))
     }
 
     @Test("home show hero omits footer actions")

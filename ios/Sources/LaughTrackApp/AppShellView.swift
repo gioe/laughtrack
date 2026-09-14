@@ -103,6 +103,7 @@ struct AppShellView: View {
     @ObservedObject var shellState: AppShellState
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
@@ -150,7 +151,7 @@ struct AppShellView: View {
         .toolbar(.hidden, for: .navigationBar)
         #endif
         .background(shellBackground.ignoresSafeArea())
-        .animation(.easeInOut(duration: 0.24), value: isAccountDrawerPresented)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.24), value: isAccountDrawerPresented)
     }
 
     @ViewBuilder
@@ -166,7 +167,8 @@ struct AppShellView: View {
                 HomeView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
-                    selectedPrimitive: shellState.selectedPrimitive,
+                    // Search pivots must not filter the retained, offscreen Discover tree.
+                    selectedPrimitive: nil,
                     searchNavigationBridge: searchNavigationBridge,
                     nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
                 )
@@ -445,37 +447,41 @@ struct AppShellView: View {
                         .foregroundStyle(tokens.colors.textSecondary)
                         .frame(width: 36, height: 36)
                         .background(Circle().fill(tokens.colors.surfaceMuted.opacity(0.78)))
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Close account drawer")
             }
 
-            if authManager.currentSession != nil {
-                VStack(spacing: theme.spacing.xs) {
-                    accountDrawerRow(
-                        title: "Notifications",
-                        systemImage: "bell",
-                        badgeCount: authManager.currentUser?.notificationsUnreadCount ?? 0,
-                        accessibilityIdentifier: LaughTrackViewTestID.accountNotificationsMenuItem
-                    ) {
-                        isAccountDrawerPresented = false
-                        coordinator.push(.notifications)
-                    }
+            // The header stays reachable while the account content grows at
+            // accessibility text sizes or in a compact-height window.
+            ScrollView {
+                if authManager.currentSession != nil {
+                    VStack(spacing: theme.spacing.xs) {
+                        accountDrawerRow(
+                            title: "Notifications",
+                            systemImage: "bell",
+                            badgeCount: authManager.currentUser?.notificationsUnreadCount ?? 0,
+                            accessibilityIdentifier: LaughTrackViewTestID.accountNotificationsMenuItem
+                        ) {
+                            isAccountDrawerPresented = false
+                            coordinator.push(.notifications)
+                        }
 
-                    accountDrawerRow(
-                        title: "Settings",
-                        systemImage: "gearshape",
-                        accessibilityIdentifier: LaughTrackViewTestID.accountSettingsMenuItem
-                    ) {
-                        isAccountDrawerPresented = false
-                        coordinator.push(AppRoute.accountHeaderTarget())
+                        accountDrawerRow(
+                            title: "Settings",
+                            systemImage: "gearshape",
+                            accessibilityIdentifier: LaughTrackViewTestID.accountSettingsMenuItem
+                        ) {
+                            isAccountDrawerPresented = false
+                            coordinator.push(AppRoute.accountHeaderTarget())
+                        }
                     }
+                } else {
+                    accountDrawerSignUpPrompt
                 }
-            } else {
-                accountDrawerSignUpPrompt
             }
-
-            Spacer(minLength: 0)
         }
         .padding(.top, safeAreaTop + theme.spacing.lg)
         .padding(.horizontal, theme.spacing.lg)

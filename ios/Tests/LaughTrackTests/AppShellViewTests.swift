@@ -60,6 +60,26 @@ struct AppShellViewTests {
         #expect(!source.contains("Home/Favorites (optional category filter)"))
     }
 
+    @Test("Search pivots do not change the retained Discover composition")
+    func searchPivotsDoNotChangeDiscoverComposition() throws {
+        let state = AppShellState()
+        state.selectTab(.search)
+        state.selectPrimitive(.podcasts)
+
+        let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
+        let start = try #require(source.range(of: "HomeView("))
+        let end = try #require(source.range(of: "SearchRootView(", range: start.upperBound..<source.endIndex))
+        let discover = source[start.lowerBound..<end.lowerBound]
+        #expect(discover.contains("selectedPrimitive: nil"))
+        #expect(!discover.contains("selectedPrimitive: shellState.selectedPrimitive"))
+
+        for tab in [AppTab.favorites, .nearMe, .search, .nearMe, .search] {
+            state.selectTab(tab)
+        }
+        #expect(state.resolvedSearchPrimitive == .podcasts)
+        #expect(state.selectedTab == .search)
+    }
+
     @Test("debug soft-push launch override presents the prompt sheet")
     func debugSoftPushLaunchOverridePresentsPromptSheet() async throws {
         let coordinator = LaughTrackHostedViewTestSupport.makeSoftPushPromptCoordinator(

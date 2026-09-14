@@ -30,68 +30,6 @@ enum HomeContentSection: String, Hashable {
     }
 }
 
-enum HomeScrollRetention {
-    static func visibleSection(
-        from offsets: [HomeContentSection: CGFloat],
-        threshold: CGFloat = 24
-    ) -> HomeContentSection? {
-        visibleValue(from: offsets, threshold: threshold)
-    }
-
-    static func visibleSection(
-        from offsets: [String: CGFloat],
-        threshold: CGFloat = 24
-    ) -> String? {
-        visibleValue(from: offsets, threshold: threshold)
-    }
-
-    private static func visibleValue<Section: Hashable>(
-        from offsets: [Section: CGFloat],
-        threshold: CGFloat
-    ) -> Section? {
-        let passed = offsets.filter { $0.value <= threshold }
-        if let nearestPassed = passed.max(by: { $0.value < $1.value }) {
-            return nearestPassed.key
-        }
-        return offsets.min(by: { $0.value < $1.value })?.key
-    }
-
-    static func restorableSection(
-        _ retainedSection: HomeContentSection?,
-        among sections: [HomeContentSection]
-    ) -> HomeContentSection? {
-        restorableValue(retainedSection, among: sections)
-    }
-
-    static func restorableSection(
-        _ retainedSection: String?,
-        among sections: [String]
-    ) -> String? {
-        restorableValue(retainedSection, among: sections)
-    }
-
-    private static func restorableValue<Section: Equatable>(
-        _ retainedSection: Section?,
-        among sections: [Section]
-    ) -> Section? {
-        guard let retainedSection, sections.contains(retainedSection) else {
-            return sections.first
-        }
-        return retainedSection
-    }
-}
-
-private struct HomeSectionOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: [String: CGFloat] = [:]
-
-    static func reduce(
-        value: inout [String: CGFloat],
-        nextValue: () -> [String: CGFloat]
-    ) {
-        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
-    }
-}
-
 enum HomeShowRailKind: Equatable {
     case showsTonight
     case thisWeek
@@ -175,8 +113,6 @@ struct HomeView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var railPlanModel = HomeDiscoverRailPlanModel()
-    @State private var retainedSectionID: String?
-    @State private var hasAppeared = false
 
     init(
         apiClient: Client,
@@ -195,41 +131,23 @@ struct HomeView: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
-                    HomeDiscoverHeader(
-                        nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                        nearbyPreferenceStore: nearbyPreferenceStore,
-                        profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
-                        currentUser: authManager.currentUser
-                    )
+        // Native ScrollView keeps the exact offset as this stable tab is covered
+        // and revealed. Re-scrolling to a section onAppear loses the position
+        // within that section, including during an interactive back cancellation.
+        ScrollView {
+            VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
+                HomeDiscoverHeader(
+                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                    nearbyPreferenceStore: nearbyPreferenceStore,
+                    profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
+                    currentUser: authManager.currentUser
+                )
 
-                    contentSections
-                }
-                .padding(.horizontal, theme.spacing.lg)
-                .padding(.top, theme.spacing.sm)
-                .padding(.bottom, laughTrack.browseDensity.heroPadding)
+                contentSections
             }
-            .coordinateSpace(name: "laughtrack.home.scroll")
-            .onPreferenceChange(HomeSectionOffsetPreferenceKey.self) { offsets in
-                if let visibleSection = HomeScrollRetention.visibleSection(from: offsets) {
-                    retainedSectionID = visibleSection
-                }
-            }
-            .onAppear {
-                defer { hasAppeared = true }
-                guard hasAppeared else { return }
-                guard let sectionID = HomeScrollRetention.restorableSection(
-                    retainedSectionID,
-                    among: visibleSectionIDs
-                ) else {
-                    return
-                }
-                DispatchQueue.main.async {
-                    proxy.scrollTo(sectionID, anchor: .top)
-                }
-            }
+            .padding(.horizontal, theme.spacing.lg)
+            .padding(.top, theme.spacing.sm)
+            .padding(.bottom, laughTrack.browseDensity.heroPadding)
         }
         .task(id: railPlanRequestKey) {
             guard selectedPrimitive == nil else { return }
@@ -298,16 +216,6 @@ struct HomeView: View {
     ) -> some View {
         content()
             .id(id)
-            .background {
-                GeometryReader { proxy in
-                    Color.clear.preference(
-                        key: HomeSectionOffsetPreferenceKey.self,
-                        value: [
-                            id: proxy.frame(in: .named("laughtrack.home.scroll")).minY,
-                        ]
-                    )
-                }
-            }
     }
 
     @ViewBuilder
@@ -394,13 +302,6 @@ struct HomeView: View {
             distanceMiles: nearbyPreference?.distanceMiles,
             sessionDiscriminator: sessionDiscriminator
         )
-    }
-
-    private var visibleSectionIDs: [String] {
-        if selectedPrimitive == nil, let sections = railPlanModel.sections {
-            return sections.map(\.id)
-        }
-        return HomeContentSection.sections(for: selectedPrimitive).map(\.rawValue)
     }
 }
 
