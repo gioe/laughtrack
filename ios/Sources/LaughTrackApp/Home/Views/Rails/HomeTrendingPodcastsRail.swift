@@ -151,7 +151,7 @@ struct HomeTrendingPodcastsRail: View {
         ) {
             switch model.phase {
             case .idle, .loading:
-                HomeTrendingPodcastsGridSkeleton(gridColumns: gridColumns)
+                HomePodcastEpisodesSkeleton()
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -344,43 +344,29 @@ struct PodcastEpisodeDiscoveryRow: View {
     }
 }
 
-private struct HomeTrendingPodcastsGridSkeleton: View {
+private struct HomePodcastEpisodesSkeleton: View {
     @Environment(\.appTheme) private var theme
 
-    let gridColumns: [GridItem]
-
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceSkeleton
-
-        LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
-            ForEach(0..<4, id: \.self) { _ in
-                VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(laughTrack.colors.heroStart)
-
-                        RoundedRectangle(cornerRadius: 7, style: .continuous)
-                            .fill(block)
-                            .frame(width: 86, height: 86)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 116)
-
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(block)
-                        .frame(height: 14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(theme.spacing.sm)
-                .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
-                .background(laughTrack.colors.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        VStack(spacing: theme.spacing.sm) {
+            ForEach(0..<3, id: \.self) { index in
+                PodcastEpisodeDiscoveryRow(
+                    item: .init(
+                        id: -index - 1,
+                        title: "A conversation with your favorite comedian",
+                        podcastName: "Podcast name",
+                        artworkURL: nil,
+                        releaseMetadata: "Recently released · 60 min",
+                        comedianName: "Comedian name",
+                        comedianRole: "Guest",
+                        playbackItem: nil
+                    ),
+                    onSelect: {},
+                    onPlay: {}
+                )
             }
         }
-        .detailSkeletonShimmer()
-        .accessibilityLabel("Loading trending podcasts")
-        .accessibilityAddTraits(.isImage)
+        .modifier(HomeRailLoadingPresentation(label: "Loading podcast episodes"))
     }
 }
 

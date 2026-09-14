@@ -21,6 +21,12 @@ final class LaunchReadinessUITests: XCTestCase {
 
         wait(for: [server.feedRequested], timeout: 10)
         attachScreenshot(app, named: "Returning guest — feed pending")
+        // Capture the lower loading rails too: their portrait, ticket, and
+        // episode layouts should use the same card geometry as loaded content.
+        for index in 1...4 {
+            app.swipeUp()
+            attachScreenshot(app, named: "Discover loading rails — scroll \(index)")
+        }
         assertSearchIsUsable(app)
         attachScreenshot(app, named: "Search — feed pending")
 

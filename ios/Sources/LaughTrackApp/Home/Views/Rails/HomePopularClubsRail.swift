@@ -101,37 +101,15 @@ private struct HomePopularClubsGridSkeleton: View {
     let gridColumns: [GridItem]
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceSkeleton
-
         LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
-            ForEach(0..<4, id: \.self) { _ in
-                VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(laughTrack.colors.heroStart)
-
-                        Circle()
-                            .fill(block)
-                            .frame(width: 86, height: 86)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 116)
-
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(block)
-                        .frame(height: 14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(theme.spacing.sm)
-                .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
-                .background(laughTrack.colors.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            ForEach(0..<4, id: \.self) { index in
+                HomePopularClubCard(club: .init(
+                    id: -index - 1, address: "", name: "Comedy club",
+                    imageUrl: "", activeComedianCount: 0
+                ))
             }
         }
-        .detailSkeletonShimmer()
-        .accessibilityLabel("Loading popular clubs")
-        .accessibilityAddTraits(.isImage)
+        .modifier(HomeRailLoadingPresentation(label: "Loading popular clubs"))
     }
 }
 

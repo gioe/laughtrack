@@ -39,7 +39,7 @@ struct HomeShowsTonightRail: View {
         ) {
             switch model.phase {
             case .idle, .loading:
-                ShowsListSkeleton(rowCount: 3)
+                HomeShowRailSkeleton(railKind: railKind)
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -658,6 +658,68 @@ enum HomeShowsTonightHeroPresentation {
         ShowRow.artworkComedian(
             for: show,
             preferredComedianID: preferredHeadlinerID
+        )
+    }
+}
+
+
+/// Uses the real card hierarchy so loading and loaded content share geometry,
+/// typography, and accessibility text sizing. Placeholder data never leaves UI.
+struct HomeShowRailSkeleton: View {
+    let railKind: HomeShowRailKind
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        Group {
+            if railKind == .showsTonight {
+                HomeFeaturedShowsCarousel(
+                    headline: "Tonight!",
+                    items: (0..<3).map { index in
+                        HomeFeaturedShowCarouselItem(
+                            show: HomeRailPlaceholder.show(id: -index - 1),
+                            preferredHeadlinerID: nil,
+                            accessibilityIdentifier: "",
+                            accessibilityLabel: nil
+                        )
+                    }
+                )
+            } else {
+                VStack(spacing: theme.spacing.sm) {
+                    ForEach(0..<3, id: \.self) { index in
+                        ShowRow(show: HomeRailPlaceholder.show(id: -index - 1), presentation: .compactTicket)
+                    }
+                }
+            }
+        }
+        .modifier(HomeRailLoadingPresentation(label: "Loading shows"))
+    }
+}
+
+struct HomeRailLoadingPresentation: ViewModifier {
+    let label: String
+
+    func body(content: Content) -> some View {
+        content
+            .redacted(reason: .placeholder)
+            .allowsHitTesting(false)
+            .disabled(true)
+            .detailSkeletonShimmer()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(label)
+    }
+}
+
+enum HomeRailPlaceholder {
+    static func show(id: Int) -> Components.Schemas.Show {
+        .init(
+            id: id,
+            clubId: -1,
+            clubName: "Comedy club",
+            date: Date(timeIntervalSince1970: 1_800_000_000),
+            tickets: [.init(price: 30, purchaseUrl: nil)],
+            name: "Comedian and friends",
+            lineup: [.init(name: "Comedian name", imageUrl: "", uuid: "loading", id: -1)],
+            imageUrl: ""
         )
     }
 }
