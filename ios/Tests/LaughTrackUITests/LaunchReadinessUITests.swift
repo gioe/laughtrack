@@ -25,7 +25,10 @@ final class LaunchReadinessUITests: XCTestCase {
         attachScreenshot(app, named: "Search — feed pending")
 
         XCUIDevice.shared.press(.home)
-        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
+        let isBackgrounded = NSPredicate { _, _ in
+            app.state == .runningBackground || app.state == .runningBackgroundSuspended
+        }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: isBackgrounded, object: nil)], timeout: 5), .completed)
         app.activate()
 
         XCTAssertTrue(app.tabBars.buttons["Search"].isSelected, "Resume must retain the selected tab")

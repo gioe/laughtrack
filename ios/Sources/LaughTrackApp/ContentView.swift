@@ -196,6 +196,8 @@ struct ContentView: View {
     #if canImport(UIKit)
     @StateObject private var navigationPlayerChrome = NavigationPlayerChrome()
     #endif
+    @State private var retainsLaunchCover = true
+    @State private var launchCoverOpacity = 1.0
     @Namespace private var authLogoNamespace
 
     var body: some View {
@@ -206,11 +208,13 @@ struct ContentView: View {
             hasResolvedFirstEntryChoice: firstEntryAuthChoiceStore.hasResolvedFirstEntryChoice
         )
 
-        Group {
+        ZStack {
             switch surface {
             case .loading:
-                AuthLoadingView(logoNamespace: authLogoNamespace)
-                    .transition(reduceMotion ? .identity : .opacity)
+                if !retainsLaunchCover {
+                    AuthLoadingView(logoNamespace: authLogoNamespace)
+                        .transition(reduceMotion ? .identity : .opacity)
+                }
             case .authChoiceGate(let message):
                 FirstEntryAuthChoiceView(
                     message: message,
@@ -245,10 +249,39 @@ struct ContentView: View {
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .tint(theme.colors.primary)
         .laughTrackKeyboardDismissToolbar()
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.42), value: surface)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.65), value: surface)
         .animation(nil, value: reduceMotion)
         .task {
             await authManager.restoreSessionIfNeeded()
+        }
+        .overlay {
+            if retainsLaunchCover {
+                AuthLoadingView(logoNamespace: authLogoNamespace)
+                    .compositingGroup()
+                    .opacity(launchCoverOpacity)
+                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.65), value: launchCoverOpacity)
+                    .allowsHitTesting(launchCoverOpacity > 0)
+                    .accessibilityHidden(launchCoverOpacity == 0)
+            }
+        }
+        .task(id: surface == .loading) {
+            guard retainsLaunchCover else { return }
+            guard surface != .loading else {
+                launchCoverOpacity = 1
+                return
+            }
+            do {
+                // Mount the destination beneath the cover before starting its
+                // reveal, including a session restored before the first frame.
+                try await Task.sleep(nanoseconds: 80_000_000)
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.65)) {
+                    launchCoverOpacity = 0
+                }
+                if !reduceMotion {
+                    try await Task.sleep(nanoseconds: 650_000_000)
+                }
+                retainsLaunchCover = false
+            } catch { /* A new loading state or root teardown cancels the reveal. */ }
         }
         .onAppear {
             #if DEBUG
