@@ -25,6 +25,8 @@ import {
 const NOW = new Date("2026-08-01T12:00:00.000Z");
 const UPCOMING = new Date("2026-08-10T20:00:00.000Z");
 const REQUEST = {
+    zipCode: "94103",
+    radiusMiles: 25,
     now: NOW,
     horizonDays: 90,
     nearbyZips: ["94103", "94107"],
@@ -201,6 +203,137 @@ describe("getTouringScarcityRails", () => {
                     ({ reason }) => reason.kind === "just_passing_through",
                 ),
             ).toBe(false);
+        }
+    });
+
+    it("rejects a New York home paired with an Austin home club even without appearance history", () => {
+        const selected = classifyTouringScarcityCandidates(
+            [
+                withoutRareReturn({
+                    homeCity: "New York",
+                    homeState: "NY",
+                    homeZipCode: "78701",
+                }),
+            ],
+            {
+                ...REQUEST,
+                zipCode: "10801",
+                radiusMiles: 50,
+                requestedMarket: {
+                    city: "New Rochelle",
+                    state: "NY",
+                    country: "US",
+                },
+            },
+        );
+        expect(selected.justPassingThrough).toEqual([]);
+    });
+
+    it("does not treat nearby home ZIPs omitted by the candidate cap as out of market", () => {
+        const selected = classifyTouringScarcityCandidates(
+            [
+                withoutRareReturn({
+                    homeCity: "New York",
+                    homeState: "NY",
+                    homeZipCode: "10001",
+                }),
+            ],
+            {
+                ...REQUEST,
+                zipCode: "10801",
+                radiusMiles: 50,
+                nearbyZips: ["10801"],
+                requestedMarket: {
+                    city: "New Rochelle",
+                    state: "NY",
+                    country: "US",
+                },
+            },
+        );
+        expect(selected.justPassingThrough).toEqual([]);
+    });
+
+    it.each([
+        { homeZipCode: "00000", homeCity: "Los Angeles", homeState: "CA" },
+        { homeZipCode: "90001", homeCity: "San Francisco", homeState: "CA" },
+        { homeZipCode: null, homeCity: "Unknown City", homeState: "CA" },
+    ])(
+        "requires verifiable, consistent home geography: $homeCity / $homeZipCode",
+        (home) => {
+            expect(
+                classifyTouringScarcityCandidates(
+                    [withoutRareReturn(home)],
+                    REQUEST,
+                ).justPassingThrough,
+            ).toEqual([]);
+        },
+    );
+
+    it("can verify an outside home city without a home club", () => {
+        const selected = classifyTouringScarcityCandidates(
+            [withoutRareReturn({ homeZipCode: null })],
+            REQUEST,
+        );
+        expect(selected.justPassingThrough[0]?.reason.kind).toBe(
+            "just_passing_through",
+        );
+    });
+
+    it.each([3, 47])(
+        "excludes %i previous local shows with a recent appearance even with an outside home",
+        (count) => {
+            const selected = classifyTouringScarcityCandidates(
+                [
+                    row({
+                        priorLocalAppearanceCount: count,
+                        lastLocalAppearanceAt: new Date(
+                            NOW.getTime() - 9 * 86400000,
+                        ),
+                    }),
+                ],
+                REQUEST,
+            );
+            expect(selected.justPassingThrough).toEqual([]);
+        },
+    );
+
+    it("uses positive frequent-appearance evidence even when market history coverage is incomplete", () => {
+        const selected = classifyTouringScarcityCandidates(
+            [
+                row({
+                    priorLocalAppearanceCount: 47,
+                    lastLocalAppearanceAt: new Date(
+                        NOW.getTime() - 9 * 86400000,
+                    ),
+                    historyCoverageStart: null,
+                    historyCoverageShowCount: 0,
+                }),
+            ],
+            REQUEST,
+        );
+        expect(selected.justPassingThrough).toEqual([]);
+    });
+
+    it("requires the full nine-month absence for previously frequent performers", () => {
+        for (const days of [269, 270]) {
+            const selected = classifyTouringScarcityCandidates(
+                [
+                    rareReturnOnly({
+                        priorLocalAppearanceCount: 47,
+                        lastLocalAppearanceAt: new Date(
+                            NOW.getTime() - days * 86400000,
+                        ),
+                    }),
+                ],
+                REQUEST,
+            );
+            expect(selected.justPassingThrough).toHaveLength(
+                days === 270 ? 1 : 0,
+            );
+            if (days === 270)
+                expect(selected.justPassingThrough[0].reason.kind).toBe(
+                    "back_after_a_while",
+                );
         }
     });
 
@@ -527,7 +660,7 @@ describe("getTouringScarcityRails", () => {
         expect(result.justPassingThrough.label).toBe("Here for a Limited Time");
     });
 
-    it("returns a headliner-diverse Here for a Limited Time rail ordered by show time", async () => {
+    it("returns distinct featured comedians ordered by show time", async () => {
         const dates = [
             new Date("2026-08-10T20:00:00.000Z"),
             new Date("2026-08-10T20:30:00.000Z"),
@@ -541,9 +674,9 @@ describe("getTouringScarcityRails", () => {
                     show_date: date,
                     run_start: date,
                     run_end: date,
-                    canonical_comedian_id: 10 + index,
-                    canonical_comedian_uuid: `canonical-${10 + index}`,
-                    canonical_comedian_name: `Canonical ${10 + index}`,
+                    canonical_comedian_id: index < 2 ? 10 : 10 + index,
+                    canonical_comedian_uuid: `canonical-${index < 2 ? 10 : 10 + index}`,
+                    canonical_comedian_name: `Canonical ${index < 2 ? 10 : 10 + index}`,
                 }),
             ) as never,
         );
@@ -574,6 +707,77 @@ describe("getTouringScarcityRails", () => {
         expect(
             result.justPassingThrough.items.map(({ show }) => show.id),
         ).toEqual([101, 103, 104]);
+    });
+
+    it.each([
+        {
+            name: "fills from beyond the first eight candidates without repeating visitors",
+            performers: [1, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9],
+            missingShows: [],
+            expectedShows: [101, 104, 106, 107, 108, 109, 110, 111],
+        },
+        {
+            name: "keeps thin inventory short rather than padding with repeat dates",
+            performers: [1, 1, 1, 2],
+            missingShows: [],
+            expectedShows: [101, 104],
+        },
+        {
+            name: "uses the next available show when the first cannot be hydrated",
+            performers: [1, 1, 2],
+            missingShows: [101],
+            expectedShows: [102, 103],
+        },
+    ])("$name", async ({ performers, missingShows, expectedShows }) => {
+        const dates = performers.map(
+            (_, i) => new Date(UPCOMING.getTime() + i * 3_600_000),
+        );
+        mockQueryRaw.mockResolvedValue(
+            performers.map((id, i) =>
+                rawRow({
+                    show_id: 101 + i,
+                    show_date: dates[i],
+                    canonical_comedian_id: id,
+                    canonical_comedian_uuid: `canonical-${id}`,
+                    canonical_comedian_name: `Visitor ${id}`,
+                }),
+            ) as never,
+        );
+        mockFindShowsForHome.mockResolvedValue(
+            performers
+                .map((id, i) => ({
+                    id: 101 + i,
+                    clubId: 5,
+                    date: dates[i],
+                    name: `Show ${i}`,
+                    imageUrl: "",
+                    // Every show has the same inferred headliner; the rail instead
+                    // features the canonical visitor supplied by its evidence.
+                    lineup: [
+                        {
+                            id: 999,
+                            uuid: "host",
+                            name: "Resident host",
+                            imageUrl: "",
+                        },
+                        {
+                            id,
+                            uuid: `canonical-${id}`,
+                            name: `Visitor ${id}`,
+                            imageUrl: "",
+                        },
+                    ],
+                }))
+                .filter(({ id }) => !missingShows.includes(id)),
+        );
+
+        const rail = (
+            await getTouringScarcityRails({ zipCode: "94103", now: NOW })
+        ).justPassingThrough;
+        expect(rail.items.map(({ show }) => show.id)).toEqual(expectedShows);
+        expect(
+            new Set(rail.items.map(({ performer }) => performer.id)).size,
+        ).toBe(rail.items.length);
     });
 
     it("returns empty providers for invalid ZIPs without querying", async () => {

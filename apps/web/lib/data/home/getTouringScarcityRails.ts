@@ -4,10 +4,7 @@ import { db } from "@/lib/db";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import { findShowsForHome } from "./findShowsForHome";
-import {
-    HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-    selectDiverseShowItemsByTime,
-} from "./showRailSelection";
+import { HOME_SHOW_RAIL_CANDIDATE_LIMIT } from "./showRailSelection";
 
 const DAY_MS = 24 * 60 * 60 * 1_000;
 const DEFAULT_HORIZON_DAYS = 90;
@@ -126,6 +123,8 @@ interface ClassifiedRails {
 }
 
 interface ClassifyOptions {
+    zipCode: string;
+    radiusMiles?: number;
     now: Date;
     horizonDays: number;
     nearbyZips: readonly string[];
@@ -209,7 +208,7 @@ function knownOutsideHomeMarket(
     row: TouringScarcityEvidenceRow,
     options: ClassifyOptions,
 ): TouringScarcityMarket | null {
-    const { requestedMarket, nearbyZips, now } = options;
+    const { requestedMarket, now } = options;
     if (
         !requestedMarket ||
         !row.homeCity?.trim() ||
@@ -221,11 +220,41 @@ function knownOutsideHomeMarket(
         return null;
     }
 
+    // A home club is not necessarily in the comedian's home city. Only use
+    // its ZIP when the postal geography corroborates the recorded home market.
     const homeZip = row.homeZipCode?.trim();
-    const isOutside = homeZip
-        ? !nearbyZips.includes(homeZip)
-        : normalized(row.homeState) !== normalized(requestedMarket.state);
-    if (!isOutside) return null;
+    const homeLocation = homeZip ? zipcodes.lookup(homeZip) : undefined;
+    if (
+        homeZip &&
+        (!homeLocation ||
+            normalized(homeLocation.city) !== normalized(row.homeCity) ||
+            normalized(homeLocation.state) !== normalized(row.homeState) ||
+            (row.homeCountry &&
+                normalized(homeLocation.country) !==
+                    normalized(row.homeCountry)))
+    )
+        return null;
+
+    const homeLocations = homeLocation
+        ? [homeLocation]
+        : zipcodes.lookupByName(row.homeCity.trim(), row.homeState.trim());
+    if (homeLocations.length === 0) return null;
+    if (
+        normalized(row.homeCity) === normalized(requestedMarket.city) &&
+        normalized(row.homeState) === normalized(requestedMarket.state)
+    )
+        return null;
+
+    // The show-query ZIP list is capped. Absence from that list is not proof
+    // of distance, especially around NYC and other dense metropolitan areas.
+    const radius = options.radiusMiles ?? 0;
+    if (
+        !homeLocations.every(({ zip }) => {
+            const distance = zipcodes.distance(options.zipCode, zip);
+            return distance !== null && distance > radius;
+        })
+    )
+        return null;
 
     return {
         city: row.homeCity.trim(),
@@ -305,6 +334,20 @@ export function classifyTouringScarcityCandidates(
         );
 
     for (const row of eligibleRows) {
+        // Positive appearance history overrides a sparse future calendar. The
+        // existing rare-return policy allows at most two prior local shows;
+        // more frequent performers need a genuine nine-month absence instead.
+        const priorCount = safeCount(row.priorLocalAppearanceCount);
+        const daysSinceLast = row.lastLocalAppearanceAt
+            ? (options.now.getTime() - row.lastLocalAppearanceAt.getTime()) /
+              DAY_MS
+            : null;
+        if (
+            priorCount > MAX_RARE_PRIOR_APPEARANCES &&
+            (daysSinceLast === null || daysSinceLast < BACK_AFTER_DAYS)
+        )
+            continue;
+
         const localCount = safeCount(row.localAppearanceCount);
         const runDays =
             (row.runEnd.getTime() - row.runStart.getTime()) / DAY_MS;
@@ -324,12 +367,11 @@ export function classifyTouringScarcityCandidates(
                     label: `Visiting from ${homeMarket.city}, ${homeMarket.state} for ${localCount} local ${localCount === 1 ? "date" : "dates"}`,
                     evidence: evidence(row, options, homeMarket),
                 }),
-                Math.min(options.limit, TOURING_SCARCITY_RAIL_LIMIT),
+                Math.min(options.limit, HOME_SHOW_RAIL_CANDIDATE_LIMIT),
             );
         }
 
         const historyCount = safeCount(row.historyCoverageShowCount);
-        const priorCount = safeCount(row.priorLocalAppearanceCount);
         const hasTrustworthyHistory =
             row.historyCoverageStart !== null &&
             options.now.getTime() - row.historyCoverageStart.getTime() >=
@@ -364,7 +406,7 @@ export function classifyTouringScarcityCandidates(
                         label,
                         evidence: evidence(row, options, null),
                     }),
-                    Math.min(options.limit, TOURING_SCARCITY_RAIL_LIMIT),
+                    Math.min(options.limit, HOME_SHOW_RAIL_CANDIDATE_LIMIT),
                 );
             }
         }
@@ -609,6 +651,8 @@ export async function getTouringScarcityRails(
     const classified = classifyTouringScarcityCandidates(
         rows.map(rowToEvidence),
         {
+            zipCode: options.zipCode,
+            radiusMiles: options.radiusMiles,
             now,
             horizonDays,
             nearbyZips,
@@ -634,10 +678,23 @@ export async function getTouringScarcityRails(
             return show ? [{ ...item, show }] : [];
         });
 
-    rails.justPassingThrough.items = selectDiverseShowItemsByTime(
-        hydrate(classified.justPassingThrough),
-        ({ show }) => show,
-        limit,
-    );
+    // The card features this canonical performer, which can differ from a
+    // show's inferred headliner. A short visit is one discovery opportunity;
+    // never pad the rail with their other showtimes when inventory is thin.
+    // Hydrate the larger candidate pool before deduplication so unavailable
+    // shows and repeated performers don't crowd out later distinct visitors.
+    const seenPerformerIds = new Set<number>();
+    rails.justPassingThrough.items = hydrate(classified.justPassingThrough)
+        .sort(
+            (a, b) =>
+                a.show.date.getTime() - b.show.date.getTime() ||
+                a.show.id - b.show.id,
+        )
+        .filter(({ performer }) => {
+            if (seenPerformerIds.has(performer.id)) return false;
+            seenPerformerIds.add(performer.id);
+            return true;
+        })
+        .slice(0, Math.min(limit, TOURING_SCARCITY_RAIL_LIMIT));
     return rails;
 }
