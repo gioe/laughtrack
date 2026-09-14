@@ -195,6 +195,40 @@ enum HomeDiscoverRailPlanPresentation {
 final class HomeDiscoverRailPlanModel: ObservableObject {
     @Published private(set) var sections: [HomeDiscoverRailSection]?
 
+    @Published private(set) var hasResolved = false
+    private var activeRequestID = UUID()
+    private var displayedRequestKey: String?
+    private let planCache: HomeDiscoverRailPlanCache
+
+    init(planCache: HomeDiscoverRailPlanCache = .shared) {
+        self.planCache = planCache
+    }
+
+    enum Presentation: Equatable {
+        case pending
+        case legacy
+        case planned([HomeDiscoverRailSection])
+
+        var transitionKey: Int {
+            switch self {
+            case .pending: return 0
+            case .legacy: return 1
+            case .planned: return 2
+            }
+        }
+    }
+
+    // Gate the view synchronously: a changed location/account must never render
+    // the previous context while SwiftUI schedules the new task.
+    func presentation(for key: String) -> Presentation {
+        if displayedRequestKey == key {
+            if let sections { return .planned(sections) }
+            return hasResolved ? .legacy : .pending
+        }
+        if let cached = planCache.sections(for: key) { return .planned(cached) }
+        return .pending
+    }
+
     private var loadedRequestKey: String?
     private var loadedAt: Date?
 
@@ -214,17 +248,28 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
         cache: DataCache<LaughTrackCacheKey>?,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
         persistentCache: PersistentMainPageCache?,
-        coalescer: HomeFeedRequestCoalescer = .shared
+        coalescer: HomeFeedRequestCoalescer = .shared,
+        forceRefresh: Bool = false
     ) async {
         let requestKey = requestKey(
             zipCode: zipCode,
             distanceMiles: distanceMiles,
             sessionDiscriminator: sessionDiscriminator
         )
-        if loadedRequestKey == requestKey,
+        if !forceRefresh, loadedRequestKey == requestKey,
            let loadedAt,
            Date().timeIntervalSince(loadedAt) < cacheTTL {
             return
+        }
+
+        let requestID = UUID()
+        activeRequestID = requestID
+        if displayedRequestKey != requestKey {
+            displayedRequestKey = requestKey
+            sections = planCache.sections(for: requestKey)
+            hasResolved = sections != nil
+            loadedAt = nil
+            loadedRequestKey = nil
         }
 
         let result = await HomeFeedRequest.load(
@@ -242,18 +287,50 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
             persistentCache: persistentCache,
             coalescer: coalescer
         )
-        guard !Task.isCancelled else { return }
+        guard !Task.isCancelled, activeRequestID == requestID else { return }
 
         switch result {
         case .success(let feed):
             sections = HomeDiscoverRailPlanPresentation.sections(from: feed)
             loadedRequestKey = requestKey
             loadedAt = Date()
+            hasResolved = true
+            planCache.store(sections, for: requestKey, ttl: cacheTTL)
         case .failure:
-            // A plan is an enhancement over the established home experience;
-            // transport failures keep the fixed sections instead of replacing
-            // the whole screen with a second error surface.
-            sections = nil
+            // Keep this context's last good layout on a transient failure.
+            // With no usable plan, the legacy rails provide their retry UI.
+            hasResolved = true
+        }
+    }
+}
+
+
+/// Full plans can include personalized rails. Keep them in memory only, keyed
+/// by the complete session/location context, separate from the public feed cache.
+@MainActor
+final class HomeDiscoverRailPlanCache {
+    static let shared = HomeDiscoverRailPlanCache()
+    private struct Entry {
+        let sections: [HomeDiscoverRailSection]
+        let expiresAt: Date
+    }
+    private var entries: [String: Entry] = [:]
+
+    func sections(for key: String) -> [HomeDiscoverRailSection]? {
+        guard let entry = entries[key], entry.expiresAt > Date() else { return nil }
+        return entry.sections
+    }
+
+    func store(_ sections: [HomeDiscoverRailSection]?, for key: String, ttl: TimeInterval) {
+        entries = entries.filter { $0.value.expiresAt > Date() }
+        guard let sections, ttl > 0 else {
+            entries.removeValue(forKey: key)
+            return
+        }
+        entries[key] = Entry(sections: sections, expiresAt: Date().addingTimeInterval(ttl))
+        if entries.count > 8,
+           let oldest = entries.min(by: { $0.value.expiresAt < $1.value.expiresAt })?.key {
+            entries.removeValue(forKey: oldest)
         }
     }
 }

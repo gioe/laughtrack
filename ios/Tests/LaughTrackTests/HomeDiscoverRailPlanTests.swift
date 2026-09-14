@@ -30,7 +30,7 @@ struct HomeDiscoverRailPlanTests {
             configuration: .laughTrack,
             transport: transport
         )
-        let model = HomeDiscoverRailPlanModel()
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
 
         await model.refresh(
             apiClient: client,
@@ -358,6 +358,137 @@ struct HomeDiscoverRailPlanTests {
         #expect(HomeDiscoverRailPlanPresentation.preferredFavoriteHeadlinerID(show: limitedShows[0]) == 81)
     }
 
+    @Test("uncached loading stays pending until the feed resolves")
+    func uncachedLoadingStaysPending() async {
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        let key = model.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: "account-a|session")
+        #expect(model.presentation(for: key) == .pending)
+        let gate = PlanResponseGate()
+        let pending = Task { await refresh(model, client: planClient(gate: gate)) }
+        await gate.waitUntilRequested()
+        #expect(model.presentation(for: key) == .pending)
+        await gate.release()
+        await pending.value
+        #expect(model.presentation(for: key) == .legacy)
+    }
+
+    @Test("cached server order survives model recreation and a failed refresh")
+    func cachedOrderSurvivesRecreationAndFailure() async throws {
+        let cache = HomeDiscoverRailPlanCache()
+        let original = HomeDiscoverRailPlanModel(planCache: cache)
+        await refresh(original, client: planClient(feed: orderedFeed()), cacheTTL: 60)
+        let previous = try #require(original.sections)
+        let key = original.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: "account-a|session")
+        let restored = HomeDiscoverRailPlanModel(planCache: cache)
+        #expect(restored.presentation(for: key) == .planned(previous))
+        let otherKeys = [
+            restored.requestKey(zipCode: "94103", distanceMiles: 25, sessionDiscriminator: "account-a|session"),
+            restored.requestKey(zipCode: "10012", distanceMiles: 50, sessionDiscriminator: "account-a|session"),
+            restored.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: "account-b|session"),
+            restored.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: "account-a|new-session"),
+            restored.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: nil),
+        ]
+        for otherKey in otherKeys {
+            #expect(restored.presentation(for: otherKey) == .pending)
+            // This also protects the render before SwiftUI starts refresh.
+            #expect(original.presentation(for: otherKey) == .pending)
+        }
+        let gate = PlanResponseGate()
+        let pending = Task { await refresh(restored, client: planClient(gate: gate)) }
+        await gate.waitUntilRequested()
+        #expect(restored.presentation(for: key) == .planned(previous))
+        await gate.release()
+        await pending.value
+        #expect(restored.presentation(for: key) == .planned(previous))
+    }
+
+    @Test("invalidated and nonpositive-lifetime plans are not reused")
+    func invalidatedPlansAreNotReused() throws {
+        let cache = HomeDiscoverRailPlanCache()
+        let model = HomeDiscoverRailPlanModel(planCache: cache)
+        let key = model.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: "account-a|session")
+        let sections = try #require(HomeDiscoverRailPlanPresentation.sections(from: orderedFeed()))
+        cache.store(sections, for: key, ttl: 60)
+        #expect(model.presentation(for: key) == .planned(sections))
+        cache.store(nil, for: key, ttl: 60)
+        #expect(model.presentation(for: key) == .pending)
+        for ttl in [0.0, -1.0] {
+            cache.store(sections, for: key, ttl: ttl)
+            #expect(model.presentation(for: key) == .pending)
+        }
+    }
+
+    @Test("empty plans replace prior content while unsupported plans use the legacy fallback")
+    func emptyAndUnsupportedPlansHaveDistinctOutcomes() async {
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        let key = model.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: "account-a|session")
+        await refresh(model, client: planClient(feed: orderedFeed()))
+        await refresh(model, client: planClient(feed: makeFeed(railPlan: makePlan(rails: []))))
+        #expect(model.presentation(for: key) == .planned([]))
+        await refresh(model, client: planClient(feed: makeFeed(railPlan: makePlan(version: 2, rails: []))))
+        #expect(model.presentation(for: key) == .legacy)
+    }
+
+    @Test("failed refresh retains the last valid server rail order")
+    func failedRefreshRetainsServerOrder() async throws {
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        await refresh(model, client: planClient(feed: orderedFeed()))
+        let previous = try #require(model.sections)
+        #expect(previous.map(\.id) == ["followed_comedian_shows", "shows_tonight"])
+
+        let gate = PlanResponseGate()
+        let pending = Task {
+            await refresh(model, client: planClient(gate: gate))
+        }
+        await gate.waitUntilRequested()
+        #expect(model.sections == previous)
+        await gate.release()
+        await pending.value
+        #expect(model.sections == previous)
+    }
+
+    @Test("changed location or session hides the previous personalized plan while pending", arguments: [false, true])
+    func changedScopeHidesPreviousPlan(changesSession: Bool) async throws {
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        await refresh(model, client: planClient(feed: orderedFeed()))
+        _ = try #require(model.sections)
+        let gate = PlanResponseGate()
+        let pending = Task {
+            await refresh(
+                model,
+                client: planClient(gate: gate),
+                zipCode: changesSession ? "10012" : "94103",
+                session: changesSession ? "account-b|new-session" : "account-a|session"
+            )
+        }
+        await gate.waitUntilRequested()
+        #expect(model.sections == nil)
+        await gate.release()
+        await pending.value
+        #expect(model.sections == nil)
+    }
+
+    @Test("a late response cannot restore a previous location or session plan", arguments: [false, true])
+    func lateResponseCannotRestorePreviousScope(changesSession: Bool) async throws {
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        let gate = PlanResponseGate()
+        let previousRequest = Task {
+            await refresh(model, client: planClient(feed: orderedFeed(), gate: gate))
+        }
+        await gate.waitUntilRequested()
+        let emptyFeed = makeFeed(railPlan: makePlan(rails: []))
+        await refresh(
+            model,
+            client: planClient(feed: emptyFeed),
+            zipCode: changesSession ? "10012" : "94103",
+            session: changesSession ? "account-b|new-session" : "account-a|session"
+        )
+        #expect(model.sections == [])
+        await gate.release()
+        await previousRequest.value
+        #expect(model.sections == [])
+    }
+
     @Test("location changes refresh plans and planned show rails preserve See all handoff")
     func locationChangesRefreshPlansAndShowRailsPreserveSeeAllHandoff() throws {
         let testFileURL = URL(fileURLWithPath: #filePath)
@@ -489,4 +620,76 @@ private func queryValue(_ name: String, from path: String?) -> String? {
     guard let path,
           let components = URLComponents(string: "https://example.com\(path)") else { return nil }
     return components.queryItems?.first(where: { $0.name == name })?.value
+}
+
+// A suspended transport makes pending-state assertions deterministic, without
+// sleeps or relying on cancellation from SwiftUI's task modifier.
+private actor PlanResponseGate {
+    private var requested = false
+    private var requestWaiter: CheckedContinuation<Void, Never>?
+    private var responseWaiter: CheckedContinuation<Void, Never>?
+
+    func suspendResponse() async {
+        requested = true
+        requestWaiter?.resume()
+        requestWaiter = nil
+        await withCheckedContinuation { responseWaiter = $0 }
+    }
+
+    func waitUntilRequested() async {
+        guard !requested else { return }
+        await withCheckedContinuation { requestWaiter = $0 }
+    }
+
+    func release() {
+        responseWaiter?.resume()
+        responseWaiter = nil
+    }
+}
+
+private func orderedFeed() -> Components.Schemas.HomeFeed {
+    makeFeed(
+        showsTonight: [makeShow(1)],
+        followedComedianShows: [makeShow(2)],
+        railPlan: makePlan(rails: [
+            .init(railKey: "shows_tonight", payloadKey: "showsTonight", position: 2, itemIds: ["1"]),
+            .init(railKey: "followed_comedian_shows", payloadKey: "followedComedianShows", position: 1, itemIds: ["2"]),
+        ])
+    )
+}
+
+private func planClient(
+    feed: Components.Schemas.HomeFeed? = nil,
+    gate: PlanResponseGate? = nil
+) -> Client {
+    let transport = StubClientTransport { _, _, _, _ in
+        await gate?.suspendResponse()
+        guard let feed else { throw URLError(.notConnectedToInternet) }
+        let data = try APIMockEncoder.make().encode(Components.Schemas.HomeFeedResponse(data: feed))
+        return (
+            HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
+            HTTPBody(data)
+        )
+    }
+    return Client(serverURL: URL(string: "https://example.com")!, configuration: .laughTrack, transport: transport)
+}
+
+@MainActor
+private func refresh(
+    _ model: HomeDiscoverRailPlanModel,
+    client: Client,
+    zipCode: String = "10012",
+    session: String? = "account-a|session",
+    cacheTTL: TimeInterval = 0
+) async {
+    await model.refresh(
+        apiClient: client,
+        zipCode: zipCode,
+        distanceMiles: 25,
+        sessionDiscriminator: session,
+        cache: nil,
+        cacheTTL: cacheTTL,
+        persistentCache: nil,
+        coalescer: HomeFeedRequestCoalescer()
+    )
 }

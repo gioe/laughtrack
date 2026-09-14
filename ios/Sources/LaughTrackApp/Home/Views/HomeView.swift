@@ -112,6 +112,7 @@ struct HomeView: View {
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var railPlanModel = HomeDiscoverRailPlanModel()
 
     init(
@@ -151,14 +152,11 @@ struct HomeView: View {
         }
         .task(id: railPlanRequestKey) {
             guard selectedPrimitive == nil else { return }
-            await railPlanModel.refresh(
-                apiClient: apiClient,
-                zipCode: nearbyPreference?.zipCode,
-                distanceMiles: nearbyPreference?.distanceMiles,
-                sessionDiscriminator: sessionDiscriminator,
-                cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
-                persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
-            )
+            await refreshPlan()
+        }
+        .refreshable {
+            guard selectedPrimitive == nil else { return }
+            await refreshPlan(force: true)
         }
         .rootScrollBottomClearance(
             theme: theme,
@@ -189,23 +187,65 @@ struct HomeView: View {
         #endif
     }
 
-    @ViewBuilder
+    private func refreshPlan(force: Bool = false) async {
+        await railPlanModel.refresh(
+            apiClient: apiClient,
+            zipCode: nearbyPreference?.zipCode,
+            distanceMiles: nearbyPreference?.distanceMiles,
+            sessionDiscriminator: sessionDiscriminator,
+            cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
+            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self),
+            forceRefresh: force
+        )
+    }
+
     private var contentSections: some View {
-        if selectedPrimitive == nil, let plannedSections = railPlanModel.sections {
-            ForEach(plannedSections) { section in
-                anchoredSection(id: section.id) {
-                    HomeDiscoverPlannedRail(
-                        section: section,
-                        searchNavigationBridge: searchNavigationBridge,
-                        nearbyPreference: nearbyPreference
-                    )
+        let presentation = railPlanModel.presentation(for: railPlanRequestKey)
+        return Group {
+            if selectedPrimitive != nil {
+                legacySections
+            } else {
+                switch presentation {
+                case .pending:
+                    VStack(spacing: theme.spacing.md) {
+                        ProgressView()
+                        Text("Finding your next laugh…")
+                            .font(theme.laughTrackTokens.typography.metadata)
+                            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 240)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("laughtrack.home.plan-loading")
+                    .transition(.opacity)
+                case .planned(let sections):
+                    if sections.isEmpty {
+                        EmptyCard(
+                            title: "No discoveries nearby yet",
+                            message: "Try a different location or explore Search for more comedy."
+                        )
+                    } else {
+                        ForEach(sections) { section in
+                            anchoredSection(id: section.id) {
+                                HomeDiscoverPlannedRail(
+                                    section: section,
+                                    searchNavigationBridge: searchNavigationBridge,
+                                    nearbyPreference: nearbyPreference
+                                )
+                            }
+                        }
+                    }
+                case .legacy:
+                    legacySections
                 }
             }
-        } else {
-            ForEach(HomeContentSection.sections(for: selectedPrimitive), id: \.self) { section in
-                anchoredSection(id: section.rawValue) {
-                    sectionContent(section)
-                }
+        }
+        .animation(reduceMotion || presentation == .pending ? nil : .easeInOut(duration: 0.25), value: presentation.transitionKey)
+    }
+
+    private var legacySections: some View {
+        ForEach(HomeContentSection.sections(for: selectedPrimitive), id: \.self) { section in
+            anchoredSection(id: section.rawValue) {
+                sectionContent(section)
             }
         }
     }
