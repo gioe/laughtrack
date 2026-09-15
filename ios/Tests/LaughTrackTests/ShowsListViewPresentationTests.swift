@@ -8,6 +8,52 @@ import LaughTrackCore
 import LaughTrackAPIClient
 @testable import LaughTrackApp
 
+#if canImport(UIKit)
+@Suite("Search query visual capture", .serialized)
+@MainActor
+struct SearchQueryVisualCaptureTests {
+    @Test("capture live category inputs at standard and accessibility sizes")
+    func captureCategories() async throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            for pivot in SearchRootModel.Pivot.allCases {
+                let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "query-capture")
+                let store = container.resolve(NearbyPreferenceStore.self)
+                store.setManualZip("10012", distanceMiles: 25)
+                let host = HostedView(
+                    SearchRootView(
+                        apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                        favorites: ComedianFavoriteStore(),
+                        coordinator: TypedNavigationCoordinator<AppRoute>(),
+                        searchNavigationBridge: SearchNavigationBridge(),
+                        nearbyLocationController: container.resolve(NearbyLocationController.self),
+                        nearbyPreferenceStore: store,
+                        isActive: false,
+                        selectedPrimitive: .constant(pivot)
+                    )
+                    .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                    .environment(\.appTheme, LaughTrackTheme())
+                    .environment(\.dynamicTypeSize, size)
+                    .environment(\.serviceContainer, container)
+                    .environmentObject(ClubFavoriteStore())
+                    .environmentObject(PodcastFavoriteStore())
+                    .environmentObject(PodcastPlaybackController())
+                    .preferredColorScheme(.dark), freshWindow: true
+                )
+                await host.settle(iterations: 3)
+                let data = try #require(try host.snapshot().pngData())
+                let textSize = size.isAccessibilitySize ? "AX5" : "standard"
+                let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4002-\(pivot.rawValue)-\(textSize).png")
+                try data.write(to: path)
+                print("Search query capture: \(path.path)")
+                #if compiler(>=6.2)
+                Attachment.record(Array(data), named: path.lastPathComponent)
+                #endif
+            }
+        }
+    }
+}
+#endif
+
 @Suite("Shows list view presentation")
 struct ShowsListViewPresentationTests {
     @Test("compact pinned lists label date search without an eyebrow")

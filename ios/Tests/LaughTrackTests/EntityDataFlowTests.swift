@@ -1214,7 +1214,7 @@ struct SearchRefreshContinuityTests {
         #expect(model.resultsState(for: "original").isConfirmed)
     }
 
-    @Test("category switching preserves each model while changed shared queries remain unconfirmed")
+    @Test("category switching restores each draft while changed queries remain unconfirmed")
     func categorySwitchingPreservesModelsAndQueryHonesty() async {
         let root = SearchRootModel()
         let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "category-refresh")
@@ -1250,6 +1250,11 @@ struct SearchRefreshContinuityTests {
         #expect(clubs.searchText == "Ray")
         #expect(podcasts.searchText == "Comedy")
         root.activePivot = .podcasts
+        applyQuery()
+        #expect(root.query == "Comedy")
+        #expect(podcasts.searchText == "Comedy")
+        #expect(podcasts.resultsState(for: podcasts.requestKey).isConfirmed)
+        root.query = "Ray"
         applyQuery()
         #expect(podcasts.searchText == "Ray")
         #expect(podcasts.currentItems == [first, second])

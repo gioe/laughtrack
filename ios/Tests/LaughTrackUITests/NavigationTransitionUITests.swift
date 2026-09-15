@@ -7,6 +7,60 @@ import UIKit
 /// are seeded. Run these cases at native default/large text and Reduce Motion.
 @MainActor
 final class NavigationTransitionUITests: XCTestCase {
+    func testSearchQueriesSurviveCategorySwitchesAndDetailReturn() throws {
+        let app = try launchApp()
+        defer { app.terminate() }
+        app.tabBars.buttons["Search"].tap()
+        let field = app.textFields["laughtrack.search.field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("Taylor")
+        app.buttons["laughtrack.search.shows.club"].tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+        XCTAssertEqual(field.value as? String, "Club name")
+        field.tap()
+        field.typeText("Cellar")
+        app.buttons["laughtrack.search.shows.comedian"].tap()
+        XCTAssertEqual(field.value as? String, "Taylor")
+
+        app.buttons["laughtrack.primitive-filter.comedians"].tap()
+        XCTAssertEqual(field.value as? String, "Comedian name")
+        field.tap()
+        field.typeText("Taylor")
+        app.keyboards.buttons["Search"].tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+        let result = element("laughtrack.comedians-search.result-301", in: app)
+        XCTAssertTrue(result.waitForExistence(timeout: 10))
+        result.tap()
+        XCTAssertTrue(element("laughtrack.comedian-detail.screen", in: app).waitForExistence(timeout: 10))
+        edgeDrag(in: app, to: 0.88)
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertEqual(field.value as? String, "Taylor")
+        XCTAssertFalse(app.keyboards.firstMatch.exists)
+
+        app.buttons["laughtrack.primitive-filter.clubs"].tap()
+        XCTAssertEqual(field.value as? String, "Club name")
+        field.tap()
+        field.typeText("Stand")
+        app.buttons["laughtrack.primitive-filter.podcasts"].tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+        XCTAssertEqual(field.value as? String, "Podcast title")
+        field.tap()
+        field.typeText("Comedy")
+        app.buttons["laughtrack.search.field.clear"].tap()
+        XCTAssertEqual(field.value as? String, "Podcast title")
+        XCTAssertTrue(app.keyboards.firstMatch.exists, "Clearing keeps the input ready to type")
+        app.buttons["laughtrack.primitive-filter.clubs"].tap()
+        XCTAssertEqual(field.value as? String, "Stand")
+        app.buttons["laughtrack.primitive-filter.comedians"].tap()
+        XCTAssertEqual(field.value as? String, "Taylor")
+        app.buttons["laughtrack.primitive-filter.shows"].tap()
+        XCTAssertEqual(field.value as? String, "Taylor")
+        app.buttons["laughtrack.search.shows.club"].tap()
+        XCTAssertEqual(field.value as? String, "Cellar")
+        attach(app, "Search — separate queries retained")
+    }
+
     func testTabsAndInteractiveBackRetainExactDiscoverPosition() throws {
         let app = try launchApp(seedPlayer: true)
         defer { app.terminate() }

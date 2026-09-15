@@ -12,16 +12,17 @@ import LaughTrackCore
 @Suite("Search root")
 @MainActor
 struct SearchRootViewTests {
-    @Test("shows pivot omits the global text field and mounts explicit show constraints")
-    func showsPivotOmitsGlobalTextField() throws {
+    @Test("search root keeps category entry visible and avoids duplicate Shows inputs")
+    func searchRootKeepsCategoryEntryVisible() throws {
         let source = try String(contentsOf: searchRootViewSourceURL(), encoding: .utf8)
 
-        #expect(source.contains("if model.activePivot != .shows"))
+        #expect(source.contains("SearchQueryEntry("))
         let showsStart = try #require(source.range(of: "case .shows:\n            ShowsListView("))
         let comediansStart = try #require(source[showsStart.upperBound...].range(of: "case .comedians:"))
         let showsBlock = source[showsStart.lowerBound..<comediansStart.lowerBound]
         #expect(!showsBlock.contains("unifiedSearchText"))
         #expect(!showsBlock.contains("unifiedSearchPrompt"))
+        #expect(showsBlock.contains("displaysSearchFields: false"))
         #expect(source.contains("showsModel.applySearchSeed(request.seed.showSearch ?? ShowSearchSeed())"))
     }
 
@@ -51,15 +52,15 @@ struct SearchRootViewTests {
         #expect(model.query == "")
         #expect(model.selectedShortcut == "Near Me")
         #expect(SearchRootModel.Pivot.allCases == [.shows, .comedians, .clubs, .podcasts])
-        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Filter shows")
-        #expect(SearchRootModel.Pivot.podcasts.queryPrompt == "Search podcast titles")
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Comedian or club")
+        #expect(SearchRootModel.Pivot.podcasts.queryPrompt == "Podcast title")
         #expect(ShowDistanceOption.allCases.map(\.title) == ["10 mi", "25 mi", "50 mi", "100 mi"])
         #expect(ShowSortOption.allCases.map(\.title) == ["Earliest", "Latest", "Low price", "High price"])
         #expect(!ShowSortOption.allCases.map(\.rawValue).contains("popularity_desc"))
         #expect(!showsModel.dateRange.isActive)
 
-        model.query = "Comedy Cellar"
         model.activePivot = .podcasts
+        model.query = "Comedy Cellar"
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
@@ -468,7 +469,7 @@ struct SearchRootModelTests {
 
     @Test("search model exposes compact prompt copy")
     func searchModelExposesCompactPromptCopy() async throws {
-        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Filter shows")
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Comedian or club")
         #expect(SearchRootModel.Pivot.shows.queryHelpText == "Browse by date, place, price, format, comedian, or club.")
     }
 
@@ -686,8 +687,8 @@ struct SearchRootModelTests {
         let comediansModel = ComediansDiscoveryModel()
         let podcastsModel = PodcastSearchModel(fetcher: RecordingPodcastSearchFetcher())
 
-        model.query = "Comedy Cellar"
         model.activePivot = .clubs
+        model.query = "Comedy Cellar"
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
@@ -699,8 +700,8 @@ struct SearchRootModelTests {
         #expect(comediansModel.searchText == "")
         #expect(showsModel.comedianSearchText == "")
 
-        model.query = "Atsuko"
         model.activePivot = .comedians
+        model.query = "Atsuko"
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
@@ -712,8 +713,8 @@ struct SearchRootModelTests {
         #expect(podcastsModel.searchText == "")
         #expect(showsModel.comedianSearchText == "")
 
-        model.query = "Mark Normand"
         model.activePivot = .shows
+        model.query = "Mark Normand"
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
@@ -723,8 +724,8 @@ struct SearchRootModelTests {
         #expect(showsModel.comedianSearchText == "")
         #expect(showsModel.clubSearchText == "")
 
-        model.query = "WTF"
         model.activePivot = .podcasts
+        model.query = "WTF"
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
@@ -880,6 +881,146 @@ struct SearchRootModelTests {
                 resolver: resolver,
                 zipLocationResolver: StubZipLocationResolver()
             )
+        )
+    }
+}
+
+@Suite("Search query continuity")
+@MainActor
+struct SearchQueryContinuityTests {
+    @Test("editing and clearing a category preserves the other drafts")
+    func editsAndClearAreCategoryLocal() {
+        let root = SearchRootModel()
+        let drafts: [(SearchRootModel.Pivot, String)] = [
+            (.comedians, "  Ray DeVito  "), (.clubs, "Comedy Cellar"), (.podcasts, "WTF")
+        ]
+        for (pivot, text) in drafts {
+            root.activePivot = pivot
+            #expect(root.query.isEmpty)
+            root.query = text
+        }
+        for (pivot, text) in drafts {
+            root.activePivot = pivot
+            #expect(root.query == text)
+        }
+        root.activePivot = .clubs
+        root.query = ""
+        #expect(root.query.isEmpty)
+        root.activePivot = .comedians
+        #expect(root.query == "  Ray DeVito  ")
+        root.activePivot = .podcasts
+        #expect(root.query == "WTF")
+        root.activePivot = .clubs
+        #expect(root.query.isEmpty)
+    }
+
+    @Test("applying a draft changes only the active category text")
+    func applyingQueryPreservesOtherModelsAndFilters() {
+        let root = SearchRootModel()
+        let shows = makeShowsModel()
+        let comedians = ComediansDiscoveryModel()
+        let clubs = makeSearchClubsDiscoveryModel()
+        let podcasts = PodcastSearchModel(fetcher: RecordingPodcastSearchFetcher())
+        comedians.selectedFilterSlugs = ["improv"]
+        shows.comedianSearchText = "Atsuko"
+        shows.clubSearchText = "The Stand"
+        shows.maximumPrice = .forty
+        root.activePivot = .comedians
+        root.query = "  Ray DeVito  "
+        root.applyQuery(showsModel: shows, comediansModel: comedians, clubsModel: clubs, podcastsModel: podcasts)
+        #expect(comedians.requestKey.text == "Ray DeVito")
+        #expect(comedians.selectedFilterSlugs == ["improv"])
+        root.query = ""
+        root.applyQuery(showsModel: shows, comediansModel: comedians, clubsModel: clubs, podcastsModel: podcasts)
+        #expect(comedians.searchText.isEmpty)
+        #expect(comedians.selectedFilterSlugs == ["improv"])
+        #expect(clubs.searchText.isEmpty)
+        #expect(podcasts.searchText.isEmpty)
+        #expect(shows.comedianSearchText == "Atsuko")
+        #expect(shows.clubSearchText == "The Stand")
+        #expect(shows.maximumPrice == .forty)
+    }
+
+    @Test("Discover seeds reset only their destination category draft")
+    func discoverSeedsAreDestinationLocal() {
+        let root = SearchRootModel()
+        root.activePivot = .comedians
+        root.query = "Ray"
+        root.activePivot = .clubs
+        root.query = "Cellar"
+        root.activePivot = .podcasts
+        root.query = "WTF"
+        root.applySeed(.discoverEntity(.clubs))
+        #expect(root.activePivot == .clubs)
+        #expect(root.query.isEmpty)
+        root.activePivot = .comedians
+        #expect(root.query == "Ray")
+        root.activePivot = .podcasts
+        #expect(root.query == "WTF")
+        root.applySeed(.init(pivot: .comedians, query: "Atsuko", shortcut: nil))
+        #expect(root.query == "Atsuko")
+        root.activePivot = .podcasts
+        #expect(root.query == "WTF")
+    }
+
+    @Test("Shows seeds and explicit entity drafts stay separate from other categories")
+    func showsSeedsPreserveEntityCategoryDrafts() {
+        let root = SearchRootModel()
+        let shows = makeShowsModel()
+        root.activePivot = .comedians
+        root.query = "Ray"
+        let seed = SearchRootModel.Seed(
+            pivot: .shows,
+            query: "ignored generic query",
+            shortcut: nil,
+            showSearch: ShowSearchSeed(comedian: "Atsuko", club: "The Stand", maximumPrice: .forty)
+        )
+        root.applySeed(seed)
+        shows.applySearchSeed(seed.showSearch)
+        #expect(root.query.isEmpty)
+        #expect(shows.comedianSearchText == "Atsuko")
+        #expect(shows.clubSearchText == "The Stand")
+        #expect(shows.maximumPrice == .forty)
+        root.activePivot = .clubs
+        root.query = "Cellar"
+        root.activePivot = .shows
+        #expect(shows.comedianSearchText == "Atsuko")
+        #expect(shows.clubSearchText == "The Stand")
+        root.activePivot = .comedians
+        #expect(root.query == "Ray")
+    }
+
+    @Test("removing either Shows entity keeps the other entity and advanced constraints")
+    func showEntityRemovalIsIndependent() {
+        let shows = makeShowsModel()
+        shows.comedianSearchText = "Atsuko"
+        shows.clubSearchText = "The Stand"
+        shows.maximumPrice = .forty
+        shows.selectedFilterSlugs = ["improv"]
+        shows.distance = .regional
+        let initialDateRange = shows.dateRange
+        #expect(shows.activeConstraints(availableFilters: []).contains { $0.kind == .comedian && $0.label == "Comedian: Atsuko" })
+        #expect(shows.activeConstraints(availableFilters: []).contains { $0.kind == .club && $0.label == "Club: The Stand" })
+        shows.removeConstraint(.comedian)
+        #expect(shows.comedianSearchText.isEmpty)
+        #expect(shows.clubSearchText == "The Stand")
+        #expect(!shows.activeConstraints(availableFilters: []).contains { $0.kind == .comedian })
+        shows.comedianSearchText = "Ray"
+        shows.removeConstraint(.club)
+        #expect(shows.clubSearchText.isEmpty)
+        #expect(shows.comedianSearchText == "Ray")
+        #expect(!shows.activeConstraints(availableFilters: []).contains { $0.kind == .club })
+        #expect(shows.maximumPrice == .forty)
+        #expect(shows.selectedFilterSlugs == ["improv"])
+        #expect(shows.distance == .regional)
+        #expect(shows.dateRange == initialDateRange)
+    }
+
+    private func makeShowsModel() -> ShowsListModel {
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "query-continuity")
+        return ShowsListModel(
+            nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
+            initialUseDateRange: false
         )
     }
 }
