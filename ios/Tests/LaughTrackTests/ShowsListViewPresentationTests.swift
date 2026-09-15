@@ -352,7 +352,9 @@ struct SearchAgendaTimezoneTests {
             let image = try host.snapshot()
             let data = try #require(image.pngData())
             let name = "task4006-destination-agenda-\(position).png"
+            #if compiler(>=6.2)
             Attachment.record(Array(data), named: name)
+            #endif
             let artifact = FileManager.default.temporaryDirectory.appendingPathComponent(name)
             try data.write(to: artifact)
             print("Timezone agenda capture: \(artifact.path)")
@@ -522,7 +524,9 @@ struct SearchRefreshPresentationTests {
         let suffix = reduceMotion ? "-reduce-motion" : ""
         let filename = "task4007-\(name)\(suffix).png"
         print("Search refresh system Reduce Motion: \(reduceMotion)")
+        #if compiler(>=6.2)
         Attachment.record(Array(data), named: filename)
+        #endif
         let path = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
         try data.write(to: path)
         print("Search refresh capture: \(path.path)")

@@ -668,7 +668,9 @@ struct HomeDiscoverRailStatePresentationTests {
     private func capture(_ host: HostedView, named name: String) throws {
         let image = try host.snapshot()
         let png = try #require(image.pngData())
+        #if compiler(>=6.2)
         Attachment.record(Array(png), named: name)
+        #endif
     }
 }
 #endif
