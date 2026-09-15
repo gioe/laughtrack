@@ -120,6 +120,78 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         )
     }
 
+    func testDiscoverHeaderActionsRemainAccessibleAndNavigate() {
+        verifyDiscoverHeaderActions(capturePrefix: "DiscoverHeaders")
+    }
+
+    func testDiscoverHeaderActionsAtLargestDynamicType() {
+        app.launchArguments += [
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityXXXL",
+        ]
+        relaunch()
+        verifyDiscoverHeaderActions(capturePrefix: "DiscoverHeadersAXXXL")
+    }
+
+    private func verifyDiscoverHeaderActions(capturePrefix: String) {
+        let sections: [(id: String, title: String, result: String)] = [
+            ("shows-tonight", "Tonight!", "shows"),
+            ("this-week", "Best shows this week", "shows"),
+            ("trending-comedians", "Popular local comedians", "comedians"),
+            ("popular-clubs", "Popular local clubs", "clubs"),
+        ]
+        let home = app.scrollViews["laughtrack.home.screen"].firstMatch
+        XCTAssertTrue(home.waitForExistence(timeout: 15))
+
+        for section in sections {
+            let expectedLabel = "See all, \(section.title)"
+            let action = app.buttons[expectedLabel].firstMatch
+            guard scrollElementIntoView(action, in: home, maxDrags: 12) else {
+                XCTFail("Expected accessible header action for \(section.id)")
+                return
+            }
+            // A partially exposed button can be hittable beneath the tab bar;
+            // bring it fully into the viewport before measuring and capturing.
+            for _ in 0..<3 where action.frame.maxY > app.frame.height * 0.72 {
+                home.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+                    .press(forDuration: 0.05, thenDragTo: home.coordinate(
+                        withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)
+                    ))
+            }
+            let tabBar = app.tabBars.firstMatch
+            let visibleBottom = tabBar.exists ? tabBar.frame.minY : home.frame.maxY
+            XCTAssertLessThanOrEqual(action.frame.maxY, visibleBottom)
+            XCTAssertEqual(action.label, expectedLabel)
+            XCTAssertGreaterThanOrEqual(action.frame.width, 44 - 0.01)
+            XCTAssertGreaterThanOrEqual(action.frame.height, 44 - 0.01)
+            let heading = app.staticTexts["laughtrack.home.\(section.id)-rail"].firstMatch
+            XCTAssertTrue(heading.exists)
+            XCTAssertFalse(heading.frame.intersects(action.frame), "Heading and action must not overlap")
+            XCTAssertLessThan(action.frame.width, home.frame.width, "The action must remain compact")
+            // The action belongs alongside or directly below the heading,
+            // including the stacked layout at accessibility text sizes.
+            XCTAssertLessThanOrEqual(action.frame.minY, heading.frame.maxY + 12)
+            XCTAssertGreaterThanOrEqual(action.frame.maxY, heading.frame.minY)
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = "\(capturePrefix)-\(section.id)"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+
+            action.tap()
+            assertFirstResult(
+                identifierPrefix: "laughtrack.\(section.result)-search.result-",
+                description: section.result
+            )
+            app.buttons["Discover"].firstMatch.tap()
+            XCTAssertTrue(home.waitForExistence(timeout: 10))
+        }
+        // This fixture supplies episode recommendations, so its podcast rail
+        // intentionally has no collection action (unlike the catalog fallback).
+        let episodes = app.staticTexts["laughtrack.home.trending-podcasts-rail"].firstMatch
+        XCTAssertTrue(scrollElementIntoView(episodes, in: home, maxDrags: 12))
+        XCTAssertFalse(app.buttons["Browse podcasts, Episodes for you"].exists)
+    }
+
     private func generateScreenshots() throws {
         try runScenario("01_NearMe") {
             try capture(
