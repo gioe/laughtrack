@@ -65,12 +65,16 @@ struct SearchFilterModal: View {
                 Group {
                     VStack(alignment: .leading, spacing: theme.spacing.md) {
                         if let maximumPrice {
+                            Text("Maximum price")
+                                .font(laughTrack.typography.metadata.weight(.semibold))
+                                .foregroundStyle(laughTrack.colors.textSecondary)
                             Picker("Maximum price", selection: maximumPrice) {
                                 ForEach(ShowMaximumPriceOption.allCases) { option in
                                     Text(option.title).tag(option)
                                 }
                             }
                             .pickerStyle(.menu)
+                            .tint(laughTrack.colors.accentStrong)
                             .frame(minHeight: 44)
                             .accessibilityLabel("Maximum price")
                         }

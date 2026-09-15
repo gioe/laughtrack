@@ -82,12 +82,16 @@ struct LocationFilterSheet<Model: SearchLocationFilterModel>: View {
                 .onSubmit(applyZip)
 
                 if let distance {
+                    Text("Search radius")
+                        .font(laughTrack.typography.metadata.weight(.semibold))
+                        .foregroundStyle(laughTrack.colors.textSecondary)
                     Picker("Radius", selection: distance) {
                         ForEach(ShowDistanceOption.allCases) { option in
                             Text(option.title).tag(option)
                         }
                     }
                     .pickerStyle(.menu)
+                    .tint(laughTrack.colors.accentStrong)
                     .frame(minHeight: 44)
                     .accessibilityLabel("Search radius")
                 }
@@ -135,6 +139,7 @@ struct LocationFilterSheet<Model: SearchLocationFilterModel>: View {
             .padding(theme.spacing.xl)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .background(LaughTrackAtmosphereBackground())
         .presentationDetents([.medium, .large])
     }
 

@@ -946,3 +946,323 @@ private extension URLSession {
         }
     }
 }
+
+@Suite("Shows search header behavior")
+@MainActor
+struct SearchShowsHeaderTests {
+    private var calendar: Calendar {
+        var value = Calendar(identifier: .gregorian)
+        value.timeZone = TimeZone(secondsFromGMT: 0)!
+        return value
+    }
+
+    private func date(_ day: Int) -> Date {
+        calendar.date(from: DateComponents(year: 2030, month: 4, day: day, hour: 18))!
+    }
+
+    private func makeModel(pinnedClubId: Int? = nil, pinnedComedianName: String? = nil) -> ShowsListModel {
+        let defaults = UserDefaults(suiteName: "SearchShowsHeaderTests.\(UUID().uuidString)")!
+        return ShowsListModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults)),
+                resolver: MockSearchNearbyLocationResolver(result: .success("10012")),
+                zipLocationResolver: StubZipLocationResolver()
+            ),
+            pinnedClubId: pinnedClubId,
+            pinnedComedianName: pinnedComedianName,
+            initialUseDateRange: false,
+            startsWithNearbyLocation: false
+        )
+    }
+
+    @Test("Tonight narrows dates without clearing advanced constraints")
+    func tonightPreservesOtherConstraints() {
+        let model = makeModel()
+        model.applySearchSeedNearbyPreference(.init(zipCode: "10012", source: .manual, distanceMiles: 50))
+        model.clubSearchText = "Comedy Cellar"
+        model.selectedFilterSlugs = ["standup", "clean"]
+        model.maximumPrice = .forty
+        model.sort = .premium
+
+        model.applyDateShortcut("Tonight", now: date(2), calendar: calendar)
+
+        #expect(model.dateRange.from == calendar.startOfDay(for: date(2)))
+        #expect(model.dateRange.to == model.dateRange.from)
+        #expect(model.dateRange.isActive)
+        #expect(model.sort == .earliest)
+        #expect(model.requestKey.sanitizedZip == "10012")
+        #expect(model.requestKey.distance == .regional)
+        #expect(model.requestKey.club == "Comedy Cellar")
+        #expect(model.requestKey.filters == ["clean", "standup"])
+        #expect(model.requestKey.maximumPrice == 40)
+    }
+
+    @Test("This weekend starts Friday or today and ends Sunday", arguments: [2, 5, 6, 7])
+    func weekendExcludesElapsedDays(day: Int) {
+        let model = makeModel()
+        model.applyDateShortcut("This Weekend", now: date(day), calendar: calendar)
+
+        #expect(model.dateRange.from == calendar.startOfDay(for: date(max(day, 5))))
+        #expect(model.dateRange.to == calendar.startOfDay(for: date(7)))
+        #expect(model.dateRange.isActive)
+        #expect(model.sort == .earliest)
+    }
+
+    @Test("Any date clears only the date constraint and restores chronological order")
+    func anyDatePreservesOtherConstraints() {
+        let model = makeModel()
+        model.applySearchSeedNearbyPreference(.init(zipCode: "10012", source: .manual, distanceMiles: 10))
+        model.clubSearchText = "The Stand"
+        model.selectedFilterSlugs = ["free"]
+        model.maximumPrice = .twenty
+        model.resultsPresentation = .calendar
+        model.applyDateShortcut("Tonight", now: date(2), calendar: calendar)
+        model.sort = .budget
+
+        model.applyDateShortcut("Any date", now: date(2), calendar: calendar)
+
+        #expect(!model.dateRange.isActive)
+        #expect(model.requestKey.fromString == nil)
+        #expect(model.requestKey.toString == nil)
+        #expect(model.sort == .earliest)
+        #expect(model.requestKey.sanitizedZip == "10012")
+        #expect(model.requestKey.distance == .nearby)
+        #expect(model.requestKey.club == "The Stand")
+        #expect(model.requestKey.filters == ["free"])
+        #expect(model.requestKey.maximumPrice == 20)
+        #expect(model.resultsPresentation == .calendar)
+    }
+
+    @Test("Changing radius and ZIP keeps the search local override after clearing")
+    func locationAndRadiusRemainSearchLocal() {
+        let model = makeModel()
+        let shared = NearbyPreference(zipCode: "94108", source: .manual, distanceMiles: 25)
+        model.applyDefaultNearbyPreference(shared)
+        model.distance = .roadTrip
+        model.zipCodeDraft = "10012"
+        #expect(model.applyManualZip())
+        model.applyDefaultNearbyPreference(shared)
+
+        #expect(model.activeNearbyPreference?.zipCode == "10012")
+        #expect(model.activeNearbyPreference?.distanceMiles == 100)
+        #expect(model.requestKey.distance == .roadTrip)
+        model.clearLocation()
+        model.applyDefaultNearbyPreference(shared)
+        #expect(model.activeNearbyPreference == nil)
+        #expect(model.requestKey.sanitizedZip == nil)
+    }
+
+    @Test("Price and facets can be removed independently without clearing dates")
+    func advancedConstraintsRemainIndependent() {
+        let model = makeModel()
+        model.applyDateShortcut("Tonight", now: date(2), calendar: calendar)
+        model.selectedFilterSlugs = ["standup", "clean"]
+        model.maximumPrice = .sixty
+        model.removeConstraint(.maximumPrice)
+        #expect(model.requestKey.maximumPrice == nil)
+        #expect(model.selectedFilterSlugs == ["standup", "clean"])
+        model.maximumPrice = .twenty
+        model.removeConstraint(.filter("clean"))
+        #expect(model.requestKey.filters == ["standup"])
+        #expect(model.requestKey.maximumPrice == 20)
+        #expect(model.dateRange.isActive)
+    }
+
+    @Test("Pinned club remains identified by ID and ignores search location")
+    func pinnedClubPreservesScope() {
+        let model = makeModel(pinnedClubId: 42)
+        model.applySearchSeedNearbyPreference(.init(zipCode: "10012", source: .manual, distanceMiles: 50))
+        model.applySearchSeed(.init(club: "A different club", filterSlugs: ["free"], maximumPrice: .forty))
+        model.applyDateShortcut("Tonight", now: date(2), calendar: calendar)
+        #expect(!model.allowsLocationFiltering)
+        #expect(model.requestKey.clubId == 42)
+        #expect(model.requestKey.club.isEmpty)
+        #expect(model.requestKey.sanitizedZip == nil)
+        model.clearAllFilters()
+        #expect(model.requestKey.clubId == 42)
+        #expect(model.requestKey.club.isEmpty)
+        #expect(model.requestKey.filters.isEmpty)
+    }
+
+    @Test("Pinned comedian survives seeds and reset while retaining nearby filtering")
+    func pinnedComedianPreservesScope() {
+        let model = makeModel(pinnedComedianName: "Atsuko Okatsuka")
+        model.applySearchSeedNearbyPreference(.init(zipCode: "10012", source: .manual, distanceMiles: 50))
+        model.applySearchSeed(.init(comedian: "Someone else", maximumPrice: .forty))
+        #expect(model.requestKey.comedian == "Atsuko Okatsuka")
+        #expect(model.requestKey.sanitizedZip == "10012")
+        #expect(!model.isShowingNationwideComedianSearch)
+        model.clearAllFilters()
+        #expect(model.requestKey.comedian == "Atsuko Okatsuka")
+        #expect(model.requestKey.maximumPrice == nil)
+    }
+
+    @Test("Discover Tonight seed retains location and advanced search values")
+    func discoverSeedRetainsSearchValues() {
+        let root = SearchRootModel()
+        let model = makeModel()
+        let seed = SearchRootModel.Seed(
+            pivot: .shows, query: "", shortcut: "Tonight",
+            nearbyPreference: .init(zipCode: "10012", source: .manual, distanceMiles: 50),
+            showSearch: .init(club: "Comedy Cellar", filterSlugs: ["standup"], maximumPrice: .forty,
+                              distance: .regional, resultsPresentation: .calendar)
+        )
+        root.applySeed(seed)
+        model.applySearchSeedNearbyPreference(seed.nearbyPreference)
+        model.applySearchSeed(seed.showSearch)
+        root.applyShortcutFilters(to: model, now: date(2), calendar: calendar)
+
+        #expect(root.activePivot == .shows)
+        #expect(model.requestKey.club == "Comedy Cellar")
+        #expect(model.requestKey.filters == ["standup"])
+        #expect(model.requestKey.maximumPrice == 40)
+        #expect(model.requestKey.sanitizedZip == "10012")
+        #expect(model.requestKey.distance == .regional)
+        #expect(model.dateRange.from == calendar.startOfDay(for: date(2)))
+        #expect(model.dateRange.to == model.dateRange.from)
+        #expect(model.dateRange.isActive)
+        #expect(model.resultsPresentation == .calendar)
+        #expect(model.makeSearchSeed().club == "Comedy Cellar")
+    }
+}
+
+#if canImport(UIKit)
+import UIKit
+
+@MainActor
+private final class ShowsFilterSheetTestState: ObservableObject {
+    @Published var slugs: Set<String> = ["standup"]
+    @Published var price: ShowMaximumPriceOption = .forty
+    @Published var isMounted = true
+    var didAppear = false
+    var didDisappear = false
+}
+
+@MainActor
+private struct ShowsFilterSheetTestRoot: View {
+    @ObservedObject var state: ShowsFilterSheetTestState
+    var size: DynamicTypeSize = .large
+    var filters: [Components.Schemas.Filter] = [
+        .init(id: 1, slug: "standup", name: "Stand-up"),
+        .init(id: 2, slug: "clean", name: "Clean comedy"),
+        .init(id: 3, slug: "free", name: "Free")
+    ]
+
+    var body: some View {
+        Group {
+            if state.isMounted {
+                SearchFilterModal(
+                    filters: filters, total: 12, selectedSlugs: $state.slugs,
+                    isPresented: $state.isMounted, maximumPrice: $state.price
+                )
+                .onAppear { state.didAppear = true }
+                .onDisappear { state.didDisappear = true }
+            } else {
+                Color.clear
+            }
+        }
+        .environment(\.appTheme, LaughTrackTheme())
+        .environment(\.dynamicTypeSize, size)
+        .preferredColorScheme(.dark)
+    }
+}
+
+@Suite("Shows filter sheets", .serialized)
+@MainActor
+struct SearchShowsFilterSheetTests {
+    @Test("Dismissing uncommitted Filters restores both price and selected facets")
+    func dismissRestoresPriceAndFacets() async throws {
+        let state = ShowsFilterSheetTestState()
+        let host = HostedView(ShowsFilterSheetTestRoot(state: state), freshWindow: true)
+        try await waitFor(host) { state.didAppear }
+        state.slugs = ["free", "clean"]
+        state.price = .twenty
+        host.render()
+        #expect(state.slugs == ["free", "clean"])
+        #expect(state.price == .twenty)
+
+        state.isMounted = false
+        try await waitFor(host) {
+            state.didDisappear && state.slugs == ["standup"] && state.price == .forty
+        }
+        #expect(state.slugs == ["standup"])
+        #expect(state.price == .forty)
+    }
+
+    @Test("Dismissing a price-only Filters sheet restores the original price")
+    func dismissRestoresPriceWithoutFacets() async throws {
+        let state = ShowsFilterSheetTestState()
+        state.slugs = []
+        let host = HostedView(ShowsFilterSheetTestRoot(state: state, filters: []), freshWindow: true)
+        try await waitFor(host) { state.didAppear }
+        state.price = .any
+        host.render()
+        #expect(state.price == .any)
+        state.isMounted = false
+        try await waitFor(host) { state.didDisappear && state.price == .forty }
+        #expect(state.slugs.isEmpty)
+        #expect(state.price == .forty)
+    }
+
+    @Test("Capture location radius and advanced Filters at standard and accessibility sizes")
+    func captureSheets() async throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            let state = ShowsFilterSheetTestState()
+            let filterHost = HostedView(ShowsFilterSheetTestRoot(state: state, size: size), freshWindow: true)
+            try await waitFor(filterHost) { state.didAppear }
+            try capture(filterHost, name: "filters-top", size: size)
+            filterHost.scrollDown(pages: 1)
+            filterHost.render()
+            try capture(filterHost, name: "filters-scrolled", size: size)
+            state.isMounted = false
+            try await waitFor(filterHost) { state.didDisappear }
+
+            let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "header-location-sheet")
+            let model = ShowsListModel(
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
+                initialUseDateRange: false, startsWithNearbyLocation: false
+            )
+            model.applySearchSeedNearbyPreference(.init(zipCode: "10012", source: .manual, distanceMiles: 50))
+            var appeared = false
+            let locationHost = HostedView(
+                LocationFilterSheet(
+                    model: model, isPresented: .constant(true),
+                    distance: Binding(get: { model.distance }, set: { model.distance = $0 })
+                )
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.dynamicTypeSize, size)
+                .preferredColorScheme(.dark)
+                .onAppear { appeared = true },
+                freshWindow: true
+            )
+            try await waitFor(locationHost) { appeared }
+            try capture(locationHost, name: "location-top", size: size)
+            locationHost.scrollDown(pages: 1)
+            locationHost.render()
+            try capture(locationHost, name: "location-scrolled", size: size)
+        }
+    }
+
+    private func waitFor(_ host: HostedView, condition: () -> Bool) async throws {
+        let deadline = ContinuousClock.now + .seconds(3)
+        while !condition(), ContinuousClock.now < deadline {
+            await Task.yield()
+            host.render()
+        }
+        try #require(condition(), "Expected the sheet lifecycle and binding updates to complete")
+    }
+
+    private func capture(_ host: HostedView, name: String, size: DynamicTypeSize) throws {
+        let data = try #require(try host.snapshot().pngData())
+        let device = UIDevice.current.userInterfaceIdiom == .pad ? "ipad" : "phone"
+        let textSize = size.isAccessibilitySize ? "AX5" : "standard"
+        let path = FileManager.default.temporaryDirectory
+            .appendingPathComponent("task4001-\(device)-\(textSize)-\(name).png")
+        try data.write(to: path)
+        print("Shows sheet capture: \(path.path)")
+        #if compiler(>=6.2)
+        Attachment.record(Array(data), named: path.lastPathComponent)
+        #endif
+    }
+}
+#endif

@@ -41,8 +41,8 @@ struct ShowsListViewPresentationTests {
         #expect(rowBlock.contains("AdaptiveSearchResults(spacing: theme.spacing.md)"))
     }
 
-    @Test("show explorer keeps date presets inside its single date sheet")
-    func showExplorerKeepsFormatFacetsInAdditionalFilters() throws {
+    @Test("show explorer exposes quick dates and consolidates location and secondary filters")
+    func showExplorerKeepsPrimaryControlsCompact() throws {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
         let filters = try sourceBlock(
             in: source,
@@ -50,17 +50,13 @@ struct ShowsListViewPresentationTests {
             to: "private struct ShowResultsCalendarView: View"
         )
 
-        for label in ["Location", "Max price"] {
-            #expect(filters.contains(label), "Missing directly discoverable facet: \(label)")
-        }
-        #expect(!filters.contains("title: \"Tonight\""))
-        #expect(!filters.contains("title: \"This Weekend\""))
-        #expect(filters.components(separatedBy: "isDateEditorPresented = true").count - 1 == 1)
-        #expect(!filters.contains("title: \"Free\""))
-        #expect(!filters.contains("title: ShowFormatOption.openMic.title"))
-        #expect(!filters.contains("ForEach(ShowFormatOption.allCases"))
-        #expect(filters.contains("id: \"shows-distance\""))
-        #expect(filters.contains("systemImage: \"calendar\""))
+        #expect(!filters.contains("Start with what matters"))
+        #expect(!filters.contains("shows-distance"))
+        #expect(!filters.contains("shows-max-price"))
+        #expect(filters.contains("ForEach(ShowHeaderDateChoice.allCases)"))
+        #expect(filters.contains("model.applyDateShortcut(choice.rawValue)"))
+        #expect(filters.contains("isFilterEditorPresented = true"))
+        #expect(filters.contains("Edit location and radius"))
         #expect(ShowFormatOption.allCases.map(\.title) == ["Stand-up", "Improv", "Open mic"])
         #expect(source.contains("Comedian (optional)"))
         #expect(source.contains("Club (optional)"))
@@ -93,7 +89,7 @@ struct ShowsListViewPresentationTests {
         #expect(secondarySlugs == [
             "standup", "improv", "open_mic", "open mic", "free", "late-night", "clean"
         ])
-        #expect(taxonomyUsageCount == 2)
+        #expect(taxonomyUsageCount == 1)
     }
 
     @Test("show results default to a grouped agenda and offer density calendar")
@@ -381,6 +377,46 @@ struct SearchAgendaTimezoneTests {
 #if canImport(UIKit)
 import UIKit
 import Vision
+
+@Suite("Shows header visual capture", .serialized)
+@MainActor
+struct ShowsHeaderVisualCaptureTests {
+    @Test("capture the live Shows layout at standard and accessibility sizes")
+    func captureHeader() async throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "header-capture")
+            let model = ShowsListModel(nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store), initialUseDateRange: false, startsWithNearbyLocation: false)
+            model.zipCodeDraft = "10012"
+            #expect(model.applyManualZip())
+            let shows = (1...6).map { id in
+                Components.Schemas.Show(id: id, clubId: 20, clubName: "The Stand", date: Date(timeIntervalSince1970: 1_913_400_000 + Double(id) * 1800), name: "Comedy showcase \(id)", lineup: [], imageUrl: "", timezone: "America/New_York")
+            }
+            await model.reload(query: model.requestKey) { _, _ in .success(.init(items: shows, total: shows.count)) }
+            let host = HostedView(
+                ScrollView {
+                    ShowsListView(apiClient: LaughTrackHostedViewTestSupport.makeClient(), model: model, isActive: false)
+                        .padding(.horizontal, 20).padding(.top, 8)
+                }
+                .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.dynamicTypeSize, size)
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "header-capture"))
+                .environmentObject(TypedNavigationCoordinator<AppRoute>())
+                .preferredColorScheme(.dark), freshWindow: true
+            )
+            await host.settle(iterations: 3)
+            let data = try #require(try host.snapshot().pngData())
+            let device = UIDevice.current.userInterfaceIdiom == .pad ? "ipad" : "phone"
+            let textSize = size.isAccessibilitySize ? "AX5" : "standard"
+            let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4001-\(device)-\(textSize).png")
+            try data.write(to: path)
+            print("Shows header capture: \(path.path)")
+            #if compiler(>=6.2)
+            Attachment.record(Array(data), named: path.lastPathComponent)
+            #endif
+        }
+    }
+}
 
 @Suite("Search refresh presentation", .serialized)
 @MainActor
