@@ -985,3 +985,307 @@ private struct StubRateLimitedShowTransport: ClientTransport {
         return (response, HTTPBody(#"{"error":"slow down"}"#))
     }
 }
+
+@Suite("Search refresh continuity")
+@MainActor
+struct SearchRefreshContinuityTests {
+    @Test("previous results remain visible through debounce and a slow response")
+    func preservesResultsThroughDebounceAndRefresh() async throws {
+        let model = await seededModel()
+        let gate = SearchRefreshResponseGate()
+        let refresh = Task {
+            await model.reload(query: "new", shouldDebounce: true) { _, _ in await gate.fetch() }
+        }
+        try await waitUntil { model.isRefreshing }
+        #expect(gate.requestCount == 0)
+        #expect(items(model) == [1, 2])
+        #expect(model.resultsState(for: "new") == .updating)
+        try await waitUntil { gate.requestCount == 1 }
+        #expect(items(model) == [1, 2])
+        gate.resolve(0, items: [3])
+        await refresh.value
+        #expect(items(model) == [3])
+        #expect(!model.isRefreshing)
+        #expect(model.resultsState(for: "new").isConfirmed)
+    }
+
+    @Test("older responses cannot settle a newer query or clear its updating state")
+    func ignoresOutOfOrderResponses() async throws {
+        let model = await seededModel()
+        let gate = SearchRefreshResponseGate()
+        let old = Task { await model.reload(query: "R") { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.requestCount == 1 }
+        let latest = Task { await model.reload(query: "Ray") { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.requestCount == 2 }
+        gate.resolve(0, items: [99])
+        await old.value
+        #expect(items(model) == [1, 2])
+        #expect(model.isRefreshing)
+        #expect(model.resultsState(for: "Ray") == .updating)
+        gate.resolve(1, items: [3])
+        await latest.value
+        #expect(items(model) == [3])
+        #expect(model.resultsState(for: "Ray").isConfirmed)
+    }
+
+    @Test("canceled debounce retains content without claiming the new query matched")
+    func canceledDebounceRetainsUnconfirmedContent() async throws {
+        let model = await seededModel()
+        let refresh = Task {
+            await model.reload(query: "new", shouldDebounce: true) { _, _ in
+                Issue.record("Canceled debounce must not fetch")
+                return .success(.init(items: [99], total: 1))
+            }
+        }
+        try await waitUntil { model.isRefreshing }
+        refresh.cancel()
+        await refresh.value
+        #expect(items(model) == [1, 2])
+        #expect(!model.isRefreshing)
+        #expect(model.refreshFailure == nil)
+        #expect(model.resultsState(for: "new") == .interrupted)
+        #expect(model.resultsState(for: "original").isConfirmed)
+    }
+
+    @Test("canceled transport responses cannot overwrite a retry of the same query")
+    func canceledInFlightResponseCannotOverwriteRetry() async throws {
+        let model = await seededModel()
+        let gate = SearchRefreshResponseGate()
+        let canceled = Task { await model.reload(query: "new") { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.requestCount == 1 }
+        canceled.cancel()
+        let retry = Task { await model.reload(query: "new") { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.requestCount == 2 }
+        gate.resolve(0, items: [99])
+        await canceled.value
+        #expect(model.isRefreshing)
+        #expect(items(model) == [1, 2])
+        gate.resolve(1, items: [3])
+        await retry.value
+        #expect(items(model) == [3])
+        #expect(model.resultsState(for: "new").isConfirmed)
+    }
+
+    @Test("clearing back to cached query invalidates a competing response and preserves pages")
+    func returningToCachedQueryInvalidatesCompetingResponse() async throws {
+        let model = await seededModel(query: "")
+        await model.loadMore(query: "") { _, _ in .success(.init(items: [3, 4], total: 4)) }
+        let gate = SearchRefreshResponseGate()
+        let search = Task { await model.reload(query: "Ray") { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.requestCount == 1 }
+        await model.reload(query: "", cacheTTL: 60) { _, _ in
+            Issue.record("Fresh cached query must retain its accumulated pages")
+            return .success(.init(items: [99], total: 1))
+        }
+        #expect(items(model) == [1, 2, 3, 4])
+        #expect(model.resultsState(for: "").isConfirmed)
+        #expect(!model.isRefreshing)
+        gate.resolve(0, items: [99])
+        await search.value
+        #expect(items(model) == [1, 2, 3, 4])
+        #expect(model.resultsState(for: "").isConfirmed)
+    }
+
+    @Test("initial load, initial cancellation, failure, and recovery remain distinct")
+    func initialLoadingFailureAndRecovery() async throws {
+        let model = EntitySearchModel<String, Int>()
+        let gate = SearchRefreshResponseGate()
+        let initial = Task { await model.reload(query: "first") { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.requestCount == 1 }
+        if case .loading = model.phase {} else { Issue.record("Initial request needs loading phase") }
+        #expect(!model.isRefreshing)
+        initial.cancel()
+        gate.resolve(0, items: [99])
+        await initial.value
+        if case .idle = model.phase {} else { Issue.record("Canceled initial request must return to idle") }
+        await model.reload(query: "first") { _, _ in .failure(.network("Offline")) }
+        if case .failure(let error) = model.phase {
+            #expect(error == .network("Offline"))
+        } else { Issue.record("Initial offline request needs failure phase") }
+        await model.reload(query: "first") { _, _ in .success(.init(items: [1], total: 1)) }
+        #expect(items(model) == [1])
+        #expect(model.resultsState(for: "first").isConfirmed)
+    }
+
+    @Test("refresh failure labels retained results and permits recovery without pagination")
+    func refreshFailureRetainsResultsAndRetries() async {
+        let model = await seededModel()
+        await model.reload(query: "new") { _, _ in .failure(.network("Offline")) }
+        #expect(items(model) == [1, 2])
+        #expect(model.refreshFailure == .network("Offline"))
+        #expect(model.resultsState(for: "new") == .failed(.network("Offline")))
+        #expect(!model.isRefreshing)
+        await model.loadMore(query: "new") { _, _ in
+            Issue.record("Unconfirmed results must not paginate")
+            return .success(.init(items: [99], total: 4))
+        }
+        await model.loadPage(1, query: "new") { _, _ in
+            Issue.record("Unconfirmed results must not navigate pages")
+            return .success(.init(items: [99], total: 4))
+        }
+        await model.reload(query: "new") { _, _ in .success(.init(items: [3], total: 1)) }
+        #expect(items(model) == [3])
+        #expect(model.refreshFailure == nil)
+        #expect(model.resultsState(for: "new").isConfirmed)
+    }
+
+    @Test("obsolete pagination cannot append to new results or stop a newer page spinner")
+    func stalePaginationDoesNotAppendOrClearNewSpinner() async throws {
+        let model = await seededModel()
+        let gate = SearchRefreshResponseGate()
+        let oldPage = Task { await model.loadMore(query: "original") { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.requestCount == 1 }
+        await model.reload(query: "new") { _, _ in .success(.init(items: [3], total: 2)) }
+        let newPage = Task { await model.loadMore(query: "new") { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.requestCount == 2 }
+        #expect(model.isLoadingMore)
+        gate.resolve(0, items: [99], total: 4)
+        await oldPage.value
+        #expect(items(model) == [3])
+        #expect(model.isLoadingMore)
+        gate.resolve(1, items: [4], total: 2)
+        await newPage.value
+        #expect(items(model) == [3, 4])
+        #expect(!model.isLoadingMore)
+    }
+
+    @Test("pagination failures keep confirmed results and can recover")
+    func paginationFailureAndRecovery() async {
+        let model = await seededModel()
+        await model.loadMore(query: "original") { _, _ in .failure(.network("Offline")) }
+        #expect(items(model) == [1, 2])
+        #expect(model.paginationFailure == .network("Offline"))
+        #expect(model.refreshFailure == nil)
+        #expect(model.resultsState(for: "original").isConfirmed)
+        await model.loadMore(query: "original") { page, _ in
+            #expect(page == 1)
+            return .success(.init(items: [3, 4], total: 4))
+        }
+        #expect(items(model) == [1, 2, 3, 4])
+        #expect(model.paginationFailure == nil)
+    }
+
+    @Test("previous empty results are retained but not confirmed for a pending query")
+    func previousEmptyResultsRemainUnconfirmedDuringRefresh() async throws {
+        let model = EntitySearchModel<String, Int>()
+        await model.reload(query: "missing") { _, _ in .success(.init(items: [], total: 0)) }
+        let gate = SearchRefreshResponseGate()
+        let refresh = Task { await model.reload(query: "new") { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.requestCount == 1 }
+        #expect(items(model) == [])
+        #expect(model.isRefreshing)
+        #expect(!model.resultsState(for: "new").isConfirmed)
+        gate.resolve(0, items: [1])
+        await refresh.value
+        #expect(items(model) == [1])
+        #expect(model.resultsState(for: "new").isConfirmed)
+    }
+
+    @Test("fresh same-query return keeps accumulated results and expired cache refreshes them")
+    func sameQueryReturnAndCacheExpiry() async throws {
+        let model = await seededModel()
+        await model.loadMore(query: "original") { _, _ in .success(.init(items: [3, 4], total: 4)) }
+        await model.reload(query: "original", cacheTTL: 60) { _, _ in
+            Issue.record("Returning from detail must not replace fresh accumulated results")
+            return .success(.init(items: [], total: 0))
+        }
+        #expect(items(model) == [1, 2, 3, 4])
+        let gate = SearchRefreshResponseGate()
+        let refresh = Task {
+            await model.reload(query: "original", cacheTTL: 0) { _, _ in await gate.fetch() }
+        }
+        try await waitUntil { gate.requestCount == 1 }
+        #expect(items(model) == [1, 2, 3, 4])
+        #expect(model.isRefreshing)
+        gate.resolve(0, items: [5])
+        await refresh.value
+        #expect(items(model) == [5])
+        #expect(model.resultsState(for: "original").isConfirmed)
+    }
+
+    @Test("category switching preserves each model while changed shared queries remain unconfirmed")
+    func categorySwitchingPreservesModelsAndQueryHonesty() async {
+        let root = SearchRootModel()
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "category-refresh")
+        let shows = ShowsListModel(nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store))
+        let comedians = ComediansDiscoveryModel()
+        let clubs = makeClubsDiscoveryModel()
+        let podcasts = PodcastSearchModel(fetcher: APIPodcastSearchFetcher(apiClient: LaughTrackHostedViewTestSupport.makeClient()))
+        func applyQuery() {
+            root.applyQuery(showsModel: shows, comediansModel: comedians, clubsModel: clubs, podcastsModel: podcasts)
+        }
+        let first = PodcastSearchResult(id: "podcast-1", title: "Comedy One", subtitle: nil, href: "/podcast/one", imageUrl: nil)
+        let second = PodcastSearchResult(id: "podcast-2", title: "Comedy Two", subtitle: nil, href: "/podcast/two", imageUrl: nil)
+        root.activePivot = .podcasts
+        root.query = "Comedy"
+        applyQuery()
+        await podcasts.reload(query: podcasts.requestKey) { _, _ in .success(.init(items: [first], total: 2)) }
+        await podcasts.loadMore(query: podcasts.requestKey) { _, _ in .success(.init(items: [second], total: 2)) }
+        root.activePivot = .clubs
+        applyQuery()
+        await clubs.reload(query: clubs.requestKey) { _, _ in .success(.init(items: [], total: 0)) }
+        #expect(clubs.resultsState(for: clubs.requestKey).isConfirmed)
+        root.activePivot = .podcasts
+        applyQuery()
+        await podcasts.reload(query: podcasts.requestKey, cacheTTL: 60) { _, _ in
+            Issue.record("Same-query category return must retain loaded pages")
+            return .success(.init(items: [], total: 0))
+        }
+        #expect(podcasts.currentItems == [first, second])
+        #expect(podcasts.resultsState(for: podcasts.requestKey).isConfirmed)
+        root.activePivot = .clubs
+        root.query = "Ray"
+        applyQuery()
+        #expect(clubs.searchText == "Ray")
+        #expect(podcasts.searchText == "Comedy")
+        root.activePivot = .podcasts
+        applyQuery()
+        #expect(podcasts.searchText == "Ray")
+        #expect(podcasts.currentItems == [first, second])
+        #expect(!podcasts.resultsState(for: podcasts.requestKey).isConfirmed)
+    }
+
+    private func seededModel(query: String = "original") async -> EntitySearchModel<String, Int> {
+        let model = EntitySearchModel<String, Int>()
+        await model.reload(query: query) { _, _ in .success(.init(items: [1, 2], total: 4)) }
+        return model
+    }
+
+    private func items(_ model: EntitySearchModel<String, Int>) -> [Int]? {
+        guard case .success(let page) = model.phase else {
+            Issue.record("Expected visible successful results")
+            return nil
+        }
+        return page.items
+    }
+
+    private func waitUntil(_ condition: () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(3)
+        while !condition(), Date() < deadline {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        try #require(condition(), "Timed out waiting for controlled request state")
+    }
+}
+
+/// Deliberately ignores cancellation, like a transport that has already produced
+/// a response. Tests explicitly determine completion order without timed sleeps.
+@MainActor
+private final class SearchRefreshResponseGate {
+    typealias Response = Result<DiscoverySearchResponse<Int>, LoadFailure>
+    private var continuations: [Int: CheckedContinuation<Response, Never>] = [:]
+    private(set) var requestCount = 0
+
+    func fetch() async -> Response {
+        await withCheckedContinuation { continuation in
+            continuations[requestCount] = continuation
+            requestCount += 1
+        }
+    }
+
+    func resolve(_ request: Int, items: [Int], total: Int? = nil) {
+        let continuation = continuations.removeValue(forKey: request)
+        #expect(continuation != nil)
+        continuation?.resume(returning: .success(.init(items: items, total: total ?? items.count)))
+    }
+}

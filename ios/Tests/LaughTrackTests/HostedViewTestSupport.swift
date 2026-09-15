@@ -369,6 +369,13 @@ final class HostedView {
         render()
     }
 
+    /// Read layout from this host's own scroll view without relying on SwiftUI
+    /// accessibility nodes, which some simulator runtimes do not materialize.
+    func scrollMetrics() -> (offset: CGFloat, contentHeight: CGFloat)? {
+        guard let scrollView = firstScrollView(in: hostingController.view) else { return nil }
+        return (scrollView.contentOffset.y, scrollView.contentSize.height)
+    }
+
     /// Returns a formatted dump of the UIView hierarchy and accessibility-element
     /// tree rooted at the hosted view. Each line shows the underlying type, its
     /// `accessibilityIdentifier` (when present), and its `accessibilityLabel`

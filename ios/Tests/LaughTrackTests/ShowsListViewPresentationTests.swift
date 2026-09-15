@@ -17,7 +17,11 @@ struct ShowsListViewPresentationTests {
         #expect(source.contains("LaughTrackSectionHeader(title: \"Search dates\")"))
         #expect(!source.contains("LaughTrackSectionHeader(eyebrow: \"Calendar\""))
         #expect(source.contains("if compactMode, pageCount > 1"))
-        #expect(source.contains("if !compactMode {\n                                SearchResultsSummary"))
+        let compact = ShowsListChromeVisibility(compactMode: true)
+        #expect(!compact.showsResultsStatus(for: .confirmed))
+        #expect(compact.showsResultsStatus(for: .updating))
+        #expect(compact.showsResultsStatus(for: .failed(.network("Offline"))))
+        #expect(ShowsListChromeVisibility(compactMode: false).showsResultsStatus(for: .confirmed))
         #expect(source.contains("LaughTrackPagedControls("))
         #expect(source.contains("if !compactMode, result.canLoadMore"))
         #expect(source.contains("await model.loadPage("))
@@ -370,3 +374,187 @@ struct SearchAgendaTimezoneTests {
         )
     }
 }
+
+
+#if canImport(UIKit)
+import UIKit
+import Vision
+
+@Suite("Search refresh presentation", .serialized)
+@MainActor
+struct SearchRefreshPresentationTests {
+    @Test("actual Shows search retains rows during refresh and recovers after a failed request")
+    func showsRefreshFailureAndRecovery() async throws {
+        let model = makeModel("refresh-flow")
+        let refreshed = [show(20)]
+        let data = try APIMockEncoder.make().encode(Components.Schemas.ShowSearchResponse(
+            data: refreshed, total: refreshed.count, filters: [], zipCapTriggered: false
+        ))
+        let transport = StubClientTransport { _, _, _, operationID in
+            #expect(operationID == "searchShows")
+            return (HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]), HTTPBody(data))
+        }
+        let client = Client(serverURL: URL(string: "https://example.com")!, configuration: .laughTrack, transport: transport)
+        let host = makeHost(model, client: client)
+        await host.settle(iterations: 3)
+        if case .idle = model.phase {} else { Issue.record("Inactive hosted search should initially be idle") }
+        #expect(!(try capture(host, name: "initial")).contains("showing 2 of 2"))
+        await model.reload(query: model.requestKey) { _, _ in .success(.init(items: [show(1), show(2)], total: 2)) }
+        await host.settle(iterations: 3)
+        #expect(try capture(host, name: "loaded").contains("showing 2 of 2"))
+        #expect(model.currentItems.map(\.id) == [1, 2])
+
+        model.comedianSearchText = "Ray"
+        let gate = SearchPresentationResponseGate()
+        let refresh = Task { await model.reload(query: model.requestKey) { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.isWaiting }
+        await host.settle(iterations: 3)
+        let updatingText = try capture(host, name: "updating")
+        #expect(updatingText.contains("updating results"))
+        #expect(updatingText.contains("previous results shown"))
+        #expect(!updatingText.contains("showing 2 of 2"))
+        #expect(model.currentItems.map(\.id) == [1, 2])
+        gate.resolve(.failure(.network("Offline")))
+        await refresh.value
+        await host.settle(iterations: 3)
+        let offlineText = try capture(host, name: "offline")
+        #expect(offlineText.contains("update results"))
+        #expect(offlineText.contains("retry"))
+        #expect(model.currentItems.map(\.id) == [1, 2])
+        await model.reload(apiClient: client)
+        try await waitUntil { model.resultsState(for: model.requestKey).isConfirmed }
+        await host.settle(iterations: 3)
+        #expect(transport.capturedRequests.count == 1)
+        #expect(try capture(host, name: "recovered").contains("showing 1 of 1"))
+        #expect(model.currentItems.map(\.id) == [20])
+    }
+
+    @Test("previous empty results stay honest while a new query updates")
+    func previousEmptyResultsStayHonest() async throws {
+        let model = makeModel("empty-refresh")
+        model.comedianSearchText = "Missing"
+        await model.reload(query: model.requestKey) { _, _ in .success(.init(items: [], total: 0)) }
+        let host = makeHost(model)
+        await host.settle(iterations: 3)
+        #expect(try capture(host, name: "previous-empty").contains("no shows yet"))
+        model.comedianSearchText = "Ray"
+        let gate = SearchPresentationResponseGate()
+        let refresh = Task { await model.reload(query: model.requestKey) { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.isWaiting }
+        await host.settle(iterations: 3)
+        let updatingText = try capture(host, name: "previous-empty-updating")
+        #expect(updatingText.contains("updating results"))
+        #expect(updatingText.contains("no previous results"))
+        #expect(!updatingText.contains("no shows yet"))
+        gate.resolve(.success(.init(items: [show(20)], total: 1)))
+        await refresh.value
+        await host.settle(iterations: 3)
+        #expect(try capture(host, name: "previous-empty-settled").contains("showing 1 of 1"))
+        #expect(model.currentItems.map(\.id) == [20])
+    }
+
+    @Test("refresh preserves the actual scroll offset and content height")
+    func refreshKeepsScrollPosition() async throws {
+        let model = makeModel("scroll-refresh")
+        let shows = (1...12).map(show)
+        await model.reload(query: model.requestKey) { _, _ in .success(.init(items: shows, total: shows.count)) }
+        let host = makeHost(model)
+        await host.settle(iterations: 3)
+        _ = try host.snapshot()
+        host.scrollDown(pages: 0.5)
+        await host.settle(iterations: 2)
+        let originalMetrics = try #require(host.scrollMetrics())
+        let offset = originalMetrics.offset
+        #expect(offset > 0)
+        let contentHeight = originalMetrics.contentHeight
+        // Sort changes affect results without inserting a new active-filter chip.
+        model.sort = .latest
+        let gate = SearchPresentationResponseGate()
+        let refresh = Task { await model.reload(query: model.requestKey) { _, _ in await gate.fetch() } }
+        try await waitUntil { gate.isWaiting }
+        await host.settle(iterations: 3)
+        _ = try capture(host, name: "scrolled-updating")
+        let updatingMetrics = try #require(host.scrollMetrics())
+        #expect(abs(updatingMetrics.offset - offset) < 1)
+        #expect(abs(updatingMetrics.contentHeight - contentHeight) < 1)
+        gate.resolve(.success(.init(items: shows, total: shows.count)))
+        await refresh.value
+        await host.settle(iterations: 3)
+        #expect(abs(try #require(host.scrollMetrics()).offset - offset) < 1)
+    }
+
+    private func makeModel(_ name: String) -> ShowsListModel {
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: name)
+        return ShowsListModel(
+            nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
+            initialUseDateRange: false, startsWithNearbyLocation: false
+        )
+    }
+
+    private func makeHost(_ model: ShowsListModel, client: Client? = nil) -> HostedView {
+        HostedView(
+            ScrollView {
+                ShowsListView(apiClient: client ?? LaughTrackHostedViewTestSupport.makeClient(), model: model,
+                              displaysSearchFields: false, isActive: false)
+                    .padding(16)
+            }
+            .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+            .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "refresh-host"))
+            .environmentObject(TypedNavigationCoordinator<AppRoute>())
+            .preferredColorScheme(.dark)
+        )
+    }
+
+    private func show(_ id: Int) -> Components.Schemas.Show {
+        .init(id: id, clubId: 20, clubName: "The Stand",
+              date: Date(timeIntervalSince1970: 1_913_400_000 + Double(id) * 1800),
+              tickets: [.init(price: 25, purchaseUrl: "https://example.com/tickets", soldOut: false, _type: "General admission")],
+              name: "Comedy showcase \(id)", lineup: [], imageUrl: "", timezone: "America/New_York")
+    }
+
+    /// Inspect rendered pixels because this simulator does not publish the
+    /// hosted SwiftUI accessibility tree. Persist each image before assertions.
+    private func capture(_ host: HostedView, name: String) throws -> String {
+        let image = try host.snapshot()
+        let data = try #require(image.pngData())
+        let reduceMotion = UIAccessibility.isReduceMotionEnabled
+        let suffix = reduceMotion ? "-reduce-motion" : ""
+        let filename = "task4007-\(name)\(suffix).png"
+        print("Search refresh system Reduce Motion: \(reduceMotion)")
+        Attachment.record(Array(data), named: filename)
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        try data.write(to: path)
+        print("Search refresh capture: \(path.path)")
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.recognitionLanguages = ["en-US"]
+        let handler = VNImageRequestHandler(cgImage: try #require(image.cgImage))
+        try handler.perform([request])
+        let text = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+            .joined(separator: " ").lowercased()
+        print("Search refresh OCR \(name): \(text)")
+        return text
+    }
+
+    private func waitUntil(_ condition: () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(4)
+        while !condition(), Date() < deadline { try await Task.sleep(for: .milliseconds(5)) }
+        try #require(condition(), "Timed out waiting for hosted Search request")
+    }
+}
+
+@MainActor
+private final class SearchPresentationResponseGate {
+    typealias Response = Result<DiscoverySearchResponse<Components.Schemas.Show>, LoadFailure>
+    private var continuation: CheckedContinuation<Response, Never>?
+    var isWaiting: Bool { continuation != nil }
+    func fetch() async -> Response {
+        await withCheckedContinuation { continuation = $0 }
+    }
+    func resolve(_ response: Response) {
+        continuation?.resume(returning: response)
+        continuation = nil
+    }
+}
+#endif
