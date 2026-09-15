@@ -1,5 +1,10 @@
 import Testing
 import Foundation
+import SwiftUI
+import LaughTrackBridge
+#if canImport(UIKit)
+import UIKit
+#endif
 import LaughTrackAPIClient
 import LaughTrackCore
 @testable import LaughTrackApp
@@ -609,3 +614,61 @@ struct HomeContentSectionTests {
         return String(source[start.lowerBound..<end.lowerBound])
     }
 }
+
+#if canImport(UIKit)
+@Suite("Discover rail state presentation", .serialized)
+@MainActor
+struct HomeDiscoverRailStatePresentationTests {
+    @Test("rail states render across standard and largest text sizes")
+    func railStatesRenderAcrossTextSizes() async throws {
+        for dynamicTypeSize in [DynamicTypeSize.large, .accessibility5] {
+            for state in ["loading", "empty", "error"] {
+                let host = HostedView(
+                    ScrollView {
+                        HomeDiscoverRailCard(
+                            variant: .scheduleBoard,
+                            eyebrow: "Coming Up",
+                            title: "This Week",
+                            actionTitle: "See all",
+                            actionAccessibilityIdentifier: "test.discover.state.see-all",
+                            action: {}
+                        ) {
+                            switch state {
+                            case "loading":
+                                HomeShowRailSkeleton(railKind: .thisWeek)
+                            case "empty":
+                                EmptyCard(message: "No shows are available this week. Try a wider search area.")
+                            default:
+                                FailureCard(
+                                    failure: .network("Check your connection and try again."),
+                                    retry: {},
+                                    signIn: {}
+                                )
+                            }
+                        }
+                        .padding(16)
+                    }
+                    .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                    .environment(\.appTheme, LaughTrackTheme())
+                    .environment(\.dynamicTypeSize, dynamicTypeSize)
+                    .preferredColorScheme(.dark)
+                )
+                await host.settle(iterations: 4)
+                let sizeName = dynamicTypeSize.isAccessibilitySize ? "AX5" : "standard"
+                try capture(host, named: "Discover-\(state)-\(sizeName)-top.png")
+                if dynamicTypeSize.isAccessibilitySize {
+                    host.scrollDown(pages: 1)
+                    await host.settle(iterations: 2)
+                    try capture(host, named: "Discover-\(state)-\(sizeName)-scrolled.png")
+                }
+            }
+        }
+    }
+
+    private func capture(_ host: HostedView, named name: String) throws {
+        let image = try host.snapshot()
+        let png = try #require(image.pngData())
+        Attachment.record(Array(png), named: name)
+    }
+}
+#endif
