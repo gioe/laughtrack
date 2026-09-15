@@ -67,45 +67,6 @@ enum HomeDiscoverRailVariant {
     case scheduleBoard
     case posterGrid
     case listeningRoom
-
-    var topGlowAlignment: UnitPoint {
-        switch self {
-        case .spotlight:
-            return UnitPoint(x: 0.5, y: 0.0)
-        case .scheduleBoard:
-            return UnitPoint(x: 0.14, y: 0.0)
-        case .posterGrid:
-            return UnitPoint(x: 0.78, y: 0.02)
-        case .listeningRoom:
-            return UnitPoint(x: 0.5, y: 0.12)
-        }
-    }
-
-    var surfaceOpacity: Double {
-        switch self {
-        case .spotlight:
-            return 0.70
-        case .scheduleBoard:
-            return 0.78
-        case .posterGrid:
-            return 0.74
-        case .listeningRoom:
-            return 0.70
-        }
-    }
-
-    var glowOpacity: Double {
-        switch self {
-        case .spotlight:
-            return 0.24
-        case .scheduleBoard:
-            return 0.16
-        case .posterGrid:
-            return 0.18
-        case .listeningRoom:
-            return 0.14
-        }
-    }
 }
 
 struct HomeDiscoverRailCard<Content: View>: View {
@@ -144,9 +105,23 @@ struct HomeDiscoverRailCard<Content: View>: View {
     }
 
     var body: some View {
+        Group {
+            switch variant {
+            case .spotlight:
+                featuredRailContent
+            case .scheduleBoard, .posterGrid, .listeningRoom:
+                railContent
+            }
+        }
+        .modifier(HomeRailAccessibilityIdentifierModifier(
+            identifier: title == nil ? accessibilityIdentifier : nil
+        ))
+    }
+
+    private var railContent: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
+        return VStack(alignment: .leading, spacing: theme.spacing.md) {
             if let title {
                 HomeDiscoverSectionHeader(
                     eyebrow: eyebrow,
@@ -169,38 +144,41 @@ struct HomeDiscoverRailCard<Content: View>: View {
             content
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(railBackground)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.accentMuted.opacity(0.34), lineWidth: 1)
-        )
-        .overlay(alignment: .topLeading) {
-            Capsule(style: .continuous)
-                .fill(laughTrack.colors.accentStrong.opacity(0.72))
-                .frame(width: 52, height: 2)
-                .padding(.leading, laughTrack.browseDensity.compactCardPadding)
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.44), radius: 8)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
-        .modifier(HomeRailAccessibilityIdentifierModifier(
-            identifier: title == nil ? accessibilityIdentifier : nil
-        ))
     }
 
-    private var railBackground: some View {
+    private var featuredRailContent: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return railContent
+            .background(featuredRailBackground)
+            .overlay(
+                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    .stroke(laughTrack.colors.accentMuted.opacity(0.34), lineWidth: 1)
+            )
+            .overlay(alignment: .topLeading) {
+                Capsule(style: .continuous)
+                    .fill(laughTrack.colors.accentStrong.opacity(0.72))
+                    .frame(width: 52, height: 2)
+                    .padding(.leading, laughTrack.browseDensity.compactCardPadding)
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.44), radius: 8)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+            .shadowStyle(laughTrack.shadows.card)
+    }
+
+    private var featuredRailBackground: some View {
         let laughTrack = theme.laughTrackTokens
 
         return ZStack {
-            laughTrack.colors.surfaceElevated.opacity(variant.surfaceOpacity)
+            laughTrack.colors.surfaceElevated.opacity(0.70)
 
             RadialGradient(
                 colors: [
-                    laughTrack.colors.accent.opacity(variant.glowOpacity),
-                    laughTrack.colors.accentMuted.opacity(variant.glowOpacity * 0.35),
+                    laughTrack.colors.accent.opacity(0.24),
+                    laughTrack.colors.accentMuted.opacity(0.24 * 0.35),
                     laughTrack.colors.surface.opacity(0.0),
                 ],
-                center: variant.topGlowAlignment,
+                center: UnitPoint(x: 0.5, y: 0.0),
                 startRadius: 12,
                 endRadius: 240
             )
