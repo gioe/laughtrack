@@ -248,26 +248,12 @@ private struct HomeDiscoverSectionHeader: View {
 
         VStack(alignment: .leading, spacing: 7) {
             if let eyebrow {
-                HStack(alignment: .firstTextBaseline, spacing: theme.spacing.sm) {
-                    Text(eyebrow)
-                        .font(.system(size: eyebrowSize, weight: .heavy, design: .rounded))
-                        .tracking(2.0)
-                        .textCase(.uppercase)
-                        .foregroundStyle(laughTrack.colors.accentStrong)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Spacer(minLength: 0)
-
-                    HStack(spacing: 4) {
-                        ForEach(0..<5, id: \.self) { index in
-                            Circle()
-                                .fill(laughTrack.colors.accentStrong.opacity(0.85 - Double(index) * 0.11))
-                                .frame(width: 4, height: 4)
-                                .shadow(color: laughTrack.colors.accentStrong.opacity(0.34), radius: 4)
-                        }
-                    }
-                    .accessibilityHidden(true)
-                }
+                Text(eyebrow)
+                    .font(.system(size: eyebrowSize, weight: .heavy, design: .rounded))
+                    .tracking(2.0)
+                    .textCase(.uppercase)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             if dynamicTypeSize.isAccessibilitySize {
