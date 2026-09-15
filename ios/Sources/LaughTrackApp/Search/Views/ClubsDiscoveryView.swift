@@ -92,38 +92,47 @@ struct ClubsDiscoveryView: View {
                         signIn: { coordinator.push(.profile) }
                     )
                 case .success(let result):
-                    if result.items.isEmpty {
-                        EmptyCard(
-                            title: "No clubs yet",
-                            message: emptyStateMessage
+                    let state = model.resultsState(for: model.requestKey)
+                    VStack(alignment: .leading, spacing: theme.spacing.md) {
+                        SearchResultsSummary(
+                            count: result.items.count, total: result.total, state: state,
+                            retry: { await model.reload(apiClient: apiClient, cache: pageCache) },
+                            signIn: { coordinator.push(.profile) }
                         )
-                    } else {
-                        VStack(alignment: .leading, spacing: theme.spacing.md) {
-                            SearchResultsSummary(count: result.items.count, total: result.total)
+                        if result.items.isEmpty {
+                            EmptyCard(
+                                title: state.isConfirmed ? "No clubs yet" : "No previous results",
+                                message: state.isConfirmed ? emptyStateMessage : "Results for your updated search will appear here."
+                            )
+                        } else {
+                            VStack(alignment: .leading, spacing: theme.spacing.md) {
 
-                            AdaptiveSearchResults(spacing: theme.spacing.md) {
-                                ForEach(Array(result.items.enumerated()), id: \.offset) { _, club in
-                                    ClubRow(club: club) {
-                                        if let id = club.id {
-                                            coordinator.open(.club(id))
+                                AdaptiveSearchResults(spacing: theme.spacing.md) {
+                                    ForEach(Array(result.items.enumerated()), id: \.offset) { _, club in
+                                        ClubRow(club: club) {
+                                            if let id = club.id {
+                                                coordinator.open(.club(id))
+                                            }
                                         }
+                                        .disabled(club.id == nil)
                                     }
-                                    .disabled(club.id == nil)
+                                }
+
+                                if let paginationFailure = model.paginationFailure {
+                                    InlineStatusMessage(message: paginationFailure.message)
+                                }
+
+                                if result.canLoadMore {
+                                    LoadMoreButton(
+                                        title: "Load more clubs",
+                                        isLoading: model.isLoadingMore
+                                    ) {
+                                        await model.loadMore(apiClient: apiClient, cache: pageCache)
+                                    }
+                                    .disabled(!state.isConfirmed)
                                 }
                             }
-
-                            if let paginationFailure = model.paginationFailure {
-                                InlineStatusMessage(message: paginationFailure.message)
-                            }
-
-                            if result.canLoadMore {
-                                LoadMoreButton(
-                                    title: "Load more clubs",
-                                    isLoading: model.isLoadingMore
-                                ) {
-                                    await model.loadMore(apiClient: apiClient, cache: pageCache)
-                                }
-                            }
+                            .modifier(SearchRefreshAppearance(state: state))
                         }
                     }
                 }

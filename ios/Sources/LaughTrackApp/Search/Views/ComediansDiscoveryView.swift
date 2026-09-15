@@ -84,40 +84,51 @@ struct ComediansDiscoveryView: View {
                         signIn: { coordinator.push(.profile) }
                     )
                 case .success(let result):
-                    if result.items.isEmpty {
-                        EmptyCard(
-                            title: "No comedians yet",
-                            message: model.searchText.isEmpty
-                                ? "No comedians are available right now."
-                                : "No comedians matched \"\(model.searchText)\"."
+                    let state = model.resultsState(for: model.requestKey)
+                    VStack(alignment: .leading, spacing: theme.spacing.md) {
+                        SearchResultsSummary(
+                            count: result.items.count, total: result.total, state: state,
+                            retry: { await model.reload(apiClient: apiClient, favorites: favorites, cache: pageCache) },
+                            signIn: { coordinator.push(.profile) }
                         )
-                    } else {
-                        VStack(alignment: .leading, spacing: theme.spacing.md) {
-                            SearchResultsSummary(count: result.items.count, total: result.total)
+                        if result.items.isEmpty {
+                            EmptyCard(
+                                title: state.isConfirmed ? "No comedians yet" : "No previous results",
+                                message: !state.isConfirmed
+                                    ? "Results for your updated search will appear here."
+                                    : model.searchText.isEmpty
+                                    ? "No comedians are available right now."
+                                    : "No comedians matched \"\(model.searchText)\"."
+                            )
+                        } else {
+                            VStack(alignment: .leading, spacing: theme.spacing.md) {
 
-                            AdaptiveSearchResults(spacing: theme.spacing.md) {
-                                ForEach(result.items, id: \.uuid) { comedian in
-                                    ComedianRow(
-                                        comedian: comedian,
-                                        apiClient: apiClient,
-                                        feedbackMessage: $feedbackMessage,
-                                        openDetail: { coordinator.open(.comedian(comedian.id)) }
-                                    )
+                                AdaptiveSearchResults(spacing: theme.spacing.md) {
+                                    ForEach(result.items, id: \.uuid) { comedian in
+                                        ComedianRow(
+                                            comedian: comedian,
+                                            apiClient: apiClient,
+                                            feedbackMessage: $feedbackMessage,
+                                            openDetail: { coordinator.open(.comedian(comedian.id)) }
+                                        )
+                                    }
+                                }
+
+                                if let paginationFailure = model.paginationFailure {
+                                    InlineStatusMessage(message: paginationFailure.message)
+                                }
+
+                                if result.canLoadMore {
+                                    LoadMoreButton(
+                                        title: "Load more comedians",
+                                        isLoading: model.isLoadingMore
+                                    ) {
+                                        await model.loadMore(apiClient: apiClient, favorites: favorites, cache: pageCache)
+                                    }
+                                    .disabled(!state.isConfirmed)
                                 }
                             }
-
-                            if let paginationFailure = model.paginationFailure {
-                                InlineStatusMessage(message: paginationFailure.message)
-                            }
-
-                            if result.canLoadMore {
-                                LoadMoreButton(
-                                    title: "Load more comedians",
-                                    isLoading: model.isLoadingMore
-                                ) {
-                                    await model.loadMore(apiClient: apiClient, favorites: favorites, cache: pageCache)
-                                }
-                            }
+                            .modifier(SearchRefreshAppearance(state: state))
                         }
                     }
                 }

@@ -50,39 +50,50 @@ struct PodcastSearchView: View {
                         signIn: { coordinator.push(.profile) }
                     )
                 case .success(let result):
-                    if result.items.isEmpty {
-                        EmptyCard(
-                            title: "No podcasts yet",
-                            message: model.searchText.isEmpty
-                                ? "No podcasts are available right now."
-                                : "No podcasts matched \"\(model.searchText)\"."
+                    let state = model.resultsState(for: model.requestKey)
+                    VStack(alignment: .leading, spacing: theme.spacing.md) {
+                        SearchResultsSummary(
+                            count: result.items.count, total: result.total, state: state,
+                            retry: { await model.reload() },
+                            signIn: { coordinator.push(.profile) }
                         )
-                    } else {
-                        VStack(alignment: .leading, spacing: theme.spacing.md) {
-                            SearchResultsSummary(count: result.items.count, total: result.total)
+                        if result.items.isEmpty {
+                            EmptyCard(
+                                title: state.isConfirmed ? "No podcasts yet" : "No previous results",
+                                message: !state.isConfirmed
+                                    ? "Results for your updated search will appear here."
+                                    : model.searchText.isEmpty
+                                    ? "No podcasts are available right now."
+                                    : "No podcasts matched \"\(model.searchText)\"."
+                            )
+                        } else {
+                            VStack(alignment: .leading, spacing: theme.spacing.md) {
 
-                            AdaptiveSearchResults(spacing: theme.spacing.md) {
-                                ForEach(result.items) { podcast in
-                                    PodcastSearchRow(
-                                        podcast: podcast,
-                                        apiClient: apiClient,
-                                        feedbackMessage: $feedbackMessage
-                                    )
+                                AdaptiveSearchResults(spacing: theme.spacing.md) {
+                                    ForEach(result.items) { podcast in
+                                        PodcastSearchRow(
+                                            podcast: podcast,
+                                            apiClient: apiClient,
+                                            feedbackMessage: $feedbackMessage
+                                        )
+                                    }
+                                }
+
+                                if let paginationFailure = model.paginationFailure {
+                                    InlineStatusMessage(message: paginationFailure.message)
+                                }
+
+                                if result.canLoadMore {
+                                    LoadMoreButton(
+                                        title: "Load more podcasts",
+                                        isLoading: model.isLoadingMore
+                                    ) {
+                                        await model.loadMore()
+                                    }
+                                    .disabled(!state.isConfirmed)
                                 }
                             }
-
-                            if let paginationFailure = model.paginationFailure {
-                                InlineStatusMessage(message: paginationFailure.message)
-                            }
-
-                            if result.canLoadMore {
-                                LoadMoreButton(
-                                    title: "Load more podcasts",
-                                    isLoading: model.isLoadingMore
-                                ) {
-                                    await model.loadMore()
-                                }
-                            }
+                            .modifier(SearchRefreshAppearance(state: state))
                         }
                     }
                 }

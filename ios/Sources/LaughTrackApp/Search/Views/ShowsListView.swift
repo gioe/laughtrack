@@ -20,6 +20,10 @@ struct ShowsListChromeVisibility: Equatable {
     var showsSortControl: Bool { !compactMode }
     var showsFilterControl: Bool { !compactMode }
     var showsDateControl: Bool { true }
+
+    func showsResultsStatus(for state: SearchResultsState) -> Bool {
+        !compactMode || !state.isConfirmed
+    }
 }
 
 enum ShowsListStandout {
@@ -164,78 +168,86 @@ struct ShowsListView: View {
                         signIn: { coordinator.push(.profile) }
                     )
                 case .success(let result):
-                    if result.items.isEmpty {
-                        EmptyCard(
-                            title: emptyState.title,
-                            message: emptyState.message,
-                            actionTitle: emptyState.actionTitle,
-                            action: emptyState.actionTitle.map { _ in
-                                { model.clearAllFilters() }
-                            }
-                        )
-                    } else {
-                        VStack(alignment: .leading, spacing: theme.spacing.md) {
-                            if !compactMode {
-                                SearchResultsSummary(count: result.items.count, total: result.total)
-                            }
-
-                            let pageCount = model.pageCount(for: result.total)
-                            if compactMode, pageCount > 1 {
-                                LaughTrackPagedControls(
-                                    currentPage: result.page,
-                                    pageCount: pageCount,
-                                    onPrevious: {
-                                        Task {
-                                            await model.loadPage(
-                                                result.page - 1,
-                                                apiClient: apiClient,
-                                                cache: pageCache
-                                            )
+                    let state = model.resultsState(for: model.requestKey)
+                    VStack(alignment: .leading, spacing: theme.spacing.md) {
+                        if chrome.showsResultsStatus(for: state) {
+                            SearchResultsSummary(
+                                count: result.items.count, total: result.total, state: state,
+                                retry: { await model.reload(apiClient: apiClient, cache: pageCache) },
+                                signIn: { coordinator.push(.profile) }
+                            )
+                        }
+                        if result.items.isEmpty {
+                            EmptyCard(
+                                title: state.isConfirmed ? emptyState.title : "No previous results",
+                                message: state.isConfirmed ? emptyState.message : "Results for your updated search will appear here.",
+                                actionTitle: state.isConfirmed ? emptyState.actionTitle : nil,
+                                action: emptyState.actionTitle.map { _ in
+                                    { model.clearAllFilters() }
+                                }
+                            )
+                        } else {
+                            VStack(alignment: .leading, spacing: theme.spacing.md) {
+                                let pageCount = model.pageCount(for: result.total)
+                                if compactMode, pageCount > 1 {
+                                    LaughTrackPagedControls(
+                                        currentPage: result.page,
+                                        pageCount: pageCount,
+                                        onPrevious: {
+                                            Task {
+                                                await model.loadPage(
+                                                    result.page - 1,
+                                                    apiClient: apiClient,
+                                                    cache: pageCache
+                                                )
+                                            }
+                                        },
+                                        onNext: {
+                                            Task {
+                                                await model.loadPage(
+                                                    result.page + 1,
+                                                    apiClient: apiClient,
+                                                    cache: pageCache
+                                                )
+                                            }
                                         }
-                                    },
-                                    onNext: {
-                                        Task {
-                                            await model.loadPage(
-                                                result.page + 1,
-                                                apiClient: apiClient,
-                                                cache: pageCache
-                                            )
+                                    )
+                                    .disabled(model.isLoadingMore || !state.isConfirmed)
+                                }
+
+                                if compactMode {
+                                    showRows(result.items, standoutShowID: ShowsListStandout.resolveID(in: result.items))
+                                } else {
+                                    Picker("Results view", selection: $model.resultsPresentation) {
+                                        ForEach(ShowResultsPresentation.allCases) { presentation in
+                                            Text(presentation.title).tag(presentation)
                                         }
                                     }
-                                )
-                                .disabled(model.isLoadingMore)
-                            }
+                                    .pickerStyle(.segmented)
+                                    .accessibilityLabel("Show results presentation")
 
-                            if compactMode {
-                                showRows(result.items, standoutShowID: ShowsListStandout.resolveID(in: result.items))
-                            } else {
-                                Picker("Results view", selection: $model.resultsPresentation) {
-                                    ForEach(ShowResultsPresentation.allCases) { presentation in
-                                        Text(presentation.title).tag(presentation)
+                                    if model.resultsPresentation == .calendar {
+                                        ShowResultsCalendarView(model: model, apiClient: apiClient)
                                     }
-                                }
-                                .pickerStyle(.segmented)
-                                .accessibilityLabel("Show results presentation")
 
-                                if model.resultsPresentation == .calendar {
-                                    ShowResultsCalendarView(model: model, apiClient: apiClient)
+                                    agendaRows(result.items)
                                 }
 
-                                agendaRows(result.items)
-                            }
+                                if let paginationFailure = model.paginationFailure {
+                                    InlineStatusMessage(message: paginationFailure.message)
+                                }
 
-                            if let paginationFailure = model.paginationFailure {
-                                InlineStatusMessage(message: paginationFailure.message)
-                            }
-
-                            if !compactMode, result.canLoadMore {
-                                LoadMoreButton(
-                                    title: "Load more shows",
-                                    isLoading: model.isLoadingMore
-                                ) {
-                                    await model.loadMore(apiClient: apiClient, cache: pageCache)
+                                if !compactMode, result.canLoadMore {
+                                    LoadMoreButton(
+                                        title: "Load more shows",
+                                        isLoading: model.isLoadingMore
+                                    ) {
+                                        await model.loadMore(apiClient: apiClient, cache: pageCache)
+                                    }
+                                    .disabled(!state.isConfirmed)
                                 }
                             }
+                            .modifier(SearchRefreshAppearance(state: state))
                         }
                     }
                 }

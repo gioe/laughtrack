@@ -107,15 +107,38 @@ enum ShowAvailability {
     }
 }
 
+enum SearchResultsState: Equatable {
+    case confirmed
+    case updating
+    case failed(LoadFailure)
+    case interrupted
+
+    var isConfirmed: Bool { self == .confirmed }
+}
+
 @MainActor
 class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
     @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Item>> = .idle
+    @Published private(set) var isRefreshing = false
+    @Published private(set) var refreshFailure: LoadFailure?
     @Published private(set) var isLoadingMore = false
     @Published private(set) var paginationFailure: LoadFailure?
 
     private var loadedQuery: Query?
-    private var loadingQuery: Query?
+    private var requestedQuery: Query?
     private var loadedAt: Date?
+    // Fetchers may ignore cancellation. Only the current request may publish or
+    // clear progress, including pagination that started before a query change.
+    private var requestID = UUID()
+
+    func resultsState(for query: Query) -> SearchResultsState {
+        if requestedQuery == query {
+            if isRefreshing { return .updating }
+            if let refreshFailure { return .failed(refreshFailure) }
+        }
+        if loadedQuery == query { return .confirmed }
+        return requestedQuery == query ? .interrupted : .updating
+    }
 
     func reload(
         query: Query,
@@ -123,10 +146,17 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
         cacheTTL: TimeInterval? = nil,
         fetch: @escaping (_ page: Int, _ query: Query) async -> Result<DiscoverySearchResponse<Item>, LoadFailure>
     ) async {
-        if loadedQuery == query, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
+        guard !Task.isCancelled else { return }
+        if loadedQuery == query, case .success = phase,
+           refreshFailure == nil, isLoadedValueFresh(cacheTTL: cacheTTL) {
+            // A → B → A can reuse A, but B must lose ownership even if its
+            // network operation is still running. Keep accumulated pages intact.
+            requestID = UUID()
+            requestedQuery = query
+            isRefreshing = false
+            isLoadingMore = false
             return
         }
-
         await load(page: 0, query: query, shouldDebounce: shouldDebounce, fetch: fetch, resetResults: true)
     }
 
@@ -134,7 +164,8 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
         query: Query,
         fetch: @escaping (_ page: Int, _ query: Query) async -> Result<DiscoverySearchResponse<Item>, LoadFailure>
     ) async {
-        guard case .success(let current) = phase, current.canLoadMore, !isLoadingMore else { return }
+        guard case .success(let current) = phase, current.canLoadMore,
+              resultsState(for: query).isConfirmed, !isLoadingMore, !isRefreshing else { return }
         await load(page: current.page + 1, query: query, shouldDebounce: false, fetch: fetch, resetResults: false)
     }
 
@@ -143,15 +174,10 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
         query: Query,
         fetch: @escaping (_ page: Int, _ query: Query) async -> Result<DiscoverySearchResponse<Item>, LoadFailure>
     ) async {
-        guard page >= 0, case .success = phase, !isLoadingMore else { return }
-        await load(
-            page: page,
-            query: query,
-            shouldDebounce: false,
-            fetch: fetch,
-            resetResults: false,
-            appendResults: false
-        )
+        guard page >= 0, case .success = phase,
+              resultsState(for: query).isConfirmed, !isLoadingMore, !isRefreshing else { return }
+        await load(page: page, query: query, shouldDebounce: false, fetch: fetch,
+                   resetResults: false, appendResults: false)
     }
 
     var currentItems: [Item] {
@@ -174,46 +200,61 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
         resetResults: Bool,
         appendResults: Bool = true
     ) async {
+        guard !Task.isCancelled else { return }
+        let id = UUID()
+        requestID = id
         let existingItems = currentItems
         paginationFailure = nil
 
         if resetResults {
-            loadingQuery = query
-            phase = .loading
+            requestedQuery = query
+            refreshFailure = nil
+            isLoadingMore = false
+            if case .success = phase {
+                isRefreshing = true
+            } else {
+                isRefreshing = false
+                phase = .loading
+            }
         } else {
             isLoadingMore = true
         }
 
         defer {
-            if resetResults {
-                loadingQuery = nil
-            } else {
-                isLoadingMore = false
+            if requestID == id {
+                if resetResults {
+                    isRefreshing = false
+                    if Task.isCancelled, case .loading = phase { phase = .idle }
+                } else {
+                    isLoadingMore = false
+                }
             }
         }
 
         if resetResults, shouldDebounce {
             try? await Task.sleep(for: .milliseconds(250))
-            guard !Task.isCancelled else { return }
         }
-
+        guard !Task.isCancelled, requestID == id else { return }
         let result = await fetch(page, query)
-        guard !Task.isCancelled else { return }
+        guard !Task.isCancelled, requestID == id else { return }
         switch result {
         case .success(let response):
-            phase = .success(
-                .init(
-                    items: resetResults || !appendResults ? response.items : existingItems + response.items,
-                    total: response.total,
-                    page: page,
-                    filters: response.filters,
-                    homeCityFilters: response.homeCityFilters
-                )
-            )
             loadedQuery = query
             loadedAt = Date()
+            phase = .success(.init(
+                items: resetResults || !appendResults ? response.items : existingItems + response.items,
+                total: response.total,
+                page: page,
+                filters: response.filters,
+                homeCityFilters: response.homeCityFilters
+            ))
         case .failure(let failure):
-            handleFailure(failure: failure, existingItems: existingItems, resetResults: resetResults)
+            if case .success = phase {
+                if resetResults { refreshFailure = failure }
+                else { paginationFailure = failure }
+            } else {
+                phase = .failure(failure)
+            }
         }
     }
 
@@ -221,19 +262,6 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
         guard let cacheTTL else { return true }
         guard let loadedAt else { return false }
         return Date().timeIntervalSince(loadedAt) < cacheTTL
-    }
-
-    private func handleFailure(
-        failure: LoadFailure,
-        existingItems: [Item],
-        resetResults: Bool
-    ) {
-        if resetResults || existingItems.isEmpty {
-            phase = .failure(failure)
-        } else if case .success(let current) = phase {
-            paginationFailure = failure
-            phase = .success(current)
-        }
     }
 }
 
