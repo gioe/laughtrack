@@ -728,57 +728,79 @@ describe("getTouringScarcityRails", () => {
             missingShows: [101],
             expectedShows: [102, 103],
         },
-    ])("$name", async ({ performers, missingShows, expectedShows }) => {
-        const dates = performers.map(
-            (_, i) => new Date(UPCOMING.getTime() + i * 3_600_000),
-        );
-        mockQueryRaw.mockResolvedValue(
-            performers.map((id, i) =>
-                rawRow({
-                    show_id: 101 + i,
-                    show_date: dates[i],
-                    canonical_comedian_id: id,
-                    canonical_comedian_uuid: `canonical-${id}`,
-                    canonical_comedian_name: `Visitor ${id}`,
-                }),
-            ) as never,
-        );
-        mockFindShowsForHome.mockResolvedValue(
-            performers
-                .map((id, i) => ({
-                    id: 101 + i,
-                    clubId: 5,
-                    date: dates[i],
-                    name: `Show ${i}`,
-                    imageUrl: "",
-                    // Every show has the same inferred headliner; the rail instead
-                    // features the canonical visitor supplied by its evidence.
-                    lineup: [
-                        {
-                            id: 999,
-                            uuid: "host",
-                            name: "Resident host",
-                            imageUrl: "",
-                        },
-                        {
-                            id,
-                            uuid: `canonical-${id}`,
-                            name: `Visitor ${id}`,
-                            imageUrl: "",
-                        },
-                    ],
-                }))
-                .filter(({ id }) => !missingShows.includes(id)),
-        );
+        {
+            name: "exposes more than eight distinct visitors only in feed candidate mode",
+            performers: [1, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9],
+            missingShows: [],
+            expectedShows: [101, 104, 106, 107, 108, 109, 110, 111, 112],
+            forFeedCandidates: true,
+        },
+    ])(
+        "$name",
+        async ({
+            performers,
+            missingShows,
+            expectedShows,
+            forFeedCandidates,
+        }) => {
+            const dates = performers.map(
+                (_, i) => new Date(UPCOMING.getTime() + i * 3_600_000),
+            );
+            mockQueryRaw.mockResolvedValue(
+                performers.map((id, i) =>
+                    rawRow({
+                        show_id: 101 + i,
+                        show_date: dates[i],
+                        canonical_comedian_id: id,
+                        canonical_comedian_uuid: `canonical-${id}`,
+                        canonical_comedian_name: `Visitor ${id}`,
+                    }),
+                ) as never,
+            );
+            mockFindShowsForHome.mockResolvedValue(
+                performers
+                    .map((id, i) => ({
+                        id: 101 + i,
+                        clubId: 5,
+                        date: dates[i],
+                        name: `Show ${i}`,
+                        imageUrl: "",
+                        // Every show has the same inferred headliner; the rail instead
+                        // features the canonical visitor supplied by its evidence.
+                        lineup: [
+                            {
+                                id: 999,
+                                uuid: "host",
+                                name: "Resident host",
+                                imageUrl: "",
+                            },
+                            {
+                                id,
+                                uuid: `canonical-${id}`,
+                                name: `Visitor ${id}`,
+                                imageUrl: "",
+                            },
+                        ],
+                    }))
+                    .filter(({ id }) => !new Set<number>(missingShows).has(id)),
+            );
 
-        const rail = (
-            await getTouringScarcityRails({ zipCode: "94103", now: NOW })
-        ).justPassingThrough;
-        expect(rail.items.map(({ show }) => show.id)).toEqual(expectedShows);
-        expect(
-            new Set(rail.items.map(({ performer }) => performer.id)).size,
-        ).toBe(rail.items.length);
-    });
+            const rail = (
+                await getTouringScarcityRails({
+                    zipCode: "94103",
+                    now: NOW,
+                    limit: 50,
+                    forFeedCandidates,
+                })
+            ).justPassingThrough;
+            expect(rail.items.map(({ show }) => show.id)).toEqual(
+                expectedShows,
+            );
+            expect(
+                new Set(rail.items.map(({ performer }) => performer.id)).size,
+            ).toBe(rail.items.length);
+        },
+    );
 
     it("returns empty providers for invalid ZIPs without querying", async () => {
         const result = await getTouringScarcityRails({ zipCode: "bad" });

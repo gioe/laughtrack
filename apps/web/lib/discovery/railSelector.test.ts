@@ -329,3 +329,134 @@ describe("loadDiscoveryRailPolicyWithFallback", () => {
         );
     });
 });
+
+describe("bounded feed candidate selection", () => {
+    const keys = [
+        "shows_tonight",
+        "trending_this_week",
+        "just_passing_through",
+        "starting_to_buzz",
+    ] as const;
+    const policy: DiscoveryRailPolicyDto = {
+        ...getDefaultDiscoveryRailPolicy("ios"),
+        rails: keys.map((railKey, position) => ({
+            railKey,
+            position,
+            enabled: true,
+            rotationPool: null,
+            weight: 1,
+        })),
+    };
+    const item = (id: number, performerId = id) => ({ id, performerId });
+    function plan(payloads: DiscoveryRailPayloadMap, selectedPolicy = policy) {
+        return selectDiscoveryRailPlan({
+            policy: selectedPolicy,
+            actorKey: "audit",
+            cycleIndex: 1,
+            payloads,
+        });
+    }
+
+    it("uses alternatives beyond eight and preserves provider order without mutating candidates", () => {
+        const tonight = Array.from({ length: 8 }, (_, n) => item(n + 1));
+        const alternatives = Array.from({ length: 8 }, (_, n) => item(n + 21));
+        const payloads: DiscoveryRailPayloadMap = {
+            shows_tonight: {
+                payloadKey: "tonight",
+                items: tonight,
+                selectionLimit: 8,
+            },
+            trending_this_week: {
+                payloadKey: "week",
+                items: [...tonight, ...alternatives],
+                selectionLimit: 8,
+            },
+            just_passing_through: {
+                payloadKey: "scarcity",
+                items: [item(31, 1), item(32, 40)],
+                selectionLimit: 1,
+            },
+            starting_to_buzz: {
+                payloadKey: "buzz",
+                items: [item(41, 40), item(42, 50)],
+                selectionLimit: 1,
+            },
+        };
+        const original = structuredClone(payloads);
+        expect(plan(payloads).rails.map((rail) => rail.itemIds)).toEqual([
+            tonight.map((show) => String(show.id)),
+            alternatives.map((show) => String(show.id)),
+            ["32"],
+            ["42"],
+        ]);
+        expect(plan(payloads)).toEqual(plan(payloads));
+        expect(payloads).toEqual(original);
+    });
+
+    it("keeps sparse urgency and momentum rails useful with only their eligible matches", () => {
+        const payloads: DiscoveryRailPayloadMap = Object.fromEntries(
+            keys.map((key) => [
+                key,
+                {
+                    payloadKey: key,
+                    items: [item(1, 100), item(2, 200)],
+                    selectionLimit: 8,
+                },
+            ]),
+        );
+        expect(plan(payloads).rails.map((rail) => rail.itemIds)).toEqual([
+            ["1", "2"],
+            ["1", "2"],
+            ["1", "2"],
+            ["1", "2"],
+        ]);
+    });
+
+    it("prefers a new show by a repeated performer before repeating the exact show", () => {
+        const payloads: DiscoveryRailPayloadMap = {
+            shows_tonight: {
+                payloadKey: "tonight",
+                items: [item(1, 100)],
+                selectionLimit: 1,
+            },
+            trending_this_week: {
+                payloadKey: "week",
+                items: [item(1, 100), item(2, 100)],
+                selectionLimit: 1,
+            },
+        };
+        expect(plan(payloads).rails.map((rail) => rail.itemIds)).toEqual([
+            ["1"],
+            ["2"],
+        ]);
+        const reordered = {
+            ...policy,
+            rails: policy.rails.map((rail) => ({
+                ...rail,
+                position: -rail.position,
+            })),
+        };
+        expect(
+            plan(payloads, reordered).rails.map((rail) => rail.itemIds),
+        ).toEqual([["1"], ["1"]]);
+    });
+
+    it("keeps distinct featured performers within a rail and tolerates missing identities", () => {
+        expect(
+            plan({
+                shows_tonight: {
+                    payloadKey: "tonight",
+                    selectionLimit: 3,
+                    items: [
+                        item(1, 100),
+                        item(2, 100),
+                        { id: 3 },
+                        item(4, 200),
+                        item(4, 200),
+                        { id: null },
+                    ],
+                },
+            }).rails[0].itemIds,
+        ).toEqual(["1", "3", "4"]);
+    });
+});

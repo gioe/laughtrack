@@ -32,6 +32,28 @@ import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
 
+import { inferHeadliner } from "@/util/show/showHeroImage";
+import type { ShowDTO } from "@/objects/class/show/show.interface";
+import {
+    HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    HOME_SHOW_RAIL_LIMIT,
+    selectDiverseShowsByTime,
+} from "@/lib/data/home/showRailSelection";
+
+function showPayload(payloadKey: string, shows: ShowDTO[]) {
+    return {
+        payloadKey,
+        selectionLimit: HOME_SHOW_RAIL_LIMIT,
+        items: shows.map((show) => {
+            const performer = inferHeadliner(show);
+            return {
+                id: show.id,
+                performerId: performer?.parentComedian?.id ?? performer?.id,
+            };
+        }),
+    };
+}
+
 const ZIP_RE = /^\d{5}$/;
 const HERO_SHOW_COUNT = 3;
 const MIN_DISTANCE_MILES = 1;
@@ -62,7 +84,7 @@ function withDynamicItemIds<
     T extends {
         railKey: DiscoveryRailKey;
         label: string;
-        items: readonly { show: { id: number } }[];
+        items: readonly { show: { id: number }; performer: { id: number } }[];
     },
 >(rail: T) {
     return {
@@ -184,26 +206,39 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                   )
                 : Promise.resolve([]),
             zipCode
-                ? getShowsTonight(timezone, zipCode, distanceMiles).catch(
-                      logSectionError("getShowsTonight"),
-                  )
-                : getShowsTonight(timezone).catch(
-                      logSectionError("getShowsTonight"),
-                  ),
+                ? getShowsTonight(
+                      timezone,
+                      zipCode,
+                      distanceMiles,
+                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+                  ).catch(logSectionError("getShowsTonight"))
+                : getShowsTonight(
+                      timezone,
+                      undefined,
+                      undefined,
+                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+                  ).catch(logSectionError("getShowsTonight")),
             zipCode
-                ? getShowsNearZip(zipCode, distanceMiles).catch(
-                      logSectionError("getShowsNearZip"),
-                  )
+                ? getShowsNearZip(
+                      zipCode,
+                      distanceMiles,
+                      undefined,
+                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+                  ).catch(logSectionError("getShowsNearZip"))
                 : Promise.resolve([]),
             zipCode
                 ? getTrendingShowsThisWeek(
                       timezone,
                       zipCode,
                       distanceMiles,
+                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
                   ).catch(logSectionError("getTrendingShowsThisWeek"))
-                : getTrendingShowsThisWeek(timezone).catch(
-                      logSectionError("getTrendingShowsThisWeek"),
-                  ),
+                : getTrendingShowsThisWeek(
+                      timezone,
+                      undefined,
+                      undefined,
+                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+                  ).catch(logSectionError("getTrendingShowsThisWeek")),
             getPodcastEpisodeDiscovery(profileId).catch(
                 logSectionError("getPodcastEpisodeDiscovery"),
             ),
@@ -215,18 +250,21 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                       profileId,
                       zipCode,
                       distanceMiles,
+                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
                   ).catch(logSectionError("getFavoriteComedianShows"))
                 : Promise.resolve([]),
             getTouringScarcityRails({
                 zipCode: zipCode ?? "",
                 radiusMiles: distanceMiles,
+                limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+                forFeedCandidates: true,
             }).catch(logProviderError("getTouringScarcityRails")),
-            getFreshAndRisingRails().catch(
-                logProviderError("getFreshAndRisingRails"),
-            ),
-            getAffinityRails(profileId).catch(
-                logProviderError("getAffinityRails"),
-            ),
+            getFreshAndRisingRails({
+                limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+            }).catch(logProviderError("getFreshAndRisingRails")),
+            getAffinityRails(profileId, {
+                limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+            }).catch(logProviderError("getAffinityRails")),
         ]);
 
         const dynamicRails = [
@@ -241,22 +279,24 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             (payloads, rail) => {
                 payloads[rail.railKey] = {
                     payloadKey: "dynamicRails",
-                    items: rail.items,
+                    items: rail.items.map((item) => ({
+                        id: item.id,
+                        performerId: item.performer.id,
+                    })),
+                    selectionLimit: HOME_SHOW_RAIL_LIMIT,
                 };
                 return payloads;
             },
             {},
         );
 
-        const heroShows = showsNearZip.slice(0, HERO_SHOW_COUNT);
-        const moreNearYou = showsNearZip.slice(HERO_SHOW_COUNT);
-        const higherPriorityShowIds = new Set(
-            [...showsNearZip, ...showsTonight, ...trendingThisWeek].map(
-                (show) => show.id,
-            ),
+        const heroShows = selectDiverseShowsByTime(showsNearZip).slice(
+            0,
+            HERO_SHOW_COUNT,
         );
-        const followedComedianShows = followedComedianShowCandidates.filter(
-            (show) => !higherPriorityShowIds.has(show.id),
+        const heroShowIds = new Set(heroShows.map((show) => show.id));
+        const moreNearYou = showsNearZip.filter(
+            (show) => !heroShowIds.has(show.id),
         );
         const policy = await policyPromise;
         const railPlan = selectDiscoveryRailPlan({
@@ -269,18 +309,15 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 policy.cycleCadenceHours,
             ),
             payloads: {
-                shows_tonight: {
-                    payloadKey: "showsTonight",
-                    items: showsTonight,
-                },
-                followed_comedian_shows: {
-                    payloadKey: "followedComedianShows",
-                    items: followedComedianShowCandidates,
-                },
-                trending_this_week: {
-                    payloadKey: "trendingThisWeek",
-                    items: trendingThisWeek,
-                },
+                shows_tonight: showPayload("showsTonight", showsTonight),
+                followed_comedian_shows: showPayload(
+                    "followedComedianShows",
+                    followedComedianShowCandidates,
+                ),
+                trending_this_week: showPayload(
+                    "trendingThisWeek",
+                    trendingThisWeek,
+                ),
                 trending_comedians: {
                     payloadKey: "trendingComedians",
                     items: trendingComedians,
@@ -293,13 +330,25 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     payloadKey: "podcastEpisodes",
                     items: podcastEpisodes,
                 },
-                nearby_shows: {
-                    payloadKey: "moreNearYou",
-                    items: moreNearYou,
-                },
+                nearby_shows: showPayload("moreNearYou", moreNearYou),
                 ...dynamicPayloads,
             },
         });
+
+        // Keep legacy payloads bounded and make every plan ID resolvable.
+        // Disabled/rotated-out rails retain their normal bounded fallback payload.
+        const selectedItems = <T extends { id: number }>(
+            key: DiscoveryRailKey,
+            items: readonly T[],
+        ): T[] => {
+            const entry = railPlan.rails.find((rail) => rail.railKey === key);
+            if (!entry) return items.slice(0, HOME_SHOW_RAIL_LIMIT);
+            const byId = new Map(items.map((item) => [String(item.id), item]));
+            return entry.itemIds.flatMap((id) => {
+                const item = byId.get(id);
+                return item ? [item] : [];
+            });
+        };
 
         return NextResponse.json(
             {
@@ -312,14 +361,23 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     },
                     trendingComedians,
                     comediansNearYou,
-                    showsTonight,
-                    moreNearYou,
-                    trendingThisWeek,
-                    followedComedianShows,
+                    showsTonight: selectedItems("shows_tonight", showsTonight),
+                    moreNearYou: selectedItems("nearby_shows", moreNearYou),
+                    trendingThisWeek: selectedItems(
+                        "trending_this_week",
+                        trendingThisWeek,
+                    ),
+                    followedComedianShows: selectedItems(
+                        "followed_comedian_shows",
+                        followedComedianShowCandidates,
+                    ),
                     podcastEpisodes,
                     trendingPodcasts,
                     popularClubs,
-                    dynamicRails,
+                    dynamicRails: dynamicRails.map((rail) => ({
+                        ...rail,
+                        items: selectedItems(rail.railKey, rail.items),
+                    })),
                     railPlan,
                 },
             },

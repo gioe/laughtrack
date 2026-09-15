@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { findShowsForHome } from "./findShowsForHome";
 import {
     HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    HOME_SHOW_RAIL_LIMIT,
     selectDiverseShowsByTime,
 } from "./showRailSelection";
 
@@ -71,6 +72,7 @@ export async function getFavoriteComedianShows(
     profileId?: string | null,
     zipCode?: string | null,
     radius?: number,
+    selectionLimit: number = HOME_SHOW_RAIL_LIMIT,
 ): Promise<ShowDTO[]> {
     if (!profileId) {
         return [];
@@ -117,5 +119,8 @@ export async function getFavoriteComedianShows(
               },
     );
 
-    return selectDiverseShowsByTime(candidates);
+    return selectDiverseShowsByTime(
+        candidates,
+        Math.min(selectionLimit, HOME_SHOW_RAIL_CANDIDATE_LIMIT),
+    );
 }

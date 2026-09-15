@@ -12,7 +12,12 @@ export type DiscoveryRailItemId = string | number;
 
 export interface DiscoveryRailPayload {
     payloadKey: string;
-    items: readonly { id?: DiscoveryRailItemId | null }[];
+    items: readonly {
+        id?: DiscoveryRailItemId | null;
+        performerId?: DiscoveryRailItemId | null;
+    }[];
+    /** Opt into bounded candidate selection; omitted preserves strict ID dedup. */
+    selectionLimit?: number;
 }
 
 export type DiscoveryRailPayloadMap = Partial<
@@ -150,6 +155,46 @@ function selectPolicyRails({
         .map(({ rail }) => rail);
 }
 
+/** Prefer novel eligible candidates, then reuse strong matches in sparse pools.
+ * Each pass preserves provider ranking; final order preserves its chronology or
+ * relevance score. No eligibility or evidence is manufactured by this layer.
+ */
+function selectShowCandidates(
+    payload: DiscoveryRailPayload,
+    seenShows: Set<string>,
+    seenPerformers: Set<string>,
+): string[] {
+    const limit = Math.max(0, Math.trunc(payload.selectionLimit ?? 0));
+    const selected = new Set<string>();
+    const performers = new Set(seenPerformers);
+    for (let tier = 0; tier < 3 && selected.size < limit; tier += 1) {
+        for (const item of payload.items) {
+            if (selected.size >= limit) break;
+            if (item.id === undefined || item.id === null) continue;
+            const id = String(item.id);
+            const performer =
+                item.performerId == null ? null : String(item.performerId);
+            if (selected.has(id)) continue;
+            if (tier < 2 && seenShows.has(id)) continue;
+            if (tier === 0 && performer !== null && performers.has(performer))
+                continue;
+            selected.add(id);
+            if (performer !== null) performers.add(performer);
+        }
+    }
+    const ordered: string[] = [];
+    for (const item of payload.items) {
+        if (item.id == null) continue;
+        const id = String(item.id);
+        if (!selected.delete(id)) continue;
+        ordered.push(id);
+        seenShows.add(id);
+        if (item.performerId != null)
+            seenPerformers.add(String(item.performerId));
+    }
+    return ordered;
+}
+
 /** Builds a JSON-safe, ordered plan without mutating the policy or payloads. */
 export function selectDiscoveryRailPlan({
     policy,
@@ -158,6 +203,7 @@ export function selectDiscoveryRailPlan({
     payloads,
 }: SelectDiscoveryRailPlanOptions): DiscoveryRailPlan {
     const seenShowIds = new Set<string>();
+    const seenPerformerIds = new Set<string>();
     const rails: DiscoveryRailPlanEntry[] = [];
 
     for (const selectedRail of selectPolicyRails({
@@ -168,18 +214,23 @@ export function selectDiscoveryRailPlan({
         const payload = payloads[selectedRail.railKey];
         if (!payload) continue;
 
-        const itemIds = payload.items
-            .flatMap((item) =>
-                item.id === undefined || item.id === null
-                    ? []
-                    : [String(item.id)],
-            )
-            .filter((itemId) => {
-                if (!SHOW_RAIL_KEYS.has(selectedRail.railKey)) return true;
-                if (seenShowIds.has(itemId)) return false;
-                seenShowIds.add(itemId);
-                return true;
-            });
+        const itemIds =
+            SHOW_RAIL_KEYS.has(selectedRail.railKey) &&
+            payload.selectionLimit !== undefined
+                ? selectShowCandidates(payload, seenShowIds, seenPerformerIds)
+                : payload.items
+                      .flatMap((item) =>
+                          item.id === undefined || item.id === null
+                              ? []
+                              : [String(item.id)],
+                      )
+                      .filter((itemId) => {
+                          if (!SHOW_RAIL_KEYS.has(selectedRail.railKey))
+                              return true;
+                          if (seenShowIds.has(itemId)) return false;
+                          seenShowIds.add(itemId);
+                          return true;
+                      });
 
         if (itemIds.length === 0) continue;
         rails.push({

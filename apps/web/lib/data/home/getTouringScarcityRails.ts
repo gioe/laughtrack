@@ -77,6 +77,8 @@ export interface TouringScarcityOptions {
     now?: Date;
     horizonDays?: number;
     limit?: number;
+    /** Return a bounded pool of distinct visitors for feed-level selection. */
+    forFeedCandidates?: boolean;
 }
 
 /**
@@ -695,6 +697,11 @@ export async function getTouringScarcityRails(
             seenPerformerIds.add(performer.id);
             return true;
         })
-        .slice(0, Math.min(limit, TOURING_SCARCITY_RAIL_LIMIT));
+        .slice(
+            0,
+            options.forFeedCandidates
+                ? limit
+                : Math.min(limit, TOURING_SCARCITY_RAIL_LIMIT),
+        );
     return rails;
 }

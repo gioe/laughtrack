@@ -4,6 +4,7 @@ import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import { findShowsForHome } from "./findShowsForHome";
 import {
     HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    HOME_SHOW_RAIL_LIMIT,
     selectDiverseShowsByTime,
 } from "./showRailSelection";
 
@@ -11,6 +12,7 @@ export async function getTrendingShowsThisWeek(
     timezone: string = "UTC",
     zipCode?: string,
     radius?: number,
+    selectionLimit: number = HOME_SHOW_RAIL_LIMIT,
 ): Promise<ShowDTO[]> {
     const now = new Date();
     // Lower bound stays at instant-now (asymmetric with the upper bound) to
@@ -42,5 +44,8 @@ export async function getTrendingShowsThisWeek(
             : { sortByHomeRelevance: false, requireLineup: true },
     );
 
-    return selectDiverseShowsByTime(candidates);
+    return selectDiverseShowsByTime(
+        candidates,
+        Math.min(selectionLimit, HOME_SHOW_RAIL_CANDIDATE_LIMIT),
+    );
 }

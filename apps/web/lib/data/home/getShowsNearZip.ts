@@ -11,6 +11,7 @@ import {
 import { findShowsForHome } from "./findShowsForHome";
 import {
     HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+    HOME_SHOW_RAIL_LIMIT,
     selectDiverseShowsByTime,
 } from "./showRailSelection";
 import {
@@ -63,6 +64,7 @@ export async function getShowsNearZip(
     zipCode: string,
     radius?: number,
     candidateOptions?: NearYouCandidateOptions,
+    selectionLimit: number = HOME_SHOW_RAIL_LIMIT,
 ): Promise<ShowDTO[]> {
     if (!zipCode || !/^\d{5}(-\d{4})?$/.test(zipCode)) return [];
 
@@ -84,7 +86,10 @@ export async function getShowsNearZip(
                 requireLineup: true,
             },
         );
-        return selectDiverseShowsByTime(candidates);
+        return selectDiverseShowsByTime(
+            candidates,
+            Math.min(selectionLimit, HOME_SHOW_RAIL_CANDIDATE_LIMIT),
+        );
     }
 
     const candidates = await findShowsForHome(
@@ -124,7 +129,10 @@ export async function getShowsNearZip(
             take: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
         },
     );
-    return selectDiverseShowsByTime(rankedCandidates);
+    return selectDiverseShowsByTime(
+        rankedCandidates,
+        Math.min(selectionLimit, HOME_SHOW_RAIL_CANDIDATE_LIMIT),
+    );
 }
 
 function controlAvailability(show: ShowDTO): DiscoveryAvailabilityAtImpression {

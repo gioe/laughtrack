@@ -12,6 +12,7 @@ export async function getShowsTonight(
     timezone: string = "UTC",
     zipCode?: string,
     radius?: number,
+    selectionLimit: number = HOME_SHOW_RAIL_LIMIT,
 ): Promise<ShowDTO[]> {
     // West Coast users hitting "tonight" in the morning local were getting
     // tomorrow's UTC day until this anchored on the caller's wallclock date.
@@ -38,7 +39,11 @@ export async function getShowsTonight(
             : { sortByHomeRelevance: false, requireLineup: true },
     );
 
-    return selectDiverseShowsByTime(candidates, HOME_SHOW_RAIL_LIMIT, {
-        maxPerTimestamp: 1,
-    });
+    return selectDiverseShowsByTime(
+        candidates,
+        Math.min(selectionLimit, HOME_SHOW_RAIL_CANDIDATE_LIMIT),
+        {
+            maxPerTimestamp: 1,
+        },
+    );
 }
