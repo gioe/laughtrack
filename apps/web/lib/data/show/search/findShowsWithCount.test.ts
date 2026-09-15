@@ -28,11 +28,14 @@ type FindManyArgs = {
     };
 };
 
-const { mockCount, mockFindMany, mockResolveIdentity } = vi.hoisted(() => ({
-    mockCount: vi.fn(),
-    mockFindMany: vi.fn(),
-    mockResolveIdentity: vi.fn(),
-}));
+const { mockCount, mockFindMany, mockResolveIdentity, mockClubs } = vi.hoisted(
+    () => ({
+        mockClubs: vi.fn(),
+        mockCount: vi.fn(),
+        mockFindMany: vi.fn(),
+        mockResolveIdentity: vi.fn(),
+    }),
+);
 
 const availableShowWhere = {
     AND: [
@@ -49,7 +52,10 @@ const availableShowWhere = {
 };
 
 vi.mock("@/lib/db", () => ({
-    db: { show: { count: mockCount, findMany: mockFindMany } },
+    db: {
+        club: { groupBy: mockClubs },
+        show: { count: mockCount, findMany: mockFindMany },
+    },
 }));
 vi.mock("@/lib/data/comedian/detail/resolveCanonicalComedianIdentity", () => ({
     resolveCanonicalComedianIdentityByName: mockResolveIdentity,
@@ -197,6 +203,36 @@ describe("QueryHelper canonical comedian lineup clause", () => {
 });
 
 describe("findShowsWithCount", () => {
+    it("applies venue dates to both total and paginated results before taking a page", async () => {
+        mockClubs.mockResolvedValue([{ timezone: "America/Los_Angeles" }]);
+        mockCount.mockResolvedValue(40);
+        const helper = new QueryHelper({
+            params: {
+                dateBasis: "venue",
+                fromDate: "2030-08-18",
+                toDate: "2030-08-18",
+                page: "2",
+                size: "10",
+            },
+            timezone: "America/New_York",
+        });
+        const result = await findShowsWithCount(helper);
+        const countWhere = mockCount.mock.calls[0][0].where;
+        const listArgs = mockFindMany.mock.calls[0][0];
+        expect(countWhere.OR).toEqual([
+            {
+                club: { timezone: "America/Los_Angeles" },
+                date: {
+                    gte: "2030-08-18T07:00:00.000Z",
+                    lt: "2030-08-19T07:00:00.000Z",
+                },
+            },
+        ]);
+        expect(listArgs.where).toEqual(countWhere);
+        expect(listArgs.take).toBe(10);
+        expect(listArgs.skip).toBe(10);
+        expect(result.totalCount).toBe(40);
+    });
     describe("happy path", () => {
         it("uses exact canonical UUIDs instead of substring name matching", async () => {
             const helper = makeHelper({ comedian: "Chris D'Elia" });

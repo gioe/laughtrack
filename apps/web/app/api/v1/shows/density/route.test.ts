@@ -45,6 +45,27 @@ beforeEach(() => {
 });
 
 describe("GET /api/v1/shows/density", () => {
+    it("passes venue date basis to density", async () => {
+        const res = await GET(
+            makeRequest({
+                dateBasis: "venue",
+                from: "2030-08-18",
+                to: "2030-08-18",
+            }),
+        );
+        expect(res.status).toBe(200);
+        expect(mockFindShowDensity).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({ dateBasis: "venue" }),
+                timezone: "America/New_York",
+            }),
+        );
+    });
+    it("rejects invalid date basis", async () => {
+        const res = await GET(makeRequest({ dateBasis: "other" }));
+        expect(res.status).toBe(400);
+        expect(mockFindShowDensity).not.toHaveBeenCalled();
+    });
     it("returns show counts keyed by ISO date", async () => {
         const res = await GET(
             makeRequest({

@@ -1,17 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockFindMany, mockResolveIdentity } = vi.hoisted(() => ({
+const { mockFindMany, mockResolveIdentity, mockClubs } = vi.hoisted(() => ({
+    mockClubs: vi.fn(),
     mockFindMany: vi.fn(),
     mockResolveIdentity: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
-    db: { show: { findMany: mockFindMany } },
+    db: { club: { groupBy: mockClubs }, show: { findMany: mockFindMany } },
 }));
 vi.mock("@/lib/data/comedian/detail/resolveCanonicalComedianIdentity", () => ({
     resolveCanonicalComedianIdentityByName: mockResolveIdentity,
 }));
 
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { findShowDensity } from "./findShowDensity";
 
 function makeHelper(comedian?: string) {
@@ -50,6 +52,53 @@ beforeEach(() => {
 });
 
 describe("findShowDensity", () => {
+    it("counts mixed venue civil days with the same missing-zone fallback as filtering", async () => {
+        mockClubs.mockResolvedValue([
+            { timezone: "America/Los_Angeles" },
+            { timezone: "America/New_York" },
+            { timezone: null },
+            { timezone: "Not/AZone" },
+        ]);
+        mockFindMany.mockResolvedValue([
+            {
+                date: new Date("2030-08-19T06:30:00Z"),
+                club: { timezone: "America/Los_Angeles" },
+            },
+            {
+                date: new Date("2030-08-19T03:30:00Z"),
+                club: { timezone: "America/New_York" },
+            },
+            {
+                date: new Date("2030-08-19T03:30:00Z"),
+                club: { timezone: null },
+            },
+            {
+                date: new Date("2030-08-19T03:30:00Z"),
+                club: { timezone: "Not/AZone" },
+            },
+            {
+                date: new Date("2030-08-19T07:30:00Z"),
+                club: { timezone: "America/Los_Angeles" },
+            },
+        ]);
+        const helper = new QueryHelper({
+            params: {
+                dateBasis: "venue",
+                fromDate: "2030-08-18",
+                toDate: "2030-08-19",
+            },
+            timezone: "America/New_York",
+        });
+        expect(await findShowDensity(helper)).toEqual({
+            "2030-08-18": 4,
+            "2030-08-19": 1,
+        });
+        expect(mockFindMany.mock.calls[0][0].where.OR).toHaveLength(4);
+        expect(mockFindMany.mock.calls[0][0].select).toEqual({
+            date: true,
+            club: { select: { timezone: true } },
+        });
+    });
     it("returns integer counts keyed by ISO date in the request timezone", async () => {
         mockFindMany.mockResolvedValue([
             { date: new Date("2026-06-01T23:30:00.000Z") },

@@ -49,6 +49,31 @@ beforeEach(() => {
 });
 
 describe("GET /api/v1/shows/search", () => {
+    it("opts into venue dates without changing the fallback timezone", async () => {
+        mockGetSearchedShows.mockResolvedValue({
+            data: [],
+            total: 0,
+            filters: [],
+            zipCapTriggered: false,
+        });
+        const res = await GET(
+            makeRequestWithQuery(
+                "dateBasis=venue&from=2030-08-18&to=2030-08-18",
+            ),
+        );
+        expect(res.status).toBe(200);
+        expect(mockGetSearchedShows).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({ dateBasis: "venue" }),
+                timezone: "UTC",
+            }),
+        );
+    });
+    it("rejects invalid date basis", async () => {
+        const res = await GET(makeRequestWithQuery("dateBasis=other"));
+        expect(res.status).toBe(400);
+        expect(mockGetSearchedShows).not.toHaveBeenCalled();
+    });
     // Pin camelCase wire keys distinctive to this route: `zipCapTriggered`
     // (root) and a representative show field, so a future regression
     // (e.g. zipCapTriggered → zip_cap_triggered) surfaces here.
