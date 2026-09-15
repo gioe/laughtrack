@@ -27,99 +27,114 @@ struct LocationFilterSheet<Model: SearchLocationFilterModel>: View {
     @Binding var isPresented: Bool
     var title: String = "Location"
     var subtitle: String = "Set the location used for nearby shows."
+    var distance: Binding<ShowDistanceOption>? = nil
 
     @Environment(\.appTheme) private var theme
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.lg) {
-            HStack(alignment: .top, spacing: theme.spacing.md) {
-                VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                    Text(title)
-                        .font(laughTrack.typography.cardTitle)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: theme.spacing.lg) {
+                HStack(alignment: .top, spacing: theme.spacing.md) {
+                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                        Text(title)
+                            .font(laughTrack.typography.cardTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
 
-                    Text(subtitle)
-                        .font(laughTrack.typography.body)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        Text(subtitle)
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    Button {
+                        isPresented = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .frame(width: 44, height: 44)
+                            .background(laughTrack.colors.surfaceElevated)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Close")
                 }
 
-                Spacer(minLength: 0)
-
-                Button {
-                    isPresented = false
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: theme.iconSizes.sm, weight: .bold))
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                        .frame(width: 36, height: 36)
-                        .background(laughTrack.colors.surfaceElevated)
-                        .clipShape(Circle())
+                LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
+                    Button {
+                        applyZip()
+                    } label: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.accent)
+                            .frame(minWidth: 44, minHeight: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Apply ZIP")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Close")
-            }
+                .modifier(SearchFieldInputBehavior())
+                #if os(iOS)
+                .keyboardType(UIKeyboardType.numberPad)
+                #endif
+                .onSubmit(applyZip)
 
-            LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
-                Button {
-                    applyZip()
-                } label: {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: theme.iconSizes.md, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.accent)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Apply ZIP")
-            }
-            .modifier(SearchFieldInputBehavior())
-            #if os(iOS)
-            .keyboardType(UIKeyboardType.numberPad)
-            #endif
-            .onSubmit(applyZip)
-
-            VStack(spacing: theme.spacing.sm) {
-                LaughTrackButton("Apply", systemImage: "checkmark", density: .compact) {
-                    applyZip()
+                if let distance {
+                    Picker("Radius", selection: distance) {
+                        ForEach(ShowDistanceOption.allCases) { option in
+                            Text(option.title).tag(option)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(minHeight: 44)
+                    .accessibilityLabel("Search radius")
                 }
 
-                LaughTrackButton(
-                    model.isResolvingCurrentLocation ? "Finding ZIP..." : "Use my location",
-                    systemImage: "location.fill",
-                    tone: .secondary,
-                    density: .compact
-                ) {
-                    Task {
-                        let didResolve = await model.useCurrentLocation()
-                        if didResolve {
+                VStack(spacing: theme.spacing.sm) {
+                    LaughTrackButton("Apply", systemImage: "checkmark", density: .compact) {
+                        applyZip()
+                    }
+
+                    LaughTrackButton(
+                        model.isResolvingCurrentLocation ? "Finding ZIP..." : "Use my location",
+                        systemImage: "location.fill",
+                        tone: .secondary,
+                        density: .compact
+                    ) {
+                        Task {
+                            let didResolve = await model.useCurrentLocation()
+                            if didResolve {
+                                isPresented = false
+                            }
+                        }
+                    }
+                    .disabled(model.isResolvingCurrentLocation)
+
+                    if model.activeNearbyPreference != nil {
+                        LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact) {
+                            model.clearLocation()
                             isPresented = false
                         }
                     }
                 }
-                .disabled(model.isResolvingCurrentLocation)
 
-                if model.activeNearbyPreference != nil {
-                    LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact) {
-                        model.clearLocation()
-                        isPresented = false
+                if let nearbyStatusMessage = model.nearbyStatusMessage {
+                    InlineStatusMessage(message: nearbyStatusMessage)
+
+                    if nearbyStatusMessage == NearbyLocationError.denied.recoveryMessage {
+                        LaughTrackButton("Open Settings", systemImage: "gearshape", tone: .secondary, density: .compact, fullWidth: false) {
+                            openAppSettings()
+                        }
                     }
                 }
+
+                Spacer(minLength: 0)
             }
-
-            if let nearbyStatusMessage = model.nearbyStatusMessage {
-                InlineStatusMessage(message: nearbyStatusMessage)
-
-                if nearbyStatusMessage == NearbyLocationError.denied.recoveryMessage {
-                    LaughTrackButton("Open Settings", systemImage: "gearshape", tone: .secondary, density: .compact, fullWidth: false) {
-                        openAppSettings()
-                    }
-                }
-            }
-
-            Spacer(minLength: 0)
+            .padding(theme.spacing.xl)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(theme.spacing.xl)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .presentationDetents([.medium, .large])
     }
 

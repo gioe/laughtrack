@@ -84,13 +84,13 @@ struct ShowsListView: View {
     var isActive = true
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @State private var isZipEditorPresented = false
     @State private var isFilterEditorPresented = false
     @State private var isDateEditorPresented = false
     @State private var isOptionalSearchExpanded = false
-    @State private var openDropdownID: String?
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -104,15 +104,12 @@ struct ShowsListView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
                 ShowFiltersPanel(
                     model: model,
-                    filters: currentFilters,
-                    total: currentTotal,
                     isZipEditorPresented: $isZipEditorPresented,
                     isFilterEditorPresented: $isFilterEditorPresented,
                     isDateEditorPresented: $isDateEditorPresented,
-                    openDropdownID: $openDropdownID,
                     compactMode: compactMode
                 )
 
@@ -140,6 +137,7 @@ struct ShowsListView: View {
                         Label("Add comedian or club", systemImage: "magnifyingglass")
                             .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
                             .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+                            .frame(minHeight: 44)
                     }
                 }
 
@@ -171,11 +169,7 @@ struct ShowsListView: View {
                     let state = model.resultsState(for: model.requestKey)
                     VStack(alignment: .leading, spacing: theme.spacing.md) {
                         if chrome.showsResultsStatus(for: state) {
-                            SearchResultsSummary(
-                                count: result.items.count, total: result.total, state: state,
-                                retry: { await model.reload(apiClient: apiClient, cache: pageCache) },
-                                signIn: { coordinator.push(.profile) }
-                            )
+                            resultsToolbar(count: result.items.count, total: result.total, state: state)
                         }
                         if result.items.isEmpty {
                             EmptyCard(
@@ -218,14 +212,6 @@ struct ShowsListView: View {
                                 if compactMode {
                                     showRows(result.items, standoutShowID: ShowsListStandout.resolveID(in: result.items))
                                 } else {
-                                    Picker("Results view", selection: $model.resultsPresentation) {
-                                        ForEach(ShowResultsPresentation.allCases) { presentation in
-                                            Text(presentation.title).tag(presentation)
-                                        }
-                                    }
-                                    .pickerStyle(.segmented)
-                                    .accessibilityLabel("Show results presentation")
-
                                     if model.resultsPresentation == .calendar {
                                         ShowResultsCalendarView(model: model, apiClient: apiClient)
                                     }
@@ -257,55 +243,20 @@ struct ShowsListView: View {
             await model.reload(apiClient: apiClient, cache: pageCache)
         }
         .sheet(isPresented: $isZipEditorPresented) {
-            LocationFilterSheet(model: model, isPresented: $isZipEditorPresented)
+            LocationFilterSheet(model: model, isPresented: $isZipEditorPresented, distance: $model.distance)
         }
         .sheet(isPresented: $isFilterEditorPresented) {
             SearchFilterModal(
                 filters: secondaryFilters,
                 total: currentTotal,
                 selectedSlugs: $model.selectedFilterSlugs,
-                isPresented: $isFilterEditorPresented
+                isPresented: $isFilterEditorPresented,
+                maximumPrice: $model.maximumPrice
             )
             .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $isDateEditorPresented) {
             ShowsDateRangeSheet(model: model, apiClient: apiClient, isPresented: $isDateEditorPresented)
-        }
-        .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
-            GeometryReader { proxy in
-                PillDropdownOverlay(
-                    id: "shows-distance",
-                    options: ShowDistanceOption.allCases,
-                    selected: $model.distance,
-                    triggerLabel: { $0.title },
-                    optionLabel: { $0.title },
-                    openDropdownID: $openDropdownID,
-                    anchors: anchors,
-                    proxy: proxy
-                )
-
-                PillDropdownOverlay(
-                    id: "shows-sort",
-                    options: ShowSortOption.allCases,
-                    selected: $model.sort,
-                    triggerLabel: { $0.title },
-                    optionLabel: { $0.title },
-                    openDropdownID: $openDropdownID,
-                    anchors: anchors,
-                    proxy: proxy
-                )
-
-                PillDropdownOverlay(
-                    id: "shows-max-price",
-                    options: ShowMaximumPriceOption.allCases,
-                    selected: $model.maximumPrice,
-                    triggerLabel: { $0 == .any ? "Max price" : $0.title },
-                    optionLabel: { $0.title },
-                    openDropdownID: $openDropdownID,
-                    anchors: anchors,
-                    proxy: proxy
-                )
-            }
         }
     }
 
@@ -361,8 +312,58 @@ struct ShowsListView: View {
         currentFilters.filter { ShowFilterFacetTaxonomy.isSecondary(slug: $0.slug) }
     }
 
+    private func resultsToolbar(count: Int, total: Int, state: SearchResultsState) -> some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.xs))
+            : AnyLayout(HStackLayout(spacing: theme.spacing.sm))
+        return layout {
+            SearchResultsSummary(
+                count: count, total: total, state: state,
+                retry: { await model.reload(apiClient: apiClient, cache: pageCache) },
+                signIn: { coordinator.push(.profile) }
+            )
+            if !compactMode {
+                HStack(spacing: theme.spacing.sm) {
+                    Menu {
+                        Picker("Sort shows", selection: $model.sort) {
+                            ForEach(ShowSortOption.allCases) { option in
+                                Text(option.title).tag(option)
+                            }
+                        }
+                    } label: {
+                        Label(model.sort.title, systemImage: "arrow.up.arrow.down")
+                            .font(theme.laughTrackTokens.typography.metadata)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("Sort shows")
+                    .accessibilityValue(model.sort.title)
+                    if dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 12) }
+                    Menu {
+                        Picker("Results view", selection: $model.resultsPresentation) {
+                            ForEach(ShowResultsPresentation.allCases) { presentation in
+                                Text(presentation.title).tag(presentation)
+                            }
+                        }
+                    } label: {
+                        Image(systemName: model.resultsPresentation == .agenda ? "list.bullet" : "calendar")
+                            .font(.system(size: 18, weight: .semibold))
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("Show results presentation")
+                    .accessibilityValue(model.resultsPresentation.title)
+                }
+                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+            }
+        }
+    }
+
     private var activeConstraints: [ShowActiveConstraint] {
-        model.activeConstraints(availableFilters: currentFilters)
+        model.activeConstraints(availableFilters: currentFilters).filter {
+            $0.kind != .location && $0.kind != .date
+        }
     }
 
     private var nationwideComedianSearchMessage: String? {
@@ -443,6 +444,7 @@ enum ShowsListEmptyMessage {
 
 private struct ShowActiveConstraintsView: View {
     @Environment(\.appTheme) private var theme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let constraints: [ShowActiveConstraint]
     let remove: (ShowActiveConstraintKind) -> Void
@@ -458,18 +460,26 @@ private struct ShowActiveConstraintsView: View {
                 Button("Clear all", action: clearAll)
                     .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
                     .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+                    .frame(minWidth: 44, minHeight: 44)
             }
 
-            ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.sm))
+                : AnyLayout(ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm))
+            layout {
                 ForEach(constraints) { constraint in
                     Button {
                         remove(constraint.kind)
                     } label: {
-                        LaughTrackBrowseChip(
-                            constraint.label,
-                            systemImage: "xmark",
-                            tone: .accent
-                        )
+                        Label(constraint.label, systemImage: "xmark")
+                            .font(theme.laughTrackTokens.typography.metadata)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .frame(minHeight: 44)
+                            .background(theme.laughTrackTokens.colors.accentMuted.opacity(0.25), in: RoundedRectangle(cornerRadius: 12))
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Remove \(constraint.label) filter")
@@ -481,142 +491,101 @@ private struct ShowActiveConstraintsView: View {
 
 private struct ShowFiltersPanel: View {
     @Environment(\.appTheme) private var theme
-
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject var model: ShowsListModel
-    let filters: [Components.Schemas.Filter]
-    let total: Int
     @Binding var isZipEditorPresented: Bool
     @Binding var isFilterEditorPresented: Bool
     @Binding var isDateEditorPresented: Bool
-    @Binding var openDropdownID: String?
     let compactMode: Bool
-
-    private var chrome: ShowsListChromeVisibility {
-        ShowsListChromeVisibility(compactMode: compactMode)
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
             if compactMode {
                 LaughTrackSectionHeader(title: "Search dates")
-            } else {
-                VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                    Text("EXPLORE SHOWS")
-                        .font(theme.laughTrackTokens.typography.eyebrow)
-                        .tracking(1.8)
-                        .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
-                        .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
-                    Text("Start with what matters")
-                        .font(theme.laughTrackTokens.typography.sectionTitle)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-                    Text("Choose a date, place, price, or kind of comedy. Add a comedian or club only when you want one.")
-                        .font(theme.laughTrackTokens.typography.metadata)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                }
             }
-
-            ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.xs))
+                : AnyLayout(HStackLayout(spacing: theme.spacing.sm))
+            layout {
                 if model.allowsLocationFiltering {
-                    PillSheetTrigger(
-                        title: zipChipTitle,
-                        systemImage: zipChipSystemImage,
-                        isActive: model.activeNearbyPreference != nil,
-                        accessibilityLabel: "Edit location",
-                        accessibilityHint: zipChipAccessibilityHint
-                    ) {
+                    headerButton(locationTitle, systemImage: "mappin.and.ellipse", active: model.activeNearbyPreference != nil) {
                         isZipEditorPresented = true
                     }
+                    .accessibilityLabel("Edit location and radius")
+                    .accessibilityValue(locationTitle)
+                    .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
                 }
-
-                if model.allowsLocationFiltering {
-                    PillDropdownTrigger(
-                        id: "shows-distance",
-                        selected: model.distance,
-                        triggerLabel: { $0.title },
-                        accessibilityLabel: { "Distance \($0.title)" },
-                        openDropdownID: $openDropdownID
-                    )
+                if !compactMode {
+                    if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
+                    headerButton(filterCount == 0 ? "Filters" : "Filters (\(filterCount))", systemImage: "line.3.horizontal.decrease", active: filterCount > 0) {
+                        isFilterEditorPresented = true
+                    }
+                    .accessibilityLabel("Show filters")
                 }
-
-                PillSheetTrigger(
-                    title: model.dateRange.pillLabel(),
-                    systemImage: "calendar",
-                    isActive: model.dateRange.isActive
-                ) {
+            }
+            if compactMode {
+                headerButton(model.dateRange.pillLabel(), systemImage: "calendar", active: model.dateRange.isActive) {
                     isDateEditorPresented = true
                 }
-
-                if chrome.showsFilterControl {
-                    PillDropdownTrigger(
-                        id: "shows-max-price",
-                        selected: model.maximumPrice,
-                        triggerLabel: { $0 == .any ? "Max price" : $0.title },
-                        accessibilityLabel: { $0 == .any ? "Maximum price" : $0.title },
-                        openDropdownID: $openDropdownID
-                    )
-
-                    if !secondaryFilters.isEmpty {
-                        PillSheetTrigger(
-                            title: secondaryFilterCount > 0 ? secondaryFilterCountTitle : "More filters",
-                            systemImage: "line.3.horizontal.decrease",
-                            isActive: secondaryFilterCount > 0,
-                            accessibilityLabel: "More show filters"
-                        ) {
-                            isFilterEditorPresented = true
+            } else {
+                layout {
+                    ForEach(ShowHeaderDateChoice.allCases) { choice in
+                        headerButton(choice.title, active: choice.matches(model.dateRange)) {
+                            model.applyDateShortcut(choice.rawValue)
                         }
+                        .accessibilityAddTraits(choice.matches(model.dateRange) ? .isSelected : [])
                     }
-
-                    PillDropdownTrigger(
-                        id: "shows-sort",
-                        selected: model.sort,
-                        triggerLabel: { $0.title },
-                        accessibilityLabel: { "Sort \($0.title)" },
-                        openDropdownID: $openDropdownID
-                    )
+                    Button {
+                        isDateEditorPresented = true
+                    } label: {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 18, weight: .semibold))
+                            .frame(width: 44, height: 44)
+                            .background(theme.laughTrackTokens.colors.surfaceElevated, in: RoundedRectangle(cornerRadius: 12))
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Choose dates")
+                    .accessibilityValue(model.dateRange.pillLabel())
+                }
+                if model.dateRange.isActive && !ShowHeaderDateChoice.allCases.contains(where: { $0.matches(model.dateRange) }) {
+                    headerButton(model.dateRange.pillLabel(), systemImage: "calendar", active: true) {
+                        isDateEditorPresented = true
+                    }
                 }
             }
-
-            if model.allowsLocationFiltering, let nearbyStatusMessage = model.nearbyStatusMessage {
-                InlineStatusMessage(message: nearbyStatusMessage)
+            if model.allowsLocationFiltering, let message = model.nearbyStatusMessage {
+                InlineStatusMessage(message: message)
             }
         }
     }
 
-    private var zipChipTitle: String {
-        if let activeLocationLabel = model.activeLocationLabel {
-            return "Location \(activeLocationLabel)"
+    private var locationTitle: String {
+        if model.isShowingNationwideComedianSearch { return "Nationwide" }
+        guard let location = model.activeLocationLabel else { return "Anywhere" }
+        return "\(location) · \(model.distance.title)"
+    }
+
+    private var filterCount: Int {
+        model.selectedFilterSlugs.count + (model.maximumPrice == .any ? 0 : 1)
+    }
+
+    private func headerButton(_ title: String, systemImage: String? = nil, active: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                if let systemImage { Image(systemName: systemImage) }
+                Text(title).fixedSize(horizontal: false, vertical: true)
+            }
+            .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
+            .foregroundStyle(active ? theme.laughTrackTokens.colors.accentStrong : theme.laughTrackTokens.colors.textPrimary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .frame(minHeight: 44)
+            .background(active ? theme.laughTrackTokens.colors.accentMuted.opacity(0.25) : theme.laughTrackTokens.colors.surfaceElevated, in: RoundedRectangle(cornerRadius: 12))
+            .contentShape(Rectangle())
         }
-
-        let draft = model.zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        return draft.isEmpty ? "Location" : "Location \(draft)"
+        .buttonStyle(.plain)
     }
-
-    private var zipChipSystemImage: String {
-        guard let source = model.activeNearbyPreference?.source else {
-            return "mappin.and.ellipse"
-        }
-        return source == .geolocated ? "location.fill" : "mappin.and.ellipse"
-    }
-
-    private var zipChipAccessibilityHint: String {
-        guard let source = model.activeNearbyPreference?.source else {
-            return "No location set."
-        }
-        return source == .geolocated ? "Detected from device location." : "Saved manually."
-    }
-
-    private var secondaryFilters: [Components.Schemas.Filter] {
-        filters.filter { ShowFilterFacetTaxonomy.isSecondary(slug: $0.slug) }
-    }
-
-    private var secondaryFilterCount: Int {
-        Set(secondaryFilters.map(\.slug)).intersection(model.selectedFilterSlugs).count
-    }
-
-    private var secondaryFilterCountTitle: String {
-        "\(secondaryFilterCount) more"
-    }
-
 }
 
 private struct ShowResultsCalendarView: View {

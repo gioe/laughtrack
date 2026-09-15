@@ -239,31 +239,8 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         now: Date = Date(),
         calendar: Calendar = .current
     ) {
-        let today = calendar.startOfDay(for: now)
-        switch shortcut {
-        case "Tonight":
-            dateRange = DateRangeFilter(
-                from: today,
-                to: today,
-                isActive: true
-            )
-        case "This Weekend":
-            let weekday = calendar.component(.weekday, from: today)
-            let daysFromFriday: Int
-            switch weekday {
-            case 1:
-                daysFromFriday = -2
-            case 7:
-                daysFromFriday = -1
-            default:
-                daysFromFriday = (6 - weekday + 7) % 7
-            }
-            let friday = calendar.date(byAdding: .day, value: daysFromFriday, to: today) ?? today
-            let sunday = calendar.date(byAdding: .day, value: 2, to: friday) ?? friday
-            dateRange = DateRangeFilter(from: max(today, friday), to: sunday, isActive: true)
-        default:
-            break
-        }
+        guard let choice = ShowHeaderDateChoice(rawValue: shortcut) else { return }
+        dateRange = choice.range(now: now, calendar: calendar)
         sort = .earliest
     }
 
@@ -477,5 +454,35 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
             zipCodeDraft = ""
             distance = .city
         }
+    }
+}
+
+/// Shared by the quick-date controls and query mutations so selected state
+/// always describes the same range sent to the API.
+enum ShowHeaderDateChoice: String, CaseIterable, Identifiable {
+    case tonight = "Tonight"
+    case weekend = "This Weekend"
+    case any = "Any date"
+
+    var id: String { rawValue }
+    var title: String { self == .weekend ? "This weekend" : rawValue }
+
+    func range(now: Date = Date(), calendar: Calendar = .current) -> DateRangeFilter {
+        let today = calendar.startOfDay(for: now)
+        guard self == .weekend else {
+            return DateRangeFilter(from: today, to: today, isActive: self == .tonight)
+        }
+        let weekday = calendar.component(.weekday, from: today)
+        let offset = weekday == 1 ? -2 : (weekday == 7 ? -1 : (6 - weekday + 7) % 7)
+        let friday = calendar.date(byAdding: .day, value: offset, to: today) ?? today
+        let sunday = calendar.date(byAdding: .day, value: 2, to: friday) ?? friday
+        return DateRangeFilter(from: max(today, friday), to: sunday, isActive: true)
+    }
+
+    func matches(_ value: DateRangeFilter, now: Date = Date(), calendar: Calendar = .current) -> Bool {
+        if self == .any { return !value.isActive }
+        guard value.isActive else { return false }
+        let expected = range(now: now, calendar: calendar)
+        return calendar.isDate(value.from, inSameDayAs: expected.from) && calendar.isDate(value.to, inSameDayAs: expected.to)
     }
 }

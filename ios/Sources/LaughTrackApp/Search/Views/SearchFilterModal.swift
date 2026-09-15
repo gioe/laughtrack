@@ -4,6 +4,7 @@ import LaughTrackBridge
 
 struct SearchFilterModal: View {
     @Environment(\.appTheme) private var theme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let filters: [Components.Schemas.Filter]
     /// Live result count — comes from `model.phase.total` at the call site and
@@ -11,6 +12,7 @@ struct SearchFilterModal: View {
     let total: Int
     @Binding var selectedSlugs: Set<String>
     @Binding var isPresented: Bool
+    var maximumPrice: Binding<ShowMaximumPriceOption>? = nil
 
     /// Snapshot of `selectedSlugs` taken when the sheet first appears, so
     /// dismiss-without-commit (X tap or drag-down) can restore the user's
@@ -20,146 +22,176 @@ struct SearchFilterModal: View {
     /// label live-update as the user experiments.
     @State private var initialSlugs: Set<String> = []
     @State private var didCommit = false
+    @State private var initialMaximumPrice: ShowMaximumPriceOption = .any
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.lg) {
-            HStack(alignment: .top, spacing: theme.spacing.md) {
-                VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                    Text("REFINE SEARCH")
-                        .font(.system(size: 11, weight: .heavy, design: .rounded))
-                        .tracking(2.2)
-                        .foregroundStyle(laughTrack.colors.accentStrong)
-
-                    Text("Filter results")
-                        .font(laughTrack.typography.sectionTitle)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-
-                    Text("Tap a tag to add or remove it. The result count updates live.")
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 0)
-
-                Button(action: cancel) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: theme.iconSizes.sm, weight: .bold))
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                        .frame(width: 36, height: 36)
-                        .background(laughTrack.colors.surfaceElevated)
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Close")
-            }
-
-            if filters.isEmpty {
-                Text("No filters available for this search.")
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .padding(.vertical, theme.spacing.md)
-            } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: theme.spacing.md) {
-                        Text("Filter By")
+        ScrollView {
+            VStack(alignment: .leading, spacing: theme.spacing.lg) {
+                HStack(alignment: .top, spacing: theme.spacing.md) {
+                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                        Text("REFINE SEARCH")
                             .font(.system(size: 11, weight: .heavy, design: .rounded))
-                            .tracking(2)
-                            .textCase(.uppercase)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .tracking(2.2)
+                            .foregroundStyle(laughTrack.colors.accentStrong)
 
-                        ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
-                            ForEach(filters, id: \.slug) { filter in
-                                FilterMarqueeChip(
-                                    title: filter.name,
-                                    isSelected: selectedSlugs.contains(filter.slug)
-                                ) {
-                                    toggle(filter.slug)
+                        Text("Filter results")
+                            .font(laughTrack.typography.sectionTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+
+                        Text(maximumPrice == nil
+                             ? "Tap a tag to add or remove it. The result count updates live."
+                             : "Choose a price limit or kind of comedy.")
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    Button(action: cancel) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .frame(width: 44, height: 44)
+                            .background(laughTrack.colors.surfaceElevated)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Close")
+                }
+
+                Group {
+                    VStack(alignment: .leading, spacing: theme.spacing.md) {
+                        if let maximumPrice {
+                            Picker("Maximum price", selection: maximumPrice) {
+                                ForEach(ShowMaximumPriceOption.allCases) { option in
+                                    Text(option.title).tag(option)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .frame(minHeight: 44)
+                            .accessibilityLabel("Maximum price")
+                        }
+
+                        if filters.isEmpty {
+                            if maximumPrice == nil {
+                                Text("No filters available for this search.")
+                                    .font(laughTrack.typography.metadata)
+                                    .foregroundStyle(laughTrack.colors.textSecondary)
+                                    .padding(.vertical, theme.spacing.md)
+                            }
+                        } else {
+                            Text("Filter By")
+                                .font(laughTrack.typography.metadata.weight(.semibold))
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+
+                            if dynamicTypeSize.isAccessibilitySize {
+                                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                                    filterChips
+                                }
+                            } else {
+                                ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
+                                    filterChips
                                 }
                             }
                         }
                     }
                     .padding(.vertical, 2)
                 }
-            }
 
-            VStack(spacing: theme.spacing.sm) {
-                Button {
-                    didCommit = true
-                    isPresented = false
-                } label: {
-                    HStack(spacing: 8) {
-                        Text("Show \(total.formatted()) results".uppercased())
-                            .font(.system(size: 13, weight: .heavy, design: .rounded))
-                            .tracking(1.2)
-                            .contentTransition(.numericText())
-                            .animation(.easeOut(duration: 0.2), value: total)
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 12, weight: .bold))
+                VStack(spacing: theme.spacing.sm) {
+                    Button {
+                        didCommit = true
+                        isPresented = false
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text("Show \(total.formatted()) results".uppercased())
+                                .font(.system(size: 13, weight: .heavy, design: .rounded))
+                                .tracking(1.2)
+                                .contentTransition(.numericText())
+                                .animation(.easeOut(duration: 0.2), value: total)
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .frame(minHeight: 44)
+                        .background(laughTrack.colors.accentStrong)
+                        .clipShape(Capsule(style: .continuous))
+                        .shadow(color: laughTrack.colors.accentStrong.opacity(0.45), radius: 8, y: 3)
                     }
-                    .foregroundStyle(Color.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(laughTrack.colors.accentStrong)
-                    .clipShape(Capsule(style: .continuous))
-                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.45), radius: 8, y: 3)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Show \(total.formatted()) results")
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Show \(total.formatted()) results")
 
-                Button {
-                    selectedSlugs = []
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.counterclockwise")
-                            .font(.system(size: 12, weight: .bold))
-                        Text("Reset all filters")
-                            .font(laughTrack.typography.metadata.weight(.semibold))
+                    Button {
+                        selectedSlugs = []
+                        maximumPrice?.wrappedValue = .any
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.system(size: 12, weight: .bold))
+                            Text("Reset all filters")
+                                .font(laughTrack.typography.metadata.weight(.semibold))
+                        }
+                        .foregroundStyle(
+                            !hasActiveFilters
+                                ? laughTrack.colors.textSecondary.opacity(0.45)
+                                : laughTrack.colors.textSecondary
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .frame(minHeight: 44)
+                        .overlay(
+                            Capsule(style: .continuous)
+                                .strokeBorder(
+                                    (!hasActiveFilters
+                                        ? laughTrack.colors.textSecondary.opacity(0.25)
+                                        : laughTrack.colors.textSecondary.opacity(0.6)),
+                                    lineWidth: 1
+                                )
+                        )
                     }
-                    .foregroundStyle(
-                        selectedSlugs.isEmpty
-                            ? laughTrack.colors.textSecondary.opacity(0.45)
-                            : laughTrack.colors.textSecondary
-                    )
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .overlay(
-                        Capsule(style: .continuous)
-                            .strokeBorder(
-                                (selectedSlugs.isEmpty
-                                    ? laughTrack.colors.textSecondary.opacity(0.25)
-                                    : laughTrack.colors.textSecondary.opacity(0.6)),
-                                lineWidth: 1
-                            )
-                    )
+                    .buttonStyle(.plain)
+                    .disabled(!hasActiveFilters)
+                    .accessibilityLabel("Reset all filters")
+                    .accessibilityHint(hasActiveFilters
+                        ? (maximumPrice == nil ? "Clears the selected filters." : "Clears the selected filters and price limit.")
+                        : "No filters are currently applied.")
                 }
-                .buttonStyle(.plain)
-                .disabled(selectedSlugs.isEmpty)
-                .accessibilityLabel("Reset all filters")
-                .accessibilityHint(selectedSlugs.isEmpty
-                    ? "No filters are currently applied."
-                    : "Clears the \(selectedSlugs.count) selected filter\(selectedSlugs.count == 1 ? "" : "s").")
-            }
 
-            Spacer(minLength: 0)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, theme.spacing.xl)
+            .padding(.top, theme.spacing.xl)
+            .padding(.bottom, theme.spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, theme.spacing.xl)
-        .padding(.top, theme.spacing.xl)
-        .padding(.bottom, theme.spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .background(LaughTrackAtmosphereBackground())
         .onAppear {
             initialSlugs = selectedSlugs
+            initialMaximumPrice = maximumPrice?.wrappedValue ?? .any
             didCommit = false
         }
         .onDisappear {
             // Drag-to-dismiss bypasses `cancel()`, so re-apply the snapshot
             // here whenever the sheet closes without an explicit commit. No-op
             // when the user already confirmed via the action button.
-            if !didCommit && selectedSlugs != initialSlugs {
-                selectedSlugs = initialSlugs
+            if !didCommit {
+                restoreInitialSelection()
+            }
+        }
+    }
+
+    private var filterChips: some View {
+        ForEach(filters, id: \.slug) { filter in
+            FilterMarqueeChip(
+                title: filter.name,
+                isSelected: selectedSlugs.contains(filter.slug)
+            ) {
+                toggle(filter.slug)
             }
         }
     }
@@ -172,8 +204,19 @@ struct SearchFilterModal: View {
         }
     }
 
+    private var hasActiveFilters: Bool {
+        !selectedSlugs.isEmpty || (maximumPrice?.wrappedValue ?? .any) != .any
+    }
+
+    private func restoreInitialSelection() {
+        if selectedSlugs != initialSlugs { selectedSlugs = initialSlugs }
+        if let maximumPrice, maximumPrice.wrappedValue != initialMaximumPrice {
+            maximumPrice.wrappedValue = initialMaximumPrice
+        }
+    }
+
     private func cancel() {
-        selectedSlugs = initialSlugs
+        restoreInitialSelection()
         isPresented = false
     }
 }
@@ -193,11 +236,13 @@ private struct FilterMarqueeChip: View {
 
         Button(action: action) {
             Text(title.uppercased())
-                .font(.system(size: 12, weight: .heavy, design: .rounded))
+                .font(laughTrack.typography.metadata.weight(.semibold))
                 .tracking(1.2)
                 .foregroundStyle(isSelected ? laughTrack.colors.accentStrong : laughTrack.colors.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 14)
-                .frame(height: 34)
+                .padding(.vertical, 8)
+                .frame(minHeight: 44)
                 .background(
                     Capsule(style: .continuous)
                         .fill(isSelected ? laughTrack.colors.accentMuted.opacity(0.18) : Color.clear)
