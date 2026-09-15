@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import HTTPTypes
 import OpenAPIRuntime
 import Testing
@@ -993,14 +994,20 @@ struct SearchRefreshContinuityTests {
     func preservesResultsThroughDebounceAndRefresh() async throws {
         let model = await seededModel()
         let gate = SearchRefreshResponseGate()
+        var observedRefreshStart = false
+        let observation = model.$isRefreshing.sink { refreshing in
+            guard refreshing else { return }
+            observedRefreshStart = true
+            #expect(gate.requestCount == 0)
+            #expect(items(model) == [1, 2])
+        }
+        defer { observation.cancel() }
         let refresh = Task {
             await model.reload(query: "new", shouldDebounce: true) { _, _ in await gate.fetch() }
         }
-        try await waitUntil { model.isRefreshing }
-        #expect(gate.requestCount == 0)
-        #expect(items(model) == [1, 2])
-        #expect(model.resultsState(for: "new") == .updating)
         try await waitUntil { gate.requestCount == 1 }
+        #expect(observedRefreshStart)
+        #expect(model.resultsState(for: "new") == .updating)
         #expect(items(model) == [1, 2])
         gate.resolve(0, items: [3])
         await refresh.value
@@ -1031,15 +1038,19 @@ struct SearchRefreshContinuityTests {
     @Test("canceled debounce retains content without claiming the new query matched")
     func canceledDebounceRetainsUnconfirmedContent() async throws {
         let model = await seededModel()
-        let refresh = Task {
+        var refresh: Task<Void, Never>?
+        let observation = model.$isRefreshing.sink { refreshing in
+            if refreshing { refresh?.cancel() }
+        }
+        defer { observation.cancel() }
+        let task = Task {
             await model.reload(query: "new", shouldDebounce: true) { _, _ in
                 Issue.record("Canceled debounce must not fetch")
                 return .success(.init(items: [99], total: 1))
             }
         }
-        try await waitUntil { model.isRefreshing }
-        refresh.cancel()
-        await refresh.value
+        refresh = task
+        await task.value
         #expect(items(model) == [1, 2])
         #expect(!model.isRefreshing)
         #expect(model.refreshFailure == nil)
