@@ -59,16 +59,8 @@ struct SearchRootView: View {
         let tokens = theme.laughTrackTokens
 
         ScrollView {
-            VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
-                if model.activePivot != .shows {
-                    SearchField(
-                        title: "Search",
-                        prompt: model.activePivot.queryPrompt,
-                        text: $model.query,
-                        showsTitle: false,
-                        accessibilityIdentifier: LaughTrackViewTestID.searchRootField
-                    )
-                }
+            VStack(alignment: .leading, spacing: theme.spacing.md) {
+                SearchQueryEntry(pivot: model.activePivot, query: $model.query, showsModel: showsModel)
 
                 activeSearchScreenWithDependencies
             }
@@ -136,6 +128,7 @@ struct SearchRootView: View {
             ShowsListView(
                 apiClient: apiClient,
                 model: showsModel,
+                displaysSearchFields: false,
                 isActive: isActive
             )
         case .comedians:
@@ -181,6 +174,62 @@ struct SearchRootView: View {
         let preference = nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference
         showsModel.applyDefaultNearbyPreference(preference)
         clubsModel.applyDefaultNearbyPreference(preference)
+    }
+}
+
+/// One stable entry point; entity categories retain independent drafts, while
+/// Shows exposes its two explicit API constraints without combining their meaning.
+struct SearchQueryEntry: View {
+    let pivot: SearchRootModel.Pivot
+    @Binding var query: String
+    @ObservedObject var showsModel: ShowsListModel
+    @State private var showField: ShowField = .comedian
+    @Environment(\.appTheme) private var theme
+
+    enum ShowField: String, CaseIterable {
+        case comedian, club
+        var title: String { rawValue.capitalized }
+    }
+
+    private var input: Binding<String> {
+        guard pivot == .shows else { return $query }
+        return showField == .comedian ? $showsModel.comedianSearchText : $showsModel.clubSearchText
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            SearchField(
+                title: pivot == .shows ? showField.title : pivot.title,
+                prompt: pivot == .shows ? "\(showField.title) name" : pivot.queryPrompt,
+                text: input,
+                showsTitle: false,
+                accessibilityIdentifier: LaughTrackViewTestID.searchRootField,
+                showsClearButton: true,
+                focusContext: "\(pivot.rawValue).\(showField.rawValue)"
+            )
+            if pivot == .shows {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: theme.spacing.sm) { showFieldChoices }
+                    VStack(alignment: .leading, spacing: theme.spacing.sm) { showFieldChoices }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var showFieldChoices: some View {
+        ForEach(ShowField.allCases, id: \.self) { field in
+            Button { showField = field } label: {
+                LaughTrackBrowseChip(field.title, tone: showField == field ? .accent : .neutral)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("laughtrack.search.shows.\(field.rawValue)")
+            .accessibilityLabel("Search shows by \(field.rawValue)")
+            .accessibilityAddTraits(showField == field ? [.isSelected] : [])
+        }
     }
 }
 

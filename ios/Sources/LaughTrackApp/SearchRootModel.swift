@@ -22,13 +22,13 @@ final class SearchRootModel: ObservableObject {
         var queryPrompt: String {
             switch self {
             case .shows:
-                return "Filter shows"
+                return "Comedian or club"
             case .comedians:
-                return "Search comedian names"
+                return "Comedian name"
             case .clubs:
-                return "Search club names"
+                return "Club name"
             case .podcasts:
-                return "Search podcast titles"
+                return "Podcast title"
             }
         }
 
@@ -46,9 +46,19 @@ final class SearchRootModel: ObservableObject {
         }
     }
 
-    @Published var query = ""
+    // Each entity category keeps its own draft for this Search session.
+    // Shows uses its explicit comedian/club fields, never a generic text query.
+    @Published private var queries: [Pivot: String] = [:]
     @Published var activePivot: Pivot = .shows
     @Published var selectedShortcut: String? = "Near Me"
+
+    var query: String {
+        get { activePivot == .shows ? "" : queries[activePivot, default: ""] }
+        set {
+            guard activePivot != .shows else { return }
+            queries[activePivot] = newValue
+        }
+    }
 
     struct Seed: Equatable {
         let pivot: Pivot

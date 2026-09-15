@@ -425,6 +425,7 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
 
     let placeholder: String
     let accessibilityIdentifier: String?
+    var focus: FocusState<Bool>.Binding?
     @Binding var text: String
     @ViewBuilder let trailingAccessory: () -> TrailingAccessory
 
@@ -432,21 +433,18 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
         placeholder: String,
         text: Binding<String>,
         accessibilityIdentifier: String? = nil,
+        focus: FocusState<Bool>.Binding? = nil,
         @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
     ) {
         self.placeholder = placeholder
         self.accessibilityIdentifier = accessibilityIdentifier
+        self.focus = focus
         _text = text
         self.trailingAccessory = trailingAccessory
     }
 
-    @ViewBuilder
     var body: some View {
-        if let accessibilityIdentifier {
-            searchFieldChrome.accessibilityIdentifier(accessibilityIdentifier)
-        } else {
-            searchFieldChrome
-        }
+        searchFieldChrome
     }
 
     private var searchFieldChrome: some View {
@@ -480,10 +478,19 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
             .font(laughTrack.typography.body)
             .foregroundStyle(laughTrack.colors.textPrimary)
 
-        if let accessibilityIdentifier {
-            field.accessibilityIdentifier(accessibilityIdentifier)
+        if let focus {
+            identifiedInput(field).focused(focus)
         } else {
-            field
+            identifiedInput(field)
+        }
+    }
+
+    @ViewBuilder
+    private func identifiedInput<Input: View>(_ input: Input) -> some View {
+        if let accessibilityIdentifier {
+            input.accessibilityIdentifier(accessibilityIdentifier)
+        } else {
+            input
         }
     }
 }
