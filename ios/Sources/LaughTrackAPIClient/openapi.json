@@ -1822,6 +1822,13 @@
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
             "schema": { "type": "string", "default": "UTC" }
+          },
+          {
+            "name": "dateBasis",
+            "in": "query",
+            "required": false,
+            "description": "Calendar date basis. venue matches each show in its venue timezone, falling back to X-Timezone when absent or invalid; request (default) uses X-Timezone for all shows.",
+            "schema": { "type": "string", "default": "request" }
           }
         ],
         "security": [{ "bearerAuth": [] }, {}],
@@ -1921,6 +1928,13 @@
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC).",
             "schema": { "type": "string", "default": "UTC" }
+          },
+          {
+            "name": "dateBasis",
+            "in": "query",
+            "required": false,
+            "description": "Calendar date basis. venue matches each show in its venue timezone, falling back to X-Timezone when absent or invalid; request (default) uses X-Timezone for all shows.",
+            "schema": { "type": "string", "default": "request" }
           }
         ],
         "security": [{ "bearerAuth": [] }, {}],

@@ -13497,6 +13497,10 @@ public enum Operations {
                 public var maxPrice: Swift.Double?
                 /// - Remark: Generated from `#/paths/shows/search/GET/query/sort`.
                 public var sort: Swift.String?
+                /// Calendar date basis. venue matches each show in its venue timezone, falling back to X-Timezone when absent or invalid; request (default) uses X-Timezone for all shows.
+                ///
+                /// - Remark: Generated from `#/paths/shows/search/GET/query/dateBasis`.
+                public var dateBasis: Swift.String?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
@@ -13512,6 +13516,7 @@ public enum Operations {
                 ///   - distance: Radius in miles (1-500, defaults to 25 when zip provided)
                 ///   - maxPrice: Maximum price of an available public purchase option. Shows with only unknown-price tickets are excluded when set.
                 ///   - sort:
+                ///   - dateBasis: Calendar date basis. venue matches each show in its venue timezone, falling back to X-Timezone when absent or invalid; request (default) uses X-Timezone for all shows.
                 public init(
                     zip: Swift.String? = nil,
                     from: Swift.String? = nil,
@@ -13524,7 +13529,8 @@ public enum Operations {
                     filters: Swift.String? = nil,
                     distance: Swift.Int? = nil,
                     maxPrice: Swift.Double? = nil,
-                    sort: Swift.String? = nil
+                    sort: Swift.String? = nil,
+                    dateBasis: Swift.String? = nil
                 ) {
                     self.zip = zip
                     self.from = from
@@ -13538,6 +13544,7 @@ public enum Operations {
                     self.distance = distance
                     self.maxPrice = maxPrice
                     self.sort = sort
+                    self.dateBasis = dateBasis
                 }
             }
             public var query: Operations.SearchShows.Input.Query
@@ -13873,6 +13880,10 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/shows/density/GET/query/clubId`.
                 public var clubId: Swift.Int?
+                /// Calendar date basis. venue matches each show in its venue timezone, falling back to X-Timezone when absent or invalid; request (default) uses X-Timezone for all shows.
+                ///
+                /// - Remark: Generated from `#/paths/shows/density/GET/query/dateBasis`.
+                public var dateBasis: Swift.String?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
@@ -13883,6 +13894,7 @@ public enum Operations {
                 ///   - comedian: Filter density to dates where this comedian appears in the show lineup. Mutually exclusive with `club`.
                 ///   - club: Filter density to dates hosted by this venue. Mutually exclusive with `comedian`.
                 ///   - clubId: Filter density to dates hosted by the exact venue ID. Mutually exclusive with `comedian`.
+                ///   - dateBasis: Calendar date basis. venue matches each show in its venue timezone, falling back to X-Timezone when absent or invalid; request (default) uses X-Timezone for all shows.
                 public init(
                     zip: Swift.String? = nil,
                     from: Swift.String? = nil,
@@ -13890,7 +13902,8 @@ public enum Operations {
                     distance: Swift.Int? = nil,
                     comedian: Swift.String? = nil,
                     club: Swift.String? = nil,
-                    clubId: Swift.Int? = nil
+                    clubId: Swift.Int? = nil,
+                    dateBasis: Swift.String? = nil
                 ) {
                     self.zip = zip
                     self.from = from
@@ -13899,6 +13912,7 @@ public enum Operations {
                     self.comedian = comedian
                     self.club = club
                     self.clubId = clubId
+                    self.dateBasis = dateBasis
                 }
             }
             public var query: Operations.GetShowsDensity.Input.Query

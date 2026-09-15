@@ -637,6 +637,7 @@ class SearchViewModelTest {
             maxPrice: java.math.BigDecimal?,
             sort: String?,
             xTimezone: String?,
+            dateBasis: String?,
         ): Response<ShowSearchResponse> {
             searchCalls += 1
             lastPage = page
@@ -681,6 +682,7 @@ class SearchViewModelTest {
             club: String?,
             clubId: Int?,
             xTimezone: String?,
+            dateBasis: String?,
         ): Response<Map<String, Int>> {
             lastDensityZip = zip
             lastDensityFrom = from

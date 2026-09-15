@@ -300,6 +300,8 @@ struct ShowsListQuery: Hashable {
 
     var cacheKey: String {
         [
+            "dateBasis=venue",
+            "fallbackTimezone=\(TimeZone.autoupdatingCurrent.identifier)",
             "comedian=\(comedian)",
             "club=\(club)",
             "clubId=\(clubId.map(String.init) ?? "")",

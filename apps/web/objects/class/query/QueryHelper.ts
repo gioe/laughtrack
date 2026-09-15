@@ -587,7 +587,10 @@ export class QueryHelper {
         return this._zipCapTriggered;
     }
 
-    getDateClause() {
+    getDateClause(
+        timezone: string = this.timezone,
+        exclusiveEnd: boolean = false,
+    ) {
         const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
         const fromDate = this.params.fromDate;
         const toDate = this.params.toDate;
@@ -621,11 +624,11 @@ export class QueryHelper {
         // Convert fromDate midnight in user's timezone to UTC
         const fromDateMidnight = fromZonedTime(
             `${fromDate}T00:00:00`,
-            this.timezone,
+            timezone,
         );
 
         // Check if fromDate is today in the specified timezone
-        const nowInTimezone = toZonedTime(new Date(), this.timezone);
+        const nowInTimezone = toZonedTime(new Date(), timezone);
         const isToday = fromDate === format(nowInTimezone, "yyyy-MM-dd");
 
         const fromDateFilter = isToday
@@ -635,18 +638,35 @@ export class QueryHelper {
         // Handle toDate if provided and valid
         let toDateFilter: string | undefined = undefined;
         if (toDate && toDateValid) {
-            // Convert end of day in user's timezone to UTC
-            const toDateEndOfDay = fromZonedTime(
-                `${toDate}T23:59:59.999`,
-                this.timezone,
-            );
-            toDateFilter = toDateEndOfDay.toISOString();
+            if (exclusiveEnd) {
+                // Increment the civil date in UTC before interpreting midnight in
+                // the venue zone. Adding 24h to zoned midnight breaks DST days.
+                // An exclusive bound also includes PostgreSQL microseconds in
+                // the last millisecond of the selected day.
+                const nextCivilDay = new Date(`${toDate}T00:00:00.000Z`);
+                nextCivilDay.setUTCDate(nextCivilDay.getUTCDate() + 1);
+                const nextDate = nextCivilDay.toISOString().slice(0, 10);
+                toDateFilter = fromZonedTime(
+                    `${nextDate}T00:00:00`,
+                    timezone,
+                ).toISOString();
+            } else {
+                // Preserve the existing request-date behavior for other clients.
+                toDateFilter = fromZonedTime(
+                    `${toDate}T23:59:59.999`,
+                    timezone,
+                ).toISOString();
+            }
         }
 
         return {
             date: {
                 gte: fromDateFilter,
-                ...(toDateFilter ? { lte: toDateFilter } : {}),
+                ...(toDateFilter
+                    ? exclusiveEnd
+                        ? { lt: toDateFilter }
+                        : { lte: toDateFilter }
+                    : {}),
             },
         };
     }

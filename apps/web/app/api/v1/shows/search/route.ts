@@ -14,6 +14,17 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     if (rl instanceof NextResponse) return rl;
 
     const sp = req.nextUrl.searchParams;
+    const dateBasis = sp.get("dateBasis");
+    if (
+        dateBasis !== null &&
+        dateBasis !== "request" &&
+        dateBasis !== "venue"
+    ) {
+        return NextResponse.json(
+            { error: "dateBasis must be request or venue" },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
     const zip = sp.get("zip") ?? undefined;
     const from = sp.get("fromDate") ?? sp.get("from");
     const to = sp.get("toDate") ?? sp.get("to");
@@ -94,6 +105,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             params: {
                 zip,
                 distance: distance ?? (zip ? DEFAULT_DISTANCE : undefined),
+                dateBasis: dateBasis ?? undefined,
                 fromDate: from ?? undefined,
                 toDate: to ?? undefined,
                 // QueryHelper uses 1-indexed pages; API is 0-indexed

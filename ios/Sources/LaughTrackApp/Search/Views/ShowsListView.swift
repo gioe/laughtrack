@@ -46,7 +46,9 @@ enum ShowAgenda {
         from shows: [Components.Schemas.Show],
         calendar: Calendar = .current
     ) -> [ShowAgendaSection] {
-        Dictionary(grouping: shows) { calendar.startOfDay(for: $0.date) }
+        Dictionary(grouping: shows) {
+            ShowFormatting.calendarDay($0.date, timezoneID: $0.timezone, calendar: calendar)
+        }
             .map { ShowAgendaSection(day: $0.key, shows: $0.value.sorted { $0.date < $1.date }) }
             .sorted { $0.day < $1.day }
     }
@@ -622,7 +624,7 @@ private struct ShowResultsCalendarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            Text("Dots show dates with events for the selected location, comedian, or club.")
+            Text("Dates and times are local to each venue. Dots mark dates with shows.")
                 .font(theme.laughTrackTokens.typography.metadata)
                 .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
 
@@ -708,7 +710,7 @@ private struct ShowsDateRangeSheet: View {
             filter: $model.dateRange,
             isPresented: $isPresented,
             title: "Date range",
-            subtitle: "Choose the show dates to include.",
+            subtitle: "Choose dates at the venue. Show times stay local to each venue.",
             showsByDate: mergedShowsByDate,
             minimumDate: Calendar.current.startOfDay(for: Date()),
             todayTitle: "Tonight",
@@ -833,8 +835,9 @@ enum DateRangeDensity {
             resolvedTo = computed
         }
 
-        let fromString = isoDateFormatter.string(from: anchor)
-        let toString = isoDateFormatter.string(from: resolvedTo)
+        let formatter = makeISODateFormatter(calendar: calendar)
+        let fromString = formatter.string(from: anchor)
+        let toString = formatter.string(from: resolvedTo)
 
         do {
             let output = try await apiClient.getShowsDensity(
@@ -846,9 +849,10 @@ enum DateRangeDensity {
                         distance: preference?.distanceMiles,
                         comedian: trimmedComedian,
                         club: trimmedClub,
-                        clubId: clubId
+                        clubId: clubId,
+                        dateBasis: "venue"
                     ),
-                    headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
+                    headers: .init(xTimezone: calendar.timeZone.identifier)
                 )
             )
             guard case .ok(let ok) = output, let json = try? ok.body.json else {
@@ -861,30 +865,31 @@ enum DateRangeDensity {
         }
     }
 
-    // Invariant: `calendar.timeZone` must match `isoDateFormatter.timeZone`
-    // (currently `TimeZone.autoupdatingCurrent`). The formatter parses midnight
-    // in its own timezone, and `startOfDay` re-rounds in the calendar's — a
-    // mismatch would bucket some entries onto a neighbouring day.
+    // API keys are venue-local civil dates. Decode into the UI calendar without
+    // shifting the label through an unrelated timezone.
     static func densityMap(
         from raw: [String: Int],
         calendar: Calendar = .current
     ) -> [Date: Int] {
         var result: [Date: Int] = [:]
+        let formatter = makeISODateFormatter(calendar: calendar)
         for (key, count) in raw where count > 0 {
-            guard let date = isoDateFormatter.date(from: key) else { continue }
+            guard let date = formatter.date(from: key) else { continue }
             result[calendar.startOfDay(for: date)] = count
         }
         return result
     }
 
-    static let isoDateFormatter: DateFormatter = {
+    static let isoDateFormatter = makeISODateFormatter(calendar: .current)
+
+    private static func makeISODateFormatter(calendar: Calendar) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone.autoupdatingCurrent
+        formatter.timeZone = calendar.timeZone
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
-    }()
+    }
 }
 
 /// Per-month density cache state owned by `ShowsDateRangeSheet`. Held as

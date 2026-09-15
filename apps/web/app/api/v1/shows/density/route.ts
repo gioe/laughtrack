@@ -42,6 +42,17 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     if (rl instanceof NextResponse) return rl;
 
     const sp = req.nextUrl.searchParams;
+    const dateBasis = sp.get("dateBasis");
+    if (
+        dateBasis !== null &&
+        dateBasis !== "request" &&
+        dateBasis !== "venue"
+    ) {
+        return NextResponse.json(
+            { error: "dateBasis must be request or venue" },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
     const zip = sp.get("zip") ?? undefined;
     const fromRaw = sp.get("from");
     const toRaw = sp.get("to");
@@ -134,6 +145,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             : requestedToDate;
 
     const params: SearchParams = {
+        dateBasis: dateBasis ?? undefined,
         fromDate: formatIsoDate(fromDate),
         toDate: formatIsoDate(cappedToDate),
         zip,

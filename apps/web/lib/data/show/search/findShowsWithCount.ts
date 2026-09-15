@@ -1,3 +1,4 @@
+import { buildShowDateClause } from "./showDateBasis";
 import { db } from "@/lib/db";
 import {
     AVAILABLE_SHOW_WHERE,
@@ -36,9 +37,17 @@ export async function findShowsWithCount(
         const zipCodeClause = helper.getZipCodeClause();
         // getDateClause returns {} when no fromDate/toDate are set. Show search
         // always wants upcoming-only results, so supply the default here.
-        const dateClause = helper.getDateClause();
+        const clubWhere: Prisma.ClubWhereInput = {
+            visible: true,
+            ...(clubId !== undefined && { id: clubId }),
+            ...(clubNameClause.name && clubNameClause),
+            ...(zipCodeClause.zipCode && zipCodeClause),
+        };
+        const dateClause = await buildShowDateClause(helper, clubWhere);
         const dateFilter =
-            "date" in dateClause ? dateClause : { date: { gte: new Date() } };
+            Object.keys(dateClause).length > 0
+                ? dateClause
+                : { date: { gte: new Date() } };
         const maxPriceClause = helper.getMaxPriceShowsClause();
         const comedianIdentity = helper.params.comedian
             ? await resolveCanonicalComedianIdentityByName(

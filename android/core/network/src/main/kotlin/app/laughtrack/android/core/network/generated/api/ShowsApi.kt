@@ -46,10 +46,11 @@ interface ShowsApi {
      * @param club Filter density to dates hosted by this venue. Mutually exclusive with &#x60;comedian&#x60;. (optional)
      * @param clubId Filter density to dates hosted by the exact venue ID. Mutually exclusive with &#x60;comedian&#x60;. (optional)
      * @param xTimezone IANA timezone identifier (defaults to UTC). (optional, default to "UTC")
+     * @param dateBasis Calendar date basis. venue matches each show in its venue timezone, falling back to X-Timezone when absent or invalid; request (default) uses X-Timezone for all shows. (optional, default to "request")
      * @return [kotlin.collections.Map<kotlin.String, kotlin.Int>]
      */
     @GET("shows/density")
-    suspend fun getShowsDensity(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Query("clubId") clubId: kotlin.Int? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<kotlin.collections.Map<kotlin.String, kotlin.Int>>
+    suspend fun getShowsDensity(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Query("clubId") clubId: kotlin.Int? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC", @Query("dateBasis") dateBasis: kotlin.String? = "request"): Response<kotlin.collections.Map<kotlin.String, kotlin.Int>>
 
     /**
      * List shows near a ZIP code
@@ -96,9 +97,10 @@ interface ShowsApi {
      * @param maxPrice Maximum price of an available public purchase option. Shows with only unknown-price tickets are excluded when set. (optional)
      * @param sort  (optional)
      * @param xTimezone IANA timezone identifier (defaults to UTC) (optional, default to "UTC")
+     * @param dateBasis Calendar date basis. venue matches each show in its venue timezone, falling back to X-Timezone when absent or invalid; request (default) uses X-Timezone for all shows. (optional, default to "request")
      * @return [ShowSearchResponse]
      */
     @GET("shows/search")
-    suspend fun searchShows(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Query("clubId") clubId: kotlin.Int? = null, @Query("filters") filters: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("maxPrice") maxPrice: java.math.BigDecimal? = null, @Query("sort") sort: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<ShowSearchResponse>
+    suspend fun searchShows(@Query("zip") zip: kotlin.String? = null, @Query("from") from: kotlin.String? = null, @Query("to") to: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("comedian") comedian: kotlin.String? = null, @Query("club") club: kotlin.String? = null, @Query("clubId") clubId: kotlin.Int? = null, @Query("filters") filters: kotlin.String? = null, @Query("distance") distance: kotlin.Int? = null, @Query("maxPrice") maxPrice: java.math.BigDecimal? = null, @Query("sort") sort: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC", @Query("dateBasis") dateBasis: kotlin.String? = "request"): Response<ShowSearchResponse>
 
 }

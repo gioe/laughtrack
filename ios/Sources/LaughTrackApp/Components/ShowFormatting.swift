@@ -44,6 +44,21 @@ enum ShowFormatting {
         return formatter
     }
 
+    /// A show belongs to its venue's civil date. The returned Date represents
+    /// that date in the UI calendar, not the show's instant or venue midnight.
+    /// This lets mixed venues share a heading and the same selected calendar day.
+    /// Missing/invalid venue zones use the request/device timezone, as the API does.
+    static func calendarDay(
+        _ date: Date,
+        timezoneID: String?,
+        calendar: Calendar = .current
+    ) -> Date {
+        var venueCalendar = calendar
+        venueCalendar.timeZone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? calendar.timeZone
+        let components = venueCalendar.dateComponents([.era, .year, .month, .day], from: date)
+        return calendar.date(from: components) ?? calendar.startOfDay(for: date)
+    }
+
     @MainActor
     static func listDate(_ date: Date, timezoneID: String? = nil) -> String {
         let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
@@ -60,7 +75,7 @@ enum ShowFormatting {
         timezoneID: String? = nil,
         localTimezone: TimeZone = .current
     ) -> ShowDateStack {
-        let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
+        let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? localTimezone
 
         let weekdayFormatter = cachedFormatter(in: &weekdayStackFormatters, timezone: resolvedTimezone) {
             $0.locale = Locale(identifier: "en_US_POSIX")
@@ -93,7 +108,7 @@ enum ShowFormatting {
         timezoneID: String? = nil,
         localTimezone: TimeZone = .current
     ) -> String {
-        let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
+        let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? localTimezone
         let dateFormatter = cachedFormatter(in: &featuredDateFormatters, timezone: resolvedTimezone) {
             $0.locale = Locale(identifier: "en_US_POSIX")
             $0.dateFormat = "EEE, MMM d"

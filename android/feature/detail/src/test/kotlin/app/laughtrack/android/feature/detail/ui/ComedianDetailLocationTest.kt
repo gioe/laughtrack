@@ -122,6 +122,7 @@ class ComedianDetailLocationTest {
             maxPrice: java.math.BigDecimal?,
             sort: String?,
             xTimezone: String?,
+            dateBasis: String?,
         ): Response<ShowSearchResponse> {
             val request = ShowRequest(zip = zip, distance = distance, page = page ?: 0)
             requests += request

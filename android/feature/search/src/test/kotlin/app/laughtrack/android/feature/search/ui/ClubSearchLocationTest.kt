@@ -159,6 +159,7 @@ class ClubSearchLocationTest {
             maxPrice: java.math.BigDecimal?,
             sort: String?,
             xTimezone: String?,
+            dateBasis: String?,
         ): Response<ShowSearchResponse> =
             Response.success(
                 ShowSearchResponse(

@@ -3984,6 +3984,13 @@ public struct Client: APIProtocol {
                     name: "X-Timezone",
                     value: input.headers.xTimezone
                 )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "dateBasis",
+                    value: input.query.dateBasis
+                )
                 converter.setAcceptHeader(
                     in: &request.headerFields,
                     contentTypes: input.headers.accept
@@ -4175,6 +4182,13 @@ public struct Client: APIProtocol {
                     in: &request.headerFields,
                     name: "X-Timezone",
                     value: input.headers.xTimezone
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "dateBasis",
+                    value: input.query.dateBasis
                 )
                 converter.setAcceptHeader(
                     in: &request.headerFields,

@@ -1,4 +1,5 @@
 export interface SearchParams {
+    dateBasis?: "request" | "venue";
     fromDate?: string;
     toDate?: string;
     filters?: string;

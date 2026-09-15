@@ -429,7 +429,8 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
                         filters: query.filtersParam,
                         distance: query.sanitizedZip == nil ? nil : query.distance.rawValue,
                         maxPrice: query.maximumPrice,
-                        sort: query.sort.rawValue
+                        sort: query.sort.rawValue,
+                        dateBasis: "venue"
                     ),
                     headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
                 )

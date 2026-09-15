@@ -111,6 +111,7 @@ class ComedianDetailViewModelTest {
             maxPrice: java.math.BigDecimal?,
             sort: String?,
             xTimezone: String?,
+            dateBasis: String?,
         ) = Response.success(
             ShowSearchResponse(data = emptyList(), total = 0, filters = emptyList(), zipCapTriggered = false),
         )

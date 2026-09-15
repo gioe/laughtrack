@@ -1,3 +1,4 @@
+import { buildShowDateClause, showDateTimezone } from "./showDateBasis";
 import { formatInTimeZone } from "date-fns-tz";
 import { db } from "@/lib/db";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
@@ -15,7 +16,13 @@ export async function findShowDensity(
         const clubId = helper.params.clubId
             ? Number(helper.params.clubId)
             : undefined;
-        const dateClause = helper.getDateClause();
+        const clubWhere: Prisma.ClubWhereInput = {
+            visible: true,
+            ...(clubId !== undefined && { id: clubId }),
+            ...(clubNameClause.name && clubNameClause),
+            ...(zipCodeClause.zipCode && zipCodeClause),
+        };
+        const dateClause = await buildShowDateClause(helper, clubWhere);
         const comedianIdentity = helper.params.comedian
             ? await resolveCanonicalComedianIdentityByName(
                   helper.params.comedian,
@@ -34,13 +41,20 @@ export async function findShowDensity(
 
         const rows = await db.show.findMany({
             where: whereClause,
-            select: { date: true },
+            select: {
+                date: true,
+                ...(helper.params.dateBasis === "venue" && {
+                    club: { select: { timezone: true } },
+                }),
+            },
         });
 
         return rows.reduce<ShowDensity>((counts, show) => {
             const key = formatInTimeZone(
                 show.date,
-                helper.timezone,
+                helper.params.dateBasis === "venue"
+                    ? showDateTimezone(show.club?.timezone, helper.timezone)
+                    : helper.timezone,
                 "yyyy-MM-dd",
             );
             counts[key] = (counts[key] ?? 0) + 1;
