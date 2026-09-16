@@ -59,9 +59,12 @@ final class LaunchReadinessUITests: XCTestCase {
         attachScreenshot(app, named: "Discover — server order loaded")
 
         let refresh = server.holdNextFeedRequest()
-        let scroll = app.scrollViews.firstMatch
-        scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
-            .press(forDuration: 0.1, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9)))
+        let scroll = app.scrollViews["laughtrack.home.screen"].firstMatch
+        XCTAssertTrue(scroll.waitForExistence(timeout: 5))
+        // Pull the outer feed from its leading gutter, outside interactive rail
+        // content. A drag on a ticket/carousel can be consumed by that child.
+        scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.15))
+            .press(forDuration: 0.1, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.9)))
         wait(for: [refresh], timeout: 10)
         XCTAssertTrue(firstRail.isHittable, "A held refresh must retain the loaded first rail")
         XCTAssertFalse(loading.exists, "Refresh must not replace cached rails with first-load UI")

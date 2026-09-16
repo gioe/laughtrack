@@ -23,4 +23,17 @@ CI retains the fixture-server log as an artifact even after test failure. Fastla
 
 ## Current verification
 
-Native simulator and lifecycle regression outcomes will be recorded after execution. No production application behavior changes are part of this task.
+- Real-process Fastlane lifecycle suite: **13 passed**. Covers both lanes, success and test failure, previous environment present/absent, child reaping, occupied-port refusal, startup exit, invalid HTTP contract, and watcher workflow wiring.
+- iPhone 16 Pro, iOS 18.3.1: ran all 16 `NavigationTransitionUITests`, the screenshot Discover-header navigation case, and the held-refresh Discover case under the actual updated Fastfile fixture wrapper. **16 passed, 1 skipped, 1 failed** overall. Navigation alone: 14 passed, intentional iPad-only skip, and the pre-existing scroll-retention failure at `NavigationTransitionUITests.swift:478`. The latter also appears in the baseline iOS 18 CI log; no fixture configure failures occurred.
+- Held-refresh initially passed in 74.115 seconds, but its independent rerun exposed a missed pull-to-refresh gesture (no new feed request). The test now identifies the outer Discover scroll view explicitly and drags from the leading gutter outside interactive rail content. The corrected standalone simulator run passed. The server remains independent of the screenshot fixture backend.
+- The failing scroll-retention capture visibly shows the expected card, but XCTest reports its queried element as not hittable. This is an independent UI-test issue, not evidence of unavailable fixture data. No production UI code was changed to mask it.
+- Native test failure propagated out of the fixture wrapper; its `ensure` cleanup logged that the owned process stopped. Lifecycle regression tests additionally prove that the socket closes and the child is reaped.
+- Ruby syntax and workflow YAML validation passed.
+
+The fixture criterion now uses the self-contained lifecycle suite above. Its former bare `test-sim NavigationTransitionUITests` command did not provision its required server. The full native run remains part of this record; it is **not** claimed to be fully green.
+
+Local evidence: `/tmp/task4012-native.log`, `/tmp/task4012-native-all/` (xcresult attachments), and `/tmp/task4012-fixture-commit.log`. Native xcresult: `LaughTrack-wt-d8e748b09d4f/Logs/Test/Test-LaughTrack-2026.09.16_14-58-26--0400.xcresult` under Xcode DerivedData.
+
+No production application behavior changes are part of this task.
+
+The broad commit gate failed in three existing web saved-show tests. Tusk HEAD precheck reproduced those failures on all three runs (not flaky, not diverged); the documented pre-existing-failure commit fallback was used for the CI-only changes. See `/tmp/task4012-precheck.log`.
