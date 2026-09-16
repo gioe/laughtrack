@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import LaughTrackBridge
 @testable import LaughTrackApp
@@ -29,7 +30,29 @@ struct TabBarBottomSpacingTests {
         let detailPadding = PodcastMiniPlayerLayout.bottomPadding(theme: theme, clearsRootTabBar: false)
 
         #expect(rootPadding > detailPadding)
-        #expect(rootPadding - detailPadding == PodcastMiniPlayerLayout.rootTabBarClearance)
+        #expect(matchesRootTabBarClearance(rootPadding - detailPadding))
         #expect(PodcastMiniPlayerLayout.rootTabBarClearance < RootScrollBottomSpacing.floatingTabBarClearance)
+    }
+
+    @Test("root tab bar clearance accepts representable rounding", arguments: [
+        PodcastMiniPlayerLayout.rootTabBarClearance.nextDown,
+        PodcastMiniPlayerLayout.rootTabBarClearance,
+        PodcastMiniPlayerLayout.rootTabBarClearance.nextUp,
+    ])
+    func rootTabBarClearanceAcceptsRepresentableRounding(actualClearance: CGFloat) {
+        #expect(matchesRootTabBarClearance(actualClearance))
+    }
+
+    @Test("root tab bar clearance rejects meaningful layout drift", arguments: [
+        CGFloat(-1), CGFloat(-0.25), CGFloat(0.25), CGFloat(1),
+    ])
+    func rootTabBarClearanceRejectsMeaningfulLayoutDrift(drift: CGFloat) {
+        #expect(!matchesRootTabBarClearance(PodcastMiniPlayerLayout.rootTabBarClearance + drift))
+    }
+
+    private func matchesRootTabBarClearance(_ actualClearance: CGFloat) -> Bool {
+        // Subtracting layout paddings can round by a few ULPs. This tolerance
+        // is far below a screen pixel and still rejects meaningful layout drift.
+        abs(actualClearance - PodcastMiniPlayerLayout.rootTabBarClearance) < 0.000001
     }
 }
