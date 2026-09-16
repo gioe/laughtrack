@@ -7,6 +7,48 @@ import UIKit
 /// are seeded. Run these cases at native default/large text and Reduce Motion.
 @MainActor
 final class NavigationTransitionUITests: XCTestCase {
+    func testSearchAgendaTicketsKeepDetailsAndNavigation() throws {
+        try verifySearchAgenda(largeText: false)
+    }
+
+    func testAccessibilitySearchAgendaTicketsKeepDetailsAndNavigation() throws {
+        try verifySearchAgenda(largeText: true)
+    }
+
+    private func verifySearchAgenda(largeText: Bool) throws {
+        let app = try launchApp(largeText: largeText)
+        defer { app.terminate() }
+        app.tabBars.buttons["Search"].tap()
+        // Shows is the initial category; no horizontal category scrolling is
+        // needed to exercise its agenda.
+        XCTAssertTrue(app.buttons["laughtrack.primitive-filter.shows"].isSelected)
+
+        let row = app.buttons["laughtrack.shows-search.result-106"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        let category = app.buttons["laughtrack.primitive-filter.shows"]
+        position(row, at: category.frame.maxY + 24, in: app)
+        XCTAssertTrue(row.label.contains("Ali Wong: Live"))
+        XCTAssertTrue(row.label.contains("Hollywood Improv"))
+        XCTAssertTrue(row.label.contains("Main Room"), "Artwork-backed tickets must retain the room")
+        XCTAssertTrue(row.label.contains("$40"))
+        XCTAssertTrue(row.label.contains("7:00"), "Use the venue-local show time")
+        XCTAssertGreaterThanOrEqual(row.frame.height, 44)
+        XCTAssertGreaterThanOrEqual(row.frame.minX, app.windows.firstMatch.frame.minX)
+        XCTAssertLessThanOrEqual(row.frame.maxX, app.windows.firstMatch.frame.maxX)
+        attach(app, "Search agenda — \(largeText ? "AX5" : "standard") time, title, venue and price")
+
+        // Very large type can make the ticket taller than the viewport. Its
+        // visible leading portion remains the same generous navigation target.
+        let visibleTop = max(row.frame.minY, category.frame.maxY + 12)
+        let visibleBottom = min(row.frame.maxY, app.tabBars.firstMatch.frame.minY - 12)
+        XCTAssertGreaterThan(visibleBottom - visibleTop, 44)
+        app.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: row.frame.midX - app.frame.minX,
+                                 dy: (visibleTop + visibleBottom) / 2 - app.frame.minY))
+            .tap()
+        XCTAssertTrue(element("laughtrack.show-detail.screen", in: app).waitForExistence(timeout: 10))
+    }
+
     func testSearchEntityFavoritesKeepLoginAndDetailActionsSeparate() throws {
         let app = try launchApp()
         defer { app.terminate() }

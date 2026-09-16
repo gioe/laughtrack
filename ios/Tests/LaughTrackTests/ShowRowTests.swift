@@ -1,7 +1,105 @@
 import Foundation
 import Testing
+import SwiftUI
+import Combine
 import LaughTrackAPIClient
+import LaughTrackBridge
 @testable import LaughTrackApp
+
+#if canImport(UIKit)
+import UIKit
+
+@Suite("Search agenda visual capture", .serialized)
+@MainActor
+struct SearchAgendaVisualTests {
+    @Test("capture agenda identities and ticket states at standard and accessibility sizes")
+    func captureAgendaRows() async throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            for (name, shows) in SearchAgendaFixtures.captureCases {
+                let scrollToBottom = PassthroughSubject<Void, Never>()
+                let host = HostedView(
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text(name == "standalone" ? "Standalone ticket" : "Wednesday, September 16")
+                                    .font(LaughTrackTheme().laughTrackTokens.typography.sectionTitle)
+                                    .foregroundStyle(LaughTrackTheme().laughTrackTokens.colors.textPrimary)
+                                AdaptiveSearchResults(spacing: 16) {
+                                    ForEach(shows, id: \.id) { show in
+                                        ShowRow(show: show, presentation: .compactTicket,
+                                                context: name == "standalone" ? .standalone : .agenda)
+                                    }
+                                }
+                                Color.clear.frame(height: 1).id("capture-bottom")
+                            }
+                            .padding(16)
+                        }
+                        .onReceive(scrollToBottom) { _ in
+                            proxy.scrollTo("capture-bottom", anchor: .bottom)
+                        }
+                    }
+                    .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                    .environment(\.appTheme, LaughTrackTheme())
+                    .environment(\.dynamicTypeSize, size)
+                    .environmentObject(TypedNavigationCoordinator<AppRoute>())
+                    .preferredColorScheme(.dark), freshWindow: true
+                )
+                await host.settle()
+                let data = try #require(try host.snapshot().pngData())
+                let textSize = size.isAccessibilitySize ? "AX5" : "standard"
+                let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4005-\(name)-\(textSize).png")
+                try data.write(to: path)
+                print("Search agenda capture: \(path.path)")
+                #if compiler(>=6.2)
+                Attachment.record(Array(data), named: path.lastPathComponent)
+                #endif
+                if size.isAccessibilitySize && name != "overview" && name != "standalone" {
+                    scrollToBottom.send(())
+                    await host.settle()
+                    let bottomData = try #require(try host.snapshot().pngData())
+                    let bottomPath = FileManager.default.temporaryDirectory.appendingPathComponent("task4005-\(name)-AX5-bottom.png")
+                    try bottomData.write(to: bottomPath)
+                    print("Search agenda capture: \(bottomPath.path)")
+                    #if compiler(>=6.2)
+                    Attachment.record(Array(bottomData), named: bottomPath.lastPathComponent)
+                    #endif
+                }
+            }
+        }
+    }
+}
+#endif
+
+private enum SearchAgendaFixtures {
+    static func comedian(_ name: String, id: Int = 1, parent: Components.Schemas.ComedianLineup? = nil) -> Components.Schemas.ComedianLineup {
+        .init(name: name, imageUrl: "https://example.invalid/comedian.png", uuid: "agenda-\(id)", id: id, showCount: 10, parentComedian: parent)
+    }
+
+    static func show(
+        _ title: String = "Taylor Tomlinson",
+        id: Int = 1,
+        lineup: [Components.Schemas.ComedianLineup]? = [comedian("Taylor Tomlinson")],
+        room: String? = "Main Room",
+        price: Double? = 35,
+        soldOut: Bool = false
+    ) -> Components.Schemas.Show {
+        .init(
+            id: id, clubId: 201, clubName: "Comedy Cellar", clubCity: "New York", clubState: "NY",
+            date: Date(timeIntervalSince1970: 1_789_603_200),
+            tickets: [.init(price: price, purchaseUrl: "https://example.invalid/tickets", soldOut: soldOut, _type: "General admission")],
+            name: title, lineup: lineup, room: room, imageUrl: "", soldOut: soldOut, timezone: "America/New_York"
+        )
+    }
+
+    static var captureCases: [(String, [Components.Schemas.Show])] {
+        let solo = show()
+        let ensemble = show("Late Night Showcase", id: 2, lineup: [comedian("Sam Jay"), comedian("Ali Wong", id: 2), comedian("Atsuko Okatsuka", id: 3)], room: "Village Underground")
+        let longTitle = show("A wonderfully long comedy showcase with stories from every corner of the city and special guests all evening", id: 3, lineup: nil, room: "The Upstairs Listening Room")
+        let soldOut = show("Sold Out Saturday Showcase", id: 4, soldOut: true)
+        let unknown = show("New Material Night", id: 5, lineup: nil, price: nil)
+        return [("overview", [solo, ensemble, longTitle, soldOut, unknown]), ("solo", [solo]), ("ensemble", [ensemble]), ("long-title", [longTitle]), ("sold-out", [soldOut]), ("unknown-price", [unknown]), ("standalone", [solo])]
+    }
+}
 
 @Suite("Show row")
 @MainActor
@@ -213,7 +311,7 @@ struct ShowRowTests {
         let source = try String(contentsOf: showRowSourceURL(), encoding: .utf8)
 
         #expect(source.contains("Text(Self.primaryListTitle(for: show, headliner: headliner))"))
-        #expect(source.contains("Self.headlinerContext(for: show, headliner: headliner)"))
+        #expect(source.contains("Self.headlinerContext(for: show, headliner: headliner, context: context)"))
     }
 
     @Test("show row venue line includes city and state when available")
@@ -677,4 +775,104 @@ struct ShowRowTests {
         }
         return sourceURL
     }
+}
+
+@Suite("Search agenda presentation", .serialized)
+@MainActor
+struct SearchAgendaPresentationTests {
+    @Test("agenda suppresses a generated canonical performer subtitle without changing standalone rows")
+    func canonicalIdentityIsNotRepeated() {
+        let headliner = SearchAgendaFixtures.comedian("Taylor Tomlinson")
+        let show = SearchAgendaFixtures.show()
+        #expect(ShowRow.headlinerContext(for: show, headliner: headliner, context: .agenda) == nil)
+        #expect(ShowRow.headlinerContext(for: show, headliner: headliner) == "Taylor Tomlinson")
+        #expect(ShowRow(show: show).context == .standalone)
+    }
+
+    @Test("aliases and name-prefix collisions preserve canonical performer identity")
+    func distinctIdentitiesRemainVisible() {
+        let canonical = SearchAgendaFixtures.comedian("Canonical Visitor", id: 42)
+        let alias = SearchAgendaFixtures.comedian("Visitor Alias", parent: canonical)
+        let aliasShow = SearchAgendaFixtures.show("Visitor Alias", lineup: [alias])
+        #expect(ShowRow.headlinerContext(for: aliasShow, headliner: canonical, context: .agenda) == canonical.name)
+
+        let ann = SearchAgendaFixtures.comedian("Ann Lee")
+        let prefixShow = SearchAgendaFixtures.show("Ann Leeman: Live", lineup: [ann])
+        #expect(ShowRow.headlinerContext(for: prefixShow, headliner: ann, context: .agenda) == ann.name)
+    }
+
+    @Test("named ensemble shows retain headliner and supporting performers")
+    func ensembleIdentityRemainsVisible() {
+        let headliner = SearchAgendaFixtures.comedian("Sam Jay")
+        let supporting = SearchAgendaFixtures.comedian("Ali Wong", id: 2)
+        let show = SearchAgendaFixtures.show("Late Night Showcase", lineup: [headliner, supporting])
+        #expect(ShowRow.primaryListTitle(for: show, headliner: headliner) == "Late Night Showcase")
+        #expect(ShowRow.headlinerContext(for: show, headliner: headliner, context: .agenda) == "Sam Jay")
+        #expect(ShowRow.supportingLineup(for: show, excluding: headliner).map(\.name) == ["Ali Wong"])
+    }
+
+    @Test("agenda times retain venue timezone and standalone metadata retains the full date")
+    func timeAndDateStayVenueLocal() {
+        var show = SearchAgendaFixtures.show()
+        show.timezone = "America/Los_Angeles"
+        #expect(ShowRow.timeLabel(for: show) == ShowFormatting.dateStack(show.date, timezoneID: show.timezone).time)
+        #expect(ShowRow.timeLabel(for: show).contains("5:00"))
+        #expect(ShowRow.metadata(for: show).first == ShowFormatting.listDate(show.date, timezoneID: show.timezone))
+        show.timezone = "Invalid/Zone"
+        #expect(ShowRow.timeLabel(for: show) == ShowFormatting.dateStack(show.date).time)
+        show.timezone = nil
+        #expect(ShowRow.timeLabel(for: show) == ShowFormatting.dateStack(show.date).time)
+    }
+
+    @Test("ticket states distinguish unknown price, free admission and sold-out prices")
+    func ticketStatesRemainDistinct() {
+        let unknown = SearchAgendaFixtures.show(price: nil)
+        let free = SearchAgendaFixtures.show(price: 0)
+        let soldOut = SearchAgendaFixtures.show(price: 35, soldOut: true)
+        #expect(ShowRow.priceLabel(for: unknown) == nil)
+        #expect(ShowRow.priceLabel(for: free) == "Free")
+        #expect(ShowRow.priceLabel(for: soldOut) == nil)
+        #expect(ShowRow.previousPriceLabel(for: soldOut) == "$35")
+        #expect(soldOut.soldOut == true)
+    }
+
+    #if canImport(UIKit)
+    @Test("long agenda titles grow beyond two lines within phone and tablet columns")
+    func longTitlesRemainReadable() {
+        let longTitle = "A wonderfully long comedy showcase with stories from every corner of the city"
+        for width in [CGFloat(288), CGFloat(500)] {
+            for size in [DynamicTypeSize.large, .accessibility5] {
+                for lineup in [Optional<[Components.Schemas.ComedianLineup]>.none, [SearchAgendaFixtures.comedian("Taylor Tomlinson")]] {
+                    let short = measure(SearchAgendaFixtures.show("Comedy Night", lineup: lineup), width: width, size: size)
+                    let long = measure(SearchAgendaFixtures.show(longTitle, lineup: lineup), width: width, size: size)
+                    let longer = measure(SearchAgendaFixtures.show(Array(repeating: longTitle, count: 3).joined(separator: " "), lineup: lineup), width: width, size: size)
+                    #expect(long.height > short.height)
+                    #expect(longer.height > long.height + 20, "Title must continue growing instead of truncating at two lines")
+                    #expect(longer.width <= width + 1)
+                    #expect(longer.height.isFinite)
+                }
+            }
+        }
+    }
+
+    @Test("artwork-backed agenda rows preserve room information at accessibility sizes")
+    func artworkRowsReserveSpaceForRoom() {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            let noRoom = measure(SearchAgendaFixtures.show(room: nil), width: 288, size: size)
+            let withRoom = measure(SearchAgendaFixtures.show(room: "The Upstairs Listening Room"), width: 288, size: size)
+            #expect(withRoom.height > noRoom.height, "A distinct room must render even when the row has performer artwork")
+            #expect(withRoom.width <= 289)
+        }
+    }
+
+    private func measure(_ show: Components.Schemas.Show, width: CGFloat, size: DynamicTypeSize) -> CGSize {
+        let controller = UIHostingController(rootView:
+            ShowRow(show: show, presentation: .compactTicket, context: .agenda)
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.dynamicTypeSize, size)
+                .environmentObject(TypedNavigationCoordinator<AppRoute>())
+        )
+        return controller.sizeThatFits(in: CGSize(width: width, height: 100_000))
+    }
+    #endif
 }

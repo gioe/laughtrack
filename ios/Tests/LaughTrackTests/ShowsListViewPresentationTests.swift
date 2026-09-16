@@ -78,13 +78,17 @@ struct ShowsListViewPresentationTests {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
         let rowBlock = try sourceBlock(
             in: source,
-            from: "private func showRows(_ shows: [Components.Schemas.Show], standoutShowID: Int?)",
+            from: "private func showRows(",
             to: ".accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))"
         )
 
         #expect(rowBlock.contains("ShowRow("))
         #expect(rowBlock.contains("show.id == standoutShowID ? .compactTicketProminent : .compactTicket"))
         #expect(rowBlock.contains("AdaptiveSearchResults(spacing: theme.spacing.md)"))
+        #expect(rowBlock.contains("context: ShowRowContext = .standalone"))
+        #expect(rowBlock.contains("context: context"))
+        #expect(source.contains("showRows(section.shows, standoutShowID: standoutShowID, context: .agenda)"))
+        #expect(source.contains("showRows(result.items, standoutShowID: ShowsListStandout.resolveID(in: result.items))"))
     }
 
     @Test("show explorer exposes quick dates and consolidates location and secondary filters")
