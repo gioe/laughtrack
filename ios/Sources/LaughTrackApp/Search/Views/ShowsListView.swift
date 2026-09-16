@@ -256,10 +256,10 @@ struct ShowsListView: View {
         .sheet(isPresented: $isFilterEditorPresented) {
             SearchFilterModal(
                 filters: secondaryFilters,
-                total: currentTotal,
                 selectedSlugs: $model.selectedFilterSlugs,
                 isPresented: $isFilterEditorPresented,
-                maximumPrice: $model.maximumPrice
+                maximumPrice: $model.maximumPrice,
+                preview: model.makeFilterPreview(apiClient: apiClient)
             )
             .presentationDetents([.medium, .large])
         }
@@ -316,10 +316,7 @@ struct ShowsListView: View {
         return formatter
     }()
 
-    private var currentTotal: Int {
-        guard case .success(let result) = model.phase else { return 0 }
-        return result.total
-    }
+
 
     private var secondaryFilters: [Components.Schemas.Filter] {
         currentFilters.filter { ShowFilterFacetTaxonomy.isSecondary(slug: $0.slug) }

@@ -1,28 +1,125 @@
 import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
+import LaughTrackCore
+
+/// A presentation owns its choices and preview requests. Dismissal never writes
+/// to the live query; only the explicit Apply action publishes the selection.
+@MainActor
+final class SearchFilterDraft: ObservableObject {
+    struct Selection: Hashable {
+        var slugs: Set<String>
+        var maximumPrice: ShowMaximumPriceOption = .any
+    }
+
+    enum Preview: Equatable {
+        case updating
+        case ready(Int)
+        case failed
+
+        var message: String {
+            switch self {
+            case .updating: "Updating results…"
+            case .ready(let count): "\(count.formatted()) \(count == 1 ? "result" : "results")"
+            case .failed: "Preview unavailable"
+            }
+        }
+    }
+
+    typealias FetchPreview = @MainActor (Selection) async -> Result<Int, LoadFailure>
+
+    let filters: [Components.Schemas.Filter]
+    @Published private(set) var selection: Selection
+    @Published private(set) var preview: Preview = .updating
+    @Published private(set) var revision = 0
+    private let fetchPreview: FetchPreview
+    private var isClosed = false
+
+    init(filters: [Components.Schemas.Filter], selection: Selection, preview: @escaping FetchPreview) {
+        var seen = Set<String>()
+        self.filters = filters.filter { seen.insert($0.slug).inserted }
+        self.selection = selection
+        self.fetchPreview = preview
+    }
+
+    func update(_ selection: Selection) {
+        guard !isClosed, self.selection != selection else { return }
+        self.selection = selection
+        retry()
+    }
+
+    func toggle(_ slug: String) {
+        var next = selection
+        if !next.slugs.insert(slug).inserted { next.slugs.remove(slug) }
+        update(next)
+    }
+
+    func retry() {
+        guard !isClosed else { return }
+        preview = .updating
+        revision += 1
+    }
+
+    func refreshPreview(debounce: Bool = true) async {
+        guard !isClosed else { return }
+        let requestRevision = revision
+        let requestedSelection = selection
+        if debounce {
+            do { try await Task.sleep(for: .milliseconds(250)) }
+            catch { return }
+        }
+        guard !Task.isCancelled, requestRevision == revision, !isClosed else { return }
+        let result = await fetchPreview(requestedSelection)
+        // Revision also rejects an old A response after an A → B → A sequence,
+        // even if the transport ignores cancellation.
+        guard !Task.isCancelled, requestRevision == revision, !isClosed else { return }
+        switch result {
+        case .success(let count): preview = .ready(count)
+        case .failure: preview = .failed
+        }
+    }
+
+    func apply(_ commit: (Selection) -> Void) {
+        guard !isClosed else { return }
+        close()
+        commit(selection)
+    }
+
+    func close() {
+        isClosed = true
+        revision += 1
+    }
+}
+
 
 struct SearchFilterModal: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    let filters: [Components.Schemas.Filter]
-    /// Live result count — comes from `model.phase.total` at the call site and
-    /// re-renders the modal each time the underlying search refetches.
-    let total: Int
-    @Binding var selectedSlugs: Set<String>
+    @StateObject private var draft: SearchFilterDraft
     @Binding var isPresented: Bool
-    var maximumPrice: Binding<ShowMaximumPriceOption>? = nil
+    private let includesPrice: Bool
+    private let commit: (SearchFilterDraft.Selection) -> Void
 
-    /// Snapshot of `selectedSlugs` taken when the sheet first appears, so
-    /// dismiss-without-commit (X tap or drag-down) can restore the user's
-    /// original selection. Toggling chips writes through to `selectedSlugs`
-    /// directly, which triggers the parent view's existing `.task(id:)` to
-    /// refetch and update `total` — that's what makes the "Show N results"
-    /// label live-update as the user experiments.
-    @State private var initialSlugs: Set<String> = []
-    @State private var didCommit = false
-    @State private var initialMaximumPrice: ShowMaximumPriceOption = .any
+    init(
+        filters: [Components.Schemas.Filter],
+        selectedSlugs: Binding<Set<String>>,
+        isPresented: Binding<Bool>,
+        maximumPrice: Binding<ShowMaximumPriceOption>? = nil,
+        preview: @escaping SearchFilterDraft.FetchPreview
+    ) {
+        _draft = StateObject(wrappedValue: SearchFilterDraft(
+            filters: filters,
+            selection: .init(slugs: selectedSlugs.wrappedValue, maximumPrice: maximumPrice?.wrappedValue ?? .any),
+            preview: preview
+        ))
+        _isPresented = isPresented
+        includesPrice = maximumPrice != nil
+        commit = { selection in
+            selectedSlugs.wrappedValue = selection.slugs
+            maximumPrice?.wrappedValue = selection.maximumPrice
+        }
+    }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -40,8 +137,8 @@ struct SearchFilterModal: View {
                             .font(laughTrack.typography.sectionTitle)
                             .foregroundStyle(laughTrack.colors.textPrimary)
 
-                        Text(maximumPrice == nil
-                             ? "Tap a tag to add or remove it. The result count updates live."
+                        Text(!includesPrice
+                             ? "Preview your choices, then apply them to your search."
                              : "Choose a price limit or kind of comedy.")
                             .font(laughTrack.typography.metadata)
                             .foregroundStyle(laughTrack.colors.textSecondary)
@@ -64,11 +161,14 @@ struct SearchFilterModal: View {
 
                 Group {
                     VStack(alignment: .leading, spacing: theme.spacing.md) {
-                        if let maximumPrice {
+                        if includesPrice {
                             Text("Maximum price")
                                 .font(laughTrack.typography.metadata.weight(.semibold))
                                 .foregroundStyle(laughTrack.colors.textSecondary)
-                            Picker("Maximum price", selection: maximumPrice) {
+                            Picker("Maximum price", selection: Binding(
+                                get: { draft.selection.maximumPrice },
+                                set: { draft.update(.init(slugs: draft.selection.slugs, maximumPrice: $0)) }
+                            )) {
                                 ForEach(ShowMaximumPriceOption.allCases) { option in
                                     Text(option.title).tag(option)
                                 }
@@ -79,8 +179,8 @@ struct SearchFilterModal: View {
                             .accessibilityLabel("Maximum price")
                         }
 
-                        if filters.isEmpty {
-                            if maximumPrice == nil {
+                        if draft.filters.isEmpty {
+                            if !includesPrice {
                                 Text("No filters available for this search.")
                                     .font(laughTrack.typography.metadata)
                                     .foregroundStyle(laughTrack.colors.textSecondary)
@@ -105,66 +205,39 @@ struct SearchFilterModal: View {
                     .padding(.vertical, 2)
                 }
 
-                VStack(spacing: theme.spacing.sm) {
-                    Button {
-                        didCommit = true
-                        isPresented = false
-                    } label: {
-                        HStack(spacing: 8) {
-                            Text("Show \(total.formatted()) results".uppercased())
-                                .font(.system(size: 13, weight: .heavy, design: .rounded))
-                                .tracking(1.2)
-                                .contentTransition(.numericText())
-                                .animation(.easeOut(duration: 0.2), value: total)
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 12, weight: .bold))
-                        }
-                        .foregroundStyle(Color.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .frame(minHeight: 44)
-                        .background(laughTrack.colors.accentStrong)
-                        .clipShape(Capsule(style: .continuous))
-                        .shadow(color: laughTrack.colors.accentStrong.opacity(0.45), radius: 8, y: 3)
+                Button {
+                    draft.update(.init(slugs: []))
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("Reset all filters")
+                            .font(laughTrack.typography.metadata.weight(.semibold))
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Show \(total.formatted()) results")
-
-                    Button {
-                        selectedSlugs = []
-                        maximumPrice?.wrappedValue = .any
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "arrow.counterclockwise")
-                                .font(.system(size: 12, weight: .bold))
-                            Text("Reset all filters")
-                                .font(laughTrack.typography.metadata.weight(.semibold))
-                        }
-                        .foregroundStyle(
-                            !hasActiveFilters
-                                ? laughTrack.colors.textSecondary.opacity(0.45)
-                                : laughTrack.colors.textSecondary
-                        )
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .frame(minHeight: 44)
-                        .overlay(
-                            Capsule(style: .continuous)
-                                .strokeBorder(
-                                    (!hasActiveFilters
-                                        ? laughTrack.colors.textSecondary.opacity(0.25)
-                                        : laughTrack.colors.textSecondary.opacity(0.6)),
-                                    lineWidth: 1
-                                )
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!hasActiveFilters)
-                    .accessibilityLabel("Reset all filters")
-                    .accessibilityHint(hasActiveFilters
-                        ? (maximumPrice == nil ? "Clears the selected filters." : "Clears the selected filters and price limit.")
-                        : "No filters are currently applied.")
+                    .foregroundStyle(
+                        !hasActiveFilters
+                            ? laughTrack.colors.textSecondary.opacity(0.45)
+                            : laughTrack.colors.textSecondary
+                    )
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .frame(minHeight: 44)
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .strokeBorder(
+                                (!hasActiveFilters
+                                    ? laughTrack.colors.textSecondary.opacity(0.25)
+                                    : laughTrack.colors.textSecondary.opacity(0.6)),
+                                lineWidth: 1
+                            )
+                    )
                 }
+                .buttonStyle(.plain)
+                .disabled(!hasActiveFilters)
+                .accessibilityLabel("Reset all filters")
+                .accessibilityHint(hasActiveFilters
+                    ? (!includesPrice ? "Clears the selected filters." : "Clears the selected filters and price limit.")
+                    : "No filters are currently applied.")
 
                 Spacer(minLength: 0)
             }
@@ -174,53 +247,60 @@ struct SearchFilterModal: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(LaughTrackAtmosphereBackground())
-        .onAppear {
-            initialSlugs = selectedSlugs
-            initialMaximumPrice = maximumPrice?.wrappedValue ?? .any
-            didCommit = false
-        }
-        .onDisappear {
-            // Drag-to-dismiss bypasses `cancel()`, so re-apply the snapshot
-            // here whenever the sheet closes without an explicit commit. No-op
-            // when the user already confirmed via the action button.
-            if !didCommit {
-                restoreInitialSelection()
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: theme.spacing.sm) {
+                Text(draft.preview.message)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("search-filter-preview")
+                if draft.preview == .failed {
+                    Button("Retry preview") { draft.retry() }
+                        .font(laughTrack.typography.metadata.weight(.semibold))
+                        .tint(laughTrack.colors.accentStrong)
+                        .frame(minHeight: 44)
+                }
+                Button {
+                    draft.apply(commit)
+                    isPresented = false
+                } label: {
+                    Text("Apply filters")
+                        .font(laughTrack.typography.metadata.weight(.bold))
+                        .foregroundStyle(Color.white)
+                        .padding(.horizontal, theme.spacing.md)
+                        .padding(.vertical, theme.spacing.md)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(laughTrack.colors.accentStrong, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("search-filter-apply")
             }
+            .padding(.horizontal, theme.spacing.xl)
+            .padding(.vertical, theme.spacing.md)
+            .frame(maxWidth: .infinity)
+            .background(laughTrack.colors.surfaceElevated)
         }
+        .task(id: draft.revision) { await draft.refreshPreview() }
+        .onDisappear { draft.close() }
     }
 
     private var filterChips: some View {
-        ForEach(filters, id: \.slug) { filter in
+        ForEach(draft.filters, id: \.slug) { filter in
             FilterMarqueeChip(
                 title: filter.name,
-                isSelected: selectedSlugs.contains(filter.slug)
+                isSelected: draft.selection.slugs.contains(filter.slug)
             ) {
-                toggle(filter.slug)
+                draft.toggle(filter.slug)
             }
-        }
-    }
-
-    private func toggle(_ slug: String) {
-        if selectedSlugs.contains(slug) {
-            selectedSlugs.remove(slug)
-        } else {
-            selectedSlugs.insert(slug)
         }
     }
 
     private var hasActiveFilters: Bool {
-        !selectedSlugs.isEmpty || (maximumPrice?.wrappedValue ?? .any) != .any
-    }
-
-    private func restoreInitialSelection() {
-        if selectedSlugs != initialSlugs { selectedSlugs = initialSlugs }
-        if let maximumPrice, maximumPrice.wrappedValue != initialMaximumPrice {
-            maximumPrice.wrappedValue = initialMaximumPrice
-        }
+        !draft.selection.slugs.isEmpty || draft.selection.maximumPrice != .any
     }
 
     private func cancel() {
-        restoreInitialSelection()
+        draft.close()
         isPresented = false
     }
 }

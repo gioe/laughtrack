@@ -166,6 +166,19 @@ final class ClubsDiscoveryModel: EntitySearchModel<ClubsDiscoveryQuery, Componen
         return true
     }
 
+    /// Capture the committed query once for this sheet; previews never reload
+    /// the parent, replace its facets, or seed shared caches/favorites.
+    func makeFilterPreview(apiClient: Client) -> SearchFilterDraft.FetchPreview {
+        let base = requestKey
+        return { selection in
+            let query = ClubsDiscoveryQuery(
+                text: base.text, filters: selection.slugs.sorted(), sort: base.sort,
+                includeEmpty: base.includeEmpty, zip: base.zip, distance: base.distance
+            )
+            return await Self.fetchPage(page: 1, query: query, apiClient: apiClient, cache: nil, cacheTTL: MainPageCache.defaultTTL).map(\.total)
+        }
+    }
+
     private static func fetchPage(
         page: Int,
         query: ClubsDiscoveryQuery,

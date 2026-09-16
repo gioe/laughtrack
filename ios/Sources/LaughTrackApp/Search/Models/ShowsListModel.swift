@@ -372,12 +372,28 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         return true
     }
 
+    /// Capture the committed query once for this sheet; previews never reload
+    /// the parent, replace its facets, or seed shared caches/favorites.
+    func makeFilterPreview(apiClient: Client) -> SearchFilterDraft.FetchPreview {
+        let base = requestKey
+        return { selection in
+            let query = ShowsListQuery(
+                comedian: base.comedian, club: base.club, clubId: base.clubId,
+                filters: selection.slugs.sorted(), zip: base.zip,
+                dateRange: base.dateRange, distance: base.distance,
+                maximumPrice: selection.maximumPrice.apiValue, sort: base.sort
+            )
+            return await self.fetchPage(page: 1, query: query, apiClient: apiClient, cache: nil, cacheTTL: MainPageCache.defaultTTL, updatesLocationStatus: false).map(\.total)
+        }
+    }
+
     private func fetchPage(
         page: Int,
         query: ShowsListQuery,
         apiClient: Client,
         cache: DataCache<LaughTrackCacheKey>?,
-        cacheTTL: TimeInterval
+        cacheTTL: TimeInterval,
+        updatesLocationStatus: Bool = true
     ) async -> Result<DiscoverySearchResponse<Components.Schemas.Show>, LoadFailure> {
         let cacheKey = LaughTrackCacheKey.showsSearch(
             requestKey: "\(query.cacheKey)|size:\(pageSize)",
@@ -416,7 +432,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
-                zipCapTriggered = response.zipCapTriggered
+                if updatesLocationStatus { zipCapTriggered = response.zipCapTriggered }
                 let availableShows = ShowAvailability.availableShows(response.data)
                 let pageResponse = DiscoverySearchResponse(
                     items: availableShows,

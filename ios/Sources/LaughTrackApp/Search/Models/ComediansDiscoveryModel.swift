@@ -51,11 +51,24 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
         )
     }
 
+    /// Capture the committed query once for this sheet; previews never reload
+    /// the parent, replace its facets, or seed shared caches/favorites.
+    func makeFilterPreview(apiClient: Client) -> SearchFilterDraft.FetchPreview {
+        let base = requestKey
+        return { selection in
+            let query = PrimitiveDiscoveryQuery(
+                text: base.text, filters: selection.slugs.sorted(), sort: base.sort,
+                includeEmpty: base.includeEmpty, homeCity: base.homeCity
+            )
+            return await Self.fetchPage(page: 1, query: query, apiClient: apiClient, favorites: nil, cache: nil, cacheTTL: MainPageCache.defaultTTL).map(\.total)
+        }
+    }
+
     private static func fetchPage(
         page: Int,
         query: PrimitiveDiscoveryQuery,
         apiClient: Client,
-        favorites: ComedianFavoriteStore,
+        favorites: ComedianFavoriteStore?,
         cache: DataCache<LaughTrackCacheKey>?,
         cacheTTL: TimeInterval
     ) async -> Result<DiscoverySearchResponse<Components.Schemas.ComedianSearchItem>, LoadFailure> {
@@ -66,7 +79,7 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
             persistentCache: nil
         ) {
             cached.items.forEach { comedian in
-                favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
+                favorites?.seed(uuid: comedian.uuid, value: comedian.isFavorite)
             }
             return .success(cached)
         }
@@ -91,7 +104,7 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
             case .ok(let ok):
                 let response = try ok.body.json
                 let items = response.data.map { comedian in
-                    favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
+                    favorites?.seed(uuid: comedian.uuid, value: comedian.isFavorite)
                     return comedian
                 }
                 let pageResponse = DiscoverySearchResponse(

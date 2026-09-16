@@ -1293,8 +1293,9 @@ private struct ShowsFilterSheetTestRoot: View {
         Group {
             if state.isMounted {
                 SearchFilterModal(
-                    filters: filters, total: 12, selectedSlugs: $state.slugs,
-                    isPresented: $state.isMounted, maximumPrice: $state.price
+                    filters: filters, selectedSlugs: $state.slugs,
+                    isPresented: $state.isMounted, maximumPrice: $state.price,
+                    preview: { _ in .success(12) }
                 )
                 .onAppear { state.didAppear = true }
                 .onDisappear { state.didDisappear = true }
@@ -1311,8 +1312,8 @@ private struct ShowsFilterSheetTestRoot: View {
 @Suite("Shows filter sheets", .serialized)
 @MainActor
 struct SearchShowsFilterSheetTests {
-    @Test("Dismissing uncommitted Filters restores both price and selected facets")
-    func dismissRestoresPriceAndFacets() async throws {
+    @Test("Dismissing Filters does not overwrite external parent changes")
+    func dismissPreservesExternalChanges() async throws {
         let state = ShowsFilterSheetTestState()
         let host = HostedView(ShowsFilterSheetTestRoot(state: state), freshWindow: true)
         try await waitFor(host) { state.didAppear }
@@ -1324,14 +1325,14 @@ struct SearchShowsFilterSheetTests {
 
         state.isMounted = false
         try await waitFor(host) {
-            state.didDisappear && state.slugs == ["standup"] && state.price == .forty
+            state.didDisappear && state.slugs == ["free", "clean"] && state.price == .twenty
         }
-        #expect(state.slugs == ["standup"])
-        #expect(state.price == .forty)
+        #expect(state.slugs == ["free", "clean"])
+        #expect(state.price == .twenty)
     }
 
-    @Test("Dismissing a price-only Filters sheet restores the original price")
-    func dismissRestoresPriceWithoutFacets() async throws {
+    @Test("Dismissing a price-only sheet preserves external price changes")
+    func dismissPreservesExternalPrice() async throws {
         let state = ShowsFilterSheetTestState()
         state.slugs = []
         let host = HostedView(ShowsFilterSheetTestRoot(state: state, filters: []), freshWindow: true)
@@ -1340,9 +1341,9 @@ struct SearchShowsFilterSheetTests {
         host.render()
         #expect(state.price == .any)
         state.isMounted = false
-        try await waitFor(host) { state.didDisappear && state.price == .forty }
+        try await waitFor(host) { state.didDisappear && state.price == .any }
         #expect(state.slugs.isEmpty)
-        #expect(state.price == .forty)
+        #expect(state.price == .any)
     }
 
     @Test("Capture location radius and advanced Filters at standard and accessibility sizes")
@@ -1407,3 +1408,191 @@ struct SearchShowsFilterSheetTests {
     }
 }
 #endif
+
+@Suite("Search filter drafts", .serialized)
+@MainActor
+struct SearchFilterDraftTests {
+    @Test("Draft previews isolate the parent, Apply commits once, and reopening seeds committed choices")
+    func applyOnce() async {
+        var parent = SearchFilterDraft.Selection(slugs: ["standup"], maximumPrice: .forty)
+        var commits = 0
+        var requests: [SearchFilterDraft.Selection] = []
+        let draft = SearchFilterDraft(filters: [], selection: parent) { selection in
+            requests.append(selection)
+            return .success(7)
+        }
+        draft.toggle("clean")
+        draft.update(.init(slugs: draft.selection.slugs, maximumPrice: .twenty))
+        await draft.refreshPreview(debounce: false)
+        #expect(parent == .init(slugs: ["standup"], maximumPrice: .forty))
+        #expect(requests == [.init(slugs: ["standup", "clean"], maximumPrice: .twenty)])
+        #expect(draft.preview == .ready(7))
+        let commit: (SearchFilterDraft.Selection) -> Void = { parent = $0; commits += 1 }
+        draft.apply(commit)
+        draft.apply(commit)
+        draft.close() // onDisappear must not undo Apply.
+        #expect(commits == 1)
+        #expect(parent == .init(slugs: ["standup", "clean"], maximumPrice: .twenty))
+        let reopened = SearchFilterDraft(filters: [], selection: parent) { _ in .success(7) }
+        #expect(reopened.selection == parent)
+    }
+
+    @Test("Close or swipe cancellation discards reset and price changes, even with a late response")
+    func cancelAndReopen() async {
+        let parent = SearchFilterDraft.Selection(slugs: ["standup"], maximumPrice: .forty)
+        var continuation: CheckedContinuation<Result<Int, LoadFailure>, Never>?
+        let draft = SearchFilterDraft(filters: [], selection: parent) { _ in
+            await withCheckedContinuation { continuation = $0 }
+        }
+        draft.update(.init(slugs: []))
+        let request = Task { await draft.refreshPreview(debounce: false) }
+        while continuation == nil { await Task.yield() }
+        draft.close()
+        continuation?.resume(returning: .success(900))
+        await request.value
+        var commits = 0
+        draft.apply { _ in commits += 1 }
+        #expect(commits == 0)
+        #expect(draft.preview == .updating)
+        let reopened = SearchFilterDraft(filters: [], selection: parent) { _ in .success(12) }
+        #expect(reopened.selection == .init(slugs: ["standup"], maximumPrice: .forty))
+    }
+
+    @Test("Late responses cannot replace the latest count, including an A to B to A sequence")
+    func staleResponses() async {
+        var continuations: [CheckedContinuation<Result<Int, LoadFailure>, Never>] = []
+        let draft = SearchFilterDraft(filters: [], selection: .init(slugs: ["standup"])) { _ in
+            await withCheckedContinuation { continuations.append($0) }
+        }
+        let first = Task { await draft.refreshPreview(debounce: false) }
+        while continuations.count < 1 { await Task.yield() }
+        draft.toggle("clean")
+        let second = Task { await draft.refreshPreview(debounce: false) }
+        while continuations.count < 2 { await Task.yield() }
+        draft.toggle("clean")
+        let third = Task { await draft.refreshPreview(debounce: false) }
+        while continuations.count < 3 { await Task.yield() }
+        continuations[2].resume(returning: .success(3))
+        await third.value
+        continuations[1].resume(returning: .failure(.network("Offline")))
+        continuations[0].resume(returning: .success(500))
+        await second.value
+        await first.value
+        #expect(draft.preview == .ready(3))
+    }
+
+    @Test("Only confirmed zero is shown as zero; pending and failed requests have honest status")
+    func countStatesAndStableFacets() async {
+        let filters: [Components.Schemas.Filter] = [
+            .init(id: 1, slug: "clean", name: "Clean comedy"),
+            .init(id: 2, slug: "standup", name: "Stand-up")
+        ]
+        var response: Result<Int, LoadFailure> = .success(0)
+        let draft = SearchFilterDraft(filters: filters, selection: .init(slugs: [])) { _ in response }
+        #expect(draft.preview.message == "Updating results…")
+        await draft.refreshPreview(debounce: false)
+        #expect(draft.preview.message == "0 results")
+        draft.toggle("clean")
+        #expect(draft.preview.message == "Updating results…")
+        response = .failure(.network("Offline"))
+        await draft.refreshPreview(debounce: false)
+        #expect(draft.preview.message == "Preview unavailable")
+        #expect(draft.filters.map(\.slug) == ["clean", "standup"])
+        draft.retry()
+        #expect(draft.preview == .updating)
+        response = .success(1)
+        await draft.refreshPreview(debounce: false)
+        #expect(draft.preview.message == "1 result")
+    }
+
+    @Test("Rapid toggles debounce into one preview and keep selection with empty facets")
+    func rapidToggles() async {
+        var requests: [SearchFilterDraft.Selection] = []
+        let draft = SearchFilterDraft(filters: [], selection: .init(slugs: ["unknown"])) { selection in
+            requests.append(selection)
+            return .success(2)
+        }
+        let first = Task { await draft.refreshPreview() }
+        await Task.yield()
+        draft.toggle("clean")
+        let second = Task { await draft.refreshPreview() }
+        await Task.yield()
+        draft.toggle("standup")
+        let third = Task { await draft.refreshPreview() }
+        await first.value
+        await second.value
+        await third.value
+        #expect(requests == [.init(slugs: ["unknown", "clean", "standup"])])
+        #expect(draft.filters.isEmpty)
+    }
+
+    @Test("All preview endpoints preserve captured context without changing the parent query or results")
+    func previewAdapters() async throws {
+        let transport = StubClientTransport { _, _, _, _ in
+            var response = HTTPResponse(status: .ok)
+            response.headerFields[.contentType] = "application/json"
+            return (response, HTTPBody(#"{"data":[],"total":9,"filters":[],"homeCityFilters":[],"zipCapTriggered":true}"#))
+        }
+        let client = Client(serverURL: URL(string: "https://example.test")!, transport: transport)
+        let draft = SearchFilterDraft.Selection(slugs: ["clean", "standup"], maximumPrice: .twenty)
+        let comedians = ComediansDiscoveryModel()
+        comedians.searchText = "Ray"
+        comedians.homeCity = "New York|NY"
+        comedians.includeEmpty = true
+        let comedianQuery = comedians.requestKey
+        let comedianPreview = comedians.makeFilterPreview(apiClient: client)
+        let comedianCount = await comedianPreview(draft)
+        #expect(try comedianCount.get() == 9)
+        #expect(comedians.requestKey == comedianQuery)
+        if case .success = comedians.phase { Issue.record("Preview replaced parent results") }
+
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "filter-preview")
+        let controller = LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store)
+        let clubs = ClubsDiscoveryModel(nearbyLocationController: controller)
+        clubs.searchText = "Cellar"
+        clubs.includeEmpty = true
+        clubs.applySearchSeedNearbyPreference(.init(zipCode: "10012", source: .manual, distanceMiles: 50))
+        let clubQuery = clubs.requestKey
+        let clubCount = await clubs.makeFilterPreview(apiClient: client)(draft)
+        #expect(try clubCount.get() == 9)
+        #expect(clubs.requestKey == clubQuery)
+        if case .success = clubs.phase { Issue.record("Preview replaced parent results") }
+
+        let shows = ShowsListModel(nearbyLocationController: controller, initialUseDateRange: false, startsWithNearbyLocation: false)
+        shows.applySearchSeedNearbyPreference(.init(zipCode: "10012", source: .manual, distanceMiles: 50))
+        let showQuery = shows.requestKey
+        let showCount = await shows.makeFilterPreview(apiClient: client)(draft)
+        #expect(try showCount.get() == 9)
+        #expect(shows.requestKey == showQuery)
+        #expect(!shows.zipCapTriggered)
+        if case .success = shows.phase { Issue.record("Preview replaced parent results") }
+
+        let requests = transport.capturedRequests
+        #expect(requests.count == 3)
+        func params(_ index: Int) throws -> [String: String] {
+            let path = try #require(transport.capturedRequests[index].path)
+            let url = try #require(URLComponents(string: "https://example.test\(path)"))
+            return Dictionary(uniqueKeysWithValues: (url.queryItems ?? []).map { ($0.name, $0.value ?? "") })
+        }
+        let comedianParams = try params(0)
+        #expect(comedianParams["comedian"] == "Ray")
+        #expect(comedianParams["homeCity"] == "New York|NY")
+        #expect(comedianParams["includeEmpty"] == "true")
+        let clubParams = try params(1)
+        #expect(clubParams["club"] == "Cellar")
+        #expect(clubParams["zip"] == "10012")
+        #expect(clubParams["distance"] == "50")
+        let showParams = try params(2)
+        #expect(showParams["maxPrice"].flatMap(Double.init) == 20)
+        #expect(showParams["dateBasis"] == "venue")
+        #expect(showParams["zip"] == "10012")
+        for index in 0..<3 {
+            #expect(try params(index)["filters"] == "clean,standup")
+            #expect(try params(index)["page"] == "1")
+        }
+        // A captured preview remains scoped to the presentation's initial query.
+        comedians.searchText = "Changed elsewhere"
+        _ = await comedianPreview(draft)
+        #expect(try params(3)["comedian"] == "Ray")
+    }
+}

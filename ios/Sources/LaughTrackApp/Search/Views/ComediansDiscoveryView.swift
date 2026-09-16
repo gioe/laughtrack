@@ -148,9 +148,9 @@ struct ComediansDiscoveryView: View {
         .sheet(isPresented: $isFilterEditorPresented) {
             SearchFilterModal(
                 filters: currentFilters,
-                total: currentTotal,
                 selectedSlugs: $model.selectedFilterSlugs,
-                isPresented: $isFilterEditorPresented
+                isPresented: $isFilterEditorPresented,
+                preview: model.makeFilterPreview(apiClient: apiClient)
             )
             .presentationDetents([.medium, .large])
         }
@@ -218,10 +218,7 @@ struct ComediansDiscoveryView: View {
         )
     }
 
-    private var currentTotal: Int {
-        guard case .success(let result) = model.phase else { return 0 }
-        return result.total
-    }
+
 
     private var filterCountTitle: String {
         let count = model.selectedFilterSlugs.count
