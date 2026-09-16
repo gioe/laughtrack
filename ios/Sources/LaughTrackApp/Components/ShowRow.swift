@@ -634,13 +634,16 @@ struct ShowRow: View {
         guard primaryTitle.localizedCaseInsensitiveCompare(headliner.name) != .orderedSame else {
             return nil
         }
-        // Only an exact generated headline repeats the same identity. Named
-        // events, aliases, and partial name matches retain the featured artist.
+        // A full performer name followed by a title separator already supplies
+        // that identity. Keep aliases, partial names, and other event titles.
         if context == .agenda {
             let name = headliner.name.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !name.isEmpty,
-               primaryTitle.localizedCaseInsensitiveCompare("\(name) Headlines") == .orderedSame {
-                return nil
+            if !name.isEmpty {
+                let generatedHeadline = primaryTitle.localizedCaseInsensitiveCompare("\(name) Headlines") == .orderedSame
+                let namedEvent = [":", " & ", " - ", " – ", " — "].contains { separator in
+                    primaryTitle.range(of: name + separator, options: [.anchored, .caseInsensitive]) != nil
+                }
+                if generatedHeadline || namedEvent { return nil }
             }
         }
         return headliner.name

@@ -799,6 +799,20 @@ struct SearchAgendaPresentationTests {
         let ann = SearchAgendaFixtures.comedian("Ann Lee")
         let prefixShow = SearchAgendaFixtures.show("Ann Leeman: Live", lineup: [ann])
         #expect(ShowRow.headlinerContext(for: prefixShow, headliner: ann, context: .agenda) == ann.name)
+        let hyphenatedName = SearchAgendaFixtures.show("Ann Lee-Man: Live", lineup: [ann])
+        #expect(ShowRow.headlinerContext(for: hyphenatedName, headliner: ann, context: .agenda) == ann.name)
+    }
+
+    @Test("named shows omit only a clearly repeated full performer prefix in the agenda")
+    func namedShowPrefixesAvoidRepeatingIdentity() {
+        let headliner = SearchAgendaFixtures.comedian("Taylor Tomlinson")
+        for title in ["Taylor Tomlinson: Live", "Taylor Tomlinson & Friends", "Taylor Tomlinson — New Material", "Taylor Tomlinson - Live Special", "TAYLOR TOMLINSON:LIVE"] {
+            let show = SearchAgendaFixtures.show(title)
+            #expect(ShowRow.headlinerContext(for: show, headliner: headliner, context: .agenda) == nil)
+            #expect(ShowRow.headlinerContext(for: show, headliner: headliner) == headliner.name)
+        }
+        let partial = SearchAgendaFixtures.show("Late Night with Taylor")
+        #expect(ShowRow.headlinerContext(for: partial, headliner: headliner, context: .agenda) == headliner.name)
     }
 
     @Test("named ensemble shows retain headliner and supporting performers")

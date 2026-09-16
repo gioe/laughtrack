@@ -33,8 +33,10 @@ of the card width. At accessibility sizes the time, price, artwork, and text
 stack, and text can expand vertically.
 
 Standalone tickets and compact lists without date headings retain the date stub.
-Exact generated performer headlines omit the repeated subtitle in the agenda;
-named events and aliases retain the featured performer's identity. Room names,
+Generated performer headlines and named shows starting with the full performer
+name and a clear separator (colon, ampersand, or spaced dash) omit the repeated
+subtitle in the agenda. Other event titles and aliases retain the featured
+performer's identity. Room names,
 supporting lineups, sold-out badges, and struck-through previous prices remain
 available. An unknown price does not become a free ticket.
 
@@ -59,7 +61,7 @@ It also covers distinct room names, canonical aliases, name-prefix collisions,
 venue timezones and fallbacks, and unknown/free/sold-out prices. Existing Search
 presentation tests protect the compact-list default and agenda-only opt-in.
 
-All 64 focused tests passed across SearchAgendaPresentationTests, ShowRowTests,
+All 65 focused tests passed across SearchAgendaPresentationTests, ShowRowTests,
 and ShowsListViewPresentationTests. Both native Search agenda tests passed at
 standard text and AX5, checking full accessible labels, venue-local time, price,
 room, screen containment, a minimum 44-point target, and opening show detail.
