@@ -557,6 +557,14 @@ enum LaughTrackSearchEntityKind: Equatable {
     case club
     case podcast
 
+    var artworkShape: LaughTrackEntityRowArtworkShape {
+        switch self {
+        case .comedian: return .circle
+        case .club: return .roundedRectangle(cornerRadius: 12)
+        case .podcast: return .roundedRectangle(cornerRadius: 6)
+        }
+    }
+
     var fallback: ArtworkFallbackKind {
         switch self {
         case .comedian: return .comedian
@@ -569,12 +577,12 @@ enum LaughTrackSearchEntityKind: Equatable {
 /// The canonical rich entity row shared by Search and Library.
 struct LaughTrackSearchEntityRowMetrics: Equatable {
     let verticalCardPadding: CGFloat
-    let titleLineLimit: Int
+    let titleLineLimit: Int?
     let subtitleLineLimit: Int
 
     static let standard = Self(
-        verticalCardPadding: 4,
-        titleLineLimit: 2,
+        verticalCardPadding: 12,
+        titleLineLimit: nil,
         subtitleLineLimit: 2
     )
 }
@@ -590,6 +598,7 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
     let hasTrailingAccessory: Bool
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         title: String,
@@ -632,32 +641,42 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
         let laughTrack = theme.laughTrackTokens
         let metrics = LaughTrackSearchEntityRowMetrics.standard
 
-        HStack(spacing: theme.spacing.md) {
+        HStack(alignment: dynamicTypeSize.isAccessibilitySize ? .top : .center, spacing: theme.spacing.md) {
             Button(action: action) {
                 HStack(spacing: theme.spacing.md) {
-                    artwork
+                    let layout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                        : AnyLayout(HStackLayout(spacing: theme.spacing.md))
+                    layout {
+                        artwork
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(title)
-                            .font(laughTrack.typography.cardTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .lineLimit(metrics.titleLineLimit)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        if let subtitle, !subtitle.isEmpty {
-                            Text(subtitle)
-                                .font(laughTrack.typography.metadata)
-                                .foregroundStyle(laughTrack.colors.textSecondary)
-                                .lineLimit(metrics.subtitleLineLimit)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(title)
+                                .font(laughTrack.typography.cardTitle)
+                                .foregroundStyle(laughTrack.colors.textPrimary)
+                                .lineLimit(metrics.titleLineLimit)
                                 .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.textSecondary)
+                            if let subtitle, !subtitle.isEmpty {
+                                Text(subtitle)
+                                    .font(laughTrack.typography.metadata)
+                                    .foregroundStyle(laughTrack.colors.textSecondary)
+                                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : metrics.subtitleLineLimit)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    }
+
+                    if !hasTrailingAccessory {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .accessibilityHidden(true)
+                    }
                 }
+                .frame(minHeight: 44)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -673,17 +692,17 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
 
             if hasTrailingAccessory {
                 trailingAccessory
+                    .environment(\.favoriteButtonPresentation, FavoriteButtonPresentation(
+                        isCompact: true,
+                        entityName: title,
+                        accessibilityIdentifier: accessibilityIdentifier.map { "\($0).favorite" }
+                    ))
             }
         }
         .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
         .padding(.vertical, metrics.verticalCardPadding)
         .background(laughTrack.colors.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
-        )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
     }
 
     private var rowAccessibilityLabel: String {
@@ -693,54 +712,12 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
         return "\(title), \(subtitle)"
     }
 
-    @ViewBuilder
     private var artwork: some View {
-        switch kind {
-        case .comedian:
-            ClubWallHeadshotFrame(
-                caption: title,
-                captionVisibility: .hidden,
-                photoWidth: 64,
-                photoHeight: 61,
-                frameWidth: 76,
-                frameHeight: 73
-            ) {
-                artworkImage
-            }
-        case .club, .podcast:
-            framedPoster
-        }
-    }
-
-    private var framedPoster: some View {
-        let frameColor = kind == .club
-            ? Color(red: 1.0, green: 0.78, blue: 0.24)
-            : theme.laughTrackTokens.colors.accentStrong
-
-        return ZStack {
-            artworkImage
-                .frame(width: 64, height: 64)
-                .clipShape(RoundedRectangle(cornerRadius: kind == .club ? 8 : 5, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: kind == .club ? 8 : 5, style: .continuous)
-                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
-                )
-
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(
-                    frameColor,
-                    style: StrokeStyle(
-                        lineWidth: 1.5,
-                        lineCap: .round,
-                        lineJoin: .round,
-                        dash: kind == .club ? [1.2, 10] : [0.5, 4.5]
-                    )
-                )
-                .frame(width: 69, height: 69)
-                .shadow(color: frameColor.opacity(0.5), radius: 3)
-                .shadow(color: frameColor.opacity(0.25), radius: 7)
-        }
-        .frame(width: 69, height: 69)
+        artworkImage
+            .frame(width: 56, height: 56)
+            .background(theme.laughTrackTokens.colors.surfaceMuted)
+            .modifier(LaughTrackEntityArtworkClip(shape: kind.artworkShape))
+            .accessibilityHidden(true)
     }
 
     @ViewBuilder

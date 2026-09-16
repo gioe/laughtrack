@@ -1,8 +1,28 @@
 import SwiftUI
 import LaughTrackBridge
 
+/// Search and Library share a quieter accessory treatment without changing
+/// standalone favorite controls, such as onboarding.
+struct FavoriteButtonPresentation {
+    var isCompact = false
+    var entityName: String?
+    var accessibilityIdentifier: String?
+}
+
+private struct FavoriteButtonPresentationKey: EnvironmentKey {
+    static let defaultValue = FavoriteButtonPresentation()
+}
+
+extension EnvironmentValues {
+    var favoriteButtonPresentation: FavoriteButtonPresentation {
+        get { self[FavoriteButtonPresentationKey.self] }
+        set { self[FavoriteButtonPresentationKey.self] = newValue }
+    }
+}
+
 struct FavoriteButton: View {
     @Environment(\.appTheme) private var theme
+    @Environment(\.favoriteButtonPresentation) private var presentation
 
     let isFavorite: Bool
     let isPending: Bool
@@ -17,15 +37,18 @@ struct FavoriteButton: View {
             }
         } label: {
             ZStack {
-                Circle()
-                    .fill(isFavorite ? laughTrack.colors.highlight : laughTrack.colors.surfaceElevated)
-                    .overlay(
-                        Circle()
-                            .stroke(
-                                isFavorite ? laughTrack.colors.accentStrong.opacity(0.35) : laughTrack.colors.borderSubtle,
-                                lineWidth: 1
-                            )
-                    )
+                if !presentation.isCompact {
+                    Circle()
+                        .fill(isFavorite ? laughTrack.colors.highlight : laughTrack.colors.surfaceElevated)
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    isFavorite ? laughTrack.colors.accentStrong.opacity(0.35) : laughTrack.colors.borderSubtle,
+                                    lineWidth: 1
+                                )
+                        )
+                        .shadowStyle(laughTrack.shadows.card)
+                }
 
                 if isPending {
                     ProgressView()
@@ -33,16 +56,25 @@ struct FavoriteButton: View {
                         .tint(laughTrack.colors.accent)
                 } else {
                     Image(systemName: isFavorite ? "heart.fill" : "heart")
-                        .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                        .font(.system(size: presentation.isCompact ? 20 : theme.iconSizes.md, weight: .semibold))
                         .foregroundStyle(isFavorite ? laughTrack.colors.accentStrong : laughTrack.colors.textSecondary)
                 }
             }
-            .frame(width: 54, height: 54)
-            .shadowStyle(laughTrack.shadows.card)
+            .frame(width: presentation.isCompact ? 44 : 54, height: presentation.isCompact ? 44 : 54)
+            .contentShape(Rectangle())
         }
         .buttonStyle(FavoriteIconButtonStyle(animation: laughTrack.motion.tapFeedback))
         .disabled(isPending)
-        .accessibilityLabel(isFavorite ? "Remove favorite" : "Add favorite")
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityValue(isPending ? "Updating" : (isFavorite ? "Saved" : "Not saved"))
+        .accessibilityIdentifier(presentation.accessibilityIdentifier ?? "")
+    }
+
+    private var accessibilityLabel: String {
+        guard let name = presentation.entityName else {
+            return isFavorite ? "Remove favorite" : "Add favorite"
+        }
+        return isFavorite ? "Remove \(name) from favorites" : "Add \(name) to favorites"
     }
 }
 

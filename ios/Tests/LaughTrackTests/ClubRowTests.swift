@@ -26,24 +26,6 @@ struct ClubRowTests {
         #expect(ClubRow.metadata(for: club) == ["19 active comedians", "8 shows"])
     }
 
-    @Test("club search row uses square sparse yellow bulb artwork treatment")
-    func clubSearchRowUsesSquareSparseYellowBulbArtworkTreatment() throws {
-        let source = try String(contentsOf: browseComponentsSourceURL(), encoding: .utf8)
-        let block = try sourceBlock(
-            in: source,
-            from: "struct LaughTrackSearchEntityRow",
-            to: "struct LaughTrackEntityRowDesign"
-        )
-
-        #expect(block.contains("Color(red: 1.0, green: 0.78, blue: 0.24)"))
-        #expect(block.contains("kind == .club ? 8 : 5"))
-        #expect(block.contains("style: StrokeStyle("))
-        #expect(block.contains("kind == .club ? [1.2, 10] : [0.5, 4.5]"))
-        #expect(block.contains(".strokeBorder("))
-        #expect(block.contains("frameColor,"))
-        #expect(block.contains(".shadow(color: frameColor.opacity(0.5), radius: 3)"))
-    }
-
     @Test("browse entity rows fit club artwork without cropping")
     func browseEntityRowsFitClubArtworkWithoutCropping() throws {
         let source = try String(contentsOf: browseComponentsSourceURL(), encoding: .utf8)
