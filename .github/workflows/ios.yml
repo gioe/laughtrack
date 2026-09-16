@@ -25,6 +25,9 @@ on:
       - "ios/Package.resolved"
       - "ios/project.yml"
       - "ios/fastlane/Fastfile"
+      - "scripts/screenshots/fixture_server.py"
+      - "scripts/screenshots/tests/test_ios_fixture_lifecycle.py"
+      - "screenshots/catalog.json"
       - "ios/bin/check-pbxproj-sync.sh"
       - "ios/bin/check-ios-libs-pin.sh"
       - "ios/bin/check-openapi-regen-drift.sh"
@@ -42,6 +45,9 @@ on:
       - "ios/Package.resolved"
       - "ios/project.yml"
       - "ios/fastlane/Fastfile"
+      - "scripts/screenshots/fixture_server.py"
+      - "scripts/screenshots/tests/test_ios_fixture_lifecycle.py"
+      - "screenshots/catalog.json"
       - "ios/bin/check-pbxproj-sync.sh"
       - "ios/bin/check-ios-libs-pin.sh"
       - "ios/bin/check-openapi-regen-drift.sh"
@@ -51,6 +57,21 @@ on:
       - ".github/workflows/ios.yml"
 
 jobs:
+  fixture-lifecycle:
+    name: iOS fixture lifecycle contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - run: python3 -m pip install pytest
+      - name: Verify both simulator lanes own a ready fixture backend
+        run: python3 -m pytest scripts/screenshots/tests/test_ios_fixture_lifecycle.py -q
+
   # Per-job path gating: the workflow triggers on a union of all five original
   # path sets, then this filter decides which sub-area actually changed so each
   # gate only spins up its runner when relevant.
@@ -75,6 +96,9 @@ jobs:
               - 'ios/Sources/**'
               - 'ios/Tests/**'
               - 'ios/fastlane/Fastfile'
+              - 'scripts/screenshots/fixture_server.py'
+              - 'scripts/screenshots/tests/test_ios_fixture_lifecycle.py'
+              - 'screenshots/catalog.json'
               - '.github/workflows/ios.yml'
             pbxproj:
               - 'ios/Sources/**/*.swift'
@@ -148,8 +172,17 @@ jobs:
         # default 3s base timeout / 4 retries on the macOS runner, failing the
         # job before tests even start. Give it more headroom.
         env:
+          LAUGHTRACK_SCREENSHOT_FIXTURE_LOG: ${{ runner.temp }}/laughtrack-fixture.log
           FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "30"
           FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "6"
+
+      - name: Upload fixture lifecycle diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixture-${{ github.job }}
+          path: ${{ runner.temp }}/laughtrack-fixture.log
+          if-no-files-found: warn
 
   # Non-blocking watcher (TASK-2339). Runs the same suite on the latest iOS
   # 26.x simulator so a future Apple fix surfaces in the CI signal — until
@@ -250,22 +283,24 @@ jobs:
           PY
 
       - name: Run tests on the iOS 26.x simulator (watcher)
-        run: |
-          cd ios
-          bundle exec fastlane scan \
-            --scheme LaughTrack \
-            --destination "platform=iOS Simulator,id=${IOS26_SIMULATOR_UDID}" \
-            --clean false \
-            --code_coverage false \
-            --skip_slack true
+        run: cd ios && bundle exec fastlane test_ios26_watch
         # Same showBuildSettings headroom as sim-tests-ios-18 above. Without it
         # the watcher died in fastlane startup (3s base timeout, 4 retries) on
         # 4 of 5 runs on 2026-07-08 — infra noise that makes the watcher's
         # green-transition signal (the drop-the-18.x-pin cue) unreadable.
         env:
           IOS26_SIMULATOR_UDID: ${{ steps.ios26_simulator.outputs.udid }}
+          LAUGHTRACK_SCREENSHOT_FIXTURE_LOG: ${{ runner.temp }}/laughtrack-fixture.log
           FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "30"
           FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "6"
+
+      - name: Upload fixture lifecycle diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixture-${{ github.job }}
+          path: ${{ runner.temp }}/laughtrack-fixture.log
+          if-no-files-found: warn
 
   check-pbxproj:
     name: "iOS Xcode project sync guard"

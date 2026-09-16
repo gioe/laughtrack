@@ -1,6 +1,7 @@
 require "digest"
 require "fileutils"
 require "json"
+require "net/http"
 require "open3"
 require "socket"
 require "timeout"
@@ -447,7 +448,14 @@ def store_ios_screenshot_profile(capture_root, profile_id, expected_key, native_
 end
 
 def with_screenshot_fixture_server
-  log_path = File.join(Dir.tmpdir, "laughtrack-screenshot-fixture.log")
+  previous_port = ENV["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"]
+  log_path = ENV.fetch("LAUGHTRACK_SCREENSHOT_FIXTURE_LOG", File.join(Dir.tmpdir, "laughtrack-screenshot-fixture.log"))
+  # Never accept another process's TCP listener as our fixture backend.
+  begin
+    TCPServer.open("127.0.0.1", SCREENSHOT_FIXTURE_PORT, &:close)
+  rescue Errno::EADDRINUSE
+    UI.user_error!("Fixture port #{SCREENSHOT_FIXTURE_PORT} is already occupied; refusing to reuse an unowned backend")
+  end
   pid = Process.spawn(
     "python3", SCREENSHOT_FIXTURE_SERVER_PATH,
     "--host", "127.0.0.1",
@@ -460,26 +468,31 @@ def with_screenshot_fixture_server
       UI.user_error!("Screenshot fixture backend exited early:\n#{File.read(log_path)}")
     end
     begin
-      Timeout.timeout(0.25) do
-        TCPSocket.open("127.0.0.1", SCREENSHOT_FIXTURE_PORT, &:close)
-      end
-      ready = true
-      break
-    rescue SystemCallError, Timeout::Error
-      sleep(0.05)
+      http = Net::HTTP.new("127.0.0.1", SCREENSHOT_FIXTURE_PORT, nil)
+      http.open_timeout = 0.25
+      http.read_timeout = 0.25
+      response = http.get("/fixture/configure?mode=curated")
+      summary = JSON.parse(response.body)
+      ready = response.code == "200" && summary["mode"] == "curated" &&
+        summary["result_count"].is_a?(Integer) && !summary["fingerprint"].to_s.empty?
+      break if ready
+    rescue SystemCallError, Timeout::Error, EOFError, JSON::ParserError
+      # The process may be alive before its HTTP handler is ready.
     end
+    sleep(0.05)
   end
   unless ready
     UI.user_error!("Screenshot fixture backend did not become ready:\n#{File.read(log_path)}")
   end
-  previous_port = ENV["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"]
   ENV["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"] = SCREENSHOT_FIXTURE_PORT.to_s
+  UI.message("Fixture backend ready: http://127.0.0.1:#{SCREENSHOT_FIXTURE_PORT} (curated); log: #{log_path}")
   yield
 ensure
   ENV["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"] = previous_port if defined?(previous_port)
   if defined?(pid) && pid
     Process.kill("TERM", pid) rescue nil
     Process.wait(pid) rescue nil
+    UI.message("Fixture backend stopped (pid #{pid})")
   end
 end
 
@@ -607,6 +620,7 @@ platform :ios do
         destination: "platform=iOS Simulator,name=#{TEST_SIM_NAME},OS=#{TEST_IOS_VERSION}",
         clean: false,
         code_coverage: false,
+        parallel_testing: false,
         skip_slack: true
       )
     end
@@ -614,13 +628,20 @@ platform :ios do
 
   desc "Watcher: run the iOS test suite against the latest iOS 26.x simulator (expected to fail until Apple fixes the HostedView regression)"
   lane :test_ios26_watch do
-    run_tests(
-      scheme: SCHEME,
-      destination: "platform=iOS Simulator,name=#{TEST_SIM_NAME},OS=#{TEST_IOS_26_WATCH_VERSION}",
-      clean: false,
-      code_coverage: false,
-      skip_slack: true
-    )
+    udid = ENV["IOS26_SIMULATOR_UDID"].to_s.strip
+    destination = udid.empty? \
+      ? "platform=iOS Simulator,name=#{TEST_SIM_NAME},OS=#{TEST_IOS_26_WATCH_VERSION}" \
+      : "platform=iOS Simulator,id=#{udid}"
+    with_screenshot_fixture_server do
+      run_tests(
+        scheme: SCHEME,
+        destination: destination,
+        clean: false,
+        code_coverage: false,
+        parallel_testing: false,
+        skip_slack: true
+      )
+    end
   end
 
   desc "Load App Store Connect API key"
