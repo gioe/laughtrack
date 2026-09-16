@@ -156,6 +156,121 @@ struct SearchFavoriteRowLayoutTests {
         }
     }
 
+    @Test("rows without a favorite keep their complete detail target inside a narrow column")
+    @MainActor
+    func rowsWithoutFavoriteStayWithinProposedWidth() async throws {
+        let cases: [(LaughTrackSearchEntityKind, String, String)] = [
+            (.comedian, "Taylor Tomlinson", "A wonderfully long touring comedian description"),
+            (.club, "Hollywood Improv", "Hollywood, CA"),
+            (.podcast, "Good One: A Podcast About Jokes", "Chris Distefano & Yannis Pappas"),
+        ]
+        for (kind, title, subtitle) in cases {
+            for size in [DynamicTypeSize.large, .accessibility5] {
+                let geometry = SearchRowGeometryRecorder()
+                let host = HostedView(
+                    ScrollView {
+                        AdaptiveSearchResults(spacing: 16) {
+                            LaughTrackSearchEntityRow(
+                                title: title,
+                                subtitle: subtitle,
+                                imageURL: nil,
+                                kind: kind,
+                                action: {},
+                                accessibilityIdentifier: "layout.detail-without-favorite"
+                            )
+                            .background(SearchRowGeometryProbe { geometry.row = $0 })
+                        }
+                        .frame(width: 288)
+                    }
+                    .environment(\.appTheme, LaughTrackTheme())
+                    .environment(\.dynamicTypeSize, size)
+                    .environment(\.horizontalSizeClass, .compact),
+                    freshWindow: true
+                )
+                await host.settle()
+                let detail = try host.requireView(withIdentifier: "layout.detail-without-favorite")
+                let detailFrame = detail.convert(detail.bounds, to: nil)
+                let row = try #require(geometry.row)
+                #expect(abs(row.width - 288) < 1, "Row exceeds the proposed column: \(row)")
+                #expect(detailFrame.width >= 44)
+                #expect(detailFrame.height >= 44)
+                #expect(row.insetBy(dx: -1, dy: -1).contains(detailFrame),
+                        "Detail target must remain inside the complete row: detail=\(detailFrame), row=\(row)")
+                #expect(detail.accessibilityLabel == "\(title), \(subtitle)")
+            }
+        }
+    }
+
+    @Test("club filter chips do not widen the result column at accessibility sizes")
+    @MainActor
+    func clubFilterChipsRespectTheResultColumnWidth() async throws {
+        let scenarios: [(width: CGFloat, location: String, active: Bool, size: DynamicTypeSize)] = [
+            (288, "Location New York, NY", true, .large),
+            (288, "Location New York, NY", true, .accessibility5),
+            (343, "Location", false, .large),
+            (343, "Location", false, .accessibility5),
+        ]
+        for scenario in scenarios {
+            let geometry = SearchRowGeometryRecorder()
+            let column = SearchRowGeometryRecorder()
+            let host = HostedView(
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ChipFlowLayout(spacing: 8, rowSpacing: 8) {
+                            if !scenario.active {
+                                PillDropdownTrigger(
+                                    id: "layout.club-distance",
+                                    selected: ShowDistanceOption.city,
+                                    triggerLabel: { $0.title },
+                                    openDropdownID: .constant(nil)
+                                )
+                            }
+                            PillDropdownTrigger(
+                                id: "layout.club-sort",
+                                selected: ClubSortOption.mostActive,
+                                triggerLabel: { $0.title },
+                                openDropdownID: .constant(nil)
+                            )
+                            PillSheetTrigger(
+                                title: scenario.location,
+                                systemImage: "mappin.and.ellipse",
+                                isActive: scenario.active,
+                                action: {}
+                            )
+                            if !scenario.active {
+                                PillSheetTrigger(
+                                    title: "Filters", systemImage: "line.3.horizontal.decrease", action: {}
+                                )
+                            }
+                        }
+                        AdaptiveSearchResults(spacing: 16) {
+                            LaughTrackSearchEntityRow(
+                                title: "Hollywood Improv", subtitle: "Hollywood, CA",
+                                imageURL: nil, kind: .club, action: {},
+                                accessibilityIdentifier: "layout.club-detail"
+                            )
+                            .background(SearchRowGeometryProbe { geometry.row = $0 })
+                        }
+                    }
+                    .background(SearchRowGeometryProbe { column.row = $0 })
+                    .frame(width: scenario.width)
+                }
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.dynamicTypeSize, scenario.size)
+                .environment(\.horizontalSizeClass, .compact),
+                freshWindow: true
+            )
+            await host.settle()
+            let row = try #require(geometry.row)
+            let content = try #require(column.row)
+            let detail = try host.requireView(withIdentifier: "layout.club-detail")
+            let detailFrame = detail.convert(detail.bounds, to: nil)
+            #expect(content.width <= scenario.width + 1, "Filter ancestor must respect the \(scenario.width)pt proposal: \(content)")
+            #expect(row.width <= scenario.width + 1, "Oversized filters must not widen sibling results: \(row)")
+            #expect(detailFrame.width <= scenario.width + 1, "Detail must stay inside the visible column: \(detailFrame)")
+        }
+    }
+
     @MainActor
     private func measuredRowHeight(title: String, kind: LaughTrackSearchEntityKind, size: DynamicTypeSize) -> CGFloat {
         let controller = UIHostingController(rootView:

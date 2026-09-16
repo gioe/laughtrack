@@ -284,7 +284,7 @@ struct ChipFlowLayout: Layout {
         subviews: Subviews,
         cache: inout Void
     ) -> CGSize {
-        layout(in: proposal.width ?? 0, subviews: subviews).size
+        layout(in: proposal.width, subviews: subviews).size
     }
 
     func placeSubviews(
@@ -301,15 +301,22 @@ struct ChipFlowLayout: Layout {
         }
     }
 
-    private func layout(in maxWidth: CGFloat, subviews: Subviews) -> (items: [(index: Int, frame: CGRect)], size: CGSize) {
+    private func layout(in maxWidth: CGFloat?, subviews: Subviews) -> (items: [(index: Int, frame: CGRect)], size: CGSize) {
         var items: [(index: Int, frame: CGRect)] = []
         var cursor = CGPoint.zero
         var rowHeight: CGFloat = 0
         var width: CGFloat = 0
 
         for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
-            if cursor.x > 0, maxWidth > 0, cursor.x + size.width > maxWidth {
+            var size = subviews[index].sizeThatFits(.unspecified)
+            // Large text or a long location can exceed the whole column.
+            // Remeasure within the proposal so a chip cannot widen its parent
+            // and push sibling result rows beyond the screen. A zero-width
+            // minimum proposal must remain distinct from an unspecified width.
+            if let maxWidth, maxWidth.isFinite, size.width > maxWidth {
+                size = subviews[index].sizeThatFits(ProposedViewSize(width: max(0, maxWidth), height: nil))
+            }
+            if cursor.x > 0, let maxWidth, cursor.x + size.width > maxWidth {
                 cursor.x = 0
                 cursor.y += rowHeight + rowSpacing
                 rowHeight = 0

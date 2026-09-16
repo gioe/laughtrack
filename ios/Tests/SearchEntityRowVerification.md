@@ -42,6 +42,10 @@ not a native tablet layout.
   stays at its standard visual size even at AX5.
 - Library uses the same shared row and accessory presentation. Standalone
   onboarding favorite controls retain their existing treatment.
+- Full-screen AX verification also exposed filter chips widening the entire
+  club result column. The flow now remeasures oversized chips within its
+  proposed width, including minimum-width layout probes. A failing rendered
+  regression reproduced a 432.7-point filter ancestor in a 288-point column.
 
 ## Verification
 
@@ -49,6 +53,12 @@ The focused layout suite measures actual rendered geometry at a narrow 288-point
 row width for every entity type, standard/AX5, and all three favorite states.
 It verifies separate targets, minimum target sizes, row containment, stable state
 geometry, and increasing row height for titles well beyond two lines.
+Rows without favorite accessories and a filter-flow ancestor have separate
+width regressions so an oversized sibling cannot escape the column unnoticed.
+
+Final results: all 11 layout tests, four Club row tests, six Library tests, and
+both native navigation/accessibility tests passed. Phone and iPad capture suites
+passed; final native screenshots cover all three categories in the Search tab.
 
 Native navigation tests exercise guest favorite → sign-in → cancel, followed by
 independent detail navigation. The accessibility case checks complete title and

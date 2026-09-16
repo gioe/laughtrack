@@ -7,6 +7,147 @@ import UIKit
 /// are seeded. Run these cases at native default/large text and Reduce Motion.
 @MainActor
 final class NavigationTransitionUITests: XCTestCase {
+    func testSearchEntityFavoritesKeepLoginAndDetailActionsSeparate() throws {
+        let app = try launchApp()
+        defer { app.terminate() }
+        app.tabBars.buttons["Search"].tap()
+
+        let cases = [
+            (category: "comedians", result: "laughtrack.comedians-search.result-301", title: "Ali Wong", detail: "laughtrack.comedian-detail.screen", hasFavorite: true),
+            (category: "clubs", result: "laughtrack.clubs-search.result-201", title: "Hollywood Improv", detail: "laughtrack.club-detail.screen", hasFavorite: false),
+            (category: "podcasts", result: "laughtrack.podcasts-search.result-podcast-401", title: "History Hyenas", detail: "laughtrack.podcast-detail-screen", hasFavorite: true),
+        ]
+
+        for item in cases {
+            selectSearchCategory(item.category, in: app)
+            let result = element(item.result, in: app)
+            XCTAssertTrue(result.waitForExistence(timeout: 10))
+            revealSearchResult(result, in: app)
+            XCTAssertTrue(result.label.contains(item.title))
+            XCTAssertGreaterThanOrEqual(result.frame.height, 44)
+            attach(app, "Search \(item.category) — simplified entity rows")
+
+            if item.hasFavorite {
+                let favorite = app.buttons[item.result + ".favorite"]
+                assertIndependentFavorite(favorite, beside: result, in: app)
+                XCTAssertEqual(favorite.label, "Add \(item.title) to favorites")
+                favorite.tap()
+                let close = app.buttons["laughtrack.login.close"]
+                XCTAssertTrue(close.waitForExistence(timeout: 5), "A guest favorite opens sign-in")
+                XCTAssertFalse(element(item.detail, in: app).exists, "Favoriting must not also navigate")
+                attach(app, "Search \(item.category) — favorite requests sign-in without opening detail")
+                close.tap()
+                XCTAssertTrue(close.waitForNonExistence(timeout: 5))
+                XCTAssertTrue(result.isHittable)
+                XCTAssertEqual(favorite.label, "Add \(item.title) to favorites", "Cancelling sign-in must not mark a favorite")
+            }
+
+            result.tap()
+            XCTAssertTrue(element(item.detail, in: app).waitForExistence(timeout: 10))
+            XCTAssertFalse(app.buttons["laughtrack.login.close"].exists, "Detail navigation must not trigger sign-in")
+            edgeDrag(in: app, to: 0.88)
+            XCTAssertTrue(result.waitForExistence(timeout: 5))
+            XCTAssertTrue(app.tabBars.buttons["Search"].isSelected)
+        }
+    }
+
+    func testAccessibilitySearchEntityRowsRetainLabelsAndSeparateTargets() throws {
+        let app = try launchApp(largeText: true)
+        defer { app.terminate() }
+        app.tabBars.buttons["Search"].tap()
+
+        let cases = [
+            (category: "comedians", result: "laughtrack.comedians-search.result-302", title: "Taylor Tomlinson", metadata: "", hasFavorite: true),
+            (category: "clubs", result: "laughtrack.clubs-search.result-201", title: "Hollywood Improv", metadata: "Hollywood, CA", hasFavorite: false),
+            (category: "podcasts", result: "laughtrack.podcasts-search.result-podcast-401", title: "History Hyenas", metadata: "Chris Distefano & Yannis Pappas", hasFavorite: true),
+        ]
+
+        for item in cases {
+            selectSearchCategory(item.category, in: app)
+            let result = element(item.result, in: app)
+            XCTAssertTrue(result.waitForExistence(timeout: 10))
+            revealSearchResult(result, in: app)
+            let expectedLabel = item.metadata.isEmpty ? item.title : "\(item.title), \(item.metadata)"
+            XCTAssertEqual(result.label, expectedLabel, "The accessible name must retain complete title and metadata")
+            XCTAssertGreaterThanOrEqual(result.frame.height, 44)
+            if item.hasFavorite {
+                assertIndependentFavorite(app.buttons[item.result + ".favorite"], beside: result, in: app)
+            }
+            // Full accessibility labels alone cannot prove visually untruncated
+            // text; retain a real rendered capture for title/metadata inspection.
+            attach(app, "Accessibility Search \(item.category) — full name and independent row targets")
+        }
+    }
+
+    private func selectSearchCategory(_ category: String, in app: XCUIApplication) {
+        let button = app.buttons["laughtrack.primitive-filter.\(category)"]
+        XCTAssertTrue(button.waitForExistence(timeout: 5))
+        let window = app.windows.firstMatch.frame
+        let leadingX = max(window.minX + 16, app.buttons["laughtrack.account.header-button"].frame.maxX + 8)
+        // The category scroller's shipping trailing inset is eight points.
+        let trailingX = window.maxX - 8
+        for _ in 0..<8 {
+            let frame = button.frame
+            if button.isHittable && frame.minX >= leadingX - 1 && frame.maxX <= trailingX + 1 { break }
+            // Center the requested category with a bounded drag. A full-width
+            // left swipe can pass an intermediate category entirely; recompute
+            // the signed distance so an overshoot is corrected to the right.
+            let centerX = (leadingX + trailingX) / 2
+            let distance = centerX - frame.midX
+            let displacement = min(max(distance, -140), 140)
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: centerX - app.frame.minX, dy: frame.midY - app.frame.minY))
+            let end = start.withOffset(CGVector(dx: displacement, dy: 0))
+            start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)
+        }
+        assertCategoryFullyVisible(button, in: app)
+        XCTAssertGreaterThanOrEqual(button.frame.minX, leadingX - 1, "The account control must not obscure the category")
+        XCTAssertLessThanOrEqual(button.frame.maxX, trailingX + 1)
+        button.tap()
+        assertSelectedCategory(category, in: app)
+    }
+
+    private func revealSearchResult(_ result: XCUIElement, in app: XCUIApplication) {
+        let window = app.windows.firstMatch.frame
+        let selectedCategory = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@ AND isSelected == true", "laughtrack.primitive-filter."
+        )).firstMatch
+        XCTAssertTrue(selectedCategory.exists)
+        let top = selectedCategory.frame.maxY + 12
+        let bottom = app.tabBars.firstMatch.frame.minY - 12
+        let viewport = CGRect(x: window.minX, y: top, width: window.width, height: bottom - top)
+        XCTAssertLessThanOrEqual(result.frame.height, viewport.height + 1,
+                                 "Result cannot fit in its viewport: result=\(result.frame), viewport=\(viewport)")
+
+        for _ in 0..<8 {
+            let frame = result.frame
+            if result.isHittable && frame.minY >= top - 1 && frame.maxY <= bottom + 1 { break }
+            // Category changes retain the Search scroll position. A result can
+            // be partially above the header as well as below the tab bar; use
+            // signed, measured drags instead of always swiping upward.
+            let displacement = min(max(viewport.midY - frame.midY, -180), 180)
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: viewport.midX - app.frame.minX, dy: viewport.midY - app.frame.minY))
+            let end = start.withOffset(CGVector(dx: 0, dy: displacement))
+            start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)
+        }
+        let diagnostic = "result=\(result.frame), viewport=\(viewport), window=\(window)"
+        XCTAssertTrue(result.isHittable, diagnostic)
+        XCTAssertTrue(window.insetBy(dx: -1, dy: -1).contains(result.frame), diagnostic)
+        XCTAssertGreaterThanOrEqual(result.frame.minY, top - 1, "The complete result must clear the category header: \(diagnostic)")
+        XCTAssertLessThanOrEqual(result.frame.maxY, bottom + 1, "The complete result must clear the tab bar: \(diagnostic)")
+    }
+
+    private func assertIndependentFavorite(_ favorite: XCUIElement, beside result: XCUIElement, in app: XCUIApplication) {
+        XCTAssertTrue(favorite.waitForExistence(timeout: 5))
+        XCTAssertTrue(favorite.isHittable)
+        XCTAssertGreaterThanOrEqual(favorite.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(favorite.frame.height, 44)
+        XCTAssertFalse(result.frame.intersects(favorite.frame), "Detail and favorite hit targets must not overlap")
+        XCTAssertTrue(app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1).contains(favorite.frame))
+        XCTAssertLessThanOrEqual(favorite.frame.maxY, app.tabBars.firstMatch.frame.minY + 1)
+    }
+
     func testSearchCategoriesFitAndAccountRemainsReachable() throws {
         let app = try launchApp()
         defer { app.terminate() }
