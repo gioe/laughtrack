@@ -1,6 +1,27 @@
 import SwiftUI
 
 private struct ShimmerModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content.modifier(SkeletonShimmerModifier(reduceMotion: reduceMotion))
+    }
+}
+
+struct SkeletonShimmerModifier: ViewModifier {
+    let reduceMotion: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            content
+        } else {
+            content.modifier(AnimatedShimmerModifier())
+        }
+    }
+}
+
+private struct AnimatedShimmerModifier: ViewModifier {
     @Environment(\.appTheme) private var theme
     @State private var phase: CGFloat = -1.0
 
@@ -13,7 +34,7 @@ private struct ShimmerModifier: ViewModifier {
                     LinearGradient(
                         gradient: Gradient(stops: [
                             .init(color: highlight.opacity(0), location: 0.0),
-                            .init(color: highlight.opacity(0.55), location: 0.5),
+                            .init(color: highlight.opacity(0.12), location: 0.5),
                             .init(color: highlight.opacity(0), location: 1.0)
                         ]),
                         startPoint: .leading,

@@ -158,7 +158,15 @@ struct ShowsListView: View {
 
                 switch model.phase {
                 case .idle, .loading:
-                    ShowsListSkeleton()
+                    VStack(alignment: .leading, spacing: theme.spacing.md) {
+                        if !compactMode {
+                            resultsToolbar(count: 0, total: 0, state: .confirmed, isLoading: true)
+                            if model.resultsPresentation == .calendar {
+                                ShowResultsCalendarView(model: model, apiClient: apiClient)
+                            }
+                        }
+                        ShowsListSkeleton(context: compactMode ? .standalone : .agenda)
+                    }
                 case .failure(let failure):
                     FailureCard(
                         failure: failure,
@@ -317,16 +325,20 @@ struct ShowsListView: View {
         currentFilters.filter { ShowFilterFacetTaxonomy.isSecondary(slug: $0.slug) }
     }
 
-    private func resultsToolbar(count: Int, total: Int, state: SearchResultsState) -> some View {
+    private func resultsToolbar(count: Int, total: Int, state: SearchResultsState, isLoading: Bool = false) -> some View {
         let layout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.xs))
             : AnyLayout(HStackLayout(spacing: theme.spacing.sm))
         return layout {
-            SearchResultsSummary(
-                count: count, total: total, state: state,
-                retry: { await model.reload(apiClient: apiClient, cache: pageCache) },
-                signIn: { coordinator.push(.profile) }
-            )
+            if isLoading {
+                SearchLoadingSummary().detailSkeletonShimmer()
+            } else {
+                SearchResultsSummary(
+                    count: count, total: total, state: state,
+                    retry: { await model.reload(apiClient: apiClient, cache: pageCache) },
+                    signIn: { coordinator.push(.profile) }
+                )
+            }
             if !compactMode {
                 HStack(spacing: theme.spacing.sm) {
                     Menu {

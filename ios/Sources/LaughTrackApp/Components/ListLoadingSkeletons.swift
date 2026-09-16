@@ -1,178 +1,142 @@
 import SwiftUI
+import LaughTrackAPIClient
+
+private struct SkeletonTextLayoutModifier: ViewModifier {
+    @Environment(\.redactionReasons) private var reasons
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if reasons.contains(.placeholder) {
+            // SwiftUI's redacted glyphs can wrap differently from actual text.
+            // Keep the original text's measurement as the layout authority.
+            content.unredacted().hidden()
+                .overlay(alignment: .topLeading) { content }
+        } else {
+            content
+        }
+    }
+}
+
+extension View {
+    func preservingSkeletonTextLayout() -> some View {
+        modifier(SkeletonTextLayoutModifier())
+    }
+}
 
 struct ShowsListSkeleton: View {
     @Environment(\.appTheme) private var theme
 
     var includesHero: Bool = false
     var rowCount: Int = 5
+    // Library and pinned lists retain the full date stub.
+    var context: ShowRowContext = .standalone
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceSkeleton
-
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             if includesHero {
-                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                    .fill(block)
+                RoundedRectangle(cornerRadius: theme.laughTrackTokens.radius.card)
+                    .fill(theme.laughTrackTokens.colors.surfaceSkeleton)
                     .frame(height: 280)
             }
-
-            VStack(spacing: 10) {
-                ForEach(0..<rowCount, id: \.self) { _ in
-                    VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                        HStack(alignment: .top, spacing: theme.spacing.md) {
-                            VStack(alignment: .center, spacing: 3) {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(block)
-                                    .frame(width: 32, height: 9)
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(block)
-                                    .frame(width: 38, height: 26)
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(block)
-                                    .frame(width: 44, height: 11)
-                            }
-                            .frame(width: 64)
-
-                            VStack(alignment: .leading, spacing: 7) {
-                                RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 190, height: 16)
-                                RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 138, height: 12)
-                                RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 96, height: 12)
-                                HStack(spacing: theme.spacing.xs) {
-                                    RoundedRectangle(cornerRadius: 8).fill(block).frame(width: 58, height: 18)
-                                    RoundedRectangle(cornerRadius: 8).fill(block).frame(width: 66, height: 18)
-                                }
-                            }
-                            Spacer(minLength: 0)
-                            RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 8, height: 14)
-                        }
-
-                        HStack(spacing: theme.spacing.sm) {
-                            ForEach(0..<3, id: \.self) { _ in
-                                VStack(spacing: 4) {
-                                    Circle()
-                                        .fill(block)
-                                        .frame(width: 44, height: 44)
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(block)
-                                        .frame(height: 10)
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                if context == .agenda {
+                    Text("Wednesday, September 16")
+                        .font(theme.laughTrackTokens.typography.sectionTitle)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                AdaptiveSearchResults(spacing: theme.spacing.md) {
+                    ForEach(0..<rowCount, id: \.self) { _ in
+                        ShowRow(show: Self.placeholder, presentation: .compactTicket, context: context)
                     }
-                    .frame(maxWidth: .infinity, minHeight: 124, alignment: .leading)
-                    .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
-                    .padding(.vertical, laughTrack.browseDensity.compactCardPadding)
-                    .background(
-                        RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                            .fill(laughTrack.colors.surfaceElevated)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-                            )
-                    )
                 }
             }
         }
+        .redacted(reason: .placeholder)
         .detailSkeletonShimmer()
+        .allowsHitTesting(false)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Loading shows")
-        .accessibilityAddTraits(.isImage)
     }
+
+    // Inert local content supplies typography and wrapping to the real row.
+    // Nothing is fetched, navigable, or exposed as an actual search result.
+    static let placeholder = Components.Schemas.Show(
+        id: 0, clubId: 0, clubName: "Comedy Club", clubCity: "New York", clubState: "NY",
+        date: Date(timeIntervalSince1970: 1_789_603_200),
+        tickets: [.init(price: 35, purchaseUrl: "", soldOut: false, _type: "General admission")],
+        name: "Comedy tonight", room: "Main Room", imageUrl: "", timezone: "America/New_York"
+    )
 }
 
 struct ComediansListSkeleton: View {
-    var body: some View {
-        EntityRowsSkeleton(
-            label: "Loading comedians",
-            artworkShape: .circle,
-            showsDisclosureIndicator: false
-        )
-    }
+    var body: some View { EntityRowsSkeleton(kind: .comedian, label: "Loading comedians") }
 }
 
 struct ClubsListSkeleton: View {
-    var body: some View {
-        EntityRowsSkeleton(
-            label: "Loading clubs",
-            artworkShape: .circle,
-            showsDisclosureIndicator: false
-        )
-    }
+    var body: some View { EntityRowsSkeleton(kind: .club, label: "Loading clubs") }
 }
 
 struct PodcastsListSkeleton: View {
-    var body: some View {
-        EntityRowsSkeleton(
-            label: "Loading podcasts",
-            artworkShape: .roundedRectangle(cornerRadius: 12),
-            showsDisclosureIndicator: false
-        )
-    }
+    var body: some View { EntityRowsSkeleton(kind: .podcast, label: "Loading podcasts") }
 }
 
-private struct EntityRowsSkeleton: View {
+struct EntityRowsSkeleton: View {
     @Environment(\.appTheme) private var theme
-
+    let kind: LaughTrackSearchEntityKind
     let label: String
-    let artworkShape: LaughTrackEntityRowArtworkShape
-    let showsDisclosureIndicator: Bool
 
     var body: some View {
-        entityRowsSkeleton
-    }
-
-    private var entityRowsSkeleton: some View {
-        let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceSkeleton
-
-        return VStack(spacing: 10) {
-            ForEach(0..<5, id: \.self) { _ in
-                HStack(spacing: theme.spacing.md) {
-                    artworkPlaceholder(block: block, shape: artworkShape)
-                        .frame(width: 70, height: 70)
-
-                    VStack(alignment: .leading, spacing: theme.spacing.xxs) {
-                        RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 170, height: 16)
-                        RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 132, height: 12)
-                        RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 118, height: 12)
-                    }
-
-                    Spacer(minLength: 0)
-
-                    if showsDisclosureIndicator {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(block)
-                            .frame(width: 8, height: 14)
-                    }
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            SearchLoadingSummary()
+            AdaptiveSearchResults(spacing: theme.spacing.md) {
+                ForEach(0..<5, id: \.self) { _ in
+                    row
                 }
-                .frame(maxWidth: .infinity, minHeight: 86, alignment: .leading)
-                .padding(laughTrack.browseDensity.compactCardPadding)
-                .background(
-                    RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                        .fill(laughTrack.colors.surfaceElevated)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-                        )
-                )
             }
         }
+        .redacted(reason: .placeholder)
         .detailSkeletonShimmer()
+        .allowsHitTesting(false)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(label)
-        .accessibilityAddTraits(.isImage)
     }
 
     @ViewBuilder
-    private func artworkPlaceholder(
-        block: Color,
-        shape: LaughTrackEntityRowArtworkShape
-    ) -> some View {
-        switch shape {
-        case .circle:
-            Circle().fill(block)
-        case .roundedRectangle(let cornerRadius):
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(block)
+    var row: some View {
+        if kind == .club {
+            LaughTrackSearchEntityRow(
+                title: "Comedy Club", subtitle: "New York, NY", imageURL: nil, kind: kind, action: {}
+            )
+        } else {
+            LaughTrackSearchEntityRow(
+                title: kind == .comedian ? "Comedian name" : "Comedy podcast",
+                subtitle: kind == .comedian ? nil : "Podcast creator",
+                imageURL: nil, kind: kind, action: {}
+            ) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(theme.laughTrackTokens.colors.surfaceSkeleton)
+                    .frame(width: 20, height: 20)
+                    .frame(width: 44, height: 44)
+            }
         }
+    }
+}
+
+/// Reserves the same scaled status height as SearchResultsSummary without
+/// presenting an invented result count to VoiceOver.
+struct SearchLoadingSummary: View {
+    @Environment(\.appTheme) private var theme
+    @ScaledMetric(relativeTo: .caption) private var statusHeight = 44
+
+    var body: some View {
+        HStack {
+            Text("Showing results")
+                .font(theme.laughTrackTokens.typography.metadata)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: theme.spacing.sm)
+        }
+        .frame(minHeight: statusHeight)
+        .redacted(reason: .placeholder)
+        .accessibilityHidden(true)
     }
 }

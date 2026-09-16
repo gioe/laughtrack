@@ -588,6 +588,7 @@ struct LaughTrackSearchEntityRowMetrics: Equatable {
 }
 
 struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
+    @Environment(\.redactionReasons) private var redactionReasons
     let title: String
     let subtitle: String?
     let imageURL: String?
@@ -656,6 +657,7 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
                                 .foregroundStyle(laughTrack.colors.textPrimary)
                                 .lineLimit(metrics.titleLineLimit)
                                 .fixedSize(horizontal: false, vertical: true)
+                                .preservingSkeletonTextLayout()
 
                             if let subtitle, !subtitle.isEmpty {
                                 Text(subtitle)
@@ -663,6 +665,7 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
                                     .foregroundStyle(laughTrack.colors.textSecondary)
                                     .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : metrics.subtitleLineLimit)
                                     .fixedSize(horizontal: false, vertical: true)
+                                    .preservingSkeletonTextLayout()
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -674,6 +677,13 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(laughTrack.colors.textSecondary)
                             .accessibilityHidden(true)
+                            .opacity(redactionReasons.contains(.placeholder) ? 0 : 1)
+                            .overlay {
+                                if redactionReasons.contains(.placeholder) {
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(laughTrack.colors.surfaceSkeleton)
+                                }
+                            }
                     }
                 }
                 .frame(minHeight: 44)
@@ -725,7 +735,9 @@ struct LaughTrackSearchEntityRow<TrailingAccessory: View>: View {
         let laughTrack = theme.laughTrackTokens
         let trimmed = imageURL?.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        if let url = URL.normalizedExternalURL(trimmed) {
+        if redactionReasons.contains(.placeholder) {
+            Rectangle().fill(laughTrack.colors.surfaceSkeleton)
+        } else if let url = URL.normalizedExternalURL(trimmed) {
             CachedAsyncImage(url: url) { image in
                 if kind == .club {
                     image.resizable().scaledToFit()

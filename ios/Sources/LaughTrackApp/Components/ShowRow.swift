@@ -19,6 +19,7 @@ struct ShowRow: View {
 
     @Environment(\.appTheme) private var theme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.redactionReasons) private var redactionReasons
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
 
     let show: Components.Schemas.Show
@@ -188,6 +189,7 @@ struct ShowRow: View {
                 .monospacedDigit()
                 .foregroundStyle(ticketInk)
                 .fixedSize(horizontal: false, vertical: true)
+                .preservingSkeletonTextLayout()
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if let price {
@@ -197,6 +199,7 @@ struct ShowRow: View {
                     .foregroundStyle(ticketAccent)
                     .strikethrough(isSoldOut, color: ticketInkMuted)
                     .fixedSize(horizontal: false, vertical: true)
+                    .preservingSkeletonTextLayout()
             }
         }
     }
@@ -275,6 +278,7 @@ struct ShowRow: View {
                     .foregroundStyle(ticketInk)
                     .lineLimit(context == .agenda ? nil : 2)
                     .fixedSize(horizontal: false, vertical: true)
+                    .preservingSkeletonTextLayout()
 
                 if let venueLine {
                     Text(venueLine)
@@ -282,6 +286,7 @@ struct ShowRow: View {
                         .foregroundStyle(ticketInkMuted)
                         .lineLimit(context == .agenda ? nil : 1)
                         .fixedSize(horizontal: false, vertical: true)
+                        .preservingSkeletonTextLayout()
                 }
 
                 if let roomName {
@@ -290,6 +295,7 @@ struct ShowRow: View {
                         .foregroundStyle(ticketInkMuted)
                         .lineLimit(context == .agenda ? nil : 1)
                         .fixedSize(horizontal: false, vertical: true)
+                        .preservingSkeletonTextLayout()
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -348,6 +354,7 @@ struct ShowRow: View {
                         .foregroundStyle(ticketInk)
                         .lineLimit(context == .agenda ? nil : 2)
                         .fixedSize(horizontal: false, vertical: true)
+                        .preservingSkeletonTextLayout()
 
                     if let headlinerContext = Self.headlinerContext(for: show, headliner: headliner, context: context) {
                         Text(headlinerContext)
@@ -355,6 +362,7 @@ struct ShowRow: View {
                             .foregroundStyle(ticketInkMuted)
                             .lineLimit(context == .agenda ? nil : 1)
                             .fixedSize(horizontal: false, vertical: true)
+                            .preservingSkeletonTextLayout()
                     }
 
                     if let venueLine {
@@ -363,6 +371,7 @@ struct ShowRow: View {
                             .foregroundStyle(ticketInkMuted)
                             .lineLimit(context == .agenda ? nil : 1)
                             .fixedSize(horizontal: false, vertical: true)
+                            .preservingSkeletonTextLayout()
                     }
 
                     if context == .agenda, let roomName = Self.roomLabel(for: show) {
@@ -370,6 +379,7 @@ struct ShowRow: View {
                             .font(laughTrack.typography.metadata)
                             .foregroundStyle(ticketInkMuted)
                             .fixedSize(horizontal: false, vertical: true)
+                            .preservingSkeletonTextLayout()
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -401,7 +411,9 @@ struct ShowRow: View {
     private var artworkImage: some View {
         let laughTrack = theme.laughTrackTokens
 
-        if let rawURL = Self.artworkImageURL(
+        if redactionReasons.contains(.placeholder) {
+            Circle().fill(ticketInk.opacity(0.12))
+        } else if let rawURL = Self.artworkImageURL(
             for: show,
             preferredComedianID: preferredHeadlinerID
         ), let url = URL(string: rawURL) {
@@ -458,6 +470,7 @@ struct ShowRow: View {
                 .foregroundStyle(ticketInkMuted)
                 .lineLimit(context == .agenda ? nil : 3)
                 .fixedSize(horizontal: false, vertical: true)
+                .preservingSkeletonTextLayout()
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
