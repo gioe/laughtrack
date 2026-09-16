@@ -10,6 +10,7 @@ struct ClubsDiscoveryView: View {
     var unifiedSearchPrompt: String?
     var displaysSearchInput = true
     var isActive = true
+    var onEditSearch: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
@@ -17,6 +18,7 @@ struct ClubsDiscoveryView: View {
     @State private var isZipEditorPresented = false
     @State private var isFilterEditorPresented = false
     @State private var openDropdownID: String?
+    @State private var focusRequest: UUID?
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -30,13 +32,15 @@ struct ClubsDiscoveryView: View {
                             title: "Search",
                             prompt: unifiedSearchPrompt ?? "Search club names",
                             text: unifiedSearchText,
-                            showsTitle: false
+                            showsTitle: false,
+                            focusRequest: focusRequest
                         )
                     } else {
                         SearchField(
                             title: "Club name",
                             prompt: "Comedy Cellar, The Stand…",
-                            text: $model.searchText
+                            text: $model.searchText,
+                            focusRequest: focusRequest
                         )
                     }
                 }
@@ -100,10 +104,14 @@ struct ClubsDiscoveryView: View {
                             signIn: { coordinator.push(.profile) }
                         )
                         if result.items.isEmpty {
-                            EmptyCard(
-                                title: state.isConfirmed ? "No clubs yet" : "No previous results",
-                                message: state.isConfirmed ? emptyStateMessage : "Results for your updated search will appear here."
-                            )
+                            SearchEmptyCard(resolution: model.emptyState, state: state) { recovery in
+                                if recovery == .editSearch {
+                                    if let onEditSearch { onEditSearch() }
+                                    else { focusRequest = UUID() }
+                                } else {
+                                    model.recoverFromEmpty(recovery)
+                                }
+                            }
                         } else {
                             VStack(alignment: .leading, spacing: theme.spacing.md) {
 
@@ -137,6 +145,7 @@ struct ClubsDiscoveryView: View {
                     }
                 }
             }
+        .onDisappear { focusRequest = nil }
         .task(id: DiscoveryLoadTaskKey(isActive: isActive, query: model.requestKey)) {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, cache: pageCache)
@@ -217,15 +226,7 @@ struct ClubsDiscoveryView: View {
         return source == .geolocated ? "Detected from device location." : "Saved manually."
     }
 
-    private var emptyStateMessage: String {
-        if !model.searchText.isEmpty {
-            return "No clubs matched \"\(model.searchText)\"."
-        }
-        if model.activeNearbyPreference != nil {
-            return "No clubs matched this ZIP code. Broaden the radius or clear the location filter."
-        }
-        return "No clubs are available right now."
-    }
+
 }
 
 struct ClubRow: View {

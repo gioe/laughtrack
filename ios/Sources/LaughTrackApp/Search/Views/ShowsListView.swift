@@ -82,6 +82,7 @@ struct ShowsListView: View {
     var displaysSearchFields = true
     var compactMode = false
     var isActive = true
+    var onEditSearch: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -91,6 +92,7 @@ struct ShowsListView: View {
     @State private var isFilterEditorPresented = false
     @State private var isDateEditorPresented = false
     @State private var isOptionalSearchExpanded = false
+    @State private var focusRequest: UUID?
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -120,7 +122,8 @@ struct ShowsListView: View {
                                 SearchField(
                                     title: "Comedian (optional)",
                                     prompt: "Mark Normand, Atsuko Okatsuka…",
-                                    text: $model.comedianSearchText
+                                    text: $model.comedianSearchText,
+                                    focusRequest: model.comedianSearchText.isEmpty ? nil : focusRequest
                                 )
                             }
 
@@ -128,7 +131,8 @@ struct ShowsListView: View {
                                 SearchField(
                                     title: "Club (optional)",
                                     prompt: "Comedy Cellar, The Stand…",
-                                    text: $model.clubSearchText
+                                    text: $model.clubSearchText,
+                                    focusRequest: model.comedianSearchText.isEmpty ? focusRequest : nil
                                 )
                             }
                         }
@@ -180,14 +184,14 @@ struct ShowsListView: View {
                             resultsToolbar(count: result.items.count, total: result.total, state: state)
                         }
                         if result.items.isEmpty {
-                            EmptyCard(
-                                title: state.isConfirmed ? emptyState.title : "No previous results",
-                                message: state.isConfirmed ? emptyState.message : "Results for your updated search will appear here.",
-                                actionTitle: state.isConfirmed ? emptyState.actionTitle : nil,
-                                action: emptyState.actionTitle.map { _ in
-                                    { model.clearAllFilters() }
+                            SearchEmptyCard(resolution: model.emptyState, state: state) { recovery in
+                                if recovery == .editSearch {
+                                    if let onEditSearch { onEditSearch() }
+                                    else { isOptionalSearchExpanded = true; focusRequest = UUID() }
+                                } else {
+                                    model.recoverFromEmpty(recovery)
                                 }
-                            )
+                            }
                         } else {
                             VStack(alignment: .leading, spacing: theme.spacing.md) {
                                 let pageCount = model.pageCount(for: result.total)
@@ -246,6 +250,7 @@ struct ShowsListView: View {
                     }
                 }
             }
+        .onDisappear { focusRequest = nil }
         .task(id: DiscoveryLoadTaskKey(isActive: isActive, query: model.requestKey)) {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, cache: pageCache)
@@ -384,74 +389,6 @@ struct ShowsListView: View {
         return "Showing nationwide results for \(name). Clear search to use your nearby radius."
     }
 
-    private var emptyState: ShowsListEmptyMessage.Resolution {
-        ShowsListEmptyMessage.resolve(
-            comedianSearchText: model.comedianSearchText,
-            clubSearchText: model.clubSearchText,
-            hasActiveNearbyPreference: model.activeNearbyPreference != nil,
-            pinnedComedianName: model.pinnedComedianName,
-            pinnedClubName: model.pinnedClubName
-        )
-    }
-}
-
-/// Pure resolver for the `ShowsListView` empty-state copy. Extracted so the
-/// branching (search-filter → ZIP-filter → pinned-entity → generic) can be
-/// covered without hosting the view — HostedView's accessibility-tree wiring
-/// is broken on iOS 26.x simulators (see `ios/CLAUDE.md`).
-enum ShowsListEmptyMessage {
-    struct Resolution: Equatable {
-        let title: String
-        let message: String
-        let actionTitle: String?
-
-        init(title: String, message: String, actionTitle: String? = nil) {
-            self.title = title
-            self.message = message
-            self.actionTitle = actionTitle
-        }
-    }
-
-    static func resolve(
-        comedianSearchText: String,
-        clubSearchText: String,
-        hasActiveNearbyPreference: Bool,
-        pinnedComedianName: String?,
-        pinnedClubName: String?
-    ) -> Resolution {
-        if !comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-            !clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return Resolution(
-                title: "No shows yet",
-                message: "No shows matched this search. Try another comedian, club, or a broader date range."
-            )
-        }
-
-        if hasActiveNearbyPreference {
-            return Resolution(
-                title: "No shows yet",
-                message: "No shows matched this ZIP code yet. Broaden the radius or clear location filters."
-            )
-        }
-
-        if let pinnedName = (pinnedComedianName ?? pinnedClubName)?
-            .trimmingCharacters(in: .whitespacesAndNewlines), !pinnedName.isEmpty {
-            // The pinned-entity branch used to assert the comedian/club had no
-            // upcoming shows at all, but the underlying query is filtered by
-            // distance + date — a fact users see one row above. The softer
-            // copy stays honest about what we actually know.
-            return Resolution(
-                title: "No matching shows",
-                message: "Try broadening your location or date range to see more shows from \(pinnedName).",
-                actionTitle: "Clear filters"
-            )
-        }
-
-        return Resolution(
-            title: "No shows yet",
-            message: "No shows are available right now."
-        )
-    }
 }
 
 private struct ShowActiveConstraintsView: View {

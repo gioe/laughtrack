@@ -393,3 +393,64 @@ struct DiscoveryLoadTaskKey<Query: Hashable>: Hashable {
     let isActive: Bool
     let query: Query
 }
+
+/// A recovery changes one constraint group; it never clears a search draft.
+enum SearchEmptyRecovery: Equatable {
+    case editSearch, resetFilters, anyDate, expandDistance, clearLocation, allHomeCities, includeAllClubs
+
+    var title: String {
+        switch self {
+        case .editSearch: return "Edit search"
+        case .resetFilters: return "Reset filters"
+        case .anyDate: return "Search any date"
+        case .expandDistance: return "Expand distance"
+        case .clearLocation: return "Search everywhere"
+        case .allHomeCities: return "Search all home cities"
+        case .includeAllClubs: return "Include all clubs"
+        }
+    }
+}
+
+struct SearchEmptyState: Equatable {
+    let title: String
+    let message: String
+    var recovery: SearchEmptyRecovery? = nil
+    var actionTitle: String? { recovery?.title }
+
+    static func resolve(
+        entity: String, query: String, hasFilters: Bool = false,
+        hasDates: Bool = false, distance: ShowDistanceOption? = nil,
+        homeCity: String? = nil, upcomingClubsOnly: Bool = false,
+        isPinned: Bool = false
+    ) -> Self {
+        let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let subject = text.isEmpty ? "No \(entity)" : "No \(entity) matching “\(text)”"
+        if hasFilters {
+            return .init(title: "No matching \(entity)", message: "\(subject) with these filters. Reset them to keep searching with your other choices.", recovery: .resetFilters)
+        }
+        if hasDates {
+            return .init(title: "No shows on these dates", message: "\(subject) in your selected date range. Try any upcoming date.", recovery: .anyDate)
+        }
+        if let distance {
+            let next = distance.expanded
+            return .init(title: "No matching \(entity) nearby", message: "\(subject) within \(distance.rawValue) miles. \(next.map { "Try within \($0.rawValue) miles." } ?? "Try searching without a location limit.")", recovery: next == nil ? .clearLocation : .expandDistance)
+        }
+        if let homeCity {
+            return .init(title: "No matching comedians", message: "\(subject) based in \(homeCity.replacingOccurrences(of: "|", with: ", ")). Try all home cities.", recovery: .allHomeCities)
+        }
+        if upcomingClubsOnly {
+            return .init(title: "No clubs with upcoming shows", message: "\(subject) with upcoming dates. Include clubs without scheduled shows, too.", recovery: .includeAllClubs)
+        }
+        if !text.isEmpty {
+            if isPinned {
+                return .init(title: "No upcoming shows listed", message: "There are no upcoming shows listed for \(text). Check back for new dates.")
+            }
+            return .init(title: "No matching \(entity)", message: "\(subject). Check the spelling or try a shorter name.", recovery: .editSearch)
+        }
+        return .init(title: entity == "shows" ? "No upcoming shows listed" : "No \(entity) listed yet", message: "Check back as new \(entity) are added.")
+    }
+}
+
+extension ShowDistanceOption {
+    var expanded: Self? { Self.allCases.first { $0.rawValue > rawValue } }
+}

@@ -502,3 +502,29 @@ enum ShowHeaderDateChoice: String, CaseIterable, Identifiable {
         return calendar.isDate(value.from, inSameDayAs: expected.from) && calendar.isDate(value.to, inSameDayAs: expected.to)
     }
 }
+
+
+extension ShowsListModel {
+    var emptyState: SearchEmptyState {
+        let query = requestKey
+        let names = [query.comedian, pinnedClubName ?? query.club].filter { !$0.isEmpty }.joined(separator: " · ")
+        let hasEditableName = (pinnedComedianName == nil && !comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            || (!isClubPinned && !clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        return .resolve(
+            entity: "shows", query: names, hasFilters: !query.filters.isEmpty || query.maximumPrice != nil,
+            hasDates: query.dateRange.isActive,
+            distance: query.sanitizedZip == nil ? nil : query.distance,
+            isPinned: (isComedianPinned || isClubPinned) && !hasEditableName
+        )
+    }
+
+    func recoverFromEmpty(_ recovery: SearchEmptyRecovery) {
+        switch recovery {
+        case .resetFilters: selectedFilterSlugs = []; maximumPrice = .any
+        case .anyDate: dateRange.isActive = false
+        case .expandDistance: if let next = distance.expanded { distance = next }
+        case .clearLocation: clearLocation()
+        default: break
+        }
+    }
+}

@@ -15,6 +15,7 @@ struct SearchRootView: View {
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @StateObject private var model = SearchRootModel()
+    @State private var focusRequest: UUID?
     @StateObject private var showsModel: ShowsListModel
     @StateObject private var comediansModel = ComediansDiscoveryModel()
     @StateObject private var clubsModel: ClubsDiscoveryModel
@@ -58,15 +59,21 @@ struct SearchRootView: View {
     var body: some View {
         let tokens = theme.laughTrackTokens
 
-        ScrollView {
-            VStack(alignment: .leading, spacing: theme.spacing.md) {
-                SearchQueryEntry(pivot: model.activePivot, query: $model.query, showsModel: showsModel)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: theme.spacing.md) {
+                    SearchQueryEntry(pivot: model.activePivot, query: $model.query, showsModel: showsModel, focusRequest: focusRequest)
+                        .id("search-query-entry")
 
-                activeSearchScreenWithDependencies
+                    activeSearchScreenWithDependencies
+                }
+                .padding(.horizontal, theme.spacing.lg)
+                .padding(.top, theme.spacing.sm)
+                .padding(.bottom, tokens.browseDensity.heroPadding)
             }
-            .padding(.horizontal, theme.spacing.lg)
-            .padding(.top, theme.spacing.sm)
-            .padding(.bottom, tokens.browseDensity.heroPadding)
+            .onChange(of: focusRequest) { _ in
+                proxy.scrollTo("search-query-entry", anchor: .top)
+            }
         }
         .rootScrollBottomClearance(
             theme: theme,
@@ -89,7 +96,9 @@ struct SearchRootView: View {
         .onChange(of: model.query) { _ in
             applyRootQueryToActivePivot()
         }
+        .onDisappear { focusRequest = nil }
         .onChange(of: model.activePivot) { _ in
+            focusRequest = nil
             selectedPrimitive = model.activePivot
             applyRootQueryToActivePivot()
         }
@@ -129,7 +138,8 @@ struct SearchRootView: View {
                 apiClient: apiClient,
                 model: showsModel,
                 displaysSearchFields: false,
-                isActive: isActive
+                isActive: isActive,
+                onEditSearch: { focusRequest = UUID() }
             )
         case .comedians:
             ComediansDiscoveryView(
@@ -138,7 +148,8 @@ struct SearchRootView: View {
                 unifiedSearchText: $model.query,
                 unifiedSearchPrompt: model.activePivot.queryPrompt,
                 displaysSearchInput: false,
-                isActive: isActive
+                isActive: isActive,
+                onEditSearch: { focusRequest = UUID() }
             )
         case .clubs:
             ClubsDiscoveryView(
@@ -147,7 +158,8 @@ struct SearchRootView: View {
                 unifiedSearchText: $model.query,
                 unifiedSearchPrompt: model.activePivot.queryPrompt,
                 displaysSearchInput: false,
-                isActive: isActive
+                isActive: isActive,
+                onEditSearch: { focusRequest = UUID() }
             )
         case .podcasts:
             PodcastSearchView(
@@ -183,6 +195,7 @@ struct SearchQueryEntry: View {
     let pivot: SearchRootModel.Pivot
     @Binding var query: String
     @ObservedObject var showsModel: ShowsListModel
+    var focusRequest: UUID?
     @State private var showField: ShowField = .comedian
     @Environment(\.appTheme) private var theme
 
@@ -205,13 +218,19 @@ struct SearchQueryEntry: View {
                 showsTitle: false,
                 accessibilityIdentifier: LaughTrackViewTestID.searchRootField,
                 showsClearButton: true,
-                focusContext: "\(pivot.rawValue).\(showField.rawValue)"
+                focusContext: "\(pivot.rawValue).\(showField.rawValue)",
+                focusRequest: focusRequest
             )
             if pivot == .shows {
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: theme.spacing.sm) { showFieldChoices }
                     VStack(alignment: .leading, spacing: theme.spacing.sm) { showFieldChoices }
                 }
+            }
+        }
+        .onChange(of: focusRequest) { _ in
+            if pivot == .shows {
+                showField = showsModel.comedianSearchText.isEmpty ? .club : .comedian
             }
         }
     }

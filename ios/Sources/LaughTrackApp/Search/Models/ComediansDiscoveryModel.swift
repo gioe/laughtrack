@@ -134,3 +134,19 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
         }
     }
 }
+
+
+extension ComediansDiscoveryModel {
+    var emptyState: SearchEmptyState {
+        .resolve(entity: "comedians", query: requestKey.text,
+                 hasFilters: !selectedFilterSlugs.isEmpty, homeCity: homeCity)
+    }
+
+    func recoverFromEmpty(_ recovery: SearchEmptyRecovery) {
+        switch recovery {
+        case .resetFilters: selectedFilterSlugs = []
+        case .allHomeCities: homeCity = nil
+        default: break
+        }
+    }
+}

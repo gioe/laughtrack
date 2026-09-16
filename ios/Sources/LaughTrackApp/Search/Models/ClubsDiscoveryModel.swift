@@ -253,3 +253,23 @@ final class ClubsDiscoveryModel: EntitySearchModel<ClubsDiscoveryQuery, Componen
         }
     }
 }
+
+
+extension ClubsDiscoveryModel {
+    var emptyState: SearchEmptyState {
+        let query = requestKey
+        return .resolve(entity: "clubs", query: query.text, hasFilters: !query.filters.isEmpty,
+                        distance: query.sanitizedZip == nil ? nil : query.distance,
+                        upcomingClubsOnly: !query.includeEmpty)
+    }
+
+    func recoverFromEmpty(_ recovery: SearchEmptyRecovery) {
+        switch recovery {
+        case .resetFilters: selectedFilterSlugs = []
+        case .expandDistance: if let next = distance.expanded { distance = next }
+        case .clearLocation: clearLocation()
+        case .includeAllClubs: includeEmpty = true
+        default: break
+        }
+    }
+}

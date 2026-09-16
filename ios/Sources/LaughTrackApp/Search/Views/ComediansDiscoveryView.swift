@@ -10,6 +10,7 @@ struct ComediansDiscoveryView: View {
     var unifiedSearchPrompt: String?
     var displaysSearchInput = true
     var isActive = true
+    var onEditSearch: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
@@ -18,6 +19,7 @@ struct ComediansDiscoveryView: View {
     @State private var feedbackMessage: String?
     @State private var isFilterEditorPresented = false
     @State private var openDropdownID: String?
+    @State private var focusRequest: UUID?
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -31,13 +33,15 @@ struct ComediansDiscoveryView: View {
                             title: "Search",
                             prompt: unifiedSearchPrompt ?? "Search comedian names",
                             text: unifiedSearchText,
-                            showsTitle: false
+                            showsTitle: false,
+                            focusRequest: focusRequest
                         )
                     } else {
                         SearchField(
                             title: "Comedian name",
                             prompt: "Mark Normand, Atsuko Okatsuka…",
-                            text: $model.searchText
+                            text: $model.searchText,
+                            focusRequest: focusRequest
                         )
                     }
                 }
@@ -92,14 +96,14 @@ struct ComediansDiscoveryView: View {
                             signIn: { coordinator.push(.profile) }
                         )
                         if result.items.isEmpty {
-                            EmptyCard(
-                                title: state.isConfirmed ? "No comedians yet" : "No previous results",
-                                message: !state.isConfirmed
-                                    ? "Results for your updated search will appear here."
-                                    : model.searchText.isEmpty
-                                    ? "No comedians are available right now."
-                                    : "No comedians matched \"\(model.searchText)\"."
-                            )
+                            SearchEmptyCard(resolution: model.emptyState, state: state) { recovery in
+                                if recovery == .editSearch {
+                                    if let onEditSearch { onEditSearch() }
+                                    else { focusRequest = UUID() }
+                                } else {
+                                    model.recoverFromEmpty(recovery)
+                                }
+                            }
                         } else {
                             VStack(alignment: .leading, spacing: theme.spacing.md) {
 
@@ -133,14 +137,17 @@ struct ComediansDiscoveryView: View {
                     }
                 }
             }
+        .onDisappear { focusRequest = nil }
         .task(id: DiscoveryLoadTaskKey(isActive: isActive, query: model.requestKey)) {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, favorites: favorites, cache: pageCache)
         }
         .onChange(of: currentHomeCityFilters.map(\.value)) { availableTokens in
-            // Drop a selected home-city token once the latest response no longer
-            // offers it (a narrower query dropped it, or the control just hid on an
-            // empty list) so it can't strand a stale filter with no way to clear it.
+            // An empty response should explain the selected city and offer
+            // recovery, not silently remove that part of the user's search.
+            guard case .success(let result) = model.phase,
+                  !result.items.isEmpty,
+                  model.resultsState(for: model.requestKey).isConfirmed else { return }
             if let token = model.homeCity, !availableTokens.contains(token) {
                 model.homeCity = nil
             }

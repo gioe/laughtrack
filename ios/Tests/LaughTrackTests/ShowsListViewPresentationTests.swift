@@ -524,7 +524,7 @@ struct SearchRefreshPresentationTests {
         await model.reload(query: model.requestKey) { _, _ in .success(.init(items: [], total: 0)) }
         let host = makeHost(model)
         await host.settle(iterations: 3)
-        #expect(try capture(host, name: "previous-empty").contains("no shows yet"))
+        #expect(try capture(host, name: "previous-empty").contains("no matching shows"))
         model.comedianSearchText = "Ray"
         let gate = SearchPresentationResponseGate()
         let refresh = Task { await model.reload(query: model.requestKey) { _, _ in await gate.fetch() } }
@@ -533,7 +533,7 @@ struct SearchRefreshPresentationTests {
         let updatingText = try capture(host, name: "previous-empty-updating")
         #expect(updatingText.contains("updating results"))
         #expect(updatingText.contains("no previous results"))
-        #expect(!updatingText.contains("no shows yet"))
+        #expect(!updatingText.contains("no matching shows"))
         gate.resolve(.success(.init(items: [show(20)], total: 1)))
         await refresh.value
         await host.settle(iterations: 3)
@@ -646,5 +646,79 @@ private final class SearchPresentationResponseGate {
         continuation?.resume(returning: response)
         continuation = nil
     }
+}
+#endif
+
+#if canImport(UIKit)
+@Suite("Search empty visual capture", .serialized)
+@MainActor
+struct SearchEmptyVisualCaptureTests {
+    @Test("capture confirmed query misses in live Search views")
+    func captureEmptyScreens() async throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            for category in ["comedians", "clubs", "shows"] {
+                let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "empty-capture")
+                let location = container.resolve(NearbyLocationController.self)
+                let comedians = ComediansDiscoveryModel()
+                comedians.searchText = "Ray Devito"
+                let clubs = ClubsDiscoveryModel(nearbyLocationController: location)
+                clubs.searchText = "Comedy Cellar"
+                let shows = ShowsListModel(nearbyLocationController: location, initialUseDateRange: false, startsWithNearbyLocation: false)
+                shows.comedianSearchText = "Ray Devito"
+                await comedians.reload(query: comedians.requestKey) { _, _ in .success(.init(items: [], total: 0)) }
+                await clubs.reload(query: clubs.requestKey) { _, _ in .success(.init(items: [], total: 0)) }
+                await shows.reload(query: shows.requestKey) { _, _ in .success(.init(items: [], total: 0)) }
+                let client = LaughTrackHostedViewTestSupport.makeClient()
+                let host = HostedView(
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Search").font(.largeTitle.bold())
+                            if category == "comedians" {
+                                ComediansDiscoveryView(apiClient: client, model: comedians, isActive: false)
+                            } else if category == "clubs" {
+                                ClubsDiscoveryView(apiClient: client, model: clubs, isActive: false)
+                            } else {
+                                ShowsListView(apiClient: client, model: shows, isActive: false)
+                            }
+                        }.padding(20)
+                    }
+                    .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                    .environment(\.appTheme, LaughTrackTheme())
+                    .environment(\.dynamicTypeSize, size)
+                    .environment(\.serviceContainer, container)
+                    .environmentObject(TypedNavigationCoordinator<AppRoute>())
+                    .environmentObject(ComedianFavoriteStore())
+                    .preferredColorScheme(.dark), freshWindow: true
+                )
+                await host.settle(iterations: 5)
+                let data = try #require(try host.snapshot().pngData())
+                let textSize = size.isAccessibilitySize ? "AX5" : "standard"
+                let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4010-\(category)-\(textSize).png")
+                try data.write(to: path)
+                print("Search empty capture: \(path.path)")
+                #if compiler(>=6.2)
+                Attachment.record(Array(data), named: path.lastPathComponent)
+                #endif
+                if size.isAccessibilitySize,
+                   let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).flatMap(\.windows).first(where: \.isKeyWindow),
+                   let scroll = firstScrollView(in: window) {
+                    scroll.setContentOffset(CGPoint(x: 0, y: max(0, scroll.contentSize.height - scroll.bounds.height)), animated: false)
+                    await host.settle(iterations: 5)
+                    let scrolled = try #require(try host.snapshot().pngData())
+                    let bottom = path.deletingPathExtension().appendingPathExtension("bottom.png")
+                    try scrolled.write(to: bottom)
+                    print("Search empty capture: \(bottom.path)")
+                    #if compiler(>=6.2)
+                    Attachment.record(Array(scrolled), named: bottom.lastPathComponent)
+                    #endif
+                }
+            }
+        }
+    }
+    private func firstScrollView(in view: UIView) -> UIScrollView? {
+        if let scroll = view as? UIScrollView, scroll.contentSize.height > scroll.bounds.height { return scroll }
+        return view.subviews.lazy.compactMap { firstScrollView(in: $0) }.first
+    }
+
 }
 #endif

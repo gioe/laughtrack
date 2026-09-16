@@ -12,6 +12,7 @@ struct SearchField: View {
     var accessibilityIdentifier: String?
     var showsClearButton = false
     var focusContext = ""
+    var focusRequest: UUID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.xs) {
@@ -51,6 +52,12 @@ struct SearchField: View {
                 .onSubmit { isFocused = false }
         }
         .onChange(of: focusContext) { _ in isFocused = false }
+        .task(id: focusRequest) {
+            guard focusRequest != nil else { return }
+            await Task.yield()
+            guard !Task.isCancelled else { return }
+            isFocused = true
+        }
         .onDisappear { isFocused = false }
     }
 }

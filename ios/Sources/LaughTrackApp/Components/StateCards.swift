@@ -190,3 +190,20 @@ struct SearchRefreshAppearance: ViewModifier {
             }
     }
 }
+
+
+/// Retained empty results must not offer recovery for an unconfirmed query.
+struct SearchEmptyCard: View {
+    let resolution: SearchEmptyState
+    let state: SearchResultsState
+    let recover: (SearchEmptyRecovery) -> Void
+
+    var body: some View {
+        EmptyCard(
+            title: state.isConfirmed ? resolution.title : "No previous results",
+            message: state.isConfirmed ? resolution.message : "Results for your updated search will appear here.",
+            actionTitle: state.isConfirmed ? resolution.actionTitle : nil,
+            action: state.isConfirmed ? resolution.recovery.map { recovery in { recover(recovery) } } : nil
+        )
+    }
+}
