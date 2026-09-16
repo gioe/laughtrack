@@ -46,13 +46,15 @@ struct ClubsDiscoveryView: View {
                 }
 
                 ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
-                    PillDropdownTrigger(
-                        id: "clubs-distance",
-                        selected: model.distance,
-                        triggerLabel: { $0.title },
-                        accessibilityLabel: { "Distance \($0.title)" },
-                        openDropdownID: $openDropdownID
-                    )
+                    if model.activeNearbyPreference != nil {
+                        PillDropdownTrigger(
+                            id: "clubs-distance",
+                            selected: model.distance,
+                            triggerLabel: { $0.title },
+                            accessibilityLabel: { "Distance \($0.title)" },
+                            openDropdownID: $openDropdownID
+                        )
+                    }
 
                     PillDropdownTrigger(
                         id: "clubs-sort",

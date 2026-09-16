@@ -524,7 +524,7 @@ struct SearchRefreshPresentationTests {
         await model.reload(query: model.requestKey) { _, _ in .success(.init(items: [], total: 0)) }
         let host = makeHost(model)
         await host.settle(iterations: 3)
-        #expect(try capture(host, name: "previous-empty").contains("no matching shows"))
+        #expect(try capture(host, name: "previous-empty").contains("no matches"))
         model.comedianSearchText = "Ray"
         let gate = SearchPresentationResponseGate()
         let refresh = Task { await model.reload(query: model.requestKey) { _, _ in await gate.fetch() } }
@@ -533,7 +533,7 @@ struct SearchRefreshPresentationTests {
         let updatingText = try capture(host, name: "previous-empty-updating")
         #expect(updatingText.contains("updating results"))
         #expect(updatingText.contains("no previous results"))
-        #expect(!updatingText.contains("no matching shows"))
+        #expect(!updatingText.contains("no matches"))
         gate.resolve(.success(.init(items: [show(20)], total: 1)))
         await refresh.value
         await host.settle(iterations: 3)

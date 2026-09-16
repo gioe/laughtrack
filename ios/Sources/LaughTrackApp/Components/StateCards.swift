@@ -23,17 +23,20 @@ struct EmptyCard: View {
     let message: String
     let actionTitle: String?
     let action: (() -> Void)?
+    let actionDensity: LaughTrackButtonDensity
 
     init(
         title: String = "Nothing here yet",
         message: String,
         actionTitle: String? = nil,
+        actionDensity: LaughTrackButtonDensity = .compact,
         action: (() -> Void)? = nil
     ) {
         self.title = title
         self.message = message
         self.actionTitle = actionTitle
         self.action = action
+        self.actionDensity = actionDensity
     }
 
     var body: some View {
@@ -42,6 +45,7 @@ struct EmptyCard: View {
             title: title,
             message: message,
             actionTitle: actionTitle,
+            actionDensity: actionDensity,
             action: action
         )
     }
@@ -203,6 +207,7 @@ struct SearchEmptyCard: View {
             title: state.isConfirmed ? resolution.title : "No previous results",
             message: state.isConfirmed ? resolution.message : "Results for your updated search will appear here.",
             actionTitle: state.isConfirmed ? resolution.actionTitle : nil,
+            actionDensity: .standard,
             action: state.isConfirmed ? resolution.recovery.map { recovery in { recover(recovery) } } : nil
         )
     }

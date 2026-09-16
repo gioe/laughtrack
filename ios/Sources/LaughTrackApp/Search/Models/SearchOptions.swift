@@ -426,17 +426,17 @@ struct SearchEmptyState: Equatable {
         let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let subject = text.isEmpty ? "No \(entity)" : "No \(entity) matching “\(text)”"
         if hasFilters {
-            return .init(title: "No matching \(entity)", message: "\(subject) with these filters. Reset them to keep searching with your other choices.", recovery: .resetFilters)
+            return .init(title: "No matches", message: "\(subject) with these filters. Reset them to keep searching with your other choices.", recovery: .resetFilters)
         }
         if hasDates {
             return .init(title: "No shows on these dates", message: "\(subject) in your selected date range. Try any upcoming date.", recovery: .anyDate)
         }
         if let distance {
             let next = distance.expanded
-            return .init(title: "No matching \(entity) nearby", message: "\(subject) within \(distance.rawValue) miles. \(next.map { "Try within \($0.rawValue) miles." } ?? "Try searching without a location limit.")", recovery: next == nil ? .clearLocation : .expandDistance)
+            return .init(title: "No nearby matches", message: "\(subject) within \(distance.rawValue) miles. \(next.map { "Try within \($0.rawValue) miles." } ?? "Try searching without a location limit.")", recovery: next == nil ? .clearLocation : .expandDistance)
         }
         if let homeCity {
-            return .init(title: "No matching comedians", message: "\(subject) based in \(homeCity.replacingOccurrences(of: "|", with: ", ")). Try all home cities.", recovery: .allHomeCities)
+            return .init(title: "No matches", message: "\(subject) based in \(homeCity.replacingOccurrences(of: "|", with: ", ")). Try all home cities.", recovery: .allHomeCities)
         }
         if upcomingClubsOnly {
             return .init(title: "No clubs with upcoming shows", message: "\(subject) with upcoming dates. Include clubs without scheduled shows, too.", recovery: .includeAllClubs)
@@ -445,9 +445,9 @@ struct SearchEmptyState: Equatable {
             if isPinned {
                 return .init(title: "No upcoming shows listed", message: "There are no upcoming shows listed for \(text). Check back for new dates.")
             }
-            return .init(title: "No matching \(entity)", message: "\(subject). Check the spelling or try a shorter name.", recovery: .editSearch)
+            return .init(title: "No matches", message: "\(subject). Check the spelling or try a shorter name.", recovery: .editSearch)
         }
-        return .init(title: entity == "shows" ? "No upcoming shows listed" : "No \(entity) listed yet", message: "Check back as new \(entity) are added.")
+        return .init(title: entity == "shows" ? "No upcoming shows listed" : entity == "comedians" ? "No listings yet" : "No \(entity) listed yet", message: "Check back as new \(entity) are added.")
     }
 }
 

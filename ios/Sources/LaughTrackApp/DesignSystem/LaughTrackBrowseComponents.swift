@@ -1049,12 +1049,14 @@ struct LaughTrackInlineStateCard: View {
     let message: String
     let actionTitle: String?
     let action: (() -> Void)?
+    let actionDensity: LaughTrackButtonDensity
 
     init(
         tone: LaughTrackStateTone,
         title: String,
         message: String,
         actionTitle: String? = nil,
+        actionDensity: LaughTrackButtonDensity = .compact,
         action: (() -> Void)? = nil
     ) {
         self.tone = tone
@@ -1062,6 +1064,7 @@ struct LaughTrackInlineStateCard: View {
         self.message = message
         self.actionTitle = actionTitle
         self.action = action
+        self.actionDensity = actionDensity
     }
 
     var body: some View {
@@ -1091,7 +1094,7 @@ struct LaughTrackInlineStateCard: View {
                         actionTitle,
                         systemImage: tone == .error ? "arrow.clockwise" : "arrow.right",
                         tone: .secondary,
-                        density: .compact,
+                        density: actionDensity,
                         fullWidth: false,
                         action: action
                     )

@@ -71,7 +71,8 @@ struct SearchRootView: View {
                 .padding(.top, theme.spacing.sm)
                 .padding(.bottom, tokens.browseDensity.heroPadding)
             }
-            .onChange(of: focusRequest) { _ in
+            .onChange(of: focusRequest) { request in
+                guard request != nil else { return }
                 proxy.scrollTo("search-query-entry", anchor: .top)
             }
         }
@@ -228,7 +229,8 @@ struct SearchQueryEntry: View {
                 }
             }
         }
-        .onChange(of: focusRequest) { _ in
+        .onChange(of: focusRequest) { request in
+            guard request != nil else { return }
             if pivot == .shows {
                 showField = showsModel.comedianSearchText.isEmpty ? .club : .comedian
             }

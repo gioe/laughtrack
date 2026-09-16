@@ -7,6 +7,70 @@ import UIKit
 /// are seeded. Run these cases at native default/large text and Reduce Motion.
 @MainActor
 final class NavigationTransitionUITests: XCTestCase {
+    func testSearchEmptyRecoveryPreservesQuery() throws {
+        try verifyEmptyRecovery(largeText: false)
+    }
+
+    func testAccessibilitySearchEmptyRecoveryPreservesQuery() throws {
+        try verifyEmptyRecovery(largeText: true)
+    }
+
+    private func verifyEmptyRecovery(largeText: Bool) throws {
+        let app = try launchApp(largeText: largeText)
+        defer { app.terminate() }
+        app.tabBars.buttons["Search"].tap()
+        selectSearchCategory("clubs", in: app)
+        let field = app.textFields["laughtrack.search.field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("No Such Venue")
+        app.keyboards.buttons["Search"].tap()
+        // The initial nearby preference can vary. Follow each offered recovery
+        // until only the name remains, checking that none erases the draft.
+        for _ in 0..<6 {
+            let edit = app.buttons["Edit search"]
+            if edit.exists { break }
+            let action = app.buttons.matching(NSPredicate(format: "label IN %@", ["Expand distance", "Search everywhere", "Include all clubs"])).firstMatch
+            XCTAssertTrue(action.waitForExistence(timeout: 10))
+            for _ in 0..<5 where !action.isHittable { app.swipeUp() }
+            XCTAssertTrue(action.isHittable)
+            XCTAssertGreaterThanOrEqual(action.frame.height, 44)
+            let previousTitle = action.label
+            action.tap()
+            // Wait for the updated request to settle before choosing another CTA.
+            let updating = app.staticTexts["Updating results…"]
+            if updating.waitForExistence(timeout: 1) {
+                let settled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: updating)
+                XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 10), .completed)
+            }
+            XCTAssertEqual(field.value as? String, "No Such Venue", previousTitle)
+            if previousTitle == "Search everywhere" {
+                XCTAssertFalse(app.buttons["Distance 100 mi"].exists, "An inactive distance must not look like a current constraint")
+            }
+        }
+        let edit = app.buttons["Edit search"]
+        XCTAssertTrue(edit.waitForExistence(timeout: 10))
+        for _ in 0..<5 where !edit.isHittable { app.swipeUp() }
+        XCTAssertTrue(edit.isHittable)
+        XCTAssertGreaterThanOrEqual(edit.frame.height, 44)
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Search empty recovery \(largeText ? "AX5" : "standard")"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        edit.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(field.isHittable)
+        XCTAssertEqual(field.value as? String, "No Such Venue")
+        field.typeText(" revised")
+        XCTAssertEqual(field.value as? String, "No Such Venue revised")
+        app.keyboards.buttons["Search"].tap()
+        app.tabBars.buttons["Discover"].tap()
+        app.tabBars.buttons["Search"].tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.keyboards.firstMatch.exists, "Returning to Search must not replay a consumed focus request")
+        XCTAssertEqual(field.value as? String, "No Such Venue revised")
+    }
+
     func testSearchFilterDraftApplyAndDismissal() throws {
         try verifyFilterDraft(largeText: false)
     }
