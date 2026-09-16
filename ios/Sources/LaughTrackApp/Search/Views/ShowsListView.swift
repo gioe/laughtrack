@@ -316,8 +316,6 @@ struct ShowsListView: View {
         return formatter
     }()
 
-
-
     private var secondaryFilters: [Components.Schemas.Filter] {
         currentFilters.filter { ShowFilterFacetTaxonomy.isSecondary(slug: $0.slug) }
     }

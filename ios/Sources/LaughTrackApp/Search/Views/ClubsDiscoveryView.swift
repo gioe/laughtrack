@@ -189,8 +189,6 @@ struct ClubsDiscoveryView: View {
         return result.filters
     }
 
-
-
     private var filterCountTitle: String {
         let count = model.selectedFilterSlugs.count
         return "\(count) filter\(count == 1 ? "" : "s")"

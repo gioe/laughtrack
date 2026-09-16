@@ -218,8 +218,6 @@ struct ComediansDiscoveryView: View {
         )
     }
 
-
-
     private var filterCountTitle: String {
         let count = model.selectedFilterSlugs.count
         return "\(count) filter\(count == 1 ? "" : "s")"

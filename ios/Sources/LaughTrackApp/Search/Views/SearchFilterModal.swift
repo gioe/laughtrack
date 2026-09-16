@@ -176,7 +176,8 @@ struct SearchFilterModal: View {
                             .pickerStyle(.menu)
                             .tint(laughTrack.colors.accentStrong)
                             .frame(minHeight: 44)
-                            .accessibilityLabel("Maximum price")
+                            .accessibilityIdentifier("search-filter-price")
+                            .accessibilityValue(draft.selection.maximumPrice.title)
                         }
 
                         if draft.filters.isEmpty {

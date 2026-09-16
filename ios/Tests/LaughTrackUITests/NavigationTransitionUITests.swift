@@ -7,6 +7,67 @@ import UIKit
 /// are seeded. Run these cases at native default/large text and Reduce Motion.
 @MainActor
 final class NavigationTransitionUITests: XCTestCase {
+    func testSearchFilterDraftApplyAndDismissal() throws {
+        try verifyFilterDraft(largeText: false)
+    }
+
+    func testAccessibilitySearchFilterDraftApplyAndDismissal() throws {
+        try verifyFilterDraft(largeText: true)
+    }
+
+    private func verifyFilterDraft(largeText: Bool) throws {
+        let app = try launchApp(largeText: largeText)
+        defer { app.terminate() }
+        app.tabBars.buttons["Search"].tap()
+        let filters = app.buttons["Show filters"]
+        XCTAssertTrue(filters.waitForExistence(timeout: 10))
+        let apply = app.buttons["search-filter-apply"]
+        let price = app.buttons["search-filter-price"]
+        let close = app.buttons["Close"]
+        let grabber = app.buttons["Sheet Grabber"]
+
+        func openFilters() {
+            filters.tap()
+            XCTAssertTrue(apply.waitForExistence(timeout: 5))
+            waitForFilterAction(apply)
+            // Every presentation starts at medium. Expand before editing so
+            // large-type controls are clear of the scroll viewport's clipping.
+            grabber.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)))
+            XCTAssertTrue(price.waitForExistence(timeout: 5))
+        }
+        func choosePrice(_ title: String) {
+            price.tap()
+            let option = app.buttons[title]
+            XCTAssertTrue(option.waitForExistence(timeout: 5))
+            option.tap()
+            waitForFilterAction(apply)
+        }
+
+        openFilters()
+        choosePrice("Up to $20")
+        attach(app, "Search filter draft — \(largeText ? "AX5" : "standard") anchored Apply")
+        close.tap()
+        XCTAssertTrue(apply.waitForNonExistence(timeout: 5))
+        openFilters()
+        XCTAssertEqual(price.value as? String, "Any price", "Close must discard the draft")
+        choosePrice("Up to $40")
+        apply.tap()
+        XCTAssertTrue(apply.waitForNonExistence(timeout: 5))
+        openFilters()
+        XCTAssertEqual(price.value as? String, "Up to $40", "Apply must commit the draft")
+        choosePrice("Up to $60")
+        grabber.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
+        XCTAssertTrue(apply.waitForNonExistence(timeout: 5))
+        openFilters()
+        XCTAssertEqual(price.value as? String, "Up to $40", "Swipe must discard the edited price")
+    }
+
+    private func waitForFilterAction(_ button: XCUIElement) {
+        // Native menu dismissal animates after XCTest reports the app idle.
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isHittable == true"), object: button)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed)
+    }
+
     func testSearchAgendaTicketsKeepDetailsAndNavigation() throws {
         try verifySearchAgenda(largeText: false)
     }

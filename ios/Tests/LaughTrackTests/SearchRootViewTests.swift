@@ -1526,6 +1526,38 @@ struct SearchFilterDraftTests {
         #expect(draft.filters.isEmpty)
     }
 
+    #if canImport(UIKit)
+    @Test("Capture empty-facet zero and failed previews at standard and accessibility text sizes")
+    func capturePreviewStates() async throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            for fails in [false, true] {
+                let host = HostedView(
+                    SearchFilterModal(
+                        filters: [], selectedSlugs: .constant([]), isPresented: .constant(true),
+                        preview: { _ in fails ? .failure(.network("Offline")) : .success(0) }
+                    )
+                    .environment(\.appTheme, LaughTrackTheme())
+                    .environment(\.dynamicTypeSize, size)
+                    .preferredColorScheme(.dark),
+                    freshWindow: true
+                )
+                await host.settle(iterations: 30)
+                let data = try #require(host.snapshot().pngData())
+                let device = UIDevice.current.userInterfaceIdiom == .pad ? "ipad" : "phone"
+                let textSize = size.isAccessibilitySize ? "AX5" : "standard"
+                let state = fails ? "failed" : "zero"
+                let path = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("task4009-\(device)-\(textSize)-\(state).png")
+                try data.write(to: path)
+                print("Filter preview capture: \(path.path)")
+                #if compiler(>=6.2)
+                Attachment.record(Array(data), named: path.lastPathComponent)
+                #endif
+            }
+        }
+    }
+    #endif
+
     @Test("All preview endpoints preserve captured context without changing the parent query or results")
     func previewAdapters() async throws {
         let transport = StubClientTransport { _, _, _, _ in
