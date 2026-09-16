@@ -474,8 +474,14 @@ final class NavigationTransitionUITests: XCTestCase {
         }
         attach(app, "Discover — after rapid tabs and Search pivot")
 
-        let show = element("laughtrack.home.shows-tonight-103", in: app)
-        XCTAssertTrue(show.isHittable, "Fixture show must be reachable at the retained scroll position")
+        // Fixture show 103 occurs in both Tonight and This Week with the same
+        // identifier. firstMatch picks the offscreen Tonight card; select the
+        // visible button without scrolling away from the retained position.
+        let matchingShows = app.buttons.matching(identifier: "laughtrack.home.shows-tonight-103")
+        let visibleShows = matchingShows.allElementsBoundByIndex.filter { $0.isHittable }
+        XCTAssertEqual(visibleShows.count, 1, "Exactly one fixture show must be tappable at the retained position: \(matchingShows.debugDescription)")
+        let show = try XCTUnwrap(visibleShows.first)
+        XCTAssertGreaterThan(show.frame.minY, marker.frame.maxY, "The visible show must belong to the retained This Week section")
         show.tap()
         let detail = element("laughtrack.show-detail.screen", in: app)
         XCTAssertTrue(detail.waitForExistence(timeout: 10))
