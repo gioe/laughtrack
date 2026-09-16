@@ -8,35 +8,41 @@ enum ShowRowPresentation {
     case compactTicketProminent
 }
 
+/// Agenda headings supply the date; independent tickets must carry their own.
+enum ShowRowContext {
+    case standalone
+    case agenda
+}
+
 struct ShowRow: View {
     static let artworkSlotSize: CGFloat = 60
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
 
     let show: Components.Schemas.Show
     let presentation: ShowRowPresentation
     let preferredHeadlinerID: Int?
+    let context: ShowRowContext
 
     init(
         show: Components.Schemas.Show,
         presentation: ShowRowPresentation = .standard,
-        preferredHeadlinerID: Int? = nil
+        preferredHeadlinerID: Int? = nil,
+        context: ShowRowContext = .standalone
     ) {
         self.show = show
         self.presentation = presentation
         self.preferredHeadlinerID = preferredHeadlinerID
+        self.context = context
     }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        // Open mics used to render a separate compact variant, but the
-        // visual mismatch with the surrounding ticket-stub rows was the
-        // bigger problem than the extra height — the unified ticket-stub
-        // layout naturally falls through to titleOnlyBlock for shows
-        // without a headliner, which covers every open mic.
-        return ticketStubRow
+        // Open mics share the same ticket treatment as other shows.
+        return ticketContent
             .background(ticketPaper)
             .overlay(
                 RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
@@ -141,6 +147,68 @@ struct ShowRow: View {
 
     // MARK: - Ticket-stub row
 
+    @ViewBuilder
+    private var ticketContent: some View {
+        if context == .agenda {
+            agendaTicket
+        } else {
+            ticketStubRow
+        }
+    }
+
+    private var agendaTicket: some View {
+        VStack(spacing: 0) {
+            agendaTiming
+                .padding(.horizontal, theme.laughTrackTokens.browseDensity.compactCardPadding)
+                .padding(.vertical, theme.spacing.sm)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(ticketStubBackground)
+
+            DashedHorizontalLine()
+                .stroke(ticketInkMuted.opacity(0.45), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                .frame(height: 1)
+                .padding(.horizontal, theme.spacing.sm)
+
+            ticketBody
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var agendaTiming: some View {
+        let isSoldOut = show.soldOut == true
+        let price = isSoldOut ? Self.previousPriceLabel(for: show) : Self.priceLabel(for: show)
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.xs))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: theme.spacing.sm))
+
+        return layout {
+            Text(Self.timeLabel(for: show))
+                .font(theme.laughTrackTokens.typography.bodyEmphasis)
+                .monospacedDigit()
+                .foregroundStyle(ticketInk)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let price {
+                Text(price)
+                    .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(ticketAccent)
+                    .strikethrough(isSoldOut, color: ticketInkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var artworkTextLayout: AnyLayout {
+        if context == .agenda && dynamicTypeSize.isAccessibilitySize {
+            AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.sm))
+        } else {
+            AnyLayout(HStackLayout(alignment: .center, spacing: theme.spacing.sm))
+        }
+    }
+
     private var ticketStubRow: some View {
         HStack(spacing: 0) {
             ticketBody
@@ -198,28 +266,30 @@ struct ShowRow: View {
         let venueLine = Self.venueLine(for: show)
         let roomName = Self.roomLabel(for: show)
 
-        return HStack(alignment: .center, spacing: theme.spacing.sm) {
+        return artworkTextLayout {
             artworkSlot
 
             VStack(alignment: .leading, spacing: theme.spacing.xxs) {
                 Text(Self.listTitle(for: show))
                     .font(laughTrack.typography.bodyEmphasis)
                     .foregroundStyle(ticketInk)
-                    .lineLimit(2)
+                    .lineLimit(context == .agenda ? nil : 2)
                     .fixedSize(horizontal: false, vertical: true)
 
                 if let venueLine {
                     Text(venueLine)
                         .font(laughTrack.typography.metadata)
                         .foregroundStyle(ticketInkMuted)
-                        .lineLimit(1)
+                        .lineLimit(context == .agenda ? nil : 1)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 if let roomName {
                     Text(roomName)
                         .font(laughTrack.typography.metadata)
                         .foregroundStyle(ticketInkMuted)
-                        .lineLimit(1)
+                        .lineLimit(context == .agenda ? nil : 1)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -269,28 +339,37 @@ struct ShowRow: View {
         let venueLine = Self.venueLine(for: show)
 
         VStack(alignment: .leading, spacing: theme.spacing.xs) {
-            HStack(alignment: .center, spacing: theme.spacing.sm) {
+            artworkTextLayout {
                 artworkSlot
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(Self.primaryListTitle(for: show, headliner: headliner))
                         .font(laughTrack.typography.bodyEmphasis)
                         .foregroundStyle(ticketInk)
-                        .lineLimit(2)
+                        .lineLimit(context == .agenda ? nil : 2)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    if let headlinerContext = Self.headlinerContext(for: show, headliner: headliner) {
+                    if let headlinerContext = Self.headlinerContext(for: show, headliner: headliner, context: context) {
                         Text(headlinerContext)
                             .font(laughTrack.typography.metadata)
                             .foregroundStyle(ticketInkMuted)
-                            .lineLimit(1)
+                            .lineLimit(context == .agenda ? nil : 1)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     if let venueLine {
                         Text(venueLine)
                             .font(laughTrack.typography.metadata)
                             .foregroundStyle(ticketInkMuted)
-                            .lineLimit(1)
+                            .lineLimit(context == .agenda ? nil : 1)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    if context == .agenda, let roomName = Self.roomLabel(for: show) {
+                        Text(roomName)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(ticketInkMuted)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -301,7 +380,7 @@ struct ShowRow: View {
             }
         }
         .saturation(isSoldOut ? 0 : 1)
-        .opacity(isSoldOut ? 0.6 : 1)
+        .opacity(isSoldOut && context == .standalone ? 0.6 : 1)
     }
 
     private var artworkSlot: some View {
@@ -377,7 +456,7 @@ struct ShowRow: View {
             Text(label)
                 .font(laughTrack.typography.metadata)
                 .foregroundStyle(ticketInkMuted)
-                .lineLimit(3)
+                .lineLimit(context == .agenda ? nil : 3)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -420,8 +499,11 @@ struct ShowRow: View {
     @ViewBuilder
     private func ticketBodyBadges(isSoldOut: Bool, isOpenMic: Bool) -> some View {
         let laughTrack = theme.laughTrackTokens
+        let layout = context == .agenda && dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.xs))
+            : AnyLayout(HStackLayout(spacing: theme.spacing.xs))
 
-        HStack(spacing: theme.spacing.xs) {
+        layout {
             if isOpenMic {
                 HStack(spacing: 4) {
                     Image(systemName: "music.mic")
@@ -545,13 +627,28 @@ struct ShowRow: View {
 
     static func headlinerContext(
         for show: Components.Schemas.Show,
-        headliner: Components.Schemas.ComedianLineup
+        headliner: Components.Schemas.ComedianLineup,
+        context: ShowRowContext = .standalone
     ) -> String? {
         let primaryTitle = primaryListTitle(for: show, headliner: headliner)
         guard primaryTitle.localizedCaseInsensitiveCompare(headliner.name) != .orderedSame else {
             return nil
         }
+        // Only an exact generated headline repeats the same identity. Named
+        // events, aliases, and partial name matches retain the featured artist.
+        if context == .agenda {
+            let name = headliner.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !name.isEmpty,
+               primaryTitle.localizedCaseInsensitiveCompare("\(name) Headlines") == .orderedSame {
+                return nil
+            }
+        }
         return headliner.name
+    }
+
+    @MainActor
+    static func timeLabel(for show: Components.Schemas.Show) -> String {
+        ShowFormatting.dateStack(show.date, timezoneID: show.timezone).time
     }
 
     static func venueLine(for show: Components.Schemas.Show) -> String? {
@@ -711,9 +808,17 @@ struct ShowRow: View {
 
 }
 
-/// Simple vertical line used as the perforation between the show card body and
-/// the date/price stub. Stroke styles (color + dash pattern) are applied at the
-/// callsite so the same shape can serve other ticket-style splits later.
+/// Perforation between the agenda's timing strip and show details.
+private struct DashedHorizontalLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.midY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
+        return path
+    }
+}
+
+/// Perforation between standalone show details and the date/price stub.
 private struct DashedVerticalLine: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()

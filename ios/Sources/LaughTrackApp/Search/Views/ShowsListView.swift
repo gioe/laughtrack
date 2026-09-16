@@ -274,13 +274,17 @@ struct ShowsListView: View {
                     .font(theme.laughTrackTokens.typography.sectionTitle)
                     .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
                     .accessibilityAddTraits(.isHeader)
-                showRows(section.shows, standoutShowID: standoutShowID)
+                showRows(section.shows, standoutShowID: standoutShowID, context: .agenda)
             }
         }
     }
 
     @ViewBuilder
-    private func showRows(_ shows: [Components.Schemas.Show], standoutShowID: Int?) -> some View {
+    private func showRows(
+        _ shows: [Components.Schemas.Show],
+        standoutShowID: Int?,
+        context: ShowRowContext = .standalone
+    ) -> some View {
         AdaptiveSearchResults(spacing: theme.spacing.md) {
             ForEach(shows, id: \.id) { show in
                 Button {
@@ -288,7 +292,8 @@ struct ShowsListView: View {
                 } label: {
                     ShowRow(
                         show: show,
-                        presentation: show.id == standoutShowID ? .compactTicketProminent : .compactTicket
+                        presentation: show.id == standoutShowID ? .compactTicketProminent : .compactTicket,
+                        context: context
                     )
                 }
                 .buttonStyle(.plain)
