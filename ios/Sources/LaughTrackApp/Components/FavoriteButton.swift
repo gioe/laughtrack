@@ -22,6 +22,7 @@ extension EnvironmentValues {
 
 struct FavoriteButton: View {
     @Environment(\.appTheme) private var theme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.favoriteButtonPresentation) private var presentation
 
     let isFavorite: Bool
@@ -53,6 +54,7 @@ struct FavoriteButton: View {
                 if isPending {
                     ProgressView()
                         .progressViewStyle(.circular)
+                        .environment(\.dynamicTypeSize, presentation.isCompact ? .large : dynamicTypeSize)
                         .tint(laughTrack.colors.accent)
                 } else {
                     Image(systemName: isFavorite ? "heart.fill" : "heart")

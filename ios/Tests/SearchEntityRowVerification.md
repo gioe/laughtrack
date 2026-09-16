@@ -58,8 +58,12 @@ Run the behavioral suites with:
 
 ```sh
 ios/bin/test-sim LaughTrackTests/SearchFavoriteRowLayoutTests LaughTrackTests/ClubRowTests LaughTrackTests/LibraryFavoritesViewTests
-ios/bin/test-sim LaughTrackUITests/NavigationTransitionUITests/testSearchEntityFavoritesKeepLoginAndDetailActionsSeparate LaughTrackUITests/NavigationTransitionUITests/testAccessibilitySearchEntityRowsRetainLabelsAndSeparateTargets
+caffeinate -dimsu ios/bin/test-sim LaughTrackUITests/NavigationTransitionUITests/testSearchEntityFavoritesKeepLoginAndDetailActionsSeparate LaughTrackUITests/NavigationTransitionUITests/testAccessibilitySearchEntityRowsRetainLabelsAndSeparateTargets
 ```
+
+Keep the Mac awake during native interaction tests. In this session, macOS sleep
+interrupted event generation and produced multi-minute tap/swipe timeouts;
+power logs confirmed those runs were interrupted by sleep.
 
 Session artifacts are in `/tmp/task4004-{before,after}-{phone,ipad}-*.png`;
 the capture suite provides a durable way to regenerate the current design.

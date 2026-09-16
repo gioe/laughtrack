@@ -1,15 +1,180 @@
 import Foundation
 import Testing
+import SwiftUI
+import LaughTrackBridge
 @testable import LaughTrackApp
 
-@Suite("Search favorite row layout")
+#if canImport(UIKit)
+import UIKit
+
+@Suite("Search entity row visual capture", .serialized)
+@MainActor
+struct SearchEntityRowVisualCaptureTests {
+    @Test("capture shared Search and Library rows at standard and accessibility sizes")
+    func captureRows() async throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            for index in 0..<3 {
+                let title = ["Taylor Tomlinson", "The Comedy Store", "Good One: A Podcast About Jokes"][index]
+                let subtitle = ["", "West Hollywood, CA", "Vulture"][index]
+                let kind: LaughTrackSearchEntityKind = [.comedian, .club, .podcast][index]
+                let artwork = ["taylor", "comedy-store", "history-hyenas"][index]
+                let host = HostedView(
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            LaughTrackSearchEntityRow(title: title, subtitle: subtitle, imageURL: "http://127.0.0.1:8765/artwork/\(artwork).png", kind: kind, action: {}) {
+                                FavoriteButton(isFavorite: false, isPending: false) {}
+                            }
+                            LaughTrackSearchEntityRow(title: "A wonderfully long name with more to say", subtitle: subtitle, imageURL: nil, kind: kind, action: {}) {
+                                FavoriteButton(isFavorite: true, isPending: false) {}
+                            }
+                            LaughTrackSearchEntityRow(title: "Saving favorite", imageURL: nil, kind: kind, action: {}) {
+                                FavoriteButton(isFavorite: true, isPending: true) {}
+                            }
+                        }
+                        .padding(16)
+                    }
+                    .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                    .environment(\.appTheme, LaughTrackTheme())
+                    .environment(\.dynamicTypeSize, size)
+                    .preferredColorScheme(.dark), freshWindow: true
+                )
+                await host.settle()
+                let data = try #require(try host.snapshot().pngData())
+                let textSize = size.isAccessibilitySize ? "AX5" : "standard"
+                let name = ["comedian", "club", "podcast"][index]
+                let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4004-\(name)-\(textSize).png")
+                try data.write(to: path)
+                print("Search row capture: \(path.path)")
+                #if compiler(>=6.2)
+                Attachment.record(Array(data), named: path.lastPathComponent)
+                #endif
+
+                // The longest AX rows scroll past the viewport. Capture the
+                // pending accessory separately so its rendered size is visible.
+                if size.isAccessibilitySize {
+                    let pendingHost = HostedView(
+                        VStack {
+                            LaughTrackSearchEntityRow(title: title, subtitle: subtitle, imageURL: nil, kind: kind, action: {}) {
+                                FavoriteButton(isFavorite: true, isPending: true) {}
+                            }
+                            Spacer()
+                        }
+                        .padding(16)
+                        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                        .environment(\.appTheme, LaughTrackTheme())
+                        .environment(\.dynamicTypeSize, size)
+                        .preferredColorScheme(.dark), freshWindow: true
+                    )
+                    await pendingHost.settle()
+                    let pendingData = try #require(try pendingHost.snapshot().pngData())
+                    let pendingPath = FileManager.default.temporaryDirectory.appendingPathComponent("task4004-\(name)-AX5-pending.png")
+                    try pendingData.write(to: pendingPath)
+                    print("Search row capture: \(pendingPath.path)")
+                    #if compiler(>=6.2)
+                    Attachment.record(Array(pendingData), named: pendingPath.lastPathComponent)
+                    #endif
+                }
+            }
+        }
+    }
+}
+#endif
+
+@Suite("Search favorite row layout", .serialized)
 struct SearchFavoriteRowLayoutTests {
+    #if canImport(UIKit)
+    @Test("long entity names continue growing beyond the former two-line limit")
+    @MainActor
+    func longTitlesExpandAtStandardAndAccessibilitySizes() {
+        let longTitle = "A wonderfully long comedy name with stories from every corner of the city"
+        let longerTitle = Array(repeating: longTitle, count: 3).joined(separator: " ")
+        for kind in [LaughTrackSearchEntityKind.comedian, .club, .podcast] {
+            for size in [DynamicTypeSize.large, .accessibility5] {
+                let shortHeight = measuredRowHeight(title: "Comedy", kind: kind, size: size)
+                let longHeight = measuredRowHeight(title: longTitle, kind: kind, size: size)
+                let longerHeight = measuredRowHeight(title: longerTitle, kind: kind, size: size)
+
+                #expect(longHeight > shortHeight + 20)
+                // Both long titles already exceed two lines at this width.
+                // A capped label would stop adding height for the longer name.
+                #expect(longerHeight > longHeight + 60)
+                #expect(longerHeight.isFinite)
+            }
+        }
+    }
+
+    @Test("rendered favorite states preserve independent 44-point targets and row bounds")
+    @MainActor
+    func renderedFavoriteTargetsStayWithinRows() async throws {
+        for kind in [LaughTrackSearchEntityKind.comedian, .club, .podcast] {
+            for size in [DynamicTypeSize.large, .accessibility5] {
+                var stateSizes: [CGSize] = []
+                for state in [(saved: false, pending: false), (saved: true, pending: false), (saved: true, pending: true)] {
+                    let geometry = SearchRowGeometryRecorder()
+                    let host = HostedView(
+                        ScrollView {
+                            LaughTrackSearchEntityRow(
+                                title: "A wonderfully long name with more to say",
+                                subtitle: "Long author and location metadata remains readable",
+                                imageURL: nil,
+                                kind: kind,
+                                action: {},
+                                accessibilityIdentifier: "layout.detail"
+                            ) {
+                                FavoriteButton(isFavorite: state.saved, isPending: state.pending) {}
+                                    .background(SearchRowGeometryProbe { geometry.favorite = $0 })
+                            }
+                            .background(SearchRowGeometryProbe { geometry.row = $0 })
+                            .frame(width: 288)
+                        }
+                        .environment(\.appTheme, LaughTrackTheme())
+                        .environment(\.dynamicTypeSize, size),
+                        freshWindow: true
+                    )
+                    await host.settle()
+                    let detail = try host.requireView(withIdentifier: "layout.detail")
+                    let detailFrame = detail.convert(detail.bounds, to: nil)
+                    let favorite = try #require(geometry.favorite)
+                    let row = try #require(geometry.row)
+
+                    #expect(favorite.width >= 44)
+                    #expect(favorite.height >= 44)
+                    #expect(detailFrame.width >= 44)
+                    #expect(detailFrame.height >= 44)
+                    #expect(!detailFrame.intersects(favorite))
+                    #expect(row.insetBy(dx: -1, dy: -1).contains(detailFrame))
+                    #expect(row.insetBy(dx: -1, dy: -1).contains(favorite))
+                    #expect(abs(row.width - 288) < 1)
+                    stateSizes.append(row.size)
+                }
+                let initial = try #require(stateSizes.first)
+                for size in stateSizes.dropFirst() {
+                    #expect(abs(size.width - initial.width) < 1)
+                    #expect(abs(size.height - initial.height) < 1)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func measuredRowHeight(title: String, kind: LaughTrackSearchEntityKind, size: DynamicTypeSize) -> CGFloat {
+        let controller = UIHostingController(rootView:
+            LaughTrackSearchEntityRow(title: title, imageURL: nil, kind: kind, action: {}) {
+                FavoriteButton(isFavorite: false, isPending: false) {}
+            }
+            .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.dynamicTypeSize, size)
+        )
+        return controller.sizeThatFits(in: CGSize(width: 288, height: 100_000)).height
+    }
+    #endif
+
     @Test("shared entity rows use dense vertical padding without reducing readable text")
     func sharedEntityRowsUseDenseVerticalMetrics() {
         let metrics = LaughTrackSearchEntityRowMetrics.standard
 
-        #expect(metrics.verticalCardPadding == 4)
-        #expect(metrics.titleLineLimit == 2)
+        #expect(metrics.verticalCardPadding == 12)
+        #expect(metrics.titleLineLimit == nil)
         #expect(metrics.subtitleLineLimit == 2)
     }
 
@@ -35,25 +200,11 @@ struct SearchFavoriteRowLayoutTests {
         #expect(block.contains("FavoriteButton("))
     }
 
-    @Test("comedian search row uses captionless club wall headshot frame")
-    func comedianSearchRowUsesCaptionlessClubWallHeadshotFrame() throws {
-        let source = try String(contentsOf: browseComponentsSourceURL(), encoding: .utf8)
-        let block = try sourceBlock(in: source, from: "struct LaughTrackSearchEntityRow", to: "struct LaughTrackEntityRowDesign")
-
-        #expect(block.contains("ClubWallHeadshotFrame("))
-        #expect(block.contains("caption: title"))
-        #expect(block.contains("captionVisibility: .hidden"))
-        #expect(block.contains("frameWidth: 76"))
-        #expect(block.contains("frameHeight: 73"))
-        #expect(block.contains(".frame(width: 69, height: 69)"))
-        #expect(block.contains(".padding(.horizontal, laughTrack.browseDensity.compactCardPadding)"))
-        #expect(block.contains(".padding(.vertical, metrics.verticalCardPadding)"))
-        #expect(block.contains("artworkImage"))
-        #expect(block.contains("Text(title)"))
-        #expect(!block.contains("upcomingShowsText"))
-        #expect(!block.contains("upcoming show"))
-        #expect(!block.contains("rotationDegrees:"))
-        #expect(!block.contains("HomeClubWallHeadshotFrame("))
+    @Test("entity artwork preserves distinct silhouettes without decorative frames")
+    func entityArtworkUsesDistinctShapes() {
+        #expect(LaughTrackSearchEntityKind.comedian.artworkShape == .circle)
+        #expect(LaughTrackSearchEntityKind.club.artworkShape == .roundedRectangle(cornerRadius: 12))
+        #expect(LaughTrackSearchEntityKind.podcast.artworkShape == .roundedRectangle(cornerRadius: 6))
     }
 
     @Test("shared entity rows announce distinguishing subtitle metadata")
@@ -148,3 +299,39 @@ struct SearchFavoriteRowLayoutTests {
         return String(source[start.lowerBound..<end.lowerBound])
     }
 }
+
+#if canImport(UIKit)
+@MainActor
+private final class SearchRowGeometryRecorder {
+    var row: CGRect?
+    var favorite: CGRect?
+}
+
+/// A test-only background reads actual layout without adding identifiers or
+/// accessibility nodes to the production control hierarchy.
+private struct SearchRowGeometryProbe: UIViewRepresentable {
+    let record: (CGRect) -> Void
+
+    func makeUIView(context: Context) -> ProbeView {
+        let view = ProbeView()
+        view.isUserInteractionEnabled = false
+        view.record = record
+        return view
+    }
+
+    func updateUIView(_ view: ProbeView, context: Context) {
+        view.record = record
+        view.setNeedsLayout()
+    }
+
+    final class ProbeView: UIView {
+        var record: ((CGRect) -> Void)?
+
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            guard window != nil, !bounds.isEmpty else { return }
+            record?(convert(bounds, to: nil))
+        }
+    }
+}
+#endif
