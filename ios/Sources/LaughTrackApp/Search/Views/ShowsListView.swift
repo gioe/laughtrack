@@ -165,7 +165,7 @@ struct ShowsListView: View {
                                 ShowResultsCalendarView(model: model, apiClient: apiClient)
                             }
                         }
-                        ShowsListSkeleton(context: compactMode ? .standalone : .agenda)
+                        ShowsListSkeleton(context: compactMode ? .standalone : .agenda, usesAdaptiveLayout: true)
                     }
                 case .failure(let failure):
                     FailureCard(

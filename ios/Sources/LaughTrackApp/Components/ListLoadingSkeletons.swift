@@ -30,6 +30,7 @@ struct ShowsListSkeleton: View {
     var rowCount: Int = 5
     // Library and pinned lists retain the full date stub.
     var context: ShowRowContext = .standalone
+    var usesAdaptiveLayout: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.md) {
@@ -44,9 +45,13 @@ struct ShowsListSkeleton: View {
                         .font(theme.laughTrackTokens.typography.sectionTitle)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                AdaptiveSearchResults(spacing: theme.spacing.md) {
-                    ForEach(0..<rowCount, id: \.self) { _ in
-                        ShowRow(show: Self.placeholder, presentation: .compactTicket, context: context)
+                if usesAdaptiveLayout {
+                    AdaptiveSearchResults(spacing: theme.spacing.md) {
+                        rows
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                        rows
                     }
                 }
             }
@@ -56,6 +61,12 @@ struct ShowsListSkeleton: View {
         .allowsHitTesting(false)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Loading shows")
+    }
+
+    private var rows: some View {
+        ForEach(0..<rowCount, id: \.self) { _ in
+            ShowRow(show: Self.placeholder, presentation: .compactTicket, context: context)
+        }
     }
 
     // Inert local content supplies typography and wrapping to the real row.

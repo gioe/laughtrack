@@ -21,7 +21,7 @@ struct SearchLoadingVisualCaptureTests {
                                 .font(LaughTrackTheme().laughTrackTokens.typography.screenTitle)
                             Group {
                                 switch kind {
-                                case 0: ShowsListSkeleton(context: .agenda)
+                                case 0: ShowsListSkeleton(context: .agenda, usesAdaptiveLayout: true)
                                 case 1: ComediansListSkeleton()
                                 case 2: ClubsListSkeleton()
                                 default: PodcastsListSkeleton()
@@ -91,6 +91,13 @@ struct SearchLoadingGeometryTests {
         let accessible = measure(skeleton.environment(\.horizontalSizeClass, .regular), width: 768, size: .accessibility5)
         #expect(abs(accessible.width - 768) < 1)
         #expect(accessible.height > grid.height)
+        let library = ShowsListSkeleton(rowCount: 2)
+        let libraryCompact = measure(library.environment(\.horizontalSizeClass, .compact), width: 768, size: .large)
+        let libraryRegular = measure(library.environment(\.horizontalSizeClass, .regular), width: 768, size: .large)
+        #expect(abs(libraryCompact.height - libraryRegular.height) < 1)
+        let search = ShowsListSkeleton(rowCount: 2, usesAdaptiveLayout: true)
+        let searchGrid = measure(search.environment(\.horizontalSizeClass, .regular), width: 768, size: .large)
+        #expect(searchGrid.height < libraryRegular.height)
     }
 
     @Test("Reduce Motion stays static and stops a running shimmer")
