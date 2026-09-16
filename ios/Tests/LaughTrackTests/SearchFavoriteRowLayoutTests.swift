@@ -7,6 +7,159 @@ import LaughTrackBridge
 #if canImport(UIKit)
 import UIKit
 
+@Suite("Search loading visual capture", .serialized)
+@MainActor
+struct SearchLoadingVisualCaptureTests {
+    @Test("capture loading results at standard and accessibility sizes")
+    func captureLoading() async throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            for kind in 0..<4 {
+                let host = HostedView(
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text(["Shows", "Comedians", "Clubs", "Podcasts"][kind])
+                                .font(LaughTrackTheme().laughTrackTokens.typography.screenTitle)
+                            Group {
+                                switch kind {
+                                case 0: ShowsListSkeleton(context: .agenda)
+                                case 1: ComediansListSkeleton()
+                                case 2: ClubsListSkeleton()
+                                default: PodcastsListSkeleton()
+                                }
+                            }
+                        }.padding(16)
+                    }
+                    .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                    .environment(\.appTheme, LaughTrackTheme())
+                    .environment(\.dynamicTypeSize, size)
+                    .preferredColorScheme(.dark), freshWindow: true
+                )
+                await host.settle()
+                let data = try #require(try host.snapshot().pngData())
+                let suffix = size.isAccessibilitySize ? "AX5" : "standard"
+                let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4008-\(kind)-\(suffix).png")
+                try data.write(to: path)
+                print("Search loading capture: \(path.path)")
+                #if compiler(>=6.2)
+                Attachment.record(Array(data), named: path.lastPathComponent)
+                #endif
+            }
+        }
+    }
+}
+
+@Suite("Search loading geometry", .serialized)
+@MainActor
+struct SearchLoadingGeometryTests {
+    @Test("capture components and full Search loading states")
+    func captureScreens() async throws {
+        try await SearchLoadingVisualCaptureTests().captureLoading()
+        try await SearchQueryVisualCaptureTests().captureCategories()
+    }
+
+    @Test("redacted entity rows retain loaded dimensions at narrow and accessibility widths")
+    func entityGeometry() async throws {
+        for kind in [LaughTrackSearchEntityKind.comedian, .club, .podcast] {
+            for size in [DynamicTypeSize.large, .accessibility5] {
+                for width in [CGFloat(288), 370] {
+                    try await compareRedaction(LoadingEntityGeometryRow(kind: kind), width: width, size: size)
+                }
+            }
+        }
+    }
+
+    @Test("ticket redaction preserves agenda and independent date-stub geometry")
+    func ticketGeometry() async throws {
+        #expect(ShowsListSkeleton().context == .standalone)
+        for context in [ShowRowContext.agenda, .standalone] {
+            for size in [DynamicTypeSize.large, .accessibility5] {
+                for width in [CGFloat(288), 370] {
+                    let row = ShowRow(show: ShowsListSkeleton.placeholder, presentation: .compactTicket, context: context)
+                    try await compareRedaction(row, width: width, size: size)
+                }
+            }
+        }
+    }
+
+    @Test("loading results use the loaded two-column composition in regular width")
+    func regularComposition() {
+        let skeleton = EntityRowsSkeleton(kind: .club, label: "Loading clubs")
+        let single = measure(skeleton.environment(\.horizontalSizeClass, .compact), width: 768, size: .large)
+        let grid = measure(skeleton.environment(\.horizontalSizeClass, .regular), width: 768, size: .large)
+        #expect(grid.height < single.height - 100)
+        #expect(abs(grid.width - 768) < 1)
+        let accessible = measure(skeleton.environment(\.horizontalSizeClass, .regular), width: 768, size: .accessibility5)
+        #expect(abs(accessible.width - 768) < 1)
+        #expect(accessible.height > grid.height)
+    }
+
+    @Test("Reduce Motion stays static and stops a running shimmer")
+    func reduceMotionStopsShimmer() async throws {
+        let preference = LoadingMotionPreference()
+        let host = HostedView(LoadingMotionProbe(preference: preference)
+            .environment(\.appTheme, LaughTrackTheme()), freshWindow: true)
+        await host.settle()
+        let first = try host.snapshot().pngData()
+        try await Task.sleep(for: .milliseconds(300))
+        #expect(try host.snapshot().pngData() == first)
+        preference.reduceMotion = false
+        await host.settle()
+        try await Task.sleep(for: .milliseconds(300))
+        _ = try host.snapshot()
+        preference.reduceMotion = true
+        await host.settle()
+        let stopped = try host.snapshot().pngData()
+        #expect(stopped == first)
+        try await Task.sleep(for: .milliseconds(300))
+        #expect(try host.snapshot().pngData() == stopped)
+    }
+
+    private func measure<V: View>(_ view: V, width: CGFloat, size: DynamicTypeSize) -> CGSize {
+        let controller = UIHostingController(rootView: view
+            .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.dynamicTypeSize, size))
+        return controller.sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude))
+    }
+
+    private func compareRedaction<V: View>(_ row: V, width: CGFloat, size: DynamicTypeSize) async throws {
+        let geometry = SearchRowGeometryRecorder()
+        let host = HostedView(
+            ScrollView {
+                VStack {
+                    row.background(SearchRowGeometryProbe { geometry.row = $0 })
+                    row.redacted(reason: .placeholder)
+                        .background(SearchRowGeometryProbe { geometry.favorite = $0 })
+                }.frame(width: width)
+            }
+            .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.dynamicTypeSize, size), freshWindow: true
+        )
+        await host.settle(iterations: 3)
+        let loaded = try #require(geometry.row)
+        let placeholder = try #require(geometry.favorite)
+        #expect(abs(loaded.height - placeholder.height) < 1, "\(size), width \(width): loaded \(loaded), placeholder \(placeholder)")
+        #expect(abs(placeholder.width - width) < 1)
+    }
+}
+
+private struct LoadingEntityGeometryRow: View {
+    let kind: LaughTrackSearchEntityKind
+    var body: some View { EntityRowsSkeleton(kind: kind, label: "Loading").row }
+}
+
+@MainActor
+private final class LoadingMotionPreference: ObservableObject {
+    @Published var reduceMotion = true
+}
+
+private struct LoadingMotionProbe: View {
+    @ObservedObject var preference: LoadingMotionPreference
+    var body: some View {
+        Rectangle().fill(Color.gray).frame(width: 200, height: 80)
+            .modifier(SkeletonShimmerModifier(reduceMotion: preference.reduceMotion))
+    }
+}
+
 @Suite("Search entity row visual capture", .serialized)
 @MainActor
 struct SearchEntityRowVisualCaptureTests {
