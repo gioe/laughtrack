@@ -7,6 +7,85 @@ import UIKit
 /// are seeded. Run these cases at native default/large text and Reduce Motion.
 @MainActor
 final class NavigationTransitionUITests: XCTestCase {
+    func testSearchCategoriesFitAndAccountRemainsReachable() throws {
+        let app = try launchApp()
+        defer { app.terminate() }
+        app.tabBars.buttons["Search"].tap()
+
+        let categories = ["shows", "comedians", "clubs", "podcasts"]
+        for category in categories {
+            let button = app.buttons["laughtrack.primitive-filter.\(category)"]
+            XCTAssertTrue(button.waitForExistence(timeout: 5))
+            assertCategoryFullyVisible(button, in: app)
+            XCTAssertGreaterThanOrEqual(button.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(button.frame.height, 44)
+        }
+        assertSelectedCategory("shows", in: app)
+        attach(app, "Search categories — all four visible without scrolling")
+
+        for category in categories.dropFirst() {
+            app.buttons["laughtrack.primitive-filter.\(category)"].tap()
+            assertSelectedCategory(category, in: app)
+        }
+
+        let account = app.buttons["laughtrack.account.header-button"]
+        XCTAssertTrue(account.isHittable)
+        XCTAssertGreaterThanOrEqual(account.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(account.frame.height, 44)
+        account.tap()
+        let close = app.buttons["Close account drawer"]
+        XCTAssertTrue(close.waitForExistence(timeout: 5))
+        XCTAssertTrue(close.isHittable)
+        XCTAssertTrue(app.buttons["laughtrack.account.sign-up-button"].exists)
+        close.tap()
+        XCTAssertTrue(close.waitForNonExistence(timeout: 5))
+        assertSelectedCategory("podcasts", in: app)
+        attach(app, "Search categories — account drawer dismissal retains selection")
+    }
+
+    func testAccessibilitySearchCategoryRevealsAndRestoresSelection() throws {
+        let app = try launchApp(largeText: true)
+        defer { app.terminate() }
+        app.tabBars.buttons["Search"].tap()
+        let shows = app.buttons["laughtrack.primitive-filter.shows"]
+        XCTAssertTrue(shows.waitForExistence(timeout: 5))
+        assertSelectedCategory("shows", in: app)
+        let headerY = shows.frame.midY
+        let podcasts = app.buttons["laughtrack.primitive-filter.podcasts"]
+
+        // Swipe only the category row, never the vertically scrolling results.
+        // The row has no parent identifier that could overwrite its buttons.
+        for _ in 0..<6 where !isCategoryFullyVisible(podcasts, in: app) {
+            swipeCategoryHeader(in: app, y: headerY, towardTrailing: true)
+        }
+        assertCategoryFullyVisible(podcasts, in: app)
+        podcasts.tap()
+        assertSelectedCategory("podcasts", in: app)
+        XCTAssertGreaterThanOrEqual(podcasts.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(podcasts.frame.height, 44)
+        attach(app, "Accessibility Search — Podcasts selected and fully revealed")
+
+        // Leave the selected category offscreen before changing destinations:
+        // returning must reveal selection rather than retain this stale offset.
+        for _ in 0..<6 where !isCategoryFullyVisible(shows, in: app) {
+            swipeCategoryHeader(in: app, y: headerY, towardTrailing: false)
+        }
+        assertCategoryFullyVisible(shows, in: app)
+        XCTAssertTrue(podcasts.isSelected)
+
+        app.tabBars.buttons["Discover"].tap()
+        XCTAssertTrue(app.tabBars.buttons["Discover"].isSelected)
+        XCTAssertFalse(podcasts.exists, "Category navigation belongs only to Search")
+        XCTAssertTrue(app.buttons["laughtrack.account.header-button"].isHittable)
+        app.tabBars.buttons["Library"].tap()
+        XCTAssertTrue(app.tabBars.buttons["Library"].isSelected)
+        XCTAssertFalse(podcasts.exists)
+        XCTAssertTrue(app.buttons["laughtrack.account.header-button"].isHittable)
+        app.tabBars.buttons["Search"].tap()
+        assertSelectedCategory("podcasts", in: app)
+        attach(app, "Accessibility Search — selected category restored after Discover and Library")
+    }
+
     func testSearchQueriesSurviveCategorySwitchesAndDetailReturn() throws {
         let app = try launchApp()
         defer { app.terminate() }
@@ -239,6 +318,68 @@ final class NavigationTransitionUITests: XCTestCase {
         XCTAssertTrue(miniPlayer.waitForNonExistence(timeout: 5))
         XCTAssertTrue(app.tabBars.buttons["Search"].isSelected)
         attach(app, "Mini player — committed dismissal")
+    }
+
+    private func isCategoryFullyVisible(_ button: XCUIElement, in app: XCUIApplication) -> Bool {
+        guard button.exists, button.isHittable else { return false }
+        let visibleBounds = app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1)
+        return !button.frame.isEmpty && visibleBounds.contains(button.frame)
+    }
+
+    private func assertCategoryFullyVisible(
+        _ button: XCUIElement,
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let revealed = XCTNSPredicateExpectation(
+            predicate: NSPredicate { object, _ in
+                guard let button = object as? XCUIElement, button.exists, button.isHittable else {
+                    return false
+                }
+                return !button.frame.isEmpty &&
+                    app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1).contains(button.frame)
+            },
+            object: button
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [revealed], timeout: 5), .completed,
+            "\(button.identifier) must be fully visible and hittable; frame: \(button.frame)",
+            file: file, line: line
+        )
+    }
+
+    private func assertSelectedCategory(
+        _ category: String,
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let selected = app.buttons["laughtrack.primitive-filter.\(category)"]
+        let selection = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "isSelected == true"), object: selected
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [selection], timeout: 5), .completed, file: file, line: line)
+        assertCategoryFullyVisible(selected, in: app, file: file, line: line)
+        for other in ["shows", "comedians", "clubs", "podcasts"] where other != category {
+            XCTAssertFalse(
+                app.buttons["laughtrack.primitive-filter.\(other)"].isSelected,
+                "Only the active category should expose the selected trait", file: file, line: line
+            )
+        }
+    }
+
+    private func swipeCategoryHeader(in app: XCUIApplication, y: CGFloat, towardTrailing: Bool) {
+        let window = app.windows.firstMatch.frame
+        let account = app.buttons["laughtrack.account.header-button"]
+        let leadingX = max(window.minX + 16, account.frame.maxX + 8)
+        let trailingX = window.maxX - 16
+        let origin = app.coordinate(withNormalizedOffset: .zero)
+        let leading = origin.withOffset(CGVector(dx: leadingX - app.frame.minX, dy: y - app.frame.minY))
+        let trailing = origin.withOffset(CGVector(dx: trailingX - app.frame.minX, dy: y - app.frame.minY))
+        let start = towardTrailing ? trailing : leading
+        let end = towardTrailing ? leading : trailing
+        start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.1)
     }
 
     private func launchApp(seedPlayer: Bool = false, largeText: Bool = false) throws -> XCUIApplication {

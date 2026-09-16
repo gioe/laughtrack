@@ -115,6 +115,7 @@ struct AppShellView: View {
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
     @State private var didApplyInitialTab = false
     @State private var isAccountDrawerPresented = false
+    @State private var measuredHeaderHeight: CGFloat?
 
     init(
         apiClient: Client,
@@ -301,7 +302,7 @@ struct AppShellView: View {
     }
 
     private func shellAlignedTabBackground(safeAreaTop: CGFloat) -> some View {
-        let headerHeight = AccountHeaderLayout.headerHeight(safeAreaTop: safeAreaTop, theme: theme)
+        let headerHeight = measuredHeaderHeight ?? AccountHeaderLayout.headerHeight(safeAreaTop: safeAreaTop, theme: theme)
 
         return GeometryReader { proxy in
             LaughTrackAtmosphereBackground()
@@ -356,18 +357,24 @@ struct AppShellView: View {
     }
 
     private func shellHeader(safeAreaTop: CGFloat) -> some View {
-        HStack(spacing: theme.spacing.sm) {
+        HStack(spacing: shellState.selectedTab == .search ? 4 : theme.spacing.sm) {
             accountHeaderButton
 
             if shellState.selectedTab == .search {
                 primitiveFilterScroller
             }
         }
-        .padding(.horizontal, theme.spacing.lg)
+        .padding(.horizontal, shellState.selectedTab == .search ? 8 : theme.spacing.lg)
         .padding(.top, AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: safeAreaTop, theme: theme))
         .padding(.bottom, theme.spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.clear)
+        .background {
+            GeometryReader { geometry in
+                Color.clear
+                    .onAppear { measuredHeaderHeight = geometry.size.height }
+                    .onChange(of: geometry.size.height) { measuredHeaderHeight = $0 }
+            }
+        }
     }
 
     // The profile button opens a side drawer. Authenticated users can open
@@ -618,11 +625,13 @@ struct AppShellView: View {
 
     private func shellHeaderIconLabel(systemImage: String) -> some View {
         let tokens = theme.laughTrackTokens
+        let isSearch = shellState.selectedTab == .search
 
         return Image(systemName: systemImage)
-            .font(.system(size: 32, weight: .semibold))
+            .font(.system(size: isSearch ? 24 : 32, weight: .semibold))
             .foregroundStyle(tokens.colors.textPrimary)
-            .frame(width: AccountHeaderLayout.buttonSize, height: AccountHeaderLayout.buttonSize)
+            .frame(width: isSearch ? 34 : AccountHeaderLayout.buttonSize,
+                   height: isSearch ? 34 : AccountHeaderLayout.buttonSize)
             .background {
                 Circle()
                     .fill(tokens.colors.surfaceElevated.opacity(0.94))
@@ -632,10 +641,12 @@ struct AppShellView: View {
                 Circle()
                     .stroke(tokens.colors.borderSubtle, lineWidth: 1)
             }
+            .frame(width: AccountHeaderLayout.buttonSize, height: AccountHeaderLayout.buttonSize)
+            .contentShape(Rectangle())
     }
 
     private var primitiveFilterRow: some View {
-        HStack(spacing: theme.spacing.xs) {
+        HStack(spacing: 0) {
             ForEach(shellState.visiblePrimitiveFilters) { primitive in
                 Button {
                     shellState.selectPrimitive(primitive)
@@ -644,69 +655,51 @@ struct AppShellView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(primitive.title)
+                .accessibilityAddTraits(primitive == shellState.resolvedSearchPrimitive ? .isSelected : [])
                 .accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterButton(primitive.rawValue))
-                .id(PrimitiveFilterScrollLayout.pillTarget(for: primitive))
+                .id(primitive)
             }
         }
     }
 
-    // Marquee-themed primitive filter pills for Search's entity mode switcher.
-    // The clear fill and dashed bulb-ring border echo the poster frames on the
-    // home rails. Selected state lights up the ring + glow.
+    // Keep the warm accent in a single underline so selection also has a shape
+    // cue, without competing with the content or shrinking Dynamic Type labels.
     private func primitiveFilterLabel(for primitive: SearchRootModel.Pivot) -> some View {
         let tokens = theme.laughTrackTokens
-        let isSelected = primitive == shellState.selectedPrimitive
+        let isSelected = primitive == shellState.resolvedSearchPrimitive
 
         return Text(primitive.title)
-            .font(.system(size: 12, weight: .heavy, design: .rounded))
-            .tracking(1.4)
-            .textCase(.uppercase)
-            .foregroundStyle(isSelected ? tokens.colors.accentStrong : tokens.colors.textSecondary)
-            .padding(.horizontal, 14)
-            .frame(height: 34)
-            .background {
+            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+            .foregroundStyle(isSelected ? tokens.colors.textPrimary : tokens.colors.textSecondary)
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: true)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 10)
+            .frame(minWidth: 44, minHeight: 44)
+            .overlay(alignment: .bottom) {
                 Capsule()
-                    .fill(Color.black.opacity(0.98))
-                    .shadow(color: .black.opacity(0.28), radius: 8, x: 0, y: 3)
+                    .fill(tokens.colors.accentStrong)
+                    .frame(height: 3)
+                    .padding(.horizontal, 6)
+                    .opacity(isSelected ? 1 : 0)
             }
-            .overlay {
-                Capsule()
-                    .strokeBorder(
-                        isSelected ? tokens.colors.accentStrong : tokens.colors.accentMuted,
-                        style: StrokeStyle(
-                            lineWidth: isSelected ? 1.8 : 1.4,
-                            lineCap: .round,
-                            lineJoin: .round,
-                            dash: [0.5, 5]
-                        )
-                    )
-                    .shadow(
-                        color: tokens.colors.accentStrong.opacity(isSelected ? 0.55 : 0.25),
-                        radius: isSelected ? 4 : 3
-                    )
-                    .shadow(
-                        color: tokens.colors.accentStrong.opacity(isSelected ? 0.3 : 0),
-                        radius: isSelected ? 9 : 0
-                    )
-            }
+            .contentShape(Rectangle())
     }
 
     private var primitiveFilterScroller: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: theme.spacing.xs) {
-                    primitiveFilterRow
-
+                primitiveFilterRow
+            }
+            .background {
+                GeometryReader { geometry in
                     Color.clear
-                        .frame(
-                            width: PrimitiveFilterScrollLayout.trailingInsetWidth(theme: theme),
-                            height: 1
-                        )
-                        .id(PrimitiveFilterScrollTarget.trailingInset)
-                        .accessibilityHidden(true)
+                        .onChange(of: geometry.size) { _ in
+                            // Width changes and Dynamic Type relayout must reveal
+                            // selection again after the new bounds are available.
+                            scrollToSelectedPrimitive(using: proxy, animated: false)
+                        }
                 }
-                .padding(.horizontal, 1)
-                .padding(.vertical, 1)
             }
             .onAppear {
                 scrollToSelectedPrimitive(using: proxy, animated: false)
@@ -715,44 +708,18 @@ struct AppShellView: View {
                 scrollToSelectedPrimitive(using: proxy, animated: true)
             }
         }
-        .accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterScroller)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func scrollToSelectedPrimitive(using proxy: ScrollViewProxy, animated: Bool) {
-        guard let primitive = shellState.selectedPrimitive else { return }
-        let target = PrimitiveFilterScrollLayout.scrollTarget(for: primitive)
+        let target = shellState.resolvedSearchPrimitive
 
-        if animated {
+        if animated && !reduceMotion {
             withAnimation(.easeInOut(duration: 0.2)) {
-                proxy.scrollTo(target, anchor: .trailing)
+                proxy.scrollTo(target, anchor: .center)
             }
         } else {
-            proxy.scrollTo(target, anchor: .trailing)
-        }
-    }
-}
-
-enum PrimitiveFilterScrollTarget: Hashable {
-    case primitive(String)
-    case trailingInset
-}
-
-enum PrimitiveFilterScrollLayout {
-    static func trailingInsetWidth(theme: AppThemeProtocol) -> CGFloat {
-        theme.spacing.xxxl + theme.spacing.sm
-    }
-
-    static func pillTarget(for primitive: SearchRootModel.Pivot) -> PrimitiveFilterScrollTarget {
-        .primitive(primitive.id)
-    }
-
-    static func scrollTarget(for primitive: SearchRootModel.Pivot) -> PrimitiveFilterScrollTarget {
-        switch primitive {
-        case .shows, .comedians, .clubs:
-            return pillTarget(for: primitive)
-        case .podcasts:
-            return .trailingInset
+            proxy.scrollTo(target, anchor: .center)
         }
     }
 }

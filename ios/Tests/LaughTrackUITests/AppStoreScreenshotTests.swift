@@ -18,7 +18,6 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     private var enteredScenarioIDs: [String] = []
 
     private enum Identifier {
-        static let primitiveFilterScroller = "laughtrack.primitive-filter.scroller"
         static let clubDetailScreen = "laughtrack.club-detail.screen"
         static let clubDetailHighlightSection = "laughtrack.club-detail.highlight-section"
         static let clubDetailFrequentPerformersSection = "laughtrack.club-detail.frequent-performers-section"
@@ -593,7 +592,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         let button = app.buttons["laughtrack.primitive-filter.\(primitive)"]
         XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected \(primitive) primitive filter")
         if !button.isHittable {
-            let scroller = element(Identifier.primitiveFilterScroller)
+            let scroller = app.scrollViews.containing(.button, identifier: "laughtrack.primitive-filter.shows").firstMatch
             XCTAssertTrue(scroller.waitForExistence(timeout: 5), "Expected primitive filter scroller")
             for _ in 0..<3 where !button.isHittable {
                 scroller.swipeLeft()
@@ -623,7 +622,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         XCTAssertTrue(searchTab.waitForExistence(timeout: 10), "Expected the Search tab")
         searchTab.tap()
         XCTAssertTrue(
-            element(Identifier.primitiveFilterScroller).waitForExistence(timeout: 10),
+            app.buttons["laughtrack.primitive-filter.shows"].waitForExistence(timeout: 10),
             "Expected Search primitive filters"
         )
         XCTAssertTrue(

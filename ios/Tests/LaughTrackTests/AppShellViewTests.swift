@@ -9,6 +9,52 @@ import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
+@Suite("Search category visual capture", .serialized)
+@MainActor
+struct SearchCategoryVisualCaptureTests {
+    @Test("capture shell category navigation at standard and accessibility sizes")
+    func captureShell() async throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "category-capture")
+            container.resolve(NearbyPreferenceStore.self).setManualZip("10012", distanceMiles: 25)
+            let auth = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "category-capture")
+            let state = AppShellState()
+            let host = HostedView(
+                AppShellView(
+                    apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                    favorites: ComedianFavoriteStore(),
+                    initialTab: .search,
+                    shellState: state
+                )
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.dynamicTypeSize, size)
+                .environment(\.serviceContainer, container)
+                .navigationCoordinator(TypedNavigationCoordinator<AppRoute>())
+                .environmentObject(auth)
+                .environmentObject(LoginModalPresenter())
+                .environmentObject(PodcastFavoriteStore())
+                .environmentObject(ClubFavoriteStore())
+                .environmentObject(PodcastPlaybackController(audioEngine: ShellRecordingPodcastAudioEngine()))
+                .environmentObject(LaughTrackHostedViewTestSupport.makeSoftPushPromptCoordinator(name: "category-capture"))
+                .preferredColorScheme(.dark), freshWindow: true
+            )
+            await host.settle()
+            for pivot in [SearchRootModel.Pivot.shows, .podcasts] {
+                state.selectPrimitive(pivot)
+                await host.settle()
+                let data = try #require(try host.snapshot().pngData())
+                let textSize = size.isAccessibilitySize ? "AX5" : "standard"
+                let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4003-\(pivot.rawValue)-\(textSize).png")
+                try data.write(to: path)
+                print("Search category capture: \(path.path)")
+                #if compiler(>=6.2)
+                Attachment.record(Array(data), named: path.lastPathComponent)
+                #endif
+            }
+        }
+    }
+}
+
 @Suite("App shell")
 @MainActor
 struct AppShellViewTests {
@@ -174,49 +220,27 @@ struct AppShellViewTests {
         let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
 
         #expect(source.contains("LaughTrackAtmosphereBackground()"))
-        #expect(source.contains(".background(Color.clear)"))
         #expect(source.contains("shellAlignedTabBackground(safeAreaTop: safeAreaTop)"))
-        #expect(source.contains("let headerHeight = AccountHeaderLayout.headerHeight(safeAreaTop: safeAreaTop, theme: theme)"))
+        #expect(source.contains("let headerHeight = measuredHeaderHeight ?? AccountHeaderLayout.headerHeight(safeAreaTop: safeAreaTop, theme: theme)"))
         #expect(source.contains("GeometryReader { proxy in"))
         #expect(source.contains(".frame(width: proxy.size.width, height: proxy.size.height + headerHeight)"))
         #expect(source.contains(".offset(y: -headerHeight)"))
         #expect(!source.contains(".background(theme.laughTrackTokens.colors.canvas.opacity(0.97))"))
     }
 
-    @Test("primitive filter maps every category to a stable scroll target")
-    func primitiveFilterMapsEveryCategoryToStableScrollTarget() throws {
+    @Test("category scroll reveals real selection and respects Reduce Motion")
+    func categoryScrollRevealsRealSelection() throws {
         let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
 
-        #expect(PrimitiveFilterScrollLayout.scrollTarget(for: .shows) == .primitive("shows"))
-        #expect(PrimitiveFilterScrollLayout.scrollTarget(for: .comedians) == .primitive("comedians"))
-        #expect(PrimitiveFilterScrollLayout.scrollTarget(for: .clubs) == .primitive("clubs"))
-        #expect(PrimitiveFilterScrollLayout.scrollTarget(for: .podcasts) == .trailingInset)
         #expect(source.contains("ScrollViewReader { proxy in"))
-        #expect(source.contains(".id(PrimitiveFilterScrollLayout.pillTarget(for: primitive))"))
-        #expect(source.contains(".id(PrimitiveFilterScrollTarget.trailingInset)"))
+        #expect(source.contains(".id(primitive)"))
         #expect(source.contains("scrollToSelectedPrimitive(using: proxy, animated: false)"))
         #expect(source.contains(".onChange(of: shellState.selectedPrimitive)"))
+        #expect(source.contains(".onChange(of: geometry.size)"))
         #expect(source.contains("scrollToSelectedPrimitive(using: proxy, animated: true)"))
-        #expect(source.contains("proxy.scrollTo(target, anchor: .trailing)"))
-        #expect(source.contains(".font(.system(size: 12, weight: .heavy, design: .rounded))"))
-        #expect(source.contains(".tracking(1.4)"))
-        #expect(source.contains("Capsule()"))
-        #expect(source.contains("dash: [0.5, 5]"))
-    }
-
-    @Test("podcasts trailing anchor uses a bounded layout spacer")
-    func podcastsTrailingAnchorUsesBoundedLayoutSpacer() throws {
-        let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
-        let theme = LaughTrackTheme()
-
-        #expect(
-            PrimitiveFilterScrollLayout.trailingInsetWidth(theme: theme) ==
-                theme.spacing.xxxl + theme.spacing.sm
-        )
-        #expect(source.contains(
-            "width: PrimitiveFilterScrollLayout.trailingInsetWidth(theme: theme)"
-        ))
-        #expect(source.contains("height: 1"))
+        #expect(source.contains("proxy.scrollTo(target, anchor: .center)"))
+        #expect(source.contains("if animated && !reduceMotion"))
+        #expect(!source.contains(".accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterScroller)"))
     }
 
     @Test("generic page backgrounds inherit the shell atmosphere")
