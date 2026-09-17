@@ -58,76 +58,92 @@ struct ShowDetailView: View {
             case .success(let response):
                 let show = response.data
                 let isOpenMic = ShowDetailPresentation.isOpenMic(show)
-                ScrollView {
-                    AdaptiveDetailCatalogLayout {
-                        MarqueeHero(
-                            title: ShowTitlePresentation.title(for: show),
-                            imageURL: ShowDetailPresentation.heroImageURL(for: show),
-                            thumbnailStyle: ShowDetailPresentation.heroThumbnailStyle(for: show),
-                            thumbnailCaption: ShowDetailPresentation.heroThumbnailCaption(for: show),
-                            thumbnailHeadshots: ShowDetailPresentation.heroHeadshots(for: show),
-                            badges: ShowDetailPresentation.heroBadges(for: show),
-                            fallbackSystemImage: ArtworkFallbackKind.show.systemImage
-                        )
-                    } content: {
-                        VStack(alignment: .leading, spacing: 0) {
-                            if authManager.currentUser?.isAdmin == true {
-                                AdminShowIDBadge(showID: show.id)
-                                    .padding(.horizontal, 8)
-                                    .padding(.top, theme.spacing.sm)
+                // Refresh at the scheduled start, then keep alternative shows current.
+                TimelineView(.periodic(from: show.date, by: 60)) { timeline in
+                    let now = timeline.date
+                    let temporal = ShowPastEventPresentation(showDate: show.date, now: now)
+                    ScrollView {
+                        AdaptiveDetailCatalogLayout {
+                            MarqueeHero(
+                                title: ShowTitlePresentation.title(for: show),
+                                imageURL: ShowDetailPresentation.heroImageURL(for: show),
+                                thumbnailStyle: ShowDetailPresentation.heroThumbnailStyle(for: show),
+                                thumbnailCaption: ShowDetailPresentation.heroThumbnailCaption(for: show),
+                                thumbnailHeadshots: ShowDetailPresentation.heroHeadshots(for: show),
+                                badges: ShowDetailPresentation.heroBadges(for: show),
+                                fallbackSystemImage: ArtworkFallbackKind.show.systemImage
+                            )
+                        } content: {
+                            VStack(alignment: .leading, spacing: 0) {
+                                if authManager.currentUser?.isAdmin == true {
+                                    AdminShowIDBadge(showID: show.id)
+                                        .padding(.horizontal, 8)
+                                        .padding(.top, theme.spacing.sm)
+                                }
+
+                                VStack(alignment: .leading, spacing: 20) {
+                                    if let message = temporal.statusMessage {
+                                        DetailTextCard(eyebrow: "Show history", title: "Keep exploring", text: message)
+                                    }
+
+                                    ShowSummarySection(show: show, isOpenMic: isOpenMic, now: now, openClub: {
+                                        coordinator.open(.club(show.club.id))
+                                    }, openTicketURL: { url in
+                                        Task {
+                                            guard ShowPastEventPresentation(showDate: show.date, now: Date()).isUpcoming else { return }
+                                            let recorder = ShowDetailTicketClickRecorder(apiClient: apiClient)
+                                            _ = await recorder.record(
+                                                showID: show.id,
+                                                clubID: show.club.id,
+                                                destinationURL: url
+                                            )
+                                            guard ShowPastEventPresentation(showDate: show.date, now: Date()).isUpcoming else { return }
+                                            ExternalLinkRouter.route(url, presentedURL: $safariURL, openURL: openURL)
+                                        }
+                                    }, addToCalendar: {
+                                        Task {
+                                            guard ShowPastEventPresentation(showDate: show.date, now: Date()).isUpcoming else { return }
+                                            feedbackMessage = await calendarWriter.add(show)
+                                        }
+                                    })
+
+                                    ShowSavedAction(
+                                        show: show,
+                                        apiClient: apiClient,
+                                        store: savedShowStore,
+                                        now: now,
+                                        onFeedback: { feedbackMessage = $0 }
+                                    )
+
+                                    if
+                                        ShowDetailPresentation.shouldShowEditorNote(for: show),
+                                        let description = show.description,
+                                        !description.isEmpty
+                                    {
+                                        DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
+                                    }
+
+                                    if !isOpenMic, let lineup = show.lineup, !lineup.isEmpty {
+                                        ShowLineupSection(lineup: lineup) { comedian in
+                                            coordinator.open(.comedian(comedian.id))
+                                        }
+                                    }
+
+                                    RelatedShowsSection(
+                                        relatedShows: response.relatedShows.filter { $0.date > now },
+                                        isHistorical: !temporal.isUpcoming
+                                    ) { related in
+                                        coordinator.open(.show(related.id))
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, theme.spacing.lg)
                             }
-
-                            VStack(alignment: .leading, spacing: 20) {
-                                ShowSummarySection(show: show, isOpenMic: isOpenMic, openClub: {
-                                    coordinator.open(.club(show.club.id))
-                                }, openTicketURL: { url in
-                                    Task {
-                                        let recorder = ShowDetailTicketClickRecorder(apiClient: apiClient)
-                                        _ = await recorder.record(
-                                            showID: show.id,
-                                            clubID: show.club.id,
-                                            destinationURL: url
-                                        )
-                                        ExternalLinkRouter.route(url, presentedURL: $safariURL, openURL: openURL)
-                                    }
-                                }, addToCalendar: {
-                                    Task {
-                                        feedbackMessage = await calendarWriter.add(show)
-                                    }
-                                })
-
-                                ShowSavedAction(
-                                    show: show,
-                                    apiClient: apiClient,
-                                    store: savedShowStore,
-                                    onFeedback: { feedbackMessage = $0 }
-                                )
-
-                                if
-                                    ShowDetailPresentation.shouldShowEditorNote(for: show),
-                                    let description = show.description,
-                                    !description.isEmpty
-                                {
-                                    DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
-                                }
-
-                                if !isOpenMic, let lineup = show.lineup, !lineup.isEmpty {
-                                    ShowLineupSection(lineup: lineup) { comedian in
-                                        coordinator.open(.comedian(comedian.id))
-                                    }
-                                }
-
-                                RelatedShowsSection(relatedShows: response.relatedShows) { related in
-                                    coordinator.open(.show(related.id))
-                                }
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, theme.spacing.lg)
                         }
                     }
+                    .modifier(DetailAtmosphereScrollContent())
+                    .safariSheet(url: $safariURL)
                 }
-                .modifier(DetailAtmosphereScrollContent())
-                .safariSheet(url: $safariURL)
             }
         }
         .ignoresSafeArea(.container, edges: .top)
@@ -182,13 +198,35 @@ struct ShowDetailView: View {
     }
 }
 
+struct ShowPastEventPresentation {
+    let showDate: Date
+    let now: Date
+
+    var isUpcoming: Bool { showDate > now }
+
+    var statusMessage: String? {
+        isUpcoming ? nil : "This show’s start time has passed. Explore the venue or lineup for upcoming shows."
+    }
+
+    var venueActionLabel: String { isUpcoming ? "Open venue" : "Find upcoming shows" }
+
+    func ticketURL(for show: Components.Schemas.ShowDetail) -> URL? {
+        isUpcoming ? ShowDetailPresentation.primaryTicketURL(for: show) : nil
+    }
+
+    @MainActor
+    func summaryFacts(for show: Components.Schemas.ShowDetail) -> [ShowDetailFact] {
+        ShowDetailPresentation.summaryFacts(for: show).filter { isUpcoming || $0.label != "Tickets" }
+    }
+}
+
 enum ShowSavedActionPresentation {
     static func shouldShow(
         isSaved: Bool,
         showDate: Date,
         now: Date = Date()
     ) -> Bool {
-        isSaved || showDate >= now
+        isSaved || ShowPastEventPresentation(showDate: showDate, now: now).isUpcoming
     }
 }
 
@@ -196,6 +234,7 @@ private struct ShowSavedAction: View {
     let show: Components.Schemas.ShowDetail
     let apiClient: Client
     @ObservedObject var store: SavedShowStore
+    let now: Date
     let onFeedback: (String) -> Void
 
     @EnvironmentObject private var authManager: AuthManager
@@ -214,7 +253,8 @@ private struct ShowSavedAction: View {
     var body: some View {
         if ShowSavedActionPresentation.shouldShow(
             isSaved: isSaved,
-            showDate: show.date
+            showDate: show.date,
+            now: now
         ) {
             Button {
                 Task {
@@ -255,6 +295,10 @@ private struct ShowSavedAction: View {
     }
 
     private func updateSavedState() async {
+        guard ShowSavedActionPresentation.shouldShow(isSaved: isSaved, showDate: show.date) else {
+            onFeedback("This show’s start time has passed.")
+            return
+        }
         let result = await store.setSaved(
             showId: show.id,
             isSaved: !isSaved,
@@ -484,9 +528,10 @@ enum ShowDetailPresentation {
 
 }
 
-private struct ShowSummarySection: View {
+struct ShowSummarySection: View {
     let show: Components.Schemas.ShowDetail
     let isOpenMic: Bool
+    let now: Date
     let openClub: () -> Void
     let openTicketURL: (URL) -> Void
     let addToCalendar: () -> Void
@@ -494,17 +539,17 @@ private struct ShowSummarySection: View {
     @State private var perforationY: CGFloat = 0
 
     var body: some View {
-        let facts = ShowDetailPresentation.summaryFacts(for: show)
-        let ticketURL = ShowDetailPresentation.primaryTicketURL(for: show)
-        // The perforation replaces the divider BEFORE the last fact row
-        // (Tickets), turning that row into the ticket's stub.
+        let temporal = ShowPastEventPresentation(showDate: show.date, now: now)
+        let facts = temporal.summaryFacts(for: show)
+        let ticketURL = temporal.ticketURL(for: show)
+        // The perforation separates the final fact into the ticket's stub.
         let perforationIndex = facts.count - 2
         let shape = TicketShape(perforationY: perforationY)
 
         VStack(spacing: 0) {
             ForEach(Array(facts.enumerated()), id: \.element.label) { index, fact in
                 Group {
-                    if fact.label == "When" {
+                    if fact.label == "When", temporal.isUpcoming {
                         Button(action: addToCalendar) {
                             ShowSummaryFactTile(
                                 fact: fact,
@@ -513,6 +558,7 @@ private struct ShowSummarySection: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint("Adds this show to your phone calendar")
+                        .accessibilityIdentifier("show-detail-add-to-calendar")
                     } else if fact.label == "Tickets" {
                         let infoMessage = ShowPricePresentation.detailTicketExplanation(fact.value)
                         let ctaLabel = isOpenMic ? "RSVP" : "Buy tickets"
@@ -535,6 +581,7 @@ private struct ShowSummarySection: View {
                             }
                             .buttonStyle(.plain)
                             .accessibilityHint(ctaHint)
+                            .accessibilityIdentifier("show-detail-ticket-action")
                         } else {
                             ShowSummaryFactTile(fact: fact, infoMessage: infoMessage)
                         }
@@ -542,11 +589,15 @@ private struct ShowSummarySection: View {
                         Button(action: openClub) {
                             ShowSummaryFactTile(
                                 fact: fact,
-                                action: .init(systemImage: "building.2.fill", label: "Open venue")
+                                action: .init(
+                                    systemImage: "building.2.fill",
+                                    label: temporal.venueActionLabel
+                                )
                             )
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint("Opens the venue detail page")
+                        .accessibilityIdentifier("show-detail-open-venue")
                     } else {
                         ShowSummaryFactTile(fact: fact)
                     }
@@ -829,6 +880,10 @@ private final class ShowCalendarWriter: ObservableObject {
                 return "Calendar access is needed to add this show."
             }
 
+            // Permission dialogs can remain open across the show's start time.
+            if let message = ShowPastEventPresentation(showDate: show.date, now: Date()).statusMessage {
+                return message
+            }
             let presentation = ShowCalendarEventPresentation.event(for: show)
             guard let calendar = eventStore.defaultCalendarForNewEvents else {
                 return "No writable calendar is available on this device."
@@ -1026,19 +1081,20 @@ private struct ComedianLineupTile: View {
 
 private struct RelatedShowsSection: View {
     let relatedShows: [Components.Schemas.Show]
+    let isHistorical: Bool
     let openDetail: (Components.Schemas.Show) -> Void
 
     var body: some View {
         LaughTrackCard(tone: .muted, density: .tight) {
             VStack(alignment: .leading, spacing: 12) {
                 LaughTrackSectionHeader(
-                    eyebrow: "Can’t make it?",
-                    title: "Shows you might like instead",
+                    eyebrow: isHistorical ? "Keep exploring" : "Can’t make it?",
+                    title: isHistorical ? "Upcoming shows" : "Shows you might like instead",
                     subtitle: nil
                 )
 
                 if relatedShows.isEmpty {
-                    EmptyCard(message: "No related shows are available yet.")
+                    EmptyCard(message: "No upcoming related shows are available yet.")
                 } else {
                     ForEach(relatedShows, id: \.id) { related in
                         Button {

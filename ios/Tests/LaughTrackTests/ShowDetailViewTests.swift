@@ -723,3 +723,113 @@ struct ShowAvailableTierPriceTests {
         #expect(ShowDetailPresentation.primaryTicketURL(for: show) == nil)
     }
 }
+
+
+@Suite("Past show presentation", .serialized)
+@MainActor
+struct ShowPastEventPresentationTests {
+    // An absolute instant near midnight makes these cases independent of the
+    // device calendar, time zone, and the day on which this suite runs.
+    private let now = Date(timeIntervalSince1970: 1_789_689_600)
+
+    @Test("future shows retain upcoming actions even across a date boundary", arguments: [0.001, 1.0, 86_400.0])
+    func futureState(offset: TimeInterval) {
+        let presentation = ShowPastEventPresentation(showDate: now.addingTimeInterval(offset), now: now)
+        #expect(presentation.isUpcoming)
+        #expect(presentation.statusMessage == nil)
+        #expect(ShowSavedActionPresentation.shouldShow(isSaved: false, showDate: now.addingTimeInterval(offset), now: now))
+    }
+
+    @Test("the exact start instant and earlier dates are historical", arguments: [0.0, -0.001, -1.0, -86_400.0])
+    func startedState(offset: TimeInterval) {
+        let presentation = ShowPastEventPresentation(showDate: now.addingTimeInterval(offset), now: now)
+        #expect(!presentation.isUpcoming)
+        #expect(presentation.statusMessage != nil)
+        #expect(!ShowSavedActionPresentation.shouldShow(isSaved: false, showDate: now.addingTimeInterval(offset), now: now))
+    }
+
+    @Test("a just-started show never claims its unknown end time has passed")
+    func justStartedCopyDoesNotInventEndTime() throws {
+        let presentation = ShowPastEventPresentation(showDate: now.addingTimeInterval(-1), now: now)
+        let message = try #require(presentation.statusMessage).lowercased()
+        #expect(!message.contains("ended"))
+        #expect(!message.contains("finished"))
+        #expect(message.contains("start"))
+    }
+
+    @Test("existing saved shows remain removable at and after their start", arguments: [0.0, -1.0, -86_400.0])
+    func savedPastShowRemainsRemovable(offset: TimeInterval) {
+        #expect(ShowSavedActionPresentation.shouldShow(isSaved: true, showDate: now.addingTimeInterval(offset), now: now))
+    }
+
+    @Test("historical regular shows and open mics remove ticket facts and destinations", arguments: [false, true], [0.0, -1.0, -86_400.0])
+    func historicalSummaryDecisions(isOpenMic: Bool, offset: TimeInterval) {
+        var show = fixture()
+        show.name = isOpenMic ? "Open Mic" : "Evening Comedy"
+        show.tags = nil
+        show.date = now.addingTimeInterval(offset)
+        let presentation = ShowPastEventPresentation(showDate: show.date, now: now)
+        #expect(ShowDetailPresentation.isOpenMic(show) == isOpenMic)
+        #expect(presentation.ticketURL(for: show) == nil)
+        #expect(!presentation.summaryFacts(for: show).contains { $0.label == "Tickets" })
+        #expect(presentation.summaryFacts(for: show).contains { $0.label == "When" })
+        #expect(presentation.summaryFacts(for: show).contains { $0.label == "Venue" })
+        #expect(presentation.venueActionLabel == "Find upcoming shows")
+    }
+
+    @Test("future summaries preserve ticket facts and the usable destination", arguments: [false, true])
+    func futureSummaryDecisions(isOpenMic: Bool) {
+        var show = fixture()
+        show.name = isOpenMic ? "Open Mic" : "Evening Comedy"
+        show.tags = nil
+        show.date = now.addingTimeInterval(1)
+        let presentation = ShowPastEventPresentation(showDate: show.date, now: now)
+        #expect(presentation.ticketURL(for: show)?.absoluteString == "https://tickets.example.com/show")
+        #expect(presentation.summaryFacts(for: show).first { $0.label == "Tickets" }?.value == (isOpenMic ? "RSVP" : "$25.00"))
+        #expect(presentation.venueActionLabel == "Open venue")
+    }
+
+    #if canImport(UIKit)
+    @Test("capture historical and future summaries for manual visual review", arguments: ["past", "future", "past-open-mic"])
+    func captureSummaryForReview(scenario: String) async throws {
+        var show = fixture()
+        let isOpenMic = scenario == "past-open-mic"
+        show.name = isOpenMic ? "Open Mic" : "Evening Comedy"
+        show.tags = nil
+        show.date = now.addingTimeInterval(scenario == "future" ? 60 : -1)
+        let presentation = ShowPastEventPresentation(showDate: show.date, now: now)
+        // This simulator does not expose SwiftUI accessibility nodes for the
+        // ticket card. These captures support manual review; behavior is tested
+        // above through the same presentation decisions used by the view.
+        let host = HostedView(
+            VStack(alignment: .leading, spacing: 16) {
+                if let message = presentation.statusMessage {
+                    Text(message)
+                }
+                ShowSummarySection(
+                    show: show,
+                    isOpenMic: isOpenMic,
+                    now: now,
+                    openClub: {},
+                    openTicketURL: { _ in },
+                    addToCalendar: {}
+                )
+            }
+            .padding(16)
+        )
+        await host.settle()
+        let data = try #require(try host.snapshot().pngData())
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4018-\(scenario).png")
+        try data.write(to: path)
+        print("Past show review capture: \(path.path)")
+    }
+    #endif
+
+    private func fixture() -> Components.Schemas.ShowDetail {
+        var show = DemoContent.primaryShowDetail.data
+        show.soldOut = false
+        show.tickets = [.init(price: 25, purchaseUrl: "https://tickets.example.com/show", soldOut: false)]
+        show.cta = .init(url: "https://tickets.example.com/show", label: "Buy tickets", isSoldOut: false)
+        return show
+    }
+}
