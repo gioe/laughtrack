@@ -21,11 +21,25 @@ function pickCtaUrl(
     tickets: TicketDTO[] | undefined,
     showPageUrl: string,
 ): string | null {
-    const liveTicket = tickets?.find(
-        (ticket) => !ticket.soldOut && ticket.purchaseUrl,
-    );
-    if (liveTicket?.purchaseUrl) return liveTicket.purchaseUrl;
-    return showPageUrl || null;
+    for (const ticket of tickets ?? []) {
+        if (ticket.soldOut) continue;
+        const purchaseUrl = validTicketUrl(ticket.purchaseUrl);
+        if (purchaseUrl) return purchaseUrl;
+    }
+    return validTicketUrl(showPageUrl);
+}
+
+function validTicketUrl(value: string | null | undefined): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) return null;
+    try {
+        const url = new URL(trimmed);
+        return url.protocol === "http:" || url.protocol === "https:"
+            ? url.href
+            : null;
+    } catch {
+        return null;
+    }
 }
 
 function buildCtaLabel(showName: string | null, clubName?: string): string {
@@ -77,12 +91,17 @@ export const GET = withRequestMetrics(async function GET(
                     cta: {
                         url: ctaUrl,
                         label: buildCtaLabel(show.name, show.clubName),
-                        isSoldOut: explicitlySoldOut || !ctaUrl,
+                        isSoldOut: explicitlySoldOut,
                     },
                 },
                 relatedShows,
             },
-            { headers: { ...rateLimitHeaders(rl), ...publicReadCacheHeaders() } },
+            {
+                headers: {
+                    ...rateLimitHeaders(rl),
+                    ...publicReadCacheHeaders(),
+                },
+            },
         );
     } catch (error) {
         if (error instanceof NotFoundError) {
