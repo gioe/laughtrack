@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 import HTTPTypes
 import OpenAPIRuntime
 import Testing
@@ -1305,3 +1306,182 @@ private final class SearchRefreshResponseGate {
         continuation?.resume(returning: .success(.init(items: items, total: total ?? items.count)))
     }
 }
+
+@Suite("Entity detail cancellation", .timeLimit(.minutes(1)))
+@MainActor
+struct EntityDetailCancellationTests {
+    @Test("cancelled initial loads become idle and can load again", arguments: [false, true])
+    func initialCancellationRecovers(networkFailure: Bool) async throws {
+        let model = EntityDetailModel<Int>()
+        let gate = DetailCancellationResponseGate()
+        defer { gate.resolveAll() }
+        let initial = Task { await model.loadIfNeeded { await gate.fetch() } }
+        try await gate.waitForRequests(1)
+        initial.cancel()
+        gate.resolve(0, networkFailure
+            ? .failure(classifyDetailFetchError(URLError(.cancelled), context: "show"))
+            : .success(99))
+        await initial.value
+        if case .idle = model.phase {} else { Issue.record("Cancellation must leave a loadable idle state") }
+        await model.loadIfNeeded { .success(42) }
+        #expect(value(model) == 42)
+    }
+
+    @Test("returning before cancelled transport finishes starts a fresh load")
+    func returnBeforeOldTransportFinishes() async throws {
+        let model = EntityDetailModel<Int>()
+        let gate = DetailCancellationResponseGate()
+        defer { gate.resolveAll() }
+        let initial = Task { await model.loadIfNeeded { await gate.fetch() } }
+        try await gate.waitForRequests(1)
+        initial.cancel()
+        await model.loadIfNeeded { .success(42) }
+        #expect(value(model) == 42)
+        gate.resolve(0, .success(99))
+        await initial.value
+        #expect(value(model) == 42)
+    }
+
+    @Test("obsolete cancellation cannot clear a newer loading phase")
+    func obsoleteCancellationPreservesNewLoading() async throws {
+        let model = EntityDetailModel<Int>()
+        let gate = DetailCancellationResponseGate()
+        defer { gate.resolveAll() }
+        let initial = Task { await model.reload { await gate.fetch() } }
+        try await gate.waitForRequests(1)
+        initial.cancel()
+        let newer = Task { await model.reload { await gate.fetch() } }
+        try await gate.waitForRequests(2)
+        gate.resolve(0, .failure(.network("Cancelled transport")))
+        await initial.value
+        if case .loading = model.phase {} else { Issue.record("Old cancellation must not clear the active request") }
+        gate.resolve(1, .success(42))
+        await newer.value
+        #expect(value(model) == 42)
+    }
+
+    @Test("superseded noncooperative requests cannot replace newer content", arguments: [false, true])
+    func supersededResponseCannotReplaceContent(failure: Bool) async throws {
+        let model = EntityDetailModel<Int>()
+        let gate = DetailCancellationResponseGate()
+        defer { gate.resolveAll() }
+        let initial = Task { await model.reload { await gate.fetch() } }
+        try await gate.waitForRequests(1)
+        await model.reload { .success(42) }
+        gate.resolve(0, failure ? .failure(.network("Obsolete failure")) : .success(99))
+        await initial.value
+        #expect(value(model) == 42)
+    }
+
+    @Test("genuine failures remain visible and explicit retry succeeds")
+    func failureCanBeRetried() async {
+        let model = EntityDetailModel<Int>()
+        await model.loadIfNeeded { .failure(.network("Offline")) }
+        if case .failure(let failure) = model.phase {
+            #expect(failure == .network("Offline"))
+            #expect(failure.recoveryAction == .retry)
+        } else { Issue.record("A real failure must remain visible") }
+        await model.reload { .success(42) }
+        #expect(value(model) == 42)
+    }
+
+    @Test("an already-cancelled caller cannot replace loaded content or start transport")
+    func cancelledCallerDoesNotStart() async {
+        let model = EntityDetailModel<Int>()
+        await model.loadIfNeeded { .success(42) }
+        let cancelled = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            await model.reload {
+                Issue.record("Already-cancelled caller must not begin a request")
+                return .success(99)
+            }
+        }
+        await cancelled.value
+        #expect(value(model) == 42)
+    }
+
+    #if canImport(UIKit)
+    @Test("a retained detail recovers after SwiftUI removes and reinserts its loading view")
+    func retainedViewReappearsBeforeCancelledTransportFinishes() async throws {
+        let model = EntityDetailModel<Int>()
+        let gate = DetailCancellationResponseGate()
+        let visibility = DetailCancellationVisibility()
+        let host = HostedView(DetailCancellationLifecycleView(model: model, gate: gate, visibility: visibility))
+        defer { gate.resolveAll(); visibility.isVisible = false }
+        await host.settle()
+        try await gate.waitForRequests(1)
+        visibility.isVisible = false
+        await host.settle()
+        visibility.isVisible = true
+        await host.settle()
+        try await gate.waitForRequests(2)
+        gate.resolve(1, .success(42))
+        await host.settle()
+        #expect(value(model) == 42)
+        gate.resolve(0, .success(99))
+        await host.settle()
+        #expect(value(model) == 42)
+    }
+    #endif
+
+    private func value(_ model: EntityDetailModel<Int>) -> Int? {
+        guard case .success(let value) = model.phase else { return nil }
+        return value
+    }
+}
+
+/// The transport deliberately ignores cancellation so tests control completion
+/// order, including returning to a retained view before an old response arrives.
+@MainActor
+private final class DetailCancellationResponseGate {
+    typealias Response = Result<Int, LoadFailure>
+    private var continuations: [Int: CheckedContinuation<Response, Never>] = [:]
+    private(set) var requestCount = 0
+
+    func fetch() async -> Response {
+        await withCheckedContinuation { continuation in
+            continuations[requestCount] = continuation
+            requestCount += 1
+        }
+    }
+
+    func waitForRequests(_ count: Int) async throws {
+        let deadline = Date().addingTimeInterval(3)
+        while requestCount < count, Date() < deadline { await Task.yield() }
+        try #require(requestCount >= count, "Expected controlled detail request to start")
+    }
+
+    func resolve(_ index: Int, _ result: Response) {
+        let continuation = continuations.removeValue(forKey: index)
+        #expect(continuation != nil)
+        continuation?.resume(returning: result)
+    }
+
+    func resolveAll() {
+        let pending = Array(continuations.values)
+        continuations.removeAll()
+        for continuation in pending { continuation.resume(returning: .failure(.network("Test cleanup"))) }
+    }
+}
+
+#if canImport(UIKit)
+@MainActor
+private final class DetailCancellationVisibility: ObservableObject {
+    @Published var isVisible = true
+}
+
+private struct DetailCancellationLifecycleView: View {
+    @ObservedObject var model: EntityDetailModel<Int>
+    let gate: DetailCancellationResponseGate
+    @ObservedObject var visibility: DetailCancellationVisibility
+
+    var body: some View {
+        Group {
+            if visibility.isVisible {
+                Text("Detail")
+                    .task { await model.loadIfNeeded { await gate.fetch() } }
+            }
+        }
+    }
+}
+#endif

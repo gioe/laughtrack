@@ -269,24 +269,58 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
 class EntityDetailModel<Value>: ObservableObject {
     @Published var phase: LoadPhase<Value> = .idle
 
+    private var requestID = UUID()
+    private var activeRequest: Task<Void, Never>?
+
     func loadIfNeeded(
         using request: @escaping () async -> Result<Value, LoadFailure>
     ) async {
-        guard case .idle = phase else { return }
+        switch phase {
+        case .idle:
+            break
+        case .loading where activeRequest?.isCancelled == true:
+            // A retained view may return before a cancelled transport unwinds.
+            break
+        default:
+            return
+        }
         await reload(using: request)
     }
 
     func reload(
         using request: @escaping () async -> Result<Value, LoadFailure>
     ) async {
-        phase = .loading
-        let result = await request()
         guard !Task.isCancelled else { return }
-        switch result {
-        case .success(let value):
-            phase = .success(value)
-        case .failure(let failure):
-            phase = .failure(failure)
+        let id = UUID()
+        requestID = id
+        activeRequest?.cancel()
+        phase = .loading
+
+        let task = Task { @MainActor in
+            let result = await request()
+            guard !Task.isCancelled, requestID == id else { return }
+            switch result {
+            case .success(let value):
+                phase = .success(value)
+            case .failure(let failure):
+                phase = .failure(failure)
+            }
+        }
+        activeRequest = task
+
+        // Forward SwiftUI's task cancellation synchronously so a returning view
+        // can detect the cancelled request even if its transport ignores it.
+        await withTaskCancellationHandler {
+            await task.value
+        } onCancel: {
+            task.cancel()
+        }
+
+        // An obsolete request must not clear a newer request's loading state.
+        guard requestID == id else { return }
+        activeRequest = nil
+        if task.isCancelled, case .loading = phase {
+            phase = .idle
         }
     }
 }
