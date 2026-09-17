@@ -11,8 +11,12 @@ enum ShowPricePresentation {
     }
 
     static func detailTicketSummary(for show: Components.Schemas.ShowDetail) -> String {
-        if show.cta.isSoldOut || show.soldOut == true {
+        if detailIsSoldOut(for: show) {
             return "Sold out"
+        }
+
+        guard detailTicketURL(for: show) != nil else {
+            return "Ticket link unavailable"
         }
 
         let prices = (show.tickets ?? []).compactMap(\.price)
@@ -27,8 +31,48 @@ enum ShowPricePresentation {
         return currencyFormatter.string(from: NSNumber(value: lowest)) ?? "$\(lowest)"
     }
 
-    static func detailTicketPriceUnavailable(_ summary: String) -> Bool {
-        summary == "Price unavailable"
+    static func detailIsSoldOut(for show: Components.Schemas.ShowDetail) -> Bool {
+        let tickets = show.tickets ?? []
+        // Older API responses used isSoldOut for a missing destination too.
+        // Without a CTA URL, inventory fields provide the trustworthy signal.
+        return show.soldOut == true
+            || (!tickets.isEmpty && tickets.allSatisfy { $0.soldOut == true })
+            || (show.cta.isSoldOut && ticketURL(show.cta.url) != nil)
+    }
+
+    static func detailTicketURL(for show: Components.Schemas.ShowDetail) -> URL? {
+        guard !detailIsSoldOut(for: show) else { return nil }
+        let availableTicketURL = (show.tickets ?? [])
+            .filter { $0.soldOut != true }
+            .compactMap { ticketURL($0.purchaseUrl) }
+            .first
+        return availableTicketURL ?? ticketURL(show.cta.url) ?? ticketURL(show.showPageUrl)
+    }
+
+    static func detailTicketExplanation(_ summary: String) -> String? {
+        switch summary {
+        case "Ticket link unavailable":
+            return "A ticket or event page link is not available. This does not mean the show is sold out."
+        case "Price unavailable":
+            return priceUnavailableExplanation
+        default:
+            return nil
+        }
+    }
+
+    private static func ticketURL(_ rawValue: String?) -> URL? {
+        guard let rawValue else { return nil }
+        let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty,
+              value.rangeOfCharacter(from: .whitespacesAndNewlines.union(.controlCharacters)) == nil,
+              let url = URL.normalizedExternalURL(value),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https",
+              let host = url.host, !host.isEmpty else { return nil }
+        if !value.hasPrefix("/"), URL(string: value)?.scheme == nil, !host.contains(".") {
+            return nil
+        }
+        return url
     }
 
     static let priceUnavailableExplanation = "Price of these tickets was not made available to us by the venue."

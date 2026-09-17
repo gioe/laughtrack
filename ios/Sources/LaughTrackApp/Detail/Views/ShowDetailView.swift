@@ -332,7 +332,8 @@ enum ShowDetailPresentation {
             optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles)),
             ShowDetailFact(
                 label: "Tickets",
-                value: isOpenMic ? "RSVP" : ShowPricePresentation.detailTicketSummary(for: show)
+                value: isOpenMic && primaryTicketURL(for: show) != nil
+                    ? "RSVP" : ShowPricePresentation.detailTicketSummary(for: show)
             )
         ]
         .compactMap { $0 }
@@ -347,17 +348,7 @@ enum ShowDetailPresentation {
     }
 
     static func primaryTicketURL(for show: Components.Schemas.ShowDetail) -> URL? {
-        guard !show.cta.isSoldOut, show.soldOut != true else {
-            return nil
-        }
-
-        let ticketURL = show.tickets?
-            .first { $0.soldOut != true && URL.normalizedExternalURL($0.purchaseUrl) != nil }
-            .flatMap { URL.normalizedExternalURL($0.purchaseUrl) }
-
-        return ticketURL
-            ?? URL.normalizedExternalURL(show.cta.url)
-            ?? URL.normalizedExternalURL(show.showPageUrl)
+        ShowPricePresentation.detailTicketURL(for: show)
     }
 
     static func shouldShowEditorNote(for show: Components.Schemas.ShowDetail) -> Bool {
@@ -523,11 +514,7 @@ private struct ShowSummarySection: View {
                         .buttonStyle(.plain)
                         .accessibilityHint("Adds this show to your phone calendar")
                     } else if fact.label == "Tickets" {
-                        let infoMessage = isOpenMic
-                            ? nil
-                            : (ShowPricePresentation.detailTicketPriceUnavailable(fact.value)
-                                ? ShowPricePresentation.priceUnavailableExplanation
-                                : nil)
+                        let infoMessage = ShowPricePresentation.detailTicketExplanation(fact.value)
                         let ctaLabel = isOpenMic ? "RSVP" : "Buy tickets"
                         let ctaHint = isOpenMic
                             ? "Opens the RSVP page"

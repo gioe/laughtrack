@@ -77,7 +77,7 @@ struct ShowDetailViewTests {
 
         #expect(loaded.data.lineup == nil)
         #expect(loaded.relatedShows.isEmpty)
-        #expect(ShowDetailPresentation.summaryFacts(for: loaded.data).first { $0.label == "Tickets" }?.value == "Price unavailable")
+        #expect(ShowDetailPresentation.summaryFacts(for: loaded.data).first { $0.label == "Tickets" }?.value == "Ticket link unavailable")
         #expect(ShowDetailPresentation.primaryTicketURL(for: loaded.data) == nil)
     }
 
@@ -539,5 +539,104 @@ private struct MockShowDetailTransport: ClientTransport {
                 HTTPBody(#"{"error":"mock"}"#)
             )
         }
+    }
+}
+
+@Suite("Show ticket availability")
+@MainActor
+struct ShowTicketAvailabilityTests {
+    private func show() -> Components.Schemas.ShowDetail {
+        var show = DemoContent.primaryShowDetail.data
+        show.name = "Evening Comedy"
+        show.tags = nil
+        show.soldOut = false
+        show.tickets = [.init(price: 30, purchaseUrl: "https://tickets.example.com/show", soldOut: false, _type: "General admission")]
+        show.cta = .init(url: nil, label: "Buy tickets", isSoldOut: false)
+        show.showPageUrl = ""
+        return show
+    }
+
+    @Test("available tickets retain their price and purchase action")
+    func availableTickets() {
+        let show = show()
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "$30.00")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == "https://tickets.example.com/show")
+    }
+
+    @Test("explicit show or complete inventory sellout disables purchases", arguments: [true, false])
+    func explicitSellout(showLevel: Bool) {
+        var show = show()
+        show.soldOut = showLevel
+        show.tickets?[0].soldOut = !showLevel
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "Sold out")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show) == nil)
+    }
+
+    @Test("sold out CTA with a destination remains an explicit inventory signal")
+    func soldOutCTA() {
+        var show = show()
+        show.cta = .init(url: "https://tickets.example.com/show", label: "Buy tickets", isSoldOut: true)
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "Sold out")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show) == nil)
+    }
+
+    @Test("missing links including legacy CTA flags do not claim sold out", arguments: [true, false])
+    func missingLinks(legacyFlag: Bool) {
+        var show = show()
+        show.tickets = nil
+        show.soldOut = nil
+        show.cta.isSoldOut = legacyFlag
+        let summary = ShowPricePresentation.detailTicketSummary(for: show)
+        #expect(summary == "Ticket link unavailable")
+        #expect(ShowPricePresentation.detailTicketExplanation(summary) != nil)
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show) == nil)
+    }
+
+    @Test("unknown price keeps an available purchase action")
+    func unknownPrice() {
+        var show = show()
+        show.tickets?[0].price = nil
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "Price unavailable")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show) != nil)
+        #expect(ShowPricePresentation.detailTicketExplanation("Price unavailable") == ShowPricePresentation.priceUnavailableExplanation)
+    }
+
+    @Test("invalid destinations are unavailable without a valid fallback", arguments: ["", "garbage", "not a url", "javascript:alert(1)", "mailto:tickets@example.com", "https://", "https://example.com/bad path"])
+    func malformedLinks(rawURL: String) {
+        var show = show()
+        show.tickets?[0].purchaseUrl = rawURL
+        show.cta.url = rawURL
+        show.showPageUrl = rawURL
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "Ticket link unavailable")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show) == nil)
+    }
+
+    @Test("invalid ticket URLs fall back to the CTA then the show page")
+    func validFallbacks() {
+        var show = show()
+        show.tickets?[0].purchaseUrl = "javascript:alert(1)"
+        show.cta.url = "https://tickets.example.com/cta"
+        show.showPageUrl = "https://venue.example.com/event"
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == show.cta.url)
+        show.cta.url = nil
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == show.showPageUrl)
+    }
+
+    @Test("supported relative and schemeless destinations remain usable", arguments: ["tickets.example.com/show", "/show/301"])
+    func normalizedDestinations(rawURL: String) {
+        var show = show()
+        show.tickets?[0].purchaseUrl = rawURL
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show) == URL.normalizedExternalURL(rawURL))
+    }
+
+    @Test("open mic RSVP does not conceal unavailable or sold out states")
+    func openMicStates() {
+        var show = show()
+        show.name = "Open Mic"
+        #expect(ShowDetailPresentation.summaryFacts(for: show).last?.value == "RSVP")
+        show.tickets = nil
+        #expect(ShowDetailPresentation.summaryFacts(for: show).last?.value == "Ticket link unavailable")
+        show.soldOut = true
+        #expect(ShowDetailPresentation.summaryFacts(for: show).last?.value == "Sold out")
     }
 }
