@@ -1675,6 +1675,7 @@ struct DetailRefreshTests {
         await model.loadIfNeeded { .success(1) }
         let probe = DetailRefreshMountProbe()
         let host = HostedView(DetailRefreshMountView(model: model, probe: probe))
+        _ = try host.snapshot() // Attach this test host before measuring its scroll view.
         await host.settle()
         #expect(probe.mounts == 1)
         probe.requestedFilter = "Weekend"
@@ -1682,12 +1683,10 @@ struct DetailRefreshTests {
         probe.probe += 1
         await host.settle()
         #expect(probe.observedFilter == "Weekend")
-        let keyWindow = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows).first(where: { $0.isKeyWindow })
-        let window = try #require(keyWindow)
-        let scroll = try #require(firstScrollView(in: window))
-        scroll.setContentOffset(CGPoint(x: 0, y: 240), animated: false)
+        host.scrollDown(pages: 0.3)
         await host.settle()
-        let offset = scroll.contentOffset.y
+        let metrics = try #require(host.scrollMetrics())
+        let offset = metrics.offset
         #expect(offset > 0)
         let gate = DetailCancellationResponseGate()
         defer { gate.resolveAll() }
@@ -1695,14 +1694,13 @@ struct DetailRefreshTests {
         try await gate.waitForRequests(1)
         await host.settle()
         #expect(probe.mounts == 1)
-        #expect(firstScrollView(in: window) === scroll)
-        #expect(abs(scroll.contentOffset.y - offset) < 1)
+        #expect(abs((host.scrollMetrics()?.offset ?? -1) - offset) < 1)
         try saveRefreshSnapshot(host, state: "pending")
         gate.resolve(0, .failure(.network("Offline")))
         await refresh.value
         await host.settle()
         #expect(probe.mounts == 1)
-        #expect(abs(scroll.contentOffset.y - offset) < 1)
+        #expect(abs((host.scrollMetrics()?.offset ?? -1) - offset) < 1)
         try saveRefreshSnapshot(host, state: "failure")
         // Clear the external request: only the mounted child's State retains it.
         probe.requestedFilter = nil
@@ -1712,14 +1710,8 @@ struct DetailRefreshTests {
         await host.settle()
         #expect(probe.mounts == 1)
         #expect(probe.observedFilter == "Weekend")
-        #expect(firstScrollView(in: window) === scroll)
-        #expect(abs(scroll.contentOffset.y - offset) < 1)
+        #expect(abs((host.scrollMetrics()?.offset ?? -1) - offset) < 1)
         try saveRefreshSnapshot(host, state: "success")
-    }
-
-    private func firstScrollView(in view: UIView) -> UIScrollView? {
-        if let scroll = view as? UIScrollView, scroll.contentSize.height > scroll.bounds.height { return scroll }
-        return view.subviews.lazy.compactMap { firstScrollView(in: $0) }.first
     }
 
     private func saveRefreshSnapshot(_ host: HostedView, state: String) throws {
@@ -1754,7 +1746,7 @@ private struct DetailRefreshMountView: View {
         case .success(let value):
             VStack {
                 DetailRefreshStatus(isRefreshing: model.isRefreshing, failure: model.refreshFailure) {
-                    Task { await model.refresh { .success(value) } }
+                    await model.refresh { .success(value) }
                 }
                 DetailRefreshStatefulChild(value: value, probe: probe)
             }
