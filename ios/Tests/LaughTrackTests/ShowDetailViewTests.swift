@@ -375,8 +375,8 @@ struct ShowDetailViewTests {
         #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == "https://laughtrack.app/ticket-option")
     }
 
-    @Test("show detail ticket click recorder sends tracking before Safari routing continues")
-    func showDetailTicketClickRecorderSendsTrackingBeforeRoutingContinues() async throws {
+    @Test("show detail ticket click recorder sends the expected tracking payload")
+    func showDetailTicketClickRecorderSendsExpectedTrackingPayload() async throws {
         let transport = StubClientTransport { request, body, _, operationID in
             #expect(operationID == "recordTicketClick")
             #expect(request.method == .post)
@@ -831,5 +831,158 @@ struct ShowPastEventPresentationTests {
         show.tickets = [.init(price: 25, purchaseUrl: "https://tickets.example.com/show", soldOut: false)]
         show.cta = .init(url: "https://tickets.example.com/show", label: "Buy tickets", isSoldOut: false)
         return show
+    }
+}
+
+
+@Suite("Show ticket navigation", .timeLimit(.minutes(1)))
+@MainActor
+struct ShowTicketNavigationTests {
+    private let destination = URL(string: "https://tickets.example.com/show/301?tier=general")!
+
+    @Test("a suspended tracking request never delays navigation")
+    func suspendedTrackingDoesNotDelayNavigation() async {
+        let transport = SuspendedTicketNavigationTransport()
+        let recorder = makeRecorder(transport: transport)
+        var openedURLs: [URL] = []
+
+        let tracking = recorder.open(showID: 301, clubID: 201, destinationURL: destination) {
+            openedURLs.append($0)
+        }
+
+        // No actor yield: navigation must happen in the original tap handling turn.
+        #expect(openedURLs == [destination])
+        for await _ in transport.started { break }
+        #expect(openedURLs == [destination])
+        await transport.release()
+        await tracking.value
+        #expect(openedURLs == [destination])
+    }
+
+    @Test("tracking network errors and cancellation cannot suppress navigation", arguments: [false, true])
+    func failedTrackingDoesNotPreventNavigation(cancelled: Bool) async {
+        let transport = StubClientTransport { _, _, _, _ in
+            if cancelled { throw CancellationError() }
+            throw URLError(.notConnectedToInternet)
+        }
+        var openedURLs: [URL] = []
+        let tracking = makeRecorder(transport: transport).open(
+            showID: 301, clubID: 201, destinationURL: destination
+        ) { openedURLs.append($0) }
+
+        #expect(openedURLs == [destination])
+        await tracking.value
+        #expect(openedURLs == [destination])
+        #expect(transport.capturedRequests.count == 1)
+    }
+
+    @Test("cancelling in-flight tracking preserves the already opened destination")
+    func cancellingTrackingDoesNotUndoNavigation() async {
+        let transport = SuspendedTicketNavigationTransport()
+        var openedURLs: [URL] = []
+        let tracking = makeRecorder(transport: transport).open(
+            showID: 301, clubID: 201, destinationURL: destination
+        ) { openedURLs.append($0) }
+
+        #expect(openedURLs == [destination])
+        for await _ in transport.started { break }
+        tracking.cancel()
+        await transport.release()
+        await tracking.value
+        #expect(openedURLs == [destination])
+    }
+
+    @Test("one ticket tap records exactly one event with its show, club and destination")
+    func normalTapRecordsOneCorrectEvent() async {
+        let transport = StubClientTransport { request, body, _, operationID in
+            #expect(operationID == "recordTicketClick")
+            #expect(request.method == .post)
+            #expect(request.path == "/ticket-clicks")
+            let bytes = try await Data(collecting: body ?? HTTPBody(), upTo: 4096)
+            let payload = try JSONSerialization.jsonObject(with: bytes) as? [String: Any]
+            #expect(payload?["showId"] as? Int == 301)
+            #expect(payload?["clubId"] as? Int == 201)
+            #expect(payload?["destinationUrl"] as? String == "https://tickets.example.com/show/301?tier=general")
+            #expect(payload?["sourceSurface"] as? String == "ios_show_detail")
+            return (HTTPResponse(status: .created), nil)
+        }
+        var openedURLs: [URL] = []
+        let tracking = makeRecorder(transport: transport).open(
+            showID: 301, clubID: 201, destinationURL: destination
+        ) { openedURLs.append($0) }
+
+        #expect(openedURLs == [destination])
+        await tracking.value
+        #expect(openedURLs == [destination])
+        #expect(transport.capturedRequests.map { $0.operationID } == ["recordTicketClick"])
+    }
+
+    @Test("a ticket tap presents in-app Safari immediately and only once")
+    func ticketTapPresentsSafariOnce() async {
+        let transport = SuspendedTicketNavigationTransport()
+        var safariURL: URL?
+        var safariAssignments: [URL?] = []
+        var systemURLs: [URL] = []
+        let presentedURL = Binding<URL?>(
+            get: { safariURL },
+            set: { safariURL = $0; safariAssignments.append($0) }
+        )
+        let openURL = OpenURLAction { url in
+            systemURLs.append(url)
+            return .handled
+        }
+        let tracking = makeRecorder(transport: transport).open(
+            showID: 301, clubID: 201, destinationURL: destination
+        ) { url in
+            ExternalLinkRouter.route(url, presentedURL: presentedURL, openURL: openURL)
+        }
+
+        #expect(safariURL == destination)
+        #expect(safariAssignments == [destination])
+        #expect(systemURLs.isEmpty)
+        for await _ in transport.started { break }
+        await transport.release()
+        await tracking.value
+        #expect(safariAssignments == [destination])
+        #expect(systemURLs.isEmpty)
+    }
+
+    private func makeRecorder(transport: any ClientTransport) -> ShowDetailTicketClickRecorder {
+        ShowDetailTicketClickRecorder(apiClient: Client(
+            serverURL: URL(string: "https://example.com")!, transport: transport
+        ))
+    }
+}
+
+private actor SuspendedTicketNavigationTransport: ClientTransport {
+    nonisolated let started: AsyncStream<Void>
+    private let startedContinuation: AsyncStream<Void>.Continuation
+    private var responseContinuation: CheckedContinuation<Void, Never>?
+
+    init() {
+        let stream = AsyncStream<Void>.makeStream()
+        started = stream.stream
+        startedContinuation = stream.continuation
+    }
+
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        #expect(operationID == "recordTicketClick")
+        await withCheckedContinuation { continuation in
+            responseContinuation = continuation
+            startedContinuation.yield(())
+            startedContinuation.finish()
+        }
+        try Task.checkCancellation()
+        return (HTTPResponse(status: .created), nil)
+    }
+
+    func release() {
+        responseContinuation?.resume()
+        responseContinuation = nil
     }
 }

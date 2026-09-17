@@ -89,16 +89,10 @@ struct ShowDetailView: View {
                                     ShowSummarySection(show: show, isOpenMic: isOpenMic, now: now, openClub: {
                                         coordinator.open(.club(show.club.id))
                                     }, openTicketURL: { url in
-                                        Task {
-                                            guard ShowPastEventPresentation(showDate: show.date, now: Date()).isUpcoming else { return }
-                                            let recorder = ShowDetailTicketClickRecorder(apiClient: apiClient)
-                                            _ = await recorder.record(
-                                                showID: show.id,
-                                                clubID: show.club.id,
-                                                destinationURL: url
-                                            )
-                                            guard ShowPastEventPresentation(showDate: show.date, now: Date()).isUpcoming else { return }
-                                            ExternalLinkRouter.route(url, presentedURL: $safariURL, openURL: openURL)
+                                        guard ShowPastEventPresentation(showDate: show.date, now: Date()).isUpcoming else { return }
+                                        let recorder = ShowDetailTicketClickRecorder(apiClient: apiClient)
+                                        recorder.open(showID: show.id, clubID: show.club.id, destinationURL: url) { destination in
+                                            ExternalLinkRouter.route(destination, presentedURL: $safariURL, openURL: openURL)
                                         }
                                     }, addToCalendar: {
                                         Task {
@@ -326,6 +320,22 @@ private struct ShowSavedAction: View {
 
 struct ShowDetailTicketClickRecorder {
     let apiClient: Client
+
+    /// Navigation happens in the tap's actor turn; the returned task owns only
+    /// best-effort attribution and cannot delay or repeat presentation.
+    @MainActor
+    @discardableResult
+    func open(
+        showID: Int,
+        clubID: Int,
+        destinationURL: URL,
+        openDestination: @MainActor (URL) -> Void
+    ) -> Task<Void, Never> {
+        openDestination(destinationURL)
+        return Task {
+            _ = await record(showID: showID, clubID: clubID, destinationURL: destinationURL)
+        }
+    }
 
     func record(showID: Int, clubID: Int, destinationURL: URL) async -> Bool {
         do {
