@@ -45,14 +45,14 @@ struct DetailHeroLayoutTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Venue", "Distance", "Tickets"])
+        #expect(facts.map(\.label) == ["When", "Venue", "Room", "Address", "Distance", "Tickets"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "$30.00")
         #expect(facts.first { $0.label == "Venue" }?.value == "Comedy Cellar")
         #expect(facts.first { $0.label == "Distance" }?.value == "2.1 miles away")
     }
 
-    @Test("show detail summary facts omit missing optional values and address")
-    func showSummaryFactsOmitMissingValuesAndAddress() {
+    @Test("show detail summary facts omit missing optional values and retain address")
+    func showSummaryFactsOmitMissingValuesAndRetainAddress() {
         var show = Self.showDetail()
         show.tickets = nil
         show.room = nil
@@ -62,7 +62,7 @@ struct DetailHeroLayoutTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Venue", "Tickets"])
+        #expect(facts.map(\.label) == ["When", "Venue", "Address", "Tickets"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "Price unavailable")
     }
 
@@ -87,11 +87,11 @@ struct DetailHeroLayoutTests {
         #expect(event.url?.absoluteString == "https://laughtrack.app/tickets")
     }
 
-    @Test("show detail omits editor note section")
-    func showDetailOmitsEditorNoteSection() {
+    @Test("show detail preserves available source description")
+    func showDetailPreservesSourceDescription() {
         let show = Self.showDetail()
 
-        #expect(ShowDetailPresentation.shouldShowEditorNote(for: show) == false)
+        #expect(ShowDetailPresentation.eventDescription(for: show) == show.description?.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
     private static func showDetail() -> Components.Schemas.ShowDetail {

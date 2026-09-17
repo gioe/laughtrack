@@ -114,12 +114,13 @@ struct ShowDetailView: View {
                                         onFeedback: { feedbackMessage = $0 }
                                     )
 
-                                    if
-                                        ShowDetailPresentation.shouldShowEditorNote(for: show),
-                                        let description = show.description,
-                                        !description.isEmpty
-                                    {
-                                        DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
+                                    if let description = ShowDetailPresentation.eventDescription(for: show) {
+                                        DetailTextCard(
+                                            eyebrow: "From the event listing",
+                                            title: "About this show",
+                                            text: description,
+                                            isCollapsible: true
+                                        )
                                     }
 
                                     if !isOpenMic, let lineup = show.lineup, !lineup.isEmpty {
@@ -390,6 +391,8 @@ enum ShowDetailPresentation {
                 value: ShowFormatting.listDate(show.date, timezoneID: show.timezone)
             ),
             ShowDetailFact(label: "Venue", value: show.club.name),
+            optionalFact(label: "Room", value: show.room),
+            optionalFact(label: "Address", value: eventAddress(for: show)),
             optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles)),
             ShowDetailFact(
                 label: "Tickets",
@@ -412,8 +415,43 @@ enum ShowDetailPresentation {
         ShowPricePresentation.detailTicketURL(for: show)
     }
 
-    static func shouldShowEditorNote(for show: Components.Schemas.ShowDetail) -> Bool {
-        false
+    static func eventDescription(for show: Components.Schemas.ShowDetail) -> String? {
+        guard var text = show.description else { return nil }
+        // Listing descriptions may carry source HTML. Display only plain text,
+        // preserving paragraph breaks, as the web show page does.
+        text = text.replacingOccurrences(of: "(?is)<(script|style)\\b[^>]*>.*?</\\1\\s*>", with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: "(?i)<\\s*br\\s*/?\\s*>", with: "\n", options: .regularExpression)
+        text = text.replacingOccurrences(of: "(?i)</\\s*(p|div|li|h[1-6])\\s*>", with: "\n\n", options: .regularExpression)
+        text = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        let entities = ["amp": "&", "quot": "\"", "apos": "'", "lt": "<", "gt": ">", "nbsp": " ",
+                        "hellip": "…", "mdash": "—", "ndash": "–", "rsquo": "’", "lsquo": "‘", "ldquo": "“", "rdquo": "”"]
+        if let pattern = try? NSRegularExpression(pattern: "&(#x[0-9a-f]+|#[0-9]+|[a-z]+);", options: .caseInsensitive) {
+            for match in pattern.matches(in: text, range: NSRange(text.startIndex..., in: text)).reversed() {
+                guard let range = Range(match.range, in: text), let keyRange = Range(match.range(at: 1), in: text) else { continue }
+                let key = String(text[keyRange]).lowercased()
+                let number = key.hasPrefix("#x") ? UInt32(key.dropFirst(2), radix: 16)
+                    : key.hasPrefix("#") ? UInt32(key.dropFirst()) : nil
+                let replacement = entities[key] ?? number.flatMap(UnicodeScalar.init).map(String.init)
+                if let replacement { text.replaceSubrange(range, with: replacement) }
+            }
+        }
+        return text.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+    }
+
+    static func eventAddress(for show: Components.Schemas.ShowDetail) -> String? {
+        show.address?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+            ?? show.club.address?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+    }
+
+    static func directionsURL(for show: Components.Schemas.ShowDetail) -> URL? {
+        guard let address = eventAddress(for: show) else { return nil }
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "maps.apple.com"
+        components.path = "/"
+        components.queryItems = [URLQueryItem(name: "daddr", value: address)]
+        return components.url
     }
 
     static func savedShowRow(
@@ -537,7 +575,7 @@ enum ShowDetailPresentation {
     }
 
     private static func optionalFact(label: String, value: String?) -> ShowDetailFact? {
-        guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else {
             return nil
         }
         return ShowDetailFact(label: label, value: value)
@@ -546,6 +584,8 @@ enum ShowDetailPresentation {
 }
 
 struct ShowSummarySection: View {
+    @Environment(\.openURL) private var openURL
+
     let show: Components.Schemas.ShowDetail
     let isOpenMic: Bool
     let now: Date
@@ -602,6 +642,17 @@ struct ShowSummarySection: View {
                         } else {
                             ShowSummaryFactTile(fact: fact, infoMessage: infoMessage)
                         }
+                    } else if fact.label == "Address", let url = ShowDetailPresentation.directionsURL(for: show) {
+                        Button { openURL(url) } label: {
+                            ShowSummaryFactTile(
+                                fact: fact,
+                                action: .init(systemImage: "map.fill", label: "Directions")
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("\(fact.value). Directions")
+                        .accessibilityHint("Opens this show’s location in Maps")
+                        .accessibilityIdentifier("show-detail-directions")
                     } else if fact.label == "Venue" {
                         Button(action: openClub) {
                             ShowSummaryFactTile(

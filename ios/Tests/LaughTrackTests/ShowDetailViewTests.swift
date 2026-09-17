@@ -33,7 +33,7 @@ struct ShowDetailViewTests {
         #expect(response.data.name == "Mark Normand and Friends")
         #expect(response.data.lineup?.map(\.name) == ["Mark Normand", "Atsuko Okatsuka", "Sam Morril"])
         #expect(response.relatedShows.map(\.id) == [302])
-        #expect(ShowDetailPresentation.summaryFacts(for: response.data).map(\.label) == ["When", "Venue", "Distance", "Tickets"])
+        #expect(ShowDetailPresentation.summaryFacts(for: response.data).map(\.label) == ["When", "Venue", "Room", "Address", "Distance", "Tickets"])
         #expect(favorites.value(for: "demo-comedian-101") == false)
         #expect(favorites.value(for: "demo-comedian-102") == true)
     }
@@ -323,14 +323,14 @@ struct ShowDetailViewTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Venue", "Distance", "Tickets"])
+        #expect(facts.map(\.label) == ["When", "Venue", "Room", "Address", "Distance", "Tickets"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "$30.00")
         #expect(facts.first { $0.label == "Venue" }?.value == "Comedy Cellar")
         #expect(facts.first { $0.label == "Distance" }?.value == "2.1 miles away")
     }
 
-    @Test("show detail summary facts omit missing optional values and address")
-    func showSummaryFactsOmitMissingValuesAndAddress() {
+    @Test("show detail summary facts omit missing optional values but retain address")
+    func showSummaryFactsOmitMissingValuesButKeepAddress() {
         var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
         show.tickets = nil
         show.room = nil
@@ -340,7 +340,7 @@ struct ShowDetailViewTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Venue", "Tickets"])
+        #expect(facts.map(\.label) == ["When", "Venue", "Address", "Tickets"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "Price unavailable")
     }
 
@@ -987,4 +987,96 @@ private actor SuspendedTicketNavigationTransport: ClientTransport {
         responseContinuation?.resume()
         responseContinuation = nil
     }
+}
+
+@Suite("Show event context", .serialized)
+@MainActor
+struct ShowEventContextTests {
+    @Test("event room and address are trimmed and tickets remain the final fact")
+    func operationalContext() {
+        var show = DemoContent.primaryShowDetail.data
+        show.room = "  Upstairs room  "
+        show.address = "  12 Main St, Queens, NY  "
+        show.club.address = "Other address"
+        let facts = ShowDetailPresentation.summaryFacts(for: show)
+        #expect(facts.first { $0.label == "Room" }?.value == "Upstairs room")
+        #expect(facts.first { $0.label == "Address" }?.value == "12 Main St, Queens, NY")
+        #expect(facts.last?.label == "Tickets")
+    }
+
+    @Test("blank event location falls back to venue and missing values omit labels")
+    func missingLocation() {
+        var show = DemoContent.primaryShowDetail.data
+        show.room = " \n "
+        show.address = " \n "
+        show.club.address = "  24 Venue St  "
+        #expect(ShowDetailPresentation.eventAddress(for: show) == "24 Venue St")
+        show.club.address = " "
+        let facts = ShowDetailPresentation.summaryFacts(for: show)
+        #expect(!facts.contains { $0.label == "Room" || $0.label == "Address" })
+        #expect(ShowDetailPresentation.directionsURL(for: show) == nil)
+    }
+
+    @Test("directions preserve punctuation and Unicode as one destination")
+    func directionsDestination() throws {
+        var show = DemoContent.primaryShowDetail.data
+        show.address = "12 A & B St #2, Montréal"
+        let url = try #require(ShowDetailPresentation.directionsURL(for: show))
+        let parts = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
+        #expect(parts.scheme == "https")
+        #expect(parts.host == "maps.apple.com")
+        #expect(parts.queryItems == [URLQueryItem(name: "daddr", value: show.address)])
+    }
+
+    @Test("empty descriptions are omitted and useful source text is preserved", arguments: ["", "  ", "\n\t"])
+    func emptyDescription(text: String) {
+        var show = DemoContent.primaryShowDetail.data
+        show.description = text
+        #expect(ShowDetailPresentation.eventDescription(for: show) == nil)
+        show.description = nil
+        #expect(ShowDetailPresentation.eventDescription(for: show) == nil)
+        show.description = "  Doors at 7. Two-drink minimum.  "
+        #expect(ShowDetailPresentation.eventDescription(for: show) == "Doors at 7. Two-drink minimum.")
+    }
+
+    @Test("source HTML becomes readable text and markup-only descriptions are omitted")
+    func sourceMarkup() {
+        var show = DemoContent.primaryShowDetail.data
+        show.description = "<p>Doors &amp; seating at <strong>7</strong>.</p><p>Tickets &#36;25 &#x2014; upstairs.</p>"
+        #expect(ShowDetailPresentation.eventDescription(for: show) == "Doors & seating at 7.\n\nTickets $25 — upstairs.")
+        show.description = "<p>&nbsp;</p><script>tracking()</script>"
+        #expect(ShowDetailPresentation.eventDescription(for: show) == nil)
+    }
+
+    @Test("long and multiline source descriptions collapse while short copy stays readable")
+    func collapsePolicy() {
+        #expect(!DetailTextCard.shouldCollapse(text: "Doors at 7.", lineLimit: 4))
+        #expect(DetailTextCard.shouldCollapse(text: String(repeating: "A", count: 221), lineLimit: 4))
+        #expect(DetailTextCard.shouldCollapse(text: "One\nTwo\nThree\nFour\nFive", lineLimit: 4))
+    }
+
+    #if canImport(UIKit)
+    @Test("capture ticket priority and source context for short and long descriptions", arguments: [false, true])
+    func captureEventContext(long: Bool) async throws {
+        var show = DemoContent.primaryShowDetail.data
+        let now = Date()
+        show.date = now.addingTimeInterval(86400)
+        show.room = "Upstairs — intimate room"
+        show.address = "117 MacDougal St, New York, NY"
+        show.description = long
+            ? String(repeating: "Doors open thirty minutes before showtime. Seating is first come, first served. ", count: 12)
+            : "Doors at 7. Two-drink minimum."
+        let host = HostedView(ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                ShowSummarySection(show: show, isOpenMic: false, now: now, openClub: {}, openTicketURL: { _ in }, addToCalendar: {})
+                DetailTextCard(eyebrow: "From the event listing", title: "About this show", text: ShowDetailPresentation.eventDescription(for: show)!, isCollapsible: true)
+            }.padding(16)
+        })
+        await host.settle()
+        let data = try #require(try host.snapshot().pngData())
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4022-\(long ? "long" : "short").png")
+        try data.write(to: path)
+        print("Event context capture: \(path.path)")
+    }
+    #endif
 }

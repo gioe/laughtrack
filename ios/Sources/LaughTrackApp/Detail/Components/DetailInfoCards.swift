@@ -65,7 +65,11 @@ struct DetailTextCard: View {
     @State private var isExpanded = false
 
     private var showsToggle: Bool {
-        isCollapsible && text.count > 220
+        isCollapsible && Self.shouldCollapse(text: text, lineLimit: collapsedLineLimit)
+    }
+
+    static func shouldCollapse(text: String, lineLimit: Int = 4) -> Bool {
+        text.count > 220 || text.components(separatedBy: .newlines).count > lineLimit
     }
 
     var body: some View {
@@ -94,6 +98,8 @@ struct DetailTextCard: View {
                                 .font(.system(size: 11, weight: .semibold))
                         }
                         .foregroundStyle(laughTrack.colors.accent)
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(isExpanded ? "Collapse description" : "Expand description")
