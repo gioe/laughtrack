@@ -596,6 +596,7 @@ struct ShowSummarySection: View {
                             )
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("\(fact.value). \(temporal.venueActionLabel)")
                         .accessibilityHint("Opens the venue detail page")
                         .accessibilityIdentifier("show-detail-open-venue")
                     } else {
