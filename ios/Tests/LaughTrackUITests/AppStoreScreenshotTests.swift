@@ -64,7 +64,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         try generateScreenshots()
     }
 
-    func testDiscoverRestoresScrolledSectionAfterSeededSearchAndShowDetail() {
+    func testDiscoverRestoresScrolledSectionAfterSeededSearchAndShowDetail() throws {
         let homeScreen = app.scrollViews["laughtrack.home.screen"].firstMatch
         XCTAssertTrue(homeScreen.waitForExistence(timeout: 15), "Expected Discover to load")
 
@@ -99,11 +99,27 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             "Expected Discover to restore the This Week section after returning from Search"
         )
 
-        let fixtureShow = element("laughtrack.home.shows-tonight-103")
+        // Tonight and This Week share show 103's identifier. Poll all matching
+        // buttons so the offscreen Tonight copy cannot hide the visible card,
+        // without scrolling away from the position this test must preserve.
+        let matchingShows = app.buttons.matching(identifier: "laughtrack.home.shows-tonight-103")
+        let visibleShows = {
+            matchingShows.allElementsBoundByIndex.filter {
+                $0.isHittable && homeScreen.frame.intersects($0.frame)
+            }
+        }
+        let visibleShowExpectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in visibleShows().count == 1 },
+            object: nil
+        )
         XCTAssertTrue(
-            waitUntilVisible(fixtureShow, in: homeScreen, timeout: 5),
+            XCTWaiter.wait(for: [visibleShowExpectation], timeout: 5) == .completed,
             "Expected the fixture-backed This Week show"
         )
+        let candidates = visibleShows()
+        XCTAssertEqual(candidates.count, 1, "Exactly one fixture show must be tappable: \(matchingShows.debugDescription)")
+        let fixtureShow = try XCTUnwrap(candidates.first)
+        XCTAssertGreaterThan(fixtureShow.frame.minY, retainedSectionMarker.frame.maxY, "The visible show must belong to the retained This Week section")
         fixtureShow.tap()
         XCTAssertTrue(
             element(Identifier.showDetailScreen).waitForExistence(timeout: 15),
