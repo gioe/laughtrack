@@ -19,7 +19,9 @@ enum ShowPricePresentation {
             return "Ticket link unavailable"
         }
 
-        let prices = (show.tickets ?? []).compactMap(\.price)
+        let prices = (show.tickets ?? [])
+            .filter { $0.soldOut != true }
+            .compactMap(\.price)
         guard let lowest = prices.min() else {
             return "Price unavailable"
         }

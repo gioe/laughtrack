@@ -640,3 +640,86 @@ struct ShowTicketAvailabilityTests {
         #expect(ShowDetailPresentation.summaryFacts(for: show).last?.value == "Sold out")
     }
 }
+
+@Suite("Show available tier prices")
+@MainActor
+struct ShowAvailableTierPriceTests {
+    private func show() -> Components.Schemas.ShowDetail {
+        var show = DemoContent.primaryShowDetail.data
+        show.name = "Evening Comedy"
+        show.tags = nil
+        show.soldOut = false
+        show.cta = .init(url: nil, label: "Buy tickets", isSoldOut: false)
+        show.showPageUrl = ""
+        show.tickets = [
+            .init(price: 10, purchaseUrl: "https://tickets.example.com/early", soldOut: true, _type: "Early bird"),
+            .init(price: 30, purchaseUrl: "https://tickets.example.com/general", soldOut: false, _type: "General admission")
+        ]
+        return show
+    }
+
+    @Test("sold-out cheap tiers do not understate the available price", arguments: [0.0, 10.0])
+    func soldOutCheaperTier(price: Double) {
+        var show = show()
+        show.tickets?[0].price = price
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "$30.00")
+        #expect(ShowDetailPresentation.summaryFacts(for: show).last?.value == "$30.00")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == "https://tickets.example.com/general")
+    }
+
+    @Test("the lowest of multiple available tiers determines the detail price")
+    func multipleAvailableTiers() {
+        var show = show()
+        show.tickets?.append(.init(price: 20, purchaseUrl: "https://tickets.example.com/balcony", soldOut: false, _type: "Balcony"))
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "$20.00")
+    }
+
+    @Test("tiers without an explicit sellout flag remain eligible")
+    func unknownSelloutFlag() {
+        var show = show()
+        show.tickets?[1].soldOut = nil
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "$30.00")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == "https://tickets.example.com/general")
+    }
+
+    @Test("available free tiers still display Free")
+    func availableFreeTier() {
+        var show = show()
+        show.tickets?[1].price = 0
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "Free")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show) != nil)
+    }
+
+    @Test("unknown available prices do not borrow a sold-out tier price")
+    func unknownAvailablePrice() {
+        var show = show()
+        show.tickets?[1].price = nil
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "Price unavailable")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == "https://tickets.example.com/general")
+    }
+
+    @Test("empty inventory preserves a usable fallback without inventing a price", arguments: [true, false])
+    func emptyInventory(hasFallback: Bool) {
+        var show = show()
+        show.tickets = []
+        show.showPageUrl = hasFallback ? "https://venue.example.com/event" : ""
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == (hasFallback ? "Price unavailable" : "Ticket link unavailable"))
+        #expect((ShowDetailPresentation.primaryTicketURL(for: show) != nil) == hasFallback)
+    }
+
+    @Test("available inventory without any destination reports an unavailable link")
+    func missingLinks() {
+        var show = show()
+        show.tickets?[1].purchaseUrl = ""
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "Ticket link unavailable")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show) == nil)
+    }
+
+    @Test("all sold-out inventory retains the sold-out label and no purchase action")
+    func allSoldOut() {
+        var show = show()
+        show.tickets?[1].soldOut = true
+        #expect(ShowPricePresentation.detailTicketSummary(for: show) == "Sold out")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show) == nil)
+    }
+}
