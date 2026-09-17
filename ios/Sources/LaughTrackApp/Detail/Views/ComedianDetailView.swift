@@ -16,6 +16,7 @@ struct ComedianDetailView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
     @Environment(\.serviceContainer) private var serviceContainer
+    @Environment(\.scenePhase) private var scenePhase
 
     @StateObject private var model: ComedianDetailModel
     @State private var feedbackMessage: String?
@@ -57,6 +58,10 @@ struct ComedianDetailView: View {
                         )
                     } content: {
                         VStack(alignment: .leading, spacing: 20) {
+                            DetailRefreshStatus(isRefreshing: model.isRefreshing, failure: model.refreshFailure) {
+                                await model.reload(apiClient: apiClient, favorites: favorites, cache: detailCache)
+                            }
+
                             if ComedianHomeLocationPresentation.isUIEnabled,
                                let homeLocation = comedian.homeLocation,
                                ComedianHomeLocationPresentation.hasContent(homeLocation) {
@@ -125,6 +130,7 @@ struct ComedianDetailView: View {
                     }
                 }
                 .modifier(DetailAtmosphereScrollContent())
+                .refreshable { await model.reload(apiClient: apiClient, favorites: favorites, cache: detailCache) }
             }
         }
         .ignoresSafeArea(.container, edges: .top)
@@ -142,7 +148,8 @@ struct ComedianDetailView: View {
             title: navigationTitle,
             favoriteState: comedianFavoriteState
         ))
-        .task {
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites, cache: detailCache)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {

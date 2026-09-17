@@ -41,7 +41,8 @@ func withDetailFetchRetry<T>(
     do {
         return try await operation()
     } catch let error as URLError where isTransientDetailFetchError(error) {
-        try? await Task.sleep(for: backoff)
+        try await Task.sleep(for: backoff)
+        try Task.checkCancellation()
         return try await operation()
     }
 }
@@ -50,8 +51,9 @@ func withDetailFetchRetry<T>(
 final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResponse> {
     let showID: Int
 
-    init(showID: Int) {
+    init(showID: Int, now: @escaping () -> Date = Date.init) {
         self.showID = showID
+        super.init(now: now)
     }
 
     func loadIfNeeded(apiClient: Client, favorites: ComedianFavoriteStore) async {
@@ -68,13 +70,12 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
             .show(id: String(showID)),
             from: cache,
             persistentCache: nil
-           ) {
+           ), case .idle = phase, !Task.isCancelled {
             seedFavorites(from: cached, favorites: favorites)
             phase = .success(cached)
-            return
         }
 
-        await super.loadIfNeeded {
+        await super.loadIfNeeded(freshness: DetailFreshnessPolicy.revalidationInterval) {
             await self.fetch(apiClient: apiClient, favorites: favorites, cache: cache)
         }
     }
@@ -88,7 +89,7 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
         favorites: ComedianFavoriteStore,
         cache: DataCache<LaughTrackCacheKey>?
     ) async {
-        await super.reload {
+        await super.refresh {
             await self.fetch(apiClient: apiClient, favorites: favorites, cache: cache)
         }
     }
@@ -102,6 +103,7 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
             let output = try await withDetailFetchRetry {
                 try await apiClient.getShow(.init(path: .init(id: showID)))
             }
+            try Task.checkCancellation()
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
@@ -164,8 +166,9 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
     @Published private(set) var isLoadingMorePastShows = false
     @Published private(set) var pastShowsPaginationFailure: LoadFailure?
 
-    init(comedianID: Int) {
+    init(comedianID: Int, now: @escaping () -> Date = Date.init) {
         self.comedianID = comedianID
+        super.init(now: now)
     }
 
     func loadIfNeeded(
@@ -185,13 +188,12 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
             .comedian(id: String(comedianID)),
             from: cache,
             persistentCache: nil
-           ) {
+           ), case .idle = phase, !Task.isCancelled {
             seedFavorites(from: cached, favorites: favorites)
             phase = .success(cached)
-            return
         }
 
-        await super.loadIfNeeded {
+        await super.loadIfNeeded(freshness: DetailFreshnessPolicy.revalidationInterval) {
             await self.fetch(apiClient: apiClient, favorites: favorites, cache: cache)
         }
     }
@@ -208,7 +210,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
         favorites: ComedianFavoriteStore,
         cache: DataCache<LaughTrackCacheKey>?
     ) async {
-        await super.reload {
+        await super.refresh {
             await self.fetch(apiClient: apiClient, favorites: favorites, cache: cache)
         }
     }
@@ -222,6 +224,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
             let output = try await withDetailFetchRetry {
                 try await apiClient.getComedian(.init(path: .init(id: comedianID)))
             }
+            try Task.checkCancellation()
             switch output {
             case .ok(let ok):
                 let comedian = try ok.body.json.data
@@ -261,6 +264,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 )
             )
 
+            try Task.checkCancellation()
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
@@ -277,6 +281,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                     favorites: favorites
                 )
 
+                try Task.checkCancellation()
                 let content = ComedianDetailContent(
                     comedian: comedian,
                     upcomingRuns: response.data,
@@ -436,6 +441,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                     headers: .init(xTimezone: TimeZone.current.identifier)
                 )
             )
+            try Task.checkCancellation()
             switch output {
             case .ok(let ok):
                 let payload = try ok.body.json
@@ -469,6 +475,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 .init(path: .init(id: comedian.id))
             )
 
+            try Task.checkCancellation()
             switch output {
             case .ok(let ok):
                 let comedians = try ok.body.json.data
@@ -495,8 +502,9 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
 final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
     let clubId: Int
 
-    init(clubId: Int) {
+    init(clubId: Int, now: @escaping () -> Date = Date.init) {
         self.clubId = clubId
+        super.init(now: now)
     }
 
     func loadIfNeeded(apiClient: Client) async {
@@ -509,12 +517,11 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
             .club(id: String(clubId)),
             from: cache,
             persistentCache: nil
-           ) {
+           ), case .idle = phase, !Task.isCancelled {
             phase = .success(cached)
-            return
         }
 
-        await super.loadIfNeeded {
+        await super.loadIfNeeded(freshness: DetailFreshnessPolicy.revalidationInterval) {
             await self.fetch(apiClient: apiClient, cache: cache)
         }
     }
@@ -524,7 +531,7 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
     }
 
     func reload(apiClient: Client, cache: DataCache<LaughTrackCacheKey>?) async {
-        await super.reload {
+        await super.refresh {
             await self.fetch(apiClient: apiClient, cache: cache)
         }
     }
@@ -534,6 +541,7 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
             let output = try await withDetailFetchRetry {
                 try await apiClient.getClub(.init(path: .init(id: clubId)))
             }
+            try Task.checkCancellation()
             switch output {
             case .ok(let ok):
                 let content = ClubDetailContent(club: try ok.body.json.data)
@@ -563,18 +571,19 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
 final class ClubHighlightsModel: EntityDetailModel<Components.Schemas.ClubHighlights> {
     let clubId: Int
 
-    init(clubId: Int) {
+    init(clubId: Int, now: @escaping () -> Date = Date.init) {
         self.clubId = clubId
+        super.init(now: now)
     }
 
     func loadIfNeeded(apiClient: Client) async {
-        await super.loadIfNeeded {
+        await super.loadIfNeeded(freshness: DetailFreshnessPolicy.revalidationInterval) {
             await self.fetch(apiClient: apiClient)
         }
     }
 
     func reload(apiClient: Client) async {
-        await super.reload {
+        await super.refresh {
             await self.fetch(apiClient: apiClient)
         }
     }
@@ -585,6 +594,7 @@ final class ClubHighlightsModel: EntityDetailModel<Components.Schemas.ClubHighli
                 try await apiClient.getClubHighlights(.init(path: .init(id: clubId)))
             }
 
+            try Task.checkCancellation()
             switch output {
             case .ok(let ok):
                 return .success(try ok.body.json.data)

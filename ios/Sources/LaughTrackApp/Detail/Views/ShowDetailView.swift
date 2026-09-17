@@ -19,6 +19,7 @@ struct ShowDetailView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
     @Environment(\.serviceContainer) private var serviceContainer
+    @Environment(\.scenePhase) private var scenePhase
 
     @StateObject private var model: ShowDetailModel
     @StateObject private var calendarWriter = ShowCalendarWriter()
@@ -82,6 +83,10 @@ struct ShowDetailView: View {
                                 }
 
                                 VStack(alignment: .leading, spacing: 20) {
+                                    DetailRefreshStatus(isRefreshing: model.isRefreshing, failure: model.refreshFailure) {
+                                        await model.reload(apiClient: apiClient, favorites: favorites, cache: detailCache)
+                                    }
+
                                     if let message = temporal.statusMessage {
                                         DetailTextCard(eyebrow: "Show history", title: "Keep exploring", text: message)
                                     }
@@ -136,6 +141,7 @@ struct ShowDetailView: View {
                         }
                     }
                     .modifier(DetailAtmosphereScrollContent())
+                    .refreshable { await model.reload(apiClient: apiClient, favorites: favorites, cache: detailCache) }
                     .safariSheet(url: $safariURL)
                 }
             }
@@ -151,7 +157,8 @@ struct ShowDetailView: View {
             )
         }
         .modifier(EntityDetailNavigationChrome(entity: .show, title: navigationTitle))
-        .task {
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites, cache: detailCache)
         }
         .task(id: savedShowLoadKey) {
@@ -1162,5 +1169,39 @@ private struct AdminShowIDBadge: View {
         .buttonStyle(.plain)
         .accessibilityLabel("Show ID \(showID)")
         .accessibilityHint("Admin-only. Copies the show ID to the clipboard.")
+    }
+}
+
+/// Keep this row mounted while updating so refresh state never replaces the catalog.
+struct DetailRefreshStatus: View {
+    @Environment(\.appTheme) private var theme
+    @ScaledMetric(relativeTo: .caption) private var statusHeight = 44
+
+    let isRefreshing: Bool
+    let failure: LoadFailure?
+    let refresh: () async -> Void
+
+    var body: some View {
+        HStack(spacing: theme.spacing.sm) {
+            Text(isRefreshing ? "Updating details…" : failure == nil ? "Pull to refresh" : "Couldn’t update. Previous details shown.")
+                .font(theme.laughTrackTokens.typography.metadata)
+                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                .lineLimit(2, reservesSpace: true)
+            Spacer(minLength: theme.spacing.sm)
+            Button {
+                Task { await refresh() }
+            } label: {
+                Label(failure == nil ? "Refresh" : "Retry", systemImage: "arrow.clockwise")
+                    .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(theme.laughTrackTokens.colors.accent)
+            .disabled(isRefreshing)
+            .accessibilityIdentifier("detail-refresh")
+        }
+        .frame(minHeight: statusHeight)
+        .accessibilityElement(children: .contain)
     }
 }

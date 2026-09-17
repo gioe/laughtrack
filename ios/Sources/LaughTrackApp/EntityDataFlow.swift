@@ -265,23 +265,56 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
     }
 }
 
+/// Detail cache entries are display seeds, not proof of freshness. Revalidate
+/// every cache hit, then at most once per minute when a retained page reappears
+/// or returns to the foreground. User refresh always bypasses this interval.
+/// Discovery cache retention is deliberately independent of this policy.
+enum DetailFreshnessPolicy {
+    static let revalidationInterval: TimeInterval = 60
+}
+
 @MainActor
 class EntityDetailModel<Value>: ObservableObject {
     @Published var phase: LoadPhase<Value> = .idle
+    @Published private(set) var isRefreshing = false
+    @Published private(set) var refreshFailure: LoadFailure?
 
     private var requestID = UUID()
     private var activeRequest: Task<Void, Never>?
+    private var loadedAt: Date?
+    private let now: () -> Date
+
+    init(now: @escaping () -> Date = Date.init) {
+        self.now = now
+    }
 
     func loadIfNeeded(
+        freshness: TimeInterval? = nil,
         using request: @escaping () async -> Result<Value, LoadFailure>
     ) async {
         switch phase {
         case .idle:
             break
         case .loading where activeRequest?.isCancelled == true:
-            // A retained view may return before a cancelled transport unwinds.
             break
+        case .success:
+            guard let freshness else { return }
+            if refreshFailure == nil, activeRequest?.isCancelled != true,
+               let loadedAt, now().timeIntervalSince(loadedAt) < freshness { return }
         default:
+            return
+        }
+        await refresh(using: request)
+    }
+
+    /// Concurrent user/lifecycle refreshes join the same request. A cancelled
+    /// transport is replaceable immediately, even before it finishes unwinding.
+    func refresh(
+        using request: @escaping () async -> Result<Value, LoadFailure>
+    ) async {
+        guard !Task.isCancelled else { return }
+        if let activeRequest, !activeRequest.isCancelled {
+            await activeRequest.value
             return
         }
         await reload(using: request)
@@ -294,33 +327,43 @@ class EntityDetailModel<Value>: ObservableObject {
         let id = UUID()
         requestID = id
         activeRequest?.cancel()
-        phase = .loading
+        let hasContent: Bool
+        if case .success = phase { hasContent = true } else { hasContent = false }
+        refreshFailure = nil
+        isRefreshing = hasContent
+        if !hasContent { phase = .loading }
 
         let task = Task { @MainActor in
             let result = await request()
             guard !Task.isCancelled, requestID == id else { return }
             switch result {
             case .success(let value):
+                loadedAt = now()
                 phase = .success(value)
             case .failure(let failure):
-                phase = .failure(failure)
+                if hasContent {
+                    refreshFailure = failure
+                } else {
+                    phase = .failure(failure)
+                }
             }
         }
         activeRequest = task
 
-        // Forward SwiftUI's task cancellation synchronously so a returning view
-        // can detect the cancelled request even if its transport ignores it.
+        // Forward SwiftUI cancellation synchronously so returning views can
+        // replace cancelled requests even when their transport ignores it.
         await withTaskCancellationHandler {
             await task.value
         } onCancel: {
             task.cancel()
         }
 
-        // An obsolete request must not clear a newer request's loading state.
         guard requestID == id else { return }
         activeRequest = nil
-        if task.isCancelled, case .loading = phase {
-            phase = .idle
+        isRefreshing = false
+        if task.isCancelled {
+            loadedAt = nil
+            if case .loading = phase { phase = .idle }
         }
     }
 }

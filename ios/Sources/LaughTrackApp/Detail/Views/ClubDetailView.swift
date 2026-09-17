@@ -15,6 +15,7 @@ struct ClubDetailView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
     @Environment(\.serviceContainer) private var serviceContainer
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model: ClubDetailModel
     @StateObject private var highlightsModel: ClubHighlightsModel
     @State private var feedbackMessage: String?
@@ -75,6 +76,10 @@ struct ClubDetailView: View {
                         }
                     } content: {
                         VStack(alignment: .leading, spacing: 20) {
+                            DetailRefreshStatus(isRefreshing: model.isRefreshing || highlightsModel.isRefreshing, failure: model.refreshFailure ?? highlightsModel.refreshFailure) {
+                                await refreshDetails()
+                            }
+
                             if case .success(let highlights) = highlightsModel.phase {
                                 if eveningSummary == nil, let nextShow = highlights.nextShow {
                                     ClubDetailShowHighlightSection(
@@ -107,6 +112,7 @@ struct ClubDetailView: View {
                     }
                 }
                 .modifier(DetailAtmosphereScrollContent())
+                .refreshable { await refreshDetails() }
             }
         }
         .ignoresSafeArea(.container, edges: .top)
@@ -124,10 +130,12 @@ struct ClubDetailView: View {
             title: navigationTitle,
             favoriteState: clubFavoriteState
         ))
-        .task {
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
             await model.loadIfNeeded(apiClient: apiClient, cache: detailCache)
         }
-        .task {
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
             await highlightsModel.loadIfNeeded(apiClient: apiClient)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
@@ -137,6 +145,12 @@ struct ClubDetailView: View {
         }, message: {
             Text(feedbackMessage ?? "")
         })
+    }
+
+    private func refreshDetails() async {
+        async let detail: Void = model.reload(apiClient: apiClient, cache: detailCache)
+        async let highlights: Void = highlightsModel.reload(apiClient: apiClient)
+        _ = await (detail, highlights)
     }
 
     private func clubHeroActions(club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {

@@ -86,14 +86,13 @@ final class PodcastDetailModel: EntityDetailModel<PodcastDetailResponse> {
             .podcast(id: String(podcastID)),
             from: cache,
             persistentCache: nil
-           ) {
+           ), case .idle = phase, !Task.isCancelled {
             phase = .success(cached)
-            return
         }
 
-        await super.loadIfNeeded {
+        await super.loadIfNeeded(freshness: DetailFreshnessPolicy.revalidationInterval) {
             let result = await self.fetcher.podcastDetail(id: self.podcastID)
-            if case .success(let response) = result {
+            if case .success(let response) = result, !Task.isCancelled {
                 await MainPageCache.set(
                     response,
                     forKey: .podcast(id: String(self.podcastID)),
@@ -106,9 +105,9 @@ final class PodcastDetailModel: EntityDetailModel<PodcastDetailResponse> {
     }
 
     func reload(cache: DataCache<LaughTrackCacheKey>? = nil) async {
-        await super.reload {
+        await super.refresh {
             let result = await self.fetcher.podcastDetail(id: self.podcastID)
-            if case .success(let response) = result {
+            if case .success(let response) = result, !Task.isCancelled {
                 await MainPageCache.set(
                     response,
                     forKey: .podcast(id: String(self.podcastID)),
@@ -133,6 +132,7 @@ struct PodcastDetailView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
     @Environment(\.serviceContainer) private var serviceContainer
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model: PodcastDetailModel
     @State private var feedbackMessage: String?
 
@@ -206,6 +206,10 @@ struct PodcastDetailView: View {
                         )
                     } content: {
                         VStack(alignment: .leading, spacing: 20) {
+                            DetailRefreshStatus(isRefreshing: model.isRefreshing, failure: model.refreshFailure) {
+                                await model.reload(cache: detailCache)
+                            }
+
                             PodcastEpisodeListSection(
                                 podcast: response.podcast,
                                 episodes: response.episodes,
@@ -222,6 +226,7 @@ struct PodcastDetailView: View {
                     }
                 }
                 .modifier(DetailAtmosphereScrollContent())
+                .refreshable { await model.reload(cache: detailCache) }
             }
         }
         .ignoresSafeArea(.container, edges: .top)
@@ -239,7 +244,8 @@ struct PodcastDetailView: View {
             title: navigationTitle,
             favoriteState: podcastFavoriteState
         ))
-        .task {
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
             await model.loadIfNeeded(cache: detailCache)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {

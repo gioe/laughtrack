@@ -81,7 +81,7 @@ struct ShowDetailViewTests {
         #expect(ShowDetailPresentation.primaryTicketURL(for: loaded.data) == nil)
     }
 
-    @Test("show detail loadIfNeeded reuses cache across model instances but reload fetches")
+    @Test("show detail keeps cached content when revalidation fails and reload retries")
     func showDetailLoadIfNeededUsesCacheAndReloadFetches() async throws {
         let cache = DataCache<LaughTrackCacheKey>()
         let recorder = FavoriteOperationRecorder()
@@ -101,9 +101,10 @@ struct ShowDetailViewTests {
         )
 
         let afterCachedLoadOperations = await recorder.operations
-        #expect(afterCachedLoadOperations == ["getShow"])
+        #expect(afterCachedLoadOperations == ["getShow", "getShow"])
+        #expect(cachedModel.refreshFailure != nil)
         guard case .success(let cachedResponse) = cachedModel.phase else {
-            Issue.record("Expected cached detail response to load without network")
+            Issue.record("Expected cached detail response to survive failed revalidation")
             return
         }
         #expect(cachedResponse.data.id == 301)
@@ -111,7 +112,8 @@ struct ShowDetailViewTests {
         await cachedModel.reload(apiClient: client, favorites: ComedianFavoriteStore(), cache: cache)
 
         let afterReloadOperations = await recorder.operations
-        #expect(afterReloadOperations == ["getShow", "getShow"])
+        #expect(afterReloadOperations == ["getShow", "getShow", "getShow"])
+        #expect(cachedModel.refreshFailure == nil)
     }
 
     @Test("show detail favorite toggle dispatches through the favorite API boundary")

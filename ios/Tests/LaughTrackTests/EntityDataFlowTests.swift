@@ -1,6 +1,9 @@
 import Foundation
 import Combine
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 import HTTPTypes
 import OpenAPIRuntime
 import Testing
@@ -1482,6 +1485,300 @@ private struct DetailCancellationLifecycleView: View {
                     .task { await model.loadIfNeeded { await gate.fetch() } }
             }
         }
+    }
+}
+#endif
+
+@Suite("Detail freshness and refresh", .timeLimit(.minutes(1)))
+@MainActor
+struct DetailRefreshTests {
+    @Test("successful detail stays fresh for a bounded interval and refreshes on expiry")
+    func freshnessUsesLastSuccessfulResponse() async {
+        var now = Date(timeIntervalSince1970: 1_000)
+        let model = EntityDetailModel<Int>(now: { now })
+        var calls = 0
+        await model.loadIfNeeded(freshness: 60) { calls += 1; return .success(calls) }
+        now = now.addingTimeInterval(59)
+        await model.loadIfNeeded(freshness: 60) { calls += 1; return .success(calls) }
+        #expect(calls == 1)
+        now = now.addingTimeInterval(1)
+        await model.loadIfNeeded(freshness: 60) { calls += 1; return .success(calls) }
+        #expect(calls == 2)
+        #expect(value(model) == 2)
+    }
+
+    @Test("refresh keeps content visible and coalesces simultaneous callers")
+    func refreshPreservesContentAndCoalesces() async throws {
+        let model = EntityDetailModel<Int>()
+        await model.loadIfNeeded { .success(1) }
+        let gate = DetailCancellationResponseGate()
+        defer { gate.resolveAll() }
+        let first = Task { await model.refresh { await gate.fetch() } }
+        try await gate.waitForRequests(1)
+        #expect(model.isRefreshing)
+        #expect(value(model) == 1)
+        var secondEntered = false
+        let second = Task {
+            secondEntered = true
+            await model.refresh {
+                Issue.record("A simultaneous refresh must reuse the active request")
+                return .success(99)
+            }
+        }
+        while !secondEntered { await Task.yield() }
+        gate.resolve(0, .success(2))
+        await first.value
+        await second.value
+        #expect(value(model) == 2)
+        #expect(!model.isRefreshing)
+        #expect(model.refreshFailure == nil)
+        #expect(gate.requestCount == 1)
+    }
+
+    @Test("failed revalidation retains data, reports failure and remains eligible for retry")
+    func failurePreservesContentAndDoesNotAdvanceFreshness() async {
+        var now = Date(timeIntervalSince1970: 1_000)
+        let model = EntityDetailModel<Int>(now: { now })
+        await model.loadIfNeeded(freshness: 60) { .success(1) }
+        now = now.addingTimeInterval(60)
+        await model.loadIfNeeded(freshness: 60) { .failure(.network("Offline")) }
+        #expect(value(model) == 1)
+        #expect(model.refreshFailure == .network("Offline"))
+        #expect(!model.isRefreshing)
+        await model.loadIfNeeded(freshness: 60) { .success(2) }
+        #expect(value(model) == 2)
+        #expect(model.refreshFailure == nil)
+    }
+
+    @Test("cancelled refresh can be retried before old transport unwinds without blanking")
+    func cancelledRefreshCanRetryImmediately() async throws {
+        let model = EntityDetailModel<Int>()
+        await model.loadIfNeeded { .success(1) }
+        let gate = DetailCancellationResponseGate()
+        defer { gate.resolveAll() }
+        let first = Task { await model.refresh { await gate.fetch() } }
+        try await gate.waitForRequests(1)
+        first.cancel()
+        #expect(value(model) == 1)
+        await model.refresh { .success(2) }
+        gate.resolve(0, .failure(.network("Obsolete failure")))
+        await first.value
+        #expect(value(model) == 2)
+        #expect(model.refreshFailure == nil)
+        #expect(!model.isRefreshing)
+    }
+
+    @Test("explicit reload supersedes an old refresh while retaining loaded content")
+    func reloadOwnsNewestResponse() async throws {
+        let model = EntityDetailModel<Int>()
+        await model.loadIfNeeded { .success(1) }
+        let gate = DetailCancellationResponseGate()
+        defer { gate.resolveAll() }
+        let old = Task { await model.refresh { await gate.fetch() } }
+        try await gate.waitForRequests(1)
+        let newer = Task { await model.reload { await gate.fetch() } }
+        try await gate.waitForRequests(2)
+        #expect(value(model) == 1)
+        gate.resolve(0, .success(99))
+        await old.value
+        #expect(model.isRefreshing)
+        #expect(value(model) == 1)
+        gate.resolve(1, .success(2))
+        await newer.value
+        #expect(value(model) == 2)
+        #expect(!model.isRefreshing)
+    }
+
+    @Test("cached show appears immediately then revalidates changed ticket availability")
+    func cachedShowRevalidatesWithoutSkeleton() async throws {
+        let cached = DemoContent.showDetailResponse(id: 301) ?? DemoContent.primaryShowDetail
+        var updated = cached
+        updated.data.soldOut = !(cached.data.soldOut ?? false)
+        let body = try APIMockEncoder.make().encode(updated)
+        let cache = DataCache<LaughTrackCacheKey>()
+        await MainPageCache.set(cached, forKey: .show(id: "301"), in: cache, persistentCache: nil)
+        let gate = DetailCancellationResponseGate()
+        defer { gate.resolveAll() }
+        let transport = StubClientTransport { _, _, _, operationID in
+            #expect(operationID == "getShow")
+            _ = await gate.fetch()
+            return (HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]), HTTPBody(body))
+        }
+        let client = Client(serverURL: URL(string: "https://test.example.com")!, configuration: .laughTrack, transport: transport)
+        let model = ShowDetailModel(showID: 301)
+        let load = Task { await model.loadIfNeeded(apiClient: client, favorites: ComedianFavoriteStore(), cache: cache) }
+        try await gate.waitForRequests(1)
+        guard case .success(let visible) = model.phase else {
+            Issue.record("Cached show should remain visible during revalidation")
+            return
+        }
+        #expect(visible.data.soldOut == cached.data.soldOut)
+        #expect(model.isRefreshing)
+        gate.resolve(0, .success(0))
+        await load.value
+        guard case .success(let refreshed) = model.phase else {
+            Issue.record("Expected updated show after revalidation")
+            return
+        }
+        #expect(refreshed.data.soldOut == updated.data.soldOut)
+        #expect(!model.isRefreshing)
+        await model.loadIfNeeded(apiClient: client, favorites: ComedianFavoriteStore(), cache: cache)
+        #expect(transport.capturedRequests.count == 1)
+    }
+
+    @Test("club highlights revalidate upcoming shows after the freshness interval")
+    func clubHighlightsRefreshAfterExpiry() async throws {
+        var now = Date(timeIntervalSince1970: 1_000)
+        let model = ClubHighlightsModel(clubId: 201, now: { now })
+        let show = makeShow(id: 301, lineup: [])
+        let first = Components.Schemas.ClubHighlightsResponse(data: .init(tonightShows: [], nextShow: show, frequentPerformers: []))
+        let second = Components.Schemas.ClubHighlightsResponse(data: .init(tonightShows: [show], nextShow: nil, frequentPerformers: []))
+        let firstBody = try APIMockEncoder.make().encode(first)
+        let secondBody = try APIMockEncoder.make().encode(second)
+        let transport = StubClientTransport { _, _, _, operationID in
+            #expect(operationID == "getClubHighlights")
+            return (HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]), HTTPBody(firstBody))
+        }
+        let client = Client(serverURL: URL(string: "https://test.example.com")!, configuration: .laughTrack, transport: transport)
+        await model.loadIfNeeded(apiClient: client)
+        transport.setHandler { _, _, _, _ in
+            (HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]), HTTPBody(secondBody))
+        }
+        await model.loadIfNeeded(apiClient: client)
+        #expect(transport.capturedRequests.isEmpty)
+        now = now.addingTimeInterval(60)
+        await model.loadIfNeeded(apiClient: client)
+        guard case .success(let refreshed) = model.phase else {
+            Issue.record("Expected refreshed club highlights")
+            return
+        }
+        #expect(refreshed.tonightShows.map(\.id) == [show.id])
+        #expect(refreshed.nextShow == nil)
+        #expect(transport.capturedRequests.count == 1)
+    }
+
+    @Test("failed explicit refresh remains retryable even inside the previous freshness window")
+    func explicitFailureAllowsAutomaticRetry() async {
+        let model = EntityDetailModel<Int>(now: { Date(timeIntervalSince1970: 1_000) })
+        await model.loadIfNeeded(freshness: 60) { .success(1) }
+        await model.refresh { .failure(.network("Offline")) }
+        #expect(value(model) == 1)
+        await model.loadIfNeeded(freshness: 60) { .success(2) }
+        #expect(value(model) == 2)
+        #expect(model.refreshFailure == nil)
+    }
+
+    #if canImport(UIKit)
+    @Test("refresh and failed retry retain the mounted detail subtree and its filter state")
+    func refreshKeepsMountedDetailState() async throws {
+        let model = EntityDetailModel<Int>()
+        await model.loadIfNeeded { .success(1) }
+        let probe = DetailRefreshMountProbe()
+        let host = HostedView(DetailRefreshMountView(model: model, probe: probe))
+        await host.settle()
+        #expect(probe.mounts == 1)
+        probe.requestedFilter = "Weekend"
+        await host.settle()
+        probe.probe += 1
+        await host.settle()
+        #expect(probe.observedFilter == "Weekend")
+        let keyWindow = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows).first(where: { $0.isKeyWindow })
+        let window = try #require(keyWindow)
+        let scroll = try #require(firstScrollView(in: window))
+        scroll.setContentOffset(CGPoint(x: 0, y: 240), animated: false)
+        await host.settle()
+        let offset = scroll.contentOffset.y
+        #expect(offset > 0)
+        let gate = DetailCancellationResponseGate()
+        defer { gate.resolveAll() }
+        let refresh = Task { await model.refresh { await gate.fetch() } }
+        try await gate.waitForRequests(1)
+        await host.settle()
+        #expect(probe.mounts == 1)
+        #expect(firstScrollView(in: window) === scroll)
+        #expect(abs(scroll.contentOffset.y - offset) < 1)
+        try saveRefreshSnapshot(host, state: "pending")
+        gate.resolve(0, .failure(.network("Offline")))
+        await refresh.value
+        await host.settle()
+        #expect(probe.mounts == 1)
+        #expect(abs(scroll.contentOffset.y - offset) < 1)
+        try saveRefreshSnapshot(host, state: "failure")
+        // Clear the external request: only the mounted child's State retains it.
+        probe.requestedFilter = nil
+        await model.refresh { .success(2) }
+        await host.settle()
+        probe.probe += 1
+        await host.settle()
+        #expect(probe.mounts == 1)
+        #expect(probe.observedFilter == "Weekend")
+        #expect(firstScrollView(in: window) === scroll)
+        #expect(abs(scroll.contentOffset.y - offset) < 1)
+        try saveRefreshSnapshot(host, state: "success")
+    }
+
+    private func firstScrollView(in view: UIView) -> UIScrollView? {
+        if let scroll = view as? UIScrollView, scroll.contentSize.height > scroll.bounds.height { return scroll }
+        return view.subviews.lazy.compactMap { firstScrollView(in: $0) }.first
+    }
+
+    private func saveRefreshSnapshot(_ host: HostedView, state: String) throws {
+        let data = try #require(try host.snapshot().pngData())
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4021-refresh-\(state).png")
+        try data.write(to: path)
+        print("Detail refresh snapshot: \(path.path)")
+    }
+    #endif
+
+    private func value(_ model: EntityDetailModel<Int>) -> Int? {
+        guard case .success(let value) = model.phase else { return nil }
+        return value
+    }
+}
+
+#if canImport(UIKit)
+@MainActor
+private final class DetailRefreshMountProbe: ObservableObject {
+    var mounts = 0
+    var observedFilter = ""
+    @Published var requestedFilter: String?
+    @Published var probe = 0
+}
+
+private struct DetailRefreshMountView: View {
+    @ObservedObject var model: EntityDetailModel<Int>
+    @ObservedObject var probe: DetailRefreshMountProbe
+
+    var body: some View {
+        switch model.phase {
+        case .success(let value):
+            VStack {
+                DetailRefreshStatus(isRefreshing: model.isRefreshing, failure: model.refreshFailure) {
+                    Task { await model.refresh { .success(value) } }
+                }
+                DetailRefreshStatefulChild(value: value, probe: probe)
+            }
+        default:
+            Text("Loading or unavailable")
+        }
+    }
+}
+
+private struct DetailRefreshStatefulChild: View {
+    let value: Int
+    @ObservedObject var probe: DetailRefreshMountProbe
+    @State private var selectedFilter = "Tonight"
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("\(value): \(selectedFilter)")
+                ForEach(0..<40) { row in Text("Upcoming show \(row)").frame(height: 44) }
+            }.frame(maxWidth: .infinity, alignment: .leading).padding()
+        }
+            .onAppear { probe.mounts += 1 }
+            .onReceive(probe.$requestedFilter) { if let filter = $0 { selectedFilter = filter } }
+            .onReceive(probe.$probe) { _ in probe.observedFilter = selectedFilter }
     }
 }
 #endif
