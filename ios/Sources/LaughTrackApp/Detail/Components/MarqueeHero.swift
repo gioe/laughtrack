@@ -10,6 +10,7 @@ struct MarqueeHero: View {
     @Environment(\.appTheme) private var theme
 
     let title: String
+    var subtitle: String? = nil
     var eyebrow: String? = nil
     var titleTopPadding: CGFloat = 18
     let imageURL: String
@@ -47,18 +48,29 @@ struct MarqueeHero: View {
                     .padding(.horizontal, 24)
             }
 
-            Text(title)
-                .font(.system(size: 24, weight: .heavy, design: .rounded))
-                .tracking(0.4)
-                .textCase(.uppercase)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
-                .lineLimit(3)
-                .minimumScaleFactor(0.7)
-                .fixedSize(horizontal: false, vertical: true)
-                .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
-                .padding(.horizontal, 24)
-                .padding(.top, titleTopPadding)
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(.system(size: 24, weight: .heavy, design: .rounded))
+                    .tracking(0.4)
+                    .textCase(.uppercase)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.white)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.7)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
+                    .padding(.horizontal, 24)
+                    .padding(.top, titleTopPadding)
+
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 24)
+                }
+            }
 
             if actionPlacement == .belowTitle {
                 heroActions

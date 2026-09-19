@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import HTTPTypes
 import OpenAPIRuntime
 import Testing
@@ -615,4 +616,103 @@ private final class MockClubDetailTransport: ClientTransport, @unchecked Sendabl
             )
         }
     }
+}
+
+
+@Suite("Club detail location presentation", .serialized)
+@MainActor
+struct ClubDetailLocationPresentationTests {
+    private func venue(address: String, website: String = "https://example.com") -> Components.Schemas.ClubDetail {
+        .init(id: 201, name: "Comedy Cellar", imageUrl: "", heroImageUrl: "", website: website, address: address, zipCode: "10012")
+    }
+
+    @Test("full address and locality appear once without appending duplicate postal data")
+    func readableAddress() {
+        let club = venue(address: "  117 MacDougal St, New York, NY 10012  ")
+        #expect(ClubDetailLocationPresentation.address(for: club) == "117 MacDougal St, New York, NY 10012")
+        #expect(ClubDetailLocationPresentation.address(for: venue(address: "117 MacDougal St")) == "117 MacDougal St")
+        #expect(ClubDetailLocationPresentation.address(for: venue(address: " 12 Main St\n\tMontréal ")) == "12 Main St Montréal")
+    }
+
+    @Test("missing or malformed addresses do not expose a directions destination", arguments: ["", " \n\t ", "---", "https://example.com", "<p>unknown</p>", "Main\u{0000}Street"])
+    func missingOrMalformedAddress(address: String) {
+        let club = venue(address: address)
+        #expect(ClubDetailLocationPresentation.address(for: club) == nil)
+        #expect(ClubDetailLocationPresentation.directionsURL(for: club) == nil)
+        #expect(ClubDetailHeroPresentation.actions(for: club).first { $0.title == "Directions" }?.url == nil)
+    }
+
+    @Test("Maps receives the entire Unicode address as a single destination", arguments: ["12 A & B St #2, Montréal", "東京都渋谷区宇田川町", "Main Street, London"])
+    func mapsEncoding(address: String) throws {
+        let club = venue(address: address)
+        let url = try #require(ClubDetailLocationPresentation.directionsURL(for: club))
+        let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
+        #expect(components.scheme == "https")
+        #expect(components.host == "maps.apple.com")
+        #expect(components.queryItems == [URLQueryItem(name: "daddr", value: address)])
+    }
+
+    @Test("malformed website destinations are not actionable", arguments: ["", "  ", "javascript:alert(1)", "mailto:hello@example.com", "/venue", "not a website", "https://", "https://user:pass@example.com", "example"])
+    func malformedWebsite(website: String) {
+        let club = venue(address: "117 MacDougal St", website: website)
+        #expect(ClubDetailLocationPresentation.websiteURL(for: club) == nil)
+        #expect(ClubDetailHeroPresentation.actions(for: club).first { $0.title == "Website" }?.url == nil)
+        #expect(ClubDetailLocationPresentation.directionsURL(for: club) != nil)
+    }
+
+    @Test("valid website normalization preserves usable venue links", arguments: ["https://example.com/venue", "http://example.com", "example.com/venue", "  https://example.com  "])
+    func validWebsite(website: String) {
+        #expect(ClubDetailLocationPresentation.websiteURL(for: venue(address: "", website: website))?.host == "example.com")
+    }
+
+    @Test("similarly named venues retain their own location")
+    func distinctVenues() {
+        let first = venue(address: "117 MacDougal St, New York, NY")
+        var second = venue(address: "130 W 3rd St, New York, NY")
+        second.id = 202
+        #expect(first.name == second.name)
+        #expect(ClubDetailLocationPresentation.address(for: first) != ClubDetailLocationPresentation.address(for: second))
+        #expect(ClubDetailLocationPresentation.directionsURL(for: first) != ClubDetailLocationPresentation.directionsURL(for: second))
+    }
+
+    #if canImport(UIKit)
+    @Test("capture location near venue identity with tonight and upcoming shows", arguments: ["long", "street-only", "sibling"])
+    func captureLocation(scenario: String) async throws {
+        let address = scenario == "long"
+            ? "12345 West Martin Luther King Junior Boulevard, Suite 200, San Francisco, CA 94103"
+            : scenario == "street-only" ? "117 MacDougal St" : "130 W 3rd St, New York, NY"
+        let club = venue(address: address)
+        let show = Components.Schemas.Show(id: 301, clubId: club.id, clubName: club.name, date: Date().addingTimeInterval(3600), name: "Tonight at the Cellar", imageUrl: "", soldOut: false)
+        let encoder = APIMockEncoder.make()
+        let clubData = try encoder.encode(Operations.GetClub.Output.Ok.Body.JsonPayload(data: club))
+        let highlightsData = try encoder.encode(Components.Schemas.ClubHighlightsResponse(data: .init(tonightShows: [show], nextShow: show, frequentPerformers: [])))
+        let showsData = try encoder.encode(Components.Schemas.ShowSearchResponse(data: [show], total: 1, filters: [], zipCapTriggered: false))
+        let transport = StubClientTransport { _, _, _, operation in
+            let data: Data
+            switch operation {
+            case "getClub": data = clubData
+            case "getClubHighlights": data = highlightsData
+            case "searchShows": data = showsData
+            default: throw URLError(.unsupportedURL)
+            }
+            return (HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]), HTTPBody(data))
+        }
+        let client = Client(serverURL: URL(string: "https://example.com")!, configuration: .laughTrack, transport: transport)
+        let auth = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "club-location-\(scenario)")
+        let host = HostedView(ClubDetailView(clubId: club.id, apiClient: client)
+            .environmentObject(TypedNavigationCoordinator<AppRoute>())
+            .environmentObject(auth)
+            .environmentObject(ComedianFavoriteStore())
+            .environmentObject(ClubFavoriteStore())
+            .environmentObject(LoginModalPresenter())
+            .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "club-location-\(scenario)"))
+            .environment(\.scenePhase, .active))
+        await host.settle()
+        #expect(transport.capturedRequests.contains { $0.operationID == "getClub" })
+        #expect(transport.capturedRequests.contains { $0.operationID == "getClubHighlights" })
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent("task4023-\(scenario).png")
+        try #require(try host.snapshot().pngData()).write(to: path)
+        print("Club location capture: \(path.path)")
+    }
+    #endif
 }

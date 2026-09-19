@@ -51,6 +51,7 @@ struct ClubDetailView: View {
                         VStack(spacing: ClubVenueMarqueeStyle.artworkToBoardSpacing) {
                             MarqueeHero(
                                 title: club.name,
+                                subtitle: ClubDetailLocationPresentation.address(for: club),
                                 imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
                                 thumbnailStyle: .clubMarquee,
                                 showsThumbnail: true,
@@ -589,13 +590,53 @@ enum ClubDetailHeroPresentation {
             DetailHeroAction(
                 title: "Website",
                 systemImage: "arrow.up.right",
-                url: URL.normalizedExternalURL(club.website)
+                url: ClubDetailLocationPresentation.websiteURL(for: club)
             ),
             DetailHeroAction(
                 title: "Directions",
                 systemImage: "map.fill",
-                url: URL.mapsURL(for: club.address)
+                url: ClubDetailLocationPresentation.directionsURL(for: club)
             )
         ]
+    }
+}
+
+/// Uses only venue-provided location data; ClubDetail has no locality fields.
+enum ClubDetailLocationPresentation {
+    static func address(for club: Components.Schemas.ClubDetail) -> String? {
+        let raw = club.address
+        let invalidControls = CharacterSet.controlCharacters.subtracting(.whitespacesAndNewlines)
+        guard raw.rangeOfCharacter(from: invalidControls) == nil else { return nil }
+        let address = raw.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        guard address.rangeOfCharacter(from: .alphanumerics) != nil,
+              !address.contains("<"), !address.contains(">"),
+              !address.contains("://"),
+              !address.lowercased().hasPrefix("www.") else { return nil }
+        return address
+    }
+
+    static func directionsURL(for club: Components.Schemas.ClubDetail) -> URL? {
+        guard let address = address(for: club) else { return nil }
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "maps.apple.com"
+        components.path = "/"
+        components.queryItems = [URLQueryItem(name: "daddr", value: address)]
+        return components.url
+    }
+
+    static func websiteURL(for club: Components.Schemas.ClubDetail) -> URL? {
+        let value = club.website.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty, !value.hasPrefix("/"),
+              value.rangeOfCharacter(from: .whitespacesAndNewlines.union(.controlCharacters)) == nil,
+              let url = URL.normalizedExternalURL(value),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https",
+              let host = url.host, !host.isEmpty,
+              url.user == nil, url.password == nil else { return nil }
+        if URL(string: value)?.scheme == nil, !host.contains(".") {
+            return nil
+        }
+        return url
     }
 }
