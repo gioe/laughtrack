@@ -1,6 +1,32 @@
 import SwiftUI
 import LaughTrackBridge
 
+enum DetailDescriptionText {
+    static func normalized(_ value: String?) -> String? {
+        guard var text = value else { return nil }
+        // Listing and feed descriptions may carry HTML. Display only plain text,
+        // preserving paragraph breaks.
+        text = text.replacingOccurrences(of: "(?is)<(script|style)\\b[^>]*>.*?</\\1\\s*>", with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: "(?i)<\\s*br\\s*/?\\s*>", with: "\n", options: .regularExpression)
+        text = text.replacingOccurrences(of: "(?i)</\\s*(p|div|li|h[1-6])\\s*>", with: "\n\n", options: .regularExpression)
+        text = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        let entities = ["amp": "&", "quot": "\"", "apos": "'", "lt": "<", "gt": ">", "nbsp": " ",
+                        "hellip": "…", "mdash": "—", "ndash": "–", "rsquo": "’", "lsquo": "‘", "ldquo": "“", "rdquo": "”"]
+        if let pattern = try? NSRegularExpression(pattern: "&(#x[0-9a-f]+|#[0-9]+|[a-z]+);", options: .caseInsensitive) {
+            for match in pattern.matches(in: text, range: NSRange(text.startIndex..., in: text)).reversed() {
+                guard let range = Range(match.range, in: text), let keyRange = Range(match.range(at: 1), in: text) else { continue }
+                let key = String(text[keyRange]).lowercased()
+                let number = key.hasPrefix("#x") ? UInt32(key.dropFirst(2), radix: 16)
+                    : key.hasPrefix("#") ? UInt32(key.dropFirst()) : nil
+                let replacement = entities[key] ?? number.flatMap(UnicodeScalar.init).map(String.init)
+                if let replacement { text.replaceSubrange(range, with: replacement) }
+            }
+        }
+        return text.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+    }
+}
+
 struct DetailInfoRow {
     let label: String
     let value: String?

@@ -210,6 +210,22 @@ struct PodcastDetailView: View {
                                 await model.reload(cache: detailCache)
                             }
 
+                            PodcastLatestEpisodeAction(
+                                podcast: response.podcast,
+                                episodes: response.episodes,
+                                podcastPlayer: podcastPlayer
+                            )
+
+                            if let introduction = PodcastDetailPresentation.introduction(for: response.podcast) {
+                                DetailTextCard(
+                                    eyebrow: nil,
+                                    title: "About this podcast",
+                                    text: introduction,
+                                    isCollapsible: true,
+                                    collapsedLineLimit: 3
+                                )
+                            }
+
                             PodcastEpisodeListSection(
                                 podcast: response.podcast,
                                 episodes: response.episodes,
@@ -277,6 +293,30 @@ struct PodcastDetailView: View {
 }
 
 enum PodcastDetailPresentation {
+    static func introduction(for podcast: PodcastDetail) -> String? {
+        DetailDescriptionText.normalized(podcast.description)
+    }
+
+    static func latestPlayableEpisode(in episodes: [PodcastDetailEpisode]) -> PodcastDetailEpisode? {
+        episodes
+            .filter { playableAudioURL($0.audioUrl) != nil }
+            .sorted { lhs, rhs in
+                let lhsDate = parsedReleaseDate(lhs.releaseDate)
+                let rhsDate = parsedReleaseDate(rhs.releaseDate)
+                switch (lhsDate, rhsDate) {
+                case let (lhsDate?, rhsDate?) where lhsDate != rhsDate:
+                    return lhsDate > rhsDate
+                case (_?, nil):
+                    return true
+                case (nil, _?):
+                    return false
+                default:
+                    return lhs.id > rhs.id
+                }
+            }
+            .first
+    }
+
     static func heroBadges(for podcast: PodcastDetail) -> [DetailHeroBadge] {
         []
     }
@@ -393,11 +433,20 @@ enum PodcastDetailPresentation {
             podcastName: podcast.title,
             podcastImageURL: podcast.imageUrl,
             displayRole: "",
-            audioURL: URL.normalizedExternalURL(episode.audioUrl),
+            audioURL: playableAudioURL(episode.audioUrl),
             episodeURL: URL.normalizedExternalURL(episode.episodeUrl),
             failedAudioURL: nil,
             releaseDate: episode.releaseDate
         )
+    }
+
+    private static func playableAudioURL(_ value: String?) -> URL? {
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines),
+              let url = URL.normalizedExternalURL(value),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "https" || scheme == "http",
+              let host = url.host, !host.isEmpty else { return nil }
+        return url
     }
 
     static func episodeMetadata(for episode: PodcastDetailEpisode) -> String {
@@ -410,13 +459,14 @@ enum PodcastDetailPresentation {
         .nonEmpty ?? "Episode"
     }
 
-    private static func formattedReleaseDate(_ value: String?) -> String? {
+    private static func parsedReleaseDate(_ value: String?) -> Date? {
         guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !value.isEmpty,
-              let date = Date.laughTrackISO8601(value) ?? releaseDateOnlyParser.date(from: value) else {
-            return nil
-        }
+              !value.isEmpty else { return nil }
+        return Date.laughTrackISO8601(value) ?? releaseDateOnlyParser.date(from: value)
+    }
 
+    private static func formattedReleaseDate(_ value: String?) -> String? {
+        guard let date = parsedReleaseDate(value) else { return nil }
         return releaseDateFormatter.string(from: date)
     }
 
@@ -453,6 +503,26 @@ enum PodcastDetailPresentation {
         formatter.isLenient = false
         return formatter
     }()
+}
+
+struct PodcastLatestEpisodeAction: View {
+    let podcast: PodcastDetail
+    let episodes: [PodcastDetailEpisode]
+    @ObservedObject var podcastPlayer: PodcastPlaybackController
+
+    var body: some View {
+        if let episode = PodcastDetailPresentation.latestPlayableEpisode(in: episodes) {
+            LaughTrackButton("Play latest episode", systemImage: "play.fill", action: playLatestEpisode)
+                .accessibilityIdentifier("podcastDetail.latestEpisode")
+                .accessibilityHint(episode.title)
+        }
+    }
+
+    @MainActor
+    func playLatestEpisode() {
+        guard let episode = PodcastDetailPresentation.latestPlayableEpisode(in: episodes) else { return }
+        podcastPlayer.start(PodcastDetailPresentation.episodeItem(podcast: podcast, episode: episode))
+    }
 }
 
 private struct PodcastEpisodeListSection: View {

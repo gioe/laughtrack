@@ -328,3 +328,140 @@ private struct RecordingPodcastDetailFetcher: PodcastDetailFetching {
         result
     }
 }
+
+@Suite("Podcast introduction")
+@MainActor
+struct PodcastIntroductionTests {
+    @Test("empty and markup-only descriptions do not create an introduction", arguments: [nil, "", "  \n ", "<p>&nbsp;</p>", "<script>ignore()</script>"] as [String?])
+    func emptyDescriptions(_ description: String?) {
+        #expect(PodcastDetailPresentation.introduction(for: PodcastIntroFixtures.podcast(description)) == nil)
+    }
+
+    @Test("introduction decodes source HTML while preserving paragraphs")
+    func formattedDescription() {
+        let podcast = PodcastIntroFixtures.podcast("<p>Comedy &amp; conversation.</p><p>Meet &#233;very guest.<br>Weekly.</p>")
+        #expect(PodcastDetailPresentation.introduction(for: podcast) == "Comedy & conversation.\n\nMeet évery guest.\nWeekly.")
+    }
+
+    @Test("short introductions stay concise and long introductions can expand")
+    func disclosurePolicy() throws {
+        let short = try #require(PodcastDetailPresentation.introduction(for: PodcastIntroFixtures.podcast("Comedy every week.")))
+        let long = try #require(PodcastDetailPresentation.introduction(for: PodcastIntroFixtures.podcast(PodcastIntroFixtures.longDescription)))
+        #expect(!DetailTextCard.shouldCollapse(text: short, lineLimit: 3))
+        #expect(DetailTextCard.shouldCollapse(text: long, lineLimit: 3))
+        #expect(long.contains("Final paragraph"))
+    }
+
+    @Test("latest playable episode is selected by date rather than catalog order")
+    func newestAudio() {
+        let episodes = [PodcastIntroFixtures.episode(3, date: "2026-03-03", audio: nil), PodcastIntroFixtures.episode(1, date: "2026-03-01"), PodcastIntroFixtures.episode(2, date: "2026-03-02T12:00:00.000Z")]
+        #expect(PodcastDetailPresentation.latestPlayableEpisode(in: episodes)?.id == 2)
+        #expect(PodcastDetailPresentation.latestPlayableEpisode(in: Array(episodes.reversed()))?.id == 2)
+    }
+
+    @Test("valid release dates rank above missing and malformed dates")
+    func missingDates() {
+        let episodes = [PodcastIntroFixtures.episode(9, date: nil), PodcastIntroFixtures.episode(8, date: "not-a-date"), PodcastIntroFixtures.episode(1, date: "2020-01-01")]
+        #expect(PodcastDetailPresentation.latestPlayableEpisode(in: episodes)?.id == 1)
+        #expect(PodcastDetailPresentation.latestPlayableEpisode(in: Array(episodes.prefix(2)))?.id == 9)
+        #expect(PodcastDetailPresentation.latestPlayableEpisode(in: Array(episodes.prefix(2).reversed()))?.id == 9)
+    }
+
+    @Test("equal dates use a deterministic episode ID tiebreaker")
+    func equalDates() {
+        let episodes = [PodcastIntroFixtures.episode(1, date: "2026-03-01"), PodcastIntroFixtures.episode(2, date: "2026-03-01T00:00:00Z")]
+        #expect(PodcastDetailPresentation.latestPlayableEpisode(in: episodes)?.id == 2)
+        #expect(PodcastDetailPresentation.latestPlayableEpisode(in: Array(episodes.reversed()))?.id == 2)
+    }
+
+    @Test("catalogs without audio offer browsing but no latest-play action")
+    func noAudio() {
+        let episodes = [nil, "", "  ", "javascript:alert(1)"].enumerated().map { index, audio in PodcastIntroFixtures.episode(index, date: "2026-03-01", audio: audio) }
+        #expect(PodcastDetailPresentation.latestPlayableEpisode(in: episodes) == nil)
+        #expect(PodcastDetailPresentation.latestPlayableEpisode(in: []) == nil)
+        let external = PodcastDetailPresentation.episodeItem(podcast: PodcastIntroFixtures.podcast(nil), episode: episodes[0])
+        #expect(external.episodeURL != nil)
+        #expect(external.audioURL == nil)
+    }
+}
+
+@MainActor
+private enum PodcastIntroFixtures {
+    static let longDescription = "<p>Comedians explore the stories behind their favorite jokes and welcome a new guest every week. Hear about life on the road, writing new material, and the moments that make a room laugh.</p><p>Each conversation brings a different perspective on stand-up and the people who create it.</p><p>Final paragraph: new episodes arrive every Monday.</p>"
+    static func podcast(_ description: String?) -> PodcastDetail {
+        PodcastDetail(id: 42, title: "The Laugh Track Pod", authorName: "Taylor", websiteUrl: "https://example.com", feedUrl: nil, imageUrl: nil, description: description, episodeCount: 2, hosts: [.init(id: 7, uuid: "host-7", name: "Taylor", imageUrl: "")])
+    }
+    static func episode(_ id: Int, date: String?, audio: String? = "https://example.com/audio.mp3") -> PodcastDetailEpisode {
+        PodcastDetailEpisode(id: id, title: "Episode \(id): Comedy conversations", description: nil, releaseDate: date, durationSeconds: 1800, episodeUrl: "https://example.com/episode/\(id)", audioUrl: audio, appearances: [])
+    }
+}
+
+#if canImport(UIKit)
+import SwiftUI
+import LaughTrackBridge
+
+@Suite("Podcast introduction hosted", .serialized)
+@MainActor
+struct PodcastIntroductionHostedTests {
+    @Test("latest-episode button starts the selected audio through the existing player")
+    func startsLatestEpisode() {
+        let engine = IntroductionAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine, registersRemoteCommands: false)
+        let action = PodcastLatestEpisodeAction(
+            podcast: PodcastIntroFixtures.podcast(nil),
+            episodes: [PodcastIntroFixtures.episode(1, date: "2026-03-01"), PodcastIntroFixtures.episode(2, date: "2026-03-02", audio: "https://example.com/new.mp3")],
+            podcastPlayer: player
+        )
+        // Exercise the exact button action directly; hosted accessibility trees
+        // are unavailable on some simulator runtimes.
+        action.playLatestEpisode()
+        #expect(player.currentItem?.episodeID == 2)
+        #expect(engine.loadedURL?.absoluteString == "https://example.com/new.mp3")
+        #expect(engine.playCount == 1)
+        PodcastLatestEpisodeAction(podcast: PodcastIntroFixtures.podcast(nil), episodes: [], podcastPlayer: player).playLatestEpisode()
+        #expect(player.currentItem?.episodeID == 2)
+        #expect(engine.playCount == 1)
+    }
+
+    @Test("review introduction and catalog states", arguments: ["short", "long", "empty", "no-audio", "no-description"])
+    func reviewStates(_ scenario: String) async throws {
+        let description = scenario == "no-description" ? nil : scenario == "long" ? PodcastIntroFixtures.longDescription : "Comedians talk about the stories behind their favorite jokes. New conversations every week."
+        let podcast = PodcastIntroFixtures.podcast(description)
+        let episodes = scenario == "empty" ? [] : [PodcastIntroFixtures.episode(1, date: "2026-03-01", audio: scenario == "no-audio" ? nil : "https://example.com/old.mp3"), PodcastIntroFixtures.episode(2, date: "2026-03-02", audio: scenario == "no-audio" ? nil : "https://example.com/new.mp3")]
+        let response = PodcastDetailResponse(podcast: podcast, episodes: episodes, relatedComedians: [])
+        let auth = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "podcast-intro")
+        let engine = IntroductionAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine, registersRemoteCommands: false)
+        let host = HostedView(NavigationStack {
+            PodcastDetailView(podcastID: 42, apiClient: LaughTrackHostedViewTestSupport.makeClient(), fetcher: IntroductionFetcher(response: response))
+        }
+        .environmentObject(TypedNavigationCoordinator<AppRoute>())
+        .environmentObject(auth)
+        .environmentObject(player)
+        .environmentObject(PodcastFavoriteStore())
+        .environmentObject(LoginModalPresenter())
+        .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "podcast-intro"))
+        .environment(\.scenePhase, .active)
+        .environment(\.horizontalSizeClass, .compact), freshWindow: true, viewportSize: CGSize(width: 375, height: 812))
+        await host.settle()
+        let first = try host.snapshot()
+        let output = FileManager.default.temporaryDirectory.appendingPathComponent("task4025-\(scenario).png")
+        try #require(first.pngData()).write(to: output)
+        print("Podcast introduction capture: \(output.path)")
+    }
+}
+
+private struct IntroductionFetcher: PodcastDetailFetching {
+    let response: PodcastDetailResponse
+    func podcastDetail(id: Int) async -> Result<PodcastDetailResponse, LoadFailure> { .success(response) }
+}
+@MainActor
+private final class IntroductionAudioEngine: PodcastAudioEngine {
+    var loadedURL: URL?
+    var playCount = 0
+    func load(url: URL, onFailure: @escaping () -> Void) { loadedURL = url }
+    func play() { playCount += 1 }
+    func pause() {}
+    func stop() {}
+}
+#endif
