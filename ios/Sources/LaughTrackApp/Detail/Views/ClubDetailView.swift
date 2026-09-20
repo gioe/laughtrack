@@ -595,7 +595,8 @@ enum ClubDetailHeroPresentation {
             DetailHeroAction(
                 title: "Directions",
                 systemImage: "map.fill",
-                url: ClubDetailLocationPresentation.directionsURL(for: club)
+                url: ClubDetailLocationPresentation.directionsURL(for: club),
+                role: .attendance
             )
         ]
     }

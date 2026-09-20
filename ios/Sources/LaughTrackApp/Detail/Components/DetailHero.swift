@@ -8,10 +8,16 @@ struct DetailHeroBadge {
     var isLive: Bool = false
 }
 
+enum DetailHeroActionRole {
+    case secondary
+    case attendance
+}
+
 struct DetailHeroAction {
     let title: String
     let systemImage: String
     let url: URL?
+    var role: DetailHeroActionRole = .secondary
 }
 
 struct DetailHeroHost {

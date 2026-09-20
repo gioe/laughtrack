@@ -8,6 +8,7 @@ import LaughTrackBridge
 /// host chips stack below.
 struct MarqueeHero: View {
     @Environment(\.appTheme) private var theme
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     let title: String
     var subtitle: String? = nil
@@ -28,10 +29,14 @@ struct MarqueeHero: View {
     var openComedian: ((Int) -> Void)? = nil
     var fallbackSystemImage: String = ArtworkFallbackKind.show.systemImage
 
+    private var layout: MarqueeHeroLayout {
+        MarqueeHeroLayout(isCompact: horizontalSizeClass == .compact)
+    }
+
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(spacing: 14) {
+        VStack(spacing: layout.contentSpacing) {
             // Spacer that preserves the title's y-position now that the
             // back/favorite chrome lives in a sticky overlay outside the
             // ScrollView. Same height as the original chromeBar (36pt).
@@ -60,7 +65,7 @@ struct MarqueeHero: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
                     .padding(.horizontal, 24)
-                    .padding(.top, titleTopPadding)
+                    .padding(.top, layout.isCompact ? min(titleTopPadding, 6) : titleTopPadding)
 
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
@@ -101,15 +106,26 @@ struct MarqueeHero: View {
             }
 
             if let openComedian, !hosts.isEmpty {
-                HStack(spacing: theme.spacing.md) {
-                    ForEach(hosts, id: \.id) { host in
-                        hostChip(host: host, openComedian: openComedian)
+                if layout.isCompact {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(hosts, id: \.id) { host in
+                                compactHostLink(host: host, openComedian: openComedian)
+                            }
+                        }
+                        .padding(.horizontal, 24)
+                    }
+                } else {
+                    HStack(spacing: theme.spacing.md) {
+                        ForEach(hosts, id: \.id) { host in
+                            hostChip(host: host, openComedian: openComedian)
+                        }
                     }
                 }
             }
         }
         .padding(.top, Self.statusBarOffset)
-        .padding(.bottom, bottomPadding ?? theme.spacing.lg)
+        .padding(.bottom, layout.isCompact ? min(bottomPadding ?? theme.spacing.lg, 12) : (bottomPadding ?? theme.spacing.lg))
         .frame(maxWidth: .infinity)
     }
 
@@ -118,10 +134,40 @@ struct MarqueeHero: View {
         if let openURL, !actions.isEmpty {
             let visibleActions = actions.filter { $0.url != nil }
             if !visibleActions.isEmpty {
-                HStack(spacing: theme.spacing.md) {
-                    ForEach(Array(visibleActions.enumerated()), id: \.offset) { _, action in
-                        if let url = action.url {
-                            actionButton(action: action, url: url, openURL: openURL)
+                if layout.isCompact {
+                    HStack(spacing: 16) {
+                        ForEach(Array(visibleActions.filter { $0.role == .attendance }.enumerated()), id: \.offset) { _, action in
+                            if let url = action.url {
+                                actionButton(action: action, url: url, openURL: openURL)
+                            }
+                        }
+                        let secondaryActions = visibleActions.filter { $0.role == .secondary }
+                        if !secondaryActions.isEmpty {
+                            Menu {
+                                ForEach(Array(secondaryActions.enumerated()), id: \.offset) { _, action in
+                                    if let url = action.url {
+                                        Button { openURL(url) } label: {
+                                            Label(action.title, systemImage: action.systemImage)
+                                        }
+                                    }
+                                }
+                            } label: {
+                                Label("Links", systemImage: "link")
+                                    .font(.subheadline)
+                                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                                    .frame(minWidth: 44, minHeight: 44)
+                                    .contentShape(Rectangle())
+                            }
+                            .accessibilityLabel("Links")
+                            .accessibilityHint("Opens website and external links")
+                        }
+                    }
+                } else {
+                    HStack(spacing: theme.spacing.md) {
+                        ForEach(Array(visibleActions.enumerated()), id: \.offset) { _, action in
+                            if let url = action.url {
+                                actionButton(action: action, url: url, openURL: openURL)
+                            }
                         }
                     }
                 }
@@ -169,30 +215,38 @@ struct MarqueeHero: View {
         case .marqueePoster:
             MarqueePosterThumbnail(
                 imageURL: imageURL,
-                fallbackSystemImage: fallbackSystemImage
+                fallbackSystemImage: fallbackSystemImage,
+                imageSize: layout.posterImageSize
             )
         case .framedComedian:
             if thumbnailHeadshots.count > 1 {
                 FramedComedianCarouselThumbnail(
                     headshots: thumbnailHeadshots,
-                    fallbackSystemImage: fallbackSystemImage
+                    fallbackSystemImage: fallbackSystemImage,
+                    photoSize: layout.comedianPhotoSize,
+                    frameSize: layout.comedianFrameSize
                 )
             } else {
                 FramedComedianThumbnail(
                     imageURL: imageURL,
                     fallbackSystemImage: fallbackSystemImage,
-                    caption: thumbnailCaption
+                    caption: thumbnailCaption,
+                    photoSize: layout.comedianPhotoSize,
+                    frameSize: layout.comedianFrameSize
                 )
             }
         case .clubMarquee:
             ClubMarqueeThumbnail(
                 imageURL: imageURL,
-                fallbackSystemImage: fallbackSystemImage
+                fallbackSystemImage: fallbackSystemImage,
+                imageSize: layout.posterImageSize
             )
         case .podcastRail:
             PodcastRailThumbnail(
                 imageURL: imageURL,
-                fallbackSystemImage: fallbackSystemImage
+                fallbackSystemImage: fallbackSystemImage,
+                coverSize: layout.podcastCoverSize,
+                stageSize: layout.podcastStageSize
             )
         }
     }
@@ -208,7 +262,7 @@ struct MarqueeHero: View {
         Button {
             openURL(url)
         } label: {
-            switch actionStyle {
+            switch layout.isCompact ? .compactPill : actionStyle {
             case .iconStack:
                 VStack(spacing: 2) {
                     Image(systemName: action.systemImage)
@@ -243,6 +297,28 @@ struct MarqueeHero: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(action.title)
+    }
+
+    private func compactHostLink(host: DetailHeroHost, openComedian: @escaping (Int) -> Void) -> some View {
+        Button { openComedian(host.id) } label: {
+            HStack(spacing: 6) {
+                DetailThumbnailImage(
+                    imageURL: host.imageURL ?? "",
+                    fallbackSystemImage: ArtworkFallbackKind.person.systemImage,
+                    contentMode: .fill
+                )
+                .frame(width: 28, height: 28)
+                .clipShape(Circle())
+                Text(host.name)
+                    .font(.subheadline)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(host.name), host")
     }
 
     @ViewBuilder
@@ -324,6 +400,23 @@ struct MarqueeHero: View {
     }
 }
 
+/// Real layout dimensions, rather than visual scaling, bring content closer to
+/// the entity identity on phones. Regular-width compositions keep their artwork.
+struct MarqueeHeroLayout {
+    let isCompact: Bool
+
+    var contentSpacing: CGFloat { isCompact ? 8 : 14 }
+    var posterImageSize: CGFloat { isCompact ? 112 : 196 }
+    var comedianPhotoSize: CGFloat { isCompact ? 112 : 208 }
+    var comedianFrameSize: CGSize {
+        isCompact ? CGSize(width: 148, height: 172) : CGSize(width: 244, height: 278)
+    }
+    var podcastCoverSize: CGFloat { isCompact ? 104 : 150 }
+    var podcastStageSize: CGSize {
+        isCompact ? CGSize(width: 156, height: 154) : CGSize(width: 224, height: 210)
+    }
+}
+
 enum MarqueeHeroThumbnailStyle {
     case marqueePoster
     case framedComedian
@@ -385,6 +478,7 @@ struct DetailHeroHeadshot: Identifiable, Hashable {
 struct MarqueePosterThumbnail: View {
     let imageURL: String
     let fallbackSystemImage: String
+    var imageSize: CGFloat = 196
 
     @Environment(\.appTheme) private var theme
     @State private var imageLoadFailed = false
@@ -402,7 +496,7 @@ struct MarqueePosterThumbnail: View {
 
         ZStack {
             poster
-                .frame(width: Self.posterSize, height: Self.posterSize)
+                .frame(width: imageSize, height: imageSize)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -420,8 +514,8 @@ struct MarqueePosterThumbnail: View {
                     )
                 )
                 .frame(
-                    width: Self.posterSize + Self.frameInset,
-                    height: Self.posterSize + Self.frameInset
+                    width: imageSize + Self.frameInset,
+                    height: imageSize + Self.frameInset
                 )
                 .shadow(color: laughTrack.colors.accentStrong.opacity(0.65), radius: 6)
                 .shadow(color: laughTrack.colors.accentStrong.opacity(0.3), radius: 14)
@@ -500,12 +594,11 @@ struct FramedComedianThumbnail: View {
     let imageURL: String
     let fallbackSystemImage: String
     let caption: String?
+    var photoSize: CGFloat = 208
+    var frameSize: CGSize = CGSize(width: 244, height: 278)
 
     @Environment(\.appTheme) private var theme
 
-    private static let headshotSize: CGFloat = 208
-    private static let frameWidth: CGFloat = 244
-    private static let frameHeight: CGFloat = 278
     private static let cornerRadius: CGFloat = 12
 
     var body: some View {
@@ -515,12 +608,12 @@ struct FramedComedianThumbnail: View {
         {
             ClubWallHeadshotFrame(
                 caption: caption,
-                photoWidth: Self.headshotSize,
-                photoHeight: Self.headshotSize,
-                frameWidth: Self.frameWidth,
-                frameHeight: Self.frameHeight,
+                photoWidth: photoSize,
+                photoHeight: photoSize,
+                frameWidth: frameSize.width,
+                frameHeight: frameSize.height,
                 captionFontSize: 14,
-                captionWidth: Self.headshotSize,
+                captionWidth: photoSize,
                 captionHeight: 24,
                 rotationDegrees: -0.4
             ) {
@@ -528,7 +621,7 @@ struct FramedComedianThumbnail: View {
             }
         } else {
             thumbnailImage
-                .frame(width: Self.headshotSize, height: Self.headshotSize)
+                .frame(width: photoSize, height: photoSize)
                 .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
@@ -556,6 +649,8 @@ struct FramedComedianThumbnail: View {
 private struct FramedComedianCarouselThumbnail: View {
     let headshots: [DetailHeroHeadshot]
     let fallbackSystemImage: String
+    var photoSize: CGFloat = 208
+    var frameSize: CGSize = CGSize(width: 244, height: 278)
 
     @State private var selectedIndex = 0
     @State private var pauseAutoAdvanceUntil = Date.distantPast
@@ -570,7 +665,9 @@ private struct FramedComedianCarouselThumbnail: View {
             FramedComedianThumbnail(
                 imageURL: selected.imageURL,
                 fallbackSystemImage: fallbackSystemImage,
-                caption: selected.name
+                caption: selected.name,
+                photoSize: photoSize,
+                frameSize: frameSize
             )
             .id(selected.id)
             .transition(
@@ -624,6 +721,7 @@ private struct FramedComedianCarouselThumbnail: View {
 struct ClubMarqueeThumbnail: View {
     let imageURL: String
     let fallbackSystemImage: String
+    var imageSize: CGFloat = 196
 
     var body: some View {
         ZStack {
@@ -632,7 +730,7 @@ struct ClubMarqueeThumbnail: View {
                 fallbackSystemImage: fallbackSystemImage,
                 contentMode: .fit
             )
-            .frame(width: MarqueePosterThumbnail.posterSize, height: MarqueePosterThumbnail.posterSize)
+            .frame(width: imageSize, height: imageSize)
             .background(ClubVenueMarqueeStyle.paper)
             .clipShape(RoundedRectangle(cornerRadius: ClubVenueMarqueeStyle.cornerRadius, style: .continuous))
             .overlay(
@@ -646,8 +744,8 @@ struct ClubMarqueeThumbnail: View {
                     style: ClubVenueMarqueeStyle.bulbStroke
                 )
                 .frame(
-                    width: MarqueePosterThumbnail.posterSize + MarqueePosterThumbnail.frameInset,
-                    height: MarqueePosterThumbnail.posterSize + MarqueePosterThumbnail.frameInset
+                    width: imageSize + MarqueePosterThumbnail.frameInset,
+                    height: imageSize + MarqueePosterThumbnail.frameInset
                 )
                 .shadow(color: ClubVenueMarqueeStyle.bulbColor.opacity(0.22), radius: 2)
         }
@@ -657,13 +755,12 @@ struct ClubMarqueeThumbnail: View {
 struct PodcastRailThumbnail: View {
     let imageURL: String
     let fallbackSystemImage: String
+    var coverSize: CGFloat = 150
+    var stageSize: CGSize = CGSize(width: 224, height: 210)
 
     @Environment(\.appTheme) private var theme
 
-    private static let coverSize: CGFloat = 150
     private static let coverCornerRadius: CGFloat = 12
-    private static let stageWidth: CGFloat = 224
-    private static let stageHeight: CGFloat = 210
 
     var body: some View {
         ZStack {
@@ -674,7 +771,7 @@ struct PodcastRailThumbnail: View {
                 waveformStrip
             }
         }
-        .frame(width: Self.stageWidth, height: Self.stageHeight)
+        .frame(width: stageSize.width, height: stageSize.height)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
@@ -684,7 +781,7 @@ struct PodcastRailThumbnail: View {
             fallbackSystemImage: fallbackSystemImage,
             contentMode: .fill
         )
-        .frame(width: Self.coverSize, height: Self.coverSize)
+        .frame(width: coverSize, height: coverSize)
         .clipShape(RoundedRectangle(cornerRadius: Self.coverCornerRadius, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: Self.coverCornerRadius, style: .continuous)

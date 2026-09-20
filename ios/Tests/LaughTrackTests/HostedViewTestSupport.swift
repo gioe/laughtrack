@@ -210,8 +210,10 @@ final class HostedView {
 
     private let window: UIWindow
     private let hostingController: UIHostingController<AnyView>
+    private let viewportSize: CGSize?
 
-    init<Content: View>(_ rootView: Content, freshWindow: Bool = false) {
+    init<Content: View>(_ rootView: Content, freshWindow: Bool = false, viewportSize: CGSize? = nil) {
+        self.viewportSize = viewportSize
         // The shared-window default fixes the iOS 26 accessibility-tree wiring
         // problem (see class doc above). The `freshWindow` opt-out is for tests
         // that drive a SwiftUI `.toolbar` modifier through NavigationStack:
@@ -258,6 +260,9 @@ final class HostedView {
     }
 
     func render() {
+        // Explicit viewports support deterministic compact/regular layout review.
+        // Reset recycled windows for callers using the actual simulator size.
+        window.frame = CGRect(origin: .zero, size: viewportSize ?? UIScreen.main.bounds.size)
         hostingController.view.frame = window.bounds
         hostingController.view.setNeedsLayout()
         hostingController.view.layoutIfNeeded()

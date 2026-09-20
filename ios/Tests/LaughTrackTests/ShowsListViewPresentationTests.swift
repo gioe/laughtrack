@@ -56,11 +56,12 @@ struct SearchQueryVisualCaptureTests {
 
 @Suite("Shows list view presentation")
 struct ShowsListViewPresentationTests {
-    @Test("compact pinned lists label date search without an eyebrow")
-    func compactPinnedListsUseClearDateSearchHeading() throws {
+    @Test("compact pinned lists label upcoming shows with subordinate filters")
+    func compactPinnedListsUseUpcomingShowsHeading() throws {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
 
-        #expect(source.contains("LaughTrackSectionHeader(title: \"Search dates\")"))
+        #expect(ShowsListChromeVisibility(compactMode: true).sectionTitle == "Upcoming shows")
+        #expect(ShowsListChromeVisibility(compactMode: false).sectionTitle == nil)
         #expect(!source.contains("LaughTrackSectionHeader(eyebrow: \"Calendar\""))
         #expect(source.contains("if compactMode, pageCount > 1"))
         let compact = ShowsListChromeVisibility(compactMode: true)
@@ -722,3 +723,48 @@ struct SearchEmptyVisualCaptureTests {
 
 }
 #endif
+
+
+@Suite("Detail content hierarchy")
+@MainActor
+struct DetailContentHierarchyTests {
+    @Test("compact artwork reduces occupied space across each marquee type")
+    func compactArtwork() {
+        let phone = MarqueeHeroLayout(isCompact: true)
+        let regular = MarqueeHeroLayout(isCompact: false)
+        #expect(phone.posterImageSize >= 100)
+        #expect(regular.posterImageSize - phone.posterImageSize >= 80)
+        #expect(regular.comedianFrameSize.height - phone.comedianFrameSize.height >= 100)
+        #expect(regular.podcastStageSize.height - phone.podcastStageSize.height >= 50)
+        #expect(phone.comedianPhotoSize < phone.comedianFrameSize.width)
+        #expect(phone.podcastCoverSize < phone.podcastStageSize.width)
+        #expect(phone.contentSpacing < regular.contentSpacing)
+    }
+
+    @Test("regular-width artwork retains its established dimensions")
+    func regularArtwork() {
+        let regular = MarqueeHeroLayout(isCompact: false)
+        #expect(regular.posterImageSize == 196)
+        #expect(regular.comedianPhotoSize == 208)
+        #expect(regular.comedianFrameSize == CGSize(width: 244, height: 278))
+        #expect(regular.podcastCoverSize == 150)
+        #expect(regular.podcastStageSize == CGSize(width: 224, height: 210))
+        #expect(DetailCatalogComposition.resolve(horizontalSizeClass: .regular) == .regularColumns)
+        #expect(DetailCatalogComposition.resolve(horizontalSizeClass: .compact) == .compactStack)
+    }
+
+    @Test("attendance actions remain direct and website actions remain secondary")
+    func actionRoles() {
+        let club = Components.Schemas.ClubDetail(id: 201, name: "Venue", imageUrl: "", heroImageUrl: "", website: "https://example.com", address: "117 MacDougal St")
+        let actions = ClubDetailHeroPresentation.actions(for: club)
+        #expect(actions.first { $0.title == "Directions" }?.role == .attendance)
+        #expect(actions.first { $0.title == "Website" }?.role == .secondary)
+        #expect(DetailHeroAction(title: "RSS", systemImage: "dot.radiowaves.left.and.right", url: URL(string: "https://example.com/feed")).role == .secondary)
+    }
+
+    @Test("only entity-scoped lists receive the Upcoming shows heading")
+    func scopedHeading() {
+        #expect(ShowsListChromeVisibility(compactMode: true).sectionTitle == "Upcoming shows")
+        #expect(ShowsListChromeVisibility(compactMode: false).sectionTitle == nil)
+    }
+}

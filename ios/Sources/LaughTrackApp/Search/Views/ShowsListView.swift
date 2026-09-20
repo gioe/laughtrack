@@ -20,6 +20,7 @@ struct ShowsListChromeVisibility: Equatable {
     var showsSortControl: Bool { !compactMode }
     var showsFilterControl: Bool { !compactMode }
     var showsDateControl: Bool { true }
+    var sectionTitle: String? { compactMode ? "Upcoming shows" : nil }
 
     func showsResultsStatus(for state: SearchResultsState) -> Bool {
         !compactMode || !state.isConfirmed
@@ -107,6 +108,10 @@ struct ShowsListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.md) {
+                if let title = chrome.sectionTitle {
+                    LaughTrackSectionHeader(title: title)
+                }
+
                 ShowFiltersPanel(
                     model: model,
                     isZipEditorPresented: $isZipEditorPresented,
@@ -449,9 +454,6 @@ private struct ShowFiltersPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            if compactMode {
-                LaughTrackSectionHeader(title: "Search dates")
-            }
             let layout = dynamicTypeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.xs))
                 : AnyLayout(HStackLayout(spacing: theme.spacing.sm))
