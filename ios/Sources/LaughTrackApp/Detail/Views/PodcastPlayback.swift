@@ -1,4 +1,6 @@
 import SwiftUI
+import LaughTrackBridge
+import LaughTrackCore
 import AVFoundation
 import Combine
 import MediaPlayer
@@ -171,6 +173,96 @@ final class AVPodcastAudioEngine: PodcastAudioEngine {
     }
 }
 
+enum PodcastDetailPlaybackAction: Equatable {
+    case play
+    case pause
+    case resume
+    case openOriginal(URL)
+    case unavailable
+
+    var title: String {
+        switch self {
+        case .play: "Play episode"
+        case .pause: "Pause episode"
+        case .resume: "Resume episode"
+        case .openOriginal: "Open original episode"
+        case .unavailable: "Playback unavailable"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .play, .resume: "play.fill"
+        case .pause: "pause.fill"
+        case .openOriginal: "arrow.up.right"
+        case .unavailable: "exclamationmark.circle"
+        }
+    }
+
+    var compactSymbolName: String {
+        switch self {
+        case .play, .resume: "play.circle.fill"
+        case .pause: "pause.circle.fill"
+        case .openOriginal: "arrow.up.right.circle.fill"
+        case .unavailable: symbolName
+        }
+    }
+
+    func accessibilityLabel(episodeTitle: String) -> String {
+        switch self {
+        case .play: "Play \(episodeTitle)"
+        case .pause: "Pause \(episodeTitle)"
+        case .resume: "Resume \(episodeTitle)"
+        case .openOriginal: "Open original episode, \(episodeTitle)"
+        case .unavailable: "Playback unavailable, \(episodeTitle)"
+        }
+    }
+}
+
+/// Detail controls observe the same player as the mini player and Now Playing.
+struct PodcastDetailPlaybackButton: View {
+    let item: PodcastPlaybackItem
+    @ObservedObject var podcastPlayer: PodcastPlaybackController
+    var playTitle = "Play episode"
+    var compact = false
+    var onAction: (() -> Void)?
+
+    @Environment(\.appTheme) private var theme
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        let action = podcastPlayer.detailAction(for: item)
+        if action != .unavailable {
+            if compact {
+                Button(action: performAction) {
+                    Image(systemName: action.compactSymbolName)
+                        .font(.system(size: 26, weight: .semibold))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(theme.laughTrackTokens.colors.accentStrong, theme.laughTrackTokens.colors.surfaceElevated)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(action.accessibilityLabel(episodeTitle: item.episodeTitle))
+            } else {
+                LaughTrackButton(action == .play ? playTitle : action.title, systemImage: action.symbolName, action: performAction)
+                    .accessibilityLabel(action.accessibilityLabel(episodeTitle: item.episodeTitle))
+            }
+        }
+    }
+
+    @MainActor
+    func performAction() {
+        if let onAction {
+            onAction()
+            return
+        }
+        if let url = podcastPlayer.performDetailAction(for: item) {
+            openURL(url)
+        }
+    }
+}
+
 @MainActor
 final class PodcastPlaybackController: ObservableObject {
     @Published private(set) var currentItem: PodcastPlaybackItem?
@@ -197,6 +289,7 @@ final class PodcastPlaybackController: ObservableObject {
     private var artworkLoadToken: UUID?
     private var sleepTimer: Task<Void, Never>?
     private var remoteCommandsRegistered = false
+    private var audioLoadToken = UUID()
 
     init(
         audioEngine: PodcastAudioEngine? = nil,
@@ -223,10 +316,35 @@ final class PodcastPlaybackController: ObservableObject {
 
     // MARK: - Transport
 
+    func detailAction(for item: PodcastPlaybackItem) -> PodcastDetailPlaybackAction {
+        let isCurrent = currentItem?.episodeID == item.episodeID
+        let effectiveItem = isCurrent ? currentItem ?? item : item
+        if effectiveItem.requiresExternalFallback {
+            if let url = effectiveItem.episodeURL ?? item.episodeURL {
+                return .openOriginal(url)
+            }
+            return .unavailable
+        }
+        return isCurrent ? (isPlaying ? .pause : .resume) : .play
+    }
+
+    @discardableResult
+    func performDetailAction(for item: PodcastPlaybackItem) -> URL? {
+        switch detailAction(for: item) {
+        case .play: start(item)
+        case .pause: pause()
+        case .resume: resume()
+        case .openOriginal(let url): return url
+        case .unavailable: break
+        }
+        return nil
+    }
+
     func start(_ item: PodcastPlaybackItem) {
-        let isReplay = currentItem?.id == item.id
+        let isReplay = currentItem?.episodeID == item.episodeID && currentItem?.audioURL == item.audioURL
         currentItem = item
         guard let audioURL = item.audioURL else {
+            audioLoadToken = UUID()
             audioEngine.stop()
             isPlaying = false
             currentTime = 0
@@ -236,12 +354,17 @@ final class PodcastPlaybackController: ObservableObject {
         }
 
         if !isReplay {
-            audioEngine.load(url: audioURL) { [weak self] in
-                self?.markCurrentItemFailed()
-            }
+            let token = UUID()
+            audioLoadToken = token
             nowPlayingArtwork = nil
             currentTime = 0
             duration = 0
+            audioEngine.load(url: audioURL) { [weak self] in
+                guard let self, self.audioLoadToken == token else { return }
+                self.markCurrentItemFailed()
+            }
+            // Some engines can fail synchronously while loading.
+            guard audioLoadToken == token, currentItem?.audioURL != nil else { return }
             loadArtworkIfNeeded(for: item)
         }
         audioEngine.play()
@@ -271,6 +394,7 @@ final class PodcastPlaybackController: ObservableObject {
     }
 
     func dismiss() {
+        audioLoadToken = UUID()
         audioEngine.stop()
         currentItem = nil
         isPlaying = false
@@ -304,6 +428,7 @@ final class PodcastPlaybackController: ObservableObject {
 
     func markCurrentItemFailed() {
         guard let currentItem else { return }
+        audioLoadToken = UUID()
         audioEngine.stop()
         self.currentItem = currentItem.markingAudioFailed()
         isPlaying = false

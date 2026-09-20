@@ -509,10 +509,16 @@ struct PodcastLatestEpisodeAction: View {
     let podcast: PodcastDetail
     let episodes: [PodcastDetailEpisode]
     @ObservedObject var podcastPlayer: PodcastPlaybackController
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         if let episode = PodcastDetailPresentation.latestPlayableEpisode(in: episodes) {
-            LaughTrackButton("Play latest episode", systemImage: "play.fill", action: playLatestEpisode)
+            PodcastDetailPlaybackButton(
+                item: PodcastDetailPresentation.episodeItem(podcast: podcast, episode: episode),
+                podcastPlayer: podcastPlayer,
+                playTitle: "Play latest episode",
+                onAction: playLatestEpisode
+            )
                 .accessibilityIdentifier("podcastDetail.latestEpisode")
                 .accessibilityHint(episode.title)
         }
@@ -521,7 +527,9 @@ struct PodcastLatestEpisodeAction: View {
     @MainActor
     func playLatestEpisode() {
         guard let episode = PodcastDetailPresentation.latestPlayableEpisode(in: episodes) else { return }
-        podcastPlayer.start(PodcastDetailPresentation.episodeItem(podcast: podcast, episode: episode))
+        if let url = podcastPlayer.performDetailAction(for: PodcastDetailPresentation.episodeItem(podcast: podcast, episode: episode)) {
+            openURL(url)
+        }
     }
 }
 
@@ -533,6 +541,7 @@ private struct PodcastEpisodeListSection: View {
     @ObservedObject var podcastPlayer: PodcastPlaybackController
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.openURL) private var openURL
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @State private var currentPage = 0
 
@@ -563,7 +572,7 @@ private struct PodcastEpisodeListSection: View {
                 ForEach(visibleEntries, id: \.item.id) { entry in
                     PodcastAppearanceRow(
                         item: entry.item,
-                        isCurrent: podcastPlayer.currentItem?.id == entry.item.id,
+                        playbackAction: podcastPlayer.detailAction(for: entry.item),
                         lineup: entry.lineup,
                         showsArtworkActionIcon: false,
                         showsDisclosureIndicator: true,
@@ -571,8 +580,10 @@ private struct PodcastEpisodeListSection: View {
                         onSelect: {
                             coordinator.push(.podcastEpisodeDetail(entry.item.episodeID))
                         },
-                        onPlay: entry.item.audioURL == nil ? nil : {
-                            podcastPlayer.start(entry.item)
+                        onPlay: podcastPlayer.detailAction(for: entry.item) == .unavailable ? nil : {
+                            if let url = podcastPlayer.performDetailAction(for: entry.item) {
+                                openURL(url)
+                            }
                         },
                         onOpenComedian: { comedianID in
                             coordinator.open(.comedian(comedianID))

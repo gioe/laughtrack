@@ -934,19 +934,9 @@ struct ComedianPodcastPanel: View {
             )
             .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeRow(item.episodeID))
 
-            if item.audioURL != nil {
-                Button {
-                    podcastPlayer.start(item)
-                } label: {
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 24, weight: .semibold))
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Play \(item.episodeTitle)")
+            PodcastDetailPlaybackButton(item: item, podcastPlayer: podcastPlayer, compact: true)
                 .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodePlayButton(item.episodeID))
-            }
+
         }
         .padding(.vertical, 4)
     }
@@ -1034,7 +1024,7 @@ struct ComedianPodcastPanel: View {
 
 struct PodcastAppearanceRow: View {
     let item: PodcastPlaybackItem
-    let isCurrent: Bool
+    var playbackAction: PodcastDetailPlaybackAction = .play
     var lineup: [LineupAvatarItem] = []
     var showsRoleBadge = true
     var showsArtworkActionIcon = true
@@ -1113,13 +1103,15 @@ struct PodcastAppearanceRow: View {
 
                 if let onPlay {
                     Button(action: onPlay) {
-                        Image(systemName: "play.circle.fill")
+                        Image(systemName: playbackAction.compactSymbolName)
                             .font(.system(size: 26, weight: .semibold))
                             .symbolRenderingMode(.palette)
                             .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Play \(item.episodeTitle)")
+                    .accessibilityLabel(playbackAction.accessibilityLabel(episodeTitle: item.episodeTitle))
                     .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodePlayButton(item.episodeID))
                 }
 
@@ -1247,7 +1239,7 @@ private struct PodcastAppearanceRoleBadge: View {
                     episodeURL: URL(string: "https://podcasts.example.com/cellar"),
                     failedAudioURL: nil
                 ),
-                isCurrent: true,
+                playbackAction: .pause,
                 onSelect: {}
             )
 

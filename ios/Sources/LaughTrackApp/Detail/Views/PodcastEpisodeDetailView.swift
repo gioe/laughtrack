@@ -66,25 +66,12 @@ enum PodcastEpisodeDetailPresentation {
     static func primaryAction(
         for response: PodcastEpisodeDetailResponse
     ) -> PodcastEpisodeDetailPrimaryAction {
-        if let audioURL = URL.normalizedExternalURL(response.episode.audioUrl) {
-            return .play(
-                PodcastPlaybackItem(
-                    id: response.episode.id,
-                    episodeID: response.episode.id,
-                    podcastID: response.podcast.id,
-                    episodeTitle: response.episode.title,
-                    podcastName: response.podcast.title,
-                    podcastImageURL: response.podcast.imageUrl,
-                    displayRole: "Episode",
-                    audioURL: audioURL,
-                    episodeURL: URL.normalizedExternalURL(response.episode.episodeUrl),
-                    failedAudioURL: nil,
-                    releaseDate: response.episode.releaseDate
-                )
-            )
+        let item = PodcastDetailPresentation.episodeItem(podcast: response.podcast, episode: response.episode)
+        if item.audioURL != nil {
+            return .play(item)
         }
 
-        if let episodeURL = URL.normalizedExternalURL(response.episode.episodeUrl) {
+        if let episodeURL = item.episodeURL {
             return .openOriginal(episodeURL)
         }
 
@@ -103,7 +90,6 @@ struct PodcastEpisodeDetailView: View {
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @Environment(\.appTheme) private var theme
-    @Environment(\.openURL) private var openURL
     @StateObject private var model: PodcastEpisodeDetailModel
 
     init(
@@ -230,23 +216,16 @@ struct PodcastEpisodeDetailView: View {
 
     @ViewBuilder
     private func primaryAction(for response: PodcastEpisodeDetailResponse) -> some View {
-        switch PodcastEpisodeDetailPresentation.primaryAction(for: response) {
-        case .play(let item):
-            LaughTrackButton("Play episode", systemImage: "play.fill") {
-                podcastPlayer.start(item)
-            }
-            .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeDetailPrimaryAction)
-        case .openOriginal(let url):
-            LaughTrackButton("Open original episode", systemImage: "arrow.up.right") {
-                openURL(url)
-            }
-            .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeDetailPrimaryAction)
-        case .unavailable:
+        let item = PodcastDetailPresentation.episodeItem(podcast: response.podcast, episode: response.episode)
+        if podcastPlayer.detailAction(for: item) == .unavailable {
             EmptyCard(
                 title: "Playback unavailable",
-                message: "This episode's details are available, but LaughTrack does not have audio or an original episode link."
+                message: "This episode's details are available, but LaughTrack does not have playable audio or an original episode link."
             )
             .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeDetailPrimaryAction)
+        } else {
+            PodcastDetailPlaybackButton(item: item, podcastPlayer: podcastPlayer)
+                .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeDetailPrimaryAction)
         }
     }
 
