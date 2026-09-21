@@ -47,6 +47,61 @@ enum DetailNavigationChrome {
     }
 }
 
+/// Describes the tab actually revealed by popping the shared stack.
+struct DetailRootReturnPresentation {
+    let tab: AppTab
+
+    var title: String { tab.title }
+    var accessibilityLabel: String { "Return to \(title)" }
+    var systemImage: String {
+        switch tab {
+        case .nearMe: return "sparkles"
+        case .search: return "magnifyingglass"
+        case .favorites: return "heart.fill"
+        }
+    }
+}
+
+enum DetailScrolledIdentity {
+    static let coordinateSpace = "detailViewport"
+    static let chromeBottom = DetailNavigationChrome.stickyChromeTopOffset + 44
+
+    static func resolve(title: String?, heroBottom: CGFloat?) -> String? {
+        guard let heroBottom, heroBottom <= chromeBottom,
+              let title = title?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !title.isEmpty else { return nil }
+        return title
+    }
+}
+
+struct DetailHeroBottomPreference: PreferenceKey {
+    static let defaultValue: CGFloat? = nil
+
+    static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+        if let next = nextValue() { value = next }
+    }
+}
+
+private struct DetailRootTabKey: EnvironmentKey {
+    static let defaultValue = AppTab.nearMe
+}
+
+private struct DetailCompactIdentityKey: EnvironmentKey {
+    static let defaultValue: String? = nil
+}
+
+extension EnvironmentValues {
+    var detailRootTab: AppTab {
+        get { self[DetailRootTabKey.self] }
+        set { self[DetailRootTabKey.self] = newValue }
+    }
+
+    var detailCompactIdentity: String? {
+        get { self[DetailCompactIdentityKey.self] }
+        set { self[DetailCompactIdentityKey.self] = newValue }
+    }
+}
+
 enum DetailCatalogComposition: Equatable {
     case compactStack
     case regularColumns
@@ -104,7 +159,7 @@ struct DetailFavoriteState {
 }
 
 struct EntityDetailNavigationChrome: ViewModifier {
-    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
+    @State private var heroBottom: CGFloat?
 
     let entity: DetailNavigationChrome.Entity
     let title: String?
@@ -121,14 +176,19 @@ struct EntityDetailNavigationChrome: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        #if os(iOS)
         content
+            .coordinateSpace(name: DetailScrolledIdentity.coordinateSpace)
+            .onPreferenceChange(DetailHeroBottomPreference.self) { heroBottom = $0 }
+            .environment(\.detailCompactIdentity, DetailScrolledIdentity.resolve(
+                title: title,
+                heroBottom: heroBottom
+            ))
+            #if os(iOS)
             .navigationTitle("")
             .navigationBarHidden(true)
-        #else
-        content
+            #else
             .navigationTitle(title ?? DetailNavigationChrome.title(for: entity))
-        #endif
+            #endif
     }
 }
 
@@ -166,40 +226,55 @@ private struct DetailNavigationTitle: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
                 .lineLimit(2)
-                .minimumScaleFactor(0.6)
+                .minimumScaleFactor(0.85)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: 240, minHeight: 38)
+                .padding(.horizontal, 8)
+                .background(theme.laughTrackTokens.colors.surface, in: RoundedRectangle(cornerRadius: 12))
                 .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("detail.compactIdentity")
         }
     }
 }
 
 /// Sticky chrome bar overlaid at the top of every detail screen. Hosts the
-/// back button (always present), the home button (when the stack is deep
+/// back button (always present), the root-return button (when the stack is deep
 /// enough for back and home to differ), and, when supplied, the favorite
 /// toggle. Designed to be applied via `.overlay(alignment: .top)` on the
 /// outer detail container so the back button remains tappable regardless of
 /// scroll position or load phase.
 struct DetailChromeBar: View {
+    @Environment(\.detailRootTab) private var rootTab
+    @Environment(\.detailCompactIdentity) private var compactIdentity
+
     let onBack: () -> Void
     var onHome: (() -> Void)? = nil
     let favoriteState: DetailFavoriteState?
 
     var body: some View {
-        HStack(alignment: .center) {
-            DetailBackButton(action: onBack)
+        ZStack {
+            HStack(alignment: .center, spacing: 0) {
+                DetailBackButton(action: onBack)
 
-            if let onHome {
-                DetailHomeButton(action: onHome)
+                if let onHome {
+                    DetailHomeButton(rootTab: rootTab, action: onHome)
+                }
+
+                Spacer()
+
+                if let favoriteState {
+                    DetailFavoriteToolbarButton(state: favoriteState)
+                }
             }
 
-            Spacer()
-
-            if let favoriteState {
-                DetailFavoriteToolbarButton(state: favoriteState)
+            if let compactIdentity {
+                DetailNavigationTitle(text: compactIdentity)
+                    .padding(.horizontal, onHome == nil ? 48 : 92)
+                    .allowsHitTesting(false)
             }
         }
+        .frame(minHeight: 44)
         .padding(.horizontal, 12)
         .padding(.top, DetailNavigationChrome.stickyChromeTopOffset)
         .background(alignment: .top) {
@@ -261,11 +336,12 @@ struct DetailBackButton: View {
     }
 }
 
-/// Escape hatch for deep detail stacks: detail screens cover the tab bar,
-/// so without this the only way home is one back-tap per pushed screen.
+/// Escape hatch for deep detail stacks. Its icon and spoken destination
+/// identify the selected root tab that the shared stack will reveal.
 struct DetailHomeButton: View {
     @Environment(\.appTheme) private var theme
 
+    var rootTab: AppTab = .nearMe
     let action: () -> Void
 
     var body: some View {
@@ -280,7 +356,7 @@ struct DetailHomeButton: View {
                             .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
                     )
 
-                Image(systemName: "house")
+                Image(systemName: DetailRootReturnPresentation(tab: rootTab).systemImage)
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(laughTrack.colors.textPrimary)
             }
@@ -289,7 +365,8 @@ struct DetailHomeButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Home")
+        .accessibilityLabel(DetailRootReturnPresentation(tab: rootTab).accessibilityLabel)
+        .accessibilityIdentifier("detail.returnToRoot")
     }
 }
 

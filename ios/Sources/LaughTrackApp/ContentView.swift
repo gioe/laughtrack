@@ -452,6 +452,8 @@ struct ContentView: View {
             .background(NativeInteractivePopSupport(playerChrome: navigationPlayerChrome).frame(width: 0, height: 0))
             #endif
         }
+        // Root-return chrome describes the tab this shared stack actually reveals.
+        .environment(\.detailRootTab, shellState.selectedTab)
         // Keep one player across destinations. Its reserved region stays stable
         // while UIKit moves the hosted player alongside native navigation.
         .safeAreaInset(edge: .bottom) {

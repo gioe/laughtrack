@@ -127,6 +127,16 @@ struct MarqueeHero: View {
         .padding(.top, Self.statusBarOffset)
         .padding(.bottom, layout.isCompact ? min(bottomPadding ?? theme.spacing.lg, 12) : (bottomPadding ?? theme.spacing.lg))
         .frame(maxWidth: .infinity)
+        .background {
+            GeometryReader { geometry in
+                Color.clear.preference(
+                    key: DetailHeroBottomPreference.self,
+                    value: geometry.frame(in: .named(DetailScrolledIdentity.coordinateSpace)).maxY
+                )
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
     }
 
     @ViewBuilder
