@@ -264,6 +264,7 @@
 		F40387543C98A10BE7A7E15A /* SearchFilterModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CFC334F6079EB0A29BD645 /* SearchFilterModal.swift */; };
 		F5512524B05FB4BDF6E3F33B /* StubClientTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9170739BCDBB962D8D115F8B /* StubClientTransport.swift */; };
 		F61B8D91C17565CEEA523A02 /* ShowsListEmptyMessageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBD475AC232F6E6652F50BE /* ShowsListEmptyMessageTests.swift */; };
+		F6284BA54BFDE318BF79931B /* PodcastEpisodeNotesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66992AB876682B8A8587B07B /* PodcastEpisodeNotesTests.swift */; };
 		F6A2A20C8459B6D3D685D19C /* TestResolverStubs.swift in Sources */ = {isa = PBXBuildFile; fileRef = B77565DFAF90D74AC5F8DECF /* TestResolverStubs.swift */; };
 		F80B120EE62E089ED0A9403B /* HomeFavoriteShowsRailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A5892A66D03149C905170F /* HomeFavoriteShowsRailTests.swift */; };
 		F8263EC163E80042BE91DD3B /* PushPromptCadenceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91B048256574CA18BBFD65E /* PushPromptCadenceUITests.swift */; };
@@ -496,6 +497,7 @@
 		63EDE38E061B529E52A38C3F /* DetailHeroLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailHeroLayoutTests.swift; sourceTree = "<group>"; };
 		64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainPageCacheTests.swift; sourceTree = "<group>"; };
 		65D2E66D33F5650FDBC687BD /* LaughTrackAPIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackAPIConfiguration.swift; sourceTree = "<group>"; };
+		66992AB876682B8A8587B07B /* PodcastEpisodeNotesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastEpisodeNotesTests.swift; sourceTree = "<group>"; };
 		6740344931ABD2D8276582D0 /* PodcastTonightNearYouCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastTonightNearYouCard.swift; sourceTree = "<group>"; };
 		697DB2C5399BC3F853A4266E /* HomeDiscoverPlannedRail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDiscoverPlannedRail.swift; sourceTree = "<group>"; };
 		69FADA6CF6C175F11DC3FF04 /* PushPermissionPromptCadence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionPromptCadence.swift; sourceTree = "<group>"; };
@@ -781,6 +783,7 @@
 				15A4C4CDF0A65612934098BF /* OnboardingTests.swift */,
 				8F13D45B524D9F3E3A29C75C /* PodcastDetailViewTests.swift */,
 				08F9F3E06357C17721114066 /* PodcastEpisodeDetailViewTests.swift */,
+				66992AB876682B8A8587B07B /* PodcastEpisodeNotesTests.swift */,
 				E5D2206C94967F8A0FCA7906 /* PodcastFavoriteStoreTests.swift */,
 				AF110C4D6F9495746B88F926 /* ProfileViewTests.swift */,
 				D6B5183BF82B4315C125512B /* PushPermissionPromptCadenceTests.swift */,
@@ -1693,6 +1696,7 @@
 				D3F21EAB1809543C8A52B948 /* OnboardingTests.swift in Sources */,
 				AC32C21C506F3FC4D3F24D7F /* PodcastDetailViewTests.swift in Sources */,
 				F8E7E3091C7F359C2334CDF0 /* PodcastEpisodeDetailViewTests.swift in Sources */,
+				F6284BA54BFDE318BF79931B /* PodcastEpisodeNotesTests.swift in Sources */,
 				ED015256507320354154752E /* PodcastFavoriteStoreTests.swift in Sources */,
 				6E26430B88F35A8B1BB17F31 /* ProfileViewTests.swift in Sources */,
 				1F3762B55535AF3F76F3B19E /* PushPermissionPromptCadenceTests.swift in Sources */,

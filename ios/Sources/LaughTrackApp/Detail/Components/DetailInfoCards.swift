@@ -89,8 +89,9 @@ struct DetailTextCard: View {
     let text: String
     var isCollapsible: Bool = false
     var collapsedLineLimit: Int = 4
+    var detectsWebLinks: Bool = false
 
-    @State private var isExpanded = false
+    @State var isExpanded = false
 
     private var showsToggle: Bool {
         isCollapsible && Self.shouldCollapse(text: text, lineLimit: collapsedLineLimit)
@@ -107,7 +108,7 @@ struct DetailTextCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 header
 
-                Text(text)
+                Text(detectsWebLinks ? PodcastEpisodeNotes.attributedText(text) : AttributedString(text))
                     .font(laughTrack.typography.body)
                     .foregroundStyle(laughTrack.colors.textPrimary)
                     .lineLimit(showsToggle && !isExpanded ? collapsedLineLimit : nil)
@@ -148,5 +149,79 @@ struct DetailTextCard: View {
                 .foregroundStyle(laughTrack.colors.accent)
                 .textCase(.uppercase)
         }
+    }
+}
+
+
+/// Feed content is converted to native text, never rendered by an HTML engine.
+/// Link detection is opt-in so other detail descriptions retain their behavior.
+enum PodcastEpisodeNotes {
+    static func text(_ raw: String?) -> String? {
+        guard var value = raw else { return nil }
+        // Retain destinations that would otherwise disappear with anchor tags.
+        let anchors = try? NSRegularExpression(
+            pattern: #"<a\b[^>]*\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')[^>]*>(.*?)</a\s*>"#,
+            options: [.caseInsensitive, .dotMatchesLineSeparators]
+        )
+        for match in anchors?.matches(in: value, range: NSRange(value.startIndex..., in: value)).reversed() ?? [] {
+            guard let range = Range(match.range, in: value),
+                  let labelRange = Range(match.range(at: 3), in: value),
+                  let hrefRange = Range(match.range(at: match.range(at: 1).location == NSNotFound ? 2 : 1), in: value)
+            else { continue }
+            let label = String(value[labelRange])
+            let href = String(value[hrefRange])
+            value.replaceSubrange(range, with: label == href ? label : "\(label) (\(href))")
+        }
+        return DetailDescriptionText.normalized(value)
+    }
+
+    static func webURL(_ raw: String) -> URL? {
+        guard !raw.isEmpty,
+              raw.rangeOfCharacter(from: .whitespacesAndNewlines.union(.controlCharacters)) == nil,
+              raw.range(of: #"%(?![0-9a-fA-F]{2})"#, options: .regularExpression) == nil,
+              let components = URLComponents(string: raw),
+              let scheme = components.scheme?.lowercased(), ["http", "https"].contains(scheme),
+              let host = components.host, !host.isEmpty,
+              components.user == nil, components.password == nil,
+              components.port.map({ (1...65535).contains($0) }) ?? true,
+              let url = components.url
+        else { return nil }
+        // URLComponents can encode malformed host characters rather than reject
+        // them. Accept DNS/IDN names and bracketed IPv6, never repaired whitespace.
+        if host.hasPrefix("[") && host.hasSuffix("]") {
+            guard host.dropFirst().dropLast().allSatisfy({ $0.isHexDigit || $0 == ":" || $0 == "." }) else { return nil }
+        } else {
+            let labels = host.split(separator: ".", omittingEmptySubsequences: false)
+            guard labels.allSatisfy({ label in
+                !label.isEmpty && label.first != "-" && label.last != "-"
+                    && label.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" })
+            }) else { return nil }
+        }
+        return url
+    }
+
+    static func attributedText(_ text: String) -> AttributedString {
+        var result = AttributedString(text)
+        // Start from literal text: Markdown and unsupported schemes never gain
+        // hidden destinations. Only visible, explicit web URLs become links.
+        let pattern = try? NSRegularExpression(pattern: #"(?i)(?<![\p{L}\p{N}_:/])https?://[^\s<>"']+"#)
+        for match in pattern?.matches(in: text, range: NSRange(text.startIndex..., in: text)) ?? [] {
+            guard let matchedRange = Range(match.range, in: text) else { continue }
+            var candidate = String(text[matchedRange])
+            while let last = candidate.last {
+                if ".,;!?".contains(last) {
+                    candidate.removeLast()
+                } else if let opener = [")": "(", "]": "[", "}": "{"][String(last)],
+                          candidate.filter({ String($0) == String(last) }).count > candidate.filter({ String($0) == opener }).count {
+                    candidate.removeLast()
+                } else { break }
+            }
+            guard let url = webURL(candidate) else { continue }
+            let end = text.index(matchedRange.lowerBound, offsetBy: candidate.count)
+            guard let lower = AttributedString.Index(matchedRange.lowerBound, within: result),
+                  let upper = AttributedString.Index(end, within: result) else { continue }
+            result[lower..<upper].link = url
+        }
+        return result
     }
 }
