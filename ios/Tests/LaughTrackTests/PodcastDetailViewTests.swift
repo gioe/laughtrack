@@ -124,8 +124,7 @@ struct PodcastDetailViewTests {
         let response = PodcastDetailViewTests.makeResponseForFrequentGuests()
         let guests = PodcastDetailPresentation.frequentGuests(
             for: response,
-            cap: 3,
-            randomizer: { $0.sorted(by: { $0.id < $1.id }) }
+            cap: 3
         )
 
         // Mark Normand (id 101) is the host → excluded even with 3 appearances.
@@ -465,3 +464,145 @@ private final class IntroductionAudioEngine: PodcastAudioEngine {
     func stop() {}
 }
 #endif
+
+@Suite("Podcast frequent guest stability")
+@MainActor
+struct PodcastFrequentGuestStabilityTests {
+    @Test("frequent guests rank by distinct episode count then ascending identity")
+    func ranksFrequentGuests() {
+        let response = Self.rankedResponse()
+        #expect(PodcastDetailPresentation.frequentGuests(for: response).map(\.id) == [40, 10, 20])
+        #expect(PodcastDetailPresentation.frequentGuests(for: response, cap: 10).map(\.id) == [40, 10, 20, 30])
+    }
+
+    @Test("recomputing presentation preserves both membership and order")
+    func repeatedPresentation() {
+        let response = Self.rankedResponse()
+        let expected = PodcastDetailPresentation.frequentGuests(for: response)
+        for _ in 0..<30 {
+            #expect(PodcastDetailPresentation.frequentGuests(for: response) == expected)
+        }
+    }
+
+    @Test("response episode and appearance ordering cannot reorder the ranked guests")
+    func inputOrderDoesNotMatter() {
+        let response = Self.rankedResponse()
+        let reordered = Self.response(episodes: response.episodes.reversed().map {
+            Self.episode($0.id, Array($0.appearances.reversed()))
+        })
+        #expect(PodcastDetailPresentation.frequentGuests(for: reordered) == PodcastDetailPresentation.frequentGuests(for: response))
+    }
+
+    @Test("eligibility counts unique episodes and excludes both forms of host identity")
+    func eligibilityAndHosts() {
+        let oneEpisodeOnly = Self.guest(10)
+        let eligible = Self.guest(20)
+        let hostIDMatch = Self.guest(90, uuid: "different-uuid")
+        let hostUUIDMatch = Self.guest(91, uuid: "host-90")
+        let response = Self.response(episodes: [
+            Self.episode(1, [oneEpisodeOnly, oneEpisodeOnly, eligible, hostIDMatch, hostUUIDMatch]),
+            Self.episode(1, [oneEpisodeOnly, eligible]),
+            Self.episode(2, [eligible, hostIDMatch, hostUUIDMatch])
+        ])
+        #expect(PodcastDetailPresentation.frequentGuests(for: response, cap: 10).map(\.id) == [20])
+    }
+
+    @Test("caps never pad the guest list or admit ineligible guests")
+    func caps() {
+        let response = Self.rankedResponse()
+        #expect(PodcastDetailPresentation.frequentGuests(for: response, cap: 1).map(\.id) == [40])
+        #expect(PodcastDetailPresentation.frequentGuests(for: response, cap: 0).isEmpty)
+        #expect(PodcastDetailPresentation.frequentGuests(for: response, cap: -1).isEmpty)
+        #expect(PodcastDetailPresentation.frequentGuests(for: response, cap: 100).count == 4)
+        #expect(PodcastDetailPresentation.frequentGuests(for: Self.response(episodes: [])).isEmpty)
+    }
+
+    @Test("refresh preserves unchanged rankings and recomputes when episode counts change")
+    func refreshPolicy() async {
+        let initial = Self.rankedResponse()
+        let promoted = Self.guest(30)
+        let changed = Self.response(episodes: initial.episodes + [
+            Self.episode(4, [promoted]), Self.episode(5, [promoted])
+        ])
+        let fetcher = FrequentGuestSequenceFetcher([initial, initial, changed])
+        let model = PodcastDetailModel(podcastID: 42, fetcher: fetcher)
+        await model.loadIfNeeded()
+        guard case .success(let first) = model.phase else {
+            Issue.record("Expected initial podcast details")
+            return
+        }
+        let initialGuests = PodcastDetailPresentation.frequentGuests(for: first)
+        await model.reload()
+        guard case .success(let unchanged) = model.phase else {
+            Issue.record("Expected unchanged refreshed podcast details")
+            return
+        }
+        #expect(PodcastDetailPresentation.frequentGuests(for: unchanged) == initialGuests)
+        await model.reload()
+        guard case .success(let updated) = model.phase else {
+            Issue.record("Expected updated podcast details")
+            return
+        }
+        #expect(PodcastDetailPresentation.frequentGuests(for: updated).map(\.id) == [30, 40, 10])
+        #expect(await fetcher.calls == 3)
+    }
+
+    @Test("opening another podcast derives its guests without retaining the previous selection")
+    func otherPodcastPolicy() async {
+        let first = Self.rankedResponse()
+        let other = Self.response(podcastID: 99, episodes: [
+            Self.episode(101, [Self.guest(70)]), Self.episode(102, [Self.guest(70)])
+        ])
+        let firstModel = PodcastDetailModel(podcastID: 42, fetcher: FrequentGuestSequenceFetcher([first]))
+        let otherModel = PodcastDetailModel(podcastID: 99, fetcher: FrequentGuestSequenceFetcher([other]))
+        await firstModel.loadIfNeeded()
+        await otherModel.loadIfNeeded()
+        guard case .success(let firstContent) = firstModel.phase,
+              case .success(let otherContent) = otherModel.phase else {
+            Issue.record("Expected both independently loaded podcasts")
+            return
+        }
+        #expect(PodcastDetailPresentation.frequentGuests(for: firstContent).map(\.id) == [40, 10, 20])
+        #expect(PodcastDetailPresentation.frequentGuests(for: otherContent).map(\.id) == [70])
+    }
+
+    private static func rankedResponse() -> PodcastDetailResponse {
+        // Deliberately unsorted IDs and names: frequency wins, then identity,
+        // independent of dictionary iteration or alphabetic display names.
+        let guests = [guest(30, name: "Alpha"), guest(10, name: "Zulu"), guest(40, name: "Middle"), guest(20, name: "Beta")]
+        return response(episodes: [episode(1, guests), episode(2, guests), episode(3, [guest(40, name: "Middle")])])
+    }
+
+    private static func guest(_ id: Int, name: String? = nil, uuid: String? = nil) -> PodcastDetailEpisodeAppearance {
+        PodcastDetailEpisodeAppearance(id: id, uuid: uuid ?? "guest-\(id)", name: name ?? "Guest \(id)", imageUrl: nil)
+    }
+
+    private static func episode(_ id: Int, _ appearances: [PodcastDetailEpisodeAppearance]) -> PodcastDetailEpisode {
+        PodcastDetailEpisode(id: id, title: "Episode \(id)", description: nil, releaseDate: nil,
+            durationSeconds: nil, episodeUrl: nil, audioUrl: nil, appearances: appearances)
+    }
+
+    private static func response(podcastID: Int = 42, episodes: [PodcastDetailEpisode]) -> PodcastDetailResponse {
+        PodcastDetailResponse(
+            podcast: PodcastDetail(id: podcastID, title: "Podcast \(podcastID)", authorName: nil,
+                websiteUrl: nil, feedUrl: nil, imageUrl: nil, description: nil,
+                episodeCount: episodes.count,
+                hosts: [PodcastDetailHost(id: 90, uuid: "host-90", name: "Host", imageUrl: "")]),
+            episodes: episodes,
+            relatedComedians: []
+        )
+    }
+}
+
+private actor FrequentGuestSequenceFetcher: PodcastDetailFetching {
+    let responses: [PodcastDetailResponse]
+    private(set) var calls = 0
+
+    init(_ responses: [PodcastDetailResponse]) { self.responses = responses }
+
+    func podcastDetail(id: Int) async -> Result<PodcastDetailResponse, LoadFailure> {
+        let response = responses[min(calls, responses.count - 1)]
+        calls += 1
+        return .success(response)
+    }
+}

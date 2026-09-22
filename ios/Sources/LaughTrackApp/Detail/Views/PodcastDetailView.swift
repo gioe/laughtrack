@@ -318,25 +318,14 @@ enum PodcastDetailPresentation {
         []
     }
 
-    /// "Frequent guests" — comedians who appear in 2+ episodes of the podcast,
-    /// excluding the podcast's hosts. Capped at 3 and shuffled per render so
-    /// the user sees a rotating sample rather than the same alphabetical slice.
+    /// Rank by distinct episode appearances, then ID for stable ties. The same
+    /// detail stays stable across rerenders and unchanged refreshes. A refreshed
+    /// catalog may rerank guests; each podcast is derived from its own response.
     static func frequentGuests(
         for response: PodcastDetailResponse,
         cap: Int = 3
     ) -> [PodcastRelatedComedian] {
-        frequentGuests(
-            for: response,
-            cap: cap,
-            randomizer: { $0.shuffled() }
-        )
-    }
-
-    static func frequentGuests(
-        for response: PodcastDetailResponse,
-        cap: Int,
-        randomizer: ([PodcastRelatedComedian]) -> [PodcastRelatedComedian]
-    ) -> [PodcastRelatedComedian] {
+        guard cap > 0 else { return [] }
         let hostIDs = Set(response.podcast.hosts.map(\.id))
         let hostUUIDs = Set(response.podcast.hosts.map(\.uuid))
 
@@ -367,7 +356,11 @@ enum PodcastDetailPresentation {
                 )
             }
 
-        return Array(randomizer(eligible).prefix(cap))
+        return Array(eligible.sorted { lhs, rhs in
+            let lhsCount = episodesByComedian[lhs.id]?.count ?? 0
+            let rhsCount = episodesByComedian[rhs.id]?.count ?? 0
+            return lhsCount == rhsCount ? lhs.id < rhs.id : lhsCount > rhsCount
+        }.prefix(cap))
     }
 
     static func heroHosts(for podcast: PodcastDetail) -> [DetailHeroHost] {
