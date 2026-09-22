@@ -194,3 +194,169 @@ describe("optional providers", () => {
         expect(vi.getTimerCount()).toBe(0);
     });
 });
+
+describe("optional provider outcome reporting", () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-09-22T15:00:00Z"));
+    });
+    afterEach(() => vi.useRealTimers());
+
+    it("reports successful null results as success", async () => {
+        const report = vi.fn();
+        const run = createOptionalProviderRunner();
+        expect(
+            await run(
+                "empty",
+                async () => null,
+                null,
+                Date.now() + 100,
+                report,
+            ),
+        ).toBeNull();
+        expect(report.mock.calls).toEqual([["success"]]);
+    });
+
+    it("reports errors separately for every coalesced caller", async () => {
+        const run = createOptionalProviderRunner();
+        const work = deferred<string>();
+        const load = vi.fn(() => work.promise);
+        const firstReport = vi.fn();
+        const secondReport = vi.fn();
+        const first = run("same", load, "first", Date.now() + 100, firstReport);
+        const second = run(
+            "same",
+            load,
+            "second",
+            Date.now() + 100,
+            secondReport,
+        );
+        await Promise.resolve();
+        work.reject(new Error("provider failed"));
+        expect(await first).toBe("first");
+        expect(await second).toBe("second");
+        expect(load).toHaveBeenCalledTimes(1);
+        expect(firstReport.mock.calls).toEqual([["error"]]);
+        expect(secondReport.mock.calls).toEqual([["error"]]);
+    });
+
+    it("reports synchronous loader throws as errors", async () => {
+        const report = vi.fn();
+        const run = createOptionalProviderRunner();
+        expect(
+            await run(
+                "throws",
+                () => {
+                    throw new Error("sync");
+                },
+                "fallback",
+                Date.now() + 100,
+                report,
+            ),
+        ).toBe("fallback");
+        expect(report.mock.calls).toEqual([["error"]]);
+    });
+
+    it("reports expired deadlines without starting loaders", async () => {
+        const report = vi.fn();
+        const load = vi.fn();
+        const run = createOptionalProviderRunner();
+        await run("expired", load, null, Date.now(), report);
+        expect(report.mock.calls).toEqual([["timeout"]]);
+        expect(load).not.toHaveBeenCalled();
+    });
+
+    it("reports capacity refusal as skipped", async () => {
+        const run = createOptionalProviderRunner({ maxInFlight: 1 });
+        const work = deferred<string>();
+        const firstReport = vi.fn();
+        const report = vi.fn();
+        const load = vi.fn();
+        const first = run(
+            "busy",
+            () => work.promise,
+            "fallback",
+            Date.now() + 100,
+            firstReport,
+        );
+        await run("new", load, null, Date.now() + 100, report);
+        expect(report.mock.calls).toEqual([["skipped"]]);
+        expect(load).not.toHaveBeenCalled();
+        work.resolve("done");
+        expect(await first).toBe("done");
+        expect(firstReport.mock.calls).toEqual([["success"]]);
+    });
+
+    it.each(["resolve", "reject"] as const)(
+        "reports one timeout despite late %s",
+        async (settlement) => {
+            const run = createOptionalProviderRunner();
+            const work = deferred<string>();
+            const report = vi.fn();
+            const result = run(
+                "slow",
+                () => work.promise,
+                "fallback",
+                Date.now() + 100,
+                report,
+            );
+            await vi.advanceTimersByTimeAsync(100);
+            expect(await result).toBe("fallback");
+            if (settlement === "resolve") work.resolve("late");
+            else work.reject(new Error("late"));
+            await vi.advanceTimersByTimeAsync(0);
+            expect(report.mock.calls).toEqual([["timeout"]]);
+        },
+    );
+
+    it.each(["resolve", "reject"] as const)(
+        "reports settlement after deadline as timeout even before the timer runs: %s",
+        async (settlement) => {
+            const run = createOptionalProviderRunner();
+            const work = deferred<string>();
+            const report = vi.fn();
+            const result = run(
+                "late",
+                () => work.promise,
+                "fallback",
+                Date.now() + 100,
+                report,
+            );
+            await Promise.resolve();
+            vi.setSystemTime(Date.now() + 100);
+            if (settlement === "resolve") work.resolve("late");
+            else work.reject(new Error("late"));
+            expect(await result).toBe("fallback");
+            expect(report.mock.calls).toEqual([["timeout"]]);
+            expect(vi.getTimerCount()).toBe(0);
+        },
+    );
+
+    it("isolates throwing and rejecting reporters from shared results", async () => {
+        const run = createOptionalProviderRunner();
+        const work = deferred<string>();
+        const first = run(
+            "same",
+            () => work.promise,
+            "fallback",
+            Date.now() + 100,
+            () => {
+                throw new Error("reporter");
+            },
+        );
+        const second = run(
+            "same",
+            () => work.promise,
+            "fallback",
+            Date.now() + 100,
+            async () => {
+                throw new Error("async reporter");
+            },
+        );
+        work.resolve("ready");
+        expect(await first).toBe("ready");
+        expect(await second).toBe("ready");
+        await vi.advanceTimersByTimeAsync(0);
+        expect(vi.getTimerCount()).toBe(0);
+    });
+});

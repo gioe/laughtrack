@@ -1706,3 +1706,52 @@ describe("GET /api/v1/home/feed", () => {
         });
     });
 });
+
+describe("feed performance headers", () => {
+    it("reports fixed provider outcomes without request or response identifiers", async () => {
+        const response = await GET(
+            makeRequest(
+                { zip: "10001", platform: "ios" },
+                { Authorization: "Bearer secret" },
+            ),
+        );
+        const header = response.headers.get("Server-Timing")!;
+        expect(header).toMatch(/feed_total;dur=[0-9.]+;desc="success"/);
+        expect(header).toMatch(/trending_comedians;dur=[0-9.]+;desc="success"/);
+        expect(header).toContain('affinity;dur=0;desc="skipped"');
+        expect(header).toContain('shows_near_zip;dur=0;desc="skipped"');
+        expect(header.split(", ")).toHaveLength(16);
+        expect(header).not.toMatch(/10001|secret|Bearer/);
+    });
+
+    it("observes primary and optional errors before their fallback hides rejection", async () => {
+        mockGetTrendingComedians.mockRejectedValueOnce(new Error("primary"));
+        mockGetPodcastEpisodeDiscovery.mockRejectedValueOnce(
+            new Error("optional"),
+        );
+        const response = await GET(makeRequest());
+        const header = response.headers.get("Server-Timing")!;
+        expect(response.status).toBe(200);
+        expect(header).toMatch(/trending_comedians;dur=[0-9.]+;desc="error"/);
+        expect(header).toMatch(/podcast_episodes;dur=[0-9.]+;desc="error"/);
+    });
+
+    it("reports timeout exactly once even when a provider later succeeds", async () => {
+        vi.useFakeTimers();
+        let resolve!: (items: never[]) => void;
+        mockGetPodcastEpisodeDiscovery.mockReturnValueOnce(
+            new Promise((r) => {
+                resolve = r;
+            }),
+        );
+        const pending = GET(makeRequest());
+        await vi.advanceTimersByTimeAsync(800);
+        const response = await pending;
+        const before = response.headers.get("Server-Timing")!;
+        expect(before).toMatch(/podcast_episodes;dur=[0-9.]+;desc="timeout"/);
+        resolve([]);
+        await Promise.resolve();
+        expect(response.headers.get("Server-Timing")).toBe(before);
+        vi.useRealTimers();
+    });
+});

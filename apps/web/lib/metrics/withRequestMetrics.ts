@@ -68,7 +68,9 @@ async function resolveRoutePattern(
     }
 }
 
-function scheduleMetricWrite(makeWritePromise: () => Promise<unknown>): void {
+export function scheduleMetricWrite(
+    makeWritePromise: () => Promise<unknown>,
+): void {
     try {
         // Only start the detached write inside an actual serverless request
         // context. Bail BEFORE building the write promise — otherwise the write
@@ -80,7 +82,11 @@ function scheduleMetricWrite(makeWritePromise: () => Promise<unknown>): void {
         }
         // Inside a request context: register the real write through waitUntil so
         // it settles off the response critical path without blocking the response.
-        waitUntil(makeWritePromise());
+        waitUntil(
+            Promise.resolve()
+                .then(makeWritePromise)
+                .catch(() => undefined),
+        );
     } catch {
         // Metrics scheduling is best-effort and must never throw out of the
         // handler path (this runs in the wrapper's finally block). Swallow any

@@ -98,16 +98,18 @@ describe("normalizeRoutePattern", () => {
 
     it("collapses catch-all segments to [...param]", () => {
         expect(
-            normalizeRoutePattern("/api/files/a/b/c", { path: ["a", "b", "c"] }),
+            normalizeRoutePattern("/api/files/a/b/c", {
+                path: ["a", "b", "c"],
+            }),
         ).toBe("/api/files/[...path]");
     });
 
     it("collapses the trailing dynamic segment when the value also appears as an earlier static segment", () => {
         // The dynamic [id] is the trailing segment; matching the last
         // occurrence avoids rewriting the earlier static "clubs".
-        expect(
-            normalizeRoutePattern("/api/clubs/clubs", { id: "clubs" }),
-        ).toBe("/api/clubs/[id]");
+        expect(normalizeRoutePattern("/api/clubs/clubs", { id: "clubs" })).toBe(
+            "/api/clubs/[id]",
+        );
     });
 
     it("anchors a catch-all to its trailing run, not an earlier coincidental one", () => {
@@ -253,7 +255,9 @@ describe("withRequestMetrics", () => {
 
     it("never lets a recording failure surface to the caller", async () => {
         executeRawMock.mockRejectedValueOnce(new Error("db down"));
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         const handler = withRequestMetrics(
             async (_req: NextRequest) => new Response(null, { status: 200 }),
@@ -274,7 +278,9 @@ describe("withRequestMetrics", () => {
         // an unconfigured Prisma client and logs a benign-but-noisy connection
         // failure to stderr on every request the test suite exercises.
         clearRequestContext();
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         const handler = withRequestMetrics(
             async (_req: NextRequest) => new Response(null, { status: 200 }),
@@ -288,5 +294,112 @@ describe("withRequestMetrics", () => {
         expect(executeRawMock).not.toHaveBeenCalled();
         expect(errorSpy).not.toHaveBeenCalled();
         errorSpy.mockRestore();
+    });
+});
+
+import {
+    createFeedPerformance,
+    FEED_PROVIDERS,
+    withFeedPerformance,
+} from "./feedPerformance";
+
+describe("Discover performance reporting", () => {
+    it("uses monotonic bounded timings, fixed providers, categorical context and exactly one outcome", async () => {
+        let time = 10;
+        const metrics = createFeedPerformance(() => time);
+        metrics.setContext({ platform: "ios", account: "anonymous" });
+        const settled = metrics.observe("touring");
+        time = 760;
+        settled("timeout");
+        settled("success");
+        await expect(
+            metrics.measure("auth", async () => {
+                throw new Error("secret-token");
+            }),
+        ).rejects.toThrow();
+        const { report, header } = metrics.finish(200);
+        settled("error");
+        expect(Object.keys(report.providers)).toEqual([...FEED_PROVIDERS]);
+        expect(report.providers.touring).toEqual({
+            duration_ms: 750,
+            outcome: "timeout",
+        });
+        expect(report.providers.auth.outcome).toBe("error");
+        expect(report.providers.affinity).toEqual({
+            duration_ms: 0,
+            outcome: "skipped",
+        });
+        expect(report.total_ms).toBe(750);
+        expect(header).toContain('feed_total;dur=750;desc="success"');
+        expect(JSON.stringify(report)).not.toContain("secret-token");
+        expect(Object.keys(report)).toEqual([
+            "event",
+            "version",
+            "platform",
+            "account",
+            "status_class",
+            "total_ms",
+            "providers",
+        ]);
+        time = 999999;
+        expect(
+            createFeedPerformance(() => time).finish(500).report.total_ms,
+        ).toBe(0);
+    });
+
+    it("returns feed headers without awaiting a stalled reporting sink", async () => {
+        const report = vi.fn((_event: unknown) => new Promise(() => {}));
+        const handler = withFeedPerformance(
+            async () => Response.json({ private_body: "never-report" }),
+            report,
+        );
+        const response = await handler(
+            fakeRequest("/api/v1/home/feed?zip=10001&token=secret") as never,
+        );
+        expect(response.status).toBe(200);
+        expect(response.headers.get("Server-Timing")).toContain(
+            "feed_total;dur=",
+        );
+        await Promise.resolve();
+        expect(report).toHaveBeenCalledTimes(1);
+        const event = report.mock.calls[0][0];
+        expect(JSON.stringify(event)).not.toMatch(
+            /10001|secret|never-report|private_body/,
+        );
+        // Intentionally do not await the never-settling detached write.
+    });
+
+    it.each(["throw", "reject"])(
+        "swallows a %s from the reporter",
+        async (kind) => {
+            const report = vi.fn(() => {
+                if (kind === "throw") throw new Error("reporter failed");
+                return Promise.reject(new Error("reporter failed"));
+            });
+            const handler = withFeedPerformance(
+                async () => new Response(null, { status: 200 }),
+                report,
+            );
+            expect(
+                (await handler(fakeRequest("/api/v1/home/feed") as never))
+                    .status,
+            ).toBe(200);
+            await flushScheduled();
+            expect(report).toHaveBeenCalledOnce();
+        },
+    );
+
+    it("preserves handler errors and records one failed feed without error details", async () => {
+        const report = vi.fn();
+        const failure = new Error("sensitive error body");
+        const handler = withFeedPerformance(async () => {
+            throw failure;
+        }, report);
+        await expect(
+            handler(fakeRequest("/api/v1/home/feed") as never),
+        ).rejects.toBe(failure);
+        await flushScheduled();
+        expect(report.mock.calls[0][0].status_class).toBe("5xx");
+        expect(JSON.stringify(report.mock.calls)).not.toContain("sensitive");
     });
 });
