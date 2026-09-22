@@ -281,14 +281,11 @@ struct PodcastDetailView: View {
             authManager: authManager
         )
 
-        switch result {
-        case .updated(let next):
-            feedbackMessage = FavoriteFeedback.message(for: title, isFavorite: next)
-        case .signInRequired:
-            loginModalPresenter.present()
-        case .failure(let message):
-            feedbackMessage = message
-        }
+        DetailActionFeedback.favorite(result, name: title).present(
+            using: serviceContainer.resolve(ToastManager.self),
+            signIn: { loginModalPresenter.present() },
+            alert: { feedbackMessage = $0 }
+        )
     }
 }
 

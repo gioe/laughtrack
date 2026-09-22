@@ -241,6 +241,7 @@ private struct ShowSavedAction: View {
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
+    @Environment(\.serviceContainer) private var serviceContainer
     @Environment(\.appTheme) private var theme
 
     private var isSaved: Bool {
@@ -309,20 +310,11 @@ private struct ShowSavedAction: View {
             authManager: authManager
         )
 
-        switch result {
-        case .updated(let saved):
-            onFeedback(saved ? "Saved to your Library." : "Removed from your Library.")
-        case .queued(let saved):
-            onFeedback(
-                saved
-                    ? "Saved offline. We’ll sync when you’re connected."
-                    : "Removal saved offline. We’ll sync when you’re connected."
-            )
-        case .signInRequired:
-            loginModalPresenter.present()
-        case .failure(let message):
-            onFeedback(message)
-        }
+        DetailActionFeedback.savedShow(result).present(
+            using: serviceContainer.resolve(ToastManager.self),
+            signIn: { loginModalPresenter.present() },
+            alert: onFeedback
+        )
     }
 }
 

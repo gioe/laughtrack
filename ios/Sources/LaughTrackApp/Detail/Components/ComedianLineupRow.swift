@@ -12,6 +12,7 @@ struct ComedianLineupRow: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
+    @Environment(\.serviceContainer) private var serviceContainer
     @Environment(\.appTheme) private var theme
 
     var body: some View {
@@ -43,14 +44,11 @@ struct ComedianLineupRow: View {
                         apiClient: apiClient,
                         authManager: authManager
                     )
-                    switch result {
-                    case .updated(let next):
-                        feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
-                    case .signInRequired:
-                        loginModalPresenter.present()
-                    case .failure(let message):
-                        feedbackMessage = message
-                    }
+                    DetailActionFeedback.favorite(result, name: comedian.name).present(
+                        using: serviceContainer.resolve(ToastManager.self),
+                        signIn: { loginModalPresenter.present() },
+                        alert: { feedbackMessage = $0 }
+                    )
                 }
             } label: {
                 ZStack {

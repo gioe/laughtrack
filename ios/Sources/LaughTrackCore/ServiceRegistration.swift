@@ -7,7 +7,7 @@ public enum ServiceRegistration {
     public static func configure(_ container: ServiceContainer) {
         container.register(NetworkMonitorProtocol.self, scope: .appLevel) { NetworkMonitor.shared }
         container.register(SecureStorageProtocol.self, scope: .appLevel) { KeychainStorage() }
-        container.register(ToastManager.self, scope: .featureLevel) { ToastManager() }
+        container.register(ToastManager.self, scope: .appLevel) { ToastManager() }
         container.register(ImageCache.self, scope: .appLevel) { ImageCache() }
         container.register(AppStateStorageProtocol.self, scope: .appLevel) { AppStateStorage() }
         // Providers are attached in AppBootstrap.configureAnalytics after Firebase

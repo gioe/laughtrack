@@ -219,14 +219,11 @@ struct ComedianDetailView: View {
             authManager: authManager
         )
 
-        switch result {
-        case .updated(let next):
-            feedbackMessage = FavoriteFeedback.message(for: name, isFavorite: next)
-        case .signInRequired:
-            loginModalPresenter.present()
-        case .failure(let message):
-            feedbackMessage = message
-        }
+        DetailActionFeedback.favorite(result, name: name).present(
+            using: serviceContainer.resolve(ToastManager.self),
+            signIn: { loginModalPresenter.present() },
+            alert: { feedbackMessage = $0 }
+        )
     }
 }
 
