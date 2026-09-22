@@ -532,6 +532,7 @@ model PodcastEpisode {
   @@unique([source, sourceEpisodeId])
   @@index([podcastId])
   @@index([podcastId, releaseDate])
+  @@index([releaseDate])
   @@index([guid])
   @@index([appearancesDetectedAt])
   @@map("podcast_episodes")
