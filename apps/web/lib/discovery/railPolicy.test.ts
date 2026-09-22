@@ -80,7 +80,7 @@ function messages(
 
 describe("discovery rail catalog", () => {
     it("uses stable keys and declares content, auth, and platform metadata", () => {
-        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(5);
+        expect(DISCOVERY_RAIL_CATALOG_VERSION).toBe(6);
         expect(Object.keys(DISCOVERY_RAIL_CATALOG)).toEqual([
             "shows_tonight",
             "followed_comedian_shows",
@@ -119,7 +119,7 @@ describe("production-compatible defaults", () => {
             const policy = DISCOVERY_RAIL_DEFAULTS[platform];
             expect(policy).toMatchObject({
                 platform,
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 version: 5,
                 cycleCadenceHours: 24,
             });

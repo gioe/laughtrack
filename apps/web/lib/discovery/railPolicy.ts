@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const DISCOVERY_RAIL_CATALOG_VERSION = 5 as const;
+export const DISCOVERY_RAIL_CATALOG_VERSION = 6 as const;
 
 export const DISCOVERY_PLATFORMS = ["web", "ios", "android"] as const;
 export type DiscoveryPlatform = (typeof DISCOVERY_PLATFORMS)[number];

@@ -1,3 +1,4 @@
+import { DISCOVERY_RAIL_CATALOG_VERSION } from "@/lib/discovery/railPolicy";
 import { describe, expect, it, vi } from "vitest";
 import {
     getDiscoveryRailCycleIndex,
@@ -13,7 +14,7 @@ import {
 function rotatingPolicy(version = 7): DiscoveryRailPolicyDto {
     return {
         platform: "web",
-        catalogVersion: 5,
+        catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
         version,
         cycleCadenceHours: 24,
         rails: [
@@ -125,7 +126,7 @@ describe("selectDiscoveryRailPlan", () => {
     it("suppresses empty rails and deduplicates candidates", () => {
         const policy: DiscoveryRailPolicyDto = {
             platform: "web",
-            catalogVersion: 5,
+            catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
             version: 5,
             cycleCadenceHours: 24,
             rails: [
@@ -245,7 +246,7 @@ describe("selectDiscoveryRailPlan", () => {
             railKeys: DiscoveryRailPolicyDto["rails"][number]["railKey"][],
         ): DiscoveryRailPolicyDto => ({
             platform: "web",
-            catalogVersion: 5,
+            catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
             version: 9,
             cycleCadenceHours: 24,
             rails: railKeys.map((railKey, position) => ({

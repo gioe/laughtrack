@@ -2,6 +2,7 @@
  * @vitest-environment happy-dom
  */
 
+import { DISCOVERY_RAIL_CATALOG_VERSION } from "@/lib/discovery/railPolicy";
 import {
     cleanup,
     fireEvent,
@@ -82,12 +83,12 @@ function rails() {
 
 function policyResponse(webVersion = 7) {
     return {
-        catalogVersion: 5,
+        catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
         catalog,
         platforms: [
             {
                 platform: "web",
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 version: webVersion,
                 cycleCadenceHours: 24,
                 rails: rails(),
@@ -101,7 +102,7 @@ function policyResponse(webVersion = 7) {
             },
             {
                 platform: "ios",
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 version: 4,
                 cycleCadenceHours: 12,
                 rails: rails(),
@@ -111,7 +112,7 @@ function policyResponse(webVersion = 7) {
             },
             {
                 platform: "android",
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 version: 5,
                 cycleCadenceHours: 6,
                 rails: rails(),

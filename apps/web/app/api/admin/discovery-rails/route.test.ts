@@ -1,3 +1,4 @@
+import { DISCOVERY_RAIL_CATALOG_VERSION } from "@/lib/discovery/railPolicy";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
@@ -80,7 +81,7 @@ const adminSession = {
 const currentWebPolicy = {
     platform: "web",
     policyVersion: 1,
-    catalogVersion: 5,
+    catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
     cycleCadenceHours: 24,
     updatedByProfileId: null,
     updatedByProfile: {
@@ -114,7 +115,7 @@ const currentWebPolicy = {
 
 const validUpdate = {
     platform: "web",
-    catalogVersion: 5,
+    catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
     expectedVersion: 1,
     cycleCadenceHours: 12,
     rails: [
@@ -216,7 +217,7 @@ describe("GET /api/admin/discovery-rails", () => {
         const body = await response.json();
 
         expect(response.status).toBe(200);
-        expect(body.catalogVersion).toBe(5);
+        expect(body.catalogVersion).toBe(DISCOVERY_RAIL_CATALOG_VERSION);
         expect(body.catalog).toEqual(catalog);
         expect(
             body.platforms.map(
@@ -399,7 +400,7 @@ describe("PATCH /api/admin/discovery-rails", () => {
             ok: true,
             policy: {
                 platform: "web",
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 version: 2,
                 cycleCadenceHours: 12,
                 rails: validUpdate.rails,
@@ -409,7 +410,7 @@ describe("PATCH /api/admin/discovery-rails", () => {
             where: { platform: "web", policyVersion: 1 },
             data: {
                 policyVersion: { increment: 1 },
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 cycleCadenceHours: 12,
                 updatedByProfileId: "profile-1",
             },

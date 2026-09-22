@@ -2,7 +2,11 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/db", () => ({
+    db: { discoveryRailPlatformPolicy: { findUnique: vi.fn() } },
+}));
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = resolve(HERE, "../..");
@@ -750,6 +754,55 @@ describe("Here for a Limited Time rail rename migration", () => {
     afterAll(async () => {
         await db.close();
     });
+
+    it.each(["web", "ios", "android"] as const)(
+        "loads the migrated %s policy through the real reader",
+        async (platform) => {
+            const { db: prisma } = await import("@/lib/db");
+            const { getDiscoveryRailPolicy } = await import(
+                "@/lib/data/home/getDiscoveryRailPolicy"
+            );
+            const policies = await db.query<PolicyRow>(
+                `SELECT platform, policy_version, catalog_version, cycle_cadence_hours
+                 FROM discovery_rail_platform_policies WHERE platform = $1`,
+                [platform],
+            );
+            const entries = await db.query<EntryRow>(
+                `SELECT platform, rail_key, enabled, position, rotation_pool, weight
+                 FROM discovery_rail_policy_entries WHERE platform = $1
+                 ORDER BY position, rail_key`,
+                [platform],
+            );
+            const row = policies.rows[0];
+            const storedRails = entries.rows.map((entry) => ({
+                railKey: entry.rail_key,
+                enabled: entry.enabled,
+                position: entry.position,
+                rotationPool: entry.rotation_pool,
+                weight: entry.weight,
+            }));
+            const storedPolicy = {
+                platform: row.platform,
+                policyVersion: row.policy_version,
+                catalogVersion: row.catalog_version,
+                cycleCadenceHours: row.cycle_cadence_hours,
+                updatedByProfileId: null,
+                createdAt: new Date("2026-08-17T00:00:00Z"),
+                updatedAt: new Date("2026-08-17T00:00:00Z"),
+                entries: storedRails.map((entry) => ({ ...entry, platform })),
+            };
+            vi.mocked(prisma.discoveryRailPlatformPolicy.findUnique)
+                .mockResolvedValueOnce(storedPolicy);
+
+            await expect(getDiscoveryRailPolicy(platform)).resolves.toEqual({
+                platform,
+                catalogVersion: 6,
+                version: row.policy_version,
+                cycleCadenceHours: row.cycle_cadence_hours,
+                rails: storedRails,
+            });
+        },
+    );
 
     it("renames the catalog entry and advances every platform policy", async () => {
         const catalog = await db.query<{

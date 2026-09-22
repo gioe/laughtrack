@@ -1,3 +1,4 @@
+import { DISCOVERY_RAIL_CATALOG_VERSION } from "@/lib/discovery/railPolicy";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -197,7 +198,7 @@ describe("GET /api/v1/home/feed", () => {
                 );
                 expect(body.data.railPlan).toMatchObject({
                     version: 1,
-                    catalogVersion: 5,
+                    catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                     policyVersion: 5,
                     platform,
                     rails: expect.arrayContaining([
@@ -256,7 +257,7 @@ describe("GET /api/v1/home/feed", () => {
             expect(res.status).toBe(200);
             expect(body.data.railPlan).toMatchObject({
                 version: 1,
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 policyVersion: 5,
                 platform: "ios",
             });
@@ -316,7 +317,7 @@ describe("GET /api/v1/home/feed", () => {
             } as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "web",
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 version: 5,
                 cycleCadenceHours: 24,
                 rails: ["just_passing_through", "starting_to_buzz"].map(
@@ -420,7 +421,7 @@ describe("GET /api/v1/home/feed", () => {
             ] as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "web",
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 version: 5,
                 cycleCadenceHours: 24,
                 rails: [
@@ -513,7 +514,7 @@ describe("GET /api/v1/home/feed", () => {
             } as never);
             mockGetDiscoveryRailPolicy.mockResolvedValue({
                 platform: "ios",
-                catalogVersion: 5,
+                catalogVersion: DISCOVERY_RAIL_CATALOG_VERSION,
                 version: 5,
                 cycleCadenceHours: 24,
                 rails: [
