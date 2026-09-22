@@ -454,6 +454,11 @@ struct ContentView: View {
         }
         // Root-return chrome describes the tab this shared stack actually reveals.
         .environment(\.detailRootTab, shellState.selectedTab)
+        // Feedback remains mounted through pushes and sits above the player.
+        .modifier(DetailActionFeedbackOverlay(
+            manager: serviceContainer.resolve(ToastManager.self),
+            clearsRootTabBar: coordinator.routes.isEmpty
+        ))
         // Keep one player across destinations. Its reserved region stays stable
         // while UIKit moves the hosted player alongside native navigation.
         .safeAreaInset(edge: .bottom) {
