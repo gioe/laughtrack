@@ -106,7 +106,7 @@ function chooseWeightedRail(
     return rails[rails.length - 1];
 }
 
-function selectPolicyRails({
+export function selectDiscoveryPolicyRails({
     policy,
     actorKey,
     cycleIndex,
@@ -206,7 +206,7 @@ export function selectDiscoveryRailPlan({
     const seenPerformerIds = new Set<string>();
     const rails: DiscoveryRailPlanEntry[] = [];
 
-    for (const selectedRail of selectPolicyRails({
+    for (const selectedRail of selectDiscoveryPolicyRails({
         policy,
         actorKey,
         cycleIndex,

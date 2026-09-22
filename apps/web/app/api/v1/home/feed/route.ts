@@ -18,6 +18,7 @@ import { getFreshAndRisingRails } from "@/lib/data/home/getFreshAndRisingRails";
 import { getAffinityRails } from "@/lib/data/home/getAffinityRails";
 import {
     DISCOVERY_PLATFORMS,
+    getDefaultDiscoveryRailPolicy,
     type DiscoveryPlatform,
     type DiscoveryRailKey,
 } from "@/lib/discovery/railPolicy";
@@ -25,8 +26,13 @@ import {
     getDiscoveryRailCycleIndex,
     loadDiscoveryRailPolicyWithFallback,
     selectDiscoveryRailPlan,
+    selectDiscoveryPolicyRails,
     type DiscoveryRailPayloadMap,
 } from "@/lib/discovery/railSelector";
+import {
+    createOptionalProviderRunner,
+    runOptionalProvider,
+} from "@/lib/discovery/optionalProviders";
 import { PROFILE_MISSING, resolveAuth } from "@/lib/auth/resolveAuth";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
@@ -53,6 +59,11 @@ function showPayload(payloadKey: string, shows: ShowDTO[]) {
         }),
     };
 }
+
+// Policy reads must not add an unbounded wait ahead of primary content.
+const POLICY_BUDGET_MS = 150;
+const OPTIONAL_PROVIDER_BUDGET_MS = 750;
+const runPolicy = createOptionalProviderRunner({ maxInFlight: 3 });
 
 const ZIP_RE = /^\d{5}$/;
 const HERO_SHOW_COUNT = 3;
@@ -145,9 +156,15 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         ]);
         const authCtx = rawAuthCtx === PROFILE_MISSING ? null : rawAuthCtx;
         const profileId = authCtx?.profileId ?? null;
-        const policyPromise = loadDiscoveryRailPolicyWithFallback(
+        const policyPromise = runPolicy(
             platform,
-            getDiscoveryRailPolicy,
+            () =>
+                loadDiscoveryRailPolicyWithFallback(
+                    platform,
+                    getDiscoveryRailPolicy,
+                ),
+            getDefaultDiscoveryRailPolicy(platform),
+            Date.now() + POLICY_BUDGET_MS,
         );
         const sessionZip = session?.profile?.zipCode ?? null;
         // Query ?zip= beats the session profile's stored zip; this lets
@@ -160,6 +177,39 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             },
         );
         const zipCode = hero.zipCode;
+
+        const policy = await policyPromise;
+        const actorKey = profileId
+            ? `profile:${profileId}`
+            : `anonymous:${zipCode ?? "global"}`;
+        const cycleIndex = getDiscoveryRailCycleIndex(
+            Date.now(),
+            policy.cycleCadenceHours,
+        );
+        const selectedRails = new Set(
+            selectDiscoveryPolicyRails({ policy, actorKey, cycleIndex }).map(
+                (rail) => rail.railKey,
+            ),
+        );
+        // A single deadline shared by all optional work, not 750 ms per provider.
+        // Primary queries retain their existing failure isolation and are awaited.
+        const optionalDeadline = Date.now() + OPTIONAL_PROVIDER_BUDGET_MS;
+        let optionalIncomplete = false;
+        const optional = <T>(
+            name: string,
+            inputs: readonly unknown[],
+            load: () => Promise<T>,
+            fallback: T,
+        ) =>
+            runOptionalProvider(
+                JSON.stringify([name, ...inputs]),
+                load,
+                fallback,
+                optionalDeadline,
+            ).then((value) => {
+                if (value === fallback) optionalIncomplete = true;
+                return value;
+            });
 
         const [
             trendingComedians,
@@ -175,49 +225,47 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             freshAndRisingRails,
             affinityRails,
         ] = await Promise.all([
+            (zipCode
+                ? getTrendingComedians(8, 0, { zipCode, distanceMiles })
+                : getTrendingComedians()
+            ).catch(logSectionError("getTrendingComedians")),
+            // Static payloads also back legacy/native category tabs, even when
+            // their policy rail is disabled. Preserve their bounded contents.
+            optional(
+                "clubs",
+                [zipCode, distanceMiles],
+                () =>
+                    (async () => {
+                        const local = zipCode
+                            ? await getClubsByZip(zipCode, distanceMiles, 8, {
+                                  requireImage: true,
+                              })
+                            : [];
+                        // Do not start a second query after this caller's budget expired.
+                        return local.length > 0 ||
+                            Date.now() >= optionalDeadline
+                            ? local
+                            : getClubs(8, 0, { requireImage: true });
+                    })().catch(logSectionError("getClubsByZip")),
+                [],
+            ),
             zipCode
-                ? getTrendingComedians(8, 0, {
-                      zipCode,
-                      distanceMiles,
-                  }).catch(logSectionError("getTrendingComedians"))
-                : getTrendingComedians().catch(
-                      logSectionError("getTrendingComedians"),
-                  ),
-            // Zip-scope the popular-clubs rail so it re-localizes when the
-            // caller changes their zip (iOS already passes ?zip and re-fetches;
-            // it was only ever getting the global list back). Fall back to the
-            // global list when no zip resolves or no nearby clubs are found.
-            zipCode
-                ? getClubsByZip(zipCode, distanceMiles, 8, {
-                      requireImage: true,
-                  })
-                      .then((clubs) =>
-                          clubs.length > 0
-                              ? clubs
-                              : getClubs(8, 0, { requireImage: true }),
-                      )
-                      .catch(logSectionError("getClubsByZip"))
-                : getClubs(8, 0, { requireImage: true }).catch(
-                      logSectionError("getClubs"),
-                  ),
-            zipCode
-                ? getComediansByZip(zipCode, distanceMiles).catch(
-                      logSectionError("getComediansByZip"),
+                ? optional(
+                      "comediansNearYou",
+                      [zipCode, distanceMiles],
+                      () =>
+                          getComediansByZip(zipCode, distanceMiles).catch(
+                              logSectionError("getComediansByZip"),
+                          ),
+                      [],
                   )
                 : Promise.resolve([]),
-            zipCode
-                ? getShowsTonight(
-                      timezone,
-                      zipCode,
-                      distanceMiles,
-                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-                  ).catch(logSectionError("getShowsTonight"))
-                : getShowsTonight(
-                      timezone,
-                      undefined,
-                      undefined,
-                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-                  ).catch(logSectionError("getShowsTonight")),
+            getShowsTonight(
+                timezone,
+                zipCode ?? undefined,
+                zipCode ? distanceMiles : undefined,
+                HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+            ).catch(logSectionError("getShowsTonight")),
             zipCode
                 ? getShowsNearZip(
                       zipCode,
@@ -226,45 +274,84 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                       HOME_SHOW_RAIL_CANDIDATE_LIMIT,
                   ).catch(logSectionError("getShowsNearZip"))
                 : Promise.resolve([]),
-            zipCode
-                ? getTrendingShowsThisWeek(
-                      timezone,
-                      zipCode,
-                      distanceMiles,
-                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-                  ).catch(logSectionError("getTrendingShowsThisWeek"))
-                : getTrendingShowsThisWeek(
-                      timezone,
-                      undefined,
-                      undefined,
-                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-                  ).catch(logSectionError("getTrendingShowsThisWeek")),
-            getPodcastEpisodeDiscovery(profileId).catch(
-                logSectionError("getPodcastEpisodeDiscovery"),
+            getTrendingShowsThisWeek(
+                timezone,
+                zipCode ?? undefined,
+                zipCode ? distanceMiles : undefined,
+                HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+            ).catch(logSectionError("getTrendingShowsThisWeek")),
+            optional(
+                "podcastEpisodes",
+                [profileId],
+                () =>
+                    getPodcastEpisodeDiscovery(profileId).catch(
+                        logSectionError("getPodcastEpisodeDiscovery"),
+                    ),
+                [],
             ),
-            getTrendingPodcasts(zipCode, undefined, distanceMiles).catch(
-                logSectionError("getTrendingPodcasts"),
+            optional(
+                "trendingPodcasts",
+                [zipCode, distanceMiles],
+                () =>
+                    getTrendingPodcasts(
+                        zipCode,
+                        undefined,
+                        distanceMiles,
+                    ).catch(logSectionError("getTrendingPodcasts")),
+                [],
             ),
             profileId
-                ? getFavoriteComedianShows(
-                      profileId,
-                      zipCode,
-                      distanceMiles,
-                      HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-                  ).catch(logSectionError("getFavoriteComedianShows"))
+                ? optional(
+                      "followedShows",
+                      [profileId, zipCode, distanceMiles],
+                      () =>
+                          getFavoriteComedianShows(
+                              profileId,
+                              zipCode,
+                              distanceMiles,
+                              HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+                          ).catch(logSectionError("getFavoriteComedianShows")),
+                      [],
+                  )
                 : Promise.resolve([]),
-            getTouringScarcityRails({
-                zipCode: zipCode ?? "",
-                radiusMiles: distanceMiles,
-                limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-                forFeedCandidates: true,
-            }).catch(logProviderError("getTouringScarcityRails")),
-            getFreshAndRisingRails({
-                limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-            }).catch(logProviderError("getFreshAndRisingRails")),
-            getAffinityRails(profileId, {
-                limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
-            }).catch(logProviderError("getAffinityRails")),
+            // Dynamic payloads have no legacy fixed-section consumers. Select
+            // their policy/rotation slots before starting any expensive work.
+            selectedRails.has("just_passing_through")
+                ? optional(
+                      "touring",
+                      [zipCode, distanceMiles],
+                      () =>
+                          getTouringScarcityRails({
+                              zipCode: zipCode ?? "",
+                              radiusMiles: distanceMiles,
+                              limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+                              forFeedCandidates: true,
+                          }).catch(logProviderError("getTouringScarcityRails")),
+                      null,
+                  )
+                : Promise.resolve(null),
+            selectedRails.has("starting_to_buzz")
+                ? optional(
+                      "fresh",
+                      [],
+                      () =>
+                          getFreshAndRisingRails({
+                              limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+                          }).catch(logProviderError("getFreshAndRisingRails")),
+                      null,
+                  )
+                : Promise.resolve(null),
+            profileId && selectedRails.has("from_your_podcasts")
+                ? optional(
+                      "affinity",
+                      [profileId],
+                      () =>
+                          getAffinityRails(profileId, {
+                              limit: HOME_SHOW_RAIL_CANDIDATE_LIMIT,
+                          }).catch(logProviderError("getAffinityRails")),
+                      null,
+                  )
+                : Promise.resolve(null),
         ]);
 
         const dynamicRails = [
@@ -298,16 +385,10 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         const moreNearYou = showsNearZip.filter(
             (show) => !heroShowIds.has(show.id),
         );
-        const policy = await policyPromise;
         const railPlan = selectDiscoveryRailPlan({
             policy,
-            actorKey: profileId
-                ? `profile:${profileId}`
-                : `anonymous:${zipCode ?? "global"}`,
-            cycleIndex: getDiscoveryRailCycleIndex(
-                Date.now(),
-                policy.cycleCadenceHours,
-            ),
+            actorKey,
+            cycleIndex,
             payloads: {
                 shows_tonight: showPayload("showsTonight", showsTonight),
                 followed_comedian_shows: showPayload(
@@ -384,7 +465,10 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             {
                 headers: {
                     ...rateLimitHeaders(rl),
-                    "Cache-Control": PRIVATE_CACHE_CONTROL,
+                    // A partial response must not hide a recovered rail on refresh.
+                    "Cache-Control": optionalIncomplete
+                        ? "private, no-store"
+                        : PRIVATE_CACHE_CONTROL,
                 },
             },
         );

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 
 vi.mock("@/auth", () => ({
@@ -345,9 +345,7 @@ describe("GET /api/v1/home/feed", () => {
             expect(mockGetFreshAndRisingRails).toHaveBeenCalledWith({
                 limit: 50,
             });
-            expect(mockGetAffinityRails).toHaveBeenCalledWith("profile-1", {
-                limit: 50,
-            });
+            expect(mockGetAffinityRails).not.toHaveBeenCalled();
             expect(body.data.dynamicRails).toHaveLength(2);
             expect(body.data.dynamicRails).toEqual(
                 expect.arrayContaining([
@@ -563,6 +561,374 @@ describe("GET /api/v1/home/feed", () => {
             // Candidate source arrays and wrapped evidence remain unchanged.
             expect(week).toHaveLength(16);
             expect(visitors).toHaveLength(10);
+        });
+    });
+
+    describe("optional provider deadlines", () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date("2026-09-22T15:00:00Z"));
+        });
+        afterEach(() => vi.useRealTimers());
+
+        function deferred<T>() {
+            let resolve!: (value: T) => void;
+            let reject!: (error: Error) => void;
+            const promise = new Promise<T>((yes, no) => {
+                resolve = yes;
+                reject = no;
+            });
+            return { promise, resolve, reject };
+        }
+
+        function assertResolvable(data: any) {
+            for (const rail of data.railPlan.rails) {
+                const items =
+                    rail.payloadKey === "dynamicRails"
+                        ? data.dynamicRails.find(
+                              (value: any) => value.railKey === rail.railKey,
+                          )?.items
+                        : data[rail.payloadKey];
+                for (const id of rail.itemIds) {
+                    expect(
+                        items.some((item: any) => String(item.id) === id),
+                    ).toBe(true);
+                }
+            }
+        }
+
+        it.each([null, "profile-budget"])(
+            "returns primary content at one 750 ms deadline with slow podcasts for %s",
+            async (profileId) => {
+                if (profileId)
+                    mockResolveAuth.mockResolvedValue({
+                        profileId,
+                        userId: "user-budget",
+                    });
+                const episodes = deferred<never[]>();
+                const podcasts = deferred<never[]>();
+                mockGetPodcastEpisodeDiscovery.mockReturnValue(
+                    episodes.promise,
+                );
+                mockGetTrendingPodcasts.mockReturnValue(podcasts.promise);
+                mockGetShowsTonight.mockResolvedValue([{ id: 42 }] as never);
+                let completed = false;
+                const request = GET(makeRequest({ platform: "ios" })).then(
+                    (response) => {
+                        completed = true;
+                        return response;
+                    },
+                );
+                await vi.advanceTimersByTimeAsync(749);
+                expect(completed).toBe(false);
+                await vi.advanceTimersByTimeAsync(1);
+                const response = await request;
+                const { data } = await response.json();
+                expect(response.status).toBe(200);
+                expect(data.showsTonight).toEqual([{ id: 42 }]);
+                expect(data.podcastEpisodes).toEqual([]);
+                expect(data.trendingPodcasts).toEqual([]);
+                expect(response.headers.get("Cache-Control")).toBe(
+                    "private, no-store",
+                );
+                expect(mockGetPodcastEpisodeDiscovery).toHaveBeenCalledWith(
+                    profileId,
+                );
+                assertResolvable(data);
+                episodes.resolve([]);
+                podcasts.resolve([]);
+                await vi.advanceTimersByTimeAsync(0);
+            },
+        );
+
+        it("returns a coherent empty plan at the deadline when local inventory is empty and podcasts stall", async () => {
+            mockGetHeroContext.mockResolvedValue({
+                zipCode: "10001",
+                city: "New York",
+                state: "NY",
+            });
+            const episodes = deferred<never[]>();
+            mockGetPodcastEpisodeDiscovery.mockReturnValueOnce(
+                episodes.promise,
+            );
+            let completed = false;
+            const request = GET(
+                makeRequest({ platform: "ios", zip: "10001" }),
+            ).then((response) => {
+                completed = true;
+                return response;
+            });
+            await vi.advanceTimersByTimeAsync(749);
+            expect(completed).toBe(false);
+            await vi.advanceTimersByTimeAsync(1);
+            const response = await request;
+            const { data } = await response.json();
+            expect(response.status).toBe(200);
+            expect(data.hero).toEqual({
+                zipCode: "10001",
+                city: "New York",
+                state: "NY",
+                shows: [],
+            });
+            expect(data.showsTonight).toEqual([]);
+            expect(data.trendingThisWeek).toEqual([]);
+            expect(data.moreNearYou).toEqual([]);
+            expect(data.podcastEpisodes).toEqual([]);
+            expect(data.railPlan.rails).toEqual([]);
+            expect(response.headers.get("Cache-Control")).toBe(
+                "private, no-store",
+            );
+            episodes.resolve([]);
+            await vi.advanceTimersByTimeAsync(0);
+        });
+
+        it("does not start a global club fallback after the local query outlives its deadline", async () => {
+            mockGetHeroContext.mockResolvedValue({
+                zipCode: "10001",
+                city: "New York",
+                state: "NY",
+            });
+            const clubs = deferred<never[]>();
+            mockGetClubsByZip.mockReturnValueOnce(clubs.promise);
+            const request = GET(makeRequest({ platform: "ios", zip: "10001" }));
+            await vi.advanceTimersByTimeAsync(750);
+            const response = await request;
+            expect(response.status).toBe(200);
+            expect((await response.json()).data.popularClubs).toEqual([]);
+            expect(mockGetClubsByZip).toHaveBeenCalledOnce();
+            expect(mockGetClubs).not.toHaveBeenCalled();
+            clubs.resolve([]);
+            await vi.advanceTimersByTimeAsync(0);
+            expect(mockGetClubs).not.toHaveBeenCalled();
+        });
+
+        it("waits for slow primary content after the optional deadline", async () => {
+            const primary = deferred<never[]>();
+            mockGetShowsTonight.mockReturnValue(primary.promise);
+            let completed = false;
+            const request = GET(makeRequest()).then((response) => {
+                completed = true;
+                return response;
+            });
+            await vi.advanceTimersByTimeAsync(1000);
+            expect(completed).toBe(false);
+            primary.resolve([{ id: 51 }] as never);
+            const { data } = await (await request).json();
+            expect(data.showsTonight).toEqual([{ id: 51 }]);
+            assertResolvable(data);
+        });
+
+        it.each([false, true])(
+            "keeps ready optional content when local primary inventory fails=%s",
+            async (fails) => {
+                mockGetHeroContext.mockResolvedValue({
+                    zipCode: "10001",
+                    city: "New York",
+                    state: "NY",
+                });
+                if (fails) {
+                    mockGetShowsTonight.mockRejectedValue(
+                        new Error("primary unavailable"),
+                    );
+                    mockGetShowsNearZip.mockRejectedValue(
+                        new Error("nearby unavailable"),
+                    );
+                    mockGetTrendingShowsThisWeek.mockRejectedValue(
+                        new Error("week unavailable"),
+                    );
+                    mockGetTrendingComedians.mockRejectedValue(
+                        new Error("comedians unavailable"),
+                    );
+                }
+                mockGetPodcastEpisodeDiscovery.mockResolvedValue([
+                    { id: 61 },
+                ] as never);
+                const response = await GET(makeRequest({ platform: "ios" }));
+                const { data } = await response.json();
+                expect(response.status).toBe(200);
+                expect(data.hero.shows).toEqual([]);
+                expect(data.showsTonight).toEqual([]);
+                expect(data.podcastEpisodes).toEqual([{ id: 61 }]);
+                expect(data.railPlan.rails).toContainEqual(
+                    expect.objectContaining({
+                        railKey: "trending_podcasts",
+                        itemIds: ["61"],
+                    }),
+                );
+                assertResolvable(data);
+            },
+        );
+
+        it.each(["resolve", "reject"] as const)(
+            "ignores late %s and retries completed personalized work on refresh",
+            async (settlement) => {
+                mockResolveAuth.mockResolvedValue({
+                    profileId: "profile-late",
+                    userId: "user-late",
+                });
+                const late = deferred<never[]>();
+                mockGetPodcastEpisodeDiscovery.mockReturnValueOnce(
+                    late.promise,
+                );
+                const request = GET(makeRequest({ platform: "ios" }));
+                await vi.advanceTimersByTimeAsync(750);
+                const response = await request;
+                const serialized = await response.text();
+                if (settlement === "resolve")
+                    late.resolve([{ id: 71 }] as never);
+                else late.reject(new Error("late database failure"));
+                await vi.advanceTimersByTimeAsync(0);
+                expect(JSON.parse(serialized).data.podcastEpisodes).toEqual([]);
+                mockGetPodcastEpisodeDiscovery.mockResolvedValue([
+                    { id: 72 },
+                ] as never);
+                const { data } = await (
+                    await GET(makeRequest({ platform: "ios" }))
+                ).json();
+                expect(data.podcastEpisodes).toEqual([{ id: 72 }]);
+                expect(mockGetPodcastEpisodeDiscovery).toHaveBeenCalledTimes(2);
+                expect(mockGetPodcastEpisodeDiscovery.mock.calls).toEqual([
+                    ["profile-late"],
+                    ["profile-late"],
+                ]);
+                assertResolvable(data);
+            },
+        );
+
+        it("coalesces timed-out work only for the same profile and releases it after settlement", async () => {
+            const pending = deferred<never[]>();
+            mockGetPodcastEpisodeDiscovery.mockImplementation((profileId) =>
+                profileId === "profile-a"
+                    ? pending.promise
+                    : Promise.resolve([{ id: 82 }] as never),
+            );
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-a",
+                userId: "user-a",
+            });
+            const first = GET(makeRequest({ platform: "ios" }));
+            await vi.advanceTimersByTimeAsync(750);
+            expect((await (await first).json()).data.podcastEpisodes).toEqual(
+                [],
+            );
+            const repeated = GET(makeRequest({ platform: "ios" }));
+            await vi.advanceTimersByTimeAsync(0);
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-b",
+                userId: "user-b",
+            });
+            const isolated = await GET(makeRequest({ platform: "ios" }));
+            expect((await isolated.json()).data.podcastEpisodes).toEqual([
+                { id: 82 },
+            ]);
+            expect(mockGetPodcastEpisodeDiscovery.mock.calls).toEqual([
+                ["profile-a"],
+                ["profile-b"],
+            ]);
+            pending.resolve([{ id: 81 }] as never);
+            await vi.advanceTimersByTimeAsync(0);
+            expect(
+                (await (await repeated).json()).data.podcastEpisodes,
+            ).toEqual([{ id: 81 }]);
+        });
+
+        it("falls back after 150 ms when policy loading stalls", async () => {
+            const pending =
+                deferred<ReturnType<typeof getDefaultDiscoveryRailPolicy>>();
+            mockGetDiscoveryRailPolicy.mockReturnValueOnce(pending.promise);
+            mockGetShowsTonight.mockResolvedValue([{ id: 91 }] as never);
+            let completed = false;
+            const request = GET(makeRequest({ platform: "ios" })).then(
+                (response) => {
+                    completed = true;
+                    return response;
+                },
+            );
+            await vi.advanceTimersByTimeAsync(149);
+            expect(completed).toBe(false);
+            await vi.advanceTimersByTimeAsync(1);
+            const { data } = await (await request).json();
+            expect(data.railPlan.policyVersion).toBe(
+                getDefaultDiscoveryRailPolicy("ios").version,
+            );
+            expect(data.showsTonight).toEqual([{ id: 91 }]);
+            assertResolvable(data);
+            pending.resolve(getDefaultDiscoveryRailPolicy("ios"));
+            await vi.advanceTimersByTimeAsync(0);
+        });
+
+        it("skips disabled dynamic providers but retains disabled static payloads for legacy iOS category tabs", async () => {
+            const policy = getDefaultDiscoveryRailPolicy("ios");
+            policy.rails = policy.rails.map((rail) => ({
+                ...rail,
+                enabled: ![
+                    "popular_clubs",
+                    "just_passing_through",
+                    "starting_to_buzz",
+                ].includes(rail.railKey),
+            }));
+            mockGetDiscoveryRailPolicy.mockResolvedValue(policy);
+            mockGetClubs.mockResolvedValue([{ id: 101 }] as never);
+            const { data } = await (
+                await GET(makeRequest({ platform: "ios" }))
+            ).json();
+            expect(mockGetTouringScarcityRails).not.toHaveBeenCalled();
+            expect(mockGetFreshAndRisingRails).not.toHaveBeenCalled();
+            expect(mockGetAffinityRails).not.toHaveBeenCalled();
+            expect(mockGetClubs).toHaveBeenCalledOnce();
+            expect(data.popularClubs).toEqual([{ id: 101 }]);
+            expect(
+                data.railPlan.rails.some(
+                    (rail: any) => rail.railKey === "popular_clubs",
+                ),
+            ).toBe(false);
+            assertResolvable(data);
+        });
+
+        it("invokes only the chosen dynamic rotation member and keeps every planned ID resolvable", async () => {
+            const policy = getDefaultDiscoveryRailPolicy("ios");
+            policy.rails = ["just_passing_through", "starting_to_buzz"].map(
+                (railKey) => ({
+                    railKey,
+                    enabled: true,
+                    position: 0,
+                    rotationPool: "dynamic",
+                    weight: 1,
+                }),
+            ) as typeof policy.rails;
+            mockGetDiscoveryRailPolicy.mockResolvedValue(policy);
+            const item = {
+                show: { id: 111 },
+                performer: { id: 11 },
+                reason: { label: "Evidence" },
+            };
+            mockGetTouringScarcityRails.mockResolvedValue({
+                justPassingThrough: {
+                    railKey: "just_passing_through",
+                    label: "Visitor",
+                    items: [item],
+                },
+            } as never);
+            mockGetFreshAndRisingRails.mockResolvedValue({
+                startingToBuzz: {
+                    railKey: "starting_to_buzz",
+                    label: "Buzz",
+                    items: [item],
+                },
+            } as never);
+            const { data } = await (
+                await GET(makeRequest({ platform: "ios" }))
+            ).json();
+            expect(
+                mockGetTouringScarcityRails.mock.calls.length +
+                    mockGetFreshAndRisingRails.mock.calls.length,
+            ).toBe(1);
+            expect(data.dynamicRails).toHaveLength(1);
+            expect(data.railPlan.rails).toHaveLength(1);
+            expect(data.dynamicRails[0].railKey).toBe(
+                data.railPlan.rails[0].railKey,
+            );
+            assertResolvable(data);
         });
     });
 
