@@ -54,6 +54,223 @@ afterEach(() => {
 });
 
 describe("ShowTicketCta", () => {
+    describe("unavailable ticket destinations", () => {
+        it.each([
+            {
+                label: "no ticket rows or show-page link",
+                tickets: [],
+                showPageUrl: "",
+            },
+            {
+                label: "an available ticket with an empty link",
+                tickets: [
+                    {
+                        price: 24,
+                        purchaseUrl: "",
+                        soldOut: false,
+                        type: "General admission",
+                    },
+                ],
+                showPageUrl: "",
+            },
+            {
+                label: "a malformed ticket link",
+                tickets: [
+                    {
+                        price: 24,
+                        purchaseUrl: "not-a-url",
+                        soldOut: false,
+                        type: "General admission",
+                    },
+                ],
+                showPageUrl: "",
+            },
+            {
+                label: "an unsafe ticket scheme",
+                tickets: [
+                    {
+                        price: 24,
+                        purchaseUrl: "javascript:alert(1)",
+                        soldOut: false,
+                        type: "General admission",
+                    },
+                ],
+                showPageUrl: "",
+            },
+            {
+                label: "a malformed show-page fallback",
+                tickets: [],
+                showPageUrl: "not-a-url",
+            },
+            {
+                label: "whitespace-only destinations",
+                tickets: [
+                    {
+                        price: null,
+                        purchaseUrl: "   ",
+                        soldOut: false,
+                        type: "General admission",
+                    },
+                ],
+                showPageUrl: "   ",
+            },
+        ])(
+            "does not claim sold-out inventory for $label",
+            ({ tickets, showPageUrl }) => {
+                render(
+                    <ShowTicketCta
+                        isPast={false}
+                        show={{
+                            ...baseShow,
+                            soldOut: false,
+                            tickets,
+                            showPageUrl,
+                        }}
+                    />,
+                );
+
+                expect.soft(screen.queryByText(/sold out/i)).toBeNull();
+                expect
+                    .soft(
+                        screen.queryByRole("link", {
+                            name: /buy tickets|rsvp/i,
+                        }),
+                    )
+                    .toBeNull();
+                expect
+                    .soft(screen.queryByText(/ticket link unavailable/i))
+                    .not.toBeNull();
+            },
+        );
+
+        it("does not offer RSVP or claim sold out when an open mic has no destination", () => {
+            render(
+                <ShowTicketCta
+                    isPast={false}
+                    isOpenMic
+                    show={{
+                        ...baseShow,
+                        soldOut: false,
+                        tickets: [],
+                        showPageUrl: "",
+                    }}
+                />,
+            );
+
+            expect.soft(screen.queryByText(/sold out/i)).toBeNull();
+            expect
+                .soft(screen.queryByRole("link", { name: /buy tickets|rsvp/i }))
+                .toBeNull();
+            expect
+                .soft(screen.queryByText(/ticket link unavailable/i))
+                .not.toBeNull();
+        });
+    });
+
+    it.each([false, true])(
+        "uses a valid show-page fallback after invalid ticket links (open mic: %s)",
+        (isOpenMic) => {
+            render(
+                <ShowTicketCta
+                    isPast={false}
+                    isOpenMic={isOpenMic}
+                    discoveryImpressionId="origin-impression"
+                    show={{
+                        ...baseShow,
+                        tickets: [
+                            {
+                                price: null,
+                                purchaseUrl: "javascript:alert(1)",
+                                soldOut: false,
+                                type: "General admission",
+                            },
+                        ],
+                    }}
+                />,
+            );
+            const link = screen.getByRole("link", {
+                name: isOpenMic
+                    ? /rsvp for late show/i
+                    : /buy tickets for late show/i,
+            });
+            const url = new URL(
+                link.getAttribute("href")!,
+                "https://example.com",
+            );
+            expect(url.searchParams.get("url")).toBe(baseShow.showPageUrl);
+            expect(url.searchParams.get("impressionId")).toBe(
+                "origin-impression",
+            );
+            expect(url.searchParams.get("surface")).toBe("show_detail");
+            expect(screen.queryByText("Ticket link unavailable")).toBeNull();
+        },
+    );
+
+    it("skips sold-out and invalid rows to use a later valid live ticket", () => {
+        render(
+            <ShowTicketCta
+                isPast={false}
+                show={{
+                    ...baseShow,
+                    tickets: [
+                        {
+                            price: 10,
+                            purchaseUrl: "https://example.com/sold",
+                            soldOut: true,
+                            type: "Sold",
+                        },
+                        {
+                            price: 20,
+                            purchaseUrl: "/relative",
+                            soldOut: false,
+                            type: "Invalid",
+                        },
+                        {
+                            price: 30,
+                            purchaseUrl: "  http://tickets.example.com/live  ",
+                            soldOut: false,
+                            type: "Live",
+                        },
+                    ],
+                }}
+            />,
+        );
+        const link = screen.getByRole("link", {
+            name: /buy tickets for late show/i,
+        });
+        expect(
+            new URL(
+                link.getAttribute("href")!,
+                "https://example.com",
+            ).searchParams.get("url"),
+        ).toBe("http://tickets.example.com/live");
+    });
+
+    it.each([false, true])(
+        "preserves ended and explicit sold-out precedence without a destination (past: %s)",
+        (isPast) => {
+            render(
+                <ShowTicketCta
+                    isPast={isPast}
+                    isOpenMic
+                    show={{
+                        ...baseShow,
+                        soldOut: true,
+                        showPageUrl: "",
+                        tickets: [],
+                    }}
+                />,
+            );
+            expect(
+                screen.getByText(isPast ? "This show has ended." : "Sold Out"),
+            ).toBeTruthy();
+            expect(screen.queryByText("Ticket link unavailable")).toBeNull();
+            expect(
+                screen.queryByRole("link", { name: /buy tickets|rsvp/i }),
+            ).toBeNull();
+        },
+    );
+
     it("retains the originating discovery impression on detail-page ticket intent", () => {
         const impressionId = "00000000-0000-4000-8000-000000000001";
         render(

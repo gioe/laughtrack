@@ -14,7 +14,7 @@ import {
 } from "@/util/ticket/ticketUtil";
 import { formatShowDate } from "@/util/dateUtil";
 import { Ticket } from "@/objects/class/ticket/Ticket";
-import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
+import { validTicketUrl } from "@/util/ticket/ticketUrl";
 import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
 import { buildTicketOutboundHref } from "@/util/ticketOutboundLink";
 import { TicketStub, TicketStubRow } from "@/ui/components/ticketStub";
@@ -28,10 +28,12 @@ interface ShowTicketCtaProps {
 
 // Picks the best external URL: a live ticket row, else the scraped show page.
 function pickTicketUrl(show: ShowDetailDTO): string | null {
-    const tickets = show.tickets ?? [];
-    const live = tickets.find((t: TicketDTO) => !t.soldOut && t.purchaseUrl);
-    if (live?.purchaseUrl) return live.purchaseUrl;
-    return show.showPageUrl || null;
+    for (const ticket of show.tickets ?? []) {
+        if (ticket.soldOut) continue;
+        const url = validTicketUrl(ticket.purchaseUrl);
+        if (url) return url;
+    }
+    return validTicketUrl(show.showPageUrl);
 }
 
 const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
@@ -52,10 +54,8 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
         show.soldOut === true ||
         (tickets.length > 0 && tickets.every((t) => t.soldOut));
 
-    // Sold Out only when tickets exist and every row says soldOut, OR when we
-    // have no URL at all to send the user to. Zero ticket rows + a valid
-    // showPageUrl still routes users to the venue. Ended takes precedence.
-    const isSoldOut = !isPast && (explicitlySoldOut || !url);
+    // Inventory and destination availability are independent. Ended wins over both.
+    const isSoldOut = !isPast && explicitlySoldOut;
     const isLive = !isPast && !isSoldOut && !!url;
 
     const dateLabel = formatShowDate(show.date.toString(), show.timezone);
@@ -73,6 +73,8 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
         ticketsValue = "This show has ended.";
     } else if (isSoldOut) {
         ticketsValue = <span className="text-red-700">Sold Out</span>;
+    } else if (!url) {
+        ticketsValue = "Ticket link unavailable";
     } else if (isOpenMic) {
         ticketsValue = "RSVP";
     } else {

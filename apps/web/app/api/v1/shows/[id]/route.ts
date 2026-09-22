@@ -1,3 +1,4 @@
+import { validTicketUrl } from "@/util/ticket/ticketUrl";
 import { NextRequest, NextResponse } from "next/server";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
@@ -27,19 +28,6 @@ function pickCtaUrl(
         if (purchaseUrl) return purchaseUrl;
     }
     return validTicketUrl(showPageUrl);
-}
-
-function validTicketUrl(value: string | null | undefined): string | null {
-    const trimmed = value?.trim();
-    if (!trimmed) return null;
-    try {
-        const url = new URL(trimmed);
-        return url.protocol === "http:" || url.protocol === "https:"
-            ? url.href
-            : null;
-    } catch {
-        return null;
-    }
 }
 
 function buildCtaLabel(showName: string | null, clubName?: string): string {
