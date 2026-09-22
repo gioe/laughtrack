@@ -33,6 +33,7 @@ struct DetailInfoRow {
 }
 
 struct DetailInfoCard: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.appTheme) private var theme
 
     let eyebrow: String?
@@ -53,11 +54,11 @@ struct DetailInfoCard: View {
                     EmptyCard(message: "Details will appear here when LaughTrack has them.")
                 } else {
                     ForEach(Array(visibleRows.enumerated()), id: \.offset) { _, row in
-                        HStack(alignment: .top) {
+                        (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(alignment: .top))) {
                             Text(row.label)
                                 .font(laughTrack.typography.metadata)
                                 .foregroundStyle(laughTrack.colors.textSecondary)
-                                .frame(width: 72, alignment: .leading)
+                                .frame(width: dynamicTypeSize.isAccessibilitySize ? nil : 72, alignment: .leading)
                             Text(row.value ?? "")
                                 .font(laughTrack.typography.body)
                                 .foregroundStyle(laughTrack.colors.textPrimary)
@@ -80,6 +81,7 @@ struct DetailInfoCard: View {
 }
 
 struct DetailTextCard: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.appTheme) private var theme
 
     let eyebrow: String?
@@ -109,11 +111,11 @@ struct DetailTextCard: View {
                     .font(laughTrack.typography.body)
                     .foregroundStyle(laughTrack.colors.textPrimary)
                     .lineLimit(showsToggle && !isExpanded ? collapsedLineLimit : nil)
-                    .animation(.easeInOut(duration: 0.18), value: isExpanded)
+                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: isExpanded)
 
                 if showsToggle {
                     Button {
-                        withAnimation(.easeInOut(duration: 0.18)) {
+                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
                             isExpanded.toggle()
                         }
                     } label: {

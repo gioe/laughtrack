@@ -309,6 +309,7 @@ struct ClubDetailEveningSummary: Equatable {
 }
 
 private struct ClubDetailTonightMarqueeSection: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let summary: ClubDetailEveningSummary
     let openShow: (Int) -> Void
 
@@ -322,8 +323,8 @@ private struct ClubDetailTonightMarqueeSection: View {
                 .textCase(.uppercase)
                 .foregroundStyle(ClubVenueMarqueeStyle.paper)
                 .frame(
-                    width: ClubVenueMarqueeStyle.headerWidth,
-                    height: ClubVenueMarqueeStyle.headerHeight
+                    width: dynamicTypeSize.isAccessibilitySize ? nil : ClubVenueMarqueeStyle.headerWidth,
+                    height: dynamicTypeSize.isAccessibilitySize ? nil : ClubVenueMarqueeStyle.headerHeight
                 )
                 .background {
                     ClubDetailMarqueeHeaderShape()
@@ -341,20 +342,20 @@ private struct ClubDetailTonightMarqueeSection: View {
                     Button {
                         openShow(performer.showID)
                     } label: {
-                        HStack(alignment: .firstTextBaseline, spacing: theme.spacing.md) {
+                        (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.sm)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: theme.spacing.md))) {
                             Text(performer.name.uppercased())
                                 .font(.system(.headline, design: .rounded, weight: .heavy))
                                 .tracking(0.6)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.72)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                             Text(performer.localizedStartTime.uppercased())
                                 .font(.system(.footnote, design: .monospaced, weight: .semibold))
                                 .tracking(0.4)
                                 .foregroundStyle(Color.black.opacity(0.68))
-                                .fixedSize(horizontal: true, vertical: false)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
+                        .frame(minHeight: 44)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)

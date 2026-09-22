@@ -116,6 +116,7 @@ enum DetailCatalogComposition: Equatable {
 /// canvas prevents cards from stretching edge to edge on large iPads.
 struct AdaptiveDetailCatalogLayout<Hero: View, Content: View>: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private let hero: Hero
     private let content: Content
@@ -130,24 +131,32 @@ struct AdaptiveDetailCatalogLayout<Hero: View, Content: View>: View {
 
     @ViewBuilder
     var body: some View {
-        switch DetailCatalogComposition.resolve(horizontalSizeClass: horizontalSizeClass) {
-        case .compactStack:
-            VStack(alignment: .leading, spacing: 0) {
-                hero
-                content
-            }
-        case .regularColumns:
-            HStack(alignment: .top, spacing: 32) {
-                hero
-                    .frame(width: 360)
+        if DetailCatalogComposition.resolve(horizontalSizeClass: horizontalSizeClass) == .regularColumns,
+           !dynamicTypeSize.isAccessibilitySize {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .top, spacing: 32) {
+                    hero.frame(width: 360)
+                    content
+                        .frame(minWidth: 340, maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 96)
+                }
+                .padding(.horizontal, 32)
+                // Give ViewThatFits the minimum usable two-column width as
+                // its ideal width; long text must not reject a spacious canvas.
+                .frame(minWidth: 796, idealWidth: 796, maxWidth: 1_120)
 
-                content
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 96)
+                stackedContent
             }
-            .padding(.horizontal, 32)
-            .frame(maxWidth: 1_120)
             .frame(maxWidth: .infinity, alignment: .center)
+        } else {
+            stackedContent
+        }
+    }
+
+    private var stackedContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            hero
+            content
         }
     }
 }
@@ -215,6 +224,7 @@ struct DetailAtmosphereRouteBackground: ViewModifier {
 
 private struct DetailNavigationTitle: View {
     @Environment(\.appTheme) private var theme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let text: String
 
@@ -223,13 +233,12 @@ private struct DetailNavigationTitle: View {
             EmptyView()
         } else {
             Text(text)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
                 .lineLimit(2)
-                .minimumScaleFactor(0.85)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: 240, minHeight: 38)
+                .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 240, minHeight: 38)
                 .padding(.horizontal, 8)
                 .background(theme.laughTrackTokens.colors.surface, in: RoundedRectangle(cornerRadius: 12))
                 .accessibilityAddTraits(.isHeader)
@@ -247,33 +256,37 @@ private struct DetailNavigationTitle: View {
 struct DetailChromeBar: View {
     @Environment(\.detailRootTab) private var rootTab
     @Environment(\.detailCompactIdentity) private var compactIdentity
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let onBack: () -> Void
     var onHome: (() -> Void)? = nil
     let favoriteState: DetailFavoriteState?
 
     var body: some View {
-        ZStack {
-            HStack(alignment: .center, spacing: 0) {
-                DetailBackButton(action: onBack)
-
-                if let onHome {
-                    DetailHomeButton(rootTab: rootTab, action: onHome)
+        VStack(spacing: 4) {
+            ZStack {
+                HStack(alignment: .center, spacing: 0) {
+                    DetailBackButton(action: onBack)
+                    if let onHome {
+                        DetailHomeButton(rootTab: rootTab, action: onHome)
+                    }
+                    Spacer()
+                    if let favoriteState {
+                        DetailFavoriteToolbarButton(state: favoriteState)
+                    }
                 }
-
-                Spacer()
-
-                if let favoriteState {
-                    DetailFavoriteToolbarButton(state: favoriteState)
+                if let compactIdentity, !dynamicTypeSize.isAccessibilitySize {
+                    DetailNavigationTitle(text: compactIdentity)
+                        .padding(.horizontal, onHome == nil ? 48 : 92)
+                        .allowsHitTesting(false)
                 }
             }
-
-            if let compactIdentity {
+            if let compactIdentity, dynamicTypeSize.isAccessibilitySize {
                 DetailNavigationTitle(text: compactIdentity)
-                    .padding(.horizontal, onHome == nil ? 48 : 92)
                     .allowsHitTesting(false)
             }
         }
+        .accessibilitySortPriority(1)
         .frame(minHeight: 44)
         .padding(.horizontal, 12)
         .padding(.top, DetailNavigationChrome.stickyChromeTopOffset)

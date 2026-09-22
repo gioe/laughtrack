@@ -795,6 +795,8 @@ private struct ShowSummaryFactTile: View {
 
     @Environment(\.appTheme) private var theme
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let fact: ShowDetailFact
     var action: ActionAffordance?
     var infoMessage: String?
@@ -804,7 +806,7 @@ private struct ShowSummaryFactTile: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(spacing: 14) {
+        (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(spacing: 14))) {
             ZStack {
                 Circle()
                     .fill(TicketTheme.paperShade)
@@ -831,11 +833,11 @@ private struct ShowSummaryFactTile: View {
                             Image(systemName: "info.circle")
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(TicketTheme.inkMuted)
-                                .padding(4)
+                                .frame(minWidth: 44, minHeight: 44)
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("More information")
+                        .accessibilityLabel("More information about \(fact.label.lowercased())")
                         .accessibilityHint("Shows why this value is unavailable")
                     }
                 }
@@ -851,7 +853,7 @@ private struct ShowSummaryFactTile: View {
                 case .pill:
                     HStack(spacing: 5) {
                         Text(action.label.uppercased())
-                            .font(.system(size: 11, weight: .heavy, design: .rounded))
+                            .font(.system(.caption, design: .rounded).weight(.heavy))
                             .tracking(0.6)
                         Image(systemName: action.systemImage)
                             .font(.system(size: 10, weight: .bold))
@@ -1205,6 +1207,7 @@ private struct AdminShowIDBadge: View {
 
 /// Keep this row mounted while updating so refresh state never replaces the catalog.
 struct DetailRefreshStatus: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.appTheme) private var theme
     @ScaledMetric(relativeTo: .caption) private var statusHeight = 44
 
@@ -1213,11 +1216,11 @@ struct DetailRefreshStatus: View {
     let refresh: () async -> Void
 
     var body: some View {
-        HStack(spacing: theme.spacing.sm) {
+        (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.sm)) : AnyLayout(HStackLayout(spacing: theme.spacing.sm))) {
             Text(isRefreshing ? "Updating details…" : failure == nil ? "Pull to refresh" : "Couldn’t update. Previous details shown.")
                 .font(theme.laughTrackTokens.typography.metadata)
                 .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                .lineLimit(2, reservesSpace: true)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
             Spacer(minLength: theme.spacing.sm)
             Button {
                 Task { await refresh() }

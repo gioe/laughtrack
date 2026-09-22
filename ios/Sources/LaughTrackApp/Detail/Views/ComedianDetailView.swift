@@ -977,52 +977,18 @@ struct ComedianPodcastPanel: View {
 
     @ViewBuilder
     private func appearancesPagination(pageCount: Int, currentPage: Int) -> some View {
-        let laughTrack = theme.laughTrackTokens
-
-        HStack(spacing: 12) {
-            Button {
-                appearancesPage = max(0, currentPage - 1)
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(laughTrack.colors.surfaceElevated)
-                    .foregroundStyle(currentPage == 0 ? laughTrack.colors.textSecondary : laughTrack.colors.textPrimary)
-                    .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-            .disabled(currentPage == 0)
-            .accessibilityLabel("Previous page")
-
-            Spacer(minLength: 0)
-
-            Text("Page \(currentPage + 1) of \(pageCount)")
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-
-            Spacer(minLength: 0)
-
-            Button {
-                appearancesPage = min(pageCount - 1, currentPage + 1)
-            } label: {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(laughTrack.colors.surfaceElevated)
-                    .foregroundStyle(currentPage == pageCount - 1 ? laughTrack.colors.textSecondary : laughTrack.colors.textPrimary)
-                    .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-            .disabled(currentPage == pageCount - 1)
-            .accessibilityLabel("Next page")
-        }
+        LaughTrackPagedControls(
+            currentPage: currentPage,
+            pageCount: pageCount,
+            onPrevious: { appearancesPage = max(0, currentPage - 1) },
+            onNext: { appearancesPage = min(pageCount - 1, currentPage + 1) }
+        )
         .padding(.top, 4)
     }
 }
 
 struct PodcastAppearanceRow: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let item: PodcastPlaybackItem
     var playbackAction: PodcastDetailPlaybackAction = .play
     var lineup: [LineupAvatarItem] = []
@@ -1041,7 +1007,7 @@ struct PodcastAppearanceRow: View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            HStack(alignment: .top, spacing: theme.spacing.md) {
+            (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.md)) : AnyLayout(HStackLayout(alignment: .top, spacing: theme.spacing.md))) {
                 Button(action: onSelect) {
                     artwork
                         .overlay(alignment: .bottomTrailing) {
@@ -1063,8 +1029,8 @@ struct PodcastAppearanceRow: View {
                             .font(laughTrack.typography.body.weight(.semibold))
                             .foregroundStyle(laughTrack.colors.textPrimary)
                             .multilineTextAlignment(.leading)
-                            .lineLimit(2)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier(LaughTrackViewTestID.podcastEpisodeRow(item.episodeID))
@@ -1073,15 +1039,17 @@ struct PodcastAppearanceRow: View {
                         Text(subtitleOverride)
                             .font(laughTrack.typography.metadata)
                             .foregroundStyle(laughTrack.colors.textSecondary)
-                            .lineLimit(1)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                     } else {
-                        HStack(spacing: 8) {
+                        (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))) {
                             if let onOpenPodcast {
                                 Button(action: onOpenPodcast) {
                                     Text(item.podcastName)
                                         .font(laughTrack.typography.metadata)
                                         .foregroundStyle(laughTrack.colors.accentStrong)
-                                        .lineLimit(1)
+                                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                                        .frame(minHeight: 44)
+                                        .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
                                 .accessibilityLabel("Open \(item.podcastName)")
@@ -1089,7 +1057,7 @@ struct PodcastAppearanceRow: View {
                                 Text(item.podcastName)
                                     .font(laughTrack.typography.metadata)
                                     .foregroundStyle(laughTrack.colors.textSecondary)
-                                    .lineLimit(1)
+                                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                             }
 
                             if showsRoleBadge {

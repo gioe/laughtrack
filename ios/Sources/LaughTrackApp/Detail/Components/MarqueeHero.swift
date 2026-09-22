@@ -9,6 +9,7 @@ import LaughTrackBridge
 struct MarqueeHero: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let title: String
     var subtitle: String? = nil
@@ -37,31 +38,29 @@ struct MarqueeHero: View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(spacing: layout.contentSpacing) {
-            // Spacer that preserves the title's y-position now that the
-            // back/favorite chrome lives in a sticky overlay outside the
-            // ScrollView. Same height as the original chromeBar (36pt).
-            Color.clear.frame(height: 36)
+            // Reserve the actual sticky controls and their top padding so
+            // a wrapping eyebrow cannot render underneath Back or Favorite.
+            Color.clear.frame(height: DetailNavigationChrome.stickyChromeTopOffset + 44)
 
             if let eyebrow, !eyebrow.isEmpty {
                 Text(eyebrow)
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(.caption.weight(.semibold))
                     .tracking(2.2)
                     .textCase(.uppercase)
                     .foregroundStyle(laughTrack.colors.accentStrong)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 24)
             }
 
             VStack(spacing: 6) {
                 Text(title)
-                    .font(.system(size: 24, weight: .heavy, design: .rounded))
+                    .font(.system(.title2, design: .rounded).weight(.heavy))
                     .tracking(0.4)
                     .textCase(.uppercase)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white)
-                    .lineLimit(3)
-                    .minimumScaleFactor(0.7)
+                    .accessibilityAddTraits(.isHeader)
                     .fixedSize(horizontal: false, vertical: true)
                     .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
                     .padding(.horizontal, 24)
@@ -78,15 +77,16 @@ struct MarqueeHero: View {
             }
 
             if actionPlacement == .belowTitle {
-                heroActions
+                heroActions.padding(.horizontal, 24)
             }
 
             if showsThumbnail {
                 heroThumbnail
+                    .accessibilityHidden(thumbnailHeadshots.count <= 1)
             }
 
             if !badges.isEmpty {
-                HStack(spacing: theme.spacing.sm) {
+                ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: 8) {
                     ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
                         if badge.isLive {
                             LiveRecordingBadge(label: badge.title)
@@ -102,26 +102,20 @@ struct MarqueeHero: View {
             }
 
             if actionPlacement == .belowThumbnail {
-                heroActions
+                heroActions.padding(.horizontal, 24)
             }
 
             if let openComedian, !hosts.isEmpty {
-                if layout.isCompact {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(hosts, id: \.id) { host in
-                                compactHostLink(host: host, openComedian: openComedian)
-                            }
-                        }
-                        .padding(.horizontal, 24)
-                    }
-                } else {
-                    HStack(spacing: theme.spacing.md) {
-                        ForEach(hosts, id: \.id) { host in
+                ChipFlowLayout(spacing: theme.spacing.md, rowSpacing: 12) {
+                    ForEach(hosts, id: \.id) { host in
+                        if layout.isCompact || dynamicTypeSize.isAccessibilitySize {
+                            compactHostLink(host: host, openComedian: openComedian)
+                        } else {
                             hostChip(host: host, openComedian: openComedian)
                         }
                     }
                 }
+                .padding(.horizontal, 24)
             }
         }
         .padding(.top, Self.statusBarOffset)
@@ -145,7 +139,7 @@ struct MarqueeHero: View {
             let visibleActions = actions.filter { $0.url != nil }
             if !visibleActions.isEmpty {
                 if layout.isCompact {
-                    HStack(spacing: 16) {
+                    ChipFlowLayout(spacing: 16, rowSpacing: 8) {
                         ForEach(Array(visibleActions.filter { $0.role == .attendance }.enumerated()), id: \.offset) { _, action in
                             if let url = action.url {
                                 actionButton(action: action, url: url, openURL: openURL)
@@ -173,7 +167,7 @@ struct MarqueeHero: View {
                         }
                     }
                 } else {
-                    HStack(spacing: theme.spacing.md) {
+                    ChipFlowLayout(spacing: theme.spacing.md, rowSpacing: 12) {
                         ForEach(Array(visibleActions.enumerated()), id: \.offset) { _, action in
                             if let url = action.url {
                                 actionButton(action: action, url: url, openURL: openURL)
@@ -290,6 +284,8 @@ struct MarqueeHero: View {
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 2)
                 }
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
             case .compactPill:
                 Label(action.title, systemImage: action.systemImage)
                     .font(laughTrack.typography.metadata.weight(.bold))
@@ -321,7 +317,7 @@ struct MarqueeHero: View {
                 .clipShape(Circle())
                 Text(host.name)
                     .font(.subheadline)
-                    .fixedSize(horizontal: true, vertical: false)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
             .frame(minHeight: 44)
@@ -387,9 +383,9 @@ struct MarqueeHero: View {
                 Text(host.name)
                     .font(laughTrack.typography.metadata.weight(.semibold))
                     .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .frame(maxWidth: diameter + 24)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(width: diameter + 40)
                     .shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 2)
             }
         }
@@ -657,6 +653,8 @@ struct FramedComedianThumbnail: View {
 }
 
 private struct FramedComedianCarouselThumbnail: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     let headshots: [DetailHeroHeadshot]
     let fallbackSystemImage: String
     var photoSize: CGFloat = 208
@@ -681,17 +679,26 @@ private struct FramedComedianCarouselThumbnail: View {
             )
             .id(selected.id)
             .transition(
-                .asymmetric(
+                reduceMotion ? .identity : .asymmetric(
                     insertion: .move(edge: .trailing).combined(with: .opacity),
                     removal: .move(edge: .leading).combined(with: .opacity)
                 )
             )
         }
-        .animation(.spring(response: 0.38, dampingFraction: 0.84), value: selected.id)
+        .animation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.84), value: selected.id)
         .highPriorityGesture(swipeGesture)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(selected.name), \(selectedIndex + 1) of \(headshots.count)")
-        .task {
+        .accessibilityAdjustableAction { direction in
+            pauseAutoAdvanceUntil = Date().addingTimeInterval(Self.manualPauseDuration)
+            switch direction {
+            case .increment: advance()
+            case .decrement: retreat()
+            @unknown default: break
+            }
+        }
+        .task(id: reduceMotion || voiceOverEnabled) {
+            guard !reduceMotion, !voiceOverEnabled else { return }
             await autoAdvance()
         }
     }
@@ -940,6 +947,7 @@ enum MarqueePosterLayout {
 /// when a show is currently happening. The dot fades in and out on a 1.2s
 /// loop, evoking a TV/recording on-air indicator.
 private struct LiveRecordingBadge: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let label: String
 
     @State private var isPulsing = false
@@ -950,14 +958,14 @@ private struct LiveRecordingBadge: View {
                 .fill(Color.red)
                 .frame(width: 9, height: 9)
                 .shadow(color: .red.opacity(0.7), radius: 4)
-                .opacity(isPulsing ? 0.35 : 1.0)
+                .opacity(isPulsing && !reduceMotion ? 0.35 : 1.0)
                 .animation(
-                    .easeInOut(duration: 0.6).repeatForever(autoreverses: true),
+                    reduceMotion ? nil : .easeInOut(duration: 0.6).repeatForever(autoreverses: true),
                     value: isPulsing
                 )
 
             Text(label)
-                .font(.system(size: 12, weight: .heavy, design: .rounded))
+                .font(.caption.weight(.heavy))
                 .tracking(1.2)
                 .foregroundStyle(.white)
         }

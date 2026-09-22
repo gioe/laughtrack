@@ -603,50 +603,13 @@ private struct PodcastEpisodeListSection: View {
 
     @ViewBuilder
     private func pager(currentPage: Int, pageCount: Int, totalCount: Int) -> some View {
-        let laughTrack = theme.laughTrackTokens
-        let canGoBack = currentPage > 0
-        let canGoForward = currentPage < pageCount - 1
-
-        HStack(spacing: theme.spacing.md) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.18)) {
-                    self.currentPage = max(0, currentPage - 1)
-                }
-            } label: {
-                Label("Previous", systemImage: "chevron.left")
-                    .labelStyle(.titleAndIcon)
-                    .font(laughTrack.typography.metadata.weight(.semibold))
-                    .foregroundStyle(canGoBack ? laughTrack.colors.accent : laughTrack.colors.textSecondary.opacity(0.5))
-            }
-            .buttonStyle(.plain)
-            .disabled(!canGoBack)
-            .accessibilityLabel("Previous page")
-
-            Spacer(minLength: 0)
-
-            Text("Page \(currentPage + 1) of \(pageCount)")
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .accessibilityLabel("Page \(currentPage + 1) of \(pageCount), \(totalCount) episodes total")
-
-            Spacer(minLength: 0)
-
-            Button {
-                withAnimation(.easeInOut(duration: 0.18)) {
-                    self.currentPage = min(pageCount - 1, currentPage + 1)
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Text("Next")
-                    Image(systemName: "chevron.right")
-                }
-                .font(laughTrack.typography.metadata.weight(.semibold))
-                .foregroundStyle(canGoForward ? laughTrack.colors.accent : laughTrack.colors.textSecondary.opacity(0.5))
-            }
-            .buttonStyle(.plain)
-            .disabled(!canGoForward)
-            .accessibilityLabel("Next page")
-        }
+        LaughTrackPagedControls(
+            currentPage: currentPage,
+            pageCount: pageCount,
+            onPrevious: { self.currentPage = max(0, currentPage - 1) },
+            onNext: { self.currentPage = min(pageCount - 1, currentPage + 1) }
+        )
+        .accessibilityValue("\(totalCount) episodes total")
         .padding(.top, theme.spacing.xs)
     }
 }
@@ -678,6 +641,7 @@ private struct PodcastRelatedComediansSection: View {
 }
 
 private struct PodcastRelatedComedianRow: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let comedian: PodcastRelatedComedian
 
     @Environment(\.appTheme) private var theme
@@ -705,7 +669,7 @@ private struct PodcastRelatedComedianRow: View {
             Text(comedian.name)
                 .font(tokens.typography.body.weight(.semibold))
                 .foregroundStyle(tokens.colors.textPrimary)
-                .lineLimit(1)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
 
             Spacer(minLength: 0)
 

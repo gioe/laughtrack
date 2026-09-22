@@ -205,6 +205,7 @@ struct PodcastEpisodeDetailView: View {
                             .font(.system(size: theme.iconSizes.sm, weight: .semibold))
                             .foregroundStyle(tokens.colors.textSecondary)
                     }
+                    .frame(minHeight: 44)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
