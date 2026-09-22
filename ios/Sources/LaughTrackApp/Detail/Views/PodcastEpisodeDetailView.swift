@@ -90,6 +90,8 @@ struct PodcastEpisodeDetailView: View {
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @Environment(\.appTheme) private var theme
+    @Environment(\.openURL) private var openURL
+    @State private var safariURL: URL?
     @StateObject private var model: PodcastEpisodeDetailModel
 
     init(
@@ -158,14 +160,19 @@ struct PodcastEpisodeDetailView: View {
                     episodeContext(response)
                     primaryAction(for: response)
 
-                    if let description = response.episode.description?
-                        .trimmingCharacters(in: .whitespacesAndNewlines),
-                       !description.isEmpty {
+                    if let description = PodcastEpisodeNotes.text(response.episode.description) {
                         DetailTextCard(
                             eyebrow: "Episode notes",
                             title: "About this episode",
-                            text: description
+                            text: description,
+                            isCollapsible: true,
+                            detectsWebLinks: true
                         )
+                        .environment(\.openURL, OpenURLAction { url in
+                            guard PodcastEpisodeNotes.webURL(url.absoluteString) != nil else { return .discarded }
+                            ExternalLinkRouter.route(url, presentedURL: $safariURL, openURL: openURL)
+                            return .handled
+                        })
                     }
 
                     peopleSections(for: response)
@@ -175,6 +182,7 @@ struct PodcastEpisodeDetailView: View {
             }
         }
         .modifier(DetailAtmosphereScrollContent())
+        .safariSheet(url: $safariURL)
     }
 
     private func episodeContext(_ response: PodcastEpisodeDetailResponse) -> some View {
