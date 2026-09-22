@@ -275,6 +275,9 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
         coalescer: HomeFeedRequestCoalescer = .shared,
         forceRefresh: Bool = false
     ) async {
+        // SwiftUI may start a superseded task after cancelling it. Do not let
+        // that task replace the active context before the first suspension.
+        guard !Task.isCancelled else { return }
         let requestKey = requestKey(
             zipCode: zipCode,
             distanceMiles: distanceMiles,

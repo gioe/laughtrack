@@ -585,6 +585,27 @@ struct HomeDiscoverRailPlanTests {
         #expect(!model.isRefreshing)
     }
 
+    @Test("an already cancelled refresh cannot clear the current context")
+    func alreadyCancelledRefreshCannotClearCurrentContext() async throws {
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        await refresh(model, client: planClient(feed: orderedFeed()))
+        let currentSections = try #require(model.sections)
+        let currentKey = model.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: "account-a|session")
+        let stale = Task {
+            // Cancellation is established before refresh starts, independently
+            // of task scheduling or whether a transport honors cancellation.
+            withUnsafeCurrentTask { $0?.cancel() }
+            #expect(Task.isCancelled)
+            await refresh(model, client: planClient(), zipCode: "94103", session: "account-b|session")
+        }
+        await stale.value
+        #expect(model.sections == currentSections)
+        #expect(model.presentation(for: currentKey) == .planned(currentSections))
+        #expect(model.hasResolved)
+        #expect(!model.isRefreshing)
+        #expect(model.failure(for: currentKey) == nil)
+    }
+
     @Test("a previous launch refresh cannot restore content after the location changes")
     func lateLaunchResponseCannotRestorePreviousLocation() async throws {
         let directory = try launchCacheDirectory()
