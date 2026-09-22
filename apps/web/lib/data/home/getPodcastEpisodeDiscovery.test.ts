@@ -94,10 +94,12 @@ describe("getPodcastEpisodeDiscovery", () => {
         ).toEqual([1, 2, 3, 4, 5]);
     });
 
-    it("filters ineligible episode candidates", async () => {
-        const pg = new PGlite();
-        try {
-            await pg.exec(`
+    it.each([null, "profile-1"])(
+        "filters candidates and preserves SQL ordering for profile %s",
+        async (profileId) => {
+            const pg = new PGlite();
+            try {
+                await pg.exec(`
                 CREATE TABLE comedians (
                     id INTEGER PRIMARY KEY,
                     uuid TEXT NOT NULL UNIQUE,
@@ -217,26 +219,122 @@ describe("getPodcastEpisodeDiscovery", () => {
                     (12, 1, 112, 'guest', 'accepted');
             `);
 
-            const query = buildPodcastEpisodeDiscoveryQuery({
-                profileId: null,
-                cutoff: new Date("2026-07-07T12:00:00.000Z"),
-                now: NOW,
-                candidateLimit: 200,
-            });
-            const result = await pg.query<{ episode_id: number }>(
-                ...(() => {
-                    const converted = toPgliteQuery(query as SqlLike);
-                    return [converted.text, converted.values] as const;
-                })(),
-            );
+                await pg.exec(`
+                INSERT INTO podcast_episodes
+                    (id, podcast_id, guid, title, release_date)
+                VALUES
+                    (113, 1, '113', 'Exactly now', '2026-08-06T12:00:00Z'),
+                    (114, 1, '114', 'Exactly cutoff', '2026-07-07T12:00:00Z'),
+                    (115, 1, '115', 'Unknown date', NULL),
+                    (116, 1, '116', 'Before cutoff', '2026-07-07T11:59:59.999Z'),
+                    (117, 1, '117', 'After now', '2026-08-06T12:00:00.001Z');
+                INSERT INTO episode_appearances
+                    (id, comedian_id, episode_id, appearance_role, review_status)
+                VALUES
+                    (13, 1, 113, 'guest', 'accepted'),
+                    (14, 1, 114, 'guest', 'accepted'),
+                    (15, 1, 115, 'guest', 'accepted'),
+                    (16, 1, 116, 'guest', 'accepted'),
+                    (17, 1, 117, 'guest', 'accepted');
+                INSERT INTO favorite_comedians (profile_id, comedian_id)
+                VALUES ('profile-1', 'eligible'), ('profile-1', 'hidden'),
+                       ('profile-1', 'alias'), ('profile-1', 'denied');
+                INSERT INTO favorite_podcasts (profile_id, podcast_id)
+                VALUES ('profile-1', 2), ('profile-1', 3), ('profile-1', 4);
+                INSERT INTO comedian_image_assets
+                    (id, comedian_id, avatar_path, is_active, published_at)
+                VALUES
+                    (1, 1, 'old.jpg', true, '2026-08-01T00:00:00Z'),
+                    (2, 1, 'same-time-lower-id.jpg', true, '2026-08-02T00:00:00Z'),
+                    (3, 1, 'latest-active.jpg', true, '2026-08-02T00:00:00Z'),
+                    (4, 1, 'inactive.jpg', false, '2026-08-03T00:00:00Z'),
+                    (5, 1, NULL, true, '2026-08-04T00:00:00Z');
+            `);
 
-            expect(result.rows.map((row) => row.episode_id)).toEqual([
-                110, 101,
-            ]);
-        } finally {
-            await pg.close();
-        }
-    });
+                const query = buildPodcastEpisodeDiscoveryQuery({
+                    profileId,
+                    cutoff: new Date("2026-07-07T12:00:00.000Z"),
+                    now: NOW,
+                    candidateLimit: 200,
+                });
+                const result = await pg.query<{
+                    episode_id: number;
+                    comedian_avatar_path: string | null;
+                    followed_comedian: boolean;
+                }>(
+                    ...(() => {
+                        const converted = toPgliteQuery(query as SqlLike);
+                        return [converted.text, converted.values] as const;
+                    })(),
+                );
+
+                expect(result.rows.map((row) => row.episode_id)).toEqual([
+                    113, 110, 101, 114,
+                ]);
+                expect(
+                    result.rows.every(
+                        (row) =>
+                            row.comedian_avatar_path === "latest-active.jpg",
+                    ),
+                ).toBe(true);
+                expect(
+                    result.rows.every(
+                        (row) => row.followed_comedian === (profileId !== null),
+                    ),
+                ).toBe(true);
+
+                await pg.exec(`
+                INSERT INTO comedians (id, uuid, name, popularity)
+                VALUES (5, 'followed', 'Followed Comic', 0),
+                       (6, 'favorite-host', 'Favorite Host', 0.2),
+                       (7, 'guest', 'Guest Comic', 0.3),
+                       (8, 'popular-host', 'Popular Host', 0.9);
+                INSERT INTO podcasts (id, slug, source, source_podcast_id, title)
+                VALUES (6, 'favorite', 'rss', 'p6', 'Favorite Podcast');
+                INSERT INTO favorite_comedians (profile_id, comedian_id)
+                VALUES ('profile-1', 'followed'), ('other-profile', 'popular-host');
+                INSERT INTO favorite_podcasts (profile_id, podcast_id)
+                VALUES ('profile-1', 6), ('other-profile', 1);
+                INSERT INTO podcast_episodes
+                    (id, podcast_id, guid, title, release_date)
+                VALUES (201, 1, '201', 'Guest', '2026-08-03T00:00:00Z'),
+                       (202, 6, '202', 'Favorite', '2026-08-03T00:00:00Z'),
+                       (203, 1, '203', 'Followed', '2026-08-03T00:00:00Z'),
+                       (204, 1, '204', 'Popular A', '2026-08-03T00:00:00Z'),
+                       (205, 1, '205', 'Popular B', '2026-08-03T00:00:00Z');
+                INSERT INTO episode_appearances
+                    (id, comedian_id, episode_id, appearance_role, review_status)
+                VALUES (201, 7, 201, ' GUEST ', 'accepted'),
+                       (202, 6, 202, 'host', 'accepted'),
+                       (203, 5, 203, 'host', 'accepted'),
+                       (204, 8, 204, 'host', 'accepted'),
+                       (205, 8, 205, 'host', 'accepted');
+            `);
+                const expected = profileId
+                    ? [203, 202, 201, 204, 205]
+                    : [201, 204, 205, 202, 203];
+                for (const candidateLimit of [5, 3]) {
+                    const orderedQuery = toPgliteQuery(
+                        buildPodcastEpisodeDiscoveryQuery({
+                            profileId,
+                            cutoff: new Date("2026-08-03T00:00:00Z"),
+                            now: new Date("2026-08-03T00:00:00Z"),
+                            candidateLimit,
+                        }),
+                    );
+                    const ordered = await pg.query<{ episode_id: number }>(
+                        orderedQuery.text,
+                        orderedQuery.values,
+                    );
+                    expect(ordered.rows.map((row) => row.episode_id)).toEqual(
+                        expected.slice(0, candidateLimit),
+                    );
+                }
+            } finally {
+                await pg.close();
+            }
+        },
+    );
 
     it("orders episode recommendations by recency descending before personalization", async () => {
         const old = new Date("2026-07-10T00:00:00.000Z");
