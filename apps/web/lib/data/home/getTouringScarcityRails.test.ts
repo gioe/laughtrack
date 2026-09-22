@@ -16,11 +16,14 @@ import { ShowDTO } from "@/objects/class/show/show.interface";
 import { findShowsForHome } from "./findShowsForHome";
 import {
     buildTouringScarcityQuery,
+    loadTouringHistory,
     classifyTouringScarcityCandidates,
     getTouringScarcityRails,
     TOURING_SCARCITY_POPULARITY_FLOOR,
     type TouringScarcityEvidenceRow,
 } from "./getTouringScarcityRails";
+
+import { touringHistoryCache } from "./touringHistoryCache";
 
 const NOW = new Date("2026-08-01T12:00:00.000Z");
 const UPCOMING = new Date("2026-08-10T20:00:00.000Z");
@@ -156,6 +159,7 @@ function rawRow(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    touringHistoryCache.clear();
     mockQueryRaw.mockResolvedValue([]);
     mockFindShowsForHome.mockResolvedValue([]);
 });
@@ -631,9 +635,93 @@ describe("getTouringScarcityRails", () => {
                     home_zip_code: "90001",
                 }),
             ]);
+            // Snapshot and full query must agree on counts, canonical aliases,
+            // dates, coverage, and current metadata, not only selected IDs.
+            mockQueryRaw.mockImplementation((async (sql: SqlLike) => {
+                const query = toPgliteQuery(sql as SqlLike);
+                return (await pg.query(query.text, query.values)).rows;
+            }) as never);
+            const history = await loadTouringHistory(REQUEST.nearbyZips, NOW);
+            expect(history.totals).toEqual([
+                {
+                    canonical_comedian_id: 10,
+                    prior_local_appearance_count: 1,
+                    last_local_appearance_at: expect.any(String),
+                },
+            ]);
+            expect(
+                new Date(history.totals[0].last_local_appearance_at!),
+            ).toEqual(new Date("2025-01-01T20:00:00Z"));
+            expect(history.historyCoverageShowCount).toBe(10);
+            const compare = async () => {
+                const args = {
+                    nearbyZips: REQUEST.nearbyZips,
+                    now: NOW,
+                    horizonEnd: new Date("2026-10-30T12:00:00.000Z"),
+                };
+                const full = toPgliteQuery(buildTouringScarcityQuery(args));
+                const hit = toPgliteQuery(
+                    buildTouringScarcityQuery({ ...args, history }),
+                );
+                const expected = (await pg.query(full.text, full.values)).rows;
+                const actual = (await pg.query(hit.text, hit.values)).rows;
+                expect(actual).toEqual(expected);
+                expect(hit.text).not.toContain("canonical_history AS");
+                return actual;
+            };
+            await compare();
+            // History stays fixed while all current eligibility is read anew.
+            for (const [change, restore] of [
+                [
+                    "UPDATE tickets SET sold_out = true WHERE id = 1",
+                    "UPDATE tickets SET sold_out = false WHERE id = 1",
+                ],
+                [
+                    "UPDATE comedians SET visible = false WHERE id = 10",
+                    "UPDATE comedians SET visible = true WHERE id = 10",
+                ],
+                [
+                    "INSERT INTO tags VALUES (1, true); INSERT INTO tagged_comedians VALUES ('alias', 1)",
+                    "DELETE FROM tagged_comedians; DELETE FROM tags",
+                ],
+                [
+                    "UPDATE shows SET name = 'Sold out' WHERE id = 101",
+                    "UPDATE shows SET name = 'Eligible Date' WHERE id = 101",
+                ],
+            ]) {
+                await pg.exec(change);
+                expect(await compare()).toEqual([]);
+                await pg.exec(restore);
+            }
+            await pg.exec(
+                "UPDATE comedians SET home_location_updated_at = '2020-01-01' WHERE id = 10",
+            );
+            await compare();
+
+            // The provider performs the historical scan once across equivalent
+            // requests, while the live SQL and public hydration run each time.
+            mockQueryRaw.mockClear();
+            mockFindShowsForHome.mockResolvedValue([show()]);
+            const first = await getTouringScarcityRails(REQUEST);
+            const second = await getTouringScarcityRails(REQUEST);
+            expect(first).toEqual(second);
+            expect(mockQueryRaw).toHaveBeenCalledTimes(3);
+            expect(mockFindShowsForHome).toHaveBeenCalledTimes(2);
         } finally {
             await pg.close();
         }
+    });
+
+    it("falls back to the original query when history loading fails", async () => {
+        mockQueryRaw
+            .mockRejectedValueOnce(new Error("history unavailable"))
+            .mockResolvedValue([rawRow()] as never);
+        mockFindShowsForHome.mockResolvedValue([show()]);
+        const result = await getTouringScarcityRails(REQUEST);
+        expect(result.justPassingThrough.items).toHaveLength(1);
+        expect(
+            (mockQueryRaw.mock.calls[1][0] as SqlLike).strings.join("?"),
+        ).toContain("canonical_history AS");
     });
 
     it("hydrates selected evidence through the shared public home-show mapper", async () => {

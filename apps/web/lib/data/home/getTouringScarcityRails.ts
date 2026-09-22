@@ -6,6 +6,11 @@ import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import { findShowsForHome } from "./findShowsForHome";
 import { HOME_SHOW_RAIL_CANDIDATE_LIMIT } from "./showRailSelection";
 
+import {
+    touringHistoryCache,
+    type TouringHistorySnapshot,
+} from "./touringHistoryCache";
+
 const DAY_MS = 24 * 60 * 60 * 1_000;
 const DEFAULT_HORIZON_DAYS = 90;
 const DEFAULT_LIMIT = 8;
@@ -417,11 +422,118 @@ export function classifyTouringScarcityCandidates(
     return result;
 }
 
+function touringHistoryCtes(
+    nearbyZips: readonly string[],
+    now: Date,
+): Prisma.Sql {
+    return Prisma.sql`
+        local_history_coverage AS (
+            SELECT
+                MIN(s.date) AS history_coverage_start,
+                COUNT(DISTINCT s.id)::integer AS history_coverage_show_count
+            FROM shows s
+            JOIN clubs club ON club.id = s.club_id
+            WHERE club.visible = true
+              AND club.zip_code IN (${Prisma.join(nearbyZips)})
+              AND s.date < ${now}
+        ),
+        canonical_history AS (
+            SELECT DISTINCT
+                s.id AS show_id,
+                s.date AS show_date,
+                canonical.id AS canonical_comedian_id
+            FROM shows s
+            JOIN clubs club ON club.id = s.club_id
+            JOIN lineup_items lineup ON lineup.show_id = s.id
+            JOIN comedians performer ON performer.uuid = lineup.comedian_id
+            JOIN comedians canonical
+              ON canonical.id = COALESCE(performer.parent_comedian_id, performer.id)
+            WHERE club.visible = true
+              AND club.zip_code IN (${Prisma.join(nearbyZips)})
+              AND s.date < ${now}
+              AND performer.visible = true
+              AND canonical.visible = true
+              AND canonical.parent_comedian_id IS NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM tagged_comedians tagged
+                  JOIN tags tag ON tag.id = tagged.tag_id
+                  WHERE tagged.comedian_id IN (performer.uuid, canonical.uuid)
+                    AND tag."restrictContent" = true
+              )
+        ),
+        history_totals AS (
+            SELECT
+                canonical_comedian_id,
+                COUNT(DISTINCT show_id)::integer AS prior_local_appearance_count,
+                MAX(show_date) AS last_local_appearance_at
+            FROM canonical_history
+            GROUP BY canonical_comedian_id
+        )`;
+}
+
+function cachedHistoryCtes(history: TouringHistorySnapshot): Prisma.Sql {
+    return Prisma.sql`
+        local_history_coverage AS (
+            SELECT ${history.historyCoverageStart}::timestamptz AS history_coverage_start,
+                   ${history.historyCoverageShowCount}::integer AS history_coverage_show_count
+        ),
+        history_totals AS (
+            SELECT * FROM jsonb_to_recordset(${JSON.stringify(history.totals)}::jsonb)
+            AS history(canonical_comedian_id integer,
+                       prior_local_appearance_count integer,
+                       last_local_appearance_at timestamptz)
+        )
+    `;
+}
+
+/** Same historical evidence as the uncached query; no current eligibility is stored. */
+export function buildTouringHistoryQuery(
+    nearbyZips: readonly string[],
+    now: Date,
+): Prisma.Sql {
+    return Prisma.sql`
+        WITH ${touringHistoryCtes(nearbyZips, now)}
+        SELECT coverage.*,
+            (SELECT MIN(s.date) FROM shows s JOIN clubs club ON club.id = s.club_id
+             WHERE club.visible = true
+               AND club.zip_code IN (${Prisma.join(nearbyZips)})
+               AND s.date >= ${now}) AS next_show_at,
+            COALESCE((SELECT jsonb_agg(history) FROM history_totals history), '[]'::jsonb) AS totals
+        FROM local_history_coverage coverage
+    `;
+}
+
+export async function loadTouringHistory(
+    nearbyZips: readonly string[],
+    now: Date,
+): Promise<TouringHistorySnapshot> {
+    const [row] = await db.$queryRaw<
+        {
+            history_coverage_start: Date | null;
+            history_coverage_show_count: number;
+            next_show_at: Date | null;
+            totals: TouringHistorySnapshot["totals"];
+        }[]
+    >(buildTouringHistoryQuery(nearbyZips, now));
+    if (!row || !Array.isArray(row.totals))
+        throw new Error("Missing touring history aggregate");
+    return {
+        asOf: now,
+        nextShowAt: row.next_show_at,
+        historyCoverageStart: row.history_coverage_start,
+        historyCoverageShowCount: row.history_coverage_show_count,
+        totals: row.totals,
+    };
+}
+
 export function buildTouringScarcityQuery({
     nearbyZips,
     now,
     horizonEnd,
+    history,
 }: {
+    history?: TouringHistorySnapshot | null;
     nearbyZips: readonly string[];
     now: Date;
     horizonEnd: Date;
@@ -494,49 +606,7 @@ export function buildTouringScarcityQuery({
             FROM canonical_upcoming
             GROUP BY canonical_comedian_id
         ),
-        local_history_coverage AS (
-            SELECT
-                MIN(s.date) AS history_coverage_start,
-                COUNT(DISTINCT s.id)::integer AS history_coverage_show_count
-            FROM shows s
-            JOIN clubs club ON club.id = s.club_id
-            WHERE club.visible = true
-              AND club.zip_code IN (${Prisma.join(nearbyZips)})
-              AND s.date < ${now}
-        ),
-        canonical_history AS (
-            SELECT DISTINCT
-                s.id AS show_id,
-                s.date AS show_date,
-                canonical.id AS canonical_comedian_id
-            FROM shows s
-            JOIN clubs club ON club.id = s.club_id
-            JOIN lineup_items lineup ON lineup.show_id = s.id
-            JOIN comedians performer ON performer.uuid = lineup.comedian_id
-            JOIN comedians canonical
-              ON canonical.id = COALESCE(performer.parent_comedian_id, performer.id)
-            WHERE club.visible = true
-              AND club.zip_code IN (${Prisma.join(nearbyZips)})
-              AND s.date < ${now}
-              AND performer.visible = true
-              AND canonical.visible = true
-              AND canonical.parent_comedian_id IS NULL
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM tagged_comedians tagged
-                  JOIN tags tag ON tag.id = tagged.tag_id
-                  WHERE tagged.comedian_id IN (performer.uuid, canonical.uuid)
-                    AND tag."restrictContent" = true
-              )
-        ),
-        history_totals AS (
-            SELECT
-                canonical_comedian_id,
-                COUNT(DISTINCT show_id)::integer AS prior_local_appearance_count,
-                MAX(show_date) AS last_local_appearance_at
-            FROM canonical_history
-            GROUP BY canonical_comedian_id
-        )
+        ${history ? cachedHistoryCtes(history) : touringHistoryCtes(nearbyZips, now)}
         SELECT
             upcoming.show_id,
             upcoming.show_date,
@@ -645,8 +715,17 @@ export async function getTouringScarcityRails(
     );
     const nearbyZips = resolveNearbyZips(options.zipCode, options.radiusMiles);
     const horizonEnd = new Date(now.getTime() + horizonDays * DAY_MS);
+    const history = await touringHistoryCache.get(
+        {
+            zipCode: options.zipCode,
+            radiusMiles: options.radiusMiles,
+            nearbyZips,
+            now,
+        },
+        () => loadTouringHistory(nearbyZips, now),
+    );
     const rows = await db.$queryRaw<TouringScarcityQueryRow[]>(
-        buildTouringScarcityQuery({ nearbyZips, now, horizonEnd }),
+        buildTouringScarcityQuery({ nearbyZips, now, horizonEnd, history }),
     );
     if (rows.length === 0) return rails;
 
