@@ -145,6 +145,20 @@ struct HomeView: View {
                 )
 
                 contentSections
+
+                if selectedPrimitive == nil,
+                   let failure = railPlanModel.failure(for: railPlanRequestKey) {
+                    VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                        Text(failure.message)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                        Button("Retry") {
+                            Task { await refreshPlan(force: true) }
+                        }
+                        .disabled(railPlanModel.isRefreshing)
+                        .accessibilityIdentifier("laughtrack.home.plan-retry")
+                    }
+                }
             }
             .padding(.horizontal, theme.spacing.lg)
             .padding(.top, theme.spacing.sm)

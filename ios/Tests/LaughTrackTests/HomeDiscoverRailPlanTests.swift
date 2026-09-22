@@ -489,6 +489,123 @@ struct HomeDiscoverRailPlanTests {
         #expect(model.sections == [])
     }
 
+    @Test("fresh cache instance renders public rails while the server plan is suspended", arguments: ["account-b|session", "signed-out"])
+    func persistedPublicRailsRenderBeforeNetwork(session: String) async throws {
+        let directory = try launchCacheDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let writer = PersistentMainPageCache(directory: directory)
+        await writer.setHomeFeed(orderedFeed(), zipCode: "10012", distanceMiles: 25, ttl: 60)
+        // No shared model, plan cache, or in-memory feed survives this boundary.
+        let reader = PersistentMainPageCache(directory: directory)
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        let discriminator: String? = session == "signed-out" ? nil : session
+        let key = model.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: discriminator)
+        let gate = PlanResponseGate()
+        let pending = Task {
+            await refresh(model, client: planClient(feed: orderedFeed(), gate: gate), session: discriminator, persistentCache: reader)
+        }
+        await gate.waitUntilRequested()
+        guard case .planned(let cached) = model.presentation(for: key) else {
+            await gate.release()
+            await pending.value
+            Issue.record("Persisted public content must render before the response")
+            return
+        }
+        #expect(cached.map(\.id) == ["shows_tonight"])
+        #expect(model.hasResolved)
+        #expect(model.isRefreshing)
+        #expect(model.failure(for: key) == nil)
+        await gate.release()
+        await pending.value
+        #expect(model.sections?.map(\.id) == ["followed_comedian_shows", "shows_tonight"])
+        #expect(!model.isRefreshing)
+        #expect(model.failure(for: key) == nil)
+    }
+
+    @Test("invalid persisted public feeds stay pending during the network request", arguments: ["zip", "radius", "expired", "schema", "empty"])
+    func invalidLaunchCacheStaysPending(reason: String) async throws {
+        let directory = try launchCacheDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let writer = PersistentMainPageCache(directory: directory, schemaVersion: "launch-current")
+        await writer.setHomeFeed(
+            reason == "empty" ? makeFeed() : orderedFeed(),
+            zipCode: "10012", distanceMiles: 25, ttl: reason == "expired" ? -1 : 60
+        )
+        let reader = PersistentMainPageCache(directory: directory, schemaVersion: reason == "schema" ? "launch-next" : "launch-current")
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        let zip = reason == "zip" ? "94103" : "10012"
+        let radius = reason == "radius" ? 50 : 25
+        let key = model.requestKey(zipCode: zip, distanceMiles: radius, sessionDiscriminator: nil)
+        let gate = PlanResponseGate()
+        let pending = Task {
+            await refresh(model, client: planClient(gate: gate), zipCode: zip, session: nil, persistentCache: reader, distanceMiles: radius)
+        }
+        await gate.waitUntilRequested()
+        #expect(model.presentation(for: key) == .pending)
+        #expect(!model.hasResolved)
+        await gate.release()
+        await pending.value
+    }
+
+    @Test("offline launch preserves public content and an explicit retry replaces it")
+    func offlineLaunchPreservesPublicContentAndRetries() async throws {
+        let directory = try launchCacheDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let cache = PersistentMainPageCache(directory: directory)
+        await cache.setHomeFeed(orderedFeed(), zipCode: "10012", distanceMiles: 25, ttl: 60)
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        let key = model.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: nil)
+        await refresh(model, client: planClient(), session: nil, persistentCache: cache)
+        #expect(model.sections?.map(\.id) == ["shows_tonight"])
+        #expect(model.failure(for: key) != nil)
+        #expect(!model.isRefreshing)
+        await refresh(model, client: planClient(feed: makeFeed(railPlan: makePlan(rails: []))), session: nil, persistentCache: cache, forceRefresh: true)
+        #expect(model.presentation(for: key) == .planned([]))
+        #expect(model.failure(for: key) == nil)
+        #expect(!model.isRefreshing)
+    }
+
+    @Test("cancelled launch response cannot replace the public fallback")
+    func cancelledLaunchKeepsPublicFallback() async throws {
+        let directory = try launchCacheDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let cache = PersistentMainPageCache(directory: directory)
+        await cache.setHomeFeed(orderedFeed(), zipCode: "10012", distanceMiles: 25, ttl: 60)
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        let gate = PlanResponseGate()
+        let pending = Task {
+            await refresh(model, client: planClient(feed: orderedFeed(), gate: gate), persistentCache: cache)
+        }
+        await gate.waitUntilRequested()
+        #expect(model.sections?.map(\.id) == ["shows_tonight"])
+        pending.cancel()
+        await gate.release()
+        await pending.value
+        #expect(model.sections?.map(\.id) == ["shows_tonight"])
+        #expect(!model.isRefreshing)
+    }
+
+    @Test("a previous launch refresh cannot restore content after the location changes")
+    func lateLaunchResponseCannotRestorePreviousLocation() async throws {
+        let directory = try launchCacheDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let cache = PersistentMainPageCache(directory: directory)
+        await cache.setHomeFeed(orderedFeed(), zipCode: "10012", distanceMiles: 25, ttl: 60)
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache())
+        let gate = PlanResponseGate()
+        let previous = Task {
+            await refresh(model, client: planClient(feed: orderedFeed(), gate: gate), persistentCache: cache)
+        }
+        await gate.waitUntilRequested()
+        #expect(model.sections?.map(\.id) == ["shows_tonight"])
+        await refresh(model, client: planClient(feed: makeFeed(railPlan: makePlan(rails: []))), zipCode: "94103", persistentCache: cache)
+        #expect(model.sections == [])
+        await gate.release()
+        await previous.value
+        #expect(model.sections == [])
+        #expect(!model.isRefreshing)
+    }
+
     @Test("location changes refresh plans and planned show rails preserve See all handoff")
     func locationChangesRefreshPlansAndShowRailsPreserveSeeAllHandoff() throws {
         let testFileURL = URL(fileURLWithPath: #filePath)
@@ -680,16 +797,26 @@ private func refresh(
     client: Client,
     zipCode: String = "10012",
     session: String? = "account-a|session",
-    cacheTTL: TimeInterval = 0
+    cacheTTL: TimeInterval = 0,
+    persistentCache: PersistentMainPageCache? = nil,
+    distanceMiles: Int = 25,
+    forceRefresh: Bool = false
 ) async {
     await model.refresh(
         apiClient: client,
         zipCode: zipCode,
-        distanceMiles: 25,
+        distanceMiles: distanceMiles,
         sessionDiscriminator: session,
         cache: nil,
         cacheTTL: cacheTTL,
-        persistentCache: nil,
-        coalescer: HomeFeedRequestCoalescer()
+        persistentCache: persistentCache,
+        coalescer: HomeFeedRequestCoalescer(),
+        forceRefresh: forceRefresh
     )
+}
+
+private func launchCacheDirectory() throws -> URL {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    return directory
 }

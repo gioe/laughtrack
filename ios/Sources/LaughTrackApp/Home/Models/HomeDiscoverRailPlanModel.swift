@@ -87,6 +87,24 @@ enum HomeDiscoverRailPlanPresentation {
             }
     }
 
+    /// A public launch fallback, not a persisted server policy. Use the same
+    /// section identities/renderers so refresh never replaces the scroll view.
+    static func publicFallbackSections(
+        from cachedFeed: Components.Schemas.HomeFeed
+    ) -> [HomeDiscoverRailSection] {
+        let feed = cachedFeed.publicCacheSlice
+        let rails: [(String, String, [String])] = [
+            ("shows_tonight", "showsTonight", feed.showsTonight.map { String($0.id) }),
+            ("trending_this_week", "trendingThisWeek", feed.trendingThisWeek.map { String($0.id) }),
+            ("trending_comedians", "trendingComedians", feed.trendingComedians.map { String($0.id) }),
+            ("popular_clubs", "popularClubs", feed.popularClubs.map { String($0.id) }),
+        ]
+        return rails.enumerated().compactMap { rank, rail in
+            section(railKey: rail.0, payloadKey: rail.1, position: rank,
+                    itemIDs: rail.2, policyVersion: 0, feed: feed)
+        }
+    }
+
     static func section(
         railKey: String,
         payloadKey: String,
@@ -196,6 +214,12 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
     @Published private(set) var sections: [HomeDiscoverRailSection]?
 
     @Published private(set) var hasResolved = false
+    @Published private(set) var isRefreshing = false
+    @Published private var refreshFailure: LoadFailure?
+
+    func failure(for key: String) -> LoadFailure? {
+        displayedRequestKey == key ? refreshFailure : nil
+    }
     private var activeRequestID = UUID()
     private var displayedRequestKey: String?
     private let planCache: HomeDiscoverRailPlanCache
@@ -264,12 +288,35 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
 
         let requestID = UUID()
         activeRequestID = requestID
+        isRefreshing = true
+        refreshFailure = nil
+        defer {
+            if activeRequestID == requestID { isRefreshing = false }
+        }
         if displayedRequestKey != requestKey {
             displayedRequestKey = requestKey
             sections = planCache.sections(for: requestKey)
             hasResolved = sections != nil
             loadedAt = nil
             loadedRequestKey = nil
+        }
+
+        if sections == nil, !hasResolved {
+            let cached: Components.Schemas.HomeFeed? = await MainPageCache.get(
+                .homeFeed(zipCode: zipCode, distanceMiles: distanceMiles),
+                from: cache,
+                persistentCache: persistentCache
+            )
+            // Disk/memory reads suspend too: an old context must not publish
+            // its fallback after a newer refresh or view cancellation.
+            guard !Task.isCancelled, activeRequestID == requestID else { return }
+            if let cached {
+                let fallback = HomeDiscoverRailPlanPresentation.publicFallbackSections(from: cached)
+                if !fallback.isEmpty {
+                    sections = fallback
+                    hasResolved = true
+                }
+            }
         }
 
         let result = await HomeFeedRequest.load(
@@ -296,7 +343,8 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
             loadedAt = Date()
             hasResolved = true
             planCache.store(sections, for: requestKey, ttl: cacheTTL)
-        case .failure:
+        case .failure(let failure):
+            refreshFailure = failure
             // Keep this context's last good layout on a transient failure.
             // With no usable plan, the legacy rails provide their retry UI.
             hasResolved = true
