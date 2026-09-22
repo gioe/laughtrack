@@ -596,6 +596,59 @@ struct PodcastDetailPlaybackCaptureTests {
     }
 }
 
+@Suite("Accessible podcast player", .serialized)
+@MainActor
+struct AccessiblePodcastPlayerTests {
+    @Test("mini-player grows for accessibility text while preserving playback")
+    func playerReflows() async throws {
+        let engine = DetailActionAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine, registersRemoteCommands: false)
+        let item = PodcastPlaybackItem(id: 1, episodeID: 1, podcastID: 42,
+            episodeTitle: "A very long conversation about finding your voice on stage",
+            podcastName: "Conversations with comedians and friends", podcastImageURL: nil,
+            displayRole: "Guest", audioURL: URL(string: "https://example.com/1.mp3"),
+            episodeURL: URL(string: "https://example.com/episodes/1"), failedAudioURL: nil)
+        player.start(item)
+        player.seek(to: 75)
+        let client = LaughTrackHostedViewTestSupport.makeClient()
+        var heights: [CGFloat] = []
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            let measured = AccessiblePlayerMeasurement()
+            let host = HostedView(VStack {
+                PodcastMiniPlayerView(player: player, apiClient: client)
+                    .background(GeometryReader { geometry in
+                        Color.clear
+                            .onAppear { measured.height = geometry.size.height }
+                            .onChange(of: geometry.size.height) { measured.height = $0 }
+                    })
+                Spacer()
+            }
+            .padding(12)
+            .environment(\.dynamicTypeSize, size),
+                freshWindow: true, viewportSize: CGSize(width: 375, height: 667))
+            await host.settle()
+            #expect(measured.height >= 44)
+            #expect(measured.height < 400)
+            heights.append(measured.height)
+            let image = try host.snapshot()
+            let suffix = size.isAccessibilitySize ? "accessibility5" : "large"
+            let output = FileManager.default.temporaryDirectory.appendingPathComponent("task4028-mini-player-\(suffix).png")
+            try #require(image.pngData()).write(to: output)
+            print("Accessible player capture: \(output.path)")
+        }
+        #expect(heights[1] > heights[0])
+        #expect(player.currentItem?.episodeID == item.episodeID)
+        #expect(player.currentTime == 75)
+        #expect(player.isPlaying)
+        #expect(engine.loadCount == 1)
+    }
+}
+
+@MainActor
+private final class AccessiblePlayerMeasurement {
+    var height: CGFloat = 0
+}
+
 private struct PlaybackEpisodeFetcher: PodcastEpisodeDetailFetching {
     let response: PodcastEpisodeDetailResponse
     func podcastEpisodeDetail(id: Int) async -> Result<PodcastEpisodeDetailResponse, LoadFailure> { .success(response) }

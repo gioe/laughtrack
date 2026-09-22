@@ -1048,7 +1048,7 @@ struct PodcastAppearanceRow: View {
                                         .font(laughTrack.typography.metadata)
                                         .foregroundStyle(laughTrack.colors.accentStrong)
                                         .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
-                                        .frame(minHeight: 44)
+                                        .frame(minWidth: 44, minHeight: 44)
                                         .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)

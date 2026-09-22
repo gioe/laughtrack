@@ -6,6 +6,7 @@ import UIKit
 #endif
 
 struct PodcastMiniPlayerView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject var player: PodcastPlaybackController
     let apiClient: Client
 
@@ -76,36 +77,43 @@ struct PodcastMiniPlayerView: View {
     private func content(item: PodcastPlaybackItem) -> some View {
         let laughTrack = theme.laughTrackTokens
 
-        Button(action: expand) {
-            VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    artwork(item: item)
-                        .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        VStack(spacing: 0) {
+            (dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                : AnyLayout(HStackLayout(spacing: 12))) {
+                Button(action: expand) {
+                    HStack(spacing: 12) {
+                        artwork(item: item)
+                            .frame(width: 44, height: 44)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .accessibilityHidden(true)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.episodeTitle)
-                            .font(laughTrack.typography.body.weight(.semibold))
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .lineLimit(1)
-
-                        Text(item.podcastName)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .lineLimit(1)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.episodeTitle)
+                                .font(laughTrack.typography.body.weight(.semibold))
+                                .foregroundStyle(laughTrack.colors.textPrimary)
+                                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                            Text(item.podcastName)
+                                .font(laughTrack.typography.metadata)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+                                .lineLimit(1)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    transportCluster(item: item)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+                .buttonStyle(.plain)
+                .accessibilityLabel("Open player for \(item.episodeTitle), \(item.podcastName)")
 
-                progressBar
+                transportCluster(item: item)
             }
-            .contentShape(Rectangle())
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+
+            progressBar
+                .accessibilityHidden(true)
         }
-        .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
         .background(laughTrack.colors.surfaceElevated)
         .overlay(
@@ -129,7 +137,7 @@ struct PodcastMiniPlayerView: View {
                     Image(systemName: "arrow.up.right.square")
                         .font(.system(size: theme.iconSizes.md, weight: .semibold))
                         .foregroundStyle(laughTrack.colors.textPrimary)
-                        .frame(width: 38, height: 38)
+                        .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Open episode")
@@ -142,7 +150,7 @@ struct PodcastMiniPlayerView: View {
                     Image(systemName: "gobackward.15")
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(laughTrack.colors.textPrimary)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Skip back 15 seconds")
@@ -153,7 +161,7 @@ struct PodcastMiniPlayerView: View {
                     Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: theme.iconSizes.md, weight: .bold))
                         .foregroundStyle(laughTrack.colors.textInverse)
-                        .frame(width: 38, height: 38)
+                        .frame(width: 44, height: 44)
                         .background(laughTrack.colors.accentStrong)
                         .clipShape(Circle())
                 }
@@ -166,7 +174,7 @@ struct PodcastMiniPlayerView: View {
                     Image(systemName: "goforward.30")
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(laughTrack.colors.textPrimary)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Skip forward 30 seconds")

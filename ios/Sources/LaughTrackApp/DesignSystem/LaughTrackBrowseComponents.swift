@@ -399,12 +399,14 @@ struct LaughTrackChipPicker<Option: Hashable>: View {
     }
 
     var body: some View {
-        HStack(spacing: theme.spacing.sm) {
+        ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
             ForEach(options, id: \.self) { option in
                 Button {
                     selection = option
                 } label: {
                     LaughTrackBrowseChip(title(option), tone: tone(for: option))
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(selection == option ? [.isSelected] : [])

@@ -62,6 +62,7 @@ struct LaughTrackButton: View {
             .frame(maxWidth: fullWidth ? .infinity : nil)
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, verticalPadding)
+            .frame(minWidth: 44, minHeight: 44)
             .background(background)
             .overlay(borderOverlay)
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
@@ -352,6 +353,7 @@ struct LaughTrackBadge: View {
 }
 
 struct LaughTrackSectionHeader: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.appTheme) private var theme
 
     enum Density: Equatable {
@@ -385,7 +387,7 @@ struct LaughTrackSectionHeader: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(alignment: .top, spacing: horizontalSpacing) {
+        (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: horizontalSpacing)) : AnyLayout(HStackLayout(alignment: .top, spacing: horizontalSpacing))) {
             VStack(alignment: .leading, spacing: verticalSpacing) {
                 if let eyebrow {
                     Text(eyebrow)
@@ -396,6 +398,7 @@ struct LaughTrackSectionHeader: View {
 
                 Text(title)
                     .font(titleFont)
+                    .accessibilityAddTraits(.isHeader)
                     .foregroundStyle(laughTrack.colors.textPrimary)
 
                 if let subtitle {

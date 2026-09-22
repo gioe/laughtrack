@@ -320,7 +320,7 @@ struct MarqueeHero: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-            .frame(minHeight: 44)
+            .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
