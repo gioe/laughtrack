@@ -122,6 +122,7 @@ public struct AppBootstrap {
             configuration: .laughTrack,
             transport: URLSessionTransport(),
             middlewares: [
+                DiscoverTimingMiddleware(),
                 APIVersionPathMiddleware(),
                 XTimezoneHeaderNormalizationMiddleware(),
                 unauthorizedMiddleware,

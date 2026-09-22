@@ -14,11 +14,20 @@ enum MainPageCache {
         from cache: DataCache<LaughTrackCacheKey>?,
         persistentCache: PersistentMainPageCache?
     ) async -> Value? {
+        let result: (value: Value, source: String)? = await getWithSource(key, from: cache, persistentCache: persistentCache)
+        return result?.value
+    }
+
+    static func getWithSource<Value>(
+        _ key: LaughTrackCacheKey,
+        from cache: DataCache<LaughTrackCacheKey>?,
+        persistentCache: PersistentMainPageCache?
+    ) async -> (value: Value, source: String)? {
         if let cached: Value = await cache?.get(forKey: key) {
             if let homeFeed = cached as? Components.Schemas.HomeFeed {
-                return homeFeed.publicCacheSlice as? Value
+                return (homeFeed.publicCacheSlice as? Value).map { ($0, "in_memory") }
             }
-            return cached
+            return (cached, "in_memory")
         }
 
         guard let persistentCache else {
@@ -32,11 +41,11 @@ enum MainPageCache {
                 distanceMiles: distanceMiles
             ) else { return nil }
             await hydrateMemoryCache(cached.value, key: key, expiresAt: cached.expiresAt, cache: cache)
-            return cached.value as? Value
+            return (cached.value as? Value).map { ($0, "persisted_cache") }
         case .favoriteShows(let requestKey) where Value.self == [Components.Schemas.Show].self:
             guard let cached = await persistentCache.getCachedFavoriteShows(requestKey: requestKey) else { return nil }
             await hydrateMemoryCache(cached.value, key: key, expiresAt: cached.expiresAt, cache: cache)
-            return cached.value as? Value
+            return (cached.value as? Value).map { ($0, "persisted_cache") }
         default:
             return nil
         }

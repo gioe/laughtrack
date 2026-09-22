@@ -220,12 +220,41 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
     func failure(for key: String) -> LoadFailure? {
         displayedRequestKey == key ? refreshFailure : nil
     }
+    @Published private(set) var measurementGeneration = UUID()
+    private var measurementStart: TimeInterval?
+    private var measurementKey: String?
+    private var measurementSent = false
+    private var contentSource = "network"
+    private var authenticated = false
+    private var serverTiming: [String: Double] = [:]
+    private var networkMilliseconds: Double?
+    private let uptime: () -> TimeInterval
+
+    /// Called by the mounted useful-content subtree, never by fetch completion.
+    func contentDidAppear(for key: String) -> [String: Any]? {
+        guard !Task.isCancelled, measurementKey == key, !measurementSent, let start = measurementStart,
+              case .planned(let visible) = presentation(for: key), !visible.isEmpty else { return nil }
+        measurementSent = true
+        var parameters: [String: Any] = [
+            "source": contentSource,
+            "account": authenticated ? "authenticated" : "anonymous",
+            "first_content_ms": min(120_000, max(0, (uptime() - start) * 1000))
+        ]
+        if contentSource == "network" {
+            parameters.merge(serverTiming.mapValues { $0 as Any }) { _, new in new }
+            if let networkMilliseconds { parameters["client_load_ms"] = networkMilliseconds }
+        }
+        return parameters
+    }
+
     private var activeRequestID = UUID()
     private var displayedRequestKey: String?
     private let planCache: HomeDiscoverRailPlanCache
 
-    init(planCache: HomeDiscoverRailPlanCache = .shared) {
+    init(planCache: HomeDiscoverRailPlanCache = .shared,
+         uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
         self.planCache = planCache
+        self.uptime = uptime
     }
 
     enum Presentation: Equatable {
@@ -289,12 +318,24 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
             return
         }
 
+        measurementStart = uptime()
+        measurementKey = requestKey
+        measurementSent = false
+        authenticated = sessionDiscriminator != nil
+        serverTiming = [:]
+        networkMilliseconds = nil
+        measurementGeneration = UUID()
+        contentSource = "in_memory"
+
         let requestID = UUID()
         activeRequestID = requestID
         isRefreshing = true
         refreshFailure = nil
         defer {
-            if activeRequestID == requestID { isRefreshing = false }
+            if activeRequestID == requestID {
+                isRefreshing = false
+                if Task.isCancelled { measurementStart = nil }
+            }
         }
         if displayedRequestKey != requestKey {
             displayedRequestKey = requestKey
@@ -305,7 +346,7 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
         }
 
         if sections == nil, !hasResolved {
-            let cached: Components.Schemas.HomeFeed? = await MainPageCache.get(
+            let cached: (value: Components.Schemas.HomeFeed, source: String)? = await MainPageCache.getWithSource(
                 .homeFeed(zipCode: zipCode, distanceMiles: distanceMiles),
                 from: cache,
                 persistentCache: persistentCache
@@ -314,15 +355,16 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
             // its fallback after a newer refresh or view cancellation.
             guard !Task.isCancelled, activeRequestID == requestID else { return }
             if let cached {
-                let fallback = HomeDiscoverRailPlanPresentation.publicFallbackSections(from: cached)
+                let fallback = HomeDiscoverRailPlanPresentation.publicFallbackSections(from: cached.value)
                 if !fallback.isEmpty {
+                    contentSource = cached.source
                     sections = fallback
                     hasResolved = true
                 }
             }
         }
 
-        let result = await HomeFeedRequest.load(
+        let measured = await HomeFeedRequest.loadMeasured(
             apiClient: apiClient,
             zipCode: zipCode,
             distanceMiles: distanceMiles,
@@ -339,8 +381,11 @@ final class HomeDiscoverRailPlanModel: ObservableObject {
         )
         guard !Task.isCancelled, activeRequestID == requestID else { return }
 
-        switch result {
+        switch measured.result {
         case .success(let feed):
+            contentSource = "network"
+            serverTiming = measured.serverTiming
+            networkMilliseconds = measured.networkMilliseconds
             sections = HomeDiscoverRailPlanPresentation.sections(from: feed)
             loadedRequestKey = requestKey
             loadedAt = Date()

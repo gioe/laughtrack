@@ -246,6 +246,11 @@ struct HomeView: View {
                                     nearbyPreference: nearbyPreference
                                 )
                             }
+                            .task(id: railPlanModel.measurementGeneration) {
+                                if let parameters = railPlanModel.contentDidAppear(for: railPlanRequestKey) {
+                                    DiscoverPerformanceMetrics.record(parameters)
+                                }
+                            }
                         }
                     }
                 case .legacy:

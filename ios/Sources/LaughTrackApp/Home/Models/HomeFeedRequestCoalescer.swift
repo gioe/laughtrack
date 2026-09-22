@@ -10,21 +10,38 @@ import LaughTrackCore
 // the process-wide .shared instance coalesces by zip|distance key only, so
 // concurrently-running test suites that refresh with the same key would
 // otherwise receive each other's mock-transport feeds (TASK-2756).
+struct MeasuredHomeFeedResult: Sendable {
+    let result: Result<Components.Schemas.HomeFeed, LoadFailure>
+    let serverTiming: [String: Double]
+    let networkMilliseconds: Double
+}
+
 actor HomeFeedRequestCoalescer {
     static let shared = HomeFeedRequestCoalescer()
 
-    private var inFlight: [String: Task<Result<Components.Schemas.HomeFeed, LoadFailure>, Never>] = [:]
+    private var inFlight: [String: Task<MeasuredHomeFeedResult, Never>] = [:]
 
     func load(
         requestKey: String,
         operation: @escaping @Sendable () async -> Result<Components.Schemas.HomeFeed, LoadFailure>
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
+        await loadMeasured(requestKey: requestKey, operation: operation).result
+    }
+
+    func loadMeasured(
+        requestKey: String,
+        operation: @escaping @Sendable () async -> Result<Components.Schemas.HomeFeed, LoadFailure>
+    ) async -> MeasuredHomeFeedResult {
         if let task = inFlight[requestKey] {
             return await task.value
         }
 
         let task = Task {
-            await operation()
+            let capture = DiscoverTimingCapture()
+            let start = ProcessInfo.processInfo.systemUptime
+            let result = await DiscoverTimingCapture.$current.withValue(capture) { await operation() }
+            return MeasuredHomeFeedResult(result: result, serverTiming: await capture.snapshot(),
+                networkMilliseconds: min(120_000, max(0, (ProcessInfo.processInfo.systemUptime - start) * 1000)))
         }
         inFlight[requestKey] = task
         let result = await task.value
@@ -59,7 +76,29 @@ enum HomeFeedRequest {
         persistentCache: PersistentMainPageCache?,
         coalescer: HomeFeedRequestCoalescer
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
-        await coalescer.load(requestKey: requestKey(
+        await loadMeasured(apiClient: apiClient, zipCode: zipCode, distanceMiles: distanceMiles,
+            sessionDiscriminator: sessionDiscriminator, cache: cache, cacheTTL: cacheTTL,
+            badParamsMessage: badParamsMessage, rateLimitMessage: rateLimitMessage,
+            undocumentedContext: undocumentedContext, networkContext: networkContext,
+            networkMessage: networkMessage, persistentCache: persistentCache, coalescer: coalescer).result
+    }
+
+    static func loadMeasured(
+        apiClient: Client,
+        zipCode: String?,
+        distanceMiles: Int?,
+        sessionDiscriminator: String? = nil,
+        cache: DataCache<LaughTrackCacheKey>?,
+        cacheTTL: TimeInterval,
+        badParamsMessage: String,
+        rateLimitMessage: String,
+        undocumentedContext: String,
+        networkContext: String,
+        networkMessage: String,
+        persistentCache: PersistentMainPageCache?,
+        coalescer: HomeFeedRequestCoalescer
+    ) async -> MeasuredHomeFeedResult {
+        await coalescer.loadMeasured(requestKey: requestKey(
             zipCode: zipCode,
             distanceMiles: distanceMiles,
             sessionDiscriminator: sessionDiscriminator

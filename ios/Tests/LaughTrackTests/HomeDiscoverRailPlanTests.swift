@@ -10,6 +10,48 @@ import LaughTrackCore
 @Suite("Home Discover rail plan")
 @MainActor
 struct HomeDiscoverRailPlanTests {
+    @Test("first content waits for mounted content and emits once with bounded network timing")
+    func firstContentMeasurement() async throws {
+        var now: TimeInterval = 100
+        let model = HomeDiscoverRailPlanModel(planCache: HomeDiscoverRailPlanCache(), uptime: { now })
+        let key = model.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: nil)
+        #expect(model.contentDidAppear(for: key) == nil)
+        await refresh(model, client: planClient(feed: orderedFeed()), session: nil, cacheTTL: 60)
+        now = 100.125
+        let parameters = try #require(model.contentDidAppear(for: key))
+        #expect(parameters["first_content_ms"] as? Double == 125)
+        #expect(parameters["source"] as? String == "network")
+        #expect(parameters["account"] as? String == "anonymous")
+        #expect(parameters["server_feed_total_ms"] as? Double == 12.5)
+        #expect(parameters["client_load_ms"] is Double)
+        #expect(parameters["server_shows_tonight_ms"] as? Double == 8)
+        #expect(parameters.count == 6)
+        let trace = try JSONSerialization.data(withJSONObject: parameters, options: [.sortedKeys])
+        print("TASK4036_FIRST_CONTENT_TRACE " + String(decoding: trace, as: UTF8.self))
+        #expect(model.contentDidAppear(for: key) == nil)
+        await refresh(model, client: planClient(feed: orderedFeed()), session: nil, cacheTTL: 60)
+        #expect(model.contentDidAppear(for: key) == nil)
+    }
+
+    @Test("memory plan reuse is measured without attributing an unrelated network response")
+    func memoryFirstContentMeasurement() async throws {
+        let cache = HomeDiscoverRailPlanCache()
+        let first = HomeDiscoverRailPlanModel(planCache: cache)
+        await refresh(first, client: planClient(feed: orderedFeed()), cacheTTL: 60)
+        let model = HomeDiscoverRailPlanModel(planCache: cache)
+        let key = model.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: "account-a|session")
+        let gate = PlanResponseGate()
+        let pending = Task { await refresh(model, client: planClient(feed: orderedFeed(), gate: gate)) }
+        await gate.waitUntilRequested()
+        let parameters = model.contentDidAppear(for: key)
+        #expect(parameters?["source"] as? String == "in_memory")
+        #expect(parameters?["account"] as? String == "authenticated")
+        #expect(parameters?.count == 3)
+        await gate.release()
+        await pending.value
+        #expect(model.contentDidAppear(for: key) == nil)
+    }
+
     @Test("home feed requests the iOS rail policy")
     func homeFeedRequestsIOSRailPolicy() async throws {
         let feed = makeFeed(
@@ -515,8 +557,12 @@ struct HomeDiscoverRailPlanTests {
         #expect(model.hasResolved)
         #expect(model.isRefreshing)
         #expect(model.failure(for: key) == nil)
+        let parameters = model.contentDidAppear(for: key)
+        #expect(parameters?["source"] as? String == "persisted_cache")
+        #expect(parameters?.count == 3)
         await gate.release()
         await pending.value
+        #expect(model.contentDidAppear(for: key) == nil)
         #expect(model.sections?.map(\.id) == ["followed_comedian_shows", "shows_tonight"])
         #expect(!model.isRefreshing)
         #expect(model.failure(for: key) == nil)
@@ -581,6 +627,8 @@ struct HomeDiscoverRailPlanTests {
         pending.cancel()
         await gate.release()
         await pending.value
+        let key = model.requestKey(zipCode: "10012", distanceMiles: 25, sessionDiscriminator: "account-a|session")
+        #expect(model.contentDidAppear(for: key) == nil)
         #expect(model.sections?.map(\.id) == ["shows_tonight"])
         #expect(!model.isRefreshing)
     }
@@ -805,11 +853,11 @@ private func planClient(
         guard let feed else { throw URLError(.notConnectedToInternet) }
         let data = try APIMockEncoder.make().encode(Components.Schemas.HomeFeedResponse(data: feed))
         return (
-            HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
+            HTTPResponse(status: .ok, headerFields: [.contentType: "application/json", HTTPField.Name("Server-Timing")!: "feed_total;dur=12.5;desc=success, shows_tonight;dur=8;desc=success"]),
             HTTPBody(data)
         )
     }
-    return Client(serverURL: URL(string: "https://example.com")!, configuration: .laughTrack, transport: transport)
+    return Client(serverURL: URL(string: "https://example.com")!, configuration: .laughTrack, transport: transport, middlewares: [DiscoverTimingMiddleware()])
 }
 
 @MainActor
