@@ -1,0 +1,49 @@
+{
+  "correlation_fixture": {
+    "kind": "synthetic_simulator_correlation_test",
+    "limitations": "first_content_ms uses an injected clock; server timings are fixture headers. client_load_ms is measured in the test process. Not a production latency sample.",
+    "event": "discover_first_content",
+    "parameters": {
+      "account": "anonymous",
+      "client_load_ms": 32.750416663475335,
+      "first_content_ms": 125,
+      "server_feed_total_ms": 12.5,
+      "server_shows_tonight_ms": 8,
+      "source": "network"
+    }
+  },
+  "mounted_ui_fixture": {
+    "test": "NavigationTransitionUITests/testDiscoverDiskCacheSurvivesPendingAndFailedRefresh",
+    "result": "passed",
+    "limitations": "Five observations from one simulator lifecycle test against a local fixture, not production latency estimates. This fixture does not emit server timing.",
+    "events": [
+      {
+        "account": "anonymous",
+        "client_load_ms": 119.77683333680034,
+        "first_content_ms": 437.53525003558025,
+        "source": "network"
+      },
+      {
+        "account": "anonymous",
+        "first_content_ms": 163.93108334159479,
+        "source": "persisted_cache"
+      },
+      {
+        "account": "anonymous",
+        "first_content_ms": 147.04299997538328,
+        "source": "persisted_cache"
+      },
+      {
+        "account": "anonymous",
+        "first_content_ms": 38.16891665337607,
+        "source": "in_memory"
+      },
+      {
+        "account": "anonymous",
+        "client_load_ms": 1331.055374990683,
+        "first_content_ms": 1435.083708318416,
+        "source": "network"
+      }
+    ]
+  }
+}

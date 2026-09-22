@@ -1,0 +1,1608 @@
+[
+  {
+    "market": "dense",
+    "sample": 0,
+    "phase": "first_request",
+    "http_wall_ms": 13562.4,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 6224.9,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 16.1,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 150.2,
+        "outcome": "timeout"
+      },
+      "hero": {
+        "duration_ms": 4.3,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 1354.2,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 670.3,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 670.0,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 3870.8,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 5723.2,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 5791.9,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 472.7,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 472.5,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 472.5,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 472.4,
+        "outcome": "timeout"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 1,
+    "phase": "warm",
+    "http_wall_ms": 1741.9,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1498.1,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 2.3,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 39.3,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.7,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 878.9,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 718.1,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 717.0,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 1229.6,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 1135.9,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 1160.3,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 453.3,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 452.9,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 452.5,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 260.4,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 2,
+    "phase": "warm",
+    "http_wall_ms": 3045.1,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 2742.3,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 4.8,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 47.4,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 2.1,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 1664.2,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 753.7,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 755.0,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 2152.3,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 2063.4,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 2306.3,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 431.7,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 431.4,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 431.3,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 431.3,
+        "outcome": "timeout"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 3,
+    "phase": "warm",
+    "http_wall_ms": 2613.2,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 2387.9,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 4.2,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 129.7,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 1.7,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 1819.2,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 879.6,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 875.5,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 1789.9,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 1762.1,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 1710.6,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 446.1,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 424.8,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 441.3,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 440.4,
+        "outcome": "timeout"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 4,
+    "phase": "warm",
+    "http_wall_ms": 3233.4,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 3109.1,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 20.7,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 150.9,
+        "outcome": "timeout"
+      },
+      "hero": {
+        "duration_ms": 0.4,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 2265.4,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 658.8,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 658.1,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 2703.7,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 2590.3,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 2541.8,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 352.6,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 352.4,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 352.3,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 352.2,
+        "outcome": "timeout"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 5,
+    "phase": "warm",
+    "http_wall_ms": 2002.8,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1861.1,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 56.0,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 59.5,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.7,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 1376.6,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 659.0,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 658.8,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 1499.6,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 1430.5,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 1441.4,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 379.3,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 329.0,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 377.2,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 376.9,
+        "outcome": "timeout"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 6,
+    "phase": "warm",
+    "http_wall_ms": 1560.1,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1465.9,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 3.0,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 39.0,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.7,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 759.4,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 601.8,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 661.8,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 1109.0,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 1098.6,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 1181.9,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 457.1,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 483.1,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 166.6,
+        "outcome": "success"
+      },
+      "fresh": {
+        "duration_ms": 252.5,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 7,
+    "phase": "warm",
+    "http_wall_ms": 1551.6,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1494.0,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 1.4,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 41.8,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 5.1,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 1163.4,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 681.8,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 681.7,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 1304.7,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 1210.9,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 1257.9,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 499.0,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 207.4,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 498.7,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 255.4,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 8,
+    "phase": "warm",
+    "http_wall_ms": 1392.8,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1350.9,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 1.0,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 44.1,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.2,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 803.1,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 587.1,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 692.2,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 963.8,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 905.2,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 1133.1,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 532.2,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 532.0,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 531.9,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 256.2,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 9,
+    "phase": "warm",
+    "http_wall_ms": 1429.3,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1403.1,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 0.5,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 44.7,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.3,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 1138.4,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 591.3,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 697.2,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 1183.8,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 1133.5,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 1189.8,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 524.5,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 183.9,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 524.2,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 257.6,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "dense",
+    "sample": 10,
+    "phase": "warm",
+    "http_wall_ms": 1239.0,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1134.2,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 3.5,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 51.7,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.4,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 672.2,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 567.9,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 618.8,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 798.5,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 740.3,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 847.1,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 414.7,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 464.8,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 332.1,
+        "outcome": "success"
+      },
+      "fresh": {
+        "duration_ms": 291.7,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 0,
+    "phase": "first_request",
+    "http_wall_ms": 1135.9,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1086.7,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 0.6,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 35.3,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.2,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 808.1,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 740.3,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 739.9,
+        "outcome": "timeout"
+      },
+      "shows_tonight": {
+        "duration_ms": 583.3,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 908.5,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 459.4,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 560.3,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 560.0,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 559.9,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 559.6,
+        "outcome": "timeout"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 1,
+    "phase": "warm",
+    "http_wall_ms": 796.1,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 702.7,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 1.0,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 35.7,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.4,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 418.7,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 497.9,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 365.5,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 365.6,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 502.5,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 250.1,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 312.2,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 337.8,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 430.1,
+        "outcome": "success"
+      },
+      "fresh": {
+        "duration_ms": 267.1,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 2,
+    "phase": "warm",
+    "http_wall_ms": 1555.6,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1502.7,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 0.5,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 95.0,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.2,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 636.6,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 699.1,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 585.3,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 592.0,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 1299.1,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 478.1,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 459.1,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 458.8,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 458.6,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 344.8,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 3,
+    "phase": "warm",
+    "http_wall_ms": 1052.6,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 986.6,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 1.6,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 64.0,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.7,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 554.2,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 698.1,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 444.6,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 444.4,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 813.9,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 342.7,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 372.6,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 502.2,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 345.7,
+        "outcome": "success"
+      },
+      "fresh": {
+        "duration_ms": 345.3,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 4,
+    "phase": "warm",
+    "http_wall_ms": 1278.9,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 1227.4,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 0.9,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 133.3,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.2,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 707.5,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 677.6,
+        "outcome": "timeout"
+      },
+      "comedians_near_you": {
+        "duration_ms": 635.9,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 635.7,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 951.1,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 503.5,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 470.7,
+        "outcome": "timeout"
+      },
+      "trending_podcasts": {
+        "duration_ms": 470.4,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 470.3,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 429.0,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 5,
+    "phase": "warm",
+    "http_wall_ms": 953.4,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 899.9,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 1.0,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 38.1,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.3,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 564.4,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 586.5,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 505.8,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 441.9,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 712.1,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 304.5,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 403.0,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 513.6,
+        "outcome": "timeout"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 513.1,
+        "outcome": "timeout"
+      },
+      "fresh": {
+        "duration_ms": 325.0,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 6,
+    "phase": "warm",
+    "http_wall_ms": 789.0,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 711.1,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 0.6,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 33.0,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.2,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 464.5,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 520.3,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 413.9,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 413.8,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 559.4,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 310.5,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 349.2,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 412.0,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 470.8,
+        "outcome": "success"
+      },
+      "fresh": {
+        "duration_ms": 260.3,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 7,
+    "phase": "warm",
+    "http_wall_ms": 796.0,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 764.7,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 0.5,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 34.8,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.2,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 495.4,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 515.4,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 442.7,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 442.5,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 619.0,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 340.7,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 469.9,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 467.3,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 516.6,
+        "outcome": "success"
+      },
+      "fresh": {
+        "duration_ms": 289.2,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 8,
+    "phase": "warm",
+    "http_wall_ms": 768.1,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 734.4,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 0.5,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 37.7,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.2,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 424.8,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 525.8,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 381.9,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 385.9,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 569.9,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 290.6,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 330.6,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 454.3,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 491.9,
+        "outcome": "success"
+      },
+      "fresh": {
+        "duration_ms": 296.1,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 9,
+    "phase": "warm",
+    "http_wall_ms": 802.4,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 779.9,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 0.5,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 30.8,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.1,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 470.8,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 501.2,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 420.2,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 420.0,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 645.8,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 317.6,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 366.9,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 488.2,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 542.7,
+        "outcome": "success"
+      },
+      "fresh": {
+        "duration_ms": 266.2,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  },
+  {
+    "market": "sparse",
+    "sample": 10,
+    "phase": "warm",
+    "http_wall_ms": 760.8,
+    "status": 200,
+    "spans": {
+      "feed_total": {
+        "duration_ms": 741.3,
+        "outcome": "success"
+      },
+      "auth": {
+        "duration_ms": 1.5,
+        "outcome": "success"
+      },
+      "policy": {
+        "duration_ms": 32.5,
+        "outcome": "error"
+      },
+      "hero": {
+        "duration_ms": 0.2,
+        "outcome": "success"
+      },
+      "trending_comedians": {
+        "duration_ms": 451.2,
+        "outcome": "success"
+      },
+      "clubs": {
+        "duration_ms": 529.5,
+        "outcome": "success"
+      },
+      "comedians_near_you": {
+        "duration_ms": 456.3,
+        "outcome": "success"
+      },
+      "shows_tonight": {
+        "duration_ms": 457.3,
+        "outcome": "success"
+      },
+      "shows_near_zip": {
+        "duration_ms": 593.6,
+        "outcome": "success"
+      },
+      "trending_this_week": {
+        "duration_ms": 297.2,
+        "outcome": "success"
+      },
+      "podcast_episodes": {
+        "duration_ms": 386.6,
+        "outcome": "success"
+      },
+      "trending_podcasts": {
+        "duration_ms": 420.1,
+        "outcome": "success"
+      },
+      "followed_shows": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      },
+      "touring": {
+        "duration_ms": 502.8,
+        "outcome": "success"
+      },
+      "fresh": {
+        "duration_ms": 304.7,
+        "outcome": "success"
+      },
+      "affinity": {
+        "duration_ms": 0.0,
+        "outcome": "skipped"
+      }
+    }
+  }
+]
