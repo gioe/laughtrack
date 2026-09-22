@@ -152,7 +152,7 @@ struct HomeView: View {
                         Text(failure.message)
                             .font(laughTrack.typography.metadata)
                             .foregroundStyle(laughTrack.colors.textSecondary)
-                        Button("Retry") {
+                        LaughTrackButton("Retry", systemImage: "arrow.clockwise", tone: .secondary, density: .compact, fullWidth: false) {
                             Task { await refreshPlan(force: true) }
                         }
                         .disabled(railPlanModel.isRefreshing)

@@ -7,6 +7,96 @@ import UIKit
 /// are seeded. Run these cases at native default/large text and Reduce Motion.
 @MainActor
 final class NavigationTransitionUITests: XCTestCase {
+    /// Run with ios/Tests/discover_cache_fixture_server.py on fixture port 8765.
+    /// This uses the actual disk cache and separate app processes, never a seeded model.
+    func testDiscoverDiskCacheSurvivesPendingAndFailedRefresh() async throws {
+        continueAfterFailure = false
+        let port = ProcessInfo.processInfo.environment["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"] ?? "8765"
+        let probe = try XCTUnwrap(URL(string: "http://127.0.0.1:\(port)/fixture/feed/status"))
+        let (_, response) = try await URLSession.shared.data(from: probe)
+        if (response as? HTTPURLResponse)?.statusCode == 404 {
+            throw XCTSkip("Run python3 ios/Tests/discover_cache_fixture_server.py instead of the standard fixture server for this case")
+        }
+        XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+        _ = try cacheFixture("ready")
+        let app = try launchApp()
+        defer {
+            app.terminate()
+            _ = try? cacheFixture("ready")
+        }
+        let marker = element("laughtrack.home.this-week-rail", in: app)
+        XCTAssertTrue(marker.waitForExistence(timeout: 15))
+        attach(app, "Discover cache — warm network response")
+        app.terminate()
+
+        _ = try cacheFixture("block")
+        app.launchArguments.removeAll { $0 == UITestLaunchArgs.resetState }
+        app.launch()
+        try waitForPendingFeed()
+        XCTAssertTrue(marker.waitForExistence(timeout: 5), "Disk content must render while HTTP remains blocked")
+        XCTAssertGreaterThan(try cacheFixture("status")["pending"] ?? 0, 0)
+        attach(app, "Discover cache — relaunched while network pending")
+        let home = element("laughtrack.home.screen", in: app)
+        position(marker, at: home.frame.minY + 85, in: app)
+        let cachedY = marker.frame.minY
+        XCTAssertLessThan(cachedY, home.frame.minY + 150)
+        let refreshed = try cacheFixture("release")
+        assertCacheEdition(refreshed, in: app)
+        assertPosition(marker, y: cachedY)
+        attach(app, "Discover cache — refreshed without moving scroll position")
+        app.terminate()
+
+        _ = try cacheFixture("block")
+        app.launch()
+        try waitForPendingFeed()
+        XCTAssertTrue(marker.waitForExistence(timeout: 5))
+        _ = try cacheFixture("fail")
+        let retry = app.buttons["laughtrack.home.plan-retry"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 15))
+        XCTAssertTrue(marker.exists, "Refresh failure must retain cached sections")
+        for _ in 0..<8 where !retry.isHittable { app.swipeUp() }
+        XCTAssertTrue(retry.isHittable)
+        attach(app, "Discover cache — offline content retained with Retry")
+        let recovered = try cacheFixture("ready")
+        retry.tap()
+        assertCacheEdition(recovered, in: app)
+        XCTAssertTrue(retry.waitForNonExistence(timeout: 15))
+        XCTAssertTrue(marker.exists)
+        app.terminate()
+
+        _ = try cacheFixture("block")
+        app.launchArguments.append(UITestLaunchArgs.resetState)
+        app.launch()
+        try waitForPendingFeed()
+        XCTAssertTrue(app.tabBars.buttons["Discover"].exists)
+        XCTAssertTrue(element("laughtrack.home.plan-loading", in: app).exists, "A first install must show an honest loading state")
+        XCTAssertFalse(marker.exists, "A first install must not borrow previously persisted content")
+        attach(app, "Discover cache — first install pending without fabricated content")
+        _ = try cacheFixture("release")
+        XCTAssertTrue(marker.waitForExistence(timeout: 15))
+    }
+
+    private func assertCacheEdition(_ status: [String: Int], in app: XCUIApplication) {
+        let title = "Cache edition \(status["revision"] ?? -1)"
+        let item = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", title)).firstMatch
+        XCTAssertTrue(item.waitForExistence(timeout: 15), "Must observe the newly received feed, not just dismiss a loading flag")
+    }
+
+    private func cacheFixture(_ action: String) throws -> [String: Int] {
+        let port = ProcessInfo.processInfo.environment["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"] ?? "8765"
+        let url = try XCTUnwrap(URL(string: "http://127.0.0.1:\(port)/fixture/feed/\(action)"))
+        let data = try Data(contentsOf: url)
+        return try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Int])
+    }
+
+    private func waitForPendingFeed() throws {
+        for _ in 0..<100 {
+            if try cacheFixture("status")["pending"] ?? 0 > 0 { return }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        XCTFail("Expected a blocked request at the controlled fixture server")
+    }
+
     func testSearchEmptyRecoveryPreservesQuery() throws {
         try verifyEmptyRecovery(largeText: false)
     }
