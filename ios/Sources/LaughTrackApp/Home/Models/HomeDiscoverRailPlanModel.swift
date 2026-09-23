@@ -47,7 +47,13 @@ enum HomeDiscoverRailPlanPresentation {
     static func preferredFavoriteHeadlinerID(
         show: Components.Schemas.Show
     ) -> Int? {
-        show.lineup?.first(where: { $0.isFavorite == true })?.id
+        show.lineup?.first(where: { member in
+            (member.parentComedian ?? member).isFavorite == true || member.isFavorite == true
+        }).map { ($0.parentComedian ?? $0).id }
+    }
+
+    static func followedPerformerContext(show: Components.Schemas.Show) -> ShowRowPerformerContext? {
+        preferredFavoriteHeadlinerID(show: show).map(ShowRowPerformerContext.followed)
     }
 
     /// Returns nil when the response has no compatible iOS plan, which tells

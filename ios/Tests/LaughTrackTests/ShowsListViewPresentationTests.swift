@@ -56,6 +56,47 @@ struct SearchQueryVisualCaptureTests {
 
 @Suite("Shows list view presentation")
 struct ShowsListViewPresentationTests {
+    @Test("performer relevance requires a unique full comedian name and canonical identity")
+    @MainActor
+    func performerSearchRelevance() {
+        let canonical = Components.Schemas.ComedianLineup(name: "J Valentino", imageUrl: "", uuid: "j", id: 1)
+        let alias = Components.Schemas.ComedianLineup(name: "Jay Valentino", imageUrl: "invalid", uuid: "alias", id: 2, parentComedian: canonical)
+        var show = makeShow(id: 99)
+        show.lineup = [canonical, alias]
+        #expect(ShowsListModel.searchPerformerContext(for: show, comedianQuery: "  j   VALENTINO ") == .searchMatch(1))
+        #expect(ShowsListModel.searchPerformerContext(for: show, comedianQuery: "Jay Valentino") == .searchMatch(1))
+        for query in ["", "comedy", "J", "Valentino", "Unknown Person"] {
+            #expect(ShowsListModel.searchPerformerContext(for: show, comedianQuery: query) == nil)
+        }
+        show.lineup?.append(.init(name: "J Valentino", imageUrl: "", uuid: "other", id: 3))
+        #expect(ShowsListModel.searchPerformerContext(for: show, comedianQuery: "J Valentino") == nil)
+        show.lineup = nil
+        #expect(ShowsListModel.searchPerformerContext(for: show, comedianQuery: "J Valentino") == nil)
+    }
+
+    #if canImport(UIKit)
+    @Test("retained results do not claim a new or failed comedian query")
+    @MainActor
+    func retainedResultsHaveNoNewRelevance() async {
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "performer-relevance")
+        let model = ShowsListModel(
+            nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
+            initialUseDateRange: false, startsWithNearbyLocation: false
+        )
+        var show = makeShow(id: 99)
+        show.lineup = [.init(name: "J Valentino", imageUrl: "", uuid: "j", id: 1)]
+        await model.reload(query: model.requestKey) { _, _ in .success(.init(items: [show], total: 1)) }
+        model.comedianSearchText = "J Valentino"
+        #expect(model.performerContext(for: show) == nil)
+        await model.reload(query: model.requestKey) { _, _ in .failure(.unexpected(status: 500, message: "Failed")) }
+        #expect(model.performerContext(for: show) == nil)
+        await model.reload(query: model.requestKey) { _, _ in .success(.init(items: [show], total: 1)) }
+        #expect(model.performerContext(for: show) == .searchMatch(1))
+        model.comedianSearchText = ""
+        #expect(model.performerContext(for: show) == nil)
+    }
+    #endif
+
     @Test("compact pinned lists label upcoming shows with subordinate filters")
     func compactPinnedListsUseUpcomingShowsHeading() throws {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)

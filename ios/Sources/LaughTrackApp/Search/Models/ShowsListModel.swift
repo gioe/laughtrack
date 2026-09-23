@@ -145,6 +145,32 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         )
     }
 
+    /// Retained results must not acquire a relevance claim from a newer draft query.
+    func performerContext(for show: Components.Schemas.Show) -> ShowRowPerformerContext? {
+        guard resultsState(for: requestKey) == .confirmed else { return nil }
+        return Self.searchPerformerContext(for: show, comedianQuery: requestKey.comedian)
+    }
+
+    static func searchPerformerContext(
+        for show: Components.Schemas.Show,
+        comedianQuery: String
+    ) -> ShowRowPerformerContext? {
+        func normalized(_ value: String) -> String {
+            value.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+                .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))
+        }
+        let query = normalized(comedianQuery)
+        guard !query.isEmpty else { return nil }
+        // Full-name matches establish identity; partial/common-name queries do not.
+        let matches = Set((show.lineup ?? []).compactMap { member -> Int? in
+            let canonical = member.parentComedian ?? member
+            guard normalized(member.name) == query || normalized(canonical.name) == query else { return nil }
+            return canonical.id
+        })
+        guard matches.count == 1, let id = matches.first else { return nil }
+        return .searchMatch(id)
+    }
+
     func reload(
         apiClient: Client,
         cache: DataCache<LaughTrackCacheKey>? = nil,

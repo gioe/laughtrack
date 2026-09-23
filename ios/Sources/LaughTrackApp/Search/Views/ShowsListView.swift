@@ -311,7 +311,8 @@ struct ShowsListView: View {
                     ShowRow(
                         show: show,
                         presentation: show.id == standoutShowID ? .compactTicketProminent : .compactTicket,
-                        context: context
+                        context: context,
+                        performerContext: model.performerContext(for: show)
                     )
                 }
                 .buttonStyle(.plain)

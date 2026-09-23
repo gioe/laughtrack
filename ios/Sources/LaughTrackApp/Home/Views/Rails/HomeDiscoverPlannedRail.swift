@@ -61,10 +61,12 @@ struct HomeDiscoverPlannedRail: View {
                                 timestampLabel: ShowFormatting.featuredDateTime(
                                     show.date,
                                     timezoneID: show.timezone
-                                )
+                                ),
+                                performerContext: HomeDiscoverRailPlanPresentation.followedPerformerContext(show: show)
                             )
                         },
-                    onSelect: trackSelection
+                    onSelect: trackSelection,
+                    usesLineupCards: true
                 )
             }
 

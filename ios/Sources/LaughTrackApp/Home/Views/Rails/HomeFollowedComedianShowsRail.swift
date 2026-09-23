@@ -54,9 +54,11 @@ struct HomeFollowedComedianShowsRail: View {
                                     timestampLabel: ShowFormatting.featuredDateTime(
                                         show.date,
                                         timezoneID: show.timezone
-                                    )
+                                    ),
+                                    performerContext: HomeDiscoverRailPlanPresentation.followedPerformerContext(show: show)
                                 )
-                            }
+                            },
+                        usesLineupCards: true
                     )
                 }
             }

@@ -2,6 +2,10 @@ import Foundation
 import HTTPTypes
 import OpenAPIRuntime
 import Testing
+import SwiftUI
+#if canImport(UIKit)
+import Vision
+#endif
 import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
@@ -10,6 +14,75 @@ import LaughTrackCore
 @Suite("Home Discover rail plan")
 @MainActor
 struct HomeDiscoverRailPlanTests {
+    #if canImport(UIKit)
+    @Test("followed tickets visibly pair the performer and truthful reason")
+    func followedTicketRendering() async throws {
+        let comedian = Components.Schemas.ComedianLineup(name: "Avery Stone", imageUrl: "", uuid: "avery", id: 81, isFavorite: true)
+        let show = makeShow(912, lineup: [comedian])
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
+        let host = HostedView(
+            ScrollView {
+                HomeFeaturedShowsCarousel(
+                    headline: "Because you follow them",
+                    items: [.init(show: show, preferredHeadlinerID: 81,
+                                  accessibilityIdentifier: "task4039.followed-show",
+                                  accessibilityLabel: show.name,
+                                  performerContext: .followed(81))],
+                    usesLineupCards: true
+                ).padding(16)
+            }
+            .environment(\.appTheme, LaughTrackTheme())
+            .environmentObject(coordinator),
+            viewportSize: CGSize(width: 320, height: 900)
+        )
+        await host.settle(iterations: 5)
+        let screenshot = try host.snapshot()
+        let recognition = VNRecognizeTextRequest()
+        recognition.recognitionLevel = .accurate
+        try VNImageRequestHandler(cgImage: try #require(screenshot.cgImage)).perform([recognition])
+        let text = (recognition.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ").lowercased()
+        #expect(text.contains("you follow"))
+        #expect(text.contains("avery stone"))
+    }
+    #endif
+
+    @Test("lineup ticket selection preserves attribution and navigates to its own show")
+    func lineupTicketSelection() {
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
+        var selections = 0
+        let item = HomeFeaturedShowCarouselItem(
+            show: makeShow(912), preferredHeadlinerID: nil,
+            accessibilityIdentifier: "followed-card", accessibilityLabel: nil,
+            performerContext: .followed(81)
+        )
+        // This is the action invoked by the real ticket Button. The hosted
+        // iOS 18 tree renders pixels but exposes no accessibility activation nodes.
+        item.selectLineupCard(using: coordinator) {
+            #expect(coordinator.routes.isEmpty)
+            selections += 1
+        }
+        #expect(selections == 1)
+        #expect(coordinator.routes == [.showDetail(912)])
+        let fallback = HomeFeaturedShowCarouselItem(
+            show: makeShow(913), preferredHeadlinerID: nil,
+            accessibilityIdentifier: "fallback-card", accessibilityLabel: nil
+        )
+        fallback.selectLineupCard(using: coordinator, onSelect: nil)
+        #expect(coordinator.routes == [.showDetail(912), .showDetail(913)])
+    }
+
+    @Test("followed card context resolves canonical identity and never infers a favorite")
+    func followedCardContextRequiresFavorite() {
+        let canonical = Components.Schemas.ComedianLineup(name: "Avery Stone", imageUrl: "", uuid: "canonical", id: 81, isFavorite: true)
+        let alias = Components.Schemas.ComedianLineup(name: "Avery Alias", imageUrl: "invalid", uuid: "alias", id: 82, parentComedian: canonical)
+        let show = makeShow(1, lineup: [alias, canonical])
+        #expect(HomeDiscoverRailPlanPresentation.followedPerformerContext(show: show) == .followed(81))
+        let unfollowed = Components.Schemas.ComedianLineup(name: "Popular Comic", imageUrl: "https://example.com/photo.jpg", uuid: "popular", id: 9, isFavorite: false)
+        #expect(HomeDiscoverRailPlanPresentation.followedPerformerContext(show: makeShow(2, lineup: [unfollowed])) == nil)
+        #expect(HomeDiscoverRailPlanPresentation.followedPerformerContext(show: makeShow(3)) == nil)
+        #expect(HomeFeaturedShowCarouselItem.tonightItems([show])[0].performerContext == nil)
+    }
+
     @Test("first content waits for mounted content and emits once with bounded network timing")
     func firstContentMeasurement() async throws {
         var now: TimeInterval = 100

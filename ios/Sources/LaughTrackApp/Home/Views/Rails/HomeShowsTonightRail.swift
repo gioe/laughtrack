@@ -125,8 +125,15 @@ struct HomeFeaturedShowCarouselItem: Identifiable {
     let accessibilityIdentifier: String
     let accessibilityLabel: String?
     var timestampLabel: String? = nil
+    var performerContext: ShowRowPerformerContext? = nil
 
     var id: Int { show.id }
+
+    @MainActor
+    func selectLineupCard(using coordinator: TypedNavigationCoordinator<AppRoute>, onSelect: (() -> Void)?) {
+        onSelect?()
+        coordinator.open(.show(show.id))
+    }
 
     static func tonightItems(
         _ shows: [Components.Schemas.Show]
@@ -149,86 +156,132 @@ struct HomeFeaturedShowsCarousel: View {
     let items: [HomeFeaturedShowCarouselItem]
     var onSelect: (() -> Void)?
     var showsHeadline: Bool
+    var usesLineupCards: Bool
 
     init(
         headline: String,
         items: [HomeFeaturedShowCarouselItem],
         onSelect: (() -> Void)? = nil,
-        showsHeadline: Bool = true
+        showsHeadline: Bool = true,
+        usesLineupCards: Bool = false
     ) {
         self.headline = headline
         self.items = items
         self.onSelect = onSelect
         self.showsHeadline = showsHeadline
+        self.usesLineupCards = usesLineupCards
     }
 
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
     @State private var selectedShowID: Int?
+    @State private var lineupViewportWidth: CGFloat = 344
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        #if os(iOS)
-        VStack(spacing: theme.spacing.xs) {
-            GeometryReader { proxy in
-                let pageWidth = min(proxy.size.width, max(0, UIScreen.main.bounds.width - 64))
-                let laughTrack = theme.laughTrackTokens
-                let contentWidth = max(
-                    0,
-                    pageWidth - (laughTrack.browseDensity.compactCardPadding * 2)
-                )
-
-                VStack(alignment: .center, spacing: theme.spacing.md) {
-                    if showsHeadline {
-                        Text(headline)
-                            .font(.system(size: 22, weight: .heavy, design: .rounded))
-                            .tracking(2.4)
-                            .textCase(.uppercase)
-                            .foregroundStyle(laughTrack.colors.accentStrong)
-                            .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.65)
-                    }
-
-                    ZStack(alignment: .top) {
-                        HomeMarqueeStageBackground(glowRadius: 200, glowOpacity: 0.22)
-                            .frame(height: HomeShowsTonightCarouselLayout.stageHeight)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-                        HStack(spacing: 0) {
-                            carouselButtons(pageWidth: contentWidth)
-                        }
-                        .offset(x: -CGFloat(selectedShowIndex) * contentWidth)
-                        .animation(.snappy(duration: 0.25), value: selectedShowIndex)
-                        .frame(width: contentWidth, alignment: .leading)
-                        .clipped()
-                        .highPriorityGesture(pagerDragGesture(pageWidth: contentWidth))
-                    }
-                    .frame(width: contentWidth)
-                    .clipped()
-
-                    HomeShowsTonightPageIndicator(
-                        count: items.count,
-                        selectedIndex: selectedShowIndex
-                    )
+        if usesLineupCards {
+            VStack(alignment: .leading, spacing: theme.spacing.md) {
+                if showsHeadline {
+                    Text(headline).font(.headline).foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
                 }
-                .padding(laughTrack.browseDensity.compactCardPadding)
-                .frame(width: pageWidth, height: showsHeadline ? 456 : 414, alignment: .top)
-                .background(laughTrack.colors.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(spacing: theme.spacing.md) { lineupButtons(horizontal: false) }
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: theme.spacing.md) {
+                            lineupButtons(horizontal: true)
+                        }
+                    }
+                    .background {
+                        GeometryReader { proxy in
+                            Color.clear
+                                .onAppear { lineupViewportWidth = proxy.size.width }
+                                .onChange(of: proxy.size.width) { lineupViewportWidth = $0 }
+                        }
+                    }
+                }
             }
-            .frame(height: showsHeadline ? 456 : 414)
-        }
-        #else
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: theme.spacing.sm) {
-                scrollingCarouselButtons(cardWidth: 320)
+        } else {
+            #if os(iOS)
+            VStack(spacing: theme.spacing.xs) {
+                GeometryReader { proxy in
+                    let pageWidth = min(proxy.size.width, max(0, UIScreen.main.bounds.width - 64))
+                    let laughTrack = theme.laughTrackTokens
+                    let contentWidth = max(
+                        0,
+                        pageWidth - (laughTrack.browseDensity.compactCardPadding * 2)
+                    )
+
+                    VStack(alignment: .center, spacing: theme.spacing.md) {
+                        if showsHeadline {
+                            Text(headline)
+                                .font(.system(size: 22, weight: .heavy, design: .rounded))
+                                .tracking(2.4)
+                                .textCase(.uppercase)
+                                .foregroundStyle(laughTrack.colors.accentStrong)
+                                .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.65)
+                        }
+
+                        ZStack(alignment: .top) {
+                            HomeMarqueeStageBackground(glowRadius: 200, glowOpacity: 0.22)
+                                .frame(height: HomeShowsTonightCarouselLayout.stageHeight)
+                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                            HStack(spacing: 0) {
+                                carouselButtons(pageWidth: contentWidth)
+                            }
+                            .offset(x: -CGFloat(selectedShowIndex) * contentWidth)
+                            .animation(.snappy(duration: 0.25), value: selectedShowIndex)
+                            .frame(width: contentWidth, alignment: .leading)
+                            .clipped()
+                            .highPriorityGesture(pagerDragGesture(pageWidth: contentWidth))
+                        }
+                        .frame(width: contentWidth)
+                        .clipped()
+
+                        HomeShowsTonightPageIndicator(
+                            count: items.count,
+                            selectedIndex: selectedShowIndex
+                        )
+                    }
+                    .padding(laughTrack.browseDensity.compactCardPadding)
+                    .frame(width: pageWidth, height: showsHeadline ? 456 : 414, alignment: .top)
+                    .background(laughTrack.colors.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                            .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+                }
+                .frame(height: showsHeadline ? 456 : 414)
             }
+            #else
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: theme.spacing.sm) {
+                    scrollingCarouselButtons(cardWidth: 320)
+                }
+            }
+            #endif
         }
-        #endif
+    }
+
+    private func lineupButtons(horizontal: Bool) -> some View {
+        ForEach(items) { item in
+            Button {
+                item.selectLineupCard(using: coordinator, onSelect: onSelect)
+            } label: {
+                if horizontal {
+                    ShowRow(show: item.show, presentation: .compactTicket, performerContext: item.performerContext)
+                        .frame(width: min(344, max(1, lineupViewportWidth)))
+                } else {
+                    ShowRow(show: item.show, presentation: .compactTicket, performerContext: item.performerContext)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(item.accessibilityIdentifier)
+        }
     }
 
     private func carouselButtons(pageWidth: CGFloat) -> some View {
