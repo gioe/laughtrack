@@ -12,6 +12,65 @@ import UIKit
 @Suite("Search agenda visual capture", .serialized)
 @MainActor
 struct SearchAgendaVisualTests {
+    @Test("review dedicated and contextual lineups in mixed phone and tablet lists")
+    func captureLineupCards() async throws {
+        let primary = SearchAgendaFixtures.comedian("J Valentino")
+        let luz = SearchAgendaFixtures.comedian("Luz Pazos", id: 2)
+        var dwayne = SearchAgendaFixtures.comedian("Dwayne Perkins", id: 3)
+        dwayne.imageUrl = ""
+        let ensemble = SearchAgendaFixtures.show("COMEDY MADNESS (Dwayne Perkins, J Valentino, Luz Pazos, Michael Quu)", lineup: [primary, luz, dwayne])
+        let solo = SearchAgendaFixtures.show("An Evening of Comedy", id: 2, lineup: [dwayne], price: 0)
+        let unknown = SearchAgendaFixtures.show("New Material Night", id: 3, lineup: nil, price: nil)
+        let long = SearchAgendaFixtures.show("A wonderfully long comedy showcase with stories from every corner of the city", id: 4,
+            lineup: [SearchAgendaFixtures.comedian("A Performer With A Wonderfully Long Stage Name", id: 5)] + (6...10).map { SearchAgendaFixtures.comedian("Comic \($0)", id: $0) }, soldOut: true)
+        let rows: [(Components.Schemas.Show, ShowRowPerformerContext?)] = [
+            (ensemble, nil), (ensemble, .searchMatch(primary.id)), (solo, .followed(dwayne.id)), (unknown, nil), (long, nil), (ensemble, .followed(primary.id))
+        ]
+        for width in [CGFloat(375), CGFloat(834)] {
+            for size in [DynamicTypeSize.large, .accessibility5] {
+                let scroll = PassthroughSubject<Int, Never>()
+                let host = HostedView(
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Shows").font(.title.bold())
+                                AdaptiveSearchResults(spacing: 16) {
+                                    ForEach(rows.indices, id: \.self) { index in
+                                        ShowRow(show: rows[index].0, presentation: .compactTicket, context: index == 5 ? .standalone : .agenda, performerContext: rows[index].1)
+                                            .id(index)
+                                    }
+                                }
+                            }.padding(16)
+                        }.onReceive(scroll) { proxy.scrollTo($0, anchor: .top) }
+                    }
+                    .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                    .environment(\.appTheme, LaughTrackTheme())
+                    .environment(\.dynamicTypeSize, size)
+                    .environment(\.horizontalSizeClass, width < 600 ? .compact : .regular)
+                    .environmentObject(TypedNavigationCoordinator<AppRoute>())
+                    .preferredColorScheme(.dark), freshWindow: true,
+                    viewportSize: CGSize(width: width, height: width < 500 ? 1000 : 1194)
+                )
+                await host.settle()
+                for index in rows.indices {
+                    scroll.send(index)
+                    await host.settle(iterations: 4)
+                    let data = try #require(try host.snapshot().pngData())
+                    let name = "task4039-\(Int(width))-\(size.isAccessibilitySize ? "AX5" : "standard")-row\(index).png"
+                    let path = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+                    try data.write(to: path)
+                    print("Lineup capture: \(path.path)")
+                    #if compiler(>=6.2)
+                    Attachment.record(Array(data), named: name)
+                    #endif
+                }
+                let treePath = FileManager.default.temporaryDirectory.appendingPathComponent("task4039-\(Int(width))-\(size.isAccessibilitySize ? "AX5" : "standard")-accessibility.txt")
+                host.dumpAccessibilityTree(writingTo: treePath.path)
+                print("Lineup accessibility: \(treePath.path)")
+            }
+        }
+    }
+
     @Test("capture agenda identities and ticket states at standard and accessibility sizes")
     func captureAgendaRows() async throws {
         for size in [DynamicTypeSize.large, .accessibility5] {
@@ -306,12 +365,51 @@ struct ShowRowTests {
         #expect(ShowRow.venueLine(for: show) == "The Broadway Comedy Club")
     }
 
-    @Test("headliner block uses the event-first title presentation")
-    func headlinerBlockUsesEventFirstTitlePresentation() throws {
-        let source = try String(contentsOf: showRowSourceURL(), encoding: .utf8)
+    @Test("cards preserve supplied titles without inferring a billing role")
+    func cardTitlesPreserveEventIdentity() {
+        let performer = lineup(name: "J Valentino", imageURL: "", showCount: 1)
+        let title = "COMEDY MADNESS (Dwayne Perkins, J Valentino, Luz Pazos, Michael Quu)"
+        #expect(ShowRow.cardTitle(for: makeShow(name: title, lineup: [performer])) == title)
+        #expect(ShowRow.cardTitle(for: makeShow(name: performer.name, lineup: [performer])) == performer.name)
+        #expect(ShowRow.cardTitle(for: makeShow(name: "", lineup: [performer])) == "Comedy show")
+    }
 
-        #expect(source.contains("Text(Self.primaryListTitle(for: show, headliner: headliner))"))
-        #expect(source.contains("Self.headlinerContext(for: show, headliner: headliner, context: context)"))
+    @Test("performer-led cards require explicit context identifying a listed canonical performer")
+    func contextualCardsValidateIdentity() {
+        let canonical = lineup(name: "Canonical", imageURL: "", showCount: 1)
+        let alias = lineup(name: "Alias", imageURL: "", showCount: 1, parentComedian: canonical)
+        let show = makeShow(lineup: [alias])
+        #expect(ShowRow.contextualComedian(for: show, context: nil) == nil)
+        #expect(ShowRow.contextualComedian(for: show, context: .followed(-1)) == nil)
+        #expect(ShowRow.contextualComedian(for: show, context: .searchMatch(alias.id)) == nil)
+        #expect(ShowRow.contextualComedian(for: show, context: .searchMatch(canonical.id))?.name == canonical.name)
+        #expect(ShowRow.contextualComedian(for: show, context: .followed(canonical.id))?.id == canonical.id)
+        #expect(ShowRowPerformerContext.followed(canonical.id).reason == "You follow")
+        #expect(ShowRowPerformerContext.searchMatch(canonical.id).reason == "Matches your comedian search")
+    }
+
+    @Test("missing and invalid photos never remove structured lineup names")
+    func rosterSurvivesMissingArtwork() {
+        for url in ["", "/placeholder.svg", "invalid", "https://example.invalid/fails.png"] {
+            let comic = lineup(name: "Still on the lineup", imageURL: url, showCount: 1)
+            let show = makeShow(lineup: [comic])
+            #expect(ShowRow.lineupPortraitComedian(for: show)?.name == comic.name)
+            #expect(ShowRow.lineupPreview(for: ShowRow.topLineup(for: show)) == comic.name)
+        }
+        #expect(ShowRow.lineupPortraitComedian(for: makeShow(lineup: nil)) == nil)
+        #expect(ShowRow.lineupPortraitComedian(for: makeShow(lineup: [])) == nil)
+    }
+
+    @Test("canonical aliases count once in the portrait and overflow roster")
+    func canonicalRosterDeduplicatesBeforeCounting() {
+        let canonical = lineup(name: "Canonical", imageURL: "", showCount: 1)
+        let alias = lineup(name: "Alias", imageURL: "", showCount: 1, parentComedian: canonical)
+        let others = (1...4).map { lineup(name: "Comic \($0)", imageURL: "", showCount: 1) }
+        let show = makeShow(lineup: [alias, canonical] + others)
+        let roster = ShowRow.topLineup(for: show, limit: .max)
+        #expect(roster.count == 5)
+        #expect(ShowRow.lineupPreview(for: [alias, canonical] + others) == "Canonical, Comic 1, Comic 2 · +2 more")
+        #expect(ShowRow.supportingLineup(for: show, excluding: canonical).count == 4)
     }
 
     @Test("show row venue line includes city and state when available")
@@ -395,8 +493,8 @@ struct ShowRowTests {
         let source = try String(contentsOf: showRowSourceURL(), encoding: .utf8)
 
         #expect(ShowRow.artworkSlotSize == 60)
-        #expect(source.contains("private var artworkSlot"))
-        #expect(source.contains("Image(systemName: ArtworkFallbackKind.show.systemImage)"))
+        #expect(source.contains("private func portrait(for comedian:"))
+        #expect(source.contains("Image(systemName: ArtworkFallbackKind.person.systemImage)"))
         #expect(source.components(separatedBy: "artworkSlot").count >= 4)
     }
 
@@ -864,6 +962,31 @@ struct SearchAgendaPresentationTests {
                     #expect(longer.height > long.height + 20, "Title must continue growing instead of truncating at two lines")
                     #expect(longer.width <= width + 1)
                     #expect(longer.height.isFinite)
+                }
+            }
+        }
+    }
+
+    @Test("contextual performer names wrap at phone and tablet widths without clipping")
+    func contextualNamesGrowAtAccessibilitySizes() {
+        for width in [CGFloat(288), CGFloat(500)] {
+            for size in [DynamicTypeSize.large, .accessibility5] {
+                for context in [ShowRowContext.agenda, .standalone] {
+                    func measured(_ name: String) -> CGSize {
+                        let show = SearchAgendaFixtures.show("Comedy Night", lineup: [SearchAgendaFixtures.comedian(name)])
+                        let controller = UIHostingController(rootView:
+                            ShowRow(show: show, presentation: .compactTicket, context: context, performerContext: .followed(1))
+                                .environment(\.appTheme, LaughTrackTheme())
+                                .environment(\.dynamicTypeSize, size)
+                                .environmentObject(TypedNavigationCoordinator<AppRoute>())
+                        )
+                        return controller.sizeThatFits(in: CGSize(width: width, height: 100_000))
+                    }
+                    let short = measured("Sam Jay")
+                    let long = measured(Array(repeating: "A Performer With A Wonderfully Long Stage Name That Must Remain Readable", count: 3).joined(separator: " "))
+                    #expect(long.height > short.height)
+                    #expect(long.width <= width + 1)
+                    #expect(long.height.isFinite)
                 }
             }
         }

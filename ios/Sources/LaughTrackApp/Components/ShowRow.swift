@@ -14,6 +14,23 @@ enum ShowRowContext {
     case agenda
 }
 
+/// A reason supplied by the containing surface, never inferred from billing or artwork.
+enum ShowRowPerformerContext: Equatable {
+    case searchMatch(Int)
+    case followed(Int)
+    var comedianID: Int {
+        switch self {
+        case .searchMatch(let id), .followed(let id): id
+        }
+    }
+    var reason: String {
+        switch self {
+        case .searchMatch: "Matches your comedian search"
+        case .followed: "You follow"
+        }
+    }
+}
+
 struct ShowRow: View {
     static let artworkSlotSize: CGFloat = 60
 
@@ -26,17 +43,20 @@ struct ShowRow: View {
     let presentation: ShowRowPresentation
     let preferredHeadlinerID: Int?
     let context: ShowRowContext
+    let performerContext: ShowRowPerformerContext?
 
     init(
         show: Components.Schemas.Show,
         presentation: ShowRowPresentation = .standard,
         preferredHeadlinerID: Int? = nil,
-        context: ShowRowContext = .standalone
+        context: ShowRowContext = .standalone,
+        performerContext: ShowRowPerformerContext? = nil
     ) {
         self.show = show
         self.presentation = presentation
         self.preferredHeadlinerID = preferredHeadlinerID
         self.context = context
+        self.performerContext = performerContext
     }
 
     var body: some View {
@@ -205,7 +225,7 @@ struct ShowRow: View {
     }
 
     private var artworkTextLayout: AnyLayout {
-        if context == .agenda && dynamicTypeSize.isAccessibilitySize {
+        if dynamicTypeSize.isAccessibilitySize {
             AnyLayout(VStackLayout(alignment: .leading, spacing: theme.spacing.sm))
         } else {
             AnyLayout(HStackLayout(alignment: .center, spacing: theme.spacing.sm))
@@ -232,74 +252,114 @@ struct ShowRow: View {
     }
 
     private var ticketBody: some View {
-        let laughTrack = theme.laughTrackTokens
-        let isSoldOut = show.soldOut == true
-        let isOpenMic = Self.isOpenMic(show)
-        let headliner = Self.artworkComedian(
-            for: show,
-            preferredComedianID: preferredHeadlinerID
-        )
-        let supporting = Self.supportingLineup(for: show, excluding: headliner)
-
+        let relevant = Self.contextualComedian(for: show, context: performerContext)
+        let primary = relevant ?? Self.lineupPortraitComedian(for: show, preferredComedianID: preferredHeadlinerID)
+        let remaining = Self.supportingLineup(for: show, excluding: primary)
         return VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            if let headliner {
-                headlinerBlock(
-                    headliner: headliner,
-                    supporting: supporting,
-                    isSoldOut: isSoldOut
-                )
+            if let relevant, let performerContext {
+                VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                    sectionCaption(performerContext.reason)
+                    performerIdentity(relevant)
+                }
+                eventDetails
+                if !remaining.isEmpty {
+                    lineupBand {
+                        sectionCaption("Also on the lineup")
+                        rosterText(remaining)
+                    }
+                }
             } else {
-                titleOnlyBlock
+                eventDetails
+                lineupBand {
+                    sectionCaption("Lineup")
+                    if let primary {
+                        artworkTextLayout {
+                            portrait(for: primary)
+                            VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                                performerName(primary.name)
+                                if !remaining.isEmpty { rosterText(remaining) }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    } else {
+                        Text("Lineup unavailable")
+                            .font(theme.laughTrackTokens.typography.metadata)
+                            .foregroundStyle(ticketInkMuted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
             }
-
-            if isSoldOut || isOpenMic {
-                ticketBodyBadges(isSoldOut: isSoldOut, isOpenMic: isOpenMic)
+            if show.soldOut == true || Self.isOpenMic(show) {
+                ticketBodyBadges(isSoldOut: show.soldOut == true, isOpenMic: Self.isOpenMic(show))
             }
         }
-        .padding(laughTrack.browseDensity.compactCardPadding)
-        // Vertically center the body so short title-only rows (e.g. a venue-
-        // named show with no headliner) don't look top-stacked next to the
-        // taller date stub on the trailing edge.
+        .padding(theme.laughTrackTokens.browseDensity.compactCardPadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .background(ticketBodyBackground)
     }
 
-    private var titleOnlyBlock: some View {
-        let laughTrack = theme.laughTrackTokens
-        let venueLine = Self.venueLine(for: show)
-        let roomName = Self.roomLabel(for: show)
-
-        return artworkTextLayout {
-            artworkSlot
-
-            VStack(alignment: .leading, spacing: theme.spacing.xxs) {
-                Text(Self.listTitle(for: show))
-                    .font(laughTrack.typography.bodyEmphasis)
-                    .foregroundStyle(ticketInk)
-                    .lineLimit(context == .agenda ? nil : 2)
+    private var eventDetails: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+            Text(Self.cardTitle(for: show))
+                .font(theme.laughTrackTokens.typography.bodyEmphasis)
+                .foregroundStyle(ticketInk)
+                .fixedSize(horizontal: false, vertical: true)
+                .preservingSkeletonTextLayout()
+            if let venue = Self.venueLine(for: show) {
+                Text(venue)
+                    .font(theme.laughTrackTokens.typography.metadata)
+                    .foregroundStyle(ticketInkMuted)
                     .fixedSize(horizontal: false, vertical: true)
                     .preservingSkeletonTextLayout()
-
-                if let venueLine {
-                    Text(venueLine)
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(ticketInkMuted)
-                        .lineLimit(context == .agenda ? nil : 1)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .preservingSkeletonTextLayout()
-                }
-
-                if let roomName {
-                    Text(roomName)
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(ticketInkMuted)
-                        .lineLimit(context == .agenda ? nil : 1)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .preservingSkeletonTextLayout()
-                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            if let room = Self.roomLabel(for: show) {
+                Text(room)
+                    .font(theme.laughTrackTokens.typography.metadata)
+                    .foregroundStyle(ticketInkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .preservingSkeletonTextLayout()
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func sectionCaption(_ title: String) -> some View {
+        Text(title)
+            .font(theme.laughTrackTokens.typography.metadata.weight(.semibold))
+            .foregroundStyle(ticketInkMuted)
+            .fixedSize(horizontal: false, vertical: true)
+            .preservingSkeletonTextLayout()
+    }
+
+    private func lineupBand<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: theme.spacing.xs, content: content)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(theme.spacing.sm)
+            .background(ticketInk.opacity(0.035), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func performerName(_ name: String, prominent: Bool = false) -> some View {
+        Text(name)
+            .font(prominent ? theme.laughTrackTokens.typography.sectionTitle : theme.laughTrackTokens.typography.bodyEmphasis)
+            .foregroundStyle(ticketInk)
+            .fixedSize(horizontal: false, vertical: true)
+            .preservingSkeletonTextLayout()
+    }
+
+    private func performerIdentity(_ comedian: Components.Schemas.ComedianLineup) -> some View {
+        artworkTextLayout {
+            portrait(for: comedian)
+            performerName(comedian.name, prominent: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func rosterText(_ comedians: [Components.Schemas.ComedianLineup]) -> some View {
+        Text(Self.lineupPreview(for: comedians))
+            .font(theme.laughTrackTokens.typography.metadata)
+            .foregroundStyle(ticketInkMuted)
+            .fixedSize(horizontal: false, vertical: true)
+            .preservingSkeletonTextLayout()
     }
 
     private var ticketBodyBackground: some View {
@@ -335,177 +395,35 @@ struct ShowRow: View {
         }
     }
 
-    @ViewBuilder
-    private func headlinerBlock(
-        headliner: Components.Schemas.ComedianLineup,
-        supporting: [Components.Schemas.ComedianLineup],
-        isSoldOut: Bool
-    ) -> some View {
-        let laughTrack = theme.laughTrackTokens
-        let venueLine = Self.venueLine(for: show)
-
-        VStack(alignment: .leading, spacing: theme.spacing.xs) {
-            artworkTextLayout {
-                artworkSlot
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(Self.primaryListTitle(for: show, headliner: headliner))
-                        .font(laughTrack.typography.bodyEmphasis)
-                        .foregroundStyle(ticketInk)
-                        .lineLimit(context == .agenda ? nil : 2)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .preservingSkeletonTextLayout()
-
-                    if let headlinerContext = Self.headlinerContext(for: show, headliner: headliner, context: context) {
-                        Text(headlinerContext)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(ticketInkMuted)
-                            .lineLimit(context == .agenda ? nil : 1)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .preservingSkeletonTextLayout()
-                    }
-
-                    if let venueLine {
-                        Text(venueLine)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(ticketInkMuted)
-                            .lineLimit(context == .agenda ? nil : 1)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .preservingSkeletonTextLayout()
-                    }
-
-                    if context == .agenda, let roomName = Self.roomLabel(for: show) {
-                        Text(roomName)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(ticketInkMuted)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .preservingSkeletonTextLayout()
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            if !supporting.isEmpty {
-                supportingRow(supporting: supporting)
-            }
-        }
-        .saturation(isSoldOut ? 0 : 1)
-        .opacity(isSoldOut && context == .standalone ? 0.6 : 1)
-    }
-
-    private var artworkSlot: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return artworkImage
-            .frame(width: Self.artworkSlotSize, height: Self.artworkSlotSize)
-            .clipShape(Circle())
-            .overlay(
-                Circle().stroke(
-                    laughTrack.colors.accent.opacity(0.35),
-                    lineWidth: 1.5
-                )
-            )
-    }
-
-    @ViewBuilder
-    private var artworkImage: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        if redactionReasons.contains(.placeholder) {
-            Circle().fill(ticketInk.opacity(0.12))
-        } else if let rawURL = Self.artworkImageURL(
-            for: show,
-            preferredComedianID: preferredHeadlinerID
-        ), let url = URL(string: rawURL) {
-            CachedAsyncImage(url: url) { image in
-                image.resizable().scaledToFill()
-            } placeholder: {
-                Circle().fill(laughTrack.colors.surfaceMuted)
-            } error: { _ in
-                artworkFallback
-            }
-        } else {
-            artworkFallback
-        }
-    }
-
-    private var artworkFallback: some View {
-        let laughTrack = theme.laughTrackTokens
-        return Circle()
-            .fill(laughTrack.colors.surfaceMuted)
-            .overlay {
-                Image(systemName: ArtworkFallbackKind.show.systemImage)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-            }
-    }
-
-    @ViewBuilder
-    private func supportingRow(supporting: [Components.Schemas.ComedianLineup]) -> some View {
-        let laughTrack = theme.laughTrackTokens
-        let stackedAvatars = Array(supporting.prefix(3))
-        let label = Self.supportingLabel(for: supporting)
-
-        HStack(spacing: theme.spacing.xs) {
-            if !stackedAvatars.isEmpty {
-                ZStack(alignment: .leading) {
-                    ForEach(Array(stackedAvatars.enumerated()), id: \.element.id) { index, comedian in
-                        supportingAvatar(for: comedian)
-                            .overlay(
-                                Circle().stroke(laughTrack.colors.surfaceElevated, lineWidth: 2)
-                            )
-                            .offset(x: CGFloat(index) * 16)
-                            .zIndex(Double(stackedAvatars.count - index))
-                    }
-                }
-                .frame(
-                    width: 24 + CGFloat(max(0, stackedAvatars.count - 1)) * 16,
-                    height: 24,
-                    alignment: .leading
-                )
-            }
-
-            Text(label)
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(ticketInkMuted)
-                .lineLimit(context == .agenda ? nil : 3)
-                .fixedSize(horizontal: false, vertical: true)
-                .preservingSkeletonTextLayout()
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    @ViewBuilder
-    private func supportingAvatar(for comedian: Components.Schemas.ComedianLineup) -> some View {
-        let laughTrack = theme.laughTrackTokens
-        let trimmed = comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-        let normalized = trimmed.isEmpty ? nil : trimmed
-
+    private func portrait(for comedian: Components.Schemas.ComedianLineup) -> some View {
         Group {
-            if let url = URL.normalizedExternalURL(normalized) {
+            if redactionReasons.contains(.placeholder) {
+                Circle().fill(ticketInk.opacity(0.12))
+            } else if let rawURL = Self.absoluteArtworkImageURL(comedian.imageUrl), let url = URL(string: rawURL) {
                 CachedAsyncImage(url: url) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
-                    Circle().fill(laughTrack.colors.surfaceMuted)
+                    portraitFallback
                 } error: { _ in
-                    supportingAvatarFallback
+                    portraitFallback
                 }
             } else {
-                supportingAvatarFallback
+                portraitFallback
             }
         }
-        .frame(width: 24, height: 24)
+        .frame(width: Self.artworkSlotSize, height: Self.artworkSlotSize)
         .clipShape(Circle())
+        .overlay(Circle().stroke(ticketInkMuted.opacity(0.3), lineWidth: 1))
+        .accessibilityHidden(true)
     }
 
-    private var supportingAvatarFallback: some View {
-        let laughTrack = theme.laughTrackTokens
-        return Circle()
-            .fill(laughTrack.colors.surfaceMuted)
+    private var portraitFallback: some View {
+        Circle()
+            .fill(ticketInk.opacity(0.08))
             .overlay {
                 Image(systemName: ArtworkFallbackKind.person.systemImage)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(ticketInkMuted)
             }
     }
 
@@ -614,6 +532,37 @@ struct ShowRow: View {
         formatter.timeZone = resolved
         monthStackFormatters[resolved.identifier] = formatter
         return formatter.string(from: date).uppercased()
+    }
+
+    /// Keep supplied event information intact; a roster is not evidence of billing.
+    static func cardTitle(for show: Components.Schemas.Show) -> String {
+        let title = show.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return title.isEmpty ? "Comedy show" : title
+    }
+
+    static func contextualComedian(
+        for show: Components.Schemas.Show,
+        context: ShowRowPerformerContext?
+    ) -> Components.Schemas.ComedianLineup? {
+        guard let context else { return nil }
+        return topLineup(for: show, limit: .max).first { $0.id == context.comedianID }
+    }
+
+    static func lineupPortraitComedian(
+        for show: Components.Schemas.Show,
+        preferredComedianID: Int? = nil
+    ) -> Components.Schemas.ComedianLineup? {
+        artworkComedian(for: show, preferredComedianID: preferredComedianID)
+            ?? topLineup(for: show, limit: 1).first
+    }
+
+    static func lineupPreview(for comedians: [Components.Schemas.ComedianLineup], visibleLimit: Int = 3) -> String {
+        var seen = Set<Int>()
+        let unique = comedians.map(effectiveComedian).filter { seen.insert($0.id).inserted }
+        let visible = unique.prefix(max(1, visibleLimit))
+        let names = visible.map(\.name).joined(separator: ", ")
+        let overflow = unique.count - visible.count
+        return overflow > 0 ? "\(names) · +\(overflow) more" : names
     }
 
     static func title(for show: Components.Schemas.Show) -> String {
@@ -795,8 +744,10 @@ struct ShowRow: View {
         requiringAbsoluteArtwork: Bool = false,
         excluding excluded: Components.Schemas.ComedianLineup? = nil
     ) -> [Components.Schemas.ComedianLineup] {
-        lineup.enumerated()
+        var seen = Set<Int>()
+        return lineup.enumerated()
             .map { (offset: $0.offset, comedian: effectiveComedian($0.element)) }
+            .filter { seen.insert($0.comedian.id).inserted }
             .filter { candidate in
                 if let excluded, candidate.comedian.id == excluded.id {
                     return false
