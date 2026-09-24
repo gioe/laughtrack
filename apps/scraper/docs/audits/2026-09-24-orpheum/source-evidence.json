@@ -1,0 +1,689 @@
+{
+  "retrieved_at": "2026-09-24T18:11:55.804197+00:00",
+  "ticketmaster": [
+    {
+      "event_id": "090064A6C1883E67",
+      "endpoint": "https://app.ticketmaster.com/discovery/v2/events/090064A6C1883E67.json",
+      "status": 404
+    },
+    {
+      "event_id": "09006391F491B2FB",
+      "endpoint": "https://app.ticketmaster.com/discovery/v2/events/09006391F491B2FB.json",
+      "status": 404
+    },
+    {
+      "event_id": "09006444A54663CE",
+      "endpoint": "https://app.ticketmaster.com/discovery/v2/events/09006444A54663CE.json",
+      "status": 404
+    },
+    {
+      "event_id": "09006469F133DFAA",
+      "endpoint": "https://app.ticketmaster.com/discovery/v2/events/09006469F133DFAA.json",
+      "status": 404
+    },
+    {
+      "event_id": "090064B69D06B47E",
+      "endpoint": "https://app.ticketmaster.com/discovery/v2/events/090064B69D06B47E.json",
+      "status": 404
+    },
+    {
+      "event_id": "0900646C8A7D523C",
+      "endpoint": "https://app.ticketmaster.com/discovery/v2/events/0900646C8A7D523C.json",
+      "status": 404
+    }
+  ],
+  "ticketmaster_la_search": {
+    "endpoint": "https://app.ticketmaster.com/discovery/v2/events.json",
+    "params": {
+      "venueId": "KovZpa3uCe",
+      "size": 200
+    },
+    "page": {
+      "size": 200,
+      "totalElements": 27,
+      "totalPages": 1,
+      "number": 0
+    },
+    "events": [
+      {
+        "id": "vv1AaZkotGkdsGWXn",
+        "name": "George Lopez",
+        "url": "https://www.ticketmaster.com/george-lopez-los-angeles-california-10-24-2026/event/09006469F133DFAA",
+        "dates": {
+          "start": {
+            "localDate": "2026-10-24",
+            "localTime": "20:00:00",
+            "dateTime": "2026-10-25T03:00:00Z",
+            "dateTBD": false,
+            "dateTBA": false,
+            "timeTBA": false,
+            "noSpecificTime": false
+          },
+          "timezone": "America/Los_Angeles",
+          "status": {
+            "code": "onsale"
+          },
+          "spanMultipleDays": false
+        },
+        "venues": [
+          {
+            "name": "Orpheum Theatre",
+            "type": "venue",
+            "id": "KovZpa3uCe",
+            "test": false,
+            "url": "https://www.ticketmaster.com/orpheum-theatre-tickets-los-angeles/venue/73785",
+            "locale": "en-us",
+            "postalCode": "90014",
+            "timezone": "America/Los_Angeles",
+            "city": {
+              "name": "Los Angeles"
+            },
+            "state": {
+              "name": "California",
+              "stateCode": "CA"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "842 S. Broadway "
+            },
+            "location": {
+              "longitude": "-118.25558624",
+              "latitude": "34.04263554"
+            },
+            "markets": [
+              {
+                "name": "Los Angeles",
+                "id": "27"
+              }
+            ],
+            "dmas": [
+              {
+                "id": 223
+              },
+              {
+                "id": 324
+              },
+              {
+                "id": 354
+              },
+              {
+                "id": 383
+              }
+            ],
+            "social": {
+              "twitter": {
+                "handle": "@LAOrpheum"
+              }
+            },
+            "boxOfficeInfo": {
+              "phoneNumberDetail": "(877) 677-4386",
+              "openHoursDetail": "One hour before show time.",
+              "acceptedPaymentDetail": "Cash only. ATM is available in the outside lobby near the box office.",
+              "willCallDetail": "Will Call is located at the front of the theatre in on Broadway and opens one hour before show time."
+            },
+            "parkingDetail": "Parking is available in many lots surrounding the theatre at prices ranging from $5-$10. Parking operators are independent and set their own prices.",
+            "accessibleSeatingDetail": "Available through Ticketmaster and the Box Office. Wheelchair accessible seating is available on the orchestra level and balcony level in designated areas. Please refer to the Orpheum Theatre Seating Chart. Orpheum Theatre ushers will direct you to this area once you enter the theatre the day of your event. The Orpheum has restrooms to accommodate accessible patrons at each level. Restrooms are accessible by means of an elevator located at the front entrance of the theater lobby. Accessible seating areas are solely for disabled persons and their companions. By purchasing an accessible seating ticket through Ticketmaster, you agree to the following: The ticket will be used only by a person with a disability and his/her companion. A ticket holder may be denied entry to, or removed from, the accessible seating area if he or she is not disabled or the legitimate companion. If this occurs, the venue shall have no obligation to provide alternate seating. If Ticketmaster or the event provider believes, in its sole discretion, that your order violates or may violate this policy, Ticketmaster may cancel your order without notice.",
+            "generalInfo": {
+              "generalRule": "Video and still photography not permitted. Outside food and drink cannot be brought into the theatre. Shirt, pants, and shoes are required. Dress code may be more restrictive for some events. Smoking is not permitted. Exit and re-entry is not permitted.",
+              "childRule": "Attendance for children may be restricted for certain shows. For shows where children are admitted, children under age one (1) may be admitted without a ticket."
+            },
+            "upcomingEvents": {
+              "ticketmaster": 27,
+              "_total": 27,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/KovZpa3uCe?locale=en-us"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "vv170Z_kGkw1L4FH",
+        "name": "Laura Ramoso: The Calm Down Tour",
+        "url": "https://www.ticketmaster.com/laura-ramoso-the-calm-down-tour-los-angeles-california-10-17-2026/event/0900646C8A7D523C",
+        "dates": {
+          "start": {
+            "localDate": "2026-10-17",
+            "localTime": "20:00:00",
+            "dateTime": "2026-10-18T03:00:00Z",
+            "dateTBD": false,
+            "dateTBA": false,
+            "timeTBA": false,
+            "noSpecificTime": false
+          },
+          "timezone": "America/Los_Angeles",
+          "status": {
+            "code": "onsale"
+          },
+          "spanMultipleDays": false
+        },
+        "venues": [
+          {
+            "name": "Orpheum Theatre",
+            "type": "venue",
+            "id": "KovZpa3uCe",
+            "test": false,
+            "url": "https://www.ticketmaster.com/orpheum-theatre-tickets-los-angeles/venue/73785",
+            "locale": "en-us",
+            "postalCode": "90014",
+            "timezone": "America/Los_Angeles",
+            "city": {
+              "name": "Los Angeles"
+            },
+            "state": {
+              "name": "California",
+              "stateCode": "CA"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "842 S. Broadway "
+            },
+            "location": {
+              "longitude": "-118.25558624",
+              "latitude": "34.04263554"
+            },
+            "markets": [
+              {
+                "name": "Los Angeles",
+                "id": "27"
+              }
+            ],
+            "dmas": [
+              {
+                "id": 223
+              },
+              {
+                "id": 324
+              },
+              {
+                "id": 354
+              },
+              {
+                "id": 383
+              }
+            ],
+            "social": {
+              "twitter": {
+                "handle": "@LAOrpheum"
+              }
+            },
+            "boxOfficeInfo": {
+              "phoneNumberDetail": "(877) 677-4386",
+              "openHoursDetail": "One hour before show time.",
+              "acceptedPaymentDetail": "Cash only. ATM is available in the outside lobby near the box office.",
+              "willCallDetail": "Will Call is located at the front of the theatre in on Broadway and opens one hour before show time."
+            },
+            "parkingDetail": "Parking is available in many lots surrounding the theatre at prices ranging from $5-$10. Parking operators are independent and set their own prices.",
+            "accessibleSeatingDetail": "Available through Ticketmaster and the Box Office. Wheelchair accessible seating is available on the orchestra level and balcony level in designated areas. Please refer to the Orpheum Theatre Seating Chart. Orpheum Theatre ushers will direct you to this area once you enter the theatre the day of your event. The Orpheum has restrooms to accommodate accessible patrons at each level. Restrooms are accessible by means of an elevator located at the front entrance of the theater lobby. Accessible seating areas are solely for disabled persons and their companions. By purchasing an accessible seating ticket through Ticketmaster, you agree to the following: The ticket will be used only by a person with a disability and his/her companion. A ticket holder may be denied entry to, or removed from, the accessible seating area if he or she is not disabled or the legitimate companion. If this occurs, the venue shall have no obligation to provide alternate seating. If Ticketmaster or the event provider believes, in its sole discretion, that your order violates or may violate this policy, Ticketmaster may cancel your order without notice.",
+            "generalInfo": {
+              "generalRule": "Video and still photography not permitted. Outside food and drink cannot be brought into the theatre. Shirt, pants, and shoes are required. Dress code may be more restrictive for some events. Smoking is not permitted. Exit and re-entry is not permitted.",
+              "childRule": "Attendance for children may be restricted for certain shows. For shows where children are admitted, children under age one (1) may be admitted without a ticket."
+            },
+            "upcomingEvents": {
+              "ticketmaster": 27,
+              "_total": 27,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/KovZpa3uCe?locale=en-us"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "vv1AaZkCoGkdV0h5D",
+        "name": "Daniel Sloss: BITTER (Brand New Tour!)",
+        "url": "https://www.ticketmaster.com/daniel-sloss-bitter-brand-new-tour-los-angeles-california-10-16-2026/event/09006391F491B2FB",
+        "dates": {
+          "start": {
+            "localDate": "2026-10-16",
+            "localTime": "21:45:00",
+            "dateTime": "2026-10-17T04:45:00Z",
+            "dateTBD": false,
+            "dateTBA": false,
+            "timeTBA": false,
+            "noSpecificTime": false
+          },
+          "initialStartDate": {
+            "localDate": "2026-05-08",
+            "localTime": "21:45:00",
+            "dateTime": "2026-05-09T04:45:00Z"
+          },
+          "timezone": "America/Los_Angeles",
+          "status": {
+            "code": "rescheduled"
+          },
+          "spanMultipleDays": false
+        },
+        "venues": [
+          {
+            "name": "Orpheum Theatre",
+            "type": "venue",
+            "id": "KovZpa3uCe",
+            "test": false,
+            "url": "https://www.ticketmaster.com/orpheum-theatre-tickets-los-angeles/venue/73785",
+            "locale": "en-us",
+            "postalCode": "90014",
+            "timezone": "America/Los_Angeles",
+            "city": {
+              "name": "Los Angeles"
+            },
+            "state": {
+              "name": "California",
+              "stateCode": "CA"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "842 S. Broadway "
+            },
+            "location": {
+              "longitude": "-118.25558624",
+              "latitude": "34.04263554"
+            },
+            "markets": [
+              {
+                "name": "Los Angeles",
+                "id": "27"
+              }
+            ],
+            "dmas": [
+              {
+                "id": 223
+              },
+              {
+                "id": 324
+              },
+              {
+                "id": 354
+              },
+              {
+                "id": 383
+              }
+            ],
+            "social": {
+              "twitter": {
+                "handle": "@LAOrpheum"
+              }
+            },
+            "boxOfficeInfo": {
+              "phoneNumberDetail": "(877) 677-4386",
+              "openHoursDetail": "One hour before show time.",
+              "acceptedPaymentDetail": "Cash only. ATM is available in the outside lobby near the box office.",
+              "willCallDetail": "Will Call is located at the front of the theatre in on Broadway and opens one hour before show time."
+            },
+            "parkingDetail": "Parking is available in many lots surrounding the theatre at prices ranging from $5-$10. Parking operators are independent and set their own prices.",
+            "accessibleSeatingDetail": "Available through Ticketmaster and the Box Office. Wheelchair accessible seating is available on the orchestra level and balcony level in designated areas. Please refer to the Orpheum Theatre Seating Chart. Orpheum Theatre ushers will direct you to this area once you enter the theatre the day of your event. The Orpheum has restrooms to accommodate accessible patrons at each level. Restrooms are accessible by means of an elevator located at the front entrance of the theater lobby. Accessible seating areas are solely for disabled persons and their companions. By purchasing an accessible seating ticket through Ticketmaster, you agree to the following: The ticket will be used only by a person with a disability and his/her companion. A ticket holder may be denied entry to, or removed from, the accessible seating area if he or she is not disabled or the legitimate companion. If this occurs, the venue shall have no obligation to provide alternate seating. If Ticketmaster or the event provider believes, in its sole discretion, that your order violates or may violate this policy, Ticketmaster may cancel your order without notice.",
+            "generalInfo": {
+              "generalRule": "Video and still photography not permitted. Outside food and drink cannot be brought into the theatre. Shirt, pants, and shoes are required. Dress code may be more restrictive for some events. Smoking is not permitted. Exit and re-entry is not permitted.",
+              "childRule": "Attendance for children may be restricted for certain shows. For shows where children are admitted, children under age one (1) may be admitted without a ticket."
+            },
+            "upcomingEvents": {
+              "ticketmaster": 27,
+              "_total": 27,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/KovZpa3uCe?locale=en-us"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "vvG10Z_5QqvloX",
+        "name": "Gianmarco Soresi: The Misery Loves Tour",
+        "url": "https://www.ticketmaster.com/gianmarco-soresi-the-misery-loves-tour-los-angeles-california-11-13-2026/event/090064B69D06B47E",
+        "dates": {
+          "start": {
+            "localDate": "2026-11-13",
+            "localTime": "19:00:00",
+            "dateTime": "2026-11-14T03:00:00Z",
+            "dateTBD": false,
+            "dateTBA": false,
+            "timeTBA": false,
+            "noSpecificTime": false
+          },
+          "timezone": "America/Los_Angeles",
+          "status": {
+            "code": "onsale"
+          },
+          "spanMultipleDays": false
+        },
+        "venues": [
+          {
+            "name": "Orpheum Theatre",
+            "type": "venue",
+            "id": "KovZpa3uCe",
+            "test": false,
+            "url": "https://www.ticketmaster.com/orpheum-theatre-tickets-los-angeles/venue/73785",
+            "locale": "en-us",
+            "postalCode": "90014",
+            "timezone": "America/Los_Angeles",
+            "city": {
+              "name": "Los Angeles"
+            },
+            "state": {
+              "name": "California",
+              "stateCode": "CA"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "842 S. Broadway "
+            },
+            "location": {
+              "longitude": "-118.25558624",
+              "latitude": "34.04263554"
+            },
+            "markets": [
+              {
+                "name": "Los Angeles",
+                "id": "27"
+              }
+            ],
+            "dmas": [
+              {
+                "id": 223
+              },
+              {
+                "id": 324
+              },
+              {
+                "id": 354
+              },
+              {
+                "id": 383
+              }
+            ],
+            "social": {
+              "twitter": {
+                "handle": "@LAOrpheum"
+              }
+            },
+            "boxOfficeInfo": {
+              "phoneNumberDetail": "(877) 677-4386",
+              "openHoursDetail": "One hour before show time.",
+              "acceptedPaymentDetail": "Cash only. ATM is available in the outside lobby near the box office.",
+              "willCallDetail": "Will Call is located at the front of the theatre in on Broadway and opens one hour before show time."
+            },
+            "parkingDetail": "Parking is available in many lots surrounding the theatre at prices ranging from $5-$10. Parking operators are independent and set their own prices.",
+            "accessibleSeatingDetail": "Available through Ticketmaster and the Box Office. Wheelchair accessible seating is available on the orchestra level and balcony level in designated areas. Please refer to the Orpheum Theatre Seating Chart. Orpheum Theatre ushers will direct you to this area once you enter the theatre the day of your event. The Orpheum has restrooms to accommodate accessible patrons at each level. Restrooms are accessible by means of an elevator located at the front entrance of the theater lobby. Accessible seating areas are solely for disabled persons and their companions. By purchasing an accessible seating ticket through Ticketmaster, you agree to the following: The ticket will be used only by a person with a disability and his/her companion. A ticket holder may be denied entry to, or removed from, the accessible seating area if he or she is not disabled or the legitimate companion. If this occurs, the venue shall have no obligation to provide alternate seating. If Ticketmaster or the event provider believes, in its sole discretion, that your order violates or may violate this policy, Ticketmaster may cancel your order without notice.",
+            "generalInfo": {
+              "generalRule": "Video and still photography not permitted. Outside food and drink cannot be brought into the theatre. Shirt, pants, and shoes are required. Dress code may be more restrictive for some events. Smoking is not permitted. Exit and re-entry is not permitted.",
+              "childRule": "Attendance for children may be restricted for certain shows. For shows where children are admitted, children under age one (1) may be admitted without a ticket."
+            },
+            "upcomingEvents": {
+              "ticketmaster": 27,
+              "_total": 27,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/KovZpa3uCe?locale=en-us"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "vv1AaZko7GkePoJ2C",
+        "name": "Daniel Sloss: BITTER  (Brand New Tour!)",
+        "url": "https://www.ticketmaster.com/daniel-sloss-bitter-brand-new-tour-los-angeles-california-10-16-2026/event/09006444A54663CE",
+        "dates": {
+          "start": {
+            "localDate": "2026-10-16",
+            "localTime": "19:00:00",
+            "dateTime": "2026-10-17T02:00:00Z",
+            "dateTBD": false,
+            "dateTBA": false,
+            "timeTBA": false,
+            "noSpecificTime": false
+          },
+          "timezone": "America/Los_Angeles",
+          "status": {
+            "code": "onsale"
+          },
+          "spanMultipleDays": false
+        },
+        "venues": [
+          {
+            "name": "Orpheum Theatre",
+            "type": "venue",
+            "id": "KovZpa3uCe",
+            "test": false,
+            "url": "https://www.ticketmaster.com/orpheum-theatre-tickets-los-angeles/venue/73785",
+            "locale": "en-us",
+            "postalCode": "90014",
+            "timezone": "America/Los_Angeles",
+            "city": {
+              "name": "Los Angeles"
+            },
+            "state": {
+              "name": "California",
+              "stateCode": "CA"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "842 S. Broadway "
+            },
+            "location": {
+              "longitude": "-118.25558624",
+              "latitude": "34.04263554"
+            },
+            "markets": [
+              {
+                "name": "Los Angeles",
+                "id": "27"
+              }
+            ],
+            "dmas": [
+              {
+                "id": 223
+              },
+              {
+                "id": 324
+              },
+              {
+                "id": 354
+              },
+              {
+                "id": 383
+              }
+            ],
+            "social": {
+              "twitter": {
+                "handle": "@LAOrpheum"
+              }
+            },
+            "boxOfficeInfo": {
+              "phoneNumberDetail": "(877) 677-4386",
+              "openHoursDetail": "One hour before show time.",
+              "acceptedPaymentDetail": "Cash only. ATM is available in the outside lobby near the box office.",
+              "willCallDetail": "Will Call is located at the front of the theatre in on Broadway and opens one hour before show time."
+            },
+            "parkingDetail": "Parking is available in many lots surrounding the theatre at prices ranging from $5-$10. Parking operators are independent and set their own prices.",
+            "accessibleSeatingDetail": "Available through Ticketmaster and the Box Office. Wheelchair accessible seating is available on the orchestra level and balcony level in designated areas. Please refer to the Orpheum Theatre Seating Chart. Orpheum Theatre ushers will direct you to this area once you enter the theatre the day of your event. The Orpheum has restrooms to accommodate accessible patrons at each level. Restrooms are accessible by means of an elevator located at the front entrance of the theater lobby. Accessible seating areas are solely for disabled persons and their companions. By purchasing an accessible seating ticket through Ticketmaster, you agree to the following: The ticket will be used only by a person with a disability and his/her companion. A ticket holder may be denied entry to, or removed from, the accessible seating area if he or she is not disabled or the legitimate companion. If this occurs, the venue shall have no obligation to provide alternate seating. If Ticketmaster or the event provider believes, in its sole discretion, that your order violates or may violate this policy, Ticketmaster may cancel your order without notice.",
+            "generalInfo": {
+              "generalRule": "Video and still photography not permitted. Outside food and drink cannot be brought into the theatre. Shirt, pants, and shoes are required. Dress code may be more restrictive for some events. Smoking is not permitted. Exit and re-entry is not permitted.",
+              "childRule": "Attendance for children may be restricted for certain shows. For shows where children are admitted, children under age one (1) may be admitted without a ticket."
+            },
+            "upcomingEvents": {
+              "ticketmaster": 27,
+              "_total": 27,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/KovZpa3uCe?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ticketmaster_phoenix_search": {
+    "endpoint": "https://app.ticketmaster.com/discovery/v2/events.json",
+    "params": {
+      "venueId": "ZFr9jZedA1",
+      "size": 200
+    },
+    "page": {
+      "size": 200,
+      "totalElements": 23,
+      "totalPages": 1,
+      "number": 0
+    },
+    "events": [
+      {
+        "id": "17k8v0G6uhRvnvC",
+        "name": "Ilana Glazer Live!",
+        "url": "https://www.etix.com/ticket/p/95654683/ilana-glazer-live-phoenix-orpheum-theatre-phoenix",
+        "dates": {
+          "start": {
+            "localDate": "2026-10-14",
+            "localTime": "19:00:00",
+            "dateTime": "2026-10-15T02:00:00Z",
+            "dateTBD": false,
+            "dateTBA": false,
+            "timeTBA": false,
+            "noSpecificTime": false
+          },
+          "timezone": "America/Phoenix",
+          "status": {
+            "code": "onsale"
+          },
+          "spanMultipleDays": false
+        },
+        "venues": [
+          {
+            "name": "Orpheum Theatre",
+            "type": "venue",
+            "id": "KovZpZAE7F6A",
+            "test": false,
+            "url": "https://www.ticketmaster.com/orpheum-theatre-tickets-phoenix/venue/204960",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dbimages/8136v.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              }
+            ],
+            "postalCode": "85003",
+            "timezone": "America/Phoenix",
+            "city": {
+              "name": "Phoenix"
+            },
+            "state": {
+              "name": "Arizona",
+              "stateCode": "AZ"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "203 W. Adams Street"
+            },
+            "location": {
+              "longitude": "-112.07646960",
+              "latitude": "33.44929340"
+            },
+            "markets": [
+              {
+                "name": "Phoenix and Tucson",
+                "id": "36"
+              }
+            ],
+            "dmas": [
+              {
+                "id": 359
+              },
+              {
+                "id": 402
+              },
+              {
+                "id": 420
+              }
+            ],
+            "social": {
+              "twitter": {
+                "handle": "@OrpheumPhx"
+              }
+            },
+            "boxOfficeInfo": {
+              "phoneNumberDetail": "Phoenix Convention Center Ticket Office 602-262-7272 Ballet Arizona (602)381-1096 Phoenix Symphony (602)495-1999",
+              "openHoursDetail": "**Phoenix Convention Center** Mon-Fri: 10:00AM to 4:00PM 100 N 3rd St Phoenix, AZ 85004 **Ballet Arizona** Mon - Fri: 9:00AM to 4:30PM 3645 E Indian School Rd, Phoenix On 36th St. & Indian School, in the \"Gaslight Square\" shopping plaza, in the back.",
+              "acceptedPaymentDetail": "Cash, VISA, Mastercard, American Express, Discover",
+              "willCallDetail": "The day of performances, The Orpheum Theatre box office will open 1 hour before curtain for sales and/or will call. Customers must bring either their CONFIRMATION # or a PHOTO ID to pick up WILL CALL tickets."
+            },
+            "parkingDetail": "There are several parking structures available near the theatre, and evening parking fees apply. Metered parking spaces are $1.50 per hour until 5:00pm, Monday-Friday.",
+            "accessibleSeatingDetail": "All accessible tickets are sold thru the box office.",
+            "generalInfo": {
+              "generalRule": "EVERYONE needs a ticket including children. NO cameras NO video or audio equipment PLEASE turn off all cellular phones and pagers NO Food in theatre except bottled water"
+            },
+            "upcomingEvents": {
+              "tmr": 17,
+              "ticketmaster": 1,
+              "_total": 18,
+              "_filtered": 0
+            },
+            "ada": {
+              "adaPhones": "602-262-7272",
+              "adaCustomCopy": "To better accommodate your needs, Orpheum Theatre has requested that all special seating accommodations be solicited only through their representatives. Please contact a Orpheum Theatre representative for further help with your ticket purchase.*   Advance ticket purchase may be required.\n\n* Box office information is subject to change.",
+              "adaHours": "**Phoenix Convention Center**\nMon-Fri: 10:00AM to 4:00PM\n100 N 3rd St\nPhoenix, AZ 85004\n\n \n **Ballet Arizona**  \n \nMon - Fri: 9:00AM to 4:30PM \n3645 E Indian School Rd, Phoenix\nOn 36th St. & Indian School, in the \"Gaslight Square\" shopping plaza, in the back.\n\n\n"
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/KovZpZAE7F6A?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "past_event_official_tour": {
+    "url": "https://comedybangbangworld.com/tour/",
+    "html_bytes": 125562,
+    "jsonld": [
+      "{\"@context\":\"https:\\/\\/schema.org\",\"@graph\":[{\"@type\":\"WebPage\",\"@id\":\"https:\\/\\/comedybangbangworld.com\\/tour\\/\",\"url\":\"https:\\/\\/comedybangbangworld.com\\/tour\\/\",\"name\":\"Tour Dates - Comedy Bang Bang World\",\"isPartOf\":{\"@id\":\"https:\\/\\/comedybangbangworld.com\\/#website\"},\"datePublished\":\"2026-02-10T14:15:58+00:00\",\"dateModified\":\"2026-08-31T02:20:29+00:00\",\"breadcrumb\":{\"@id\":\"https:\\/\\/comedybangbangworld.com\\/tour\\/#breadcrumb\"},\"inLanguage\":\"en-US\",\"potentialAction\":[{\"@type\":\"ReadAction\",\"target\":[\"https:\\/\\/comedybangbangworld.com\\/tour\\/\"]}]},{\"@type\":\"BreadcrumbList\",\"@id\":\"https:\\/\\/comedybangbangworld.com\\/tour\\/#breadcrumb\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Home\",\"item\":\"https:\\/\\/comedybangbangworld.com\\/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Tour Dates\"}]},{\"@type\":\"WebSite\",\"@id\":\"https:\\/\\/comedybangbangworld.com\\/#website\",\"url\":\"https:\\/\\/comedybangbangworld.com\\/\",\"name\":\"Comedy Bang Bang World\",\"description\":\"\",\"publisher\":{\"@id\":\"https:\\/\\/comedybangbangworld.com\\/#organization\"},\"potentialAction\":[{\"@type\":\"SearchAction\",\"target\":{\"@type\":\"EntryPoint\",\"urlTemplate\":\"https:\\/\\/comedybangbangworld.com\\/?s={search_term_string}\"},\"query-input\":{\"@type\":\"PropertyValueSpecification\",\"valueRequired\":true,\"valueName\":\"search_term_string\"}}],\"inLanguage\":\"en-US\"},{\"@type\":\"Organization\",\"@id\":\"https:\\/\\/comedybangbangworld.com\\/#organization\",\"name\":\"Comedy Bang Bang World\",\"url\":\"https:\\/\\/comedybangbangworld.com\\/\",\"logo\":{\"@type\":\"ImageObject\",\"inLanguage\":\"en-US\",\"@id\":\"https:\\/\\/comedybangbangworld.com\\/#\\/schema\\/logo\\/image\\/\",\"url\":\"https:\\/\\/comedybangbangworld.com\\/wp-content\\/uploads\\/2021\\/09\\/cropped-favicon.png\",\"contentUrl\":\"https:\\/\\/comedybangbangworld.com\\/wp-content\\/uploads\\/2021\\/09\\/cropped-favicon.png\",\"width\":512,\"height\":512,\"caption\":\"Comedy Bang Bang World\"},\"image\":{\"@id\":\"https:\\/\\/comedybangbangworld.com\\/#\\/schema\\/logo\\/image\\/\"},\"sameAs\":[\"https:\\/\\/x.com\\/ComedyBangBang\",\"https:\\/\\/www.instagram.com\\/comedybangbangworld\\/\"]}]}"
+    ],
+    "matching_excerpt": "09.19.2026 7pm los angeles, ca The Orpheum Theatre Buy Tickets 10.06.2026 8pm Hu",
+    "matching_ticket_url": "https://www.ticketmaster.com/event/090064A6C1883E67",
+    "local_start": "2026-09-19T19:00:00",
+    "timezone": "America/Los_Angeles",
+    "utc_start_derived": "2026-09-20T02:00:00+00:00",
+    "timezone_basis": "Los Angeles, CA advertised city, corroborated by current Orpheum LA Discovery venue timezone",
+    "html_evidence_path": "/private/tmp/task4047-cbb-tour.html"
+  },
+  "etix_fetch_limitation": {
+    "url": "https://www.etix.com/ticket/p/95654683/ilana-glazer-live-phoenix-orpheum-theatre-phoenix",
+    "http_stack": "HttpClient.fetch_html + curl-cffi Chrome impersonation",
+    "status": 202,
+    "fallback": "Python Playwright unavailable; exact URL confirmed in Discovery instead"
+  }
+}
