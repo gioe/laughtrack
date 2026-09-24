@@ -205,6 +205,9 @@ model Club {
   country                 String?                    @map("country")
   latitude                Float?                     @map("latitude")
   longitude               Float?                     @map("longitude")
+  geocodeAttemptedAt      DateTime?                  @map("geocode_attempted_at") @db.Timestamptz
+  geocodeAttemptCount     Int                        @default(0) @map("geocode_attempt_count")
+  geocodeOutcome          String?                    @map("geocode_outcome")
   phoneNumber             String?                    @default("") @map("phone_number")
   description             String?                    @map("description")
   hours                   Json?                      @map("hours")
