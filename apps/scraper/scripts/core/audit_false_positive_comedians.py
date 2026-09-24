@@ -66,26 +66,35 @@ from laughtrack.core.entities.comedian.false_positive_detector import (  # noqa:
     PLACEHOLDER_NAMES,
     PLACEHOLDER_SUBSTRINGS,
     STRUCTURAL_KEYWORDS,
+    TITLE_PATTERNS,
 )
+
+def _sql_literal(value: str) -> str:
+    """Quote shared rule text for PostgreSQL standard-conforming strings."""
+    return "'" + value.replace("'", "''") + "'"
+
 
 # Build SQL fragments from the shared Python constants so detection criteria
 # are defined in exactly one place (false_positive_detector.py).
-_PLACEHOLDER_NAMES = ",\n    ".join(f"'{n}'" for n in sorted(PLACEHOLDER_NAMES))
+_PLACEHOLDER_NAMES = ",\n    ".join(_sql_literal(n) for n in sorted(PLACEHOLDER_NAMES))
 
 _PLACEHOLDER_SUBSTRINGS = PLACEHOLDER_SUBSTRINGS
 
 _PLACEHOLDER_SUBSTRING_CONDITIONS = "\n        OR ".join(
-    f"lower(c.name) LIKE '%{s}%'" for s in _PLACEHOLDER_SUBSTRINGS
+    f"lower(c.name) LIKE {_sql_literal('%' + s + '%')}" for s in _PLACEHOLDER_SUBSTRINGS
 )
 
 _STRUCTURAL_KEYWORDS = STRUCTURAL_KEYWORDS
 
 _STRUCTURAL_KEYWORD_CONDITIONS = "\n        OR ".join(
-    f"lower(c.name) LIKE '%{kw}%'" for kw in _STRUCTURAL_KEYWORDS
+    f"lower(c.name) LIKE {_sql_literal('%' + kw + '%')}" for kw in _STRUCTURAL_KEYWORDS
 )
 
 # Non-keyword structural patterns (checked separately from keyword substring conditions)
-_STRUCTURAL_PATTERN_CONDITIONS = "c.name LIKE '%***%'"
+_TITLE_PATTERN_CONDITIONS = " OR ".join(
+    f"lower(trim(c.name)) ~ {_sql_literal(pattern)}" for pattern in TITLE_PATTERNS
+)
+_STRUCTURAL_PATTERN_CONDITIONS = f"c.name LIKE '%***%' OR {_TITLE_PATTERN_CONDITIONS}"
 
 AUDIT_QUERY = f"""
 WITH placeholder_comedians AS (
@@ -134,7 +143,8 @@ WITH structural_comedians AS (
         CASE
             WHEN c.name LIKE '%|%' THEN 'pipe_in_name'
             WHEN length(trim(c.name)) > 60 THEN 'length_gt_60'
-            WHEN {_STRUCTURAL_PATTERN_CONDITIONS} THEN 'decoration_pattern'
+            WHEN c.name LIKE '%***%' THEN 'decoration_pattern'
+            WHEN {_TITLE_PATTERN_CONDITIONS} THEN 'event_title_pattern'
             ELSE 'non_person_keyword'
         END AS structural_reason
     FROM comedians c
