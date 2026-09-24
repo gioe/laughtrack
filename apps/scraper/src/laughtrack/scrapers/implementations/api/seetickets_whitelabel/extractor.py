@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import re
-from urllib.parse import urljoin
+from datetime import datetime
+from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
@@ -56,3 +57,55 @@ class SeeTicketsWhitelabelExtractor:
             )
             seen_ids.add(event_id)
         return events
+
+    @staticmethod
+    def extract_calendar_events(html: str, base_url: str) -> list[SeeTicketsWhitelabelEvent]:
+        """Read the official SeeTickets WordPress calendar with explicit years.
+
+        The calendar includes events omitted from the homepage grid. Its
+        doortime-showtime paragraph is the show time; the following paragraph
+        is doors. Never infer a year or substitute doors for a missing showtime.
+        An incomplete calendar is not safe input for stale-show reconciliation.
+        """
+        soup = BeautifulSoup(html or "", "html.parser")
+        tables = soup.select("table.seetickets-calendar")
+        cards = soup.select(".seetickets-calendar-event-container")
+        if not tables or not cards:
+            raise ValueError("SeeTickets calendar has no verified event cards")
+        events: dict[str, SeeTicketsWhitelabelEvent] = {}
+        parsed_cards = 0
+        for table in tables:
+            heading = table.find_previous_sibling()
+            if heading is None or "seetickets-calendar-year-month-container" not in heading.get("class", []):
+                raise ValueError("SeeTickets calendar month heading is missing")
+            month = datetime.strptime(heading.get_text(" ", strip=True), "%B %Y")
+            for card in table.select(".seetickets-calendar-event-container"):
+                cell = card.find_parent("td")
+                day = cell.select_one(".date-number") if cell else None
+                title = card.select_one(".seetickets-calendar-event-title a[href]")
+                time = card.select_one(".seetickets-calendar-event-date p.doortime-showtime")
+                if day is None or title is None or time is None:
+                    raise ValueError("SeeTickets calendar event identity/date/showtime is missing")
+                name = title.get_text(" ", strip=True)
+                ticket_url = urljoin(base_url, title["href"])
+                ident = _EVENT_ID_RE.search(urlparse(ticket_url).path)
+                if not name or not ident or urlparse(ticket_url).hostname not in {"wl.seetickets.us", "wl.eventim.us"}:
+                    raise ValueError("SeeTickets calendar ticket identity is invalid")
+                clock = datetime.strptime(time.get_text("", strip=True).replace(" ", "").upper(), "%I:%M%p")
+                start = month.replace(day=int(day.get_text(strip=True)), hour=clock.hour, minute=clock.minute)
+                event_id = ident.group("id")
+                event = SeeTicketsWhitelabelEvent(
+                    event_id=event_id,
+                    name=name,
+                    start_date=start.strftime("%B %d %Y"),
+                    ticket_url=ticket_url,
+                    start_datetime=start.isoformat(),
+                )
+                prior = events.get(event_id)
+                if prior and (prior.name, prior.start_datetime) != (event.name, event.start_datetime):
+                    raise ValueError(f"SeeTickets calendar event {event_id} has conflicting performances")
+                events[event_id] = event
+                parsed_cards += 1
+        if parsed_cards != len(cards):
+            raise ValueError("SeeTickets calendar contains event cards outside dated month tables")
+        return list(events.values())

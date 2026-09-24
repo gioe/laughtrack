@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -22,7 +23,7 @@ class SeeTicketsWhitelabelEvent(ShowConvertible):
     # (ISO 8601, e.g. "2026-06-29T20:00"). The search-results card carries only
     # a date, so without this the show lands at local midnight. Empty when the
     # detail-page enrichment failed or found no timed startDate; to_show then
-    # degrades to the date-only midnight value.
+    # refuses the unverified performance rather than fabricating midnight.
     start_datetime: str = ""
 
     def to_show(self, club: Club, enhanced: bool = True, url: str | None = None):
@@ -51,21 +52,11 @@ class SeeTicketsWhitelabelEvent(ShowConvertible):
         )
 
     def _resolve_show_date(self, tz: ZoneInfo) -> datetime | None:
-        """Prefer the detail-page ISO datetime (real showtime); fall back to the
-        card's date-only value (midnight). Returns None only when neither
-        parses, so a malformed card is dropped rather than guessed."""
-        if self.start_datetime:
-            try:
-                dt = datetime.fromisoformat(self.start_datetime)
-            except ValueError:
-                dt = None
-            if dt is not None:
-                # JSON-LD startDate may be naive (no offset) — localize to the
-                # club's timezone; an explicit offset is preserved as-is.
-                return dt if dt.tzinfo is not None else dt.replace(tzinfo=tz)
-
+        """Use only an explicitly timed detail value; never synthesize midnight."""
+        if not self.start_datetime or not re.search(r"T\d{2}:\d{2}", self.start_datetime):
+            return None
         try:
-            parsed = datetime.strptime(self.start_date, "%B %d %Y")
+            dt = datetime.fromisoformat(self.start_datetime)
         except ValueError:
             return None
-        return parsed.replace(tzinfo=tz)
+        return dt if dt.tzinfo is not None else dt.replace(tzinfo=tz)
