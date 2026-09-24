@@ -368,10 +368,10 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
         Args:
             comedians: List of comedians to insert
-            pre_filtered: If True, skip deny-list and false-positive filtering.
-                Use when the caller has already applied both filters (e.g.
-                update_show_lineups) to avoid redundant DB queries and
-                potential divergence between outer and inner filtering.
+            pre_filtered: If True, skip database-backed deny-list filtering.
+                Use when the caller has already applied it (e.g.
+                update_show_lineups) to avoid redundant DB queries. The cheap
+                structural name guard always runs at the persistence boundary.
 
         Returns:
             List of newly inserted comedian rows (empty when all already existed)
@@ -380,12 +380,12 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             raise ValueError("No comedians to insert")
 
         try:
-            if not pre_filtered:
-                comedians = self._filter_false_positive_comedians(comedians)
-                if not comedians:
-                    Logger.info("insert_comedians: all candidates were false positives; nothing inserted")
-                    return []
+            comedians = self._filter_false_positive_comedians(comedians)
+            if not comedians:
+                Logger.info("insert_comedians: all candidates were false positives; nothing inserted")
+                return []
 
+            if not pre_filtered:
                 comedians = self._filter_denied_comedians(comedians)
                 if not comedians:
                     Logger.info("insert_comedians: all candidates were on the deny list; nothing inserted")

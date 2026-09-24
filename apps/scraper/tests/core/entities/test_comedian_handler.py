@@ -922,3 +922,28 @@ class TestFilterDeniedComedians:
 
         assert result == [allowed]
         assert handler.execute_with_cursor.call_count == 2
+
+
+@pytest.mark.parametrize("pre_filtered", [False, True])
+@pytest.mark.parametrize("valid_names", [[], ["Michael Che", "fae lily", "Blue Man Group", "Denim", "Brave New Workshop"]])
+def test_event_title_ingestion_guard(pre_filtered, valid_names):
+    handler = _make_handler()
+    rejected = ["School Girls; OR, The African Mean Girls Play", "Mixology class",
+                "Craft & A Cocktail- Folk Art Snake Workshop", "Community Night",
+                "Randy Feltface: Gimmick"]
+    candidates = [_make_stub(name) for name in rejected + valid_names]
+    handler.execute_batch_operation.return_value = []
+    with patch.object(handler, "_filter_denied_comedians", side_effect=lambda items: items) as denied, \
+         patch.object(handler, "_trigger_itunes_discovery_for_inserted") as discovery, \
+         patch.object(_comedian_handler_mod, "Logger") as logger:
+        assert handler.insert_comedians(candidates, pre_filtered=pre_filtered) == []
+    if valid_names:
+        inserted = handler.execute_batch_operation.call_args.args[1]
+        assert inserted == [c.to_insert_tuple() for c in candidates if c.name in valid_names]
+        assert denied.call_count == (0 if pre_filtered else 1)
+    else:
+        handler.execute_batch_operation.assert_not_called()
+        denied.assert_not_called()
+        discovery.assert_not_called()
+    assert logger.warn.call_count == len(rejected)
+    assert all("event_title_pattern" in call.args[0] for call in logger.warn.call_args_list)
