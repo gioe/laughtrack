@@ -25,6 +25,7 @@ Structural detection criteria (OR):
   2. Name length > 60 characters
   3. Name contains a non-person keyword: revue, burlesque, variety, showcase, production,
      presents, festival, extravaganza, theatre, theater, entertainment
+  4. Shared explicit event-title, workshop, generic label, or schedule patterns
 
 Usage after reviewing results:
     - Note which clubs have the most affected shows.
@@ -262,8 +263,10 @@ ORDER BY ic.name, cl.name;
 """
 
 
+# Materialize each classified set once: inlining repeats regex/keyword scans
+# inside the substring join and exceeded the production statement timeout.
 MERGE_CANDIDATES_QUERY = f"""
-WITH false_positives AS (
+WITH false_positives AS MATERIALIZED (
     SELECT c.uuid, c.name
     FROM comedians c
     WHERE
@@ -275,7 +278,7 @@ WITH false_positives AS (
         OR {_STRUCTURAL_PATTERN_CONDITIONS}
         OR {_STRUCTURAL_KEYWORD_CONDITIONS}
 ),
-real_comedians AS (
+real_comedians AS MATERIALIZED (
     SELECT c.uuid, c.name
     FROM comedians c
     WHERE NOT (
@@ -345,7 +348,7 @@ def _print_structural_section(cur) -> list:
     """Print structural-pattern section; returns rows for downstream use."""
     print("\n" + "=" * 72)
     print("SECTION 2: STRUCTURAL-PATTERN COMEDIANS")
-    print("(pipe in name | length > 60 | non-person keyword)")
+    print("(pipe in name | length > 60 | non-person keyword | event title pattern)")
     print("=" * 72)
     cur.execute(STRUCTURAL_AUDIT_QUERY)
     rows = cur.fetchall()
