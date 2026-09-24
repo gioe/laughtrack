@@ -1,0 +1,339 @@
+{
+  "source_url": "https://crowdwork.com/api/v2/iotheater/shows",
+  "source": "live Crowdwork API",
+  "shows": [
+    {
+      "id": 12808,
+      "name": "This Year in Music",
+      "theatre": {
+        "id": 33450,
+        "name": "iO Theater"
+      },
+      "recurring": "Multiple dates",
+      "dates": [
+        "2026-10-14T19:00:00.000-05:00",
+        "2026-12-11T19:00:00.000-06:00"
+      ],
+      "next_date": "2026-10-14T19:00:00.000-05:00",
+      "img": {
+        "url": "https://cdn.fourthwalltickets.com/uploads/event/imgs/12808/IMG_6648.png",
+        "large": "https://cdn.fourthwalltickets.com/uploads/event/imgs/12808/large_IMG_6648.png",
+        "medium": "https://cdn.fourthwalltickets.com/uploads/event/imgs/12808/medium_IMG_6648.png",
+        "thumb": "https://cdn.fourthwalltickets.com/uploads/event/imgs/12808/thumb_IMG_6648.png"
+      },
+      "imgs": [
+        "https://cdn.fourthwalltickets.com/uploads/event/imgs/12808/IMG_6648.png"
+      ],
+      "description": {
+        "id": 28256,
+        "name": "description",
+        "body": "<div><a href=\"https://www.instagram.com/thisyearinmusicshow\">This Year in Music</a> is back, and this time we are celebrating all the groovy hits of <strong>1971</strong>! We\u2019re welcoming performers from all over the city to celebrate one iconic year through singing, dancing, and radical sketch comedy. Grab your bell-bottoms and your flower crowns, and come celebrate one iconic, star-studded year with us!</div>",
+        "record_type": "Event",
+        "record_id": 12808,
+        "created_at": "2026-02-07T19:21:14.326Z",
+        "updated_at": "2026-09-04T19:14:33.382Z"
+      },
+      "description_short": "This Year in Music is back, and this time we are celebrating all the groovy hits of 1971! We\u2019re welcoming performers from all over the city to celebrate one iconic year through singing, dancing, and radical sketch comedy. Grab your bell-bottoms an...",
+      "cost": {
+        "formatted": "Multiple prices"
+      },
+      "cost_tiers": [
+        {
+          "id": 25298,
+          "name": "General Admission + Featured Cocktail",
+          "cost": 3000,
+          "quantity": 150,
+          "cost_after_fees": 3391
+        },
+        {
+          "id": 20010,
+          "name": "General Admission",
+          "cost": 1500,
+          "quantity": 150,
+          "cost_after_fees": 1815
+        }
+      ],
+      "venue": "iO Theater",
+      "url": "https://www.crowdwork.com/e/this-year-in-music",
+      "timezone": "Central Time (US & Canada)",
+      "status": "active",
+      "grouped_dates": {
+        "first_date": "2026-03-11T19:30:00.000-05:00",
+        "grouped": false,
+        "message": null
+      },
+      "tags": {
+        "public": [
+          "Something Different",
+          "Musical Theatre"
+        ]
+      },
+      "badges": {
+        "spots": null,
+        "cost": "Multiple prices"
+      },
+      "display_until": "2026-12-12T01:00:00.000Z",
+      "date_overrides": {
+        "2026-10-14T19:00:00.000-05:00": {
+          "name": "This Year in Music: 2007",
+          "description": "<div class=\"trix-content\">\n  <div><strong>This Year in Music</strong> is back and we celebrating all the legendary and glamorous hits of <strong>2007</strong>! We\u2019re welcoming performers from all over the city to honor one iconic year through singing, dancing, storytelling, and epic sketch comedy. So dust off your shutter shades, get ready to crank that 2007 nostalgia - we guarantee it\u2019ll be a sweet escape!<br><br><strong>Featuring:</strong><br>Amber Linde<br>Arne Parrott<br>Brad Johnson<br>Brixton McMillan<br>Carter Wright<br>Chris Jowett<br>Claudia Baffo<br>Courtney Crary<br>Dan Shea<br>Elise Leonhart<br>James Dugan<br>Jamie Burns<br>Jordan Stafford<br>Kelly Dugan<br>Maria Sharps<br>Matty Vergun<br>Molly Jones<br>Molly Walburn<br>Niah Whitley<br>Rob Grabowski<br>The Qs<br>Sarah Dell Amico<br>Tina Arfaee<br>Yassi Baharloo<br><br>bringing you the hits of Rihanna, Amy Winehouse, Paramore, T-Pain, Fall Out Boy, Fergie, MGMT, Radiohead, and MORE!!</div>\n</div>\n"
+        }
+      },
+      "expected_cast_raw": [
+        "Amber Linde",
+        "Arne Parrott",
+        "Brad Johnson",
+        "Brixton McMillan",
+        "Carter Wright",
+        "Chris Jowett",
+        "Claudia Baffo",
+        "Courtney Crary",
+        "Dan Shea",
+        "Elise Leonhart",
+        "James Dugan",
+        "Jamie Burns",
+        "Jordan Stafford",
+        "Kelly Dugan",
+        "Maria Sharps",
+        "Matty Vergun",
+        "Molly Jones",
+        "Molly Walburn",
+        "Niah Whitley",
+        "Rob Grabowski",
+        "The Qs",
+        "Sarah Dell Amico",
+        "Tina Arfaee",
+        "Yassi Baharloo"
+      ],
+      "expected_cast_deduped": [
+        "Amber Linde",
+        "Arne Parrott",
+        "Brad Johnson",
+        "Brixton McMillan",
+        "Carter Wright",
+        "Chris Jowett",
+        "Claudia Baffo",
+        "Courtney Crary",
+        "Dan Shea",
+        "Elise Leonhart",
+        "James Dugan",
+        "Jamie Burns",
+        "Jordan Stafford",
+        "Kelly Dugan",
+        "Maria Sharps",
+        "Matty Vergun",
+        "Molly Jones",
+        "Molly Walburn",
+        "Niah Whitley",
+        "Rob Grabowski",
+        "The Qs",
+        "Sarah Dell Amico",
+        "Tina Arfaee",
+        "Yassi Baharloo"
+      ]
+    },
+    {
+      "id": 18263,
+      "name": "One Liner Madness",
+      "theatre": {
+        "id": 33450,
+        "name": "iO Theater"
+      },
+      "recurring": "Once",
+      "dates": [
+        "2026-11-14T20:00:00.000-06:00"
+      ],
+      "next_date": "2026-11-14T20:00:00.000-06:00",
+      "img": {
+        "url": "https://cdn.fourthwalltickets.com/uploads/event/imgs/18263/1.png",
+        "large": "https://cdn.fourthwalltickets.com/uploads/event/imgs/18263/large_1.png",
+        "medium": "https://cdn.fourthwalltickets.com/uploads/event/imgs/18263/medium_1.png",
+        "thumb": "https://cdn.fourthwalltickets.com/uploads/event/imgs/18263/thumb_1.png"
+      },
+      "imgs": [
+        "https://cdn.fourthwalltickets.com/uploads/event/imgs/18263/1.png"
+      ],
+      "description": {
+        "id": 52252,
+        "name": "description",
+        "body": "<div><strong>One Liner Madness</strong> is a Time Out Critics' Pick comedy show that travels the country to find the nation's best joke writers. On Saturday, November 14th, dozens of Chicago comedians will go head-to-head in bracketed, March Madness style, single-elimination, one-liner joke contest. The fast-paced competition goes from 64 comics to a single winner in just 100 minutes. Audience applause determines which performers advance and who ultimately wins the trophy, cash prize, and title of 2026 ONE LINER MADNESS CHICAGO CHAMPION.<br><br><strong>Featuring:<br></strong>Mitchell Potts<br>Connor O\u2019Hara<br>Gemini The Savage<br>Eli Wilz<br>James River<br>Maxwell Tidey<br>Evan Pratt<br>Giancarlo Pascuzzi<br>Syed Hasnain<br>&nbsp;Tom Walma<br>Bradley Ray Rose (formally Brad Griep)<br>Josh Fred<br>Cam Honeyager<br>Erick Austin<br>Alice Dihon<br>Nick Mayer<br>&nbsp;Joli Yang<br>Jason Issac<br>Natalia Sovero<br>Preston O\u2019ffill<br>Kenzie Mackin<br>Mike Mazzella<br>fae lily<br>Fee Basanavicius<br>Keith Hernandez<br>Robert Rule<br>Cameron Cai<br>Richard Bowen<br>Lindy Tongol<br>Natalie Whalen<br>Evelyn Troutman<br>Grey Dolan<br>Keaton Ford<br>Denise Medina<br>Dan Bublitz Jr<br>Gunvit Bhatia<br>Orly K.G.<br>Annie Russell<br>Steven McCaskey<br>Devin Flaherty<br>Joe Medoff<br>Zach Harley<br>Vivian Burgett<br>Tiel Pierce<br>Heath Thornton<br>Ray Roberts<br>Brian Miklas<br>Jamie Hawkins<br>Mike Glab<br>Ryan Hallam<br>Zach Schneider<br>Jason Issac&nbsp;<br>Chris Starman<br>Colin Jesse<br>Sara Smola<br>Preston O\u2019ffill<br>Prim Stonebraker<br>Cody Ciminillo<br>Tim Piotrkowski<br>Mike Dwyer<br>Kaylan Adams<br>Forrest Wheeler<br>Brandon Judd<br>Katie Novotny<br>Chris Calogero</div><div><br></div><div>One Liner Madness was created in 2016 by TV writer and comedian Emily Winter and live show producer Larry Mancini, and has been recommended by NPR, Time Out, The New York Times, The Boston Globe, LAist, Albuquerque's Daily Lobo, Chicago's WGN and many more.<br><br><strong>Doors: 7pm<br>Show: 8pm<br>Runtime: Approx. 100 minutes</strong></div>",
+        "record_type": "Event",
+        "record_id": 18263,
+        "created_at": "2026-09-23T00:34:40.492Z",
+        "updated_at": "2026-09-23T18:45:41.871Z"
+      },
+      "description_short": "One Liner Madness is a Time Out Critics' Pick comedy show that travels the country to find the nation's best joke writers. On Saturday, November 14th, dozens of Chicago comedians will go head-to-head in bracketed, March Madness style, single-elimi...",
+      "cost": {
+        "formatted": "Multiple prices"
+      },
+      "cost_tiers": [
+        {
+          "id": 35265,
+          "name": "General Admission",
+          "cost": 2200,
+          "quantity": 200,
+          "cost_after_fees": 2550
+        },
+        {
+          "id": 35266,
+          "name": "General Admission + Featured Cocktail",
+          "cost": 3700,
+          "quantity": 200,
+          "cost_after_fees": 4126
+        }
+      ],
+      "venue": "iO Theater",
+      "url": "https://www.crowdwork.com/e/one-liner-madness",
+      "timezone": "Central Time (US & Canada)",
+      "status": "active",
+      "grouped_dates": {
+        "first_date": "2026-11-14T20:00:00.000-06:00",
+        "grouped": false,
+        "message": null
+      },
+      "tags": {
+        "public": [
+          "Stand-Up"
+        ]
+      },
+      "badges": {
+        "spots": null,
+        "cost": "Multiple prices"
+      },
+      "display_until": "2026-11-15T02:00:00.000Z",
+      "date_overrides": {},
+      "expected_cast_raw": [
+        "Mitchell Potts",
+        "Connor O\u2019Hara",
+        "Gemini The Savage",
+        "Eli Wilz",
+        "James River",
+        "Maxwell Tidey",
+        "Evan Pratt",
+        "Giancarlo Pascuzzi",
+        "Syed Hasnain",
+        "Tom Walma",
+        "Bradley Ray Rose (formally Brad Griep)",
+        "Josh Fred",
+        "Cam Honeyager",
+        "Erick Austin",
+        "Alice Dihon",
+        "Nick Mayer",
+        "Joli Yang",
+        "Jason Issac",
+        "Natalia Sovero",
+        "Preston O\u2019ffill",
+        "Kenzie Mackin",
+        "Mike Mazzella",
+        "fae lily",
+        "Fee Basanavicius",
+        "Keith Hernandez",
+        "Robert Rule",
+        "Cameron Cai",
+        "Richard Bowen",
+        "Lindy Tongol",
+        "Natalie Whalen",
+        "Evelyn Troutman",
+        "Grey Dolan",
+        "Keaton Ford",
+        "Denise Medina",
+        "Dan Bublitz Jr",
+        "Gunvit Bhatia",
+        "Orly K.G.",
+        "Annie Russell",
+        "Steven McCaskey",
+        "Devin Flaherty",
+        "Joe Medoff",
+        "Zach Harley",
+        "Vivian Burgett",
+        "Tiel Pierce",
+        "Heath Thornton",
+        "Ray Roberts",
+        "Brian Miklas",
+        "Jamie Hawkins",
+        "Mike Glab",
+        "Ryan Hallam",
+        "Zach Schneider",
+        "Jason Issac",
+        "Chris Starman",
+        "Colin Jesse",
+        "Sara Smola",
+        "Preston O\u2019ffill",
+        "Prim Stonebraker",
+        "Cody Ciminillo",
+        "Tim Piotrkowski",
+        "Mike Dwyer",
+        "Kaylan Adams",
+        "Forrest Wheeler",
+        "Brandon Judd",
+        "Katie Novotny",
+        "Chris Calogero"
+      ],
+      "expected_cast_deduped": [
+        "Mitchell Potts",
+        "Connor O\u2019Hara",
+        "Gemini The Savage",
+        "Eli Wilz",
+        "James River",
+        "Maxwell Tidey",
+        "Evan Pratt",
+        "Giancarlo Pascuzzi",
+        "Syed Hasnain",
+        "Tom Walma",
+        "Bradley Ray Rose (formally Brad Griep)",
+        "Josh Fred",
+        "Cam Honeyager",
+        "Erick Austin",
+        "Alice Dihon",
+        "Nick Mayer",
+        "Joli Yang",
+        "Jason Issac",
+        "Natalia Sovero",
+        "Preston O\u2019ffill",
+        "Kenzie Mackin",
+        "Mike Mazzella",
+        "fae lily",
+        "Fee Basanavicius",
+        "Keith Hernandez",
+        "Robert Rule",
+        "Cameron Cai",
+        "Richard Bowen",
+        "Lindy Tongol",
+        "Natalie Whalen",
+        "Evelyn Troutman",
+        "Grey Dolan",
+        "Keaton Ford",
+        "Denise Medina",
+        "Dan Bublitz Jr",
+        "Gunvit Bhatia",
+        "Orly K.G.",
+        "Annie Russell",
+        "Steven McCaskey",
+        "Devin Flaherty",
+        "Joe Medoff",
+        "Zach Harley",
+        "Vivian Burgett",
+        "Tiel Pierce",
+        "Heath Thornton",
+        "Ray Roberts",
+        "Brian Miklas",
+        "Jamie Hawkins",
+        "Mike Glab",
+        "Ryan Hallam",
+        "Zach Schneider",
+        "Chris Starman",
+        "Colin Jesse",
+        "Sara Smola",
+        "Prim Stonebraker",
+        "Cody Ciminillo",
+        "Tim Piotrkowski",
+        "Mike Dwyer",
+        "Kaylan Adams",
+        "Forrest Wheeler",
+        "Brandon Judd",
+        "Katie Novotny",
+        "Chris Calogero"
+      ]
+    }
+  ]
+}

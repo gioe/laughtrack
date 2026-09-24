@@ -5,7 +5,7 @@ Shared utilities for Crowdwork/Fourthwall Tickets venue scrapers.
 import re
 from typing import Dict, List, Optional
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 
 from laughtrack.core.entities.event.philly_improv import PhillyImprovShow
 
@@ -52,17 +52,25 @@ def extract_lineup_names(description_html: str, title: Optional[str] = None) -> 
     names: List[str] = _names_from_title(title)
     in_lineup_section = False
 
+    section_has_names = False
     for line in lines:
-        names.extend(_inline_feature_names(line))
-
-    for line in lines:
+        # An empty HTML paragraph or double <br> ends a populated cast list.
+        # Do not scan the prose after it for inline "with/featuring" phrases.
+        if in_lineup_section and not line:
+            if section_has_names:
+                break
+            continue
         if _LINEUP_SECTION_RE.search(line) and len(line.split()) <= 8:
             in_lineup_section = True
             trailing = line.split(":", 1)[1] if ":" in line else ""
-            names.extend(_candidate_names_from_line(trailing))
+            heading_names = _candidate_names_from_line(trailing)
+            heading_names = heading_names or _inline_feature_names(line)
+            names.extend(heading_names)
+            section_has_names = bool(heading_names) or section_has_names
             continue
 
         if not in_lineup_section:
+            names.extend(_inline_feature_names(line))
             continue
 
         if _STOP_SECTION_RE.search(line):
@@ -74,6 +82,7 @@ def extract_lineup_names(description_html: str, title: Optional[str] = None) -> 
                 break
             continue
         names.extend(line_names)
+        section_has_names = True
 
     deduped = _dedupe_names(names)
     if deduped:
@@ -154,8 +163,17 @@ def extract_performances(
 
 def _description_lines(description_html: str) -> List[str]:
     soup = BeautifulSoup(description_html or "", "html.parser")
-    text = soup.get_text("\n")
-    return [_clean_line(line) for line in text.splitlines() if _clean_line(line)]
+    # Ignore source-code indentation before adding semantic line breaks. Using
+    # get_text("\n") splits inline markup into separate names and loses the
+    # distinction between one <br> and a blank paragraph / double <br>.
+    for text in list(soup.find_all(string=True)):
+        if isinstance(text, NavigableString) and not text.strip() and "\n" in text:
+            text.extract()
+    for br in soup.find_all("br"):
+        br.replace_with("\n")
+    for block in soup.find_all(["div", "p", "li", "h1", "h2", "h3", "h4", "h5", "h6"]):
+        block.append("\n")
+    return [_clean_line(line) for line in soup.get_text().splitlines()]
 
 
 def _clean_line(value: str) -> str:
