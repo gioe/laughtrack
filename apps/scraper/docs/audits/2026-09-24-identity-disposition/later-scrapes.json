@@ -66,7 +66,8 @@
       "2026-09-24 11:49:37,694 | INFO | pid=39516 | club=Sports Drink | scraper=sports_drink | SportsDrinkScraper [Sports Drink]: Scraped 136 total shows",
       "2026-09-24 11:49:51,631 | WARNING | pid=39516 | club=- | scraper=- | Stale-show reconciliation SKIPPED for 'Sports Drink' (scraper=sports_drink): 85 future shows would be deleted, exceeding the safety cap of 10. This is the signature of a silent parser break, not normal cancellations \u2014 investigate the source before any manual cleanup.",
       "2026-09-24 11:49:51,905 | INFO | pid=39516 | club=- | scraper=- | Persisted scraper run summary to Postgres run_key=scraper:2026-09-24T11:49:51.653126",
-      "2026-09-24 11:49:52,126 | INFO | pid=39516 | club=- | scraper=- | Scraped 136 shows for Sports Drink"
+      "2026-09-24 11:49:52,126 | INFO | pid=39516 | club=- | scraper=- | Scraped 136 shows for Sports Drink",
+      "2026-09-24 11:49:46,470 | WARNING | pid=39516 | club=- | scraper=- | Invalid show: Thank You For Your Purchase!!! - Show date cannot be more than 18 months in the future"
     ],
     "follow_up_task": 4064
   },

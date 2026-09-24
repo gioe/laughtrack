@@ -91,7 +91,9 @@ independently confirms the final identity dispositions and preserved cast.
 
 Three actual subsequent production scrapes used the merged prevention code:
 Sports Drink (136 shows), Union Comedy (212), and The KillBox Comedy Club (79).
-All completed with exit 0 and no save errors; `later-scrapes.json` preserves run
+Sports Drink saved 135 of its 136 records; the date guard correctly rejected
+"Thank You For Your Purchase!!!" beyond the 18-month horizon. All three runs
+completed with exit 0 and no save errors; `later-scrapes.json` preserves run
 keys, metrics, and relevant output. The final read-only check at
 2026-09-24T15:51:33Z (`later-verification.json`) found zero visible duplicates of
 the 162 suppressed identities, all three corrected names intact, all 1,952
