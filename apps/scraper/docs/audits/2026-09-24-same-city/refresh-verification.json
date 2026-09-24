@@ -1,0 +1,1113 @@
+{
+  "checked_at": "2026-09-24T19:54:06.371322+00:00",
+  "scope": "Repeated captured source-field replay through Eventbrite API/domain parsers and real organizer routing with real read-only ClubHandler lookup; Ticketmaster real stable-ID lookup and create_show conversion. No show persistence, migration, live fetch, or full pipeline.",
+  "limitations": [
+    "Captured Eventbrite evidence contains routing/date/name/status fields, not complete API pricing/classification payloads. This verifies identity/time routing, not admission or pricing.",
+    "AsyncMock substitutes fetch_all_events with captured parsed events; actual organizer pagination/network behavior is not exercised.",
+    "TM create_show is exercised after real stable-ID resolution; national upsert/write paths are not invoked.",
+    "Repeated outputs show deterministic correct routing, not production persistence idempotence."
+  ],
+  "passes": [
+    {
+      "iteration": 1,
+      "eventbrite": [
+        {
+          "event_id": "1986036142565",
+          "club_id": 29044,
+          "utc_start": "2026-10-10T23:00:00Z"
+        },
+        {
+          "event_id": "1997878900573",
+          "club_id": 29044,
+          "utc_start": "2026-11-21T02:00:00Z"
+        },
+        {
+          "event_id": "1992389014175",
+          "club_id": 29044,
+          "utc_start": "2026-11-16T01:00:00Z"
+        },
+        {
+          "event_id": "1988449141911",
+          "club_id": 29044,
+          "utc_start": "2026-11-28T00:00:00Z"
+        },
+        {
+          "event_id": "1988449216133",
+          "club_id": 29044,
+          "utc_start": "2026-11-28T02:00:00Z"
+        },
+        {
+          "event_id": "1988449252241",
+          "club_id": 29044,
+          "utc_start": "2026-11-29T00:00:00Z"
+        },
+        {
+          "event_id": "1992024956268",
+          "club_id": 29044,
+          "utc_start": "2026-12-12T00:00:00Z"
+        },
+        {
+          "event_id": "1992025113739",
+          "club_id": 29044,
+          "utc_start": "2026-12-12T02:30:00Z"
+        },
+        {
+          "event_id": "1992025512933",
+          "club_id": 29044,
+          "utc_start": "2026-12-13T00:00:00Z"
+        },
+        {
+          "event_id": "1992025741617",
+          "club_id": 29044,
+          "utc_start": "2026-12-13T02:30:00Z"
+        },
+        {
+          "event_id": "1988370728374",
+          "club_id": 29044,
+          "utc_start": "2026-11-08T00:00:00Z"
+        },
+        {
+          "event_id": "1988370965082",
+          "club_id": 29044,
+          "utc_start": "2026-11-08T02:30:00Z"
+        },
+        {
+          "event_id": "1984648931379",
+          "club_id": 29044,
+          "utc_start": "2026-09-26T01:00:00Z"
+        },
+        {
+          "event_id": "1992843402262",
+          "club_id": 29044,
+          "utc_start": "2026-12-20T00:00:00Z"
+        },
+        {
+          "event_id": "1992389456498",
+          "club_id": 29044,
+          "utc_start": "2026-10-25T01:00:00Z"
+        },
+        {
+          "event_id": "1983617902544",
+          "club_id": 29044,
+          "utc_start": "2026-10-16T23:00:00Z"
+        },
+        {
+          "event_id": "1989623073171",
+          "club_id": 29044,
+          "utc_start": "2026-10-30T00:00:00Z"
+        },
+        {
+          "event_id": "1987946101303",
+          "club_id": 29044,
+          "utc_start": "2026-10-23T23:00:00Z"
+        },
+        {
+          "event_id": "1987946460377",
+          "club_id": 29044,
+          "utc_start": "2026-10-24T23:00:00Z"
+        },
+        {
+          "event_id": "1977497911486",
+          "club_id": 29044,
+          "utc_start": "2026-09-26T23:00:00Z"
+        },
+        {
+          "event_id": "1977498507268",
+          "club_id": 29044,
+          "utc_start": "2026-09-27T01:00:00Z"
+        },
+        {
+          "event_id": "1994871891528",
+          "club_id": 29044,
+          "utc_start": "2027-01-24T00:00:00Z"
+        },
+        {
+          "event_id": "1994870785219",
+          "club_id": 29044,
+          "utc_start": "2026-11-22T23:00:00Z"
+        },
+        {
+          "event_id": "1988955016997",
+          "club_id": 29044,
+          "utc_start": "2026-10-17T01:00:00Z"
+        },
+        {
+          "event_id": "1994865248659",
+          "club_id": 29044,
+          "utc_start": "2027-01-16T00:00:00Z"
+        },
+        {
+          "event_id": "1994869485331",
+          "club_id": 29044,
+          "utc_start": "2027-01-16T02:00:00Z"
+        },
+        {
+          "event_id": "1994870569574",
+          "club_id": 29044,
+          "utc_start": "2027-01-17T00:00:00Z"
+        },
+        {
+          "event_id": "1994870476295",
+          "club_id": 29044,
+          "utc_start": "2027-01-17T02:00:00Z"
+        },
+        {
+          "event_id": "1989622831448",
+          "club_id": 29044,
+          "utc_start": "2026-10-24T01:00:00Z"
+        },
+        {
+          "event_id": "1992946790499",
+          "club_id": 29044,
+          "utc_start": "2026-09-27T23:00:00Z"
+        },
+        {
+          "event_id": "1991243122783",
+          "club_id": 29044,
+          "utc_start": "2026-10-02T00:00:00Z"
+        },
+        {
+          "event_id": "1993135980371",
+          "club_id": 29044,
+          "utc_start": "2026-11-13T01:00:00Z"
+        },
+        {
+          "event_id": "1997899246428",
+          "club_id": 29044,
+          "utc_start": "2026-10-25T22:00:00Z"
+        },
+        {
+          "event_id": "1992833194731",
+          "club_id": 29044,
+          "utc_start": "2026-11-14T00:00:00Z"
+        },
+        {
+          "event_id": "1992833686201",
+          "club_id": 29044,
+          "utc_start": "2026-11-14T02:00:00Z"
+        },
+        {
+          "event_id": "1992947752376",
+          "club_id": 29044,
+          "utc_start": "2026-12-04T01:00:00Z"
+        },
+        {
+          "event_id": "1993477139788",
+          "club_id": 29044,
+          "utc_start": "2026-10-14T23:00:00Z"
+        },
+        {
+          "event_id": "1993708816740",
+          "club_id": 29044,
+          "utc_start": "2026-11-07T00:00:00Z"
+        },
+        {
+          "event_id": "1968283994412",
+          "club_id": 29044,
+          "utc_start": "2026-10-02T23:00:00Z"
+        },
+        {
+          "event_id": "1968287117754",
+          "club_id": 29044,
+          "utc_start": "2026-10-03T01:00:00Z"
+        },
+        {
+          "event_id": "1968288663377",
+          "club_id": 29044,
+          "utc_start": "2026-10-03T23:00:00Z"
+        }
+      ],
+      "ticketmaster": [
+        {
+          "event_id": "Z7r9jZ1A7Opvx",
+          "venue_id": "Z7r9jZaAVT",
+          "club_id": 9650,
+          "utc_start": "2026-11-20T04:00:00Z"
+        },
+        {
+          "event_id": "Z7r9jZ1A70taU",
+          "venue_id": "Z7r9jZaAVT",
+          "club_id": 9650,
+          "utc_start": "2026-10-04T03:00:00Z"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "eventbrite": [
+        {
+          "event_id": "1986036142565",
+          "club_id": 29044,
+          "utc_start": "2026-10-10T23:00:00Z"
+        },
+        {
+          "event_id": "1997878900573",
+          "club_id": 29044,
+          "utc_start": "2026-11-21T02:00:00Z"
+        },
+        {
+          "event_id": "1992389014175",
+          "club_id": 29044,
+          "utc_start": "2026-11-16T01:00:00Z"
+        },
+        {
+          "event_id": "1988449141911",
+          "club_id": 29044,
+          "utc_start": "2026-11-28T00:00:00Z"
+        },
+        {
+          "event_id": "1988449216133",
+          "club_id": 29044,
+          "utc_start": "2026-11-28T02:00:00Z"
+        },
+        {
+          "event_id": "1988449252241",
+          "club_id": 29044,
+          "utc_start": "2026-11-29T00:00:00Z"
+        },
+        {
+          "event_id": "1992024956268",
+          "club_id": 29044,
+          "utc_start": "2026-12-12T00:00:00Z"
+        },
+        {
+          "event_id": "1992025113739",
+          "club_id": 29044,
+          "utc_start": "2026-12-12T02:30:00Z"
+        },
+        {
+          "event_id": "1992025512933",
+          "club_id": 29044,
+          "utc_start": "2026-12-13T00:00:00Z"
+        },
+        {
+          "event_id": "1992025741617",
+          "club_id": 29044,
+          "utc_start": "2026-12-13T02:30:00Z"
+        },
+        {
+          "event_id": "1988370728374",
+          "club_id": 29044,
+          "utc_start": "2026-11-08T00:00:00Z"
+        },
+        {
+          "event_id": "1988370965082",
+          "club_id": 29044,
+          "utc_start": "2026-11-08T02:30:00Z"
+        },
+        {
+          "event_id": "1984648931379",
+          "club_id": 29044,
+          "utc_start": "2026-09-26T01:00:00Z"
+        },
+        {
+          "event_id": "1992843402262",
+          "club_id": 29044,
+          "utc_start": "2026-12-20T00:00:00Z"
+        },
+        {
+          "event_id": "1992389456498",
+          "club_id": 29044,
+          "utc_start": "2026-10-25T01:00:00Z"
+        },
+        {
+          "event_id": "1983617902544",
+          "club_id": 29044,
+          "utc_start": "2026-10-16T23:00:00Z"
+        },
+        {
+          "event_id": "1989623073171",
+          "club_id": 29044,
+          "utc_start": "2026-10-30T00:00:00Z"
+        },
+        {
+          "event_id": "1987946101303",
+          "club_id": 29044,
+          "utc_start": "2026-10-23T23:00:00Z"
+        },
+        {
+          "event_id": "1987946460377",
+          "club_id": 29044,
+          "utc_start": "2026-10-24T23:00:00Z"
+        },
+        {
+          "event_id": "1977497911486",
+          "club_id": 29044,
+          "utc_start": "2026-09-26T23:00:00Z"
+        },
+        {
+          "event_id": "1977498507268",
+          "club_id": 29044,
+          "utc_start": "2026-09-27T01:00:00Z"
+        },
+        {
+          "event_id": "1994871891528",
+          "club_id": 29044,
+          "utc_start": "2027-01-24T00:00:00Z"
+        },
+        {
+          "event_id": "1994870785219",
+          "club_id": 29044,
+          "utc_start": "2026-11-22T23:00:00Z"
+        },
+        {
+          "event_id": "1988955016997",
+          "club_id": 29044,
+          "utc_start": "2026-10-17T01:00:00Z"
+        },
+        {
+          "event_id": "1994865248659",
+          "club_id": 29044,
+          "utc_start": "2027-01-16T00:00:00Z"
+        },
+        {
+          "event_id": "1994869485331",
+          "club_id": 29044,
+          "utc_start": "2027-01-16T02:00:00Z"
+        },
+        {
+          "event_id": "1994870569574",
+          "club_id": 29044,
+          "utc_start": "2027-01-17T00:00:00Z"
+        },
+        {
+          "event_id": "1994870476295",
+          "club_id": 29044,
+          "utc_start": "2027-01-17T02:00:00Z"
+        },
+        {
+          "event_id": "1989622831448",
+          "club_id": 29044,
+          "utc_start": "2026-10-24T01:00:00Z"
+        },
+        {
+          "event_id": "1992946790499",
+          "club_id": 29044,
+          "utc_start": "2026-09-27T23:00:00Z"
+        },
+        {
+          "event_id": "1991243122783",
+          "club_id": 29044,
+          "utc_start": "2026-10-02T00:00:00Z"
+        },
+        {
+          "event_id": "1993135980371",
+          "club_id": 29044,
+          "utc_start": "2026-11-13T01:00:00Z"
+        },
+        {
+          "event_id": "1997899246428",
+          "club_id": 29044,
+          "utc_start": "2026-10-25T22:00:00Z"
+        },
+        {
+          "event_id": "1992833194731",
+          "club_id": 29044,
+          "utc_start": "2026-11-14T00:00:00Z"
+        },
+        {
+          "event_id": "1992833686201",
+          "club_id": 29044,
+          "utc_start": "2026-11-14T02:00:00Z"
+        },
+        {
+          "event_id": "1992947752376",
+          "club_id": 29044,
+          "utc_start": "2026-12-04T01:00:00Z"
+        },
+        {
+          "event_id": "1993477139788",
+          "club_id": 29044,
+          "utc_start": "2026-10-14T23:00:00Z"
+        },
+        {
+          "event_id": "1993708816740",
+          "club_id": 29044,
+          "utc_start": "2026-11-07T00:00:00Z"
+        },
+        {
+          "event_id": "1968283994412",
+          "club_id": 29044,
+          "utc_start": "2026-10-02T23:00:00Z"
+        },
+        {
+          "event_id": "1968287117754",
+          "club_id": 29044,
+          "utc_start": "2026-10-03T01:00:00Z"
+        },
+        {
+          "event_id": "1968288663377",
+          "club_id": 29044,
+          "utc_start": "2026-10-03T23:00:00Z"
+        }
+      ],
+      "ticketmaster": [
+        {
+          "event_id": "Z7r9jZ1A7Opvx",
+          "venue_id": "Z7r9jZaAVT",
+          "club_id": 9650,
+          "utc_start": "2026-11-20T04:00:00Z"
+        },
+        {
+          "event_id": "Z7r9jZ1A70taU",
+          "venue_id": "Z7r9jZaAVT",
+          "club_id": 9650,
+          "utc_start": "2026-10-04T03:00:00Z"
+        }
+      ]
+    }
+  ],
+  "captured_ticketmaster_inputs": [
+    {
+      "name": "Nikki Glaser",
+      "type": "event",
+      "id": "Z7r9jZ1A7Opvx",
+      "test": false,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7Opvx",
+      "locale": "en-us",
+      "images": [
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_TABLET_LANDSCAPE_3_2.jpg",
+          "width": 1024,
+          "height": 683,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_RETINA_PORTRAIT_16_9.jpg",
+          "width": 640,
+          "height": 360,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_EVENT_DETAIL_PAGE_16_9.jpg",
+          "width": 205,
+          "height": 115,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_SOURCE",
+          "width": 2426,
+          "height": 1365,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_TABLET_LANDSCAPE_16_9.jpg",
+          "width": 1024,
+          "height": 576,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_RETINA_LANDSCAPE_16_9.jpg",
+          "width": 1136,
+          "height": 639,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_RETINA_PORTRAIT_3_2.jpg",
+          "width": 640,
+          "height": 427,
+          "fallback": false
+        },
+        {
+          "ratio": "4_3",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_CUSTOM.jpg",
+          "width": 305,
+          "height": 225,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_RECOMENDATION_16_9.jpg",
+          "width": 100,
+          "height": 56,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+          "width": 2048,
+          "height": 1152,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_ARTIST_PAGE_3_2.jpg",
+          "width": 305,
+          "height": 203,
+          "fallback": false
+        }
+      ],
+      "sales": {
+        "public": {
+          "startDateTime": "2026-01-09T18:00:00Z",
+          "startTBD": false,
+          "startTBA": false,
+          "endDateTime": "2026-11-20T04:00:00Z"
+        }
+      },
+      "dates": {
+        "start": {
+          "localDate": "2026-11-19",
+          "localTime": "20:00:00",
+          "dateTime": "2026-11-20T04:00:00Z",
+          "dateTBD": false,
+          "dateTBA": false,
+          "timeTBA": false,
+          "noSpecificTime": false
+        },
+        "status": {
+          "code": "onsale"
+        },
+        "spanMultipleDays": false
+      },
+      "classifications": [
+        {
+          "primary": true,
+          "segment": {
+            "id": "KZFzniwnSyZfZ7v7na",
+            "name": "Arts & Theatre"
+          },
+          "family": false
+        }
+      ],
+      "outlets": [
+        {
+          "url": "https://yaamava.com/yaamava-theater",
+          "type": "venueBoxOffice"
+        },
+        {
+          "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7Opvx",
+          "type": "tmMarketPlace"
+        }
+      ],
+      "ticketing": {
+        "allInclusivePricing": {
+          "enabled": true
+        }
+      },
+      "nameOrigin": "custom",
+      "_links": {
+        "self": {
+          "href": "/discovery/v2/events/Z7r9jZ1A7Opvx?locale=en-us"
+        },
+        "attractions": [
+          {
+            "href": "/discovery/v2/attractions/K8vZ917uwA7?locale=en-us"
+          }
+        ],
+        "venues": [
+          {
+            "href": "/discovery/v2/venues/Z7r9jZaAVT?locale=en-us"
+          }
+        ]
+      },
+      "_embedded": {
+        "venues": [
+          {
+            "name": "Yaamava Theater",
+            "type": "venue",
+            "id": "Z7r9jZaAVT",
+            "test": false,
+            "locale": "en-us",
+            "postalCode": "92346",
+            "timezone": "America/Los_Angeles",
+            "city": {
+              "name": "Highland"
+            },
+            "state": {
+              "name": "California",
+              "stateCode": "CA"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "777 San Manuel Blvd S"
+            },
+            "location": {
+              "longitude": "-117.153198000",
+              "latitude": "34.135300000"
+            },
+            "dmas": [
+              {
+                "id": 324
+              }
+            ],
+            "upcomingEvents": {
+              "tmr": 42,
+              "_total": 42,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/Z7r9jZaAVT?locale=en-us"
+              }
+            }
+          }
+        ],
+        "attractions": [
+          {
+            "name": "Nikki Glaser",
+            "type": "attraction",
+            "id": "K8vZ917uwA7",
+            "test": false,
+            "url": "https://www.ticketmaster.com/nikki-glaser-tickets/artist/1536543",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/aa7/8d4eeca4-892c-4aa1-a2d1-f7e9032f6aa7_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7nI",
+                  "name": "Undefined"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7v7lJ",
+                  "name": "Undefined"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "tmr": 10,
+              "ticketmaster": 25,
+              "_total": 35,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ917uwA7?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Ron White",
+      "type": "event",
+      "id": "Z7r9jZ1A70taU",
+      "test": false,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A70taU",
+      "locale": "en-us",
+      "images": [
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+          "width": 2048,
+          "height": 1152,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_RETINA_PORTRAIT_3_2.jpg",
+          "width": 640,
+          "height": 427,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_SOURCE",
+          "width": 2426,
+          "height": 1365,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_TABLET_LANDSCAPE_16_9.jpg",
+          "width": 1024,
+          "height": 576,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_RETINA_LANDSCAPE_16_9.jpg",
+          "width": 1136,
+          "height": 639,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_RECOMENDATION_16_9.jpg",
+          "width": 100,
+          "height": 56,
+          "fallback": false
+        },
+        {
+          "ratio": "4_3",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_CUSTOM.jpg",
+          "width": 305,
+          "height": 225,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_RETINA_PORTRAIT_16_9.jpg",
+          "width": 640,
+          "height": 360,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_TABLET_LANDSCAPE_3_2.jpg",
+          "width": 1024,
+          "height": 683,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_ARTIST_PAGE_3_2.jpg",
+          "width": 305,
+          "height": 203,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_EVENT_DETAIL_PAGE_16_9.jpg",
+          "width": 205,
+          "height": 115,
+          "fallback": false
+        }
+      ],
+      "sales": {
+        "public": {
+          "startDateTime": "1900-01-01T06:00:00Z",
+          "startTBD": false,
+          "startTBA": false,
+          "endDateTime": "2026-10-04T03:00:00Z"
+        }
+      },
+      "dates": {
+        "start": {
+          "localDate": "2026-10-03",
+          "localTime": "20:00:00",
+          "dateTime": "2026-10-04T03:00:00Z",
+          "dateTBD": false,
+          "dateTBA": false,
+          "timeTBA": false,
+          "noSpecificTime": false
+        },
+        "status": {
+          "code": "onsale"
+        },
+        "spanMultipleDays": false
+      },
+      "classifications": [
+        {
+          "primary": true,
+          "segment": {
+            "id": "KZFzniwnSyZfZ7v7na",
+            "name": "Arts & Theatre"
+          },
+          "family": false
+        }
+      ],
+      "outlets": [
+        {
+          "url": "https://yaamava.com/yaamava-theater",
+          "type": "venueBoxOffice"
+        },
+        {
+          "url": "https://www.ticketmaster.com/event/Z7r9jZ1A70taU",
+          "type": "tmMarketPlace"
+        }
+      ],
+      "ticketing": {
+        "allInclusivePricing": {
+          "enabled": true
+        }
+      },
+      "nameOrigin": "custom",
+      "_links": {
+        "self": {
+          "href": "/discovery/v2/events/Z7r9jZ1A70taU?locale=en-us"
+        },
+        "attractions": [
+          {
+            "href": "/discovery/v2/attractions/K8vZ9175OV0?locale=en-us"
+          }
+        ],
+        "venues": [
+          {
+            "href": "/discovery/v2/venues/Z7r9jZaAVT?locale=en-us"
+          }
+        ]
+      },
+      "_embedded": {
+        "venues": [
+          {
+            "name": "Yaamava Theater",
+            "type": "venue",
+            "id": "Z7r9jZaAVT",
+            "test": false,
+            "locale": "en-us",
+            "postalCode": "92346",
+            "timezone": "America/Los_Angeles",
+            "city": {
+              "name": "Highland"
+            },
+            "state": {
+              "name": "California",
+              "stateCode": "CA"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "777 San Manuel Blvd S"
+            },
+            "location": {
+              "longitude": "-117.153198000",
+              "latitude": "34.135300000"
+            },
+            "dmas": [
+              {
+                "id": 324
+              }
+            ],
+            "upcomingEvents": {
+              "tmr": 42,
+              "_total": 42,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/Z7r9jZaAVT?locale=en-us"
+              }
+            }
+          }
+        ],
+        "attractions": [
+          {
+            "name": "Ron White",
+            "type": "attraction",
+            "id": "K8vZ9175OV0",
+            "test": false,
+            "url": "https://www.ticketmaster.com/ron-white-tickets/artist/764591",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/285/636a6b15-758f-487c-81d0-d829cbe3e285_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7nI",
+                  "name": "Undefined"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7v7lJ",
+                  "name": "Undefined"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "tmr": 7,
+              "ticketmaster": 7,
+              "_total": 14,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ9175OV0?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "passed": true,
+  "sql_select_calls": 7,
+  "upsert_calls": 0,
+  "show_persistence_calls": 0,
+  "read_only_transaction_closed": true
+}

@@ -1,0 +1,219 @@
+{
+  "checked_at": "2026-09-24T19:54:45.812411+00:00",
+  "confirmed_show_rows_removed": 58,
+  "retained_canonical_shows": 58,
+  "folds": {
+    "5115": 5114,
+    "5225": 5364,
+    "10023": 12796
+  },
+  "remaining_cross_venue_future_url_clusters": 0,
+  "all_committed_after_rows_preserved": true,
+  "backup_mode": "0o600",
+  "backup_bytes": 20223936,
+  "before_counts": {
+    "club_aliases": 0,
+    "club_discovery_profiles": 0,
+    "club_image_assets": 0,
+    "clubs": 10,
+    "comedians": 7,
+    "discovery_show_feature_snapshots": 0,
+    "email_subscriptions": 0,
+    "eventbrite_organizer_venues": 0,
+    "favorite_clubs": 0,
+    "lineup_items": 218,
+    "processed_emails": 0,
+    "production_company_venues": 0,
+    "saved_shows": 0,
+    "scraper_run_clubs": 963,
+    "scraping_sources": 15,
+    "sent_notifications": 4,
+    "shows": 381,
+    "tagged_clubs": 0,
+    "tagged_shows": 1585,
+    "ticket_purchase_click_events": 7332,
+    "tickets": 381
+  },
+  "after_counts": {
+    "club_aliases": 3,
+    "club_discovery_profiles": 0,
+    "club_image_assets": 0,
+    "clubs": 10,
+    "comedians": 7,
+    "discovery_show_feature_snapshots": 0,
+    "email_subscriptions": 0,
+    "eventbrite_organizer_venues": 0,
+    "favorite_clubs": 0,
+    "lineup_items": 166,
+    "processed_emails": 0,
+    "production_company_venues": 0,
+    "saved_shows": 0,
+    "scraper_run_clubs": 963,
+    "scraping_sources": 15,
+    "sent_notifications": 4,
+    "shows": 323,
+    "tagged_clubs": 0,
+    "tagged_shows": 1368,
+    "ticket_purchase_click_events": 7332,
+    "tickets": 323
+  },
+  "current_show_counts": [
+    {
+      "club_id": 575,
+      "future_shows": 16,
+      "all_shows": 205
+    },
+    {
+      "club_id": 4691,
+      "future_shows": 0,
+      "all_shows": 9
+    },
+    {
+      "club_id": 5114,
+      "future_shows": 1,
+      "all_shows": 2
+    },
+    {
+      "club_id": 5115,
+      "future_shows": 0,
+      "all_shows": 1
+    },
+    {
+      "club_id": 5225,
+      "future_shows": 0,
+      "all_shows": 4
+    },
+    {
+      "club_id": 5364,
+      "future_shows": 2,
+      "all_shows": 6
+    },
+    {
+      "club_id": 9650,
+      "future_shows": 5,
+      "all_shows": 8
+    },
+    {
+      "club_id": 10023,
+      "future_shows": 0,
+      "all_shows": 3
+    },
+    {
+      "club_id": 12796,
+      "future_shows": 13,
+      "all_shows": 15
+    },
+    {
+      "club_id": 29044,
+      "future_shows": 41,
+      "all_shows": 70
+    }
+  ],
+  "sources": [
+    {
+      "id": 401,
+      "club_id": 575,
+      "enabled": true,
+      "priority": 0,
+      "ticketmaster_id": null
+    },
+    {
+      "id": 3781,
+      "club_id": 4691,
+      "enabled": false,
+      "priority": 0,
+      "ticketmaster_id": "ZFr9jZAvFe"
+    },
+    {
+      "id": 4204,
+      "club_id": 5114,
+      "enabled": false,
+      "priority": 0,
+      "ticketmaster_id": "ZFr9jZAv7d"
+    },
+    {
+      "id": 4205,
+      "club_id": 5114,
+      "enabled": false,
+      "priority": 2,
+      "ticketmaster_id": "KovZpZA1JdvA"
+    },
+    {
+      "id": 4315,
+      "club_id": 5364,
+      "enabled": false,
+      "priority": 2,
+      "ticketmaster_id": "ZFr9jZ7dae"
+    },
+    {
+      "id": 4454,
+      "club_id": 5364,
+      "enabled": false,
+      "priority": 0,
+      "ticketmaster_id": "KovZpaKkke"
+    },
+    {
+      "id": 6450,
+      "club_id": 9650,
+      "enabled": true,
+      "priority": 0,
+      "ticketmaster_id": "Z7r9jZaAVT"
+    },
+    {
+      "id": 6780,
+      "club_id": 12796,
+      "enabled": false,
+      "priority": 1,
+      "ticketmaster_id": "KovZpZA7dtvA"
+    },
+    {
+      "id": 7154,
+      "club_id": 12796,
+      "enabled": true,
+      "priority": 0,
+      "ticketmaster_id": "ZFr9jZdk16"
+    },
+    {
+      "id": 7950,
+      "club_id": 4691,
+      "enabled": true,
+      "priority": 1,
+      "ticketmaster_id": "ZFr9jZAvFe"
+    },
+    {
+      "id": 8092,
+      "club_id": 5114,
+      "enabled": false,
+      "priority": 3,
+      "ticketmaster_id": "KovZpZA1JdvA"
+    },
+    {
+      "id": 8249,
+      "club_id": 5364,
+      "enabled": false,
+      "priority": 3,
+      "ticketmaster_id": "ZFr9jZ7dae"
+    },
+    {
+      "id": 8374,
+      "club_id": 5364,
+      "enabled": true,
+      "priority": 1,
+      "ticketmaster_id": "KovZpaKkke"
+    },
+    {
+      "id": 9973,
+      "club_id": 29044,
+      "enabled": true,
+      "priority": 0,
+      "ticketmaster_id": null
+    },
+    {
+      "id": 13027,
+      "club_id": 5114,
+      "enabled": true,
+      "priority": 1,
+      "ticketmaster_id": "ZFr9jZAv7d"
+    }
+  ]
+}

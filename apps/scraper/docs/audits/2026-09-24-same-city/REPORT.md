@@ -34,4 +34,28 @@ Historical shows, scrape history and historical click attribution remain on reta
 
 ## Execution and verification
 
-Pending guarded PostgreSQL fixture tests, production dry-run, application, and subsequent source-routing verification. Final results will be recorded before task completion.
+The guarded production dry-run passed and rolled back. The same plan then committed on September 24, 2026. A private 0600 recovery file was written and fsynced before commit at `~/.tusk/backups/laughtrack/task4049-recovery.json` (20,223,936 bytes). It contains user-reference rows and must stay private.
+
+Production verification at 19:54 UTC found:
+
+- **58 stale show rows removed**, all 58 enumerated survivors retained; cohort totals 381 → 323 shows.
+- **Zero remaining cross-venue future URL clusters** among the ten audited clubs (previously 33).
+- **Three verified aliases added**, all 15 source records retained, and duplicate source IDs routed onto their canonical venues while disabled.
+- **All 7,332 click records preserved**, with merged future-show references repointed. All 963 scrape-run records and four historical notifications preserved.
+- Ticket rows 381 → 323, lineup associations 218 → 166, and tag associations 1,585 → 1,368 after duplicate consolidation. Existing canonical ticket types and lineup roles win conflicts; superseded values remain recoverable in the private backup. No favorite-club or saved-show rows existed in this cohort; newly appearing unreviewed club relationships cause refusal.
+- Every committed after-state row was still present with matching values. Historical show and attribution rows were retained. Sixteen unconfirmed Attic future rows remain for TASK-4079.
+
+`production-verification.json` records sanitized counts and source disposition. `refresh-verification.json` records two repeated post-repair source replays: 41 Eventbrite events route to Walrus 29044 and both reviewed Yaamava events to Theater 9650, with exact source UTC starts. The helper uses real parsing, organizer routing and read-only production venue lookup; it substitutes captured API data and performs no show writes. It therefore proves repeatable routing, not a full live scheduler/persistence run.
+
+Seventeen real PostgreSQL tests passed, covering 58 merges, exact restore, idempotence, reference preservation, schema/identity drift refusal, and repeated execution of the actual Ticketmaster venue UPSERT for both old and canonical IDs. Those refreshes retained the repaired canonical/source state. Together with captured current-source routing, these checks establish that the reviewed input reproduces canonical assignments. Future provider changes remain subject to normal monitoring.
+
+The database-domain web gate had 2,408 passing tests and three unrelated failures in saved-show header tests. Three unchanged-HEAD precheck runs reproduced all three failures without flakiness or default-branch divergence. This existing expired-date fixture issue is **TASK-3983**; fresh evidence was attached there. The documented Tusk path-limited commit fallback was used.
+
+Reproduce the targeted checks from `apps/scraper`:
+
+```sh
+TEST_DATABASE_URL=postgresql://localhost:55444/postgres PYTHONPATH=src:. .venv/bin/python -m pytest tests/scripts/core/test_repair_same_city_assignments.py -q
+PYTHONPATH=src:. .venv/bin/python docs/audits/2026-09-24-same-city/verify_source_refresh.py
+```
+
+The first command requires a local PostgreSQL fixture database. The second uses the scraper environment for read-only production lookup and rewrites the replay result. Recovery is deliberately guarded: subsequent activity can make automatic restore refuse, requiring a reviewed reconciliation rather than overwriting new data.
