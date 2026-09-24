@@ -1,0 +1,44 @@
+{
+  "task_id": 4048,
+  "production_apply_succeeded": true,
+  "post_apply_dry_run": "validated; no further changes",
+  "backup_mode": "0o600",
+  "mapping": {
+    "3804632": 6085454,
+    "3804633": 6085457,
+    "3804634": 6085458,
+    "3804636": 6085461,
+    "3804637": 6085462,
+    "3804638": 6085463,
+    "5729638": 6085460,
+    "5916131": 6085459,
+    "6029204": 6085451,
+    "6029205": 6670869,
+    "6029206": 6085452,
+    "6029208": 6085455,
+    "6029209": 6085456,
+    "6085453": 6085452,
+    "6670870": 6085452,
+    "6867495": 6085452
+  },
+  "before_counts": {
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 14,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "shows": 29,
+    "tagged_shows": 44,
+    "ticket_purchase_click_events": 299,
+    "tickets": 29
+  },
+  "after_counts": {
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 7,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "shows": 13,
+    "tagged_shows": 19,
+    "ticket_purchase_click_events": 299,
+    "tickets": 13
+  }
+}

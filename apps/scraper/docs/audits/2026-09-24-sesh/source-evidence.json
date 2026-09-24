@@ -1,0 +1,1346 @@
+{
+  "retrieved_at": "2026-09-24T19:05:14.988496+00:00",
+  "feed_url": "https://www.seshcomedy.com/feed.php",
+  "same_name_time_groups": [
+    [
+      {
+        "id": 5060313,
+        "name": "8/30 Lev Fer & Friends - 7:30 PM",
+        "date": "2026-08-30 23:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=4ODQX5AIZQMSFTCELXNBLRSR",
+        "first_discovered_at": "2026-08-06 23:07:29.699383+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909150+00:00"
+      },
+      {
+        "id": 6085434,
+        "name": "8/30 Lev Fer & Friends - 7:30 PM",
+        "date": "2026-08-30 23:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=4ODQX5AIZQMSFTCELXNBLRSR",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-08-29 21:11:44.512625+00:00"
+      }
+    ],
+    [
+      {
+        "id": 5508211,
+        "name": "8/31 Fishin 4 Luv - 8:30 PM",
+        "date": "2026-09-01 00:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=HFAXAOEN3FDN262TLYKZMSWX",
+        "first_discovered_at": "2026-08-14 21:48:23.234566+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909152+00:00"
+      },
+      {
+        "id": 6085435,
+        "name": "8/31 Fishin 4 Luv - 8:30 PM",
+        "date": "2026-09-01 00:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=HFAXAOEN3FDN262TLYKZMSWX",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-08-30 21:20:05.619221+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029189,
+        "name": "9/4 Friday Night SESH Showcase - 8:00 PM",
+        "date": "2026-09-05 00:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=XL47BE2SSSAZAMXHVIR72WFR",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909154+00:00"
+      },
+      {
+        "id": 6085436,
+        "name": "9/4 Friday Night SESH Showcase - 8:00 PM",
+        "date": "2026-09-05 00:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=XL47BE2SSSAZAMXHVIR72WFR",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-03 23:02:18.203050+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029190,
+        "name": "9/4 Friday Night SESH Showcase - 9:30 PM",
+        "date": "2026-09-05 01:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=ELNTHUOBQTTVIQZOTSVEVHRP",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909156+00:00"
+      },
+      {
+        "id": 6085437,
+        "name": "9/4 Friday Night SESH Showcase - 9:30 PM",
+        "date": "2026-09-05 01:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=ELNTHUOBQTTVIQZOTSVEVHRP",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-04 22:50:20.316838+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029191,
+        "name": "9/5 Saturday Night SESH Showcase - 8:00 PM",
+        "date": "2026-09-06 00:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=QZPWIIZRA6UVZU6TAVADOW7C",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909159+00:00"
+      },
+      {
+        "id": 6085438,
+        "name": "9/5 Saturday Night SESH Showcase - 8:00 PM",
+        "date": "2026-09-06 00:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=QZPWIIZRA6UVZU6TAVADOW7C",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-05 23:00:28.054598+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029192,
+        "name": "9/5 Saturday Night SESH Showcase - 9:30 PM",
+        "date": "2026-09-06 01:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=OCPUDBTUCEZDE6DN4JKBCBTQ",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909161+00:00"
+      },
+      {
+        "id": 6085439,
+        "name": "9/5 Saturday Night SESH Showcase - 9:30 PM",
+        "date": "2026-09-06 01:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=OCPUDBTUCEZDE6DN4JKBCBTQ",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-05 23:00:28.054610+00:00"
+      }
+    ],
+    [
+      {
+        "id": 3804629,
+        "name": "9/10 Daniela Mora - 7:00 PM",
+        "date": "2026-09-10 23:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=FCLNRFSLKADJBOI2PZNMFDUF",
+        "first_discovered_at": "2026-07-06 18:45:52.974873+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909163+00:00"
+      },
+      {
+        "id": 6085440,
+        "name": "9/10 Daniela Mora - 7:00 PM",
+        "date": "2026-09-10 23:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=FCLNRFSLKADJBOI2PZNMFDUF",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-09 23:04:55.172493+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029195,
+        "name": "9/11 Friday Night SESH Showcase - 8:00 PM",
+        "date": "2026-09-12 00:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=75ZYSCCKC6MBYWK33TZBQMYQ",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909167+00:00"
+      },
+      {
+        "id": 6085442,
+        "name": "9/11 Friday Night SESH Showcase - 8:00 PM",
+        "date": "2026-09-12 00:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=75ZYSCCKC6MBYWK33TZBQMYQ",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-11 23:03:01.849074+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029196,
+        "name": "9/11 Friday Night SESH Showcase - 9:30 PM",
+        "date": "2026-09-12 01:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=HUVIOB32OE4U57YDMM7LF5EE",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909169+00:00"
+      },
+      {
+        "id": 6085443,
+        "name": "9/11 Friday Night SESH Showcase - 9:30 PM",
+        "date": "2026-09-12 01:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=HUVIOB32OE4U57YDMM7LF5EE",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-11 23:03:01.849092+00:00"
+      }
+    ],
+    [
+      {
+        "id": 3804630,
+        "name": "9/12 Dan Toomey & Industry Connections - 7:00 PM",
+        "date": "2026-09-12 23:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=4BIWLG6JQZ4IB4RVV7YFMKBM",
+        "first_discovered_at": "2026-07-06 18:45:52.974873+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909171+00:00"
+      },
+      {
+        "id": 6085444,
+        "name": "9/12 Dan Toomey & Industry Connections - 7:00 PM",
+        "date": "2026-09-12 23:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=4BIWLG6JQZ4IB4RVV7YFMKBM",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-12 22:54:25.006838+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029198,
+        "name": "9/12 Saturday Night SESH Showcase - 8:30 PM",
+        "date": "2026-09-13 00:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=5E5FCUPFDYF6NPGKHSUIVLNG",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909173+00:00"
+      },
+      {
+        "id": 6085445,
+        "name": "9/12 Saturday Night SESH Showcase - 8:30 PM",
+        "date": "2026-09-13 00:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=5E5FCUPFDYF6NPGKHSUIVLNG",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-12 22:54:25.006848+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029199,
+        "name": "9/12 Saturday Night SESH Showcase - 10:00 PM",
+        "date": "2026-09-13 02:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=BY4JW62JG5IAW743U7A7AZ3Q",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909175+00:00"
+      },
+      {
+        "id": 6085446,
+        "name": "9/12 Saturday Night SESH Showcase - 10:00 PM",
+        "date": "2026-09-13 02:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=BY4JW62JG5IAW743U7A7AZ3Q",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-11 23:03:01.849104+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029202,
+        "name": "9/19 Saturday Night SESH Showcase - 8:00 PM",
+        "date": "2026-09-20 00:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=IE44DYB2WP3FTSAOECMUYA7L",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909181+00:00"
+      },
+      {
+        "id": 6085449,
+        "name": "9/19 Saturday Night SESH Showcase - 8:00 PM",
+        "date": "2026-09-20 00:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=IE44DYB2WP3FTSAOECMUYA7L",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-19 22:48:31.125611+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029203,
+        "name": "9/19 Saturday Night SESH Showcase - 9:30 PM",
+        "date": "2026-09-20 01:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=6BMNA33BY3N5PXSN5GHVPJMT",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909183+00:00"
+      },
+      {
+        "id": 6085450,
+        "name": "9/19 Saturday Night SESH Showcase - 9:30 PM",
+        "date": "2026-09-20 01:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=6BMNA33BY3N5PXSN5GHVPJMT",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-19 22:48:31.125624+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029204,
+        "name": "9/24 Sienna Hubert-Ross - 7:00 PM",
+        "date": "2026-09-24 23:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=FWI4R5LBKFB6JEX3C2QCGKDW",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909185+00:00"
+      },
+      {
+        "id": 6085451,
+        "name": "9/24 Sienna Hubert-Ross - 7:00 PM",
+        "date": "2026-09-24 23:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=FWI4R5LBKFB6JEX3C2QCGKDW",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344664+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029205,
+        "name": "9/25 Friday Night SESH Showcase - 8:30 PM",
+        "date": "2026-09-26 00:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=VKXCPHUZYZ3LCQ7HOVOR2LJC",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909187+00:00"
+      },
+      {
+        "id": 6085452,
+        "name": "9/25 Friday Night SESH Showcase - 8:30 PM",
+        "date": "2026-09-26 00:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=K37YUZEWA5WKBHQGHIJ6JAKU",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344675+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029206,
+        "name": "9/25 Friday Night SESH Showcase - 10:00 PM",
+        "date": "2026-09-26 02:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=K37YUZEWA5WKBHQGHIJ6JAKU",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909189+00:00"
+      },
+      {
+        "id": 6085453,
+        "name": "9/25 Friday Night SESH Showcase - 10:00 PM",
+        "date": "2026-09-26 02:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=K37YUZEWA5WKBHQGHIJ6JAKU",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-07 23:20:27.340713+00:00"
+      }
+    ],
+    [
+      {
+        "id": 3804632,
+        "name": "9/26 I Need This w/ Faith Ladzinski, Nick Tittone & Anderson Gronvold - 7:00 PM",
+        "date": "2026-09-26 23:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=4NVM5GA4GAEIBDHWHH72PPEV",
+        "first_discovered_at": "2026-07-06 18:45:52.974873+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909191+00:00"
+      },
+      {
+        "id": 6085454,
+        "name": "9/26 I Need This w/ Faith Ladzinski, Nick Tittone & Anderson Gronvold - 7:00 PM",
+        "date": "2026-09-26 23:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=4NVM5GA4GAEIBDHWHH72PPEV",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344679+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029208,
+        "name": "9/26 Saturday Night SESH Showcase - 8:30 PM",
+        "date": "2026-09-27 00:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=QTZKDYZZYV3HUS7LMM2NCSWH",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909193+00:00"
+      },
+      {
+        "id": 6085455,
+        "name": "9/26 Saturday Night SESH Showcase - 8:30 PM",
+        "date": "2026-09-27 00:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=QTZKDYZZYV3HUS7LMM2NCSWH",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344681+00:00"
+      }
+    ],
+    [
+      {
+        "id": 6029209,
+        "name": "9/26 Saturday Night SESH Showcase - 10:00 PM",
+        "date": "2026-09-27 02:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=5UHKPS6WXUFEZEZHWKIM4IP3",
+        "first_discovered_at": "2026-08-26 22:24:39.348067+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909195+00:00"
+      },
+      {
+        "id": 6085456,
+        "name": "9/26 Saturday Night SESH Showcase - 10:00 PM",
+        "date": "2026-09-27 02:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=5UHKPS6WXUFEZEZHWKIM4IP3",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344684+00:00"
+      }
+    ],
+    [
+      {
+        "id": 3804633,
+        "name": "10/2 Hassan Phills - 7:00 PM",
+        "date": "2026-10-02 23:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=Z7NVLZCJTKCQ6CMFO4H3AAM4",
+        "first_discovered_at": "2026-07-06 18:45:52.974873+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909197+00:00"
+      },
+      {
+        "id": 6085457,
+        "name": "10/2 Hassan Phills - 7:00 PM",
+        "date": "2026-10-02 23:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=Z7NVLZCJTKCQ6CMFO4H3AAM4",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344686+00:00"
+      }
+    ],
+    [
+      {
+        "id": 3804634,
+        "name": "10/3 Hassan Phills - 7:00 PM",
+        "date": "2026-10-03 23:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=K3UAYGXIY3NK3LYEXSNI7TX2",
+        "first_discovered_at": "2026-07-06 18:45:52.974873+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909199+00:00"
+      },
+      {
+        "id": 6085458,
+        "name": "10/3 Hassan Phills - 7:00 PM",
+        "date": "2026-10-03 23:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=K3UAYGXIY3NK3LYEXSNI7TX2",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344690+00:00"
+      }
+    ],
+    [
+      {
+        "id": 5916131,
+        "name": "11/12 Chris Higgins - 7:00 PM",
+        "date": "2026-11-13 00:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=4MCZ6MAVAHBD5N3IWA43AHFV",
+        "first_discovered_at": "2026-08-24 21:14:01.265052+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909201+00:00"
+      },
+      {
+        "id": 6085459,
+        "name": "11/12 Chris Higgins - 7:00 PM",
+        "date": "2026-11-13 00:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=4MCZ6MAVAHBD5N3IWA43AHFV",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344720+00:00"
+      }
+    ],
+    [
+      {
+        "id": 5729638,
+        "name": "11/14 Daniela Mora - 7:00 PM",
+        "date": "2026-11-15 00:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=2QNE5JYOPML2VPIMD6RXEFMH",
+        "first_discovered_at": "2026-08-20 21:22:51.574517+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909203+00:00"
+      },
+      {
+        "id": 6085460,
+        "name": "11/14 Daniela Mora - 7:00 PM",
+        "date": "2026-11-15 00:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=2QNE5JYOPML2VPIMD6RXEFMH",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344724+00:00"
+      }
+    ],
+    [
+      {
+        "id": 3804636,
+        "name": "11/21 Dan Toomey & Industry Connections - 7:00 PM",
+        "date": "2026-11-22 00:00:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=YAC36MNZFE7LEPLW5AYVRYCL",
+        "first_discovered_at": "2026-07-06 18:45:52.974873+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909205+00:00"
+      },
+      {
+        "id": 6085461,
+        "name": "11/21 Dan Toomey & Industry Connections - 7:00 PM",
+        "date": "2026-11-22 00:00:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=YAC36MNZFE7LEPLW5AYVRYCL",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344726+00:00"
+      }
+    ],
+    [
+      {
+        "id": 3804637,
+        "name": "Saturday SESH Showcase 11/21",
+        "date": "2026-11-22 01:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=2Y4GJQ5C5PHDB3M5CMD6CUV2",
+        "first_discovered_at": "2026-07-06 18:45:52.974873+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909207+00:00"
+      },
+      {
+        "id": 6085462,
+        "name": "Saturday SESH Showcase 11/21",
+        "date": "2026-11-22 01:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=2Y4GJQ5C5PHDB3M5CMD6CUV2",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-23 23:29:48.344728+00:00"
+      }
+    ],
+    [
+      {
+        "id": 3804638,
+        "name": "3/14 Late Sesh Showcase - 9:30 PM",
+        "date": "2027-03-15 01:30:00+00:00",
+        "room": "140 Eldridge - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=BSV2ZNJW3DJSCVB7WRPK7B6K",
+        "first_discovered_at": "2026-07-06 18:45:52.974873+00:00",
+        "last_scraped_date": "2026-08-26 22:24:38.909209+00:00"
+      },
+      {
+        "id": 6085463,
+        "name": "3/14 Late Sesh Showcase - 9:30 PM",
+        "date": "2027-03-15 01:30:00+00:00",
+        "room": "55 Chrystie - SESH Comedy",
+        "show_page_url": "https://www.seshcomedy.com/event-detail.php?id=BSV2ZNJW3DJSCVB7WRPK7B6K",
+        "first_discovered_at": "2026-08-28 00:26:03.529161+00:00",
+        "last_scraped_date": "2026-09-11 23:03:01.849223+00:00"
+      }
+    ]
+  ],
+  "feed": [
+    {
+      "title": "9/24 Sienna Hubert-Ross - 7:00 PM",
+      "start": "2026-09-24T19:00:00",
+      "url": "event-detail.php?id=FWI4R5LBKFB6JEX3C2QCGKDW",
+      "extendedProps": {
+        "desc": "Sienna Hubert-Ross LIVE at SESH Comedy - 70 minute show - BYOB Friendly ($7 fee)",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/7e1f1af4f614c602396ac373e142d028ae51292a/original.jpeg",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Thursday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "A4KU5ZDRBPW6IJR7RV3CJLX7"
+        ],
+        "categoryNames": [
+          "Events",
+          "Sienna Hubert-Ross"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "9/25 Friday Night SESH Showcase - 8:30 PM",
+      "start": "2026-09-25T20:30:00",
+      "url": "event-detail.php?id=K37YUZEWA5WKBHQGHIJ6JAKU",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\nDoors 8:15 PM \u00b7 Show 8:30 PM",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d3d1f4082e10a417443b4681e897337f41573516/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Friday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "9/26 I Need This w/ Faith Ladzinski, Nick Tittone & Anderson Gronvold - 7:00 PM",
+      "start": "2026-09-26T19:00:00",
+      "url": "event-detail.php?id=4NVM5GA4GAEIBDHWHH72PPEV",
+      "extendedProps": {
+        "desc": "I Need This w/ Faith Ladzinski, Nick Tittone & Anderson Gronvold - BYOB Friendly ($7 fee)\n7:00 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/86a356a9be69919508ce16b5cfa146d6b538b46c/original.jpeg",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "EJV7U4TL4SDODMZXXTDJ4KIT"
+        ],
+        "categoryNames": [
+          "Events",
+          "I Need This"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "9/26 Saturday Night SESH Showcase - 8:30 PM",
+      "start": "2026-09-26T20:30:00",
+      "url": "event-detail.php?id=QTZKDYZZYV3HUS7LMM2NCSWH",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n8:30 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "9/26 Saturday Night SESH Showcase - 10:00 PM",
+      "start": "2026-09-26T22:00:00",
+      "url": "event-detail.php?id=5UHKPS6WXUFEZEZHWKIM4IP3",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n10:00 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/2 Hassan Phills - 7:00 PM",
+      "start": "2026-10-02T19:00:00",
+      "url": "event-detail.php?id=Z7NVLZCJTKCQ6CMFO4H3AAM4",
+      "extendedProps": {
+        "desc": "Hassan Phills LIVE at SESH Comedy - BYOB Friendly ($7 fee)",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/bb183628d4060d0d3dcc10252e7c8b08e6076619/original.jpeg",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Friday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "S6343M5CTHGHB45V6KBXJ4OJ"
+        ],
+        "categoryNames": [
+          "Events",
+          "Hassan Phills"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/2 Friday Night SESH Showcase - 8:30 PM",
+      "start": "2026-10-02T20:30:00",
+      "url": "event-detail.php?id=AKHEJ6C3WK44AY2QJQ4QQR26",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\nDoors 8:15 PM \u00b7 Show 8:30 PM",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d3d1f4082e10a417443b4681e897337f41573516/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Friday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/3 Hassan Phills - 7:00 PM",
+      "start": "2026-10-03T19:00:00",
+      "url": "event-detail.php?id=K3UAYGXIY3NK3LYEXSNI7TX2",
+      "extendedProps": {
+        "desc": "Hassan Phills LIVE at SESH Comedy - BYOB Friendly ($7 fee)",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/bb183628d4060d0d3dcc10252e7c8b08e6076619/original.jpeg",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "S6343M5CTHGHB45V6KBXJ4OJ"
+        ],
+        "categoryNames": [
+          "Events",
+          "Hassan Phills"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/3 Saturday Night SESH Showcase - 8:30 PM",
+      "start": "2026-10-03T20:30:00",
+      "url": "event-detail.php?id=N4THSQ75BKFJU5OPLOS2JFPC",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n8:30 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/3 Saturday Night SESH Showcase - 10:00 PM",
+      "start": "2026-10-03T22:00:00",
+      "url": "event-detail.php?id=42L24QUDXGXR2BZARVRRRUXM",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n10:00 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/9 Friday Night SESH Showcase - 8:00 PM",
+      "start": "2026-10-09T20:00:00",
+      "url": "event-detail.php?id=CA6QKG6A7ADFZ6TY6WK6OC26",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n8:00 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d3d1f4082e10a417443b4681e897337f41573516/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Friday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/9 Friday Night SESH Showcase - 9:30 PM",
+      "start": "2026-10-09T21:30:00",
+      "url": "event-detail.php?id=7PSVTVLJ7NK6PDHC7DCHUYDE",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n9:30 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d3d1f4082e10a417443b4681e897337f41573516/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Friday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/10 Saturday Night SESH Showcase - 8:00 PM",
+      "start": "2026-10-10T20:00:00",
+      "url": "event-detail.php?id=3JJYQKQJMNLJBO2WVH5WP7WJ",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n8:00 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/10 Saturday Night SESH Showcase - 9:30 PM",
+      "start": "2026-10-10T21:30:00",
+      "url": "event-detail.php?id=OUMMJO7Q4FB3GIBZJGECGY4A",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n9:30 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/16 Friday Night SESH Showcase - 8:45 PM",
+      "start": "2026-10-16T20:45:00",
+      "url": "event-detail.php?id=NNHJP5XW24JYP5A5DZE2R3HI",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\nDoors 8:30 PM \u00b7 Show 8:45 PM",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d3d1f4082e10a417443b4681e897337f41573516/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Friday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/17 Saturday Night SESH Showcase - 8:00 PM",
+      "start": "2026-10-17T20:00:00",
+      "url": "event-detail.php?id=5ZZ35J6TC4DS47HHU53G7WHU",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n8:00 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/17 Saturday Night SESH Showcase - 9:30 PM",
+      "start": "2026-10-17T21:30:00",
+      "url": "event-detail.php?id=NQIZRZLBKGFTUCM6Z3BM37RI",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n9:30 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "SOLD OUT \u2014 10/21 Geoffrey Asmus and Tommy Brennan - 8:00 PM",
+      "start": "2026-10-21T20:00:00",
+      "url": "event-detail.php?id=I4XWPYT7CGL5KBXNFGUFXKZI",
+      "extendedProps": {
+        "desc": "Geoffrey Asmus and Tommy Brennan LIVE at SESH Comedy - 70 minute show - BYOB Friendly ($7 fee)",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/c1cf8004df8d4bc8b2811f9f50652d0f70a48715/original.jpeg",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Wednesday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "H2XVQS737YYKFYNQVZB3VP7A",
+          "CJCRXG2IUIV754GRHKBV66QS",
+          "5XCG2JY524CRVSYGRMYAX7AE"
+        ],
+        "categoryNames": [
+          "Events",
+          "Geoffrey Asmus",
+          "Tommy Brennan",
+          "Geoffrey Asmus and Tommy Brennan"
+        ],
+        "soldOut": true
+      }
+    },
+    {
+      "title": "10/23 Friday Night SESH Showcase - 8:45 PM",
+      "start": "2026-10-23T20:45:00",
+      "url": "event-detail.php?id=UIWYT4R425HHOXJFWTHQYNNH",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\nDoors 8:30 PM \u00b7 Show 8:45 PM",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d3d1f4082e10a417443b4681e897337f41573516/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Friday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/24 Saturday Night SESH Showcase - 8:00 PM",
+      "start": "2026-10-24T20:00:00",
+      "url": "event-detail.php?id=U42CCASK5NOJGGDAQREWKRWL",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n8:00 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "10/24 Saturday Night SESH Showcase - 9:30 PM",
+      "start": "2026-10-24T21:30:00",
+      "url": "event-detail.php?id=7KHWK46IONJU7EG5T2KVEOK2",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n9:30 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "11/5 Lev Fer and Friends - 7:30 PM",
+      "start": "2026-11-05T19:30:00",
+      "url": "event-detail.php?id=7G7JBBUI5B3DTG3CITI4ROF6",
+      "extendedProps": {
+        "desc": "Lev Fer and Friends LIVE at SESH Comedy - 70 minute show - BYOB Friendly ($7 fee)",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/dbf8a94e49895e45e34cbae36fc1d39cf3e88f21/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Thursday",
+        "categoryIds": [
+          "3EWR7YMKCDXU3AQ43VNYPFJD",
+          "23GS2RSQQ7576GNPK4L6TZOS"
+        ],
+        "categoryNames": [
+          "Sarah Adelman",
+          "Events"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "11/6 Matt Lipari - 7:00 PM",
+      "start": "2026-11-06T19:00:00",
+      "url": "event-detail.php?id=3FQ4OA3XG5JCBLIPNHN4ZV6O",
+      "extendedProps": {
+        "desc": "",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/eab3f2518847c7e29dcd8e163ddcf3a06909d65f/original.jpeg",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Friday",
+        "categoryIds": [
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "11/12 Chris Higgins - 7:00 PM",
+      "start": "2026-11-12T19:00:00",
+      "url": "event-detail.php?id=4MCZ6MAVAHBD5N3IWA43AHFV",
+      "extendedProps": {
+        "desc": "Chris Higgins LIVE at SESH Comedy - 70 minute show - BYOB Friendly ($7 fee)",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/8974a79c4cdd48e162247cad930aadaa5f64ee56/original.jpeg",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Thursday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "OKCRTS6XEGUQXC7GLUSP4KSV"
+        ],
+        "categoryNames": [
+          "Events",
+          "Chris Higgins"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "11/12 Michael J. Fox Foundation's Comedy Showcase - 8:30 PM",
+      "start": "2026-11-12T20:30:00",
+      "url": "event-detail.php?id=UAB7TKVZLWXYCRHB6T5FMVN6",
+      "extendedProps": {
+        "desc": "Team Fox NYC presents: A standup comedy showcase where proceeds support The Michael J. Fox Foundation\nDoors 8:30 PM - Showtime 8:40 PM",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/9e098e7e82d352034c5a88d7c460d57d1bf3b5c1/original.jpeg",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Thursday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KBXOCVJI2UKQLNNDJ6FYNUHL"
+        ],
+        "categoryNames": [
+          "Events",
+          "Michael J Fox Foundation"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "11/14 Daniela Mora - 7:00 PM",
+      "start": "2026-11-14T19:00:00",
+      "url": "event-detail.php?id=2QNE5JYOPML2VPIMD6RXEFMH",
+      "extendedProps": {
+        "desc": "Daniela Mora LIVE at SESH Comedy - 70 minute show - BYOB Friendly ($7 fee)",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/fa89fee06db377db9b0a0473e43c574ccb031568/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "UOXCVCDI6TXIIMRUZ36YYG2Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "Daniela Mora"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "11/21 Dan Toomey & Industry Connections - 7:00 PM",
+      "start": "2026-11-21T19:00:00",
+      "url": "event-detail.php?id=YAC36MNZFE7LEPLW5AYVRYCL",
+      "extendedProps": {
+        "desc": "Dan Toomey & Industry Connections - BYOB Friendly ($7 fee)\n7:00 PM Show",
+        "image": "",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "35POHWKMEKFUAHVGQ7LY6QUQ",
+          "23GS2RSQQ7576GNPK4L6TZOS"
+        ],
+        "categoryNames": [
+          "Dan Toomey",
+          "Events"
+        ],
+        "soldOut": false
+      }
+    },
+    {
+      "title": "Saturday SESH Showcase 11/21",
+      "start": "2026-11-21T20:30:00",
+      "url": "event-detail.php?id=2Y4GJQ5C5PHDB3M5CMD6CUV2",
+      "extendedProps": {
+        "desc": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n8:30 PM Show",
+        "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+        "location": "55 Chrystie - SESH Comedy",
+        "type": "Saturday",
+        "categoryIds": [
+          "23GS2RSQQ7576GNPK4L6TZOS",
+          "KVKWDY4SEXWTZXV34BPL675Q"
+        ],
+        "categoryNames": [
+          "Events",
+          "SESH Showcases"
+        ],
+        "soldOut": false
+      }
+    }
+  ],
+  "event_detail_pages": [
+    {
+      "id": "VKXCPHUZYZ3LCQ7HOVOR2LJC",
+      "url": "https://seshcomedy.com/event-detail.php?id=VKXCPHUZYZ3LCQ7HOVOR2LJC",
+      "links": [
+        {
+          "text": "8:30 PM",
+          "href": "event-detail.php?id=K37YUZEWA5WKBHQGHIJ6JAKU"
+        }
+      ],
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "ComedyEvent",
+          "name": "9/25 Friday Night SESH Showcase - 8:00 PM",
+          "startDate": "2026-09-25T20:00:00-04:00",
+          "eventStatus": "https://schema.org/EventScheduled",
+          "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+          "location": {
+            "@type": "Place",
+            "name": "SESH Comedy",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "55 Chrystie Street",
+              "addressLocality": "New York",
+              "addressRegion": "NY",
+              "postalCode": "10002",
+              "addressCountry": "US"
+            }
+          },
+          "organizer": {
+            "@type": "Organization",
+            "name": "Sesh Comedy",
+            "url": "https://seshcomedy.com"
+          },
+          "offers": {
+            "@type": "AggregateOffer",
+            "lowPrice": "20.00",
+            "highPrice": "30.00",
+            "priceCurrency": "USD",
+            "url": "https://seshcomedy.com/event-detail.php?id=VKXCPHUZYZ3LCQ7HOVOR2LJC",
+            "availability": "https://schema.org/InStock"
+          },
+          "url": "https://seshcomedy.com/event-detail.php?id=VKXCPHUZYZ3LCQ7HOVOR2LJC",
+          "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d3d1f4082e10a417443b4681e897337f41573516/original.png",
+          "description": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\n8:00 PM Show",
+          "endDate": "2026-09-25T21:30:00-04:00"
+        }
+      ]
+    },
+    {
+      "id": "K37YUZEWA5WKBHQGHIJ6JAKU",
+      "url": "https://seshcomedy.com/event-detail.php?id=K37YUZEWA5WKBHQGHIJ6JAKU",
+      "links": [],
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "ComedyEvent",
+          "name": "9/25 Friday Night SESH Showcase - 8:30 PM",
+          "startDate": "2026-09-25T20:30:00-04:00",
+          "eventStatus": "https://schema.org/EventScheduled",
+          "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+          "location": {
+            "@type": "Place",
+            "name": "SESH Comedy",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "55 Chrystie Street",
+              "addressLocality": "New York",
+              "addressRegion": "NY",
+              "postalCode": "10002",
+              "addressCountry": "US"
+            }
+          },
+          "organizer": {
+            "@type": "Organization",
+            "name": "Sesh Comedy",
+            "url": "https://seshcomedy.com"
+          },
+          "offers": {
+            "@type": "AggregateOffer",
+            "lowPrice": "20.00",
+            "highPrice": "30.00",
+            "priceCurrency": "USD",
+            "url": "https://seshcomedy.com/event-detail.php?id=K37YUZEWA5WKBHQGHIJ6JAKU",
+            "availability": "https://schema.org/InStock"
+          },
+          "url": "https://seshcomedy.com/event-detail.php?id=K37YUZEWA5WKBHQGHIJ6JAKU",
+          "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d3d1f4082e10a417443b4681e897337f41573516/original.png",
+          "description": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly ($7 fee)\nDoors 8:15 PM \u00b7 Show 8:30 PM",
+          "endDate": "2026-09-25T22:00:00-04:00"
+        }
+      ]
+    },
+    {
+      "id": "BSV2ZNJW3DJSCVB7WRPK7B6K",
+      "url": "https://seshcomedy.com/event-detail.php?id=BSV2ZNJW3DJSCVB7WRPK7B6K",
+      "links": [],
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "ComedyEvent",
+          "name": "3/14 Late Sesh Showcase - 9:30 PM",
+          "startDate": "2027-03-14T21:30:00-04:00",
+          "eventStatus": "https://schema.org/EventScheduled",
+          "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+          "location": {
+            "@type": "Place",
+            "name": "SESH Comedy",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "55 Chrystie Street",
+              "addressLocality": "New York",
+              "addressRegion": "NY",
+              "postalCode": "10002",
+              "addressCountry": "US"
+            }
+          },
+          "organizer": {
+            "@type": "Organization",
+            "name": "Sesh Comedy",
+            "url": "https://seshcomedy.com"
+          },
+          "offers": {
+            "@type": "Offer",
+            "url": "https://seshcomedy.com/event-detail.php?id=BSV2ZNJW3DJSCVB7WRPK7B6K",
+            "availability": "https://schema.org/InStock",
+            "priceCurrency": "USD",
+            "price": "20.00"
+          },
+          "url": "https://seshcomedy.com/event-detail.php?id=BSV2ZNJW3DJSCVB7WRPK7B6K",
+          "image": "https://items-images-production.s3.us-west-2.amazonaws.com/files/d5019f6846a01876387ce471737a7466822ebf74/original.png",
+          "description": "A collection of the best comedians in New York - 70 minute show - BYOB Friendly\nChrystie lineup: Ruby Setnik (Netflix), Daniel Geneen (NYCF), Aldo Campagna (JFL), Brian Parise (NYCF), Shane Torres (Tonight Show)",
+          "endDate": "2027-03-14T23:00:00-04:00"
+        }
+      ]
+    }
+  ],
+  "identity_analysis": {
+    "current_feed_count": 28,
+    "current_feed_unique_urls": 28,
+    "current_feed_locations": [
+      "55 Chrystie - SESH Comedy"
+    ],
+    "feed_has_top_level_external_id": false,
+    "external_identity": "Square-style product id in event-detail.php?id= query; current feed has no separate id field",
+    "observed_reused_url_dates": [
+      {
+        "url": "https://www.seshcomedy.com/event-detail.php?id=ZJJW3QBCSOETHR3KM6SEPBNT",
+        "dates": [
+          "2026-09-19 00:00:00+00:00",
+          "2026-09-19 00:30:00+00:00",
+          "2026-09-19 00:45:00+00:00"
+        ],
+        "show_ids": [
+          6029200,
+          6085447,
+          6867491
+        ]
+      },
+      {
+        "url": "https://www.seshcomedy.com/event-detail.php?id=7KJ753I5TNP5GXIDR2PKQDNW",
+        "dates": [
+          "2026-09-19 01:30:00+00:00",
+          "2026-09-19 02:00:00+00:00"
+        ],
+        "show_ids": [
+          6029201,
+          6085448
+        ]
+      },
+      {
+        "url": "https://www.seshcomedy.com/event-detail.php?id=VKXCPHUZYZ3LCQ7HOVOR2LJC",
+        "dates": [
+          "2026-09-26 00:00:00+00:00",
+          "2026-09-26 00:30:00+00:00"
+        ],
+        "show_ids": [
+          6670869,
+          6029205
+        ]
+      },
+      {
+        "url": "https://www.seshcomedy.com/event-detail.php?id=K37YUZEWA5WKBHQGHIJ6JAKU",
+        "dates": [
+          "2026-09-26 00:30:00+00:00",
+          "2026-09-26 00:45:00+00:00",
+          "2026-09-26 01:30:00+00:00",
+          "2026-09-26 02:00:00+00:00"
+        ],
+        "show_ids": [
+          6085452,
+          6867495,
+          6670870,
+          6029206,
+          6085453
+        ]
+      },
+      {
+        "url": "https://www.seshcomedy.com/event-detail.php?id=AKHEJ6C3WK44AY2QJQ4QQR26",
+        "dates": [
+          "2026-10-03 00:30:00+00:00",
+          "2026-10-03 00:45:00+00:00"
+        ],
+        "show_ids": [
+          6526463,
+          6867500
+        ]
+      },
+      {
+        "url": "https://www.seshcomedy.com/event-detail.php?id=NNHJP5XW24JYP5A5DZE2R3HI",
+        "dates": [
+          "2026-10-17 00:00:00+00:00",
+          "2026-10-17 00:45:00+00:00"
+        ],
+        "show_ids": [
+          6526472,
+          6867508
+        ]
+      },
+      {
+        "url": "https://www.seshcomedy.com/event-detail.php?id=UIWYT4R425HHOXJFWTHQYNNH",
+        "dates": [
+          "2026-10-24 00:30:00+00:00",
+          "2026-10-24 00:45:00+00:00"
+        ],
+        "show_ids": [
+          6526476,
+          6867511
+        ]
+      }
+    ],
+    "recurring_series_assessment": "No current feed URL appears twice; observed stored URL reuses are times on a single local date, consistent with schedule edits rather than recurring dates. This observation does not authorize global cross-date URL merges.",
+    "different_url_pair_disposition": "Do not merge VKX into K37. VKX details advertise Sep25 8pm; K37 details and feed advertise Sep25 8:30pm. Existing 8pm VKX row exists; collapse its stale8:30 copy only by exact event URL. K37 stale10pm and other times must reconcile to current8:30 performance.",
+    "march_event_disposition": "Absent from current feed but current exact event detail confirms March14 2027 9:30pm -04 at55Chrystie; sameURLroom duplicate can consolidate using detail evidence."
+  }
+}
