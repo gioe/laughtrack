@@ -511,6 +511,14 @@ class ClubQueries:
 
     # See UPSERT_CLUB_BY_EVENTBRITE_VENUE comment above for why the final
     # SELECT projects from the CTE rather than JOINing the clubs table.
+    GET_CLUB_BY_TICKETMASTER_ID = """
+        SELECT c.*, '[]'::json AS scraping_sources
+        FROM clubs c JOIN scraping_sources s ON s.club_id = c.id
+        WHERE s.platform = 'ticketmaster' AND s.ticketmaster_id = %s
+        ORDER BY s.enabled DESC, s.priority ASC, s.id ASC
+        LIMIT 1
+    """
+
     UPSERT_CLUB_BY_TICKETMASTER_VENUE = """
         WITH input_venue AS (
             SELECT
@@ -545,16 +553,30 @@ class ClubQueries:
             WHERE c.id IN (SELECT id FROM existing_ticketmaster_club)
             RETURNING c.*
         ),
+        named_input AS (
+            SELECT iv.*,
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM clubs c WHERE c.name = iv.name
+                      AND (lower(trim(c.city)) IS DISTINCT FROM lower(trim(iv.city))
+                           OR lower(trim(c.state)) IS DISTINCT FROM lower(trim(iv.state)))
+                ) THEN iv.name || ' - ' || trim(iv.city) || ', ' || trim(iv.state)
+                  ELSE iv.name END AS resolved_name
+            FROM input_venue iv
+        ),
         inserted_or_name_matched_club AS (
             INSERT INTO clubs (
                 name, address, website, visible,
                 zip_code, city, state, phone_number, popularity, timezone
             )
             SELECT
-                iv.name, iv.address, '', TRUE,
+                iv.resolved_name, iv.address, '', TRUE,
                 iv.zip_code, iv.city, iv.state, '', 0, iv.timezone
-            FROM input_venue iv
+            FROM named_input iv
             WHERE NOT EXISTS (SELECT 1 FROM updated_ticketmaster_club)
+              AND iv.resolved_name IS NOT NULL
+              AND (NOT EXISTS (SELECT 1 FROM clubs c WHERE c.name = iv.name)
+                   OR (NULLIF(trim(iv.city), '') IS NOT NULL
+                       AND NULLIF(trim(iv.state), '') IS NOT NULL))
             ON CONFLICT (name) DO UPDATE SET
                 -- Fill missing postal metadata without replacing a known ZIP.
                 zip_code = CASE WHEN NULLIF(TRIM(clubs.zip_code), '') IS NULL
@@ -563,6 +585,12 @@ class ClubQueries:
                 timezone = COALESCE(clubs.timezone, EXCLUDED.timezone),
                 city     = COALESCE(clubs.city,     EXCLUDED.city),
                 state    = COALESCE(clubs.state,    EXCLUDED.state)
+            -- A concurrent insertion or an existing disambiguated name must
+            -- still corroborate geography. Unknown location fails closed.
+            WHERE NULLIF(trim(clubs.city), '') IS NOT NULL
+              AND NULLIF(trim(clubs.state), '') IS NOT NULL
+              AND lower(trim(clubs.city)) = lower(trim(EXCLUDED.city))
+              AND lower(trim(clubs.state)) = lower(trim(EXCLUDED.state))
             RETURNING *
         ),
         resolved_club AS (

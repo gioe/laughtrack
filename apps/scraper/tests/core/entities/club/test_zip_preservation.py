@@ -28,11 +28,13 @@ def _update_zip(query, route, existing, incoming):
             name TEXT UNIQUE, zip_code TEXT, address TEXT, website TEXT,
             timezone TEXT, city TEXT, state TEXT, club_type TEXT
         )""")
-        db.execute("INSERT INTO clubs (name, zip_code) VALUES ('Venue', ?)", (existing,))
+        # These tests exercise metadata updates for an already verified venue.
+        # Ticketmaster name conflicts intentionally refuse unknown geography.
+        db.execute("INSERT INTO clubs (name, zip_code, city, state) VALUES ('Venue', ?, 'Boston', 'MA')", (existing,))
         if route == "name":
             conflict = re.search(r"ON CONFLICT \(name\) DO UPDATE SET(.*?)RETURNING", query, re.S).group(1)
             db.execute(
-                "INSERT INTO clubs (name, zip_code) VALUES ('Venue', ?) "
+                "INSERT INTO clubs (name, zip_code, city, state) VALUES ('Venue', ?, 'Boston', 'MA') "
                 "ON CONFLICT (name) DO UPDATE SET " + conflict,
                 (incoming,),
             )

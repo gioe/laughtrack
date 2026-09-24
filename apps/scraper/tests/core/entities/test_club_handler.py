@@ -8,7 +8,6 @@ Verifies three contracts:
 3. Invalid input — None venue, missing id, or missing name returns None without raising.
 """
 
-import json
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -62,6 +61,16 @@ _club_handler_mod = _load_module(
     "laughtrack.core.entities.club.handler_direct",
 )
 ClubHandler = _club_handler_mod.ClubHandler
+
+_real_ticketmaster_id_match = ClubHandler._find_ticketmaster_id_match
+
+
+@pytest.fixture(autouse=True)
+def _new_ticketmaster_identity():
+    # Legacy tests exercise the new-ID fallback; stable-ID precedence has
+    # dedicated coverage below that restores the real lookup.
+    with patch.object(ClubHandler, "_find_ticketmaster_id_match", return_value=None):
+        yield
 
 
 # ---------------------------------------------------------------------------
@@ -2253,3 +2262,28 @@ class TestUpsertDiscoveredVenueJunkFilter:
         assert result is None
         mock_filter.assert_called_once_with("Demo Comedy Club")
         mock_exec.assert_not_called()
+
+
+class TestTicketmasterStableIdentityPrecedence:
+    def test_existing_id_precedes_conflicting_fuzzy_name(self):
+        handler = ClubHandler()
+        canonical = _make_club_row(id=2861, name="Orpheum Theatre - Minneapolis", city="Minneapolis", state="MN")
+        venue = {"id": "KovZpakSUe", "name": "Orpheum Theatre", "city": {"name": "Minneapolis"}, "state": {"stateCode": "MN"}}
+        with patch.object(ClubHandler, "_find_ticketmaster_id_match", _real_ticketmaster_id_match), \
+             patch.object(handler, "execute_with_cursor", side_effect=[[canonical], [canonical]]) as execute, \
+             patch.object(handler, "_find_fuzzy_match_in_location") as fuzzy:
+            result = handler.upsert_for_ticketmaster_venue(venue)
+        assert result.id == 2861
+        fuzzy.assert_not_called()
+        assert execute.call_args_list[0].args == (ClubQueries.GET_CLUB_BY_TICKETMASTER_ID, ("KovZpakSUe",))
+
+    def test_new_id_continues_to_geographic_fallback(self):
+        handler = ClubHandler()
+        local = _make_club_row(id=4626, name="Orpheum Theatre - Memphis", city="Memphis", state="TN")
+        venue = {"id": "new-id", "name": "Orpheum Theatre", "city": {"name": "Memphis"}, "state": {"stateCode": "TN"}}
+        with patch.object(ClubHandler, "_find_ticketmaster_id_match", _real_ticketmaster_id_match), \
+             patch.object(handler, "execute_with_cursor", return_value=[]) as execute, \
+             patch.object(handler, "_find_fuzzy_match_in_location", return_value=Club.from_db_row(local)):
+            result = handler.upsert_for_ticketmaster_venue(venue)
+        assert result.id == 4626
+        execute.assert_called_once()

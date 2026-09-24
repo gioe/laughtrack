@@ -668,11 +668,18 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting club for SeatEngine v3 venue {venue_uuid}: {e}")
             raise
 
+    def _find_ticketmaster_id_match(self, venue_id: str) -> Optional[Club]:
+        """Platform identity takes precedence over display-name reconciliation."""
+        rows = self.execute_with_cursor(
+            ClubQueries.GET_CLUB_BY_TICKETMASTER_ID, (venue_id,), return_results=True
+        )
+        return Club.from_db_row(rows[0]) if rows else None
+
     def upsert_for_ticketmaster_venue(self, venue: dict) -> Optional[Club]:
         """
         Upsert a clubs row for a Ticketmaster venue discovered via the national
-        comedy genre scraper.  On conflict (name), preserves any existing
-        ticketmaster_id, scraper, and timezone values.
+        comedy genre scraper. Stable platform IDs take precedence over names;
+        same-name venues in different cities receive distinct club identities.
 
         Args:
             venue: dict from TM Discovery API _embedded.venues[0]
@@ -697,6 +704,16 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         address = ", ".join(address_parts)
         zip_code = (venue.get("postalCode") or "").strip()
         timezone = (venue.get("timezone") or "").strip() or None
+
+        stable_match = self._find_ticketmaster_id_match(venue_id)
+        if stable_match is not None:
+            # Keep the SQL metadata fill and disabled-source disposition logic.
+            results = self.execute_with_cursor(
+                ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE,
+                (venue_id, name, address, zip_code, city, state, timezone),
+                return_results=True,
+            )
+            return Club.from_db_row(results[0]) if results else None
 
         fuzzy_match = self._find_fuzzy_match_in_location(name, city, state)
         if fuzzy_match is not None:

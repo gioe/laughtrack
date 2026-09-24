@@ -557,3 +557,83 @@ async def test_non_comedy_attraction_gate(platform_club):
             assert await scraper._process_events(rejected + [comedy]) == [show]
     upsert.assert_called_once_with(comedy["_embedded"]["venues"][0])
     client.return_value.create_show.assert_called_once_with(comedy)
+
+
+@pytest.fixture
+def venue_identity_db():
+    """Execute production SQL on connection-local tables, never application rows."""
+    import os
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    dsn = os.environ.get("TEST_DATABASE_URL")
+    if not dsn:
+        pytest.skip("TEST_DATABASE_URL required for PostgreSQL behavior regression")
+    conn = psycopg2.connect(dsn, cursor_factory=RealDictCursor)
+    with conn.cursor() as cur:
+        cur.execute("""
+            CREATE TEMP TABLE clubs (
+                id serial PRIMARY KEY, name text UNIQUE, address text, website text,
+                visible boolean, zip_code text, city text, state text,
+                phone_number text, popularity integer, timezone text
+            );
+            CREATE TEMP TABLE scraping_sources (
+                id serial PRIMARY KEY, club_id integer, platform text,
+                scraper_key text, ticketmaster_id text, source_url text,
+                priority integer, enabled boolean, metadata jsonb,
+                UNIQUE(club_id, platform, priority)
+            );
+            CREATE UNIQUE INDEX ON scraping_sources(ticketmaster_id)
+                WHERE platform='ticketmaster' AND enabled;
+            CREATE UNIQUE INDEX ON scraping_sources(club_id,priority) WHERE enabled;
+        """)
+    try:
+        yield conn
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def _upsert_identity(conn, venue_id, city, state, name="Orpheum Theatre"):
+    from sql.club_queries import ClubQueries
+    with conn.cursor() as cur:
+        cur.execute(ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE,
+                    (venue_id, name, "1 Main St", "00000", city, state, "America/Chicago"))
+        return cur.fetchone()
+
+
+def test_same_name_venues_in_different_cities(venue_identity_db):
+    conn = venue_identity_db
+    first = _upsert_identity(conn, "wichita-id", "Wichita", "KS")
+    second = _upsert_identity(conn, "minneapolis-id", "Minneapolis", "MN")
+    assert first["id"] != second["id"]
+    assert second["city"] == "Minneapolis"
+    assert _upsert_identity(conn, "minneapolis-id", "Minneapolis", "MN")["id"] == second["id"]
+    with conn.cursor() as cur:
+        cur.execute("SELECT city,state FROM clubs WHERE id=%s", (first["id"],))
+        assert dict(cur.fetchone()) == {"city": "Wichita", "state": "KS"}
+        cur.execute("SELECT club_id FROM scraping_sources WHERE ticketmaster_id='minneapolis-id'")
+        assert cur.fetchone()["club_id"] == second["id"]
+
+
+def test_same_name_missing_location_is_not_reused(venue_identity_db):
+    _upsert_identity(venue_identity_db, "known", "Wichita", "KS")
+    assert _upsert_identity(venue_identity_db, "unknown", None, None) is None
+
+
+def test_ticketmaster_id_preserves_canonical_club_name(venue_identity_db):
+    first = _upsert_identity(venue_identity_db, "known", "Wichita", "KS")
+    result = _upsert_identity(venue_identity_db, "known", "Wichita", "KS", "Renamed by provider")
+    assert result["id"] == first["id"]
+    assert result["name"] == "Orpheum Theatre"
+
+
+def test_collision_with_disambiguated_name_fails_closed(venue_identity_db):
+    _upsert_identity(venue_identity_db, "one", "Wichita", "KS")
+    _upsert_identity(venue_identity_db, "two", "Memphis", "TN", "Orpheum Theatre - Minneapolis, MN")
+    assert _upsert_identity(venue_identity_db, "three", "Minneapolis", "MN") is None
+
+
+def test_same_city_different_states_remain_distinct(venue_identity_db):
+    first = _upsert_identity(venue_identity_db, "one", "Portland", "OR")
+    second = _upsert_identity(venue_identity_db, "two", "Portland", "ME")
+    assert first["id"] != second["id"]
