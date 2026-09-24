@@ -1,0 +1,254 @@
+{
+  "retrieved_at": "2026-09-24T18:45:18.624778+00:00",
+  "method": "TicketmasterNationalScraper._process_events; real ClubHandler SQL bound to one connection; unconditional rollback; actual show upsert SQL twice; no committed mutations",
+  "events": [
+    {
+      "event_id": "vv1AaZkotGkdsGWXn",
+      "event_url": "https://www.ticketmaster.com/george-lopez-los-angeles-california-10-24-2026/event/09006469F133DFAA",
+      "embedded_venue_id": "KovZpa3uCe",
+      "resolved_club_id": 11385,
+      "expected_club_id": 11385,
+      "utc_start": "2026-10-25T03:00:00Z",
+      "expected_utc_start": "2026-10-25T03:00:00Z"
+    },
+    {
+      "event_id": "vv170Z_kGkw1L4FH",
+      "event_url": "https://www.ticketmaster.com/laura-ramoso-the-calm-down-tour-los-angeles-california-10-17-2026/event/0900646C8A7D523C",
+      "embedded_venue_id": "KovZpa3uCe",
+      "resolved_club_id": 11385,
+      "expected_club_id": 11385,
+      "utc_start": "2026-10-18T03:00:00Z",
+      "expected_utc_start": "2026-10-18T03:00:00Z"
+    },
+    {
+      "event_id": "vv1AaZkCoGkdV0h5D",
+      "event_url": "https://www.ticketmaster.com/daniel-sloss-bitter-brand-new-tour-los-angeles-california-10-16-2026/event/09006391F491B2FB",
+      "embedded_venue_id": "KovZpa3uCe",
+      "resolved_club_id": 11385,
+      "expected_club_id": 11385,
+      "utc_start": "2026-10-17T04:45:00Z",
+      "expected_utc_start": "2026-10-17T04:45:00Z"
+    },
+    {
+      "event_id": "vvG10Z_5QqvloX",
+      "event_url": "https://www.ticketmaster.com/gianmarco-soresi-the-misery-loves-tour-los-angeles-california-11-13-2026/event/090064B69D06B47E",
+      "embedded_venue_id": "KovZpa3uCe",
+      "resolved_club_id": 11385,
+      "expected_club_id": 11385,
+      "utc_start": "2026-11-14T03:00:00Z",
+      "expected_utc_start": "2026-11-14T03:00:00Z"
+    },
+    {
+      "event_id": "vv1AaZko7GkePoJ2C",
+      "event_url": "https://www.ticketmaster.com/daniel-sloss-bitter-brand-new-tour-los-angeles-california-10-16-2026/event/09006444A54663CE",
+      "embedded_venue_id": "KovZpa3uCe",
+      "resolved_club_id": 11385,
+      "expected_club_id": 11385,
+      "utc_start": "2026-10-17T02:00:00Z",
+      "expected_utc_start": "2026-10-17T02:00:00Z"
+    },
+    {
+      "event_id": "17k8v0G6uhRvnvC",
+      "event_url": "https://www.etix.com/ticket/p/95654683/ilana-glazer-live-phoenix-orpheum-theatre-phoenix",
+      "embedded_venue_id": "KovZpZAE7F6A",
+      "resolved_club_id": 27901,
+      "expected_club_id": 27901,
+      "utc_start": "2026-10-15T02:00:00Z",
+      "expected_utc_start": "2026-10-15T02:00:00Z"
+    }
+  ],
+  "canonical_clubs": [
+    [
+      11385,
+      "Orpheum Theatre",
+      "Los Angeles",
+      "CA",
+      "America/Los_Angeles"
+    ],
+    [
+      27901,
+      "Orpheum Theatre - Phoenix",
+      "Phoenix",
+      "AZ",
+      "America/Phoenix"
+    ]
+  ],
+  "persistence_passes": [
+    {
+      "iteration": 1,
+      "rows": [
+        {
+          "id": 3398816,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-10-25 03:00:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 3398815,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-10-18 03:00:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 3398814,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-10-17 04:45:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 3398817,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-11-14 03:00:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 3398813,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-10-17 02:00:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 6897100,
+          "club_id": 27901,
+          "room": "",
+          "date": "2026-10-15 02:00:00+00:00",
+          "operation_type": "updated"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "rows": [
+        {
+          "id": 3398816,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-10-25 03:00:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 3398815,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-10-18 03:00:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 3398814,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-10-17 04:45:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 3398817,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-11-14 03:00:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 3398813,
+          "club_id": 11385,
+          "room": "",
+          "date": "2026-10-17 02:00:00+00:00",
+          "operation_type": "updated"
+        },
+        {
+          "id": 6897100,
+          "club_id": 27901,
+          "room": "",
+          "date": "2026-10-15 02:00:00+00:00",
+          "operation_type": "updated"
+        }
+      ]
+    }
+  ],
+  "audited_cohort_after_two_upserts": [
+    {
+      "id": 3398812,
+      "club_id": 11385,
+      "date": "2026-09-20 02:00:00+00:00",
+      "show_page_url": "https://www.ticketmaster.com/comedy-bang-bang-ground-beefing-tour-los-angeles-california-09-19-2026/event/090064A6C1883E67"
+    },
+    {
+      "id": 3398813,
+      "club_id": 11385,
+      "date": "2026-10-17 02:00:00+00:00",
+      "show_page_url": "https://www.ticketmaster.com/daniel-sloss-bitter-brand-new-tour-los-angeles-california-10-16-2026/event/09006444A54663CE"
+    },
+    {
+      "id": 3398814,
+      "club_id": 11385,
+      "date": "2026-10-17 04:45:00+00:00",
+      "show_page_url": "https://www.ticketmaster.com/daniel-sloss-bitter-brand-new-tour-los-angeles-california-10-16-2026/event/09006391F491B2FB"
+    },
+    {
+      "id": 3398815,
+      "club_id": 11385,
+      "date": "2026-10-18 03:00:00+00:00",
+      "show_page_url": "https://www.ticketmaster.com/laura-ramoso-the-calm-down-tour-los-angeles-california-10-17-2026/event/0900646C8A7D523C"
+    },
+    {
+      "id": 3398816,
+      "club_id": 11385,
+      "date": "2026-10-25 03:00:00+00:00",
+      "show_page_url": "https://www.ticketmaster.com/george-lopez-los-angeles-california-10-24-2026/event/09006469F133DFAA"
+    },
+    {
+      "id": 3398817,
+      "club_id": 11385,
+      "date": "2026-11-14 03:00:00+00:00",
+      "show_page_url": "https://www.ticketmaster.com/gianmarco-soresi-the-misery-loves-tour-los-angeles-california-11-13-2026/event/090064B69D06B47E"
+    },
+    {
+      "id": 6897100,
+      "club_id": 27901,
+      "date": "2026-10-15 02:00:00+00:00",
+      "show_page_url": "https://www.etix.com/ticket/p/95654683/ilana-glazer-live-phoenix-orpheum-theatre-phoenix"
+    }
+  ],
+  "passed": true,
+  "rolled_back": true,
+  "sql_operations": [
+    {
+      "first_token": "SELECT",
+      "parameters": [
+        "KovZpa3uCe"
+      ]
+    },
+    {
+      "first_token": "WITH",
+      "parameters": [
+        "KovZpa3uCe",
+        "Orpheum Theatre",
+        "842 S. Broadway , Los Angeles, CA",
+        "90014",
+        "Los Angeles",
+        "CA",
+        "America/Los_Angeles"
+      ]
+    },
+    {
+      "first_token": "SELECT",
+      "parameters": [
+        "KovZpZAE7F6A"
+      ]
+    },
+    {
+      "first_token": "SELECT",
+      "parameters": [
+        "Orpheum Theatre",
+        "Phoenix",
+        "AZ",
+        "Phoenix",
+        "AZ"
+      ]
+    }
+  ]
+}
