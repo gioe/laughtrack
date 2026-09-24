@@ -225,6 +225,11 @@ def _inline_feature_names(line: str) -> List[str]:
     names: List[str] = []
     for match in _INLINE_FEATURE_RE.finditer(line):
         span = match.group(1).strip()
+        # Preserve explicit role labels such as "the opening guest team, Denim".
+        span = re.sub(
+            r"^(?:the\s+)?(?:opening\s+)?(?:guest\s+)?(?:team|performers?|comedians?)[:,]?\s+",
+            "", span, flags=re.IGNORECASE,
+        )
         # Reject narrative introductions before splitting on commas/ampersands:
         # "with only one Fast & Furious movie left" is not a performer list.
         if not span or span[0].islower():

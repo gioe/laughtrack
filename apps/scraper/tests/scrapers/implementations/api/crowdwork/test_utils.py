@@ -283,3 +283,13 @@ def test_narrative_with_phrase_is_not_a_lineup():
     assert extract_lineup_names(html, title="1 Woman Car Show") == ["Katie Rae Horn"]
     assert extract_lineup_names("<p>Featuring Jane Smith and John Doe</p>") == ["Jane Smith", "John Doe"]
     assert extract_lineup_names("<p>Comedy with Jane Smith and John Doe</p>") == ["Jane Smith", "John Doe"]
+
+
+
+def test_explicit_opening_team_label_preserves_named_ensemble():
+    from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_lineup_names
+    # Verbatim live Sheryl (event16734, September24) billing sentence.
+    text = ("Closing out the show will be the one-night-only spectacular mixed house team "
+            "cast of Sheryl, with the opening guest team, Denim, and another special mashup "
+            "team of iO’s best up-and-coming improvisers.")
+    assert extract_lineup_names(text) == ["Denim"]
