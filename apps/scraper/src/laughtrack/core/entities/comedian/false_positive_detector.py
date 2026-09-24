@@ -213,11 +213,11 @@ STRUCTURAL_KEYWORDS: tuple[str, ...] = (
 TITLE_PATTERNS: tuple[str, ...] = (
     r"[:;]",
     r"(^|\s)the\s+(.+\s+)?(play|musical)($|\s)",
-    r"^(community\s+night|the\s+weekend\s+show)$",
+    r"^\s*(community\s+night|the\s+weekend\s+show)\s*$",
     r"(^|\s)(mixology|intro|master)\s+class($|[^a-z])",
     r"(^|\s)(craft|ceramic|ceramics|pottery|painting)\s+.*workshop($|[^a-z])",
     r"(^|\s)workshop\s+(with|[-–—])($|\s)",
-    r"\s+on\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s*[0-9]{1,2}(st|nd|rd|th)?$",
+    r"\s+on\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s*[0-9]{1,2}(st|nd|rd|th)?\s*$",
 )
 
 _MIN_NAME_LENGTH = 4

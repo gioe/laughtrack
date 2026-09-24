@@ -27,6 +27,8 @@ from laughtrack.core.entities.comedian.false_positive_detector import detect_fal
         ("Mixology class", True),
         ("Craft & A Cocktail—Folk Art Snake Workshop", True),
         ("Community Night", True),
+        ("\t Community Night \n", True),
+        ("\tSheryl on September24th\t", True),
         ("The Weekend Show", True),
         ("Sheryl on September24th", True),
         ("Blue Man Group", False),
