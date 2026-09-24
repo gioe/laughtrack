@@ -255,3 +255,31 @@ def test_cast_inline_formatting_does_not_split_person_names(formatted):
 def test_title_fallback_requires_performer_evidence(title, expected):
     from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_lineup_names
     assert extract_lineup_names("", title=title) == expected
+
+
+def test_narrative_with_phrase_is_not_a_lineup():
+    from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_lineup_names
+    # Exact live API description, event16808, captured September24,2026.
+    html = ('<div>As Vin Diesel grapples with only having one <em>Fast &amp; Furious </em>movie left, Katie '
+     'barrels through a lifestyle fueled by too many commitments and not enough pit stops. <strong><em>1 '
+     'Woman Car Show</em></strong> is a sketch comedy joyride through identity, ambition, and the absurdity '
+     'of taking life too seriously.<br><br>Written and performed by Katie Rae Horn.<br><br>Directed by Brad '
+     'Pike. <br><br>Katie Rae Horn is a comedian, a clown, and a really good friend. She is the winner of '
+     'Best Non-Stand Up Comedian in the Chicago Reader and can be found performing at The Second City, iO '
+     'Theater, The Annoyance, and all around Chicago. Instagram: @kt_horn<br><br>Brad Pike is a writer and '
+     'performer from Plano, Texas. Based in Chicago, he has spent over a decade performing longform improv '
+     "with his team, Devil's Daughter, primarily at iO Theater, where he is now the creative director. He "
+     'recently appeared in <em>Chicago Fire</em> and his award-winning animated short, "<em>Experience the '
+     'World: The Train</em>" was an official selection of the Chicago International Film '
+     'Festival.&nbsp;<br>_____________________<br><br></div><div>Additional option to include our monthly '
+     'cocktail,<strong> "Raspberry Gimlet"</strong>, with your ticket. It features a pour of raspberry gin '
+     'shaken with fresh lime juice and simple syrup, striking a balance of tart, sweet, and floral notes. '
+     'Strained over ice in a rocks glass and garnished with a lime. Best part? Gratuity is '
+     'included.<br><br></div><div>Got a Drink Add-on? Follow these steps:<br><br></div><ol><li>Show your '
+     'ticket to the host and mention the drink add-on.</li><li>Grab your token and place it on your '
+     'table.</li><li>Enjoy your drink as a server will bring it by '
+     'shortly.</li></ol><div><strong>Note:</strong> Valid ID is required for all alcohol service. No ID, no '
+     'drink, no refunds.</div>')
+    assert extract_lineup_names(html, title="1 Woman Car Show") == ["Katie Rae Horn"]
+    assert extract_lineup_names("<p>Featuring Jane Smith and John Doe</p>") == ["Jane Smith", "John Doe"]
+    assert extract_lineup_names("<p>Comedy with Jane Smith and John Doe</p>") == ["Jane Smith", "John Doe"]

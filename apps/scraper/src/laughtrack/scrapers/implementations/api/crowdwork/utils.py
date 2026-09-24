@@ -33,7 +33,7 @@ _STOP_SECTION_RE = re.compile(
 _NAME_SPLIT_RE = re.compile(r"\s*(?:,|&|\band\b|\+)\s*")
 _TITLE_FEATURE_RE = re.compile(r"\b(?:ft\.?|feat\.?|featuring|with)\s+(.+)$", re.IGNORECASE)
 _INLINE_FEATURE_RE = re.compile(
-    r"(?:\(|\b)(?:featuring|starring|hosted by|with)\s+([^).!]+)", re.IGNORECASE
+    r"(?:\(|\b)(?:featuring|starring|hosted by|performed by|with)\s+([^).!]+)", re.IGNORECASE
 )
 _TRAILING_NOISE_RE = re.compile(
     r"\b(?:two|three|four|five|\d+)\s+(?:opening\s+)?(?:guest\s+)?teams?\b.*",
@@ -224,7 +224,12 @@ def _names_from_title_fallback(title: Optional[str]) -> List[str]:
 def _inline_feature_names(line: str) -> List[str]:
     names: List[str] = []
     for match in _INLINE_FEATURE_RE.finditer(line):
-        names.extend(_candidate_names_from_line(match.group(1), require_capitalized=True))
+        span = match.group(1).strip()
+        # Reject narrative introductions before splitting on commas/ampersands:
+        # "with only one Fast & Furious movie left" is not a performer list.
+        if not span or span[0].islower():
+            continue
+        names.extend(_candidate_names_from_line(span, require_capitalized=True))
     return names
 
 
