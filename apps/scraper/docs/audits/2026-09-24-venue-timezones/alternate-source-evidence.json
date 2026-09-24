@@ -1,0 +1,409 @@
+[
+  {
+    "club_id": 12316,
+    "show_id": 7047911,
+    "date": "2027-01-10T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/kcr-bar-grill-2027-01-09-7-pm",
+    "captured_at": "2026-09-24T16:54:50.357377+00:00",
+    "status": "verified",
+    "source_start_date": "2027-01-09T19:00:00-05:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "KCR Bar & Grill",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "605 Kingston Rd, Pickering, ON L1V 3N7, Canada",
+        "addressLocality": "Pickering",
+        "addressRegion": "ON",
+        "postalCode": "L1V 3N7",
+        "addressCountry": "CA"
+      }
+    },
+    "source_event_status": "https://schema.org/EventScheduled",
+    "source_utc": "2027-01-10T00:00:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [
+      {
+        "eventSlug": "kcr-bar-grill-2027-01-09-7-pm",
+        "eventId": "e09cf97b-36c6-46c1-b584-e20f756912d2",
+        "currentEventId": "e09cf97b-36c6-46c1-b584-e20f756912d2",
+        "venueTimezone": "America/Toronto",
+        "venueCountry": "CA",
+        "venueZipCode": "L1V 3N7"
+      },
+      {
+        "eventSlug": "kcr-bar-grill-2027-01-09-7-pm",
+        "eventId": "e09cf97b-36c6-46c1-b584-e20f756912d2",
+        "currentEventId": "e09cf97b-36c6-46c1-b584-e20f756912d2",
+        "venueTimezone": "America/Toronto",
+        "venueCountry": "CA",
+        "venueZipCode": "L1V 3N7"
+      }
+    ],
+    "authoritative_timezone": "America/Toronto",
+    "reason": "Exact source URL, venue name, street, postal, timestamp and current-event props agree"
+  },
+  {
+    "club_id": 12316,
+    "show_id": 7047910,
+    "date": "2026-11-08T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/kcr-bar-grill-2026-11-07-7-pm",
+    "captured_at": "2026-09-24T16:54:50.357051+00:00",
+    "status": "verified",
+    "source_start_date": "2026-11-07T19:00:00-05:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "KCR Bar & Grill",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "605 Kingston Rd, Pickering, ON L1V 3N7, Canada",
+        "addressLocality": "Pickering",
+        "addressRegion": "ON",
+        "postalCode": "L1V 3N7",
+        "addressCountry": "CA"
+      }
+    },
+    "source_event_status": "https://schema.org/EventScheduled",
+    "source_utc": "2026-11-08T00:00:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [
+      {
+        "eventSlug": "kcr-bar-grill-2026-11-07-7-pm",
+        "eventId": "177bd391-a56e-4df7-b06d-addbf6f3353c",
+        "currentEventId": "177bd391-a56e-4df7-b06d-addbf6f3353c",
+        "venueTimezone": "America/Toronto",
+        "venueCountry": "CA",
+        "venueZipCode": "L1V 3N7"
+      },
+      {
+        "eventSlug": "kcr-bar-grill-2026-11-07-7-pm",
+        "eventId": "177bd391-a56e-4df7-b06d-addbf6f3353c",
+        "currentEventId": "177bd391-a56e-4df7-b06d-addbf6f3353c",
+        "venueTimezone": "America/Toronto",
+        "venueCountry": "CA",
+        "venueZipCode": "L1V 3N7"
+      }
+    ],
+    "authoritative_timezone": "America/Toronto",
+    "reason": "Exact source URL, venue name, street, postal, timestamp and current-event props agree"
+  },
+  {
+    "club_id": 12582,
+    "show_id": 3593430,
+    "date": "2026-11-21T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-11-20",
+    "captured_at": "2026-09-24T16:54:50.690920+00:00",
+    "status": "unresolved",
+    "source_start_date": "2026-11-20T19:00:00-05:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "The Franklin House",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+        "addressLocality": "Streetsville",
+        "addressRegion": "ON",
+        "postalCode": "L5M 1L9",
+        "addressCountry": "CA"
+      }
+    },
+    "source_event_status": "https://schema.org/EventCancelled",
+    "source_utc": "2026-11-21T00:00:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [],
+    "reason": "No unique current-event-bound IANA timezone; full address retained for independent resolution"
+  },
+  {
+    "club_id": 12316,
+    "show_id": 4944776,
+    "date": "2026-11-08T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/kcr-bar-grill-2026-11-07-8-pm",
+    "captured_at": "2026-09-24T16:54:50.357368+00:00",
+    "status": "unresolved",
+    "reason": "No unique URL-bound JSONLD event"
+  },
+  {
+    "club_id": 12582,
+    "show_id": 3593431,
+    "date": "2026-12-31T22:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-12-31",
+    "captured_at": "2026-09-24T16:54:50.798745+00:00",
+    "status": "unresolved",
+    "source_start_date": "2026-12-31T17:30:00-05:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "The Franklin House",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+        "addressLocality": "Streetsville",
+        "addressRegion": "ON",
+        "postalCode": "L5M 1L9",
+        "addressCountry": "CA"
+      }
+    },
+    "source_event_status": "https://schema.org/EventCancelled",
+    "source_utc": "2026-12-31T22:30:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [],
+    "reason": "No unique current-event-bound IANA timezone; full address retained for independent resolution"
+  },
+  {
+    "club_id": 22855,
+    "show_id": 7171807,
+    "date": "2026-11-13T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/first-light-distillery-2026-11-13-7-pm",
+    "captured_at": "2026-09-24T16:54:50.874129+00:00",
+    "status": "verified",
+    "source_start_date": "2026-11-13T19:00:00-04:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "First Light Distillery",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "73 Fairway Drive, Hanwell, New Brunswick",
+        "addressLocality": "Hanwell",
+        "addressRegion": "NB",
+        "postalCode": "E3C 0M2",
+        "addressCountry": "CA"
+      }
+    },
+    "source_event_status": "https://schema.org/EventScheduled",
+    "source_utc": "2026-11-13T23:00:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [
+      {
+        "eventSlug": "first-light-distillery-2026-11-13-7-pm",
+        "eventId": "64a5ce38-f649-49de-a169-78d8efee7ec4",
+        "currentEventId": "64a5ce38-f649-49de-a169-78d8efee7ec4",
+        "venueTimezone": "America/Moncton",
+        "venueCountry": "CA",
+        "venueZipCode": "E3C 0M2"
+      },
+      {
+        "eventSlug": "first-light-distillery-2026-11-13-7-pm",
+        "eventId": "64a5ce38-f649-49de-a169-78d8efee7ec4",
+        "currentEventId": "64a5ce38-f649-49de-a169-78d8efee7ec4",
+        "venueTimezone": "America/Moncton",
+        "venueCountry": "CA",
+        "venueZipCode": "E3C 0M2"
+      }
+    ],
+    "authoritative_timezone": "America/Moncton",
+    "reason": "Exact source URL, venue name, street, postal, timestamp and current-event props agree"
+  },
+  {
+    "club_id": 24045,
+    "show_id": 5389079,
+    "date": "2026-09-25T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/max-s-social-house-2026-09-24",
+    "captured_at": "2026-09-24T16:54:50.915092+00:00",
+    "status": "verified",
+    "source_start_date": "2026-09-24T19:00:00-05:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "Max\u2019s Social House",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "302 Second St.",
+        "addressLocality": "Hudson",
+        "addressRegion": "WI",
+        "postalCode": "54016",
+        "addressCountry": "US"
+      }
+    },
+    "source_event_status": "https://schema.org/EventScheduled",
+    "source_utc": "2026-09-25T00:00:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [
+      {
+        "eventSlug": "max-s-social-house-2026-09-24",
+        "eventId": "0913ca8e-dcfb-44cc-85c8-44b976a6ec5c",
+        "currentEventId": "0913ca8e-dcfb-44cc-85c8-44b976a6ec5c",
+        "venueTimezone": "America/Chicago",
+        "venueCountry": "US",
+        "venueZipCode": "54016"
+      },
+      {
+        "eventSlug": "max-s-social-house-2026-09-24",
+        "eventId": "0913ca8e-dcfb-44cc-85c8-44b976a6ec5c",
+        "currentEventId": "0913ca8e-dcfb-44cc-85c8-44b976a6ec5c",
+        "venueTimezone": "America/Chicago",
+        "venueCountry": "US",
+        "venueZipCode": "54016"
+      }
+    ],
+    "authoritative_timezone": "America/Chicago",
+    "reason": "Exact source URL, venue name, street, postal, timestamp and current-event props agree"
+  },
+  {
+    "club_id": 62931,
+    "show_id": 6950933,
+    "date": "2026-11-06T04:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/good-news-bar-2026-11-5-8-pm",
+    "captured_at": "2026-09-24T16:54:51.057302+00:00",
+    "status": "verified",
+    "source_start_date": "2026-11-05T20:00:00-08:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "Good News Bar",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "3821 Park Blvd.",
+        "addressLocality": "San Diego",
+        "addressRegion": "CA",
+        "postalCode": "92103",
+        "addressCountry": "US"
+      }
+    },
+    "source_event_status": "https://schema.org/EventScheduled",
+    "source_utc": "2026-11-06T04:00:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [
+      {
+        "eventSlug": "good-news-bar-2026-11-5-8-pm",
+        "eventId": "10d92ad7-1070-442b-a67c-c1005d252dfb",
+        "currentEventId": "10d92ad7-1070-442b-a67c-c1005d252dfb",
+        "venueTimezone": "America/Los_Angeles",
+        "venueCountry": "US",
+        "venueZipCode": "92103"
+      },
+      {
+        "eventSlug": "good-news-bar-2026-11-5-8-pm",
+        "eventId": "10d92ad7-1070-442b-a67c-c1005d252dfb",
+        "currentEventId": "10d92ad7-1070-442b-a67c-c1005d252dfb",
+        "venueTimezone": "America/Los_Angeles",
+        "venueCountry": "US",
+        "venueZipCode": "92103"
+      }
+    ],
+    "authoritative_timezone": "America/Los_Angeles",
+    "reason": "Exact source URL, venue name, street, postal, timestamp and current-event props agree"
+  },
+  {
+    "club_id": 47475,
+    "show_id": 6708139,
+    "date": "2026-11-07T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+    "captured_at": "2026-09-24T16:54:51.042397+00:00",
+    "status": "unresolved",
+    "source_start_date": "2026-11-06T19:00:00-05:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "Formosa Winery",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "3011 Formosa Gardens Blvd.",
+        "addressLocality": "Kissimmee",
+        "addressRegion": "FL",
+        "postalCode": "34747",
+        "addressCountry": "US"
+      }
+    },
+    "source_event_status": "https://schema.org/EventCancelled",
+    "source_utc": "2026-11-07T00:00:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [],
+    "reason": "No unique current-event-bound IANA timezone; full address retained for independent resolution"
+  },
+  {
+    "club_id": 63152,
+    "show_id": 6999565,
+    "date": "2026-10-17T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/nahant-country-club-estate-2026-10-17-7-pm",
+    "captured_at": "2026-09-24T16:54:51.186823+00:00",
+    "status": "verified",
+    "source_start_date": "2026-10-17T19:00:00-04:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "Nahant Country Club Estate",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "280 Nahant Rd.",
+        "addressLocality": "Nahant",
+        "addressRegion": "MA",
+        "postalCode": "01908",
+        "addressCountry": "US"
+      }
+    },
+    "source_event_status": "https://schema.org/EventScheduled",
+    "source_utc": "2026-10-17T23:00:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [
+      {
+        "eventSlug": "nahant-country-club-estate-2026-10-17-7-pm",
+        "eventId": "23c1336b-9bef-4110-a530-19a09de9c66d",
+        "currentEventId": "23c1336b-9bef-4110-a530-19a09de9c66d",
+        "venueTimezone": "America/New_York",
+        "venueCountry": "US",
+        "venueZipCode": "01908"
+      },
+      {
+        "eventSlug": "nahant-country-club-estate-2026-10-17-7-pm",
+        "eventId": "23c1336b-9bef-4110-a530-19a09de9c66d",
+        "currentEventId": "23c1336b-9bef-4110-a530-19a09de9c66d",
+        "venueTimezone": "America/New_York",
+        "venueCountry": "US",
+        "venueZipCode": "01908"
+      }
+    ],
+    "authoritative_timezone": "America/New_York",
+    "reason": "Exact source URL, venue name, street, postal, timestamp and current-event props agree"
+  },
+  {
+    "club_id": 12582,
+    "show_id": 3593429,
+    "date": "2026-10-23T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-10-23",
+    "captured_at": "2026-09-24T16:54:50.682318+00:00",
+    "status": "unresolved",
+    "source_start_date": "2026-10-23T19:00:00-04:00",
+    "source_location": {
+      "@type": "Place",
+      "name": "The Franklin House",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+        "addressLocality": "Streetsville",
+        "addressRegion": "ON",
+        "postalCode": "L5M 1L9",
+        "addressCountry": "CA"
+      }
+    },
+    "source_event_status": "https://schema.org/EventCancelled",
+    "source_utc": "2026-10-23T23:00:00+00:00",
+    "source_utc_matches_db": true,
+    "name_matches": true,
+    "street_matches": true,
+    "postal_matches": true,
+    "bound_event_props": [],
+    "reason": "No unique current-event-bound IANA timezone; full address retained for independent resolution"
+  }
+]

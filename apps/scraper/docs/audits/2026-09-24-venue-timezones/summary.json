@@ -1,0 +1,14 @@
+{
+  "as_of": "2026-09-24T16:43:41.620188+00:00",
+  "before_venues": 340,
+  "before_upcoming_venues": 301,
+  "before_shows": 468,
+  "verified_venues": 299,
+  "verified_upcoming_venues": 287,
+  "verified_shows": 446,
+  "remaining_venues": 41,
+  "source_offset_conflicts": [
+    11709,
+    12330
+  ]
+}

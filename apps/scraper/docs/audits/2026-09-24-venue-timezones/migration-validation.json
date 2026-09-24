@@ -1,0 +1,82 @@
+{
+  "validated_at": "2026-09-24T16:57:56.489181+00:00",
+  "migration_sha256": "e06f710cea8e460ef8bfd43cf606b5c873bdce38bfcef62f1ff96b5c24d124e0",
+  "snapshot_rows": 340,
+  "expected_updates": 299,
+  "scenarios": [
+    {
+      "name": "baseline_apply_rerun_rollback",
+      "updates": 299,
+      "rerun_updates": 0,
+      "exact_baseline_restored": true,
+      "show_instants_unchanged": true
+    },
+    {
+      "name": "existing_timezone",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "empty_existing_timezone",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "space_existing_timezone",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "changed_name",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "changed_address",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "null_address",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "changed_zip",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "null_zip",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "hidden",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "null_visibility",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "changed_id",
+      "protected_rows": 299,
+      "updates": 0,
+      "exact_baseline_restored": true
+    }
+  ],
+  "passed": true
+}
