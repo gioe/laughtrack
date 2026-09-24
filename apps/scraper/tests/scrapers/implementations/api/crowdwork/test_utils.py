@@ -235,3 +235,19 @@ def test_cast_inline_formatting_does_not_split_person_names():
     show = _audited_show("One Liner Madness")
     body = show["description"]["body"].replace("Mitchell Potts", "<strong>Mitchell</strong> Potts")
     assert extract_lineup_names(body) == show["expected_cast_deduped"]
+
+
+@pytest.mark.parametrize("title,expected", [
+    ("The Weekend Show", []),
+    ("This Year in Music", []),
+    ("One Liner Madness", []),
+    ("Saturday Night", []),
+    ("The Weekend Show and Friends", []),
+    ("Bill Queen", []),  # capitalization alone is not performer evidence
+    ("Bill Queen and Friends", ["Bill Queen"]),
+    ("The Weekend Show featuring Bill Queen", ["Bill Queen"]),
+    ("Comedy Night with Jane Smith and John Doe", ["Jane Smith", "John Doe"]),
+])
+def test_title_fallback_requires_performer_evidence(title, expected):
+    from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_lineup_names
+    assert extract_lineup_names("", title=title) == expected

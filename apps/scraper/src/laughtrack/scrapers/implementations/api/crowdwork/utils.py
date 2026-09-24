@@ -41,7 +41,7 @@ _TRAILING_NOISE_RE = re.compile(
 )
 _GENERIC_TITLE_RE = re.compile(
     r"\b(?:open\s+mic|class|jam|pass(?:es)?|festival|student|grad\s+show|"
-    r"workshop|audition|signup|sign\s+up)\b",
+    r"workshop|audition|signup|sign\s+up|show|night)\b",
     re.IGNORECASE,
 )
 
@@ -212,8 +212,13 @@ def _names_from_title_fallback(title: Optional[str]) -> List[str]:
     title = _clean_line(re.sub(r"\([^)]*\)", "", title))
     if not title or _GENERIC_TITLE_RE.search(title):
         return []
-    title = re.sub(r"\s+and\s+friends$", "", title, flags=re.IGNORECASE)
-    return _candidate_names_from_line(title, require_capitalized=True)[:1]
+    # A capitalized event title is not evidence of a performer. Retain the
+    # existing explicitly billed "Name and Friends" form; other named acts
+    # must come from a cast list or a with/featuring/ft title marker.
+    billing = re.fullmatch(r"(.+?)\s+and\s+friends", title, flags=re.IGNORECASE)
+    if not billing:
+        return []
+    return _candidate_names_from_line(billing.group(1), require_capitalized=True)[:1]
 
 
 def _inline_feature_names(line: str) -> List[str]:
