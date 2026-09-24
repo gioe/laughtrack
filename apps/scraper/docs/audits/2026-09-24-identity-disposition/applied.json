@@ -1,0 +1,3738 @@
+{
+  "mode": "repair",
+  "committed": true,
+  "before": [
+    {
+      "id": 239982,
+      "uuid": "bade8f955593a4664a2a61ec47138a61",
+      "name": "Emily Winter",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444406,
+      "uuid": "43e96958ff24b7b29fd70205e45419fb",
+      "name": "Adam Carolla: All New Material",
+      "visible": true,
+      "parent_comedian_id": 266218,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444410,
+      "uuid": "b8a88aa6028e3a7208266b864d48e6d5",
+      "name": "Akaash Singh: Generational Triumph Tour",
+      "visible": true,
+      "parent_comedian_id": 951,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444411,
+      "uuid": "1d35b1fa64aca6e4e307555fc37b49da",
+      "name": "Alfred Robles: Vatos With Gatos",
+      "visible": true,
+      "parent_comedian_id": 223555,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444420,
+      "uuid": "d367d5e2ffbb9e8c6d9c1ffe4f626d0b",
+      "name": "BRUCE BRUCE: COOL SINCE DAY ONE TOUR *BRAND NEW MATERIAL*",
+      "visible": true,
+      "parent_comedian_id": 226253,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444432,
+      "uuid": "b106581d3a0b7ba7ef62358ab8935c86",
+      "name": "Charlene Kaye: Diversity Shredder",
+      "visible": true,
+      "parent_comedian_id": 157224,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444434,
+      "uuid": "b3e58d7c9e0f1ae054d276d8e8d9980a",
+      "name": "Chris Andrade: M.U.T.A.R (En Espa\u00f1ol)",
+      "visible": true,
+      "parent_comedian_id": 22187,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444436,
+      "uuid": "a65a9682bf1b2c7359d177e27bd52f14",
+      "name": "Christopher Titus: Doomed To Repeat",
+      "visible": true,
+      "parent_comedian_id": 248921,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444492,
+      "uuid": "2196b712f971605f957962f8364a097a",
+      "name": "Corey O'Brien: The Red Tour",
+      "visible": true,
+      "parent_comedian_id": 248962,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444497,
+      "uuid": "69bf1f03122cd2a899a92b429938eb1f",
+      "name": "David Nihill: Taking Tangents",
+      "visible": true,
+      "parent_comedian_id": 832,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444498,
+      "uuid": "836cf5cc4111886425e7b3a794824807",
+      "name": "David Nihill: Taking Tangents Tour",
+      "visible": true,
+      "parent_comedian_id": 832,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444499,
+      "uuid": "1b98566cbf71e7955db75cfd5a728940",
+      "name": "Deanna Ortiz: Funny Slut",
+      "visible": true,
+      "parent_comedian_id": 248850,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444500,
+      "uuid": "1b0eaa0f4c975229a9d0a68efa8277a6",
+      "name": "Dedrick Flynn: Kill Tony's Newest Regular",
+      "visible": true,
+      "parent_comedian_id": 248407,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444508,
+      "uuid": "1b2968797cb2faf32f501d381a47f135",
+      "name": "Gary Gulman: ALL NEW LIVE",
+      "visible": true,
+      "parent_comedian_id": 16286,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444509,
+      "uuid": "4597c950117fcece0cad0a43e6c9c899",
+      "name": "Gianmarco Soresi: Drama King",
+      "visible": true,
+      "parent_comedian_id": 708,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444510,
+      "uuid": "5054ddcc7f6b16a6d455ab563e244634",
+      "name": "Greg Warren: The Impulse Buy Tour",
+      "visible": true,
+      "parent_comedian_id": 223484,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444512,
+      "uuid": "acd27d122ff6c89a9464f2cc9a75b7ec",
+      "name": "HARLAND WILLIAMS: \"COMZILLA\" Comedy Tour",
+      "visible": true,
+      "parent_comedian_id": 235217,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444515,
+      "uuid": "4faab4a5b2667ac43e22fc743f183317",
+      "name": "Ilana Glazer: Added Show",
+      "visible": true,
+      "parent_comedian_id": 248936,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444526,
+      "uuid": "04658fab3ff844bbc162da29e23d1434",
+      "name": "Jacqueline Novak: 2026 Tour",
+      "visible": true,
+      "parent_comedian_id": 4014,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444527,
+      "uuid": "232b34456f35c6f8d8117689a60a5820",
+      "name": "Jared Freid: Table For One Tour",
+      "visible": true,
+      "parent_comedian_id": 4474,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444528,
+      "uuid": "dd24a03c25ba29e5e9bbf8382f29b4ed",
+      "name": "Jared Freid: The Table For One Tour",
+      "visible": true,
+      "parent_comedian_id": 4474,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444530,
+      "uuid": "f8465a652f930b82be7c02902e6c2427",
+      "name": "Jay Mewes: Diary of a Man Child",
+      "visible": true,
+      "parent_comedian_id": 444401,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444531,
+      "uuid": "8178e39119a8ea826fe2ce0eae098f76",
+      "name": "Jeff Allen: My First Annual Final Farewell Tour",
+      "visible": true,
+      "parent_comedian_id": 225860,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444532,
+      "uuid": "cf3dc084b484320fde61c955deb7eedd",
+      "name": "Jeff Allen: My First Final Farewell Tour",
+      "visible": true,
+      "parent_comedian_id": 225860,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444533,
+      "uuid": "e9a6ddbc1382e140eedec573de521177",
+      "name": "Jeff Arcuri: Fresh Cut",
+      "visible": true,
+      "parent_comedian_id": 960,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444534,
+      "uuid": "d04c2c558d0cee692a449ae5e9aef602",
+      "name": "Joel Kim Booster: Chose This Way",
+      "visible": true,
+      "parent_comedian_id": 234803,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444535,
+      "uuid": "3615664b7783b89174a3a0e8bfaacc60",
+      "name": "Josh Bates: A Project Greenroom Benefit Show",
+      "visible": true,
+      "parent_comedian_id": 248984,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444539,
+      "uuid": "67fb105ead3935f78efe2ba7bb70e623",
+      "name": "KEVIN JAMES THORNTON: Book Reading Show",
+      "visible": true,
+      "parent_comedian_id": 223479,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444541,
+      "uuid": "b72793af8bc38498915a56177ce5a45f",
+      "name": "Kanan Gill: Not This Again",
+      "visible": true,
+      "parent_comedian_id": 248766,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444542,
+      "uuid": "e8b8c6396eb8ae0005a789f86ac8e952",
+      "name": "Kareem Green: Cut The Malarkey- Live at Comedy In Harlem",
+      "visible": true,
+      "parent_comedian_id": 77238,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444546,
+      "uuid": "b761a84a12c7024cf2d90468c9eef1d9",
+      "name": "LESLIE JONES: LIVE!",
+      "visible": true,
+      "parent_comedian_id": 168946,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444548,
+      "uuid": "a1e286ba1fa803390fe31095384c63e5",
+      "name": "La Chupitos: Standopeda (En Espa\u00f1ol)",
+      "visible": true,
+      "parent_comedian_id": 64451,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444552,
+      "uuid": "90a5908de86a566073d363e1bec03714",
+      "name": "Led Varela: Popular",
+      "visible": true,
+      "parent_comedian_id": 235151,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444554,
+      "uuid": "0c58202c12f19356b0483770fef55fc0",
+      "name": "Luis Elizondo: Persona Non Grata",
+      "visible": true,
+      "parent_comedian_id": 246655,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444562,
+      "uuid": "e50518fe3feeba0a8afd8ba7ddff9aa2",
+      "name": "Mark Viera: All Star Comedy",
+      "visible": true,
+      "parent_comedian_id": 223505,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444563,
+      "uuid": "797ce3d353b0902b089d6005d30c43fc",
+      "name": "Martin Amini: THE LOVE WORLD TOUR",
+      "visible": true,
+      "parent_comedian_id": 26504,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444564,
+      "uuid": "f0ebdba12a0af7cbe08ea8c7128db136",
+      "name": "Maurice Benard: State Of Mind Tour",
+      "visible": true,
+      "parent_comedian_id": 223609,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444566,
+      "uuid": "fc44d3a8af92f8bc6a34777c0ab5df24",
+      "name": "Michael Blaustein: The Taste Me Tour",
+      "visible": true,
+      "parent_comedian_id": 223489,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444571,
+      "uuid": "77965fa819e589030cb540edcd2ddd64",
+      "name": "Mike Goodwin: Open Mike Tour",
+      "visible": true,
+      "parent_comedian_id": 234619,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444574,
+      "uuid": "987b19908f0241bf0102f56cc627b656",
+      "name": "Mojo Brookzz: I Know You F*ckin' Lying Tour",
+      "visible": true,
+      "parent_comedian_id": 235139,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444576,
+      "uuid": "00e85e0c2d489ecc8272cb1a5f212b43",
+      "name": "Nate Jackson: Big Dog Comedy Tour",
+      "visible": true,
+      "parent_comedian_id": 223934,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444577,
+      "uuid": "c8e278d6039328d161d671fbd326583a",
+      "name": "Nurse John: The Short Staffed Tour",
+      "visible": true,
+      "parent_comedian_id": 223911,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444586,
+      "uuid": "9bc4699cbedb8fd25883194a73f6e54f",
+      "name": "Peter Antoniou: Pretty Psychic Tour",
+      "visible": true,
+      "parent_comedian_id": 223559,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444587,
+      "uuid": "b8c560e56192473fb5e7f555e6814c40",
+      "name": "Peter Antoniou: Psychic Comedian",
+      "visible": true,
+      "parent_comedian_id": 223559,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444588,
+      "uuid": "97864a34351a748c0b460d0ce82e4596",
+      "name": "Phoebe Robinson: HITTIN' THE ROAD",
+      "visible": true,
+      "parent_comedian_id": 352,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444590,
+      "uuid": "e2da52e2e1887d975b893f3fbac6297b",
+      "name": "RACHEL SCANLON: A BIT MUCH TOUR",
+      "visible": true,
+      "parent_comedian_id": 157200,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444593,
+      "uuid": "5f605ea89aa4c627d5cb648fca75aa6e",
+      "name": "Rachel Scanlon: A Bit Much",
+      "visible": true,
+      "parent_comedian_id": 157200,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444594,
+      "uuid": "b6c87674686c6046b7b2046e368b4510",
+      "name": "Randy Feltface: Gimmick",
+      "visible": true,
+      "parent_comedian_id": 235265,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444595,
+      "uuid": "239ea5e0124a8bcb2e05cf9c4ed4557f",
+      "name": "Rayna Greenberg: Honestly, It's You",
+      "visible": true,
+      "parent_comedian_id": 235106,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444600,
+      "uuid": "12188eb773a7ad2ccb1e3a8806e31509",
+      "name": "SPECIAL SHOW: Jackie Fabulous with Adyn Hamann",
+      "visible": true,
+      "parent_comedian_id": 332630,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444601,
+      "uuid": "6affcf399ea3c40628c773ee864f5e65",
+      "name": "Saaniya Abbas: Hellarious",
+      "visible": true,
+      "parent_comedian_id": 248734,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444602,
+      "uuid": "b6224c4d590009e52adbeb4ebca633c3",
+      "name": "Sapphira Crist\u00e1l: One Slue Over The Cuckoo\u2019s Nest",
+      "visible": true,
+      "parent_comedian_id": 248149,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444607,
+      "uuid": "a77b7d970ac38bbfdfc18da4cb6322dc",
+      "name": "Sheryl Underwood: The I Need a Job Tour",
+      "visible": true,
+      "parent_comedian_id": 234631,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444610,
+      "uuid": "a85c465409c09f5c7f21963010e8cd98",
+      "name": "Steven Ho: Not Your Comedy Hero Tour",
+      "visible": true,
+      "parent_comedian_id": 235182,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444615,
+      "uuid": "63071cb135e9780d904c8abf255de217",
+      "name": "TREY KENNEDY: THE CROWDWORK SHOW",
+      "visible": true,
+      "parent_comedian_id": 223481,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444624,
+      "uuid": "24b4b147d4a5302375d8beb4148e7803",
+      "name": "ZARNA GARG: Million DOllar Excuses",
+      "visible": true,
+      "parent_comedian_id": 4319,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444625,
+      "uuid": "788ccb868362ee43413b5a790fcbce25",
+      "name": "ZOLTAN KASZAS: Worldwide(ish) Tour",
+      "visible": true,
+      "parent_comedian_id": 897,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 446609,
+      "uuid": "717b4127ae17be07f68d45152d21328a",
+      "name": "Jay Mewes: Diary of a Man Child",
+      "visible": true,
+      "parent_comedian_id": 444401,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 467014,
+      "uuid": "40d3d120030fc4e8a572c18efb185faa",
+      "name": "THE BENSON MOVIE INTERRUPTION: YOUR CHOICE",
+      "visible": true,
+      "parent_comedian_id": 235297,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 525540,
+      "uuid": "a34f78625c29c7e5001bf07ed762fea4",
+      "name": "Yakof Smirnoff &#8211; Laugh Your Yak Off",
+      "visible": true,
+      "parent_comedian_id": 248673,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 525557,
+      "uuid": "902bb64efc7b1a4966d9dcd4460b17ce",
+      "name": "Chaunte Wayans &amp; Friends",
+      "visible": true,
+      "parent_comedian_id": 249050,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 528809,
+      "uuid": "602633153382b571a803ea87daacf6d4",
+      "name": "Success Jr.: Son of a Haitian",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 582320,
+      "uuid": "6ef9af33faec8fe01dd6dcb735b4d323",
+      "name": "TOM KELLY - SATURDAY, 4/25 @ 7:00PM",
+      "visible": true,
+      "parent_comedian_id": 13922,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 630403,
+      "uuid": "ac0eddb01dba19d2fb5dbe2a22f4c433",
+      "name": "TOMMY GOOCH - FRIDAY, MAY 1, 2026 @ 8:00PM",
+      "visible": true,
+      "parent_comedian_id": 225984,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 659751,
+      "uuid": "33fc9e93a31e0737e4b9249ece71d2ef",
+      "name": "Ry Daddy ft: Daniel Simonsen",
+      "visible": true,
+      "parent_comedian_id": 1274,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 731930,
+      "uuid": "8983c2be381a06c75800f853290927e1",
+      "name": "SHOW HOST: Jasmine Jiang",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 764616,
+      "uuid": "568a9b5aa3edc8939b803eea2ac3ed74",
+      "name": "OLGA NAMER - SATURDAY, 8/1 @ 7:00PM",
+      "visible": true,
+      "parent_comedian_id": 13911,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 771581,
+      "uuid": "87ae49d61e24f6df8c286ee85a537f32",
+      "name": "ROCKY DALE DAVIS - THURSDAY, OCTOBER 29TH @ 8:00PM",
+      "visible": true,
+      "parent_comedian_id": 4199,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 812850,
+      "uuid": "3ce2e7a3f07e0dc04d34ac2dccc01656",
+      "name": "KEVIN DOWNEY JR. - SATURDAY 5/23 @ 7:00PM",
+      "visible": true,
+      "parent_comedian_id": 817437,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 834129,
+      "uuid": "64fb6798906aa1e997237fcdae482983",
+      "name": "Second City alums: Alondra Rios",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 873701,
+      "uuid": "683ecae91a01eee820f99c66431b67d7",
+      "name": "PAT BURTSCHER - SATURDAY 5/30 @ 7:00PM",
+      "visible": true,
+      "parent_comedian_id": 4111,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 877724,
+      "uuid": "d8d04292698e29d55a0c68a95ca9864c",
+      "name": "The Qs",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "not a comic",
+      "block_added_by": "cmqa68z4x0002i9041l14qtcf",
+      "block_added_at": "2026-06-12 20:48:27.182338+00:00"
+    },
+    {
+      "id": 890167,
+      "uuid": "1855837d29cab61019ebbddc64410102",
+      "name": "Jerry Wayne Longmire - SATURDAY 12/12 @ 7:00PM",
+      "visible": true,
+      "parent_comedian_id": 265890,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 914467,
+      "uuid": "addec426932e71323700afa1911f8f1c",
+      "name": "more!",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "not a comic",
+      "block_added_by": "cmpvpqpmn0002jo0570rhgix9",
+      "block_added_at": "2026-06-07 01:03:19.397110+00:00"
+    },
+    {
+      "id": 943463,
+      "uuid": "362ab1096143fc8e08c49e219e40242a",
+      "name": "ROBBY SLOWIK - SATURDAY, 7/11 @ 7:00PM",
+      "visible": true,
+      "parent_comedian_id": 888,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 943472,
+      "uuid": "d0da08fd1d434d56a38765d6cf475319",
+      "name": "ROBBY SLOWIK - FRIDAY 7/10 @ 8:00PM",
+      "visible": true,
+      "parent_comedian_id": 888,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 951459,
+      "uuid": "207117f6893a505b423d748f6687b5fe",
+      "name": "MARCUS MONROE - IN THE GIGGLE ROOM 7/10 @ 8:00PM",
+      "visible": true,
+      "parent_comedian_id": 7099,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 978737,
+      "uuid": "448899fcb03519e16f58b4fedb759a92",
+      "name": "Guest List for: Ryan Reiss",
+      "visible": true,
+      "parent_comedian_id": 4127,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1081541,
+      "uuid": "086a6dfe175ce77b423d292a8f495732",
+      "name": "Mike Finoia ft: Mark Normand",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1089608,
+      "uuid": "b2b248af2e1dc8a216d15d4187449cef",
+      "name": "Blue Man Group",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1090187,
+      "uuid": "c1e13db93f149bdb4c9f858085ab0813",
+      "name": "The Empire Strips Back",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1097109,
+      "uuid": "947464451f20ae119ba8907726e69007",
+      "name": "Screeners: Comedy Dating Show",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1104340,
+      "uuid": "f52b5e449a2303c031a0c3a1109360bf",
+      "name": "Six: The Musical",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1104466,
+      "uuid": "fc2bb693f95d4c1fa4fb914cdd75f33f",
+      "name": "Orlando Ballet",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1104467,
+      "uuid": "ff5f1e83b7f5acaa0be79e5ab8c87b6d",
+      "name": "The Nutcracker",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1134700,
+      "uuid": "0fbb2cbd2ea474e0fbcac0ac7ba22cea",
+      "name": "Community Night",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1138481,
+      "uuid": "45462f105e098a3f86b3eb9970af8139",
+      "name": "The City An Unauthorized Musical",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1140256,
+      "uuid": "403a06e3848b1fdc7134601fd46a7265",
+      "name": "Songs from the Heart: An Afternoon",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1142633,
+      "uuid": "06899bd90ec69eb9c9edd1e5f5d1e196",
+      "name": "The Spotlight: The Best of DFW Comedy",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1189836,
+      "uuid": "a96759891f8eebe89cc82e7c8d12ba40",
+      "name": "The Weekend Show",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1191340,
+      "uuid": "6a2e30585090fd6822b14f7ceaa708c5",
+      "name": "TIM KROMPIER - FRIDAY 6/26 @ 8:00PM",
+      "visible": true,
+      "parent_comedian_id": 225871,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1215441,
+      "uuid": "758ab88fc2581ff86a72c3be91df9ac4",
+      "name": "CARMEN MORALES - FRIDAY 6/26 @ 8:00PM",
+      "visible": true,
+      "parent_comedian_id": 249027,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1215459,
+      "uuid": "cafb4cf0759ac501b3f551e99e7716f4",
+      "name": "CARMEN MORALES - SATURDAY 6/27 @ 7:00PM IN THE GIGGLE ROOM",
+      "visible": true,
+      "parent_comedian_id": 249027,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1303043,
+      "uuid": "4ff6f20e354528dea6e5c05be9c381a1",
+      "name": "CIPHA SOUNDS - SATURDAY 1/16/2027 @ 7:00PM",
+      "visible": true,
+      "parent_comedian_id": 4498,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1328995,
+      "uuid": "b9448b53a6f724f1aa2b711dd3faa564",
+      "name": "CHRIS SCOPO - FRIDAY, 7/10 @ 8:00PM",
+      "visible": true,
+      "parent_comedian_id": 20944,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1329143,
+      "uuid": "de02b291034e597d9e47407cc9496888",
+      "name": "SEAN DONNELLY - FRIDAY 7/10 @ 8:00PM",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1337962,
+      "uuid": "9495a4e9ceac372b7b6edc897dfc6ebf",
+      "name": "the City The Unauthorized Musical",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1416611,
+      "uuid": "72a882b9d76cf9ee6d683ef1be82a3e7",
+      "name": "STACKED: Oops",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1508295,
+      "uuid": "1bc0862959c7384241f7fa3534940a8d",
+      "name": "Raynes and David Wimbish &amp; The Collection",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1532822,
+      "uuid": "3e51c51c090c5b44dc7ef30360c3299a",
+      "name": "Presentation Party: Grill",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1556824,
+      "uuid": "58c5d8f16b25062c8081d3d2ae05aa7f",
+      "name": "QUACKED: Oops",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1559908,
+      "uuid": "45c94bc2631975d4730d09f333d82c93",
+      "name": "School Girls; Or, The African Mean Girls Play",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1563211,
+      "uuid": "8edf25d6d9be10bad4e38c3c929a7769",
+      "name": "Sugar Hill Art Expo III: Art Activism",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1637479,
+      "uuid": "d9ec14d30bc63c5441961396ae09136d",
+      "name": "Psychic Medium: Travis Holp",
+      "visible": true,
+      "parent_comedian_id": 223507,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1678404,
+      "uuid": "e52657461b1c1b2c548991a8570c9545",
+      "name": "Rob Anderson: Work in Progress Shows",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1683167,
+      "uuid": "bb910314723263439a98dba542f95dcf",
+      "name": "Laughs for the Fox Valley: Tornado Relief Benefit",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1694910,
+      "uuid": "77a53b655ccf378c0c3e4913f2ec9bae",
+      "name": "Stella's Underground Comedy: Mo Vida, Delina Gigikos",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1694922,
+      "uuid": "44ea04936172f653d91d6c0db18756c1",
+      "name": "Stella&#39;s Underground Comedy: Mo Vida, Delina Gigikos",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1695017,
+      "uuid": "26cdc78894698b025c71bbcf89ff8211",
+      "name": "Indie Hour: Mouth Stuff",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1704949,
+      "uuid": "a6f7b22c435739f7a43442d8c3df66db",
+      "name": "The Brown-Forman Nutcracker",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1728643,
+      "uuid": "f35b2923c58f2a284423022297eeba2b",
+      "name": "Point of View (David Razowsky Master Class)",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1728644,
+      "uuid": "9f639455ff54a00ec3d7eac073c15d5d",
+      "name": "Play the Moment (David Razowsky Master Class)",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1730753,
+      "uuid": "381584019ffd7e4b139babf9cd18e2b6",
+      "name": "Headliner: SubHat",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1731847,
+      "uuid": "8a511c95ddbd1cc6fea915846d914daa",
+      "name": "Spinsters: A Comedy Craft Show",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1746534,
+      "uuid": "a2eed603a29ec4d1a5a2248714ee09a8",
+      "name": "Lois: Reunited for GH Fans\u201d",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1748137,
+      "uuid": "567335c326200c14f4a0622c5ad61667",
+      "name": "Pablo Zuniga: Me Da Lo Mismo",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1783657,
+      "uuid": "f53b64bec4ea18ca28e19dbc1ddead44",
+      "name": "Wonderlust: Nocturne",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1800830,
+      "uuid": "cf7152dec0e8ef5c22ddb293859c250b",
+      "name": "Loo Aid: A World Toilet Day Comedy Craptacular",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1843141,
+      "uuid": "b498564efe8136dcc708921ed0856809",
+      "name": "Twin Cities Ballet of Minnesota",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1875603,
+      "uuid": "f46a6477eeb20e054e2cd6ba7a35d8f8",
+      "name": "BABY SCOTT BACK: Rachael Gunning",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1912403,
+      "uuid": "5e785358046354f82d5255593c49bde9",
+      "name": "Rhinestone Rodeo: Overture Cabaret Series",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1913361,
+      "uuid": "316ddde056375ea235cd9efe9e0d9e9e",
+      "name": "Three Cheers for Sweet Revenge: A Chemical Tribute",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1923421,
+      "uuid": "984aff4ae95d5c7e1bb25ae896b2ece5",
+      "name": "Stormy: Dark rum cut",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1923490,
+      "uuid": "e82f9a54ff184b276a0cb56f9fee0517",
+      "name": "Dada Gag Law: At the iO",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1923739,
+      "uuid": "a5ce058afb0382093de4cd10e0a6c928",
+      "name": "GRACE & MAMRIE PRESENT: This Might Get Weird",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1923876,
+      "uuid": "b15304dac3620c4a0d25043afc220597",
+      "name": "School Girls:Or, The African Mean Girls",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1943345,
+      "uuid": "555da7ad4b8fac1c3e027389077f4211",
+      "name": "COMEDY COLLEGE NEW SESSION STARTING - MONDAY, 9/21 @ 6:00PM",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1952516,
+      "uuid": "e657b0cc6e715ed5bffa00a3bf4b4129",
+      "name": "CARIE KARAVAS - FRIDAY, 8/28 @ 8:00PM",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1999454,
+      "uuid": "fcc080297aedc02c47d410a932e3a2aa",
+      "name": "Potter Parodies: Holiday at Hogwarts",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2017022,
+      "uuid": "e712b9cbde38c319572b1c4158a83bd8",
+      "name": "New Year's Eve at Comedy In Harlem-10:30PM\u00a0SHOW",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2028633,
+      "uuid": "47b087ae9e7a8ea962cc467a10475389",
+      "name": "Unreliable History Hour: Fallen Heroes",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2030991,
+      "uuid": "382c4d19f30a8356d7400c69f53b044c",
+      "name": "Michael McIntyre: Brand New Material",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2033587,
+      "uuid": "f5a28444750962075d88d80080382d92",
+      "name": "Grits & Eggs Podcast: Coming Thru America Tour",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2056998,
+      "uuid": "952e3e410a83acd7800cd9efc53bc223",
+      "name": "September 9th at 7:30 pm",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2122952,
+      "uuid": "dbd43468f53a07a7f088459234c4521e",
+      "name": "Ballet Folklorico",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2134376,
+      "uuid": "65ebf1e7f6f2bb1b1aea90efcc9ddd39",
+      "name": "Ballet San Antonio",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2142859,
+      "uuid": "9ef1705d8c7037a029f8e1d8079b2606",
+      "name": "Richmond Ballet",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2194526,
+      "uuid": "a8af679cf664e5868a551c38bf82e863",
+      "name": "Mixology class",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2198494,
+      "uuid": "97cbdf135722b6c0457c73cd61a48431",
+      "name": "Seattle Symphony Orchestra",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2220432,
+      "uuid": "8e9910d487a61269e3897fd51257dca9",
+      "name": "Emily Lehr &amp; the Foxglove Fellows",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2225257,
+      "uuid": "9afe051a2858b9a87ba2e78de07c3753",
+      "name": "Blood Drive: The Show",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2241382,
+      "uuid": "c97be2b6e755254682e6a6e43bdf531c",
+      "name": "Sheryl on September 24th",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2256453,
+      "uuid": "4bb7c55167a80b83a7067a8cfde4c538",
+      "name": "Symphony San Jose",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2256456,
+      "uuid": "3d7255881bca5793d713d85446f3c916",
+      "name": "The New Ballet",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2264413,
+      "uuid": "a1926c80c6af52de52b1f05ef3785cee",
+      "name": "Soul Scenes: Welcome to Crooklyn",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2265019,
+      "uuid": "3c2ec35846a42ebc8b995bebb3fc77d4",
+      "name": "Dogman: The Musical",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2289941,
+      "uuid": "2b1872e0ad2ca26babcda9b3ca02c107",
+      "name": "Jesse Peyton\u2019s: Couples Therapy",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2290805,
+      "uuid": "ffd1c1f0eb645d5a496ced1211a8010e",
+      "name": "Father Frank &amp; Under The Canopy",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2300446,
+      "uuid": "dbf28238413d9c05cd754d9776db9430",
+      "name": "Virginia National Ballet",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2333442,
+      "uuid": "5a59544a024a822f25d24f651e4a9e50",
+      "name": "Smoky Mountain Songbook: The Music of Dolly Parton",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2345770,
+      "uuid": "5e15b37ec616081dd8767bae9972bc56",
+      "name": "Kendall Street Company: Yodeling Astroman Tour",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2352839,
+      "uuid": "08e6acf1bd39908dee83f002cc01ec96",
+      "name": "Musical Comedy Workshop With Jamie Shriner",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2400552,
+      "uuid": "e4b5d6b8b5e4546bbc6db3f421833259",
+      "name": "CRAFT & A COCKTAIL: CERAMIC MUSHROOM GARLAND WORKSHOP",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2404562,
+      "uuid": "a401808ed5196108a8f949e5973b5754",
+      "name": "George Balanchine's The Nutcracker",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2415023,
+      "uuid": "ce0dc36463b83e4042e44da4a12c8cb1",
+      "name": "The Magic Flute",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2417595,
+      "uuid": "03df579e62b5591683602529a20c23d2",
+      "name": "Craft & A Cocktail- Folk Art Snake Workshop",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428458,
+      "uuid": "e4e5bc8a8200377524fb4f8720d5e00a",
+      "name": "live show producer Larry Mancini",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428465,
+      "uuid": "7acab6374cd18df12bc4388a0880b3d2",
+      "name": "has been recommended by NPR",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428469,
+      "uuid": "8db7defb5d7ad706089f146b8d2acaad",
+      "name": "many more.",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428474,
+      "uuid": "6486026485c0f81e1de69d26a09b60bd",
+      "name": "bringing you the hits of Rihanna",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428479,
+      "uuid": "94452dc2afeed0d943a18c83ff7f62e7",
+      "name": "T-Pain",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428482,
+      "uuid": "1f0bac36cdacd67d88105e7e8d83d8a6",
+      "name": "Fergie",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428483,
+      "uuid": "a592f8b138ef0a3897f0e2d83967b5c4",
+      "name": "Fall Out Boy",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428498,
+      "uuid": "95eb27e56b3c19f91caddc5279cb6513",
+      "name": "Amy Winehouse",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428520,
+      "uuid": "222a5a8b3ad3d7d0e6805e301898eaaf",
+      "name": "Radiohead",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428525,
+      "uuid": "82d68835645be86cfff764a4a044af45",
+      "name": "The New York Times",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428542,
+      "uuid": "71e669d27a5813fd55d35c66d406d69e",
+      "name": "The Boston Globe",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428543,
+      "uuid": "c5f74dda801bff0dbb825a2fe0f2ce7a",
+      "name": "Albuquerque's Daily Lobo",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428544,
+      "uuid": "4e25e510bb73f379d9059e5c69d958be",
+      "name": "Paramore",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428552,
+      "uuid": "90272dda245ae1fb3cf197e91a8689dc",
+      "name": "Time Out",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428554,
+      "uuid": "60fb1418cece6e9f892ade32f9dbceb6",
+      "name": "Chicago's WGN",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428556,
+      "uuid": "d724f231a9a7b89757c4394d6622bc47",
+      "name": "MGMT",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2428557,
+      "uuid": "4da0826b0759ee2144ab9a8a8f648267",
+      "name": "LAist",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2441769,
+      "uuid": "cd116a49821cdb8e1624e143337f27b3",
+      "name": "Furious movie left",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    }
+  ],
+  "created_canonicals": [
+    {
+      "id": 2442115,
+      "uuid": "3b67701156460a2aab595e7579adc052",
+      "name": "Alex Seballes",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442116,
+      "uuid": "3c1352000b593c3701ec741bbe2228da",
+      "name": "Aranxta Chavez",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442117,
+      "uuid": "f993d7f112f2b8bafee9704d6545ee5f",
+      "name": "Austin Black",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442118,
+      "uuid": "b2b52aa0567ecec356f916fbecb28de0",
+      "name": "Delina Gigikos",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442119,
+      "uuid": "6b09d5ff66825c3149a20ea0fbaaa478",
+      "name": "Evan Johnson",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442120,
+      "uuid": "53754acd19f02b5d46cb80b78cdec222",
+      "name": "Jasmine Jiang",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442121,
+      "uuid": "2f2df2fa245c84a75900a2c10055f290",
+      "name": "Lotan Mizrahi",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442122,
+      "uuid": "0a2874ee6b5d596b2d83b39c7a00d5a5",
+      "name": "Max Knudson",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442123,
+      "uuid": "ce88ac5089e57d4b8371a10161e2dd57",
+      "name": "Michael Amendola",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442124,
+      "uuid": "002b71915e91ee719c5326e122fad232",
+      "name": "Mo Vida",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442125,
+      "uuid": "25fa9b2f758f0b7ad61817b92fbef540",
+      "name": "Mundex",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442126,
+      "uuid": "3ff3d5848bd3edc0159390d621ad6545",
+      "name": "Owen Gifford",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442127,
+      "uuid": "d571e67b5d4d69902a755a377b28c390",
+      "name": "Rachael Gunning",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442128,
+      "uuid": "a2ac5d114a962b0d4c32fb8fcada894b",
+      "name": "SubHat",
+      "visible": true,
+      "parent_comedian_id": null
+    },
+    {
+      "id": 2442129,
+      "uuid": "84132983fb312dc13fea3d6a2c523202",
+      "name": "Taylor Soderbug",
+      "visible": true,
+      "parent_comedian_id": null
+    }
+  ],
+  "inserted_lineups": [
+    {
+      "id": 488658,
+      "show_id": 1145156,
+      "comedian_id": "53754acd19f02b5d46cb80b78cdec222",
+      "role": null
+    },
+    {
+      "id": 488659,
+      "show_id": 1145160,
+      "comedian_id": "3c1352000b593c3701ec741bbe2228da",
+      "role": null
+    },
+    {
+      "id": 488660,
+      "show_id": 2188852,
+      "comedian_id": "3c1352000b593c3701ec741bbe2228da",
+      "role": null
+    },
+    {
+      "id": 488661,
+      "show_id": 2188853,
+      "comedian_id": "ce88ac5089e57d4b8371a10161e2dd57",
+      "role": null
+    },
+    {
+      "id": 488662,
+      "show_id": 2188853,
+      "comedian_id": "a2ac5d114a962b0d4c32fb8fcada894b",
+      "role": null
+    },
+    {
+      "id": 488663,
+      "show_id": 4929820,
+      "comedian_id": "002b71915e91ee719c5326e122fad232",
+      "role": null
+    },
+    {
+      "id": 488664,
+      "show_id": 4929820,
+      "comedian_id": "b2b52aa0567ecec356f916fbecb28de0",
+      "role": null
+    },
+    {
+      "id": 488665,
+      "show_id": 4929820,
+      "comedian_id": "3b67701156460a2aab595e7579adc052",
+      "role": null
+    },
+    {
+      "id": 488666,
+      "show_id": 4929820,
+      "comedian_id": "3ff3d5848bd3edc0159390d621ad6545",
+      "role": null
+    },
+    {
+      "id": 488667,
+      "show_id": 4929821,
+      "comedian_id": "f993d7f112f2b8bafee9704d6545ee5f",
+      "role": null
+    },
+    {
+      "id": 488668,
+      "show_id": 4929821,
+      "comedian_id": "84132983fb312dc13fea3d6a2c523202",
+      "role": null
+    },
+    {
+      "id": 488671,
+      "show_id": 6314566,
+      "comedian_id": "2f2df2fa245c84a75900a2c10055f290",
+      "role": null
+    },
+    {
+      "id": 488673,
+      "show_id": 6314569,
+      "comedian_id": "6b09d5ff66825c3149a20ea0fbaaa478",
+      "role": null
+    },
+    {
+      "id": 488674,
+      "show_id": 6314569,
+      "comedian_id": "25fa9b2f758f0b7ad61817b92fbef540",
+      "role": null
+    },
+    {
+      "id": 488675,
+      "show_id": 6314569,
+      "comedian_id": "0a2874ee6b5d596b2d83b39c7a00d5a5",
+      "role": null
+    },
+    {
+      "id": 488676,
+      "show_id": 4574275,
+      "comedian_id": "d571e67b5d4d69902a755a377b28c390",
+      "role": null
+    },
+    {
+      "id": 488677,
+      "show_id": 394514,
+      "comedian_id": "b7f49bda24c6e622bfdc96df984dda2a",
+      "role": null
+    },
+    {
+      "id": 488678,
+      "show_id": 394515,
+      "comedian_id": "b7f49bda24c6e622bfdc96df984dda2a",
+      "role": null
+    },
+    {
+      "id": 488679,
+      "show_id": 2277805,
+      "comedian_id": "b7f49bda24c6e622bfdc96df984dda2a",
+      "role": null
+    },
+    {
+      "id": 488680,
+      "show_id": 2277806,
+      "comedian_id": "b7f49bda24c6e622bfdc96df984dda2a",
+      "role": null
+    },
+    {
+      "id": 488681,
+      "show_id": 394503,
+      "comedian_id": "6712881c71e7c7f15adb0a3a05a722fe",
+      "role": null
+    },
+    {
+      "id": 488682,
+      "show_id": 447441,
+      "comedian_id": "140419a746686678c911d7c507575f40",
+      "role": null
+    }
+  ],
+  "after": [
+    {
+      "id": 239982,
+      "uuid": "bade8f955593a4664a2a61ec47138a61",
+      "name": "Emily Winter",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444406,
+      "uuid": "43e96958ff24b7b29fd70205e45419fb",
+      "name": "Adam Carolla: All New Material",
+      "visible": false,
+      "parent_comedian_id": 266218,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444410,
+      "uuid": "b8a88aa6028e3a7208266b864d48e6d5",
+      "name": "Akaash Singh: Generational Triumph Tour",
+      "visible": false,
+      "parent_comedian_id": 951,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444411,
+      "uuid": "1d35b1fa64aca6e4e307555fc37b49da",
+      "name": "Alfred Robles: Vatos With Gatos",
+      "visible": false,
+      "parent_comedian_id": 223555,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444420,
+      "uuid": "d367d5e2ffbb9e8c6d9c1ffe4f626d0b",
+      "name": "BRUCE BRUCE: COOL SINCE DAY ONE TOUR *BRAND NEW MATERIAL*",
+      "visible": false,
+      "parent_comedian_id": 226253,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444432,
+      "uuid": "b106581d3a0b7ba7ef62358ab8935c86",
+      "name": "Charlene Kaye: Diversity Shredder",
+      "visible": false,
+      "parent_comedian_id": 157224,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444434,
+      "uuid": "b3e58d7c9e0f1ae054d276d8e8d9980a",
+      "name": "Chris Andrade: M.U.T.A.R (En Espa\u00f1ol)",
+      "visible": false,
+      "parent_comedian_id": 22187,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444436,
+      "uuid": "a65a9682bf1b2c7359d177e27bd52f14",
+      "name": "Christopher Titus: Doomed To Repeat",
+      "visible": false,
+      "parent_comedian_id": 248921,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444492,
+      "uuid": "2196b712f971605f957962f8364a097a",
+      "name": "Corey O'Brien: The Red Tour",
+      "visible": false,
+      "parent_comedian_id": 248962,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444497,
+      "uuid": "69bf1f03122cd2a899a92b429938eb1f",
+      "name": "David Nihill: Taking Tangents",
+      "visible": false,
+      "parent_comedian_id": 832,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444498,
+      "uuid": "836cf5cc4111886425e7b3a794824807",
+      "name": "David Nihill: Taking Tangents Tour",
+      "visible": false,
+      "parent_comedian_id": 832,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444499,
+      "uuid": "1b98566cbf71e7955db75cfd5a728940",
+      "name": "Deanna Ortiz: Funny Slut",
+      "visible": false,
+      "parent_comedian_id": 248850,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444500,
+      "uuid": "1b0eaa0f4c975229a9d0a68efa8277a6",
+      "name": "Dedrick Flynn: Kill Tony's Newest Regular",
+      "visible": false,
+      "parent_comedian_id": 248407,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444508,
+      "uuid": "1b2968797cb2faf32f501d381a47f135",
+      "name": "Gary Gulman: ALL NEW LIVE",
+      "visible": false,
+      "parent_comedian_id": 16286,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444509,
+      "uuid": "4597c950117fcece0cad0a43e6c9c899",
+      "name": "Gianmarco Soresi: Drama King",
+      "visible": false,
+      "parent_comedian_id": 708,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444510,
+      "uuid": "5054ddcc7f6b16a6d455ab563e244634",
+      "name": "Greg Warren: The Impulse Buy Tour",
+      "visible": false,
+      "parent_comedian_id": 223484,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444512,
+      "uuid": "acd27d122ff6c89a9464f2cc9a75b7ec",
+      "name": "HARLAND WILLIAMS: \"COMZILLA\" Comedy Tour",
+      "visible": false,
+      "parent_comedian_id": 235217,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444515,
+      "uuid": "4faab4a5b2667ac43e22fc743f183317",
+      "name": "Ilana Glazer: Added Show",
+      "visible": false,
+      "parent_comedian_id": 248936,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444526,
+      "uuid": "04658fab3ff844bbc162da29e23d1434",
+      "name": "Jacqueline Novak: 2026 Tour",
+      "visible": false,
+      "parent_comedian_id": 4014,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444527,
+      "uuid": "232b34456f35c6f8d8117689a60a5820",
+      "name": "Jared Freid: Table For One Tour",
+      "visible": false,
+      "parent_comedian_id": 4474,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444528,
+      "uuid": "dd24a03c25ba29e5e9bbf8382f29b4ed",
+      "name": "Jared Freid: The Table For One Tour",
+      "visible": false,
+      "parent_comedian_id": 4474,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444530,
+      "uuid": "f8465a652f930b82be7c02902e6c2427",
+      "name": "Jay Mewes: Diary of a Man Child",
+      "visible": false,
+      "parent_comedian_id": 444401,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444531,
+      "uuid": "8178e39119a8ea826fe2ce0eae098f76",
+      "name": "Jeff Allen: My First Annual Final Farewell Tour",
+      "visible": false,
+      "parent_comedian_id": 225860,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444532,
+      "uuid": "cf3dc084b484320fde61c955deb7eedd",
+      "name": "Jeff Allen: My First Final Farewell Tour",
+      "visible": false,
+      "parent_comedian_id": 225860,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444533,
+      "uuid": "e9a6ddbc1382e140eedec573de521177",
+      "name": "Jeff Arcuri: Fresh Cut",
+      "visible": false,
+      "parent_comedian_id": 960,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444534,
+      "uuid": "d04c2c558d0cee692a449ae5e9aef602",
+      "name": "Joel Kim Booster: Chose This Way",
+      "visible": false,
+      "parent_comedian_id": 234803,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444535,
+      "uuid": "3615664b7783b89174a3a0e8bfaacc60",
+      "name": "Josh Bates: A Project Greenroom Benefit Show",
+      "visible": false,
+      "parent_comedian_id": 248984,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444539,
+      "uuid": "67fb105ead3935f78efe2ba7bb70e623",
+      "name": "KEVIN JAMES THORNTON: Book Reading Show",
+      "visible": false,
+      "parent_comedian_id": 223479,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444541,
+      "uuid": "b72793af8bc38498915a56177ce5a45f",
+      "name": "Kanan Gill: Not This Again",
+      "visible": false,
+      "parent_comedian_id": 248766,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444542,
+      "uuid": "e8b8c6396eb8ae0005a789f86ac8e952",
+      "name": "Kareem Green: Cut The Malarkey- Live at Comedy In Harlem",
+      "visible": false,
+      "parent_comedian_id": 77238,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444546,
+      "uuid": "b761a84a12c7024cf2d90468c9eef1d9",
+      "name": "LESLIE JONES: LIVE!",
+      "visible": false,
+      "parent_comedian_id": 168946,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444548,
+      "uuid": "a1e286ba1fa803390fe31095384c63e5",
+      "name": "La Chupitos: Standopeda (En Espa\u00f1ol)",
+      "visible": false,
+      "parent_comedian_id": 64451,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444552,
+      "uuid": "90a5908de86a566073d363e1bec03714",
+      "name": "Led Varela: Popular",
+      "visible": false,
+      "parent_comedian_id": 235151,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444554,
+      "uuid": "0c58202c12f19356b0483770fef55fc0",
+      "name": "Luis Elizondo: Persona Non Grata",
+      "visible": false,
+      "parent_comedian_id": 246655,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444562,
+      "uuid": "e50518fe3feeba0a8afd8ba7ddff9aa2",
+      "name": "Mark Viera: All Star Comedy",
+      "visible": false,
+      "parent_comedian_id": 223505,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444563,
+      "uuid": "797ce3d353b0902b089d6005d30c43fc",
+      "name": "Martin Amini: THE LOVE WORLD TOUR",
+      "visible": false,
+      "parent_comedian_id": 26504,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444564,
+      "uuid": "f0ebdba12a0af7cbe08ea8c7128db136",
+      "name": "Maurice Benard: State Of Mind Tour",
+      "visible": false,
+      "parent_comedian_id": 223609,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444566,
+      "uuid": "fc44d3a8af92f8bc6a34777c0ab5df24",
+      "name": "Michael Blaustein: The Taste Me Tour",
+      "visible": false,
+      "parent_comedian_id": 223489,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444571,
+      "uuid": "77965fa819e589030cb540edcd2ddd64",
+      "name": "Mike Goodwin: Open Mike Tour",
+      "visible": false,
+      "parent_comedian_id": 234619,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444574,
+      "uuid": "987b19908f0241bf0102f56cc627b656",
+      "name": "Mojo Brookzz: I Know You F*ckin' Lying Tour",
+      "visible": false,
+      "parent_comedian_id": 235139,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444576,
+      "uuid": "00e85e0c2d489ecc8272cb1a5f212b43",
+      "name": "Nate Jackson: Big Dog Comedy Tour",
+      "visible": false,
+      "parent_comedian_id": 223934,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444577,
+      "uuid": "c8e278d6039328d161d671fbd326583a",
+      "name": "Nurse John: The Short Staffed Tour",
+      "visible": false,
+      "parent_comedian_id": 223911,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444586,
+      "uuid": "9bc4699cbedb8fd25883194a73f6e54f",
+      "name": "Peter Antoniou: Pretty Psychic Tour",
+      "visible": false,
+      "parent_comedian_id": 223559,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444587,
+      "uuid": "b8c560e56192473fb5e7f555e6814c40",
+      "name": "Peter Antoniou: Psychic Comedian",
+      "visible": false,
+      "parent_comedian_id": 223559,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444588,
+      "uuid": "97864a34351a748c0b460d0ce82e4596",
+      "name": "Phoebe Robinson: HITTIN' THE ROAD",
+      "visible": false,
+      "parent_comedian_id": 352,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444590,
+      "uuid": "e2da52e2e1887d975b893f3fbac6297b",
+      "name": "RACHEL SCANLON: A BIT MUCH TOUR",
+      "visible": false,
+      "parent_comedian_id": 157200,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444593,
+      "uuid": "5f605ea89aa4c627d5cb648fca75aa6e",
+      "name": "Rachel Scanlon: A Bit Much",
+      "visible": false,
+      "parent_comedian_id": 157200,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444594,
+      "uuid": "b6c87674686c6046b7b2046e368b4510",
+      "name": "Randy Feltface: Gimmick",
+      "visible": false,
+      "parent_comedian_id": 235265,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444595,
+      "uuid": "239ea5e0124a8bcb2e05cf9c4ed4557f",
+      "name": "Rayna Greenberg: Honestly, It's You",
+      "visible": false,
+      "parent_comedian_id": 235106,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444600,
+      "uuid": "12188eb773a7ad2ccb1e3a8806e31509",
+      "name": "SPECIAL SHOW: Jackie Fabulous with Adyn Hamann",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Multiple performers; cannot alias the whole bill to Adyn Hamann.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444601,
+      "uuid": "6affcf399ea3c40628c773ee864f5e65",
+      "name": "Saaniya Abbas: Hellarious",
+      "visible": false,
+      "parent_comedian_id": 248734,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444602,
+      "uuid": "b6224c4d590009e52adbeb4ebca633c3",
+      "name": "Sapphira Crist\u00e1l: One Slue Over The Cuckoo\u2019s Nest",
+      "visible": false,
+      "parent_comedian_id": 248149,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444607,
+      "uuid": "a77b7d970ac38bbfdfc18da4cb6322dc",
+      "name": "Sheryl Underwood: The I Need a Job Tour",
+      "visible": false,
+      "parent_comedian_id": 234631,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444610,
+      "uuid": "a85c465409c09f5c7f21963010e8cd98",
+      "name": "Steven Ho: Not Your Comedy Hero Tour",
+      "visible": false,
+      "parent_comedian_id": 235182,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444615,
+      "uuid": "63071cb135e9780d904c8abf255de217",
+      "name": "TREY KENNEDY: THE CROWDWORK SHOW",
+      "visible": false,
+      "parent_comedian_id": 223481,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444624,
+      "uuid": "24b4b147d4a5302375d8beb4148e7803",
+      "name": "ZARNA GARG: Million DOllar Excuses",
+      "visible": false,
+      "parent_comedian_id": 4319,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 444625,
+      "uuid": "788ccb868362ee43413b5a790fcbce25",
+      "name": "ZOLTAN KASZAS: Worldwide(ish) Tour",
+      "visible": false,
+      "parent_comedian_id": 897,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 446609,
+      "uuid": "717b4127ae17be07f68d45152d21328a",
+      "name": "Jay Mewes: Diary of a Man Child",
+      "visible": false,
+      "parent_comedian_id": 444401,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 467014,
+      "uuid": "40d3d120030fc4e8a572c18efb185faa",
+      "name": "THE BENSON MOVIE INTERRUPTION: YOUR CHOICE",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Recurring movie series; add verified host Doug Benson only to reviewed show.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 525540,
+      "uuid": "a34f78625c29c7e5001bf07ed762fea4",
+      "name": "Yakof Smirnoff &#8211; Laugh Your Yak Off",
+      "visible": false,
+      "parent_comedian_id": 248673,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 525557,
+      "uuid": "902bb64efc7b1a4966d9dcd4460b17ce",
+      "name": "Chaunte Wayans &amp; Friends",
+      "visible": false,
+      "parent_comedian_id": 249050,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 528809,
+      "uuid": "602633153382b571a803ea87daacf6d4",
+      "name": "Success Jr",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 582320,
+      "uuid": "6ef9af33faec8fe01dd6dcb735b4d323",
+      "name": "TOM KELLY - SATURDAY, 4/25 @ 7:00PM",
+      "visible": false,
+      "parent_comedian_id": 13922,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 630403,
+      "uuid": "ac0eddb01dba19d2fb5dbe2a22f4c433",
+      "name": "TOMMY GOOCH - FRIDAY, MAY 1, 2026 @ 8:00PM",
+      "visible": false,
+      "parent_comedian_id": 225984,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 659751,
+      "uuid": "33fc9e93a31e0737e4b9249ece71d2ef",
+      "name": "Ry Daddy ft: Daniel Simonsen",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Recurring series across 49 different bills; Ryan Dacalos already linked individually.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 731930,
+      "uuid": "8983c2be381a06c75800f853290927e1",
+      "name": "SHOW HOST: Jasmine Jiang",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 764616,
+      "uuid": "568a9b5aa3edc8939b803eea2ac3ed74",
+      "name": "OLGA NAMER - SATURDAY, 8/1 @ 7:00PM",
+      "visible": false,
+      "parent_comedian_id": 13911,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 771581,
+      "uuid": "87ae49d61e24f6df8c286ee85a537f32",
+      "name": "ROCKY DALE DAVIS - THURSDAY, OCTOBER 29TH @ 8:00PM",
+      "visible": false,
+      "parent_comedian_id": 4199,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 812850,
+      "uuid": "3ce2e7a3f07e0dc04d34ac2dccc01656",
+      "name": "KEVIN DOWNEY JR. - SATURDAY 5/23 @ 7:00PM",
+      "visible": false,
+      "parent_comedian_id": 817437,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 834129,
+      "uuid": "64fb6798906aa1e997237fcdae482983",
+      "name": "Second City alums: Alondra Rios",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 873701,
+      "uuid": "683ecae91a01eee820f99c66431b67d7",
+      "name": "PAT BURTSCHER - SATURDAY 5/30 @ 7:00PM",
+      "visible": false,
+      "parent_comedian_id": 4111,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 877724,
+      "uuid": "d8d04292698e29d55a0c68a95ca9864c",
+      "name": "The Qs",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "not a comic",
+      "block_added_by": "cmqa68z4x0002i9041l14qtcf",
+      "block_added_at": "2026-06-12 20:48:27.182338+00:00"
+    },
+    {
+      "id": 890167,
+      "uuid": "1855837d29cab61019ebbddc64410102",
+      "name": "Jerry Wayne Longmire - SATURDAY 12/12 @ 7:00PM",
+      "visible": false,
+      "parent_comedian_id": 265890,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 914467,
+      "uuid": "addec426932e71323700afa1911f8f1c",
+      "name": "more!",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "not a comic",
+      "block_added_by": "cmpvpqpmn0002jo0570rhgix9",
+      "block_added_at": "2026-06-07 01:03:19.397110+00:00"
+    },
+    {
+      "id": 943463,
+      "uuid": "362ab1096143fc8e08c49e219e40242a",
+      "name": "ROBBY SLOWIK - SATURDAY, 7/11 @ 7:00PM",
+      "visible": false,
+      "parent_comedian_id": 888,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 943472,
+      "uuid": "d0da08fd1d434d56a38765d6cf475319",
+      "name": "ROBBY SLOWIK - FRIDAY 7/10 @ 8:00PM",
+      "visible": false,
+      "parent_comedian_id": 888,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 951459,
+      "uuid": "207117f6893a505b423d748f6687b5fe",
+      "name": "MARCUS MONROE - IN THE GIGGLE ROOM 7/10 @ 8:00PM",
+      "visible": false,
+      "parent_comedian_id": 7099,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 978737,
+      "uuid": "448899fcb03519e16f58b4fedb759a92",
+      "name": "Guest List for: Ryan Reiss",
+      "visible": false,
+      "parent_comedian_id": 4127,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1081541,
+      "uuid": "086a6dfe175ce77b423d292a8f495732",
+      "name": "Mike Finoia ft: Mark Normand",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1089608,
+      "uuid": "b2b248af2e1dc8a216d15d4187449cef",
+      "name": "Blue Man Group",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1090187,
+      "uuid": "c1e13db93f149bdb4c9f858085ab0813",
+      "name": "The Empire Strips Back",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1097109,
+      "uuid": "947464451f20ae119ba8907726e69007",
+      "name": "Screeners: Comedy Dating Show",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1104340,
+      "uuid": "f52b5e449a2303c031a0c3a1109360bf",
+      "name": "Six: The Musical",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1104466,
+      "uuid": "fc2bb693f95d4c1fa4fb914cdd75f33f",
+      "name": "Orlando Ballet",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1104467,
+      "uuid": "ff5f1e83b7f5acaa0be79e5ab8c87b6d",
+      "name": "The Nutcracker",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1134700,
+      "uuid": "0fbb2cbd2ea474e0fbcac0ac7ba22cea",
+      "name": "Community Night",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1138481,
+      "uuid": "45462f105e098a3f86b3eb9970af8139",
+      "name": "The City An Unauthorized Musical",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1140256,
+      "uuid": "403a06e3848b1fdc7134601fd46a7265",
+      "name": "Songs from the Heart: An Afternoon",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1142633,
+      "uuid": "06899bd90ec69eb9c9edd1e5f5d1e196",
+      "name": "The Spotlight: The Best of DFW Comedy",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1189836,
+      "uuid": "a96759891f8eebe89cc82e7c8d12ba40",
+      "name": "The Weekend Show",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1191340,
+      "uuid": "6a2e30585090fd6822b14f7ceaa708c5",
+      "name": "TIM KROMPIER - FRIDAY 6/26 @ 8:00PM",
+      "visible": false,
+      "parent_comedian_id": 225871,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1215441,
+      "uuid": "758ab88fc2581ff86a72c3be91df9ac4",
+      "name": "CARMEN MORALES - FRIDAY 6/26 @ 8:00PM",
+      "visible": false,
+      "parent_comedian_id": 249027,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1215459,
+      "uuid": "cafb4cf0759ac501b3f551e99e7716f4",
+      "name": "CARMEN MORALES - SATURDAY 6/27 @ 7:00PM IN THE GIGGLE ROOM",
+      "visible": false,
+      "parent_comedian_id": 249027,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1303043,
+      "uuid": "4ff6f20e354528dea6e5c05be9c381a1",
+      "name": "CIPHA SOUNDS - SATURDAY 1/16/2027 @ 7:00PM",
+      "visible": false,
+      "parent_comedian_id": 4498,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1328995,
+      "uuid": "b9448b53a6f724f1aa2b711dd3faa564",
+      "name": "CHRIS SCOPO - FRIDAY, 7/10 @ 8:00PM",
+      "visible": false,
+      "parent_comedian_id": 20944,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1329143,
+      "uuid": "de02b291034e597d9e47407cc9496888",
+      "name": "SEAN DONNELLY - FRIDAY 7/10 @ 8:00PM",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1337962,
+      "uuid": "9495a4e9ceac372b7b6edc897dfc6ebf",
+      "name": "the City The Unauthorized Musical",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1416611,
+      "uuid": "72a882b9d76cf9ee6d683ef1be82a3e7",
+      "name": "STACKED: Oops",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1508295,
+      "uuid": "1bc0862959c7384241f7fa3534940a8d",
+      "name": "Raynes and David Wimbish &amp; The Collection",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1532822,
+      "uuid": "3e51c51c090c5b44dc7ef30360c3299a",
+      "name": "Presentation Party: Grill",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1556824,
+      "uuid": "58c5d8f16b25062c8081d3d2ae05aa7f",
+      "name": "QUACKED: Oops",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1559908,
+      "uuid": "45c94bc2631975d4730d09f333d82c93",
+      "name": "School Girls; Or, The African Mean Girls Play",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1563211,
+      "uuid": "8edf25d6d9be10bad4e38c3c929a7769",
+      "name": "Sugar Hill Art Expo III: Art Activism",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1637479,
+      "uuid": "d9ec14d30bc63c5441961396ae09136d",
+      "name": "Psychic Medium: Travis Holp",
+      "visible": false,
+      "parent_comedian_id": 223507,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1678404,
+      "uuid": "e52657461b1c1b2c548991a8570c9545",
+      "name": "Rob Anderson",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1683167,
+      "uuid": "bb910314723263439a98dba542f95dcf",
+      "name": "Laughs for the Fox Valley: Tornado Relief Benefit",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1694910,
+      "uuid": "77a53b655ccf378c0c3e4913f2ec9bae",
+      "name": "Stella's Underground Comedy: Mo Vida, Delina Gigikos",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1694922,
+      "uuid": "44ea04936172f653d91d6c0db18756c1",
+      "name": "Stella&#39;s Underground Comedy: Mo Vida, Delina Gigikos",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1695017,
+      "uuid": "26cdc78894698b025c71bbcf89ff8211",
+      "name": "Indie Hour: Mouth Stuff",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1704949,
+      "uuid": "a6f7b22c435739f7a43442d8c3df66db",
+      "name": "The Brown-Forman Nutcracker",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1728643,
+      "uuid": "f35b2923c58f2a284423022297eeba2b",
+      "name": "Point of View (David Razowsky Master Class)",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1728644,
+      "uuid": "9f639455ff54a00ec3d7eac073c15d5d",
+      "name": "Play the Moment (David Razowsky Master Class)",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1730753,
+      "uuid": "381584019ffd7e4b139babf9cd18e2b6",
+      "name": "Headliner: SubHat",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1731847,
+      "uuid": "8a511c95ddbd1cc6fea915846d914daa",
+      "name": "Spinsters: A Comedy Craft Show",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1746534,
+      "uuid": "a2eed603a29ec4d1a5a2248714ee09a8",
+      "name": "Lois: Reunited for GH Fans\u201d",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1748137,
+      "uuid": "567335c326200c14f4a0622c5ad61667",
+      "name": "Pablo Zuniga: Me Da Lo Mismo",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1783657,
+      "uuid": "f53b64bec4ea18ca28e19dbc1ddead44",
+      "name": "Wonderlust: Nocturne",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1800830,
+      "uuid": "cf7152dec0e8ef5c22ddb293859c250b",
+      "name": "Loo Aid: A World Toilet Day Comedy Craptacular",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1843141,
+      "uuid": "b498564efe8136dcc708921ed0856809",
+      "name": "Twin Cities Ballet of Minnesota",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1875603,
+      "uuid": "f46a6477eeb20e054e2cd6ba7a35d8f8",
+      "name": "BABY SCOTT BACK: Rachael Gunning",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1912403,
+      "uuid": "5e785358046354f82d5255593c49bde9",
+      "name": "Rhinestone Rodeo: Overture Cabaret Series",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1913361,
+      "uuid": "316ddde056375ea235cd9efe9e0d9e9e",
+      "name": "Three Cheers for Sweet Revenge: A Chemical Tribute",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1923421,
+      "uuid": "984aff4ae95d5c7e1bb25ae896b2ece5",
+      "name": "Stormy: Dark rum cut",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1923490,
+      "uuid": "e82f9a54ff184b276a0cb56f9fee0517",
+      "name": "Dada Gag Law: At the iO",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1923739,
+      "uuid": "a5ce058afb0382093de4cd10e0a6c928",
+      "name": "GRACE & MAMRIE PRESENT: This Might Get Weird",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1923876,
+      "uuid": "b15304dac3620c4a0d25043afc220597",
+      "name": "School Girls:Or, The African Mean Girls",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1943345,
+      "uuid": "555da7ad4b8fac1c3e027389077f4211",
+      "name": "COMEDY COLLEGE NEW SESSION STARTING - MONDAY, 9/21 @ 6:00PM",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1952516,
+      "uuid": "e657b0cc6e715ed5bffa00a3bf4b4129",
+      "name": "CARIE KARAVAS - FRIDAY, 8/28 @ 8:00PM",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 1999454,
+      "uuid": "fcc080297aedc02c47d410a932e3a2aa",
+      "name": "Potter Parodies: Holiday at Hogwarts",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2017022,
+      "uuid": "e712b9cbde38c319572b1c4158a83bd8",
+      "name": "New Year's Eve at Comedy In Harlem-10:30PM\u00a0SHOW",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2028633,
+      "uuid": "47b087ae9e7a8ea962cc467a10475389",
+      "name": "Unreliable History Hour: Fallen Heroes",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2030991,
+      "uuid": "382c4d19f30a8356d7400c69f53b044c",
+      "name": "Michael McIntyre",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2033587,
+      "uuid": "f5a28444750962075d88d80080382d92",
+      "name": "Grits & Eggs Podcast: Coming Thru America Tour",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2056998,
+      "uuid": "952e3e410a83acd7800cd9efc53bc223",
+      "name": "September 9th at 7:30 pm",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2122952,
+      "uuid": "dbd43468f53a07a7f088459234c4521e",
+      "name": "Ballet Folklorico",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2134376,
+      "uuid": "65ebf1e7f6f2bb1b1aea90efcc9ddd39",
+      "name": "Ballet San Antonio",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2142859,
+      "uuid": "9ef1705d8c7037a029f8e1d8079b2606",
+      "name": "Richmond Ballet",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2194526,
+      "uuid": "a8af679cf664e5868a551c38bf82e863",
+      "name": "Mixology class",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2198494,
+      "uuid": "97cbdf135722b6c0457c73cd61a48431",
+      "name": "Seattle Symphony Orchestra",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2220432,
+      "uuid": "8e9910d487a61269e3897fd51257dca9",
+      "name": "Emily Lehr &amp; the Foxglove Fellows",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2225257,
+      "uuid": "9afe051a2858b9a87ba2e78de07c3753",
+      "name": "Blood Drive: The Show",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2241382,
+      "uuid": "c97be2b6e755254682e6a6e43bdf531c",
+      "name": "Sheryl on September 24th",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2256453,
+      "uuid": "4bb7c55167a80b83a7067a8cfde4c538",
+      "name": "Symphony San Jose",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2256456,
+      "uuid": "3d7255881bca5793d713d85446f3c916",
+      "name": "The New Ballet",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2264413,
+      "uuid": "a1926c80c6af52de52b1f05ef3785cee",
+      "name": "Soul Scenes: Welcome to Crooklyn",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2265019,
+      "uuid": "3c2ec35846a42ebc8b995bebb3fc77d4",
+      "name": "Dogman: The Musical",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2289941,
+      "uuid": "2b1872e0ad2ca26babcda9b3ca02c107",
+      "name": "Jesse Peyton\u2019s: Couples Therapy",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2290805,
+      "uuid": "ffd1c1f0eb645d5a496ced1211a8010e",
+      "name": "Father Frank &amp; Under The Canopy",
+      "visible": true,
+      "parent_comedian_id": null,
+      "block_reason": null,
+      "block_added_by": null,
+      "block_added_at": null
+    },
+    {
+      "id": 2300446,
+      "uuid": "dbf28238413d9c05cd754d9776db9430",
+      "name": "Virginia National Ballet",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2333442,
+      "uuid": "5a59544a024a822f25d24f651e4a9e50",
+      "name": "Smoky Mountain Songbook: The Music of Dolly Parton",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2345770,
+      "uuid": "5e15b37ec616081dd8767bae9972bc56",
+      "name": "Kendall Street Company: Yodeling Astroman Tour",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2352839,
+      "uuid": "08e6acf1bd39908dee83f002cc01ec96",
+      "name": "Musical Comedy Workshop With Jamie Shriner",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2400552,
+      "uuid": "e4b5d6b8b5e4546bbc6db3f421833259",
+      "name": "CRAFT & A COCKTAIL: CERAMIC MUSHROOM GARLAND WORKSHOP",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2404562,
+      "uuid": "a401808ed5196108a8f949e5973b5754",
+      "name": "George Balanchine's The Nutcracker",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2415023,
+      "uuid": "ce0dc36463b83e4042e44da4a12c8cb1",
+      "name": "The Magic Flute",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2417595,
+      "uuid": "03df579e62b5591683602529a20c23d2",
+      "name": "Craft & A Cocktail- Folk Art Snake Workshop",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428458,
+      "uuid": "e4e5bc8a8200377524fb4f8720d5e00a",
+      "name": "live show producer Larry Mancini",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428465,
+      "uuid": "7acab6374cd18df12bc4388a0880b3d2",
+      "name": "has been recommended by NPR",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428469,
+      "uuid": "8db7defb5d7ad706089f146b8d2acaad",
+      "name": "many more.",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428474,
+      "uuid": "6486026485c0f81e1de69d26a09b60bd",
+      "name": "bringing you the hits of Rihanna",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428479,
+      "uuid": "94452dc2afeed0d943a18c83ff7f62e7",
+      "name": "T-Pain",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428482,
+      "uuid": "1f0bac36cdacd67d88105e7e8d83d8a6",
+      "name": "Fergie",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428483,
+      "uuid": "a592f8b138ef0a3897f0e2d83967b5c4",
+      "name": "Fall Out Boy",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428498,
+      "uuid": "95eb27e56b3c19f91caddc5279cb6513",
+      "name": "Amy Winehouse",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428520,
+      "uuid": "222a5a8b3ad3d7d0e6805e301898eaaf",
+      "name": "Radiohead",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428525,
+      "uuid": "82d68835645be86cfff764a4a044af45",
+      "name": "The New York Times",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428542,
+      "uuid": "71e669d27a5813fd55d35c66d406d69e",
+      "name": "The Boston Globe",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428543,
+      "uuid": "c5f74dda801bff0dbb825a2fe0f2ce7a",
+      "name": "Albuquerque's Daily Lobo",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428544,
+      "uuid": "4e25e510bb73f379d9059e5c69d958be",
+      "name": "Paramore",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428552,
+      "uuid": "90272dda245ae1fb3cf197e91a8689dc",
+      "name": "Time Out",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428554,
+      "uuid": "60fb1418cece6e9f892ade32f9dbceb6",
+      "name": "Chicago's WGN",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428556,
+      "uuid": "d724f231a9a7b89757c4394d6622bc47",
+      "name": "MGMT",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2428557,
+      "uuid": "4da0826b0759ee2144ab9a8a8f648267",
+      "name": "LAist",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 2441769,
+      "uuid": "cd116a49821cdb8e1624e143337f27b3",
+      "name": "Furious movie left",
+      "visible": false,
+      "parent_comedian_id": null,
+      "block_reason": "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.",
+      "block_added_by": "TASK-4043",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    }
+  ],
+  "preserved": {
+    "favorites": 0,
+    "shows": 1952,
+    "lineups": 2761
+  },
+  "suppressed": 162,
+  "canonicalized": 3,
+  "detached": 3,
+  "rollback_verified": true
+}

@@ -1,0 +1,213 @@
+[
+  {
+    "club": "Sports Drink",
+    "command": "PYTHONPATH=\"$PWD/src:$PWD\" make scrape-club CLUB='Sports Drink'",
+    "source_base": "b76db681e982",
+    "task_commit": "38aa17e6f3a074414c0828c552ec98bcd4ff1133",
+    "exit_code": 0,
+    "timezone": "America/New_York",
+    "raw_log_sha256": "d36a70cd7229c893be66e6f5c89dc6408075467903b4bff046cd03d61937b397",
+    "metrics": {
+      "session": {
+        "duration_seconds": 134.911035,
+        "exported_at": "2026-09-24T11:49:51.653126"
+      },
+      "shows": {
+        "scraped": 136,
+        "saved": 135,
+        "inserted": 0,
+        "updated": 135,
+        "failed_save": 0,
+        "skipped_dedup": 0,
+        "validation_failed": 1,
+        "db_errors": 0
+      },
+      "clubs": {
+        "processed": 1,
+        "successful": 1,
+        "failed": 0
+      },
+      "errors": {
+        "total": 0
+      },
+      "success_rate": 99.26470588235294,
+      "execution_times": [
+        134.911035
+      ],
+      "per_club_stats": [
+        {
+          "club": "Sports Drink",
+          "num_shows": 136,
+          "execution_time": 134.911035,
+          "success": true,
+          "error": null,
+          "club_id": 653,
+          "errors": 0,
+          "success_rate": 100.0,
+          "http_status": 200,
+          "bot_block_detected": false,
+          "bot_block_signature": null,
+          "bot_block_provider": null,
+          "bot_block_type": null,
+          "bot_block_source": null,
+          "bot_block_stage": null,
+          "playwright_fallback_used": false,
+          "items_before_filter": 136,
+          "ticketless_shows": 0,
+          "is_synthetic": false,
+          "production_company_id": null
+        }
+      ],
+      "error_details": [],
+      "duplicate_show_details": [],
+      "run_type": "verify"
+    },
+    "evidence_lines": [
+      "2026-09-24 11:49:37,694 | INFO | pid=39516 | club=Sports Drink | scraper=sports_drink | SportsDrinkScraper [Sports Drink]: Scraped 136 total shows",
+      "2026-09-24 11:49:51,631 | WARNING | pid=39516 | club=- | scraper=- | Stale-show reconciliation SKIPPED for 'Sports Drink' (scraper=sports_drink): 85 future shows would be deleted, exceeding the safety cap of 10. This is the signature of a silent parser break, not normal cancellations \u2014 investigate the source before any manual cleanup.",
+      "2026-09-24 11:49:51,905 | INFO | pid=39516 | club=- | scraper=- | Persisted scraper run summary to Postgres run_key=scraper:2026-09-24T11:49:51.653126",
+      "2026-09-24 11:49:52,126 | INFO | pid=39516 | club=- | scraper=- | Scraped 136 shows for Sports Drink"
+    ],
+    "follow_up_task": 4064
+  },
+  {
+    "club": "Union Comedy",
+    "command": "PYTHONPATH=\"$PWD/src:$PWD\" make scrape-club CLUB='Union Comedy'",
+    "source_base": "b76db681e982",
+    "task_commit": "38aa17e6f3a074414c0828c552ec98bcd4ff1133",
+    "exit_code": 0,
+    "timezone": "America/New_York",
+    "raw_log_sha256": "d0730a0d192e297f321689c30cc9be94a381cdbec8479ff997d3450170d97b70",
+    "metrics": {
+      "session": {
+        "duration_seconds": 0.650359,
+        "exported_at": "2026-09-24T11:48:50.289614"
+      },
+      "shows": {
+        "scraped": 212,
+        "saved": 212,
+        "inserted": 0,
+        "updated": 212,
+        "failed_save": 0,
+        "skipped_dedup": 0,
+        "validation_failed": 0,
+        "db_errors": 0
+      },
+      "clubs": {
+        "processed": 1,
+        "successful": 1,
+        "failed": 0
+      },
+      "errors": {
+        "total": 0
+      },
+      "success_rate": 100.0,
+      "execution_times": [
+        0.650359
+      ],
+      "per_club_stats": [
+        {
+          "club": "Union Comedy",
+          "num_shows": 212,
+          "execution_time": 0.650359,
+          "success": true,
+          "error": null,
+          "club_id": 10945,
+          "errors": 0,
+          "success_rate": 100.0,
+          "http_status": null,
+          "bot_block_detected": false,
+          "bot_block_signature": null,
+          "bot_block_provider": null,
+          "bot_block_type": null,
+          "bot_block_source": null,
+          "bot_block_stage": null,
+          "playwright_fallback_used": false,
+          "items_before_filter": 212,
+          "ticketless_shows": 0,
+          "is_synthetic": false,
+          "production_company_id": null
+        }
+      ],
+      "error_details": [],
+      "duplicate_show_details": [],
+      "run_type": "verify"
+    },
+    "evidence_lines": [
+      "2026-09-24 11:48:40,645 | INFO | pid=40131 | club=Union Comedy | scraper=crowdwork | GenericCrowdworkScraper [Union Comedy]: Scraped 212 total shows",
+      "2026-09-24 11:48:50,561 | INFO | pid=40131 | club=- | scraper=- | Persisted scraper run summary to Postgres run_key=scraper:2026-09-24T11:48:50.289614",
+      "2026-09-24 11:48:50,864 | INFO | pid=40131 | club=- | scraper=- | Scraped 212 shows for Union Comedy"
+    ],
+    "follow_up_task": null
+  },
+  {
+    "club": "The KillBox Comedy Club",
+    "command": "PYTHONPATH=\"$PWD/src:$PWD\" make scrape-club CLUB='The KillBox Comedy Club'",
+    "source_base": "b76db681e982",
+    "task_commit": "38aa17e6f3a074414c0828c552ec98bcd4ff1133",
+    "exit_code": 0,
+    "timezone": "America/New_York",
+    "raw_log_sha256": "1a70cc381b9c2939d926337f7d454bd51db3533dc6d61ea5ba77564f808fcb0e",
+    "metrics": {
+      "session": {
+        "duration_seconds": 5.054232,
+        "exported_at": "2026-09-24T11:49:24.822477"
+      },
+      "shows": {
+        "scraped": 79,
+        "saved": 79,
+        "inserted": 1,
+        "updated": 78,
+        "failed_save": 0,
+        "skipped_dedup": 0,
+        "validation_failed": 0,
+        "db_errors": 0
+      },
+      "clubs": {
+        "processed": 1,
+        "successful": 1,
+        "failed": 0
+      },
+      "errors": {
+        "total": 0
+      },
+      "success_rate": 100.0,
+      "execution_times": [
+        5.054232
+      ],
+      "per_club_stats": [
+        {
+          "club": "The KillBox Comedy Club",
+          "num_shows": 79,
+          "execution_time": 5.054232,
+          "success": true,
+          "error": null,
+          "club_id": 1348,
+          "errors": 0,
+          "success_rate": 100.0,
+          "http_status": 200,
+          "bot_block_detected": false,
+          "bot_block_signature": null,
+          "bot_block_provider": null,
+          "bot_block_type": null,
+          "bot_block_source": null,
+          "bot_block_stage": null,
+          "playwright_fallback_used": false,
+          "items_before_filter": 79,
+          "ticketless_shows": 0,
+          "is_synthetic": false,
+          "production_company_id": null
+        }
+      ],
+      "error_details": [],
+      "duplicate_show_details": [],
+      "run_type": "verify"
+    },
+    "evidence_lines": [
+      "2026-09-24 11:49:19,304 | INFO | pid=40348 | club=The KillBox Comedy Club | scraper=- | SeatEngineScraper [The KillBox Comedy Club]: Scraped 79 total shows",
+      "2026-09-24 11:49:25,052 | INFO | pid=40348 | club=- | scraper=- | Persisted scraper run summary to Postgres run_key=scraper:2026-09-24T11:49:24.822477",
+      "2026-09-24 11:49:25,275 | INFO | pid=40348 | club=- | scraper=- | Scraped 79 shows for The KillBox Comedy Club"
+    ],
+    "follow_up_task": null
+  }
+]

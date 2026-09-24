@@ -82,9 +82,34 @@ a false committed flag alone does not establish that the database rolled back.
 
 ## Verification
 
-Pending execution results and subsequent live scrape verification are recorded
-in the accompanying receipts and verification artifact. Later normal scrapes may
-remove old hidden garbage associations through the normal lineup reconciliation;
-they must preserve legitimate events/performers and must not recreate visible
-false identities. Historical shows are outside future-only scrape windows, so
-immediate guarded preservation and source review cover those associations.
+Production apply committed successfully after the approved inline review. Both
+`dry-run.json` and `applied.json` record a successful rollback exercise. The
+committed repair preserved all 1,952 reviewed shows and 2,761 existing lineup
+rows; the 174 candidate identities had zero favorites. It added 15 verified
+canonical records and 22 individual lineup links. `immediate-verification.json`
+independently confirms the final identity dispositions and preserved cast.
+
+Three actual subsequent production scrapes used the merged prevention code:
+Sports Drink (136 shows), Union Comedy (212), and The KillBox Comedy Club (79).
+All completed with exit 0 and no save errors; `later-scrapes.json` preserves run
+keys, metrics, and relevant output. The final read-only check at
+2026-09-24T15:51:33Z (`later-verification.json`) found zero visible duplicates of
+the 162 suppressed identities, all three corrected names intact, all 1,952
+reviewed shows intact, every added link present, and no removed real-cast links.
+The previously repaired iO lineups remain at 63 and 23 performers.
+
+Sports Drink's separate stale-show reconciliation was correctly skipped: 85
+stored future shows were absent from the feed, above the cap of 10. Nothing was
+manually deleted. TASK-4064 tracks that source investigation; it does not
+invalidate the identity-suppression check. Historical shows are outside these
+future-only scrape windows; their preservation is covered by the transaction
+and global follow-up checks, not a claim that all sources were rerun.
+
+Run `verify.py --receipt <committed-receipt> --output <fresh-output-path>` using
+the same scraper venv and worktree PYTHONPATH for the read-only verification.
+
+The database-domain web test gate has three deterministic pre-existing failures
+in savedShow.test.tsx (expired fixed dates, already tracked in TASK-3983).
+`test-precheck.json` records three failing unchanged-HEAD runs, no flake and no
+upstream divergence. The repair was committed through the documented fallback;
+this report does not claim that the unrelated web suite passed.
