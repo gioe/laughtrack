@@ -66,8 +66,6 @@ class TicketmasterEventTransformer(DataTransformer[JSONDict]):
         "Arts & Theatre" with empty or "Miscellaneous" genre).
         """
         classifications = event_data.get("classifications", [])
-        if not classifications:
-            return True
 
         for classification in classifications:
             genre = classification.get("genre", {})
@@ -92,4 +90,10 @@ class TicketmasterEventTransformer(DataTransformer[JSONDict]):
             genre_name = genre.get("name", "").lower() if genre else ""
             if genre_name and genre_name not in _UNCATEGORISED_GENRE_NAMES:
                 return False
+        for attraction in event_data.get("_embedded", {}).get("attractions", []):
+            for classification in attraction.get("classifications", []):
+                for field in ("genre", "subGenre"):
+                    name = (classification.get(field) or {}).get("name", "").strip().lower()
+                    if name and name not in _UNCATEGORISED_GENRE_NAMES | _COMEDY_GENRE_NAMES:
+                        return False
         return True

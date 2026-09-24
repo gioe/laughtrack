@@ -308,3 +308,19 @@ async def test_discover_urls_returns_api_endpoint(v):
     assert v.venue_id in urls[0], (
         f"Expected venue ID {v.venue_id!r} in discover_urls() result, got: {urls}"
     )
+
+
+@pytest.mark.parametrize("genre", ["Dance", "Opera"])
+@pytest.mark.parametrize("event_genre", ["", "Miscellaneous"])
+def test_reject_non_comedy_attraction_genres(genre, event_genre):
+    event = _event_with_classification("Arts & Theatre", event_genre)
+    event["name"] = "Richmond Ballet" if genre == "Dance" else "Met Live In HD w/ The Magic Flute"
+    event["_embedded"] = {"attractions": [{
+        "name": event["name"],
+        "classifications": [{"genre": {"name": genre}, "subGenre": {"name": genre}}],
+    }]}
+    assert TicketmasterEventTransformer._is_comedy_event(event) is False
+    transformer = TicketmasterEventTransformer(_club(_VENUES[0]))
+    with patch("laughtrack.scrapers.implementations.api.ticketmaster.transformer.TicketmasterClient") as client:
+        assert transformer.transform_to_show(event) is None
+        client.assert_not_called()
