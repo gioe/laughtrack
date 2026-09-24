@@ -11,13 +11,7 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
-from laughtrack.core.clients.ticketmaster.client import TicketmasterClient
-
-_COMEDY_GENRE_NAMES = {"comedy", "stand-up comedy", "standup comedy"}
-_COMEDY_SEGMENT_NAMES = {"arts & theatre"}
-
-# Genres that are effectively uncategorised — treat the same as missing genre
-_UNCATEGORISED_GENRE_NAMES = {"miscellaneous", "undefined", "other"}
+from laughtrack.core.clients.ticketmaster.client import TicketmasterClient, is_ticketmaster_comedy_event
 
 
 class TicketmasterEventTransformer(DataTransformer[JSONDict]):
@@ -57,43 +51,5 @@ class TicketmasterEventTransformer(DataTransformer[JSONDict]):
 
     @staticmethod
     def _is_comedy_event(event_data: JSONDict) -> bool:
-        """Check if a Ticketmaster event is a comedy event.
-
-        Inspects classifications[].genre.name and classifications[].subGenre.name
-        for comedy-related genres. Events with no classifications — or with only
-        uncategorised/empty genre metadata — are allowed through to avoid dropping
-        events that lack proper tagging (e.g. The Second City uses segment
-        "Arts & Theatre" with empty or "Miscellaneous" genre).
-        """
-        classifications = event_data.get("classifications", [])
-
-        for classification in classifications:
-            genre = classification.get("genre", {})
-            genre_name = genre.get("name", "").lower() if genre else ""
-            if genre_name in _COMEDY_GENRE_NAMES:
-                return True
-            sub_genre = classification.get("subGenre", {})
-            sub_genre_name = sub_genre.get("name", "").lower() if sub_genre else ""
-            if sub_genre_name in _COMEDY_GENRE_NAMES:
-                return True
-
-        # If every classification has empty or uncategorised genre info, treat the
-        # event as unclassified only when Ticketmaster's broader segment is
-        # compatible with comedy. This preserves venues such as The Second City,
-        # while excluding Music/Sports/etc. events whose genre is just Undefined.
-        for classification in classifications:
-            segment = classification.get("segment", {})
-            segment_name = segment.get("name", "").lower() if segment else ""
-            if segment_name and segment_name not in _COMEDY_SEGMENT_NAMES:
-                return False
-            genre = classification.get("genre", {})
-            genre_name = genre.get("name", "").lower() if genre else ""
-            if genre_name and genre_name not in _UNCATEGORISED_GENRE_NAMES:
-                return False
-        for attraction in event_data.get("_embedded", {}).get("attractions", []):
-            for classification in attraction.get("classifications", []):
-                for field in ("genre", "subGenre"):
-                    name = (classification.get(field) or {}).get("name", "").strip().lower()
-                    if name and name not in _UNCATEGORISED_GENRE_NAMES | _COMEDY_GENRE_NAMES:
-                        return False
-        return True
+        """Use the same admission policy as direct Ticketmaster clients."""
+        return is_ticketmaster_comedy_event(event_data)

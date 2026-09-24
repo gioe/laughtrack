@@ -532,3 +532,28 @@ async def test_fetch_national_dedupes_events_across_windows(platform_club):
 
     assert len(events) == 1
     assert events[0]["id"] == "dup"
+
+
+@pytest.mark.asyncio
+async def test_non_comedy_attraction_gate(platform_club):
+    """Reject audited productions before national venue creation, as venue ingest does."""
+    from laughtrack.scrapers.implementations.api.ticketmaster.transformer import TicketmasterEventTransformer
+    rejected = []
+    for name, genre in [("Richmond Ballet", "Dance"), ("The Magic Flute", "Opera"), ("Six: The Musical", "Miscellaneous")]:
+        event = _make_api_event(venue_id=name, event_id=name)
+        event["name"] = name
+        event["classifications"] = [{"segment": {"name": "Arts & Theatre"}, "genre": {"name": "Miscellaneous"}}]
+        event["_embedded"]["attractions"] = [{"name": name, "classifications": [{"genre": {"name": genre}}]}]
+        assert TicketmasterEventTransformer._is_comedy_event(event) is False
+        rejected.append(event)
+    comedy = _make_api_event(venue_id="comedy-venue")
+    assert TicketmasterEventTransformer._is_comedy_event(comedy) is True
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+    show = MagicMock(spec=Show)
+    with patch.object(scraper._club_handler, "upsert_for_ticketmaster_venue", return_value=_make_club()) as upsert:
+        with patch("laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient") as client:
+            client.return_value.create_show.return_value = show
+            assert await scraper._process_events(rejected + [comedy]) == [show]
+    upsert.assert_called_once_with(comedy["_embedded"]["venues"][0])
+    client.return_value.create_show.assert_called_once_with(comedy)

@@ -291,10 +291,10 @@ def test_music_events_with_undefined_genre_are_not_treated_as_comedy():
     assert TicketmasterEventTransformer._is_comedy_event(event) is False
 
 
-def test_arts_theatre_events_with_undefined_genre_remain_eligible():
+def test_arts_theatre_alone_does_not_establish_comedy():
     event = _event_with_classification("Arts & Theatre", "Undefined", "Undefined")
 
-    assert TicketmasterEventTransformer._is_comedy_event(event) is True
+    assert TicketmasterEventTransformer._is_comedy_event(event) is False
 
 
 @pytest.mark.asyncio
@@ -324,3 +324,50 @@ def test_reject_non_comedy_attraction_genres(genre, event_genre):
     with patch("laughtrack.scrapers.implementations.api.ticketmaster.transformer.TicketmasterClient") as client:
         assert transformer.transform_to_show(event) is None
         client.assert_not_called()
+
+
+@pytest.mark.parametrize("case, expected", [
+    ("misc_musical", False), ("missing", False), ("event_comedy", True),
+    ("attraction_comedy", True), ("title_comedy", True), ("open_mic", False),
+    ("music_with_comedy_attraction", False), ("opera_subgenre", False),
+    ("known_venue", True), ("known_venue_opera", False),
+    ("venue_name_only", False), ("comedy_title_dance", False),
+])
+def test_unclassified_comedy_evidence(case, expected):
+    from laughtrack.core.clients.ticketmaster.client import TicketmasterClient, is_ticketmaster_comedy_event
+    event = _event_with_classification("Arts & Theatre", "Miscellaneous")
+    event["name"] = "Six: The Musical"
+    event["_embedded"] = {"venues": [{"id": "mixed-use", "name": "The Second City"}], "attractions": []}
+    if case == "missing":
+        event.pop("classifications")
+    if case == "event_comedy":
+        event["classifications"][0]["genre"] = {"name": "Comedy"}
+    if case in {"attraction_comedy", "music_with_comedy_attraction"}:
+        event["_embedded"]["attractions"] = [{"classifications": [{"genre": {"name": "Comedy"}}]}]
+    if case == "music_with_comedy_attraction":
+        event["classifications"][0]["segment"] = {"name": "Music"}
+    if case in {"title_comedy", "comedy_title_dance"}:
+        event["name"] = "Stand-up Comedy Night"
+    if case == "open_mic":
+        event["name"] = "Open Mic"
+    if case in {"opera_subgenre", "known_venue_opera"}:
+        event["classifications"][0]["subGenre"] = {"name": "Opera"}
+    if case in {"known_venue", "known_venue_opera"}:
+        event["_embedded"]["venues"][0]["id"] = "ZFr9jZFkdd"
+    if case == "comedy_title_dance":
+        event["_embedded"]["attractions"] = [{"classifications": [{"genre": {"name": "Dance"}}]}]
+    assert is_ticketmaster_comedy_event(event) is expected
+    assert TicketmasterEventTransformer._is_comedy_event(event) is expected
+    # Exercise the direct client boundary without constructing an HTTP client.
+    client = object.__new__(TicketmasterClient)
+    with patch.object(client, "_extract_basic_show_info_from_api", return_value=None) as extract:
+        assert client.create_show(event) is None
+        assert extract.called is expected
+
+
+@pytest.mark.parametrize("v", _VENUES, ids=lambda v: v.venue_id)
+def test_supported_unclassified_comedy_venues(v):
+    event = _make_api_event(v, name="Performer Name")
+    assert TicketmasterEventTransformer._is_comedy_event(event) is True
+    event["classifications"] = [{"genre": {"name": "Dance"}}]
+    assert TicketmasterEventTransformer._is_comedy_event(event) is False

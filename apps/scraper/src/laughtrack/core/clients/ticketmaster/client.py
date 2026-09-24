@@ -35,6 +35,70 @@ from laughtrack.scrapers.implementations.api.ticketweb.extractor import (
 )
 
 
+_COMEDY_GENRES = {"comedy", "stand-up comedy", "standup comedy"}
+_UNCLASSIFIED_GENRES = {"", "miscellaneous", "undefined", "other"}
+# Vetted comedy-only venues. Never infer this trust from a venue name or the
+# clubs.club_type field (mixed-use theaters also use "club"). IDs verified
+# against Discovery and enabled scraping_sources for TASK-4040.
+_UNCLASSIFIED_COMEDY_VENUE_IDS = {
+    "KovZpZAEvtFA",  # Punch Line Philly
+    "KovZpZAEkFEA",  # Cobb's Comedy Club
+    "KovZpZAE6e7A",  # Punch Line San Francisco
+    "KovZ917ARGO",   # Punch Line Houston
+    "KovZpZAFJEvA",  # Just the Funny
+    "KovZpZAE6EtA",  # The Second City
+    "ZFr9jZFkdd",    # The Second City's alternate Discovery ID
+}
+# Deliberately narrower than the generic show keyword helper: an unqualified
+# open mic, roast, comic convention, or sketch workshop is not comedy evidence.
+_COMEDY_TITLE = re.compile(r"\b(?:comedy|comedians?|stand[ -]?up|improv)\b", re.IGNORECASE)
+
+
+def _classification_evidence(entity: JSONDict) -> tuple[bool, bool]:
+    """Return (explicit comedy, explicit non-comedy) for a Discovery entity."""
+    comedy = non_comedy = False
+    for classification in entity.get("classifications") or []:
+        names = {
+            ((classification.get(field) or {}).get("name") or "").strip().lower()
+            for field in ("genre", "subGenre")
+        }
+        if names & _COMEDY_GENRES:
+            comedy = True
+            continue
+        segment = ((classification.get("segment") or {}).get("name") or "").strip().lower()
+        if names - _UNCLASSIFIED_GENRES or segment not in _UNCLASSIFIED_GENRES | {"arts & theatre"}:
+            non_comedy = True
+    return comedy, non_comedy
+
+
+def is_ticketmaster_comedy_event(event: JSONDict) -> bool:
+    """Shared admission policy for venue, national, and direct client paths.
+
+    Event-level Comedy remains authoritative. Otherwise explicit non-comedy
+    event/attraction metadata vetoes fallbacks. Missing or miscellaneous genre
+    at a mixed-use venue requires a comedy attraction or a comedy title;
+    Arts & Theatre alone, and the API's Comedy search filter, prove nothing.
+    """
+    comedy, non_comedy = _classification_evidence(event)
+    if comedy:
+        return True
+    if non_comedy:
+        return False
+    embedded = event.get("_embedded") or {}
+    attraction_comedy = False
+    for attraction in embedded.get("attractions") or []:
+        comedy, non_comedy = _classification_evidence(attraction)
+        if non_comedy and not comedy:
+            return False
+        attraction_comedy |= comedy
+    if attraction_comedy or _COMEDY_TITLE.search(event.get("name") or ""):
+        return True
+    return any(
+        venue.get("id") in _UNCLASSIFIED_COMEDY_VENUE_IDS
+        for venue in embedded.get("venues") or []
+    )
+
+
 class TicketmasterClient(BaseApiClient):
     """
     Official Ticketmaster Discovery API client.
@@ -273,6 +337,8 @@ class TicketmasterClient(BaseApiClient):
             Show object if successful, None otherwise
         """
         try:
+            if not is_ticketmaster_comedy_event(event_data):
+                return None
             # Extract basic show information
             show_data = self._extract_basic_show_info_from_api(event_data)
             if not show_data:
