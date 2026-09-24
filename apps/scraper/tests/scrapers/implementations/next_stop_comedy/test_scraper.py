@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+import json
 
 import pytest
 
@@ -12,7 +12,6 @@ from laughtrack.scrapers.implementations.next_stop_comedy.extractor import (
 from laughtrack.scrapers.implementations.next_stop_comedy.scraper import (
     NextStopComedyScraper,
 )
-
 
 _EVENT_HTML = """
 <html><body>
@@ -117,7 +116,7 @@ def test_extract_json_ld_event_to_show_with_lineup_and_ticket():
     event = events[0]
     assert event.title == "Trillium - Canton"
     assert event.venue_name == "Trillium - Canton"
-    assert event.venue_address == "100 Royall Street, Canton, MA 02021"
+    assert event.venue_address == "100 Royall Street, Canton, MA 02021, US"
     assert event.venue_zip == "02021"
 
     show = event.to_show(_venue_club(event.venue_payload()))
@@ -161,3 +160,142 @@ async def test_scrape_walks_load_more_and_routes_to_discovered_venues(monkeypatc
     assert shows[0].club_id == 4242
     assert [comedian.name for comedian in shows[0].lineup] == ["Zach Valencia", "Dan Boulger"]
     assert "https://www.nextstopcomedy.com/events" in fetched
+
+
+@pytest.mark.parametrize(
+    "address,expected",
+    [
+        (
+            {
+                "streetAddress": "100 Royall Street",
+                "addressLocality": "Canton",
+                "addressRegion": "MA",
+                "postalCode": "02021",
+                "addressCountry": "US",
+            },
+            "100 Royall Street, Canton, MA 02021, US",
+        ),
+        (
+            {
+                "streetAddress": "100 Royall Street, Canton, MA 02021",
+                "addressLocality": "Canton",
+                "addressRegion": "MA",
+                "postalCode": "02021",
+                "addressCountry": {"@type": "Country", "name": "US"},
+            },
+            "100 Royall Street, Canton, MA 02021, US",
+        ),
+        (
+            {
+                "streetAddress": "100 Royall Street, Canton, MA 02021, US",
+                "addressLocality": "Canton",
+                "addressRegion": "MA",
+                "postalCode": "02021",
+                "addressCountry": "US",
+            },
+            "100 Royall Street, Canton, MA 02021, US",
+        ),
+        (
+            {
+                "streetAddress": "100 Royall Street, Canton",
+                "addressLocality": "Canton",
+                "addressRegion": "MA",
+                "postalCode": "02021",
+                "addressCountry": "US",
+            },
+            "100 Royall Street, Canton, MA 02021, US",
+        ),
+        (
+            {
+                "streetAddress": "1 Boston Road",
+                "addressLocality": "Boston",
+                "addressRegion": "MA",
+                "addressCountry": "US",
+            },
+            "1 Boston Road, Boston, MA, US",
+        ),
+        (
+            {
+                "streetAddress": " 100 Royall Street ",
+                "addressLocality": "",
+                "addressRegion": None,
+                "addressCountry": {},
+            },
+            "100 Royall Street",
+        ),
+        (
+            {
+                "addressLocality": "Canton",
+                "addressRegion": "MA",
+                "postalCode": "02021",
+                "addressCountry": {"name": "US"},
+            },
+            "Canton, MA 02021, US",
+        ),
+    ],
+)
+def test_extract_preserves_structured_address_evidence(address, expected):
+    node = json.loads(_EVENT_HTML.split('<script type="application/ld+json">')[1].split("</script>")[0])
+    node["location"]["address"] = address
+    html = '<script type="application/ld+json">' + json.dumps(node) + "</script>"
+    event = extract_json_ld_events(html)[0]
+    assert event.venue_address == expected
+    assert event.venue_payload()["address"] == expected
+
+
+@pytest.mark.parametrize(
+    "changes,expected",
+    [
+        ({}, "America/New_York"),
+        ({"eventDate": "2026-07-09T23:00:00Z"}, "America/New_York"),
+        ({"eventDate": "2026-07-10T23:00:00Z"}, None),
+        ({"eventSlug": "other-event"}, None),
+        ({"currentEventId": "other-id"}, None),
+        ({"venueTimezone": "invalid/timezone"}, None),
+        ({"eventId": None, "currentEventId": None}, None),
+    ],
+)
+def test_timezone_uses_only_matching_main_event_props(changes, expected):
+    props = {
+        "eventSlug": "trillium-canton-2026-07-09",
+        "eventId": "current-id",
+        "currentEventId": "current-id",
+        "venueTimezone": "America/New_York",
+        "nearbyShows": [{"slug": "other-event", "venueTimezone": "America/Los_Angeles"}],
+    }
+    props.update(changes)
+    flight = "1:" + json.dumps(["$", "component", None, props]) + "\n"
+    html = _EVENT_HTML + "<script>self.__next_f.push(" + json.dumps([1, flight]) + ")</script>"
+    event = extract_json_ld_events(html)[0]
+    assert event.venue_timezone == expected
+    assert event.venue_payload()["timezone"] == expected
+    assert event.start_date.isoformat() == "2026-07-09T19:00:00-04:00"
+
+
+def test_cancelled_page_without_main_props_does_not_use_nearby_timezone():
+    flight = (
+        "1:"
+        + json.dumps({"nearbyShows": [{"slug": "trillium-canton-2026-07-09", "venueTimezone": "America/Los_Angeles"}]})
+        + "\n"
+    )
+    html = _EVENT_HTML.replace(
+        '"@type": "ComedyEvent",', '"@type": "ComedyEvent", "eventStatus": "https://schema.org/EventCancelled",'
+    )
+    html += "<script>self.__next_f.push(" + json.dumps([1, flight]) + ")</script>"
+    assert extract_json_ld_events(html)[0].venue_timezone is None
+
+
+@pytest.mark.parametrize(
+    "zones,expected", [(["America/New_York"], "America/New_York"), (["America/New_York", "America/Los_Angeles"], None)]
+)
+def test_main_timezone_split_flight_chunks_and_conflicting_props(zones, expected):
+    props = [
+        {"eventSlug": "trillium-canton-2026-07-09", "eventId": "id", "currentEventId": "id", "venueTimezone": zone}
+        for zone in zones
+    ]
+    flight = "1:" + json.dumps(props) + "\n"
+    chunks = [flight[: len(flight) // 2], flight[len(flight) // 2 :]]
+    html = _EVENT_HTML + "".join(
+        "<script>self.__next_f.push(" + json.dumps([1, chunk]) + ")</script>" for chunk in chunks
+    )
+    assert extract_json_ld_events(html)[0].venue_timezone == expected

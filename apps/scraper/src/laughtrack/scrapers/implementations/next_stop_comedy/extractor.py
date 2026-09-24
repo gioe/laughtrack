@@ -4,7 +4,8 @@ import json
 import re
 from datetime import datetime
 from typing import Any, Iterable, Optional
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from bs4 import BeautifulSoup
 
@@ -32,14 +33,76 @@ def extract_json_ld_events(html: str) -> list[NextStopComedyEvent]:
         return []
 
     soup = BeautifulSoup(html, "html.parser")
+    event_props = _main_event_props(soup)
     events: list[NextStopComedyEvent] = []
     for script in soup.find_all("script", {"type": "application/ld+json"}):
         payload = _loads_json(script.string or script.get_text("", strip=True))
         for node in _flatten_json_ld(payload):
             event = _event_from_json_ld(node)
             if event is not None:
+                event.venue_timezone = _supplied_timezone(node, event, event_props)
                 events.append(event)
     return events
+
+
+def _main_event_props(soup: BeautifulSoup) -> list[dict[str, Any]]:
+    """Decode Flight JSON; never regex-match a timezone in nearby-show text."""
+    chunks = []
+    for script in soup.find_all("script"):
+        match = re.fullmatch(r"\s*self\.__next_f\.push\((.*)\);?\s*", script.get_text(), re.S)
+        if not match:
+            continue
+        payload = _loads_json(match.group(1))
+        if isinstance(payload, list) and len(payload) == 2 and payload[0] == 1 and isinstance(payload[1], str):
+            chunks.append(payload[1])
+    candidates = []
+    for line in "".join(chunks).splitlines():
+        _, separator, raw = line.partition(":")
+        if not separator:
+            continue
+        stack = [_loads_json(raw)]
+        while stack:
+            value = stack.pop()
+            if isinstance(value, dict):
+                if value.get("eventId") and value.get("eventId") == value.get("currentEventId"):
+                    candidates.append(value)
+                stack.extend(value.values())
+            elif isinstance(value, list):
+                stack.extend(value)
+    return candidates
+
+
+def _supplied_timezone(
+    node: dict[str, Any], event: NextStopComedyEvent, candidates: list[dict[str, Any]]
+) -> Optional[str]:
+    url = urlparse(str(node.get("url") or ""))
+    if url.hostname not in {"nextstopcomedy.com", "www.nextstopcomedy.com"}:
+        return None
+    path = url.path.rstrip("/").split("/")
+    if len(path) != 3 or path[1] != "events":
+        return None
+    zones = set()
+    for props in candidates:
+        if props.get("eventSlug") != path[2]:
+            continue
+        if props.get("eventDate"):
+            try:
+                supplied_date = datetime.fromisoformat(
+                    str(props["eventDate"]).removeprefix("$D").replace("Z", "+00:00")
+                )
+            except ValueError:
+                continue
+            if supplied_date != event.start_date:
+                continue
+        zone = props.get("venueTimezone")
+        if not isinstance(zone, str) or not zone:
+            continue
+        try:
+            ZoneInfo(zone)
+        except (ZoneInfoNotFoundError, ValueError):
+            continue
+        zones.add(zone)
+    return next(iter(zones)) if len(zones) == 1 else None
 
 
 def _loads_json(raw: str) -> Any:
@@ -107,10 +170,34 @@ def _full_address(address: dict[str, Any]) -> str:
     city = str(address.get("addressLocality") or "").strip()
     state = str(address.get("addressRegion") or "").strip()
     postal = str(address.get("postalCode") or "").strip()
-    country = str(address.get("addressCountry") or "").strip()
-    if street:
-        return street
-    return ", ".join(part for part in (city, state, postal, country) if part)
+    country_value = address.get("addressCountry")
+    if isinstance(country_value, dict):
+        country_value = country_value.get("name")
+    country = str(country_value or "").strip()
+    parts = [street] if street else []
+
+    # Compare against the locality suffix, not the street itself: Boston Road
+    # is not evidence that the address already includes the city of Boston.
+    suffix = street.partition(",")[2]
+    normalized_suffix = " " + " ".join(re.findall(r"\w+", suffix.casefold())) + " "
+
+    def already_present(value: str) -> bool:
+        normalized = " ".join(re.findall(r"\w+", value.casefold()))
+        return bool(normalized and f" {normalized} " in normalized_suffix)
+
+    if city and not already_present(city):
+        parts.append(city)
+    if state and not already_present(state):
+        parts.append(state)
+    if postal and not already_present(postal):
+        # Keep region + postal together for the shared city/state parser.
+        if state and parts and parts[-1].casefold().endswith(state.casefold()):
+            parts[-1] += f" {postal}"
+        else:
+            parts.append(postal)
+    if country and not already_present(country):
+        parts.append(country)
+    return ", ".join(parts)
 
 
 def _performers(raw: Any) -> list[Any]:

@@ -1,6 +1,8 @@
 """Timezone lookup utilities for US venue addresses."""
 
 import re
+
+from pytz import country_names
 from typing import Optional
 
 # US state abbreviation → IANA timezone.
@@ -142,3 +144,107 @@ def timezone_from_address(address: Optional[str]) -> Optional[str]:
         return None
     state = _extract_state_code(parts[-1])
     return timezone_from_state(state) if state else None
+
+
+# Central enrichment must not turn a state's majority zone into venue evidence.
+# Keep the legacy helpers above stable for their existing scraper callers.
+_SPLIT_ZONE_STATES = frozenset("AK AZ FL ID IN KS KY MI NE NV ND OR SD TN TX".split())
+_US_STATE_NAMES = dict(
+    zip(
+        "Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|District of Columbia|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming".upper().split(
+            "|"
+        ),
+        "AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY".split(),
+    )
+)
+_CANADIAN_PROVINCE_ZONES = {
+    "AB": "America/Edmonton",
+    "NB": "America/Moncton",
+    "NS": "America/Halifax",
+    "PE": "America/Halifax",
+}
+_CANADIAN_POSTAL = re.compile(
+    r"(?:^|,)\s*([A-Z]{2})\s+([ABCEGHJKLMNPRSTVXY]\d[A-Z]\s?\d[A-Z]\d)$",
+    re.I,
+)
+
+
+def timezone_from_evidence(
+    state: Optional[str],
+    address: Optional[str],
+    country: Optional[str] = None,
+) -> tuple[str, Optional[str]]:
+    """Resolve only unambiguous region evidence, returning (source, IANA zone).
+
+    Full state names, separate ZIP segments, US country suffixes and trailing
+    suite notes occur in aggregate venue payloads. Canadian postal evidence is
+    accepted only for single-zone provinces. Unknown countries, split-zone
+    regions, and contradictory fields remain unresolved for manual review.
+    No city/name search, coordinate guessing, or majority-zone default is used.
+    """
+    unresolved = ("unresolved", None)
+    country_code = (country or "").strip().upper()
+    aliases = {"USA": "US", "UNITED STATES": "US", "UNITED STATES OF AMERICA": "US", "CANADA": "CA"}
+    country_code = aliases.get(country_code, country_code)
+    if country_code and country_code not in {"US", "CA"}:
+        return unresolved
+
+    text = (address or "").strip().rstrip(",").strip()
+    # Only discard parenthesized notes after a ZIP, never arbitrary location text.
+    text = re.sub(r"(\d{5}(?:-\d{4})?)\s*\([^()]*\)$", r"\1", text).strip()
+    suffix = re.search(r",\s*(USA|US|United States(?: of America)?|Canada|CA)$", text, re.I)
+    if suffix and suffix.group(1).upper() == "CA":
+        # JSON-LD emits CA for Canada, but it also denotes California in US
+        # addresses. Only Canadian province/postal evidence disambiguates it.
+        if not _CANADIAN_POSTAL.search(text[: suffix.start()].rstrip(", ")):
+            suffix = None
+    if suffix:
+        suffix_country = aliases.get(suffix.group(1).upper(), suffix.group(1).upper())
+        if country_code and suffix_country != country_code:
+            return unresolved
+        country_code = suffix_country
+        text = text[: suffix.start()].rstrip(", ")
+
+    # An explicit foreign country suffix must not lose to a US state field.
+    # Country names come from the existing pytz dependency; codes that overlap
+    # US states (e.g. CA) are deliberately not treated as country suffixes.
+    foreign_names = {name.upper() for code, name in country_names.items() if code not in {"US", "CA"}}
+    foreign_names.update({"UK", "UNITED KINGDOM", "GB", "AU", "NZ", "IE", "ENGLAND", "SCOTLAND", "WALES"})
+    if text.rsplit(",", 1)[-1].strip().upper() in foreign_names:
+        return unresolved
+
+    normalized_state = (state or "").strip().upper()
+    normalized_state = _US_STATE_NAMES.get(normalized_state, normalized_state)
+    canadian = _CANADIAN_POSTAL.search(text)
+    if canadian:
+        province = canadian.group(1).upper()
+        if country_code == "US" or (normalized_state and normalized_state != province):
+            return unresolved
+        prefix = {"AB": "T", "NB": "E", "NS": "B", "PE": "C"}.get(province)
+        if prefix is None or not canadian.group(2).upper().startswith(prefix):
+            return unresolved
+        tz = _CANADIAN_PROVINCE_ZONES.get(province)
+        return ("address", tz) if tz else unresolved
+    # Canadian region codes alone do not establish the venue's location.
+    if country_code == "CA":
+        return unresolved
+
+    parts = _split_address_parts(text)
+    if parts and re.fullmatch(r"\d{5}(?:-\d{4})?", parts[-1]):
+        parts.pop()
+    address_state = None
+    if parts:
+        region = re.sub(r"\s+\d{5}(?:-\d{4})?$", "", parts[-1]).upper()
+        region = _US_STATE_NAMES.get(region, region)
+        if region in _STATE_TO_TIMEZONE:
+            address_state = region
+    if normalized_state and address_state and normalized_state != address_state:
+        return unresolved
+    # Do not fall back from an explicitly supplied unknown region to an address.
+    if normalized_state and normalized_state not in _STATE_TO_TIMEZONE:
+        return unresolved
+    region = normalized_state or address_state
+    if not region or region in _SPLIT_ZONE_STATES:
+        return unresolved
+    tz = timezone_from_state(region)
+    return ("state" if normalized_state else "address", tz) if tz else unresolved

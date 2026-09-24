@@ -4,14 +4,12 @@
 Runs a waterfall over each visible club where ``timezone IS NULL`` and resolves
 an IANA timezone from the cheapest available signal first:
 
-  1. ``clubs.state`` (a 2-letter US state code) → ``timezone_from_state``
-  2. ``clubs.address`` (ends in a US state code) → ``timezone_from_address``
-  3. ``--geocode`` + ``clubs.google_place_id`` → Place Details → state → tz
-  4. ``--geocode`` + (website or name) → text search → Place Details → state → tz
-  5. otherwise: unresolved (logged)
+  1. Consistent state/address evidence in an unambiguous timezone region
+  2. ``--geocode`` + the club's own Google place ID → unambiguous Place Details
+  3. otherwise: unresolved (logged); name-only search never establishes identity
 
-Steps 3 and 4 also opportunistically fill ``clubs.state``/``address``/
-``latitude``/``longitude`` (and ``google_place_id`` for step 4) when those
+Step 2 also opportunistically fills ``clubs.state``/``address``/
+``latitude``/``longitude`` when those
 columns are currently NULL. Every write is NULL-guarded, so the script is safe
 to re-run. ``--geocode`` is OFF by default so the nightly run stays cheap
 (state/address only) and never touches the Places API quota.
@@ -41,8 +39,7 @@ from laughtrack.adapters.db import get_connection
 from laughtrack.core.clients.google.places import GooglePlacesClient, PlaceDetails
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.domain.club.timezone_lookup import (
-    timezone_from_address,
-    timezone_from_state,
+    timezone_from_evidence,
 )
 
 # Resolution sources, used both as the dict keys in the run summary and as the
@@ -54,7 +51,7 @@ SOURCE_NAME_GEOCODE = "name_geocode"
 SOURCE_UNRESOLVED = "unresolved"
 
 _GET_CLUBS_SQL = """
-    SELECT id, name, state, address, google_place_id, website
+    SELECT id, name, state, address, google_place_id, website, country
     FROM clubs
     WHERE visible = TRUE
       AND timezone IS NULL
@@ -86,16 +83,6 @@ _UPDATE_GEOCODE_FIELDS_SQL = """
     WHERE id = %s
 """
 
-# State-only enrichment for a name-search (heuristic) match: the matched venue's
-# state is the same signal the timezone itself was derived from, so it is no
-# riskier than the timezone we already write — but address/coords/place_id are
-# identity fields and must never be adopted from a heuristic match.
-_UPDATE_STATE_SQL = """
-    UPDATE clubs
-    SET state = COALESCE(state, %s)
-    WHERE id = %s
-"""
-
 
 @dataclass
 class ClubRow:
@@ -107,6 +94,7 @@ class ClubRow:
     address: Optional[str]
     google_place_id: Optional[str]
     website: Optional[str]
+    country: Optional[str] = None
 
 
 @dataclass
@@ -115,7 +103,7 @@ class Resolution:
 
     ``details`` carries the Place Details payload when the resolution came from
     a geocode step, so the caller can opportunistically backfill state/address/
-    coordinates (and place_id for the name path).
+    coordinates from the club's stored place ID.
     """
 
     source: str
@@ -135,38 +123,22 @@ def derive_timezone(
     ``geocode`` is True; returns a :class:`Resolution` describing which source
     won (or ``SOURCE_UNRESOLVED``) without performing any DB writes.
     """
-    tz = timezone_from_state(row.state or "")
+    source, tz = timezone_from_evidence(row.state, row.address, row.country)
     if tz:
-        return Resolution(source=SOURCE_STATE, timezone=tz)
+        return Resolution(source=source, timezone=tz)
 
-    tz = timezone_from_address(row.address)
-    if tz:
-        return Resolution(source=SOURCE_ADDRESS, timezone=tz)
-
-    if geocode and client is not None:
-        if row.google_place_id:
-            details = client.fetch_place_details(row.google_place_id)
-            if details and details.state_code:
-                tz = timezone_from_state(details.state_code)
-                if tz:
-                    return Resolution(source=SOURCE_PLACEID_GEOCODE, timezone=tz, details=details)
-
-        # Prefer the venue NAME for text search — Places resolves a business
-        # name far more reliably than a bare website URL string.
-        query = row.name or row.website
-        if query:
-            place_id = client.find_place_id(query)
-            if place_id:
-                details = client.fetch_place_details(place_id)
-                if details and details.state_code:
-                    tz = timezone_from_state(details.state_code)
-                    if tz:
-                        return Resolution(
-                            source=SOURCE_NAME_GEOCODE,
-                            timezone=tz,
-                            details=details,
-                            resolved_place_id=place_id,
-                        )
+    if geocode and client is not None and row.google_place_id:
+        details = client.fetch_place_details(row.google_place_id)
+        if details:
+            # The stored place ID identifies this venue. Name-only search does
+            # not, and must never invent its timezone from an unrelated match.
+            _, tz = timezone_from_evidence(details.state_code, details.formatted_address, row.country)
+            # A stored place ID can itself be wrong. Require both stored
+            # region fields to agree with the details before accepting it.
+            _, state_agreement = timezone_from_evidence(row.state, details.formatted_address, row.country)
+            _, address_agreement = timezone_from_evidence(details.state_code, row.address, row.country)
+            if tz and state_agreement == tz and address_agreement == tz:
+                return Resolution(source=SOURCE_PLACEID_GEOCODE, timezone=tz, details=details)
 
     return Resolution(source=SOURCE_UNRESOLVED, timezone=None)
 
@@ -193,6 +165,7 @@ def _load_target_clubs(club_ids: Optional[List[int]], limit: Optional[int]) -> L
             address=r[3],
             google_place_id=r[4],
             website=r[5],
+            country=r[6],
         )
         for r in rows
     ]
@@ -204,10 +177,10 @@ def _persist(row: ClubRow, resolution: Resolution) -> None:
     Identity columns (address/lat/lng and any resolved place_id) are backfilled
     ONLY for ``SOURCE_PLACEID_GEOCODE`` — that resolution used the club's own
     ``google_place_id``, so its Place Details authoritatively describe this club.
-    A ``SOURCE_NAME_GEOCODE`` match is a heuristic name text-search that can land
-    on an unrelated famous venue (TASK-2933), so it persists only the
-    timezone-bearing state; its address/coords/place_id are never written.
+    Name-search results are rejected even if passed directly by an old caller.
     """
+    if resolution.source not in {SOURCE_STATE, SOURCE_ADDRESS, SOURCE_PLACEID_GEOCODE} or not resolution.timezone:
+        return
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(_UPDATE_TIMEZONE_SQL, (resolution.timezone, row.id))
@@ -223,8 +196,6 @@ def _persist(row: ClubRow, resolution: Resolution) -> None:
                         row.id,
                     ),
                 )
-            elif details is not None and resolution.source == SOURCE_NAME_GEOCODE:
-                cur.execute(_UPDATE_STATE_SQL, (details.state_code, row.id))
         conn.commit()
 
 
@@ -238,8 +209,7 @@ def run(
     """Execute the backfill and return per-source resolution counts."""
     targets = _load_target_clubs(club_ids, limit)
     Logger.info(
-        f"[tz-backfill] {len(targets)} visible clubs with NULL timezone "
-        f"(geocode={geocode}, dry_run={dry_run})"
+        f"[tz-backfill] {len(targets)} visible clubs with NULL timezone " f"(geocode={geocode}, dry_run={dry_run})"
     )
 
     summary: Dict[str, int] = {
@@ -321,7 +291,7 @@ def main() -> None:
     parser.add_argument(
         "--geocode",
         action="store_true",
-        help="Enable the Google Places fallback steps (place_id + name/website lookup). Off by default.",
+        help="Enable Google Places lookup for stored place IDs only. Off by default.",
     )
     parser.add_argument(
         "--dry-run",

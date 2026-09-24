@@ -796,8 +796,10 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         primary source's scraper_key = <scraper> AND timezone IS NULL. Pass
         ``scraper=None`` to instead sweep every visible club with timezone=NULL
         regardless of scraper (used by the nightly backfill). The timezone is
-        resolved from the stored state column first, then the address (US state
-        abbreviation), and only rows still NULL are updated — re-running is safe.
+        resolved only from unambiguous, consistent state/address evidence. Full
+        state names and supported Canadian postal addresses are accepted; split
+        zones and conflicting metadata stay unresolved. Only rows still NULL
+        are updated, so verified values are preserved across repeated runs.
 
         Args:
             scraper: The scraper type to filter clubs by, or None to sweep all
@@ -807,8 +809,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Number of clubs whose timezone was successfully updated.
         """
         from laughtrack.utilities.domain.club.timezone_lookup import (  # noqa: PLC0415
-            timezone_from_address,
-            timezone_from_state,
+            timezone_from_evidence,
         )
 
         if scraper is None:
@@ -830,13 +831,12 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         updates: List[tuple] = []
         for row in rows:
             club = Club.from_db_row(row)
-            tz = timezone_from_state(club.state) or timezone_from_address(club.address)
+            _, tz = timezone_from_evidence(club.state, club.address, row.get("country"))
             if tz:
                 updates.append((club.id, tz))
             else:
                 Logger.warning(
-                    f"Could not resolve timezone for club {club.id} '{club.name}' "
-                    f"(address: {club.address!r})"
+                    f"Could not resolve timezone for club {club.id} '{club.name}' " f"(address: {club.address!r})"
                 )
 
         if not updates:

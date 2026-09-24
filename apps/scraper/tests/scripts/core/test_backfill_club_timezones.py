@@ -1,8 +1,7 @@
 """Unit tests for backfill_club_timezones.derive_timezone waterfall.
 
-Exercises the pure resolution logic with a fake Places client so no DB or
-network is touched: state -> address -> place_id geocode -> name/website
-geocode -> unresolved, plus the --geocode gate.
+Exercises evidence resolution with a fake Places client so no DB or network
+is touched. Name-only matches, contradictions, and ambiguous regions stay unresolved.
 """
 
 from __future__ import annotations
@@ -50,11 +49,11 @@ def _row(**kwargs) -> mod.ClubRow:
     return mod.ClubRow(**base)
 
 
-def test_state_wins_first_without_geocode():
+def test_conflicting_state_and_address_remain_unresolved():
     row = _row(state="CA", address="1 Main St, Somewhere, NY")
     res = mod.derive_timezone(row, client=None, geocode=False)
-    assert res.source == mod.SOURCE_STATE
-    assert res.timezone == "America/Los_Angeles"
+    assert res.source == mod.SOURCE_UNRESOLVED
+    assert res.timezone is None
 
 
 def test_address_used_when_state_missing():
@@ -85,30 +84,17 @@ def test_placeid_geocode_resolves_and_carries_details():
     assert client.find_calls == []  # never fell through to text search
 
 
-def test_name_geocode_resolves_and_records_place_id():
-    details = PlaceDetails("ChIJfound", "9 Ave, Austin, TX, USA", "TX", "Austin", 30.2, -97.7)
+def test_name_only_geocode_never_establishes_venue_identity():
+    details = PlaceDetails("ChIJfound", "9 Ave, Los Angeles, CA, USA", "CA", "Los Angeles", 34.0, -118.2)
     client = _FakeClient(details_by_place_id={"ChIJfound": details}, find_result="ChIJfound")
-    row = _row(state=None, address=None, google_place_id=None, name="The Club", website="https://club.example.com")
+    row = _row(name="The Club", website="https://club.example.com")
 
     res = mod.derive_timezone(row, client=client, geocode=True)
 
-    assert res.source == mod.SOURCE_NAME_GEOCODE
-    assert res.timezone == "America/Chicago"
-    assert res.resolved_place_id == "ChIJfound"
-    # name preferred over website URL as the search query — Places resolves a
-    # business name far more reliably than a bare URL string.
-    assert client.find_calls == ["The Club"]
-
-
-def test_name_geocode_falls_back_to_name_when_no_website():
-    details = PlaceDetails("ChIJfound", None, "TX", None, None, None)
-    client = _FakeClient(details_by_place_id={"ChIJfound": details}, find_result="ChIJfound")
-    row = _row(state=None, address=None, name="The Club", website=None)
-
-    res = mod.derive_timezone(row, client=client, geocode=True)
-
-    assert res.source == mod.SOURCE_NAME_GEOCODE
-    assert client.find_calls == ["The Club"]
+    assert res.source == mod.SOURCE_UNRESOLVED
+    assert res.timezone is None
+    assert client.find_calls == []
+    assert client.details_calls == []
 
 
 def test_geocode_disabled_skips_places_calls_entirely():
@@ -130,9 +116,8 @@ def test_unresolved_when_geocode_returns_no_state():
     res = mod.derive_timezone(row, client=client, geocode=True)
 
     assert res.source == mod.SOURCE_UNRESOLVED
-    # tried place_id, then fell through to name search (which found nothing).
     assert client.details_calls == ["ChIJabc"]
-    assert client.find_calls == ["The Club"]
+    assert client.find_calls == []  # unresolved rather than an unrelated name match
 
 
 # ---------------------------------------------------------------------------
@@ -181,43 +166,11 @@ def _persist_capturing(monkeypatch, resolution: mod.Resolution, row: mod.ClubRow
     return cur
 
 
-def test_persist_name_geocode_writes_timezone_and_state_only(monkeypatch):
-    # Mirrors the TASK-2933 incident: a generic SEO-junk name matched Comedy
-    # Cellar's place_id + 117 MacDougal St. None of that identity may be written.
-    details = PlaceDetails(
-        "ChIJmzPYgJFZwokRg4zUwTlZwtI",
-        "117 MacDougal St, New York, NY 10012, USA",
-        "NY",
-        "New York",
-        40.73,
-        -74.0,
-    )
-    res = mod.Resolution(
-        source=mod.SOURCE_NAME_GEOCODE,
-        timezone="America/New_York",
-        details=details,
-        resolved_place_id="ChIJmzPYgJFZwokRg4zUwTlZwtI",
-    )
-    row = _row(id=620, name="Comedy Shows Near Me")
-
-    cur = _persist_capturing(monkeypatch, res, row)
-    executed_sql = [sql for sql, _ in cur.executed]
-
-    # timezone + state are persisted...
-    assert mod._UPDATE_TIMEZONE_SQL in executed_sql
-    assert mod._UPDATE_STATE_SQL in executed_sql
-    # ...but identity columns (address/lat/lng) are NOT.
-    assert mod._UPDATE_GEOCODE_FIELDS_SQL not in executed_sql
-
-    # And the matched venue's place_id / address never reach any SQL params.
-    flat_params = [
-        value
-        for _, params in cur.executed
-        if params
-        for value in params
-    ]
-    assert "ChIJmzPYgJFZwokRg4zUwTlZwtI" not in flat_params
-    assert "117 MacDougal St, New York, NY 10012, USA" not in flat_params
+def test_persist_rejects_name_only_geocode(monkeypatch):
+    details = PlaceDetails("ChIJfound", "117 MacDougal St, New York, NY 10012, USA", "NY", "New York", 40.73, -74.0)
+    res = mod.Resolution(source=mod.SOURCE_NAME_GEOCODE, timezone="America/New_York", details=details)
+    cur = _persist_capturing(monkeypatch, res, _row(id=620, name="Comedy Shows Near Me"))
+    assert cur.executed == []
 
 
 def test_persist_placeid_geocode_backfills_identity_fields(monkeypatch):
@@ -235,12 +188,21 @@ def test_persist_placeid_geocode_backfills_identity_fields(monkeypatch):
 
     assert mod._UPDATE_TIMEZONE_SQL in executed_sql
     assert mod._UPDATE_GEOCODE_FIELDS_SQL in executed_sql
-    # placeid path uses the full geocode-fields write, not the state-only one.
-    assert mod._UPDATE_STATE_SQL not in executed_sql
-    flat_params = [
-        value
-        for _, params in cur.executed
-        if params
-        for value in params
-    ]
+    flat_params = [value for _, params in cur.executed if params for value in params]
     assert "1 Market St, San Francisco, CA, USA" in flat_params
+
+
+def test_placeid_must_not_override_contradictory_stored_region():
+    details = PlaceDetails("ChIJabc", "1 Main St, Albany, NY 12207, USA", "NY", "Albany", 42.6, -73.7)
+    client = _FakeClient(details_by_place_id={"ChIJabc": details})
+    row = _row(state="CA", address="1 Main St, Albany, NY 12207", google_place_id="ChIJabc")
+    assert mod.derive_timezone(row, client=client, geocode=True).timezone is None
+
+
+def test_placeid_must_not_override_contradictory_stored_address():
+    details = PlaceDetails("ChIJabc", "1 Main St, Albany, NY 12207, USA", "NY", "Albany", 42.6, -73.7)
+    client = _FakeClient(details_by_place_id={"ChIJabc": details})
+    row = _row(address="1 Main St, Los Angeles, CA 90001", google_place_id="ChIJabc")
+    # The unambiguous stored address wins before any geocode call.
+    assert mod.derive_timezone(row, client=client, geocode=True).timezone == "America/Los_Angeles"
+    assert client.details_calls == []
