@@ -1,0 +1,866 @@
+[
+  {
+    "id": 61,
+    "zip_code": "27605",
+    "lookup": {
+      "zip": "27605",
+      "latitude": 35.7908,
+      "longitude": -78.653,
+      "city": "Raleigh",
+      "state": "NC",
+      "country": "US"
+    },
+    "pool_count": 95,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "27605",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 80,
+    "zip_code": "02903",
+    "lookup": {
+      "zip": "02903",
+      "latitude": 41.82,
+      "longitude": -71.4158,
+      "city": "Providence",
+      "state": "RI",
+      "country": "US"
+    },
+    "pool_count": 146,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "02903",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 96,
+    "zip_code": "29572",
+    "lookup": {
+      "zip": "29572",
+      "latitude": 33.7587,
+      "longitude": -78.8044,
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "country": "US"
+    },
+    "pool_count": 22,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "29572",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 99,
+    "zip_code": "29928",
+    "lookup": {
+      "zip": "29928",
+      "latitude": 32.1665,
+      "longitude": -80.7569,
+      "city": "Hilton Head Island",
+      "state": "SC",
+      "country": "US"
+    },
+    "pool_count": 36,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "29928",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 102,
+    "zip_code": "20036",
+    "lookup": {
+      "zip": "20036",
+      "latitude": 38.9087,
+      "longitude": -77.0414,
+      "city": "Washington",
+      "state": "DC",
+      "country": "US"
+    },
+    "pool_count": 500,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "20036",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 139,
+    "zip_code": "46225",
+    "lookup": {
+      "zip": "46225",
+      "latitude": 39.7406,
+      "longitude": -86.1569,
+      "city": "Indianapolis",
+      "state": "IN",
+      "country": "US"
+    },
+    "pool_count": 107,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "46225",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 142,
+    "zip_code": "02143",
+    "lookup": {
+      "zip": "02143",
+      "latitude": 42.3829,
+      "longitude": -71.1028,
+      "city": "Somerville",
+      "state": "MA",
+      "country": "US"
+    },
+    "pool_count": 273,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "02143",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 217,
+    "zip_code": "02914",
+    "lookup": {
+      "zip": "02914",
+      "latitude": 41.8138,
+      "longitude": -71.3688,
+      "city": "East Providence",
+      "state": "RI",
+      "country": "US"
+    },
+    "pool_count": 149,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "02914",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 288,
+    "zip_code": "28401",
+    "lookup": {
+      "zip": "28401",
+      "latitude": 34.2257,
+      "longitude": -77.9447,
+      "city": "Wilmington",
+      "state": "NC",
+      "country": "US"
+    },
+    "pool_count": 30,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "28401",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 409,
+    "zip_code": "20009",
+    "lookup": {
+      "zip": "20009",
+      "latitude": 38.9202,
+      "longitude": -77.0375,
+      "city": "Washington",
+      "state": "DC",
+      "country": "US"
+    },
+    "pool_count": 500,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "20009",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 412,
+    "zip_code": "08401",
+    "lookup": {
+      "zip": "08401",
+      "latitude": 39.3664,
+      "longitude": -74.4317,
+      "city": "Atlantic City",
+      "state": "NJ",
+      "country": "US"
+    },
+    "pool_count": 43,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "08401",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 475,
+    "zip_code": "90401",
+    "lookup": {
+      "zip": "90401",
+      "latitude": 34.0176,
+      "longitude": -118.4907,
+      "city": "Santa Monica",
+      "state": "CA",
+      "country": "US"
+    },
+    "pool_count": 431,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "90401",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 476,
+    "zip_code": "90802",
+    "lookup": {
+      "zip": "90802",
+      "latitude": 33.7706,
+      "longitude": -118.182,
+      "city": "Long Beach",
+      "state": "CA",
+      "country": "US"
+    },
+    "pool_count": 417,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "90802",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 479,
+    "zip_code": "60803",
+    "lookup": {
+      "zip": "60803",
+      "latitude": 41.6721,
+      "longitude": -87.7357,
+      "city": "Alsip",
+      "state": "IL",
+      "country": "US"
+    },
+    "pool_count": 259,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "60803",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 480,
+    "zip_code": "11756",
+    "lookup": {
+      "zip": "11756",
+      "latitude": 40.7254,
+      "longitude": -73.5166,
+      "city": "Levittown",
+      "state": "NY",
+      "country": "US"
+    },
+    "pool_count": 496,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "11756",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 481,
+    "zip_code": "11710",
+    "lookup": {
+      "zip": "11710",
+      "latitude": 40.6729,
+      "longitude": -73.5365,
+      "city": "Bellmore",
+      "state": "NY",
+      "country": "US"
+    },
+    "pool_count": 498,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "11710",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 482,
+    "zip_code": "11716",
+    "lookup": {
+      "zip": "11716",
+      "latitude": 40.7678,
+      "longitude": -73.1163,
+      "city": "Bohemia",
+      "state": "NY",
+      "country": "US"
+    },
+    "pool_count": 133,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "11716",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 486,
+    "zip_code": "92123",
+    "lookup": {
+      "zip": "92123",
+      "latitude": 32.7973,
+      "longitude": -117.1392,
+      "city": "San Diego",
+      "state": "CA",
+      "country": "US"
+    },
+    "pool_count": 148,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "92123",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 519,
+    "zip_code": "61604",
+    "lookup": {
+      "zip": "61604",
+      "latitude": 40.7111,
+      "longitude": -89.6324,
+      "city": "Peoria",
+      "state": "IL",
+      "country": "US"
+    },
+    "pool_count": 80,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "61604",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 524,
+    "zip_code": "20877",
+    "lookup": {
+      "zip": "20877",
+      "latitude": 39.1419,
+      "longitude": -77.189,
+      "city": "Gaithersburg",
+      "state": "MD",
+      "country": "US"
+    },
+    "pool_count": 500,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "20877",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 542,
+    "zip_code": "30064",
+    "lookup": {
+      "zip": "30064",
+      "latitude": 33.9343,
+      "longitude": -84.6076,
+      "city": "Marietta",
+      "state": "GA",
+      "country": "US"
+    },
+    "pool_count": 174,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "30064",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 548,
+    "zip_code": "44647",
+    "lookup": {
+      "zip": "44647",
+      "latitude": 40.7959,
+      "longitude": -81.5533,
+      "city": "Massillon",
+      "state": "OH",
+      "country": "US"
+    },
+    "pool_count": 126,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "44647",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 562,
+    "zip_code": "28601",
+    "lookup": {
+      "zip": "28601",
+      "latitude": 35.7576,
+      "longitude": -81.3289,
+      "city": "Hickory",
+      "state": "NC",
+      "country": "US"
+    },
+    "pool_count": 43,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "28601",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 565,
+    "zip_code": "21201",
+    "lookup": {
+      "zip": "21201",
+      "latitude": 39.2946,
+      "longitude": -76.6252,
+      "city": "Baltimore",
+      "state": "MD",
+      "country": "US"
+    },
+    "pool_count": 188,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "21201",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 572,
+    "zip_code": "01020",
+    "lookup": {
+      "zip": "01020",
+      "latitude": 42.1764,
+      "longitude": -72.5761,
+      "city": "Chicopee",
+      "state": "MA",
+      "country": "US"
+    },
+    "pool_count": 134,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "01020",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 579,
+    "zip_code": "94102",
+    "lookup": {
+      "zip": "94102",
+      "latitude": 37.7813,
+      "longitude": -122.4167,
+      "city": "San Francisco",
+      "state": "CA",
+      "country": "US"
+    },
+    "pool_count": 225,
+    "in_nearby_pool": false,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "94002",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 592,
+    "zip_code": "60130",
+    "lookup": {
+      "zip": "60130",
+      "latitude": 41.8744,
+      "longitude": -87.8106,
+      "city": "Forest Park",
+      "state": "IL",
+      "country": "US"
+    },
+    "pool_count": 288,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "60130",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 611,
+    "zip_code": "70127",
+    "lookup": {
+      "zip": "70127",
+      "latitude": 30.0313,
+      "longitude": -89.9758,
+      "city": "New Orleans",
+      "state": "LA",
+      "country": "US"
+    },
+    "pool_count": 111,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "70127",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 622,
+    "zip_code": "44109",
+    "lookup": {
+      "zip": "44109",
+      "latitude": 41.4458,
+      "longitude": -81.7033,
+      "city": "Cleveland",
+      "state": "OH",
+      "country": "US"
+    },
+    "pool_count": 118,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "44109",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 628,
+    "zip_code": "18938",
+    "lookup": {
+      "zip": "18938",
+      "latitude": 40.3556,
+      "longitude": -74.9839,
+      "city": "New Hope",
+      "state": "PA",
+      "country": "US"
+    },
+    "pool_count": 274,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "18938",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 629,
+    "zip_code": "66044",
+    "lookup": {
+      "zip": "66044",
+      "latitude": 39.0289,
+      "longitude": -95.2086,
+      "city": "Lawrence",
+      "state": "KS",
+      "country": "US"
+    },
+    "pool_count": 64,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "66044",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 632,
+    "zip_code": "65806",
+    "lookup": {
+      "zip": "65806",
+      "latitude": 37.2031,
+      "longitude": -93.2971,
+      "city": "Springfield",
+      "state": "MO",
+      "country": "US"
+    },
+    "pool_count": 50,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "65806",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 633,
+    "zip_code": "35244",
+    "lookup": {
+      "zip": "35244",
+      "latitude": 33.3538,
+      "longitude": -86.8254,
+      "city": "Birmingham",
+      "state": "AL",
+      "country": "US"
+    },
+    "pool_count": 122,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "35244",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 634,
+    "zip_code": "48201",
+    "lookup": {
+      "zip": "48201",
+      "latitude": 42.3474,
+      "longitude": -83.0604,
+      "city": "Detroit",
+      "state": "MI",
+      "country": "US"
+    },
+    "pool_count": 200,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "48201",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 636,
+    "zip_code": "01923",
+    "lookup": {
+      "zip": "01923",
+      "latitude": 42.5694,
+      "longitude": -70.9425,
+      "city": "Danvers",
+      "state": "MA",
+      "country": "US"
+    },
+    "pool_count": 232,
+    "in_nearby_pool": false,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "02478",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 637,
+    "zip_code": "01952",
+    "lookup": {
+      "zip": "01952",
+      "latitude": 42.8507,
+      "longitude": -70.8588,
+      "city": "Salisbury",
+      "state": "MA",
+      "country": "US"
+    },
+    "pool_count": 101,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "01952",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 638,
+    "zip_code": "17070",
+    "lookup": {
+      "zip": "17070",
+      "latitude": 40.2151,
+      "longitude": -76.8689,
+      "city": "New Cumberland",
+      "state": "PA",
+      "country": "US"
+    },
+    "pool_count": 114,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "17070",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 1035,
+    "zip_code": "92101",
+    "lookup": {
+      "zip": "92101",
+      "latitude": 32.7185,
+      "longitude": -117.1593,
+      "city": "San Diego",
+      "state": "CA",
+      "country": "US"
+    },
+    "pool_count": 134,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "92101",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 1036,
+    "zip_code": "80202",
+    "lookup": {
+      "zip": "80202",
+      "latitude": 39.7491,
+      "longitude": -104.9946,
+      "city": "Denver",
+      "state": "CO",
+      "country": "US"
+    },
+    "pool_count": 167,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "80202",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 1348,
+    "zip_code": "44310",
+    "lookup": {
+      "zip": "44310",
+      "latitude": 41.1075,
+      "longitude": -81.5006,
+      "city": "Akron",
+      "state": "OH",
+      "country": "US"
+    },
+    "pool_count": 135,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "44310",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 2368,
+    "zip_code": "34470",
+    "lookup": {
+      "zip": "34470",
+      "latitude": 29.1989,
+      "longitude": -82.0874,
+      "city": "Ocala",
+      "state": "FL",
+      "country": "US"
+    },
+    "pool_count": 50,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "34470",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 2571,
+    "zip_code": "37243",
+    "lookup": {
+      "zip": "37243",
+      "latitude": 36.165,
+      "longitude": -86.7821,
+      "city": "Nashville",
+      "state": "TN",
+      "country": "US"
+    },
+    "pool_count": 83,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "37243",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 2577,
+    "zip_code": "11772",
+    "lookup": {
+      "zip": "11772",
+      "latitude": 40.7609,
+      "longitude": -72.9871,
+      "city": "Patchogue",
+      "state": "NY",
+      "country": "US"
+    },
+    "pool_count": 98,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "11772",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 3001,
+    "zip_code": "48201",
+    "lookup": {
+      "zip": "48201",
+      "latitude": 42.3474,
+      "longitude": -83.0604,
+      "city": "Detroit",
+      "state": "MI",
+      "country": "US"
+    },
+    "pool_count": 200,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "48201",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 8699,
+    "zip_code": "15317",
+    "lookup": {
+      "zip": "15317",
+      "latitude": 40.2706,
+      "longitude": -80.1668,
+      "city": "Canonsburg",
+      "state": "PA",
+      "country": "US"
+    },
+    "pool_count": 235,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "15317",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 8703,
+    "zip_code": "44102",
+    "lookup": {
+      "zip": "44102",
+      "latitude": 41.4735,
+      "longitude": -81.7398,
+      "city": "Cleveland",
+      "state": "OH",
+      "country": "US"
+    },
+    "pool_count": 103,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "44102",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 8714,
+    "zip_code": "44702",
+    "lookup": {
+      "zip": "44702",
+      "latitude": 40.8027,
+      "longitude": -81.3739,
+      "city": "Canton",
+      "state": "OH",
+      "country": "US"
+    },
+    "pool_count": 129,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "44702",
+    "nearby_search_matches": true
+  },
+  {
+    "id": 8901,
+    "zip_code": "44115",
+    "lookup": {
+      "zip": "44115",
+      "latitude": 41.4946,
+      "longitude": -81.667,
+      "city": "Cleveland",
+      "state": "OH",
+      "country": "US"
+    },
+    "pool_count": 103,
+    "in_nearby_pool": true,
+    "exact_zip_pool_matches": true,
+    "radius_miles": 25,
+    "nearby_search_origin": "44115",
+    "nearby_search_matches": true
+  }
+]

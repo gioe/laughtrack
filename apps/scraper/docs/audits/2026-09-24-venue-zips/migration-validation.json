@@ -1,0 +1,84 @@
+{
+  "validated_at": "2026-09-24T16:24:18.545916+00:00",
+  "migration_sha256": "d802c81af0db86da6be4698e5a38f1b1b978a6d6ac4b4ffff9a946847d5b7037",
+  "snapshot_rows": 64,
+  "expected_updates": 48,
+  "scenarios": [
+    {
+      "name": "baseline_apply_rerun_rollback",
+      "updates": 48,
+      "rerun_updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "existing_zip",
+      "protected_rows": 48,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "changed_name",
+      "protected_rows": 48,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "changed_address",
+      "protected_rows": 48,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "null_address",
+      "protected_rows": 48,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "changed_country",
+      "protected_rows": 48,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "foreign_country",
+      "protected_rows": 48,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "hidden",
+      "protected_rows": 48,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "null_visibility",
+      "protected_rows": 48,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "changed_id",
+      "protected_rows": 48,
+      "updates": 0,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "null_zip",
+      "updates": 48,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "empty_zip",
+      "updates": 48,
+      "exact_baseline_restored": true
+    },
+    {
+      "name": "space_only_zip",
+      "updates": 48,
+      "exact_baseline_restored": true
+    }
+  ],
+  "passed": true
+}
