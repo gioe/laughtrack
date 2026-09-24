@@ -1,0 +1,138 @@
+{
+  "captured_date": "2026-09-24",
+  "method": "Read-only production query and scraper HttpClient.fetch_html using curl-cffi AsyncSession. JSON-LD parsed verbatim; current-event timezone read from RSC ticket props beside currentEventId.",
+  "findings": [
+    "All five sampled stored UTC timestamps equal source JSON-LD instants. No timestamp correction indicated by this sample.",
+    "Live pages contain explicit IANA timezone in current-event RSC ticket props. Past/canceled event pages may only contain unrelated nearby-show timezone fields.",
+    "JSON-LD contains locality, region and country even when DB streetAddress-only extraction omitted them.",
+    "Web formatShowDate defaults missing venue timezone to America/New_York. Antlers Moncton source20:00 currently displays19:00 Eastern; correct venue timezone displays20:00 Atlantic.",
+    "Alberta source uses America/Edmonton; future DST rules require separate runtime tzdata verification, not timestamp inference from offset."
+  ],
+  "samples": [
+    {
+      "show_id": 3590559,
+      "club_id": 11665,
+      "source_url": "https://www.nextstopcomedy.com/events/antlers-whiskey-lounge-2026-10-24",
+      "source_start_date": "2026-10-24T20:00:00-03:00",
+      "source_location": {
+        "@type": "Place",
+        "name": "Antlers Whiskey Lounge",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "706 Main St, Moncton, NB E1C 1E4",
+          "addressLocality": "Moncton",
+          "addressRegion": "NB",
+          "postalCode": "E1C 1E4",
+          "addressCountry": "CA"
+        }
+      },
+      "source_utc": "2026-10-24T23:00:00+00:00",
+      "stored_utc": "2026-10-24T23:00:00+00:00",
+      "stored_matches_source_utc": true,
+      "current_event_explicit_timezone": "America/Moncton",
+      "timezone_evidence": "\",\\\"initialPromoSlug\\\":\\\"$undefined\\\",\\\"reservedSeat\\\":\\\"$undefined\\\",\\\"venueTimezone\\\":\\\"America/Moncton\\\",\\\"currentEventId\\\":\\\"9965d88c-a6b4-47d0-9732-85f6dfbe94fb\\\",\\\"siblingShows\\\":\\\"$undefined\\\",\\\"nearbyShows\\\":[{",
+      "before_display_new_york": "2026-10-24T19:00:00-04:00",
+      "after_display_source_zone": "2026-10-24T20:00:00-03:00"
+    },
+    {
+      "show_id": 3593394,
+      "club_id": 12547,
+      "source_url": "https://www.nextstopcomedy.com/events/steinhardt-brewing-co-2026-09-26-7pm",
+      "source_start_date": "2026-09-26T19:00:00-04:00",
+      "source_location": {
+        "@type": "Place",
+        "name": "Steinhardt Brewing Co.",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "340 East Patrick Street, Frederick, MD 21701 (event held in Suite 100)",
+          "addressLocality": "Frederick",
+          "addressRegion": "MD",
+          "postalCode": "21701",
+          "addressCountry": "US"
+        }
+      },
+      "source_utc": "2026-09-26T23:00:00+00:00",
+      "stored_utc": "2026-09-26T23:00:00+00:00",
+      "stored_matches_source_utc": true,
+      "current_event_explicit_timezone": "America/New_York",
+      "timezone_evidence": "\",\\\"initialPromoSlug\\\":\\\"$undefined\\\",\\\"reservedSeat\\\":\\\"$undefined\\\",\\\"venueTimezone\\\":\\\"America/New_York\\\",\\\"currentEventId\\\":\\\"491ca6a2-8042-4f4c-b8c7-28fa8c0f9a95\\\",\\\"siblingShows\\\":\\\"$undefined\\\",\\\"nearbyShows\\\":[",
+      "before_display_new_york": "2026-09-26T19:00:00-04:00",
+      "after_display_source_zone": "2026-09-26T19:00:00-04:00"
+    },
+    {
+      "show_id": 5389388,
+      "club_id": 28874,
+      "source_url": "https://www.nextstopcomedy.com/events/the-pit-2026-09-12-7-30-pm",
+      "source_start_date": "2026-09-12T19:30:00-05:00",
+      "source_location": {
+        "@type": "Place",
+        "name": "The Pit",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "919 E Douglas Ave",
+          "addressLocality": "Wichita",
+          "addressRegion": "KS",
+          "postalCode": "67202",
+          "addressCountry": "US"
+        }
+      },
+      "source_utc": "2026-09-13T00:30:00+00:00",
+      "stored_utc": "2026-09-13T00:30:00+00:00",
+      "stored_matches_source_utc": true,
+      "current_event_explicit_timezone": null,
+      "timezone_evidence": "Only nearby-show timezone strings present: do not assign those to this event.",
+      "before_display_new_york": "2026-09-12T20:30:00-04:00",
+      "after_display_source_zone": null
+    },
+    {
+      "show_id": 4317132,
+      "club_id": 22877,
+      "source_url": "https://www.nextstopcomedy.com/events/four-hands-tapas-and-pizza-restaurant-2026-08-28",
+      "source_start_date": "2026-08-28T19:00:00+10:00",
+      "source_location": {
+        "@type": "Place",
+        "name": "Four Hands Tapas and Pizza Restaurant",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "6/17 Church St.",
+          "addressLocality": "Terrigal",
+          "addressRegion": "NSW",
+          "postalCode": "2260",
+          "addressCountry": "AU"
+        }
+      },
+      "source_utc": "2026-08-28T09:00:00+00:00",
+      "stored_utc": "2026-08-28T09:00:00+00:00",
+      "stored_matches_source_utc": true,
+      "current_event_explicit_timezone": null,
+      "timezone_evidence": "Only nearby-show timezone strings present: do not assign those to this event.",
+      "before_display_new_york": "2026-08-28T05:00:00-04:00",
+      "after_display_source_zone": null
+    },
+    {
+      "show_id": 4944444,
+      "club_id": 11709,
+      "source_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-09-26-730pm",
+      "source_start_date": "2026-09-26T19:30:00-06:00",
+      "source_location": {
+        "@type": "Place",
+        "name": "Big Beaver Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+          "addressLocality": "Okotoks",
+          "addressRegion": "AB",
+          "postalCode": "T1S 0N8",
+          "addressCountry": "CA"
+        }
+      },
+      "source_utc": "2026-09-27T01:30:00+00:00",
+      "stored_utc": "2026-09-27T01:30:00+00:00",
+      "stored_matches_source_utc": true,
+      "current_event_explicit_timezone": "America/Edmonton",
+      "timezone_evidence": "\",\\\"initialPromoSlug\\\":\\\"$undefined\\\",\\\"reservedSeat\\\":\\\"$undefined\\\",\\\"venueTimezone\\\":\\\"America/Edmonton\\\",\\\"currentEventId\\\":\\\"0fe92c95-1f3d-4456-8a94-1931ee837ab4\\\",\\\"siblingShows\\\":\\\"$undefined\\\",\\\"nearbyShows\\\":[",
+      "before_display_new_york": "2026-09-26T21:30:00-04:00",
+      "after_display_source_zone": "2026-09-26T19:30:00-06:00"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "host_timezone": "UTC",
+  "node_timezone_database": "2024a",
+  "formatter": "apps/web/util/dateUtil.ts#formatShowDate",
+  "rows": [
+    {
+      "club_id": 12547,
+      "show_id": 6011316,
+      "source_url": "https://www.nextstopcomedy.com/events/steinhardt-brewing-co-2027-03-13-7-30-pm",
+      "source_start_date": "2027-03-13T19:30:00-05:00",
+      "timezone": "America/New_York",
+      "stored_utc_after_refresh": "2027-03-14T00:30:00+00:00",
+      "source_payload": {
+        "name": "Steinhardt Brewing Co.",
+        "address": "340 East Patrick Street, Frederick, MD 21701 (event held in Suite 100), US",
+        "zip_code": "21701",
+        "timezone": "America/New_York"
+      },
+      "timezone_preserved": true,
+      "stored_instant_unchanged": true,
+      "before_display": "March 13th at 7:30 pm EST",
+      "after_display": "March 13th at 7:30 pm EST",
+      "source_wall_time_matches": true
+    },
+    {
+      "club_id": 11665,
+      "show_id": 3912279,
+      "source_url": "https://www.nextstopcomedy.com/events/antlers-whiskey-lounge-2027-03-13",
+      "source_start_date": "2027-03-13T20:00:00-04:00",
+      "timezone": "America/Moncton",
+      "stored_utc_after_refresh": "2027-03-14T00:00:00+00:00",
+      "source_payload": {
+        "name": "Antlers Whiskey Lounge",
+        "address": "706 Main St, Moncton, NB E1C 1E4, CA",
+        "zip_code": "E1C 1E4",
+        "timezone": "America/Moncton"
+      },
+      "timezone_preserved": true,
+      "stored_instant_unchanged": true,
+      "before_display": "March 13th at 7:00 pm EST",
+      "after_display": "March 13th at 8:00 pm AST",
+      "source_wall_time_matches": true
+    },
+    {
+      "club_id": 71049,
+      "show_id": 7267445,
+      "source_url": "https://www.nextstopcomedy.com/events/riverside-lechlade-2026-11-14-8-pm",
+      "source_start_date": "2026-11-14T20:00:00+00:00",
+      "timezone": "Europe/London",
+      "stored_utc_after_refresh": "2026-11-14T20:00:00+00:00",
+      "source_payload": {
+        "name": "Riverside, Lechlade",
+        "address": "Riverside, Park End Wharf, Lechlade, Gloucestershire GL7 3AQ, GB",
+        "zip_code": "GL7 3AQ",
+        "timezone": "Europe/London"
+      },
+      "timezone_preserved": true,
+      "stored_instant_unchanged": true,
+      "before_display": "November 14th at 3:00 pm EST",
+      "after_display": "November 14th at 8:00 pm GMT",
+      "source_wall_time_matches": true
+    },
+    {
+      "club_id": 12272,
+      "show_id": 6999381,
+      "source_url": "https://www.nextstopcomedy.com/events/here-now-lounge-2027-01-09-7-30-pm",
+      "source_start_date": "2027-01-09T19:30:00+11:00",
+      "timezone": "Australia/Melbourne",
+      "stored_utc_after_refresh": "2027-01-09T08:30:00+00:00",
+      "source_payload": {
+        "name": "Here & Now Lounge",
+        "address": "Level 1 97-99 Ryrie St., Geelong, VIC 3220, AU",
+        "zip_code": "3220",
+        "timezone": "Australia/Melbourne"
+      },
+      "timezone_preserved": true,
+      "stored_instant_unchanged": true,
+      "before_display": "January 9th at 3:30 am EST",
+      "after_display": "January 9th at 7:30 pm GMT+11",
+      "source_wall_time_matches": true
+    }
+  ]
+}
