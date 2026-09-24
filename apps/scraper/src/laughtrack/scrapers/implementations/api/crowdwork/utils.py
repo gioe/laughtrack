@@ -168,7 +168,7 @@ def _description_lines(description_html: str) -> List[str]:
     # distinction between one <br> and a blank paragraph / double <br>.
     for text in list(soup.find_all(string=True)):
         if isinstance(text, NavigableString) and not text.strip() and "\n" in text:
-            text.extract()
+            text.replace_with(" ")
     for br in soup.find_all("br"):
         br.replace_with("\n")
     for block in soup.find_all(["div", "p", "li", "h1", "h2", "h3", "h4", "h5", "h6"]):

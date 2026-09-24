@@ -230,10 +230,14 @@ def test_cast_boundary_blocks_inline_phrases_in_later_prose(separator):
     assert extract_lineup_names(body) == show["expected_cast_deduped"]
 
 
-def test_cast_inline_formatting_does_not_split_person_names():
+@pytest.mark.parametrize("formatted", [
+    "<strong>Mitchell</strong> Potts",
+    "<strong>Mitchell</strong>\n<em>Potts</em>",
+])
+def test_cast_inline_formatting_does_not_split_person_names(formatted):
     from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_lineup_names
     show = _audited_show("One Liner Madness")
-    body = show["description"]["body"].replace("Mitchell Potts", "<strong>Mitchell</strong> Potts")
+    body = show["description"]["body"].replace("Mitchell Potts", formatted)
     assert extract_lineup_names(body) == show["expected_cast_deduped"]
 
 
