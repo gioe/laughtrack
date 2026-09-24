@@ -1,0 +1,98 @@
+{
+  "task": 4046,
+  "runs": [
+    {
+      "id": 35933510357,
+      "url": "https://github.com/gioe/laughtrack/actions/runs/35933510357",
+      "log_sha256": "3382d5615edab73fb0b0f88d92478d850cfd1f9986aa96a11eac33818ae3383b",
+      "logged_counts": {
+        "provider_exceptions": 0,
+        "club_exceptions": 0,
+        "finalizer_exceptions": 0,
+        "summary_lines": 0,
+        "unresolved_coordinate_lines": 0
+      },
+      "historical_cohort_counts_available": false
+    },
+    {
+      "id": 35797636435,
+      "url": "https://github.com/gioe/laughtrack/actions/runs/35797636435",
+      "log_sha256": "d2b5f5cadaedf31d3a3c5d2357b050efe307f6b91ff73b6dbbca15cfbc9dcdcc",
+      "logged_counts": {
+        "provider_exceptions": 0,
+        "club_exceptions": 0,
+        "finalizer_exceptions": 0,
+        "summary_lines": 0,
+        "unresolved_coordinate_lines": 0
+      },
+      "historical_cohort_counts_available": false
+    }
+  ],
+  "historical_counts": {
+    "attempted": null,
+    "resolved": null,
+    "unresolved": null,
+    "retried": null,
+    "unattempted": null
+  },
+  "finding": "Historical cohort counts cannot be measured from retained logs; absence of warnings is not proof of zero unresolved results.",
+  "logging_gap": {
+    "console_level": "WARNING",
+    "geocoding_summary_level": "INFO",
+    "finalizer_artifact": "scraper-dashboard-35933510357",
+    "artifact_contents": [
+      "dashboard.html",
+      "metrics/metrics_20260924_015243.json"
+    ],
+    "finalizer_logs_uploaded": false,
+    "dashboard_contains_coordinate_metrics": false
+  },
+  "source_verified": {
+    "head_sha": "c2e9ed08ec4592d026391c45b64b3c0afbaa2ad7",
+    "selection": "WHERE latitude IS NULL OR longitude IS NULL ORDER BY id LIMIT 30",
+    "retry_state_persisted": false,
+    "visibility_filter": false,
+    "potential_starvation": "Persistent unresolved low-ID rows remain first on every run; exact historical affected cohorts cannot be recovered.",
+    "provider_failure_evidence": "No Nominatim exception, per-club geocoding exception, or finalizer geocoding exception warning appears in either reviewed run."
+  },
+  "snapshot_json_type": "list",
+  "current_selection_simulation": {
+    "note": "Current snapshot only; not evidence of actual prior attempts.",
+    "missing_coordinate_count": 913,
+    "selected_ids": [
+      539,
+      556,
+      573,
+      620,
+      2949,
+      2957,
+      2963,
+      8691,
+      8694,
+      8697,
+      8700,
+      8707,
+      8708,
+      11485,
+      11599,
+      11665,
+      11709,
+      11754,
+      11757,
+      11766,
+      11832,
+      11837,
+      11840,
+      11868,
+      12272,
+      12316,
+      12319,
+      12330,
+      12339,
+      12373
+    ],
+    "outside_next_batch_count": 883,
+    "selected_visible_count": 18,
+    "selected_upcoming_show_count": 226
+  }
+}

@@ -1,0 +1,451 @@
+[
+  {
+    "club": {
+      "id": 16041,
+      "name": "High Line Comedy Club",
+      "address": "446 West 14th Street, New York, NY",
+      "city": "New York",
+      "state": "NY",
+      "country": null,
+      "zip_code": "10014",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 276
+    },
+    "query": "446 West 14th Street, New York, NY, New York, NY, 10014",
+    "http_status": 200,
+    "results": [
+      {
+        "place_id": 358498162,
+        "licence": "Data \u00a9 OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "osm_type": "way",
+        "osm_id": 250490310,
+        "lat": "40.7415944",
+        "lon": "-74.0075724",
+        "category": "building",
+        "type": "yes",
+        "place_rank": 30,
+        "importance": 9.175936522464359e-05,
+        "addresstype": "building",
+        "name": "",
+        "display_name": "446, West 14th Street, Manhattan Community Board 4, Manhattan, New York County, New York, 10014, United States",
+        "address": {
+          "house_number": "446",
+          "road": "West 14th Street",
+          "neighbourhood": "Manhattan Community Board 4",
+          "suburb": "Manhattan",
+          "city_district": "New York County",
+          "city": "New York",
+          "state": "New York",
+          "ISO3166-2-lvl4": "US-NY",
+          "postcode": "10014",
+          "country": "United States",
+          "country_code": "us"
+        },
+        "boundingbox": [
+          "40.7414152",
+          "40.7417268",
+          "-74.0077579",
+          "-74.0074212"
+        ]
+      },
+      {
+        "place_id": 427389388,
+        "licence": "Data \u00a9 OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "osm_type": "node",
+        "osm_id": 14181209101,
+        "lat": "40.7416844",
+        "lon": "-74.0075089",
+        "category": "leisure",
+        "type": "miniature_golf",
+        "place_rank": 30,
+        "importance": 9.175936522464359e-05,
+        "addresstype": "leisure",
+        "name": "Puttery",
+        "display_name": "Puttery, 446, West 14th Street, Manhattan Community Board 4, Manhattan, New York County, New York, 10014, United States",
+        "address": {
+          "leisure": "Puttery",
+          "house_number": "446",
+          "road": "West 14th Street",
+          "neighbourhood": "Manhattan Community Board 4",
+          "suburb": "Manhattan",
+          "city_district": "New York County",
+          "city": "New York",
+          "state": "New York",
+          "ISO3166-2-lvl4": "US-NY",
+          "postcode": "10014",
+          "country": "United States",
+          "country_code": "us"
+        },
+        "boundingbox": [
+          "40.7416344",
+          "40.7417344",
+          "-74.0075589",
+          "-74.0074589"
+        ]
+      },
+      {
+        "place_id": 357735323,
+        "licence": "Data \u00a9 OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "osm_type": "way",
+        "osm_id": 1314038729,
+        "lat": "40.7421179",
+        "lon": "-74.0081164",
+        "category": "highway",
+        "type": "secondary",
+        "place_rank": 26,
+        "importance": 0.49193376146683687,
+        "addresstype": "road",
+        "name": "West 14th Street",
+        "display_name": "West 14th Street, Manhattan Community Board 4, Manhattan, New York County, New York, 10014, United States",
+        "address": {
+          "road": "West 14th Street",
+          "neighbourhood": "Manhattan Community Board 4",
+          "suburb": "Manhattan",
+          "city_district": "New York County",
+          "city": "New York",
+          "state": "New York",
+          "ISO3166-2-lvl4": "US-NY",
+          "postcode": "10014",
+          "country": "United States",
+          "country_code": "us"
+        },
+        "boundingbox": [
+          "40.7420905",
+          "40.7421447",
+          "-74.0081824",
+          "-74.0080506"
+        ]
+      }
+    ]
+  },
+  {
+    "club": {
+      "id": 15972,
+      "name": "Fallout Theater",
+      "address": "616 Lavaca St, Austin, TX 78701",
+      "city": "Austin",
+      "state": "TX",
+      "country": "US",
+      "zip_code": "78701",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 140
+    },
+    "query": "616 Lavaca St, Austin, TX 78701, Austin, TX, 78701, US",
+    "http_status": 200,
+    "results": []
+  },
+  {
+    "club": {
+      "id": 16111,
+      "name": "Loony Bin Comedy Club - Wichita",
+      "address": "8406 W Central Ave, Wichita, KS 67212",
+      "city": "Wichita",
+      "state": "KS",
+      "country": "US",
+      "zip_code": "67212",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 130
+    },
+    "query": "8406 W Central Ave, Wichita, KS 67212, Wichita, KS, 67212, US",
+    "http_status": 200,
+    "results": []
+  },
+  {
+    "club": {
+      "id": 11485,
+      "name": "Rumor's Comedy Club",
+      "address": "190-2025 Corydon Avenue",
+      "city": "Winnipeg",
+      "state": "MB",
+      "country": "CA",
+      "zip_code": "R3P 0N5",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 118
+    },
+    "query": "190-2025 Corydon Avenue, Winnipeg, MB, R3P 0N5, CA",
+    "http_status": 200,
+    "results": []
+  },
+  {
+    "club": {
+      "id": 16110,
+      "name": "Loony Bin Comedy Club - Tulsa",
+      "address": "6808 S Memorial Dr Ste 234, Tulsa, OK 74133",
+      "city": "Tulsa",
+      "state": "OK",
+      "country": "US",
+      "zip_code": "74133",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 116
+    },
+    "query": "6808 S Memorial Dr Ste 234, Tulsa, OK 74133, Tulsa, OK, 74133, US",
+    "http_status": 200,
+    "results": []
+  },
+  {
+    "club": {
+      "id": 17080,
+      "name": "Greenwich Village Comedy Club",
+      "address": "99 MacDougal St",
+      "city": "New York",
+      "state": "NY",
+      "country": "US",
+      "zip_code": "10012",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 103
+    },
+    "query": "99 MacDougal St, New York, NY, 10012, US",
+    "http_status": 200,
+    "results": [
+      {
+        "place_id": 357014937,
+        "licence": "Data \u00a9 OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "osm_type": "way",
+        "osm_id": 248159971,
+        "lat": "40.7296565",
+        "lon": "-74.0010910",
+        "category": "amenity",
+        "type": "restaurant",
+        "place_rank": 30,
+        "importance": 9.175936522464359e-05,
+        "addresstype": "amenity",
+        "name": "The Kati Roll Company",
+        "display_name": "The Kati Roll Company, 99, MacDougal Street, University Village, Manhattan, New York County, New York, 10012, United States",
+        "address": {
+          "amenity": "The Kati Roll Company",
+          "house_number": "99",
+          "road": "MacDougal Street",
+          "neighbourhood": "University Village",
+          "suburb": "Manhattan",
+          "city_district": "New York County",
+          "city": "New York",
+          "state": "New York",
+          "ISO3166-2-lvl4": "US-NY",
+          "postcode": "10012",
+          "country": "United States",
+          "country_code": "us"
+        },
+        "boundingbox": [
+          "40.7295577",
+          "40.7297451",
+          "-74.0012379",
+          "-74.0009211"
+        ]
+      },
+      {
+        "place_id": 361231963,
+        "licence": "Data \u00a9 OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "osm_type": "way",
+        "osm_id": 250404199,
+        "lat": "40.6796522",
+        "lon": "-73.9180761",
+        "category": "building",
+        "type": "yes",
+        "place_rank": 30,
+        "importance": 9.175936522464359e-05,
+        "addresstype": "building",
+        "name": "",
+        "display_name": "99, MacDougal Street, Ocean Hill, Brooklyn, Kings County, New York, 11233, United States",
+        "address": {
+          "house_number": "99",
+          "road": "MacDougal Street",
+          "neighbourhood": "Ocean Hill",
+          "suburb": "Brooklyn",
+          "city_district": "Kings County",
+          "city": "New York",
+          "state": "New York",
+          "ISO3166-2-lvl4": "US-NY",
+          "postcode": "11233",
+          "country": "United States",
+          "country_code": "us"
+        },
+        "boundingbox": [
+          "40.6795529",
+          "40.6797706",
+          "-73.9181480",
+          "-73.9180200"
+        ]
+      }
+    ]
+  },
+  {
+    "club": {
+      "id": 16133,
+      "name": "Olsen Run Comedy Club",
+      "address": "44 E 7th Avenue, Eugene, OR 97401",
+      "city": "Eugene",
+      "state": "OR",
+      "country": "US",
+      "zip_code": "97401",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 95
+    },
+    "query": "44 E 7th Avenue, Eugene, OR 97401, Eugene, OR, 97401, US",
+    "http_status": 200,
+    "results": []
+  },
+  {
+    "club": {
+      "id": 16112,
+      "name": "Dallas Comedy Club",
+      "address": "3036 Elm Street, Dallas, TX 75226",
+      "city": "Dallas",
+      "state": "TX",
+      "country": "US",
+      "zip_code": "75226",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 94
+    },
+    "query": "3036 Elm Street, Dallas, TX 75226, Dallas, TX, 75226, US",
+    "http_status": 200,
+    "results": []
+  },
+  {
+    "club": {
+      "id": 16109,
+      "name": "Loony Bin Comedy Club - Little Rock",
+      "address": "10301 N Rodney Parham Rd, Little Rock, AR 72227",
+      "city": "Little Rock",
+      "state": "AR",
+      "country": "US",
+      "zip_code": "72227",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 82
+    },
+    "query": "10301 N Rodney Parham Rd, Little Rock, AR 72227, Little Rock, AR, 72227, US",
+    "http_status": 200,
+    "results": []
+  },
+  {
+    "club": {
+      "id": 15969,
+      "name": "St. Louis Funny Bone",
+      "address": "614 W Port Plaza Dr, St. Louis, MO 63146",
+      "city": "St. Louis",
+      "state": "MO",
+      "country": "US",
+      "zip_code": "63146",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 77
+    },
+    "query": "614 W Port Plaza Dr, St. Louis, MO 63146, St. Louis, MO, 63146, US",
+    "http_status": 200,
+    "results": []
+  },
+  {
+    "club": {
+      "id": 22513,
+      "name": "Walnut Street Theatre",
+      "address": "825 Walnut Street, Philadelphia, PA",
+      "city": "Philadelphia",
+      "state": "PA",
+      "country": null,
+      "zip_code": "19107",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 74
+    },
+    "query": "825 Walnut Street, Philadelphia, PA, Philadelphia, PA, 19107",
+    "http_status": 200,
+    "results": [
+      {
+        "place_id": 345651517,
+        "licence": "Data \u00a9 OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        "osm_type": "way",
+        "osm_id": 339752636,
+        "lat": "39.9485195",
+        "lon": "-75.1554580",
+        "category": "amenity",
+        "type": "theatre",
+        "place_rank": 30,
+        "importance": 0.35892997054582615,
+        "addresstype": "amenity",
+        "name": "Walnut Street Theatre",
+        "display_name": "Walnut Street Theatre, 825, Walnut Street, Washington Square West, Center City, Philadelphia, Philadelphia County, Pennsylvania, 19107, United States",
+        "address": {
+          "amenity": "Walnut Street Theatre",
+          "house_number": "825",
+          "road": "Walnut Street",
+          "neighbourhood": "Washington Square West",
+          "suburb": "Center City",
+          "city": "Philadelphia",
+          "county": "Philadelphia County",
+          "state": "Pennsylvania",
+          "ISO3166-2-lvl4": "US-PA",
+          "postcode": "19107",
+          "country": "United States",
+          "country_code": "us"
+        },
+        "boundingbox": [
+          "39.9483091",
+          "39.9487298",
+          "-75.1557054",
+          "-75.1552107"
+        ]
+      }
+    ]
+  },
+  {
+    "club": {
+      "id": 17082,
+      "name": "Quezada's Comedy Club & Cantina",
+      "address": "54 Jemez Canyon Dam Rd",
+      "city": "Santa Ana Pueblo",
+      "state": "NM",
+      "country": "US",
+      "zip_code": "87004",
+      "visible": true,
+      "status": "active",
+      "club_type": "club",
+      "latitude": null,
+      "longitude": null,
+      "upcoming": 72
+    },
+    "query": "54 Jemez Canyon Dam Rd, Santa Ana Pueblo, NM, 87004, US",
+    "http_status": 200,
+    "results": []
+  }
+]
