@@ -120,7 +120,33 @@ def parse_city_state_from_address(address: Optional[str]) -> tuple[Optional[str]
     parts = _split_address_parts(address)
     if len(parts) < 2:
         return None, None
-    state = _extract_state_code(parts[-1])
+    suffix = parts[-1].upper()
+    if suffix in {"US", "USA", "UNITED STATES", "UNITED STATES OF AMERICA"}:
+        parts.pop()
+    else:
+        foreign_names = {name.upper() for code, name in country_names.items() if code != "US"}
+        foreign_codes = set(country_names) - set(_STATE_TO_TIMEZONE) - {"US"}
+        foreign_names.update({"CANADA", "UK", "UNITED KINGDOM", "ENGLAND", "SCOTLAND", "WALES"})
+        canadian_suffix = suffix == "CA" and _CANADIAN_POSTAL.search(", ".join(parts[:-1]))
+        if suffix in foreign_names or suffix in foreign_codes or canadian_suffix:
+            return None, None
+    if parts and re.fullmatch(r"\d{5}(?:-\d{4})?", parts[-1]):
+        parts.pop()
+    if len(parts) < 2:
+        return None, None
+
+    def region_code(part: str) -> Optional[str]:
+        region = re.sub(r"\s+\d{5}(?:-\d{4})?$", "", part).upper()
+        return _extract_state_code(_US_STATE_NAMES.get(region, region))
+
+    state = region_code(parts[-1])
+    # JSON-LD can repeat a full state + ZIP with its abbreviated region.
+    # Do not strip a same-named city such as New York merely for matching NY.
+    while state and len(parts) > 2 and region_code(parts[-2]) == state:
+        previous = parts[-2]
+        if not re.search(r"\d", previous) and previous.upper() != state:
+            break
+        parts.pop()
     city = parts[-2] or None
     if city and _looks_like_non_city_segment(city):
         city = None

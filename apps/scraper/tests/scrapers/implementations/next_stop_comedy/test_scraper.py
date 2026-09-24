@@ -299,3 +299,58 @@ def test_main_timezone_split_flight_chunks_and_conflicting_props(zones, expected
         "<script>self.__next_f.push(" + json.dumps([1, chunk]) + ")</script>" for chunk in chunks
     )
     assert extract_json_ld_events(html)[0].venue_timezone == expected
+
+
+@pytest.mark.parametrize(
+    "address,expected",
+    [
+        (
+            {
+                "streetAddress": "1 Main Street",
+                "addressLocality": "Boston",
+                "addressRegion": "MA",
+                "postalCode": "02116",
+                "addressCountry": "US",
+            },
+            ("Boston", "MA"),
+        ),
+        (
+            {
+                "streetAddress": "1 Main Street, Ferndale, Washington 98248",
+                "addressLocality": "Ferndale",
+                "addressRegion": "WA",
+                "postalCode": "98248",
+                "addressCountry": "US",
+            },
+            ("Ferndale", "WA"),
+        ),
+        (
+            {
+                "streetAddress": "706 Main St",
+                "addressLocality": "Moncton",
+                "addressRegion": "NB",
+                "postalCode": "E1C 1E4",
+                "addressCountry": "CA",
+            },
+            (None, None),
+        ),
+        (
+            {
+                "streetAddress": "1 Main Street",
+                "addressLocality": "Perth",
+                "addressRegion": "WA",
+                "postalCode": "6000",
+                "addressCountry": "AU",
+            },
+            (None, None),
+        ),
+    ],
+)
+def test_extracted_address_remains_safe_for_discovered_venue_city_parser(address, expected):
+    from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address
+
+    node = json.loads(_EVENT_HTML.split('<script type="application/ld+json">')[1].split("</script>")[0])
+    node["location"]["address"] = address
+    html = '<script type="application/ld+json">' + json.dumps(node) + "</script>"
+    event = extract_json_ld_events(html)[0]
+    assert parse_city_state_from_address(event.venue_payload()["address"]) == expected
