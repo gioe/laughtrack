@@ -16,6 +16,8 @@ Covers all detection criteria:
 Plus cross-cutting checks that real comedian names pass through.
 """
 
+import pytest
+
 from _entities_test_helpers import _load_module
 
 
@@ -523,3 +525,32 @@ class TestTask1547RegressionFixture:
             assert reason is not None, (
                 f"Expected {name!r} to be flagged as a false positive"
             )
+
+
+@pytest.mark.parametrize("name", [
+    "School Girls; OR, The African Mean Girls Play",
+    "School Girls:Or, The African Mean Girls",
+    "School Girls Or The African Mean Girls Play",
+    "  SCHOOL GIRLS OR THE AFRICAN MEAN GIRLS PLAY  ",
+    "Example: A Night Of Laughs", "Example; An Evening With Friends",
+    "Example The Musical", "The Play That Goes Wrong",
+    "Mixology class", "Craft & A Cocktail—Folk Art Snake Workshop",
+    "Craft & A Cocktail- Folk Art Snake Workshop", "Ceramic Poppies Workshop",
+    "Comedian Workshop - Headlining with Sarah Hyland",
+    "Advanced Character Workshop with Chris Ulrich",
+    "Community Night", "The Weekend Show", "Randy Feltface: Gimmick",
+    "Sheryl on September24th", "9:30pm",
+])
+def test_audited_event_and_workshop_names(name):
+    assert detect_false_positive(name) is not None
+
+
+@pytest.mark.parametrize("name", [
+    "Kid N Play", "The Lady Bunny", "Playboi Carti", "Michael Che",
+    "Mary Beth Barone", "Daniel Sloss", "D'Angelo", "Jean-Luc Moreau",
+    "Blue Man Group", "Denim", "The Qs", "Brave New Workshop",
+    "The Second City", "First Class", "fae lily", "AJ Wilkerson",
+    "Classy Chris", "Touré", "Bradley Ray Rose (formally Brad Griep)",
+])
+def test_title_rules_preserve_person_stage_and_ensemble_names(name):
+    assert detect_false_positive(name) is None

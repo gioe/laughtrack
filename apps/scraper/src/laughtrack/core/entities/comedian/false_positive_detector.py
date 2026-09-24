@@ -17,6 +17,7 @@ Detection criteria (any one match → false positive):
   8. Starts with a quote (straight or smart) — show titles like '"Big Irish" Jay ...'
   9. Starts with a digit — event titles like '5th ANNUAL ...', '90 Day Fiance: ...'
  10. Starts with '@' — social handles, not names
+ 11. Explicit event subtitles, theatrical titles, workshops, and schedule fragments
 
 Note: an all-caps rule was considered but omitted. ComedianUtils.normalize_name()
 already title-cases fully-upper input before insertion, so the rule is dead code
@@ -24,6 +25,7 @@ in the normal path — and historical all-caps rows in the DB include real comed
 (e.g. 'CLARE BOWEN', 'JAMES DAVIS') that must not be rejected.
 """
 
+import re
 from typing import Optional
 
 # Exact-match placeholder names (checked case-insensitively against stripped input)
@@ -201,6 +203,23 @@ STRUCTURAL_KEYWORDS: tuple[str, ...] = (
     "special event",
 )
 
+# Python and PostgreSQL consume these same patterns. Avoid \b: PostgreSQL
+# interprets it as backspace, not a word boundary.
+# Ensemble identities remain eligible: Blue Man Group, Denim, The Qs, and
+# Brave New Workshop are not rejected merely for being groups. Likewise, bare
+# "the", "play", "class", "tour", or "workshop" inside a name is insufficient.
+# This is a structural guard, not a genre classifier or alias resolver: a
+# rejected tour title must not be turned into a guessed person automatically.
+TITLE_PATTERNS: tuple[str, ...] = (
+    r"[:;]",
+    r"(^|\s)the\s+(.+\s+)?(play|musical)($|\s)",
+    r"^(community\s+night|the\s+weekend\s+show)$",
+    r"(^|\s)(mixology|intro|master)\s+class($|[^a-z])",
+    r"(^|\s)(craft|ceramic|ceramics|pottery|painting)\s+.*workshop($|[^a-z])",
+    r"(^|\s)workshop\s+(with|[-–—])($|\s)",
+    r"\s+on\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s*[0-9]{1,2}(st|nd|rd|th)?$",
+)
+
 _MIN_NAME_LENGTH = 4
 _MAX_NAME_LENGTH = 60
 
@@ -236,6 +255,10 @@ def detect_false_positive(name: str) -> Optional[str]:
     for kw in STRUCTURAL_KEYWORDS:
         if kw in lower:
             return f"structural_keyword:{kw!r}"
+
+    for pattern in TITLE_PATTERNS:
+        if re.search(pattern, lower):
+            return "event_title_pattern"
 
     if "***" in stripped:
         return "decoration_pattern"
