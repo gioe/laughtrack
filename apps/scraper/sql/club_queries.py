@@ -314,6 +314,10 @@ class ClubQueries:
             )
             VALUES (%s, %s, '', TRUE, %s, %s, %s, '', 0, NULL)
             ON CONFLICT (name) DO UPDATE SET
+                -- Fill missing postal metadata without replacing a known ZIP.
+                zip_code = CASE WHEN NULLIF(TRIM(clubs.zip_code), '') IS NULL
+                    THEN COALESCE(NULLIF(TRIM(EXCLUDED.zip_code), ''), clubs.zip_code)
+                    ELSE clubs.zip_code END,
                 city  = COALESCE(clubs.city,  EXCLUDED.city),
                 state = COALESCE(clubs.state, EXCLUDED.state)
             WHERE (
@@ -378,6 +382,10 @@ class ClubQueries:
             )
             VALUES (%s, %s, %s, TRUE, %s, %s, %s, '', 0, NULL)
             ON CONFLICT (name) DO UPDATE SET
+                -- Fill missing postal metadata without replacing a known ZIP.
+                zip_code = CASE WHEN NULLIF(TRIM(clubs.zip_code), '') IS NULL
+                    THEN COALESCE(NULLIF(TRIM(EXCLUDED.zip_code), ''), clubs.zip_code)
+                    ELSE clubs.zip_code END,
                 city  = COALESCE(clubs.city,  EXCLUDED.city),
                 state = COALESCE(clubs.state, EXCLUDED.state)
             RETURNING *
@@ -434,6 +442,10 @@ class ClubQueries:
             )
             VALUES (%s, %s, %s, TRUE, %s, %s, %s, '', 0, NULL)
             ON CONFLICT (name) DO UPDATE SET
+                -- Fill missing postal metadata without replacing a known ZIP.
+                zip_code = CASE WHEN NULLIF(TRIM(clubs.zip_code), '') IS NULL
+                    THEN COALESCE(NULLIF(TRIM(EXCLUDED.zip_code), ''), clubs.zip_code)
+                    ELSE clubs.zip_code END,
                 city  = COALESCE(clubs.city,  EXCLUDED.city),
                 state = COALESCE(clubs.state, EXCLUDED.state)
             RETURNING *
@@ -523,7 +535,9 @@ class ClubQueries:
             UPDATE clubs c
             SET
                 address  = COALESCE(NULLIF(c.address, ''), iv.address),
-                zip_code = COALESCE(NULLIF(c.zip_code, ''), iv.zip_code),
+                zip_code = CASE WHEN NULLIF(TRIM(c.zip_code), '') IS NULL
+                    THEN COALESCE(NULLIF(TRIM(iv.zip_code), ''), c.zip_code)
+                    ELSE c.zip_code END,
                 timezone = COALESCE(c.timezone, iv.timezone),
                 city     = COALESCE(c.city,     iv.city),
                 state    = COALESCE(c.state,    iv.state)
@@ -542,6 +556,10 @@ class ClubQueries:
             FROM input_venue iv
             WHERE NOT EXISTS (SELECT 1 FROM updated_ticketmaster_club)
             ON CONFLICT (name) DO UPDATE SET
+                -- Fill missing postal metadata without replacing a known ZIP.
+                zip_code = CASE WHEN NULLIF(TRIM(clubs.zip_code), '') IS NULL
+                    THEN COALESCE(NULLIF(TRIM(EXCLUDED.zip_code), ''), clubs.zip_code)
+                    ELSE clubs.zip_code END,
                 timezone = COALESCE(clubs.timezone, EXCLUDED.timezone),
                 city     = COALESCE(clubs.city,     EXCLUDED.city),
                 state    = COALESCE(clubs.state,    EXCLUDED.state)
@@ -697,6 +715,10 @@ class ClubQueries:
         )
         VALUES (%s, %s, %s, TRUE, %s, %s, %s, '', 0, %s, %s)
         ON CONFLICT (name) DO UPDATE SET
+            -- Fill missing postal metadata without replacing a known ZIP.
+            zip_code = CASE WHEN NULLIF(TRIM(clubs.zip_code), '') IS NULL
+                THEN COALESCE(NULLIF(TRIM(EXCLUDED.zip_code), ''), clubs.zip_code)
+                ELSE clubs.zip_code END,
             website  = COALESCE(NULLIF(clubs.website, ''), EXCLUDED.website),
             timezone = COALESCE(clubs.timezone, EXCLUDED.timezone),
             city     = COALESCE(clubs.city,     EXCLUDED.city),
