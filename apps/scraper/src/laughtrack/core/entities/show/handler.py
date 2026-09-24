@@ -2,6 +2,7 @@
 
 import re
 import unicodedata
+from urllib.parse import parse_qs, urlsplit
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
@@ -183,6 +184,11 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 if not show.last_scraped_by:
                     show.last_scraped_by = scraper_key
 
+        fullcalendar_context = (
+            self._fullcalendar_input_conflicts(shows)
+            if any(show.last_scraped_by == "fullcalendar_json" for show in shows)
+            else None
+        )
         total_items = len(shows)
         total_result = DatabaseOperationResult()
         successful_batches = 0
@@ -198,7 +204,11 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             try:
                 Logger.info(f"Processing batch {batch_num}/{total_batches} ({len(batch)} shows)")
 
-                batch_result = self._process_single_batch(batch)
+                batch_result = (
+                    self._process_single_batch(batch, fullcalendar_context=fullcalendar_context)
+                    if fullcalendar_context is not None
+                    else self._process_single_batch(batch)
+                )
                 successful_batches += 1
                 total_result += batch_result
 
@@ -361,6 +371,9 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         so the normal upsert updates the existing row instead of inserting a
         second physical show.
         """
+        # FullCalendar detail URLs distinguish simultaneous performances whose
+        # titles happen to match. Its dedicated reconciliation owns room changes.
+        batch = [show for show in batch if show.last_scraped_by != "fullcalendar_json"]
         if not batch:
             return 0
 
@@ -575,6 +588,140 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             )
         return reconciled
 
+    def _fullcalendar_input_conflicts(self, shows: List[Show]) -> tuple[set, set]:
+        """Keep ambiguity visible even when one feed spans persistence batches."""
+        destinations = {}
+        identities = {}
+        for show in shows:
+            destinations.setdefault(show.to_unique_key(), []).append(show)
+            if show.last_scraped_by == "fullcalendar_json":
+                identity = (show.club_id, self._normalize_cross_batch_key_date(show.date), show.show_page_url)
+                identities.setdefault(identity, set()).add(show.room or "")
+        conflicts = {
+            key
+            for key, candidates in destinations.items()
+            if any(show.last_scraped_by == "fullcalendar_json" for show in candidates)
+            and len({show.show_page_url for show in candidates}) > 1
+        }
+        ambiguous = {key for key, rooms in identities.items() if len(rooms) > 1}
+        return conflicts, ambiguous
+
+    @staticmethod
+    def _fullcalendar_performance_url(url: Optional[str]) -> Optional[str]:
+        """Admit only the verified Sesh event-detail identity contract.
+
+        Generic calendar, series, and homepage URLs do not identify a single
+        performance. Add another provider only after verifying that contract.
+        Keep the exact URL as the identity; do not infer equivalence from title.
+        """
+        if not isinstance(url, str):
+            return None
+        parsed = urlsplit(url)
+        if (
+            parsed.scheme not in {"http", "https"}
+            or parsed.hostname not in {"seshcomedy.com", "www.seshcomedy.com"}
+            or parsed.path != "/event-detail.php"
+            or parsed.fragment
+        ):
+            return None
+        query = parse_qs(parsed.query, keep_blank_values=True)
+        ids = query.get("id", [])
+        if len(ids) != 1 or not re.fullmatch(r"[A-Za-z0-9_-]+", ids[0]):
+            return None
+        return url
+
+    def _reconcile_fullcalendar_locations(
+        self, batch: List[Show], conn, ambiguous_identities: set
+    ) -> Tuple[List[Show], int]:
+        """Move one identified performance's room without changing its ID/date.
+
+        Called inside the same transaction as the upsert. Conflicting identities
+        at the destination are skipped, never overwritten by the room-key upsert.
+        Ambiguous existing/incoming identities cannot authorize a room move.
+        """
+        candidates = [show for show in batch if show.last_scraped_by == "fullcalendar_json"]
+        if not candidates:
+            return batch, 0
+        club_ids = sorted({show.club_id for show in candidates})
+        for club_id in club_ids:
+            self.execute_with_cursor(ShowQueries.LOCK_FULLCALENDAR_CLUB, (club_id,), conn=conn)
+        dates = sorted({show.date for show in candidates})
+        rows = (
+            self.execute_with_cursor(
+                ShowQueries.GET_FULLCALENDAR_RECONCILIATION_ROWS,
+                (club_ids, dates),
+                return_results=True,
+                conn=conn,
+            )
+            or []
+        )
+
+        def key(club_id, date, url):
+            return (club_id, self._normalize_cross_batch_key_date(date), url)
+
+        incoming = {}
+        for show in candidates:
+            incoming.setdefault(key(show.club_id, show.date, show.show_page_url), []).append(show)
+        accepted = []
+        identity_errors = 0
+        for show in batch:
+            url = self._fullcalendar_performance_url(show.show_page_url)
+            if show.last_scraped_by != "fullcalendar_json" or url is None:
+                accepted.append(show)
+                continue
+            identity = key(show.club_id, show.date, url)
+            matches = [
+                row
+                for row in rows
+                if key(row["club_id"], row["date"], row["show_page_url"]) == identity
+                and row["last_scraped_by"] == "fullcalendar_json"
+            ]
+            occupied = [
+                row
+                for row in rows
+                if row["club_id"] == show.club_id
+                and self._normalize_cross_batch_key_date(row["date"]) == identity[1]
+                and (row["room"] or "") == (show.room or "")
+            ]
+            if any(row["show_page_url"] != url for row in occupied):
+                Logger.warn(f"Skipping FullCalendar room collision for club {show.club_id}: {url}")
+                identity_errors += 1
+                continue
+            if len(matches) > 1 or len(incoming[identity]) > 1 or identity in ambiguous_identities:
+                # Persist distinct source rows without inferring a room move,
+                # but block stale cleanup from deleting ambiguous prior rows.
+                identity_errors += 1
+                Logger.warn(f"Ambiguous FullCalendar performance for club {show.club_id}: {url}")
+                accepted.append(show)
+                continue
+            if not matches or occupied:
+                accepted.append(show)
+                continue
+            previous = matches[0]
+            # Another incoming event occupying this destination is also unsafe.
+            if any(
+                other is not show
+                and other.club_id == show.club_id
+                and self._normalize_cross_batch_key_date(other.date) == identity[1]
+                and (other.room or "") == (show.room or "")
+                for other in batch
+            ):
+                identity_errors += 1
+                continue
+            moved = self.execute_with_cursor(
+                ShowQueries.UPDATE_FULLCALENDAR_ROOM,
+                (show.room or "", previous["id"], show.club_id, show.date, url, previous["room"], show.room or ""),
+                return_results=True,
+                conn=conn,
+            )
+            if moved:
+                previous["room"] = show.room or ""
+                accepted.append(show)
+            else:
+                identity_errors += 1
+                Logger.warn(f"Skipping changed FullCalendar identity for club {show.club_id}: {url}")
+        return accepted, identity_errors
+
     def _update_shows_and_related(
         self, batch: List[Show], results: List[DictRow]
     ) -> Tuple[List[Show], int, int]:
@@ -603,7 +750,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
 
         return inserts, updates, show_results
 
-    def _process_single_batch(self, batch: List[Show]) -> DatabaseOperationResult:
+    def _process_single_batch(self, batch: List[Show], fullcalendar_context=None) -> DatabaseOperationResult:
         """Process a single batch of shows.
 
         Args:
@@ -628,6 +775,20 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             return DatabaseOperationResult(validation_errors=len(validation_errors))
 
         self._suppress_room_matching_club_name(batch)
+        # Detect distinct FullCalendar identities targeting one physical key
+        # before generic in-batch dedup can conceal the conflict. The current
+        # database cannot represent those simultaneous events in the same room.
+        conflicting_keys, ambiguous_identities = self._fullcalendar_input_conflicts(batch)
+        if fullcalendar_context is not None:
+            conflicting_keys |= fullcalendar_context[0]
+            ambiguous_identities |= fullcalendar_context[1]
+        if conflicting_keys:
+            rejected = [show for show in batch if show.to_unique_key() in conflicting_keys]
+            validation_errors.extend(["Conflicting FullCalendar destination"] * len(rejected))
+            batch = [show for show in batch if show.to_unique_key() not in conflicting_keys]
+            Logger.warn(f"Skipped {len(rejected)} shows with conflicting FullCalendar destinations")
+            if not batch:
+                return DatabaseOperationResult(validation_errors=len(validation_errors))
         batch, duplicate_details = ShowUtils.deduplicate_shows_with_details(batch)
         self._reconcile_patronticket_instances(batch)
         self._reconcile_seatengine_classic_show_urls(batch)
@@ -635,8 +796,23 @@ class ShowHandler(BaseDatabaseHandler[Show]):
 
         # Insert shows and get results
         Logger.info(f"Processing batch of {len(batch)} shows")
-        items, template = self._build_items_and_template(batch)
-        results = self.execute_batch_operation(ShowQueries.BATCH_INSERT_SHOWS, items, template, return_results=True)
+        if any(show.last_scraped_by == "fullcalendar_json" for show in batch):
+            with self.transaction() as conn:
+                batch, identity_errors = self._reconcile_fullcalendar_locations(batch, conn, ambiguous_identities)
+                validation_errors.extend(["Ambiguous FullCalendar identity"] * identity_errors)
+                if not batch:
+                    return DatabaseOperationResult(validation_errors=len(validation_errors))
+                items, template = self._build_items_and_template(batch)
+                results = self.execute_batch_operation(
+                    ShowQueries.BATCH_INSERT_SHOWS,
+                    items,
+                    template,
+                    return_results=True,
+                    conn=conn,
+                )
+        else:
+            items, template = self._build_items_and_template(batch)
+            results = self.execute_batch_operation(ShowQueries.BATCH_INSERT_SHOWS, items, template, return_results=True)
 
         if not results:
             raise ValueError("No shows were inserted or updated")

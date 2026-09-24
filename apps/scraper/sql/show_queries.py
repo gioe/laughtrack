@@ -3,15 +3,15 @@
 
 class ShowQueries:
     """SQL queries for show operations."""
-    
+
     GET_ALL_SHOW_IDS = """
         SELECT id FROM shows ORDER BY id;
     """
-    
+
     VALIDATE_SHOW_IDS = """
         SELECT id FROM shows WHERE id = ANY(%s) ORDER BY id;
     """
-    
+
     GET_SHOW_DETAILS = """
         SELECT 
             id, name, show_page_url, description, date, club_id, room, popularity, show_type
@@ -19,7 +19,7 @@ class ShowQueries:
         WHERE id = ANY(%s)
         ORDER BY id;
     """
-    
+
     BATCH_INSERT_SHOWS = '''
         INSERT INTO shows (
             name, show_page_url, description, date, club_id, last_scraped_date, room,
@@ -132,6 +132,31 @@ class ShowQueries:
         WHERE id = ANY(%s)
     '''
 
+    # Serialize FullCalendar room reconciliation for a club, then lock the
+    # affected dates. Other platforms retain their existing persistence path.
+    LOCK_FULLCALENDAR_CLUB = "SELECT pg_advisory_xact_lock(4048, %s)"
+
+    GET_FULLCALENDAR_RECONCILIATION_ROWS = """
+        SELECT id, club_id, date, room, show_page_url, last_scraped_by
+        FROM shows
+        WHERE club_id = ANY(%s) AND date = ANY(%s)
+        ORDER BY id
+        FOR UPDATE
+    """
+
+    UPDATE_FULLCALENDAR_ROOM = """
+        UPDATE shows AS s SET room = %s
+        WHERE s.id = %s AND s.club_id = %s AND s.date = %s
+          AND s.show_page_url = %s AND s.room IS NOT DISTINCT FROM %s
+          AND s.last_scraped_by = 'fullcalendar_json'
+          AND NOT EXISTS (
+              SELECT 1 FROM shows occupied
+              WHERE occupied.club_id = s.club_id AND occupied.date = s.date
+                AND occupied.room = %s AND occupied.id <> s.id
+          )
+        RETURNING s.id
+    """
+
     # PatronTicket-family shows (generic patron_ticket + bespoke up_comedy_club)
     # carry a stable Salesforce instance id in the #/instances/<id> fragment of
     # show_page_url. Fetch existing instance-bearing rows for the affected clubs so
@@ -177,7 +202,7 @@ class ShowQueries:
                 AND o.id <> s.id
           )
     '''
-    
+
     # Recent ticket-purchase click counts per show. All clicks count, including
     # clicks without confirmed purchases: this is an intent signal until the app
     # has conversion tracking. The 30-day window matches the freshest first-party
@@ -290,7 +315,7 @@ class ShowQueries:
               AND tpce.created_at >= NOW() - INTERVAL '30 days'
         ) clicks ON true
     '''
-    
+
     BATCH_UPDATE_SHOW_POPULARITY = '''
         UPDATE shows
         SET popularity = v.modified_popularity
@@ -300,7 +325,7 @@ class ShowQueries:
         ) v
         WHERE id = v.show_id
     '''
-    
+
     DELETE_ORPHANED_SHOWS = '''
         DELETE FROM shows 
         WHERE id NOT IN (

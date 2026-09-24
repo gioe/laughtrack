@@ -69,7 +69,15 @@ class ScrapingResultProcessor:
                 scraper_key=club_result.scraper_key,
             )
 
-        self._reconcile_stale_future_shows(club_result, reconcile_cutoff)
+        # A successful fetch is insufficient when persistence rejected part of
+        # that inventory. Those untouched rows are not evidence of cancellation.
+        if db_result.errors or db_result.db_errors or db_result.validation_errors:
+            Logger.warn(
+                f"Skipping stale-show cleanup for '{club_result.club_name}': "
+                "persistence reported errors or ambiguous event identities"
+            )
+        else:
+            self._reconcile_stale_future_shows(club_result, reconcile_cutoff)
         return db_result
 
     def _reconcile_stale_future_shows(

@@ -314,6 +314,16 @@ class TestStaleFutureShowReconciliation:
         assert isinstance(args[2], datetime)
         assert args[2].tzinfo is not None  # tz-aware UTC cutoff
 
+    @pytest.mark.parametrize("field", ["errors", "db_errors", "validation_errors"])
+    def test_persistence_errors_prevent_stale_cleanup(self, field):
+        proc = self._proc(stale_count=1)
+        result = DatabaseOperationResult(inserts=1, **{field: 1})
+        proc.show_service.insert_shows.return_value = result
+        actual = proc.insert_club_result(self._clean_result())
+        assert actual is result
+        proc.show_service.count_stale_future_shows.assert_not_called()
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
     def test_reconciles_on_clean_empty_calendar(self):
         """The Commonwealth case: 0 shows, but the fetch reached the source and
         found no events — the lone cancelled future show must be removed."""
@@ -606,4 +616,3 @@ class TestStaleFutureShowReconciliation:
         outcome = proc.insert_club_result(self._clean_result())
 
         assert outcome.inserts == 1  # persistence result still returned
-
