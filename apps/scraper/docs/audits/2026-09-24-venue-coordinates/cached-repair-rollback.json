@@ -1,0 +1,151 @@
+{
+  "mode": "rollback",
+  "accepted": 7,
+  "changed_ids": [
+    15972,
+    16111,
+    17080,
+    16133,
+    16112,
+    16109,
+    22513
+  ],
+  "covered_upcoming_shows": 718,
+  "remaining": {
+    "visible_venues": 783,
+    "upcoming_venues": 679,
+    "upcoming_shows": 2761
+  },
+  "show_timestamps_sha256_unchanged": "2d6dd320a1bb5f1b4acdc231907c519f29c08797069c773a1f81bfd8ea12b911",
+  "preserved_other_coordinates": true,
+  "dispositions": [
+    {
+      "club_id": 16041,
+      "name": "High Line Comedy Club",
+      "upcoming": 276,
+      "matching_coordinate_pairs": [
+        [
+          40.7415944,
+          -74.0075724
+        ],
+        [
+          40.7416844,
+          -74.0075089
+        ]
+      ],
+      "accepted": false
+    },
+    {
+      "club_id": 15972,
+      "name": "Fallout Theater",
+      "upcoming": 140,
+      "matching_coordinate_pairs": [
+        [
+          30.269447,
+          -97.745144
+        ]
+      ],
+      "accepted": true
+    },
+    {
+      "club_id": 16111,
+      "name": "Loony Bin Comedy Club - Wichita",
+      "upcoming": 130,
+      "matching_coordinate_pairs": [
+        [
+          37.6947965,
+          -97.4399903
+        ]
+      ],
+      "accepted": true
+    },
+    {
+      "club_id": 11485,
+      "name": "Rumor's Comedy Club",
+      "upcoming": 118,
+      "matching_coordinate_pairs": [],
+      "accepted": false
+    },
+    {
+      "club_id": 16110,
+      "name": "Loony Bin Comedy Club - Tulsa",
+      "upcoming": 116,
+      "matching_coordinate_pairs": [],
+      "accepted": false
+    },
+    {
+      "club_id": 17080,
+      "name": "Greenwich Village Comedy Club",
+      "upcoming": 103,
+      "matching_coordinate_pairs": [
+        [
+          40.7296565,
+          -74.001091
+        ]
+      ],
+      "accepted": true
+    },
+    {
+      "club_id": 16133,
+      "name": "Olsen Run Comedy Club",
+      "upcoming": 95,
+      "matching_coordinate_pairs": [
+        [
+          44.0518007,
+          -123.0923177
+        ]
+      ],
+      "accepted": true
+    },
+    {
+      "club_id": 16112,
+      "name": "Dallas Comedy Club",
+      "upcoming": 94,
+      "matching_coordinate_pairs": [
+        [
+          32.7853531,
+          -96.7793659
+        ]
+      ],
+      "accepted": true
+    },
+    {
+      "club_id": 16109,
+      "name": "Loony Bin Comedy Club - Little Rock",
+      "upcoming": 82,
+      "matching_coordinate_pairs": [
+        [
+          34.7659377,
+          -92.388434
+        ]
+      ],
+      "accepted": true
+    },
+    {
+      "club_id": 15969,
+      "name": "St. Louis Funny Bone",
+      "upcoming": 77,
+      "matching_coordinate_pairs": [],
+      "accepted": false
+    },
+    {
+      "club_id": 22513,
+      "name": "Walnut Street Theatre",
+      "upcoming": 74,
+      "matching_coordinate_pairs": [
+        [
+          39.9485195,
+          -75.155458
+        ]
+      ],
+      "accepted": true
+    },
+    {
+      "club_id": 17082,
+      "name": "Quezada's Comedy Club & Cantina",
+      "upcoming": 72,
+      "matching_coordinate_pairs": [],
+      "accepted": false
+    }
+  ]
+}

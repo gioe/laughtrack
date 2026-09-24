@@ -1,0 +1,21 @@
+{
+  "migration_sha256": "32a0a8e23af41ceebafa141e1b43d967ad3cb6f67cf5d558e2ea63b9c4d2d70d",
+  "defaults_verified_rows": 2812,
+  "rollback_verified": true,
+  "columns": [
+    [
+      "geocode_attempt_count",
+      "integer"
+    ],
+    [
+      "geocode_attempted_at",
+      "timestamp with time zone"
+    ],
+    [
+      "geocode_outcome",
+      "text"
+    ]
+  ],
+  "applied": true,
+  "idempotent": true
+}

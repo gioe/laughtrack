@@ -1,0 +1,74 @@
+{
+  "database": "local PostgreSQL, temporary tables only",
+  "provider_calls": 0,
+  "migration_sha256": "32a0a8e23af41ceebafa141e1b43d967ad3cb6f67cf5d558e2ea63b9c4d2d70d",
+  "migration_transaction_rollback": "passed",
+  "migration_reapply_after_rollback": "passed",
+  "raw_ddl_idempotent": true,
+  "preview_read_only": "passed",
+  "unresolved_rotates_to_next_candidate": "passed",
+  "resolved_rerun_idempotence": "passed",
+  "known_coordinates_preserved": "passed",
+  "hidden_excluded": "passed",
+  "resolver_ids": [
+    1,
+    2
+  ],
+  "runs": [
+    {
+      "attempted": 1,
+      "resolved": 0,
+      "unresolved": 1,
+      "failed": 0,
+      "retried": 0,
+      "skipped": 0
+    },
+    {
+      "attempted": 1,
+      "resolved": 1,
+      "unresolved": 0,
+      "failed": 0,
+      "retried": 0,
+      "skipped": 0
+    },
+    {
+      "attempted": 0,
+      "resolved": 0,
+      "unresolved": 0,
+      "failed": 0,
+      "retried": 0,
+      "skipped": 0
+    }
+  ],
+  "final_rows": [
+    [
+      1,
+      null,
+      null,
+      1,
+      "unresolved"
+    ],
+    [
+      2,
+      42.1,
+      -71.1,
+      1,
+      "resolved"
+    ],
+    [
+      3,
+      42.0,
+      -71.0,
+      0,
+      null
+    ],
+    [
+      4,
+      null,
+      null,
+      0,
+      null
+    ]
+  ],
+  "cross_connection_advisory_lock": "passed"
+}

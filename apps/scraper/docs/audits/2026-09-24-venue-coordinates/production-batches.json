@@ -1,0 +1,146 @@
+[
+  {
+    "batch": 1,
+    "selected": [
+      {
+        "id": 11485,
+        "name": "Rumor's Comedy Club",
+        "address": "190-2025 Corydon Avenue",
+        "city": "Winnipeg",
+        "state": "MB",
+        "zip_code": "R3P 0N5",
+        "country": "CA",
+        "latitude": null,
+        "longitude": null,
+        "geocode_attempt_count": 0
+      },
+      {
+        "id": 11665,
+        "name": "Antlers Whiskey Lounge",
+        "address": "706 Main St, Moncton, NB E1C 1E4",
+        "city": "Moncton",
+        "state": null,
+        "zip_code": "E1C 1E4",
+        "country": null,
+        "latitude": null,
+        "longitude": null,
+        "geocode_attempt_count": 0
+      },
+      {
+        "id": 11709,
+        "name": "Big Beaver Brewing",
+        "address": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+        "city": "Okotoks",
+        "state": null,
+        "zip_code": "T1S 0N8",
+        "country": null,
+        "latitude": null,
+        "longitude": null,
+        "geocode_attempt_count": 0
+      }
+    ],
+    "result": {
+      "attempted": 3,
+      "resolved": 0,
+      "unresolved": 3,
+      "failed": 0,
+      "retried": 0,
+      "skipped": 0
+    },
+    "persisted": [
+      [
+        11485,
+        null,
+        null,
+        1,
+        "unresolved"
+      ],
+      [
+        11665,
+        null,
+        null,
+        1,
+        "unresolved"
+      ],
+      [
+        11709,
+        null,
+        null,
+        1,
+        "unresolved"
+      ]
+    ]
+  },
+  {
+    "batch": 2,
+    "selected": [
+      {
+        "id": 11754,
+        "name": "Buster\u2019s Bar & Grill",
+        "address": "420 Hazeldean Rd., Kanata, ON K2L 4B2, Canada",
+        "city": null,
+        "state": null,
+        "zip_code": "K2L 4B2",
+        "country": null,
+        "latitude": null,
+        "longitude": null,
+        "geocode_attempt_count": 0
+      },
+      {
+        "id": 11757,
+        "name": "CAHILL PARK SPORTS COMPLEX",
+        "address": "64 Buaraba St.",
+        "city": null,
+        "state": null,
+        "zip_code": "4343",
+        "country": null,
+        "latitude": null,
+        "longitude": null,
+        "geocode_attempt_count": 0
+      },
+      {
+        "id": 11766,
+        "name": "Cannery Brewing",
+        "address": "198 Ellis St, Penticton, BC V2A 4L5",
+        "city": "Penticton",
+        "state": null,
+        "zip_code": "V2A 4L5",
+        "country": null,
+        "latitude": null,
+        "longitude": null,
+        "geocode_attempt_count": 0
+      }
+    ],
+    "result": {
+      "attempted": 3,
+      "resolved": 0,
+      "unresolved": 3,
+      "failed": 0,
+      "retried": 0,
+      "skipped": 0
+    },
+    "persisted": [
+      [
+        11754,
+        null,
+        null,
+        1,
+        "unresolved"
+      ],
+      [
+        11757,
+        null,
+        null,
+        1,
+        "unresolved"
+      ],
+      [
+        11766,
+        null,
+        null,
+        1,
+        "unresolved"
+      ]
+    ]
+  }
+]
