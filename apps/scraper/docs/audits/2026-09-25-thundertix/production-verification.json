@@ -1,0 +1,374 @@
+{
+  "checked_at": "2026-09-25T00:50:10.107190+00:00",
+  "corrected_rows_retained": 32,
+  "retired_rows_absent": [
+    3793124,
+    4104323,
+    4684149,
+    5601530,
+    5603262
+  ],
+  "original_click_ids_and_relationships_preserved": 8489,
+  "protected_show_ids": [
+    5732294,
+    4910291
+  ],
+  "clubs": {
+    "183": {
+      "future_rows": 215,
+      "fresh_future_rows": 187,
+      "source_future_performances": 263,
+      "matched_performance_ids_and_times": 215,
+      "missing_performances": [
+        {
+          "performance_id": 3276365,
+          "event_id": 271111,
+          "title": "Annoyance Character Night ",
+          "date": "2026-09-24T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3273408,
+          "event_id": 270153,
+          "title": "Poly Party",
+          "date": "2026-09-25T20:00:00-05:00",
+          "price": 20.0
+        },
+        {
+          "performance_id": 3235732,
+          "event_id": 190706,
+          "title": "Baby Wine",
+          "date": "2026-09-25T21:30:00-05:00",
+          "price": 14.0
+        },
+        {
+          "performance_id": 3276202,
+          "event_id": 271020,
+          "title": "Splatter Theatre",
+          "date": "2026-09-26T19:00:00-05:00",
+          "price": null
+        },
+        {
+          "performance_id": 3275498,
+          "event_id": 270773,
+          "title": "The Hail Marys",
+          "date": "2026-09-27T17:30:00-05:00",
+          "price": 15.0
+        },
+        {
+          "performance_id": 3277737,
+          "event_id": 271503,
+          "title": "Open Sketch",
+          "date": "2026-09-27T17:30:00-05:00",
+          "price": 0.0
+        },
+        {
+          "performance_id": 3278486,
+          "event_id": 271715,
+          "title": "Misery Loves Company",
+          "date": "2026-09-30T20:00:00-05:00",
+          "price": 27.0
+        },
+        {
+          "performance_id": 3270938,
+          "event_id": 269024,
+          "title": "Best Of?!? with Katie Rae Horn and Laura Dellis",
+          "date": "2026-09-30T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3235683,
+          "event_id": 214140,
+          "title": "Escapades!",
+          "date": "2026-10-02T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3276203,
+          "event_id": 271020,
+          "title": "Splatter Theatre",
+          "date": "2026-10-03T19:00:00-05:00",
+          "price": null
+        },
+        {
+          "performance_id": 3279312,
+          "event_id": 271886,
+          "title": "Throat Goat",
+          "date": "2026-10-05T20:00:00-05:00",
+          "price": 12.0
+        },
+        {
+          "performance_id": 3278487,
+          "event_id": 271715,
+          "title": "Misery Loves Company",
+          "date": "2026-10-07T20:00:00-05:00",
+          "price": 27.0
+        },
+        {
+          "performance_id": 3279845,
+          "event_id": 272126,
+          "title": "Duluth: A Spooky Midwest Murder",
+          "date": "2026-10-07T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3276363,
+          "event_id": 271110,
+          "title": "whackass",
+          "date": "2026-10-08T19:30:00-05:00",
+          "price": 15.0
+        },
+        {
+          "performance_id": 3274682,
+          "event_id": 270517,
+          "title": "Anton Sucks",
+          "date": "2026-10-08T21:30:00-05:00",
+          "price": 20.0
+        },
+        {
+          "performance_id": 3276204,
+          "event_id": 271020,
+          "title": "Splatter Theatre",
+          "date": "2026-10-10T19:00:00-05:00",
+          "price": null
+        },
+        {
+          "performance_id": 3278488,
+          "event_id": 271715,
+          "title": "Misery Loves Company",
+          "date": "2026-10-14T20:00:00-05:00",
+          "price": 27.0
+        },
+        {
+          "performance_id": 3279846,
+          "event_id": 272126,
+          "title": "Duluth: A Spooky Midwest Murder",
+          "date": "2026-10-14T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3277841,
+          "event_id": 214951,
+          "title": "Motorcycle Rocketship",
+          "date": "2026-10-15T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3235674,
+          "event_id": 226186,
+          "title": "Anti-Virgin Club",
+          "date": "2026-10-16T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3276205,
+          "event_id": 271020,
+          "title": "Splatter Theatre",
+          "date": "2026-10-17T19:00:00-05:00",
+          "price": null
+        },
+        {
+          "performance_id": 3279485,
+          "event_id": 268964,
+          "title": "Famous, Eventually",
+          "date": "2026-10-21T20:00:00-05:00",
+          "price": 22.0
+        },
+        {
+          "performance_id": 3279847,
+          "event_id": 272126,
+          "title": "Duluth: A Spooky Midwest Murder",
+          "date": "2026-10-21T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3276366,
+          "event_id": 271111,
+          "title": "Annoyance Character Night ",
+          "date": "2026-10-22T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3276206,
+          "event_id": 271020,
+          "title": "Splatter Theatre",
+          "date": "2026-10-24T19:00:00-05:00",
+          "price": null
+        },
+        {
+          "performance_id": 3275391,
+          "event_id": 270726,
+          "title": "King of Drag Season 2 Watch Party ",
+          "date": "2026-10-25T19:00:00-05:00",
+          "price": 0.0
+        },
+        {
+          "performance_id": 3278172,
+          "event_id": 271586,
+          "title": "Comedian Maher Matta",
+          "date": "2026-10-25T19:00:00-05:00",
+          "price": 37.0
+        },
+        {
+          "performance_id": 3278490,
+          "event_id": 271715,
+          "title": "Misery Loves Company",
+          "date": "2026-10-28T20:00:00-05:00",
+          "price": 27.0
+        },
+        {
+          "performance_id": 3279848,
+          "event_id": 272126,
+          "title": "Duluth: A Spooky Midwest Murder",
+          "date": "2026-10-28T21:30:00-05:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3235733,
+          "event_id": 190706,
+          "title": "Baby Wine",
+          "date": "2026-10-30T21:30:00-05:00",
+          "price": 14.0
+        },
+        {
+          "performance_id": 3276207,
+          "event_id": 271020,
+          "title": "Splatter Theatre",
+          "date": "2026-10-31T19:00:00-05:00",
+          "price": null
+        },
+        {
+          "performance_id": 3278491,
+          "event_id": 271715,
+          "title": "Misery Loves Company",
+          "date": "2026-11-04T20:00:00-06:00",
+          "price": 27.0
+        },
+        {
+          "performance_id": 3279840,
+          "event_id": 272124,
+          "title": "RANK! The Musical",
+          "date": "2026-11-04T20:00:00-06:00",
+          "price": null
+        },
+        {
+          "performance_id": 3235684,
+          "event_id": 214140,
+          "title": "Escapades!",
+          "date": "2026-11-06T21:30:00-06:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3235507,
+          "event_id": 196531,
+          "title": "Best of Annoyance Sketch",
+          "date": "2026-11-07T21:30:00-06:00",
+          "price": null
+        },
+        {
+          "performance_id": 3279844,
+          "event_id": 272125,
+          "title": "Funny Planet",
+          "date": "2026-11-07T21:30:00-06:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3235431,
+          "event_id": 188394,
+          "title": "Hitch*Cocktails",
+          "date": "2026-11-13T21:30:00-06:00",
+          "price": 22.0
+        },
+        {
+          "performance_id": 3235734,
+          "event_id": 190706,
+          "title": "Baby Wine",
+          "date": "2026-11-13T21:30:00-06:00",
+          "price": 14.0
+        },
+        {
+          "performance_id": 3277842,
+          "event_id": 214951,
+          "title": "Motorcycle Rocketship",
+          "date": "2026-11-19T21:30:00-06:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3276367,
+          "event_id": 271111,
+          "title": "Annoyance Character Night ",
+          "date": "2026-11-19T21:30:00-06:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3235432,
+          "event_id": 188394,
+          "title": "Hitch*Cocktails",
+          "date": "2026-11-20T21:30:00-06:00",
+          "price": 22.0
+        },
+        {
+          "performance_id": 3235675,
+          "event_id": 226186,
+          "title": "Anti-Virgin Club",
+          "date": "2026-11-20T21:30:00-06:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3235359,
+          "event_id": 254201,
+          "title": "Father Figures",
+          "date": "2026-11-21T20:00:00-06:00",
+          "price": null
+        },
+        {
+          "performance_id": 3267243,
+          "event_id": 267985,
+          "title": "Arounded",
+          "date": "2026-11-21T20:00:00-06:00",
+          "price": null
+        },
+        {
+          "performance_id": 3235434,
+          "event_id": 188394,
+          "title": "Hitch*Cocktails",
+          "date": "2026-12-04T21:30:00-06:00",
+          "price": 22.0
+        },
+        {
+          "performance_id": 3235685,
+          "event_id": 214140,
+          "title": "Escapades!",
+          "date": "2026-12-04T21:30:00-06:00",
+          "price": 17.0
+        },
+        {
+          "performance_id": 3235435,
+          "event_id": 188394,
+          "title": "Hitch*Cocktails",
+          "date": "2026-12-11T21:30:00-06:00",
+          "price": 22.0
+        },
+        {
+          "performance_id": 3272370,
+          "event_id": 190706,
+          "title": "Baby Wine",
+          "date": "2026-12-11T21:30:00-06:00",
+          "price": 14.0
+        }
+      ],
+      "time_mismatches": [],
+      "latest_refresh": "2026-09-25T00:44:22.977252+00:00"
+    },
+    "11600": {
+      "future_rows": 86,
+      "fresh_future_rows": 86,
+      "source_future_performances": 86,
+      "matched_performance_ids_and_times": 86,
+      "missing_performances": [],
+      "time_mismatches": [],
+      "latest_refresh": "2026-09-25T00:41:05.953446+00:00"
+    }
+  },
+  "annoyance_missing_performances_all_explained_by_collisions": true
+}

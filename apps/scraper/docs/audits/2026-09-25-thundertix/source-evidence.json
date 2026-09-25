@@ -1,0 +1,4387 @@
+{
+  "theannoyance": {
+    "windows": [
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1789862400&end=1790467200",
+        "seconds": 0.72,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235576,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-09-19 19:00:00 -0500",
+            "time_with_timezone": "Sat - Sep 19, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235576"
+          },
+          {
+            "event_id": 271020,
+            "performance_id": 3276201,
+            "title": "Splatter Theatre",
+            "start": "2026-09-19 19:00:00 -0500",
+            "time_with_timezone": "Sat - Sep 19, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271020",
+            "order_products_url": "/orders/new?event_id=271020&performance_id=3276201"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3256449,
+            "title": "Fire & Beer",
+            "start": "2026-09-19 20:00:00 -0500",
+            "time_with_timezone": "Sat - Sep 19, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3256449"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235500,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-09-19 21:30:00 -0500",
+            "time_with_timezone": "Sat - Sep 19, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235500"
+          },
+          {
+            "event_id": 200870,
+            "performance_id": 3235615,
+            "title": "We Took Edibles an Hour Ago",
+            "start": "2026-09-19 23:59:00 -0500",
+            "time_with_timezone": "Sat - Sep 19, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/200870",
+            "order_products_url": "/orders/new?event_id=200870&performance_id=3235615"
+          },
+          {
+            "event_id": 270773,
+            "performance_id": 3275497,
+            "title": "The Hail Marys",
+            "start": "2026-09-20 17:30:00 -0500",
+            "time_with_timezone": "Sun - Sep 20, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270773",
+            "order_products_url": "/orders/new?event_id=270773&performance_id=3275497"
+          },
+          {
+            "event_id": 238634,
+            "performance_id": 3273146,
+            "title": "TRAINING CENTER: AP5 & MI3 Showcases",
+            "start": "2026-09-20 19:00:00 -0500",
+            "time_with_timezone": "Sun - Sep 20, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238634",
+            "order_products_url": "/orders/new?event_id=238634&performance_id=3273146"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238029,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-09-21 20:00:00 -0500",
+            "time_with_timezone": "Mon - Sep 21, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238029"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255031,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-09-21 20:00:00 -0500",
+            "time_with_timezone": "Mon - Sep 21, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255031"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255073,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-09-21 21:30:00 -0500",
+            "time_with_timezone": "Mon - Sep 21, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255073"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257289,
+            "title": "Ya'll Mic",
+            "start": "2026-09-22 17:30:00 -0500",
+            "time_with_timezone": "Tue - Sep 22, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257289"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238081,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-09-22 19:00:00 -0500",
+            "time_with_timezone": "Tue - Sep 22, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238081"
+          },
+          {
+            "event_id": 271950,
+            "performance_id": 3279413,
+            "title": "Whiskey Dog",
+            "start": "2026-09-22 19:30:00 -0500",
+            "time_with_timezone": "Tue - Sep 22, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271950",
+            "order_products_url": "/orders/new?event_id=271950&performance_id=3279413"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235461,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-09-22 20:00:00 -0500",
+            "time_with_timezone": "Tue - Sep 22, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235461"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257256,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-09-22 21:00:00 -0500",
+            "time_with_timezone": "Tue - Sep 22, 2026 - 9:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257256"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257222,
+            "title": "Open Stage",
+            "start": "2026-09-22 21:30:00 -0500",
+            "time_with_timezone": "Tue - Sep 22, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257222"
+          },
+          {
+            "event_id": 268965,
+            "performance_id": 3270833,
+            "title": "Cryptic: The Improvised Paranormal Documentary",
+            "start": "2026-09-23 20:00:00 -0500",
+            "time_with_timezone": "Wed - Sep 23, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/268965",
+            "order_products_url": "/orders/new?event_id=268965&performance_id=3270833"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235711,
+            "title": "Jury Duty",
+            "start": "2026-09-23 21:30:00 -0500",
+            "time_with_timezone": "Wed - Sep 23, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235711"
+          },
+          {
+            "event_id": 269024,
+            "performance_id": 3270937,
+            "title": "Best Of?!? with Katie Rae Horn and Laura Dellis",
+            "start": "2026-09-23 21:30:00 -0500",
+            "time_with_timezone": "Wed - Sep 23, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/269024",
+            "order_products_url": "/orders/new?event_id=269024&performance_id=3270937"
+          },
+          {
+            "event_id": 264508,
+            "performance_id": 3253950,
+            "title": "Earhart 2 Hart Understudy Performance",
+            "start": "2026-09-24 19:30:00 -0500",
+            "time_with_timezone": "Thu - Sep 24, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264508",
+            "order_products_url": "/orders/new?event_id=264508&performance_id=3253950"
+          },
+          {
+            "event_id": 271814,
+            "performance_id": 3279059,
+            "title": "Kentucky Dirty: Gallop-palooza ",
+            "start": "2026-09-24 20:00:00 -0500",
+            "time_with_timezone": "Thu - Sep 24, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271814",
+            "order_products_url": "/orders/new?event_id=271814&performance_id=3279059"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254026,
+            "title": "Revolving Door",
+            "start": "2026-09-24 21:30:00 -0500",
+            "time_with_timezone": "Thu - Sep 24, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254026"
+          },
+          {
+            "event_id": 271111,
+            "performance_id": 3276365,
+            "title": "Annoyance Character Night ",
+            "start": "2026-09-24 21:30:00 -0500",
+            "time_with_timezone": "Thu - Sep 24, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271111",
+            "order_products_url": "/orders/new?event_id=271111&performance_id=3276365"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235386,
+            "title": "Missed Call",
+            "start": "2026-09-25 20:00:00 -0500",
+            "time_with_timezone": "Fri - Sep 25, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235386"
+          },
+          {
+            "event_id": 270153,
+            "performance_id": 3273408,
+            "title": "Poly Party",
+            "start": "2026-09-25 20:00:00 -0500",
+            "time_with_timezone": "Fri - Sep 25, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270153",
+            "order_products_url": "/orders/new?event_id=270153&performance_id=3273408"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235424,
+            "title": "Hitch*Cocktails",
+            "start": "2026-09-25 21:30:00 -0500",
+            "time_with_timezone": "Fri - Sep 25, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235424"
+          },
+          {
+            "event_id": 190706,
+            "performance_id": 3235732,
+            "title": "Baby Wine",
+            "start": "2026-09-25 21:30:00 -0500",
+            "time_with_timezone": "Fri - Sep 25, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/190706",
+            "order_products_url": "/orders/new?event_id=190706&performance_id=3235732"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235655,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-09-25 23:59:00 -0500",
+            "time_with_timezone": "Fri - Sep 25, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235655"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1790467200&end=1791072000",
+        "seconds": 0.59,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235577,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-09-26 19:00:00 -0500",
+            "time_with_timezone": "Sat - Sep 26, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235577"
+          },
+          {
+            "event_id": 271020,
+            "performance_id": 3276202,
+            "title": "Splatter Theatre",
+            "start": "2026-09-26 19:00:00 -0500",
+            "time_with_timezone": "Sat - Sep 26, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271020",
+            "order_products_url": "/orders/new?event_id=271020&performance_id=3276202"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3235539,
+            "title": "Fire & Beer",
+            "start": "2026-09-26 20:00:00 -0500",
+            "time_with_timezone": "Sat - Sep 26, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3235539"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235501,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-09-26 21:30:00 -0500",
+            "time_with_timezone": "Sat - Sep 26, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235501"
+          },
+          {
+            "event_id": 270773,
+            "performance_id": 3275498,
+            "title": "The Hail Marys",
+            "start": "2026-09-27 17:30:00 -0500",
+            "time_with_timezone": "Sun - Sep 27, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270773",
+            "order_products_url": "/orders/new?event_id=270773&performance_id=3275498"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277737,
+            "title": "Open Sketch",
+            "start": "2026-09-27 17:30:00 -0500",
+            "time_with_timezone": "Sun - Sep 27, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277737"
+          },
+          {
+            "event_id": 238634,
+            "performance_id": 3273147,
+            "title": "TRAINING CENTER: AP5 & MI3 Showcases",
+            "start": "2026-09-27 19:00:00 -0500",
+            "time_with_timezone": "Sun - Sep 27, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238634",
+            "order_products_url": "/orders/new?event_id=238634&performance_id=3273147"
+          },
+          {
+            "event_id": 270726,
+            "performance_id": 3275387,
+            "title": "King of Drag Season 2 Watch Party ",
+            "start": "2026-09-27 19:00:00 -0500",
+            "time_with_timezone": "Sun - Sep 27, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270726",
+            "order_products_url": "/orders/new?event_id=270726&performance_id=3275387"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238030,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-09-28 20:00:00 -0500",
+            "time_with_timezone": "Mon - Sep 28, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238030"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255032,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-09-28 20:00:00 -0500",
+            "time_with_timezone": "Mon - Sep 28, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255032"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255074,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-09-28 21:30:00 -0500",
+            "time_with_timezone": "Mon - Sep 28, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255074"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257290,
+            "title": "Ya'll Mic",
+            "start": "2026-09-29 17:30:00 -0500",
+            "time_with_timezone": "Tue - Sep 29, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257290"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238082,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-09-29 19:00:00 -0500",
+            "time_with_timezone": "Tue - Sep 29, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238082"
+          },
+          {
+            "event_id": 271950,
+            "performance_id": 3279414,
+            "title": "Whiskey Dog",
+            "start": "2026-09-29 19:30:00 -0500",
+            "time_with_timezone": "Tue - Sep 29, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271950",
+            "order_products_url": "/orders/new?event_id=271950&performance_id=3279414"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235462,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-09-29 20:00:00 -0500",
+            "time_with_timezone": "Tue - Sep 29, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235462"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257257,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-09-29 21:00:00 -0500",
+            "time_with_timezone": "Tue - Sep 29, 2026 - 9:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257257"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257223,
+            "title": "Open Stage",
+            "start": "2026-09-29 21:30:00 -0500",
+            "time_with_timezone": "Tue - Sep 29, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257223"
+          },
+          {
+            "event_id": 268965,
+            "performance_id": 3270834,
+            "title": "Cryptic: The Improvised Paranormal Documentary",
+            "start": "2026-09-30 20:00:00 -0500",
+            "time_with_timezone": "Wed - Sep 30, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/268965",
+            "order_products_url": "/orders/new?event_id=268965&performance_id=3270834"
+          },
+          {
+            "event_id": 271715,
+            "performance_id": 3278486,
+            "title": "Misery Loves Company",
+            "start": "2026-09-30 20:00:00 -0500",
+            "time_with_timezone": "Wed - Sep 30, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271715",
+            "order_products_url": "/orders/new?event_id=271715&performance_id=3278486"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235712,
+            "title": "Jury Duty",
+            "start": "2026-09-30 21:30:00 -0500",
+            "time_with_timezone": "Wed - Sep 30, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235712"
+          },
+          {
+            "event_id": 269024,
+            "performance_id": 3270938,
+            "title": "Best Of?!? with Katie Rae Horn and Laura Dellis",
+            "start": "2026-09-30 21:30:00 -0500",
+            "time_with_timezone": "Wed - Sep 30, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/269024",
+            "order_products_url": "/orders/new?event_id=269024&performance_id=3270938"
+          },
+          {
+            "event_id": 264508,
+            "performance_id": 3253951,
+            "title": "Earhart 2 Hart",
+            "start": "2026-10-01 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct  1, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264508",
+            "order_products_url": "/orders/new?event_id=264508&performance_id=3253951"
+          },
+          {
+            "event_id": 272227,
+            "performance_id": 3281677,
+            "title": "Gifted Children",
+            "start": "2026-10-01 20:00:00 -0500",
+            "time_with_timezone": "Thu - Oct  1, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272227",
+            "order_products_url": "/orders/new?event_id=272227&performance_id=3281677"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254027,
+            "title": "Revolving Door",
+            "start": "2026-10-01 21:30:00 -0500",
+            "time_with_timezone": "Thu - Oct  1, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254027"
+          },
+          {
+            "event_id": 272230,
+            "performance_id": 3281680,
+            "title": "Super Scaries: The Improvised Horror Musical",
+            "start": "2026-10-02 19:30:00 -0500",
+            "time_with_timezone": "Fri - Oct  2, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272230",
+            "order_products_url": "/orders/new?event_id=272230&performance_id=3281680"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235387,
+            "title": "Missed Call",
+            "start": "2026-10-02 20:00:00 -0500",
+            "time_with_timezone": "Fri - Oct  2, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235387"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235425,
+            "title": "Hitch*Cocktails",
+            "start": "2026-10-02 21:30:00 -0500",
+            "time_with_timezone": "Fri - Oct  2, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235425"
+          },
+          {
+            "event_id": 214140,
+            "performance_id": 3235683,
+            "title": "Escapades!",
+            "start": "2026-10-02 21:30:00 -0500",
+            "time_with_timezone": "Fri - Oct  2, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/214140",
+            "order_products_url": "/orders/new?event_id=214140&performance_id=3235683"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235656,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-10-02 23:59:00 -0500",
+            "time_with_timezone": "Fri - Oct  2, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235656"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1791072000&end=1791676800",
+        "seconds": 0.78,
+        "items": [
+          {
+            "event_id": 256965,
+            "performance_id": 3275398,
+            "title": "TRAINING CENTER: Game-Based Improv Showcase",
+            "start": "2026-10-03 17:30:00 -0500",
+            "time_with_timezone": "Sat - Oct  3, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/256965",
+            "order_products_url": "/orders/new?event_id=256965&performance_id=3275398"
+          },
+          {
+            "event_id": 188538,
+            "performance_id": 3235578,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-10-03 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct  3, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235578"
+          },
+          {
+            "event_id": 271020,
+            "performance_id": 3276203,
+            "title": "Splatter Theatre",
+            "start": "2026-10-03 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct  3, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271020",
+            "order_products_url": "/orders/new?event_id=271020&performance_id=3276203"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3235540,
+            "title": "Fire & Beer",
+            "start": "2026-10-03 20:00:00 -0500",
+            "time_with_timezone": "Sat - Oct  3, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3235540"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235502,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-10-03 21:30:00 -0500",
+            "time_with_timezone": "Sat - Oct  3, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235502"
+          },
+          {
+            "event_id": 271504,
+            "performance_id": 3277747,
+            "title": "Toast!",
+            "start": "2026-10-03 22:00:00 -0500",
+            "time_with_timezone": "Sat - Oct  3, 2026 - 10:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271504",
+            "order_products_url": "/orders/new?event_id=271504&performance_id=3277747"
+          },
+          {
+            "event_id": 200870,
+            "performance_id": 3235617,
+            "title": "We Took Edibles an Hour Ago",
+            "start": "2026-10-03 23:59:00 -0500",
+            "time_with_timezone": "Sat - Oct  3, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/200870",
+            "order_products_url": "/orders/new?event_id=200870&performance_id=3235617"
+          },
+          {
+            "event_id": 238593,
+            "performance_id": 3238047,
+            "title": "TRAINING CENTER: Student Showcase Day",
+            "start": "2026-10-04 16:00:00 -0500",
+            "time_with_timezone": "Sun - Oct  4, 2026 - 4:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238593",
+            "order_products_url": "/orders/new?event_id=238593&performance_id=3238047"
+          },
+          {
+            "event_id": 261569,
+            "performance_id": 3279355,
+            "title": "Jay Collen: Come Hang Out with the Magician ",
+            "start": "2026-10-04 16:00:00 -0500",
+            "time_with_timezone": "Sun - Oct  4, 2026 - 4:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/261569",
+            "order_products_url": "/orders/new?event_id=261569&performance_id=3279355"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277738,
+            "title": "Open Sketch",
+            "start": "2026-10-04 17:30:00 -0500",
+            "time_with_timezone": "Sun - Oct  4, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277738"
+          },
+          {
+            "event_id": 270726,
+            "performance_id": 3275388,
+            "title": "King of Drag Season 2 Watch Party ",
+            "start": "2026-10-04 19:00:00 -0500",
+            "time_with_timezone": "Sun - Oct  4, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270726",
+            "order_products_url": "/orders/new?event_id=270726&performance_id=3275388"
+          },
+          {
+            "event_id": 238634,
+            "performance_id": 3273148,
+            "title": "TRAINING CENTER: AP5 & MI3 Showcases",
+            "start": "2026-10-04 20:00:00 -0500",
+            "time_with_timezone": "Sun - Oct  4, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238634",
+            "order_products_url": "/orders/new?event_id=238634&performance_id=3273148"
+          },
+          {
+            "event_id": 272186,
+            "performance_id": 3281586,
+            "title": "HOUSEPARTY",
+            "start": "2026-10-04 20:00:00 -0500",
+            "time_with_timezone": "Sun - Oct  4, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272186",
+            "order_products_url": "/orders/new?event_id=272186&performance_id=3281586"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238031,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-10-05 20:00:00 -0500",
+            "time_with_timezone": "Mon - Oct  5, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238031"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255033,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-10-05 20:00:00 -0500",
+            "time_with_timezone": "Mon - Oct  5, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255033"
+          },
+          {
+            "event_id": 271886,
+            "performance_id": 3279312,
+            "title": "Throat Goat",
+            "start": "2026-10-05 20:00:00 -0500",
+            "time_with_timezone": "Mon - Oct  5, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271886",
+            "order_products_url": "/orders/new?event_id=271886&performance_id=3279312"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255075,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-10-05 21:30:00 -0500",
+            "time_with_timezone": "Mon - Oct  5, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255075"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257291,
+            "title": "Ya'll Mic",
+            "start": "2026-10-06 17:30:00 -0500",
+            "time_with_timezone": "Tue - Oct  6, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257291"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238083,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-10-06 19:00:00 -0500",
+            "time_with_timezone": "Tue - Oct  6, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238083"
+          },
+          {
+            "event_id": 271950,
+            "performance_id": 3279415,
+            "title": "Whiskey Dog",
+            "start": "2026-10-06 19:30:00 -0500",
+            "time_with_timezone": "Tue - Oct  6, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271950",
+            "order_products_url": "/orders/new?event_id=271950&performance_id=3279415"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235463,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-10-06 20:00:00 -0500",
+            "time_with_timezone": "Tue - Oct  6, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235463"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257258,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-10-06 21:00:00 -0500",
+            "time_with_timezone": "Tue - Oct  6, 2026 - 9:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257258"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257224,
+            "title": "Open Stage",
+            "start": "2026-10-06 21:30:00 -0500",
+            "time_with_timezone": "Tue - Oct  6, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257224"
+          },
+          {
+            "event_id": 263910,
+            "performance_id": 3275397,
+            "title": "Training Center: Solo Character Showcase",
+            "start": "2026-10-07 18:30:00 -0500",
+            "time_with_timezone": "Wed - Oct  7, 2026 - 6:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263910",
+            "order_products_url": "/orders/new?event_id=263910&performance_id=3275397"
+          },
+          {
+            "event_id": 268965,
+            "performance_id": 3270835,
+            "title": "Cryptic: The Improvised Paranormal Documentary",
+            "start": "2026-10-07 20:00:00 -0500",
+            "time_with_timezone": "Wed - Oct  7, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/268965",
+            "order_products_url": "/orders/new?event_id=268965&performance_id=3270835"
+          },
+          {
+            "event_id": 271715,
+            "performance_id": 3278487,
+            "title": "Misery Loves Company",
+            "start": "2026-10-07 20:00:00 -0500",
+            "time_with_timezone": "Wed - Oct  7, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271715",
+            "order_products_url": "/orders/new?event_id=271715&performance_id=3278487"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235713,
+            "title": "Jury Duty",
+            "start": "2026-10-07 21:30:00 -0500",
+            "time_with_timezone": "Wed - Oct  7, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235713"
+          },
+          {
+            "event_id": 272126,
+            "performance_id": 3279845,
+            "title": "Duluth: A Spooky Midwest Murder",
+            "start": "2026-10-07 21:30:00 -0500",
+            "time_with_timezone": "Wed - Oct  7, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272126",
+            "order_products_url": "/orders/new?event_id=272126&performance_id=3279845"
+          },
+          {
+            "event_id": 264980,
+            "performance_id": 3255940,
+            "title": "Murder at Moidah Manor",
+            "start": "2026-10-08 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct  8, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264980",
+            "order_products_url": "/orders/new?event_id=264980&performance_id=3255940"
+          },
+          {
+            "event_id": 271110,
+            "performance_id": 3276363,
+            "title": "whackass",
+            "start": "2026-10-08 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct  8, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271110",
+            "order_products_url": "/orders/new?event_id=271110&performance_id=3276363"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254028,
+            "title": "Revolving Door",
+            "start": "2026-10-08 21:30:00 -0500",
+            "time_with_timezone": "Thu - Oct  8, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254028"
+          },
+          {
+            "event_id": 270517,
+            "performance_id": 3274682,
+            "title": "Anton Sucks",
+            "start": "2026-10-08 21:30:00 -0500",
+            "time_with_timezone": "Thu - Oct  8, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270517",
+            "order_products_url": "/orders/new?event_id=270517&performance_id=3274682"
+          },
+          {
+            "event_id": 272230,
+            "performance_id": 3281681,
+            "title": "Super Scaries: The Improvised Horror Musical",
+            "start": "2026-10-09 19:30:00 -0500",
+            "time_with_timezone": "Fri - Oct  9, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272230",
+            "order_products_url": "/orders/new?event_id=272230&performance_id=3281681"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235388,
+            "title": "Missed Call",
+            "start": "2026-10-09 20:00:00 -0500",
+            "time_with_timezone": "Fri - Oct  9, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235388"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235426,
+            "title": "Hitch*Cocktails",
+            "start": "2026-10-09 21:30:00 -0500",
+            "time_with_timezone": "Fri - Oct  9, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235426"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235657,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-10-09 23:59:00 -0500",
+            "time_with_timezone": "Fri - Oct  9, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235657"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1791676800&end=1792281600",
+        "seconds": 0.76,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235579,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-10-10 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 10, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235579"
+          },
+          {
+            "event_id": 271020,
+            "performance_id": 3276204,
+            "title": "Splatter Theatre",
+            "start": "2026-10-10 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 10, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271020",
+            "order_products_url": "/orders/new?event_id=271020&performance_id=3276204"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3235541,
+            "title": "Fire & Beer",
+            "start": "2026-10-10 20:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 10, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3235541"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235503,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-10-10 21:30:00 -0500",
+            "time_with_timezone": "Sat - Oct 10, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235503"
+          },
+          {
+            "event_id": 200870,
+            "performance_id": 3235618,
+            "title": "We Took Edibles an Hour Ago",
+            "start": "2026-10-10 23:59:00 -0500",
+            "time_with_timezone": "Sat - Oct 10, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/200870",
+            "order_products_url": "/orders/new?event_id=200870&performance_id=3235618"
+          },
+          {
+            "event_id": 261569,
+            "performance_id": 3279356,
+            "title": "Jay Collen: Come Hang Out with the Magician ",
+            "start": "2026-10-11 16:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 11, 2026 - 4:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/261569",
+            "order_products_url": "/orders/new?event_id=261569&performance_id=3279356"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277739,
+            "title": "Open Sketch",
+            "start": "2026-10-11 17:30:00 -0500",
+            "time_with_timezone": "Sun - Oct 11, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277739"
+          },
+          {
+            "event_id": 270726,
+            "performance_id": 3275389,
+            "title": "King of Drag Season 2 Watch Party ",
+            "start": "2026-10-11 19:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 11, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270726",
+            "order_products_url": "/orders/new?event_id=270726&performance_id=3275389"
+          },
+          {
+            "event_id": 272186,
+            "performance_id": 3281587,
+            "title": "HOUSEPARTY",
+            "start": "2026-10-11 20:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 11, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272186",
+            "order_products_url": "/orders/new?event_id=272186&performance_id=3281587"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238032,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-10-12 20:00:00 -0500",
+            "time_with_timezone": "Mon - Oct 12, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238032"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255034,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-10-12 20:00:00 -0500",
+            "time_with_timezone": "Mon - Oct 12, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255034"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255076,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-10-12 21:30:00 -0500",
+            "time_with_timezone": "Mon - Oct 12, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255076"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257292,
+            "title": "Ya'll Mic",
+            "start": "2026-10-13 17:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 13, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257292"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238084,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-10-13 19:00:00 -0500",
+            "time_with_timezone": "Tue - Oct 13, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238084"
+          },
+          {
+            "event_id": 271950,
+            "performance_id": 3279416,
+            "title": "Whiskey Dog",
+            "start": "2026-10-13 19:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 13, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271950",
+            "order_products_url": "/orders/new?event_id=271950&performance_id=3279416"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235464,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-10-13 20:00:00 -0500",
+            "time_with_timezone": "Tue - Oct 13, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235464"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257259,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-10-13 21:00:00 -0500",
+            "time_with_timezone": "Tue - Oct 13, 2026 - 9:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257259"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257225,
+            "title": "Open Stage",
+            "start": "2026-10-13 21:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 13, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257225"
+          },
+          {
+            "event_id": 268965,
+            "performance_id": 3270836,
+            "title": "Cryptic: The Improvised Paranormal Documentary",
+            "start": "2026-10-14 20:00:00 -0500",
+            "time_with_timezone": "Wed - Oct 14, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/268965",
+            "order_products_url": "/orders/new?event_id=268965&performance_id=3270836"
+          },
+          {
+            "event_id": 271715,
+            "performance_id": 3278488,
+            "title": "Misery Loves Company",
+            "start": "2026-10-14 20:00:00 -0500",
+            "time_with_timezone": "Wed - Oct 14, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271715",
+            "order_products_url": "/orders/new?event_id=271715&performance_id=3278488"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235714,
+            "title": "Jury Duty",
+            "start": "2026-10-14 21:30:00 -0500",
+            "time_with_timezone": "Wed - Oct 14, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235714"
+          },
+          {
+            "event_id": 272126,
+            "performance_id": 3279846,
+            "title": "Duluth: A Spooky Midwest Murder",
+            "start": "2026-10-14 21:30:00 -0500",
+            "time_with_timezone": "Wed - Oct 14, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272126",
+            "order_products_url": "/orders/new?event_id=272126&performance_id=3279846"
+          },
+          {
+            "event_id": 264980,
+            "performance_id": 3255941,
+            "title": "Murder at Moidah Manor",
+            "start": "2026-10-15 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 15, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264980",
+            "order_products_url": "/orders/new?event_id=264980&performance_id=3255941"
+          },
+          {
+            "event_id": 214951,
+            "performance_id": 3277841,
+            "title": "Motorcycle Rocketship",
+            "start": "2026-10-15 21:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 15, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/214951",
+            "order_products_url": "/orders/new?event_id=214951&performance_id=3277841"
+          },
+          {
+            "event_id": 270517,
+            "performance_id": 3274683,
+            "title": "Anton Sucks",
+            "start": "2026-10-15 21:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 15, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270517",
+            "order_products_url": "/orders/new?event_id=270517&performance_id=3274683"
+          },
+          {
+            "event_id": 272230,
+            "performance_id": 3281682,
+            "title": "Super Scaries: The Improvised Horror Musical",
+            "start": "2026-10-16 19:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 16, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272230",
+            "order_products_url": "/orders/new?event_id=272230&performance_id=3281682"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235389,
+            "title": "Missed Call",
+            "start": "2026-10-16 20:00:00 -0500",
+            "time_with_timezone": "Fri - Oct 16, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235389"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235427,
+            "title": "Hitch*Cocktails",
+            "start": "2026-10-16 21:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 16, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235427"
+          },
+          {
+            "event_id": 226186,
+            "performance_id": 3235674,
+            "title": "Anti-Virgin Club",
+            "start": "2026-10-16 21:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 16, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/226186",
+            "order_products_url": "/orders/new?event_id=226186&performance_id=3235674"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235658,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-10-16 23:59:00 -0500",
+            "time_with_timezone": "Fri - Oct 16, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235658"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1792281600&end=1792886400",
+        "seconds": 0.72,
+        "items": [
+          {
+            "event_id": 270285,
+            "performance_id": 3273760,
+            "title": "John Moore Had Friends",
+            "start": "2026-10-17 17:30:00 -0500",
+            "time_with_timezone": "Sat - Oct 17, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270285",
+            "order_products_url": "/orders/new?event_id=270285&performance_id=3273760"
+          },
+          {
+            "event_id": 188538,
+            "performance_id": 3235580,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-10-17 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 17, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235580"
+          },
+          {
+            "event_id": 271020,
+            "performance_id": 3276205,
+            "title": "Splatter Theatre",
+            "start": "2026-10-17 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 17, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271020",
+            "order_products_url": "/orders/new?event_id=271020&performance_id=3276205"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3256450,
+            "title": "Fire & Beer",
+            "start": "2026-10-17 20:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 17, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3256450"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235504,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-10-17 21:30:00 -0500",
+            "time_with_timezone": "Sat - Oct 17, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235504"
+          },
+          {
+            "event_id": 200870,
+            "performance_id": 3235619,
+            "title": "We Took Edibles an Hour Ago",
+            "start": "2026-10-17 23:59:00 -0500",
+            "time_with_timezone": "Sat - Oct 17, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/200870",
+            "order_products_url": "/orders/new?event_id=200870&performance_id=3235619"
+          },
+          {
+            "event_id": 261569,
+            "performance_id": 3279357,
+            "title": "Jay Collen: Come Hang Out with the Magician ",
+            "start": "2026-10-18 16:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 18, 2026 - 4:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/261569",
+            "order_products_url": "/orders/new?event_id=261569&performance_id=3279357"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277740,
+            "title": "Open Sketch",
+            "start": "2026-10-18 17:30:00 -0500",
+            "time_with_timezone": "Sun - Oct 18, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277740"
+          },
+          {
+            "event_id": 270726,
+            "performance_id": 3275390,
+            "title": "King of Drag Season 2 Watch Party ",
+            "start": "2026-10-18 19:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 18, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270726",
+            "order_products_url": "/orders/new?event_id=270726&performance_id=3275390"
+          },
+          {
+            "event_id": 272186,
+            "performance_id": 3281588,
+            "title": "HOUSEPARTY",
+            "start": "2026-10-18 20:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 18, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272186",
+            "order_products_url": "/orders/new?event_id=272186&performance_id=3281588"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238033,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-10-19 20:00:00 -0500",
+            "time_with_timezone": "Mon - Oct 19, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238033"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255035,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-10-19 20:00:00 -0500",
+            "time_with_timezone": "Mon - Oct 19, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255035"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255077,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-10-19 21:30:00 -0500",
+            "time_with_timezone": "Mon - Oct 19, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255077"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257293,
+            "title": "Ya'll Mic",
+            "start": "2026-10-20 17:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 20, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257293"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238085,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-10-20 19:00:00 -0500",
+            "time_with_timezone": "Tue - Oct 20, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238085"
+          },
+          {
+            "event_id": 271950,
+            "performance_id": 3279417,
+            "title": "Whiskey Dog",
+            "start": "2026-10-20 19:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 20, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271950",
+            "order_products_url": "/orders/new?event_id=271950&performance_id=3279417"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235465,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-10-20 20:00:00 -0500",
+            "time_with_timezone": "Tue - Oct 20, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235465"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257260,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-10-20 21:00:00 -0500",
+            "time_with_timezone": "Tue - Oct 20, 2026 - 9:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257260"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257226,
+            "title": "Open Stage",
+            "start": "2026-10-20 21:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 20, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257226"
+          },
+          {
+            "event_id": 268964,
+            "performance_id": 3279485,
+            "title": "Famous, Eventually",
+            "start": "2026-10-21 20:00:00 -0500",
+            "time_with_timezone": "Wed - Oct 21, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/268964",
+            "order_products_url": "/orders/new?event_id=268964&performance_id=3279485"
+          },
+          {
+            "event_id": 268965,
+            "performance_id": 3270837,
+            "title": "Cryptic: The Improvised Paranormal Documentary",
+            "start": "2026-10-21 20:00:00 -0500",
+            "time_with_timezone": "Wed - Oct 21, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/268965",
+            "order_products_url": "/orders/new?event_id=268965&performance_id=3270837"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235715,
+            "title": "Jury Duty",
+            "start": "2026-10-21 21:30:00 -0500",
+            "time_with_timezone": "Wed - Oct 21, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235715"
+          },
+          {
+            "event_id": 272126,
+            "performance_id": 3279847,
+            "title": "Duluth: A Spooky Midwest Murder",
+            "start": "2026-10-21 21:30:00 -0500",
+            "time_with_timezone": "Wed - Oct 21, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272126",
+            "order_products_url": "/orders/new?event_id=272126&performance_id=3279847"
+          },
+          {
+            "event_id": 264980,
+            "performance_id": 3255942,
+            "title": "Murder at Moidah Manor",
+            "start": "2026-10-22 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 22, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264980",
+            "order_products_url": "/orders/new?event_id=264980&performance_id=3255942"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254030,
+            "title": "Revolving Door",
+            "start": "2026-10-22 21:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 22, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254030"
+          },
+          {
+            "event_id": 271111,
+            "performance_id": 3276366,
+            "title": "Annoyance Character Night ",
+            "start": "2026-10-22 21:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 22, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271111",
+            "order_products_url": "/orders/new?event_id=271111&performance_id=3276366"
+          },
+          {
+            "event_id": 272230,
+            "performance_id": 3281683,
+            "title": "Super Scaries: The Improvised Horror Musical",
+            "start": "2026-10-23 19:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 23, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272230",
+            "order_products_url": "/orders/new?event_id=272230&performance_id=3281683"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235390,
+            "title": "Missed Call",
+            "start": "2026-10-23 20:00:00 -0500",
+            "time_with_timezone": "Fri - Oct 23, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235390"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235428,
+            "title": "Hitch*Cocktails",
+            "start": "2026-10-23 21:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 23, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235428"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235659,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-10-23 23:59:00 -0500",
+            "time_with_timezone": "Fri - Oct 23, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235659"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1792886400&end=1793491200",
+        "seconds": 0.84,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235581,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-10-24 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 24, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235581"
+          },
+          {
+            "event_id": 271020,
+            "performance_id": 3276206,
+            "title": "Splatter Theatre",
+            "start": "2026-10-24 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 24, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271020",
+            "order_products_url": "/orders/new?event_id=271020&performance_id=3276206"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3235543,
+            "title": "Fire & Beer",
+            "start": "2026-10-24 20:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 24, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3235543"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235505,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-10-24 21:30:00 -0500",
+            "time_with_timezone": "Sat - Oct 24, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235505"
+          },
+          {
+            "event_id": 200870,
+            "performance_id": 3235620,
+            "title": "We Took Edibles an Hour Ago",
+            "start": "2026-10-24 23:59:00 -0500",
+            "time_with_timezone": "Sat - Oct 24, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/200870",
+            "order_products_url": "/orders/new?event_id=200870&performance_id=3235620"
+          },
+          {
+            "event_id": 271935,
+            "performance_id": 3279389,
+            "title": "Kentucky's Friendliest Cryptids",
+            "start": "2026-10-25 16:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 25, 2026 - 4:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271935",
+            "order_products_url": "/orders/new?event_id=271935&performance_id=3279389"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277741,
+            "title": "Open Sketch",
+            "start": "2026-10-25 17:30:00 -0500",
+            "time_with_timezone": "Sun - Oct 25, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277741"
+          },
+          {
+            "event_id": 263284,
+            "performance_id": 3277845,
+            "title": "Spitball",
+            "start": "2026-10-25 18:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 25, 2026 - 6:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263284",
+            "order_products_url": "/orders/new?event_id=263284&performance_id=3277845"
+          },
+          {
+            "event_id": 270726,
+            "performance_id": 3275391,
+            "title": "King of Drag Season 2 Watch Party ",
+            "start": "2026-10-25 19:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 25, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270726",
+            "order_products_url": "/orders/new?event_id=270726&performance_id=3275391"
+          },
+          {
+            "event_id": 271586,
+            "performance_id": 3278172,
+            "title": "Comedian Maher Matta",
+            "start": "2026-10-25 19:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 25, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271586",
+            "order_products_url": "/orders/new?event_id=271586&performance_id=3278172"
+          },
+          {
+            "event_id": 272186,
+            "performance_id": 3281589,
+            "title": "HOUSEPARTY",
+            "start": "2026-10-25 20:00:00 -0500",
+            "time_with_timezone": "Sun - Oct 25, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272186",
+            "order_products_url": "/orders/new?event_id=272186&performance_id=3281589"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238034,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-10-26 20:00:00 -0500",
+            "time_with_timezone": "Mon - Oct 26, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238034"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255036,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-10-26 20:00:00 -0500",
+            "time_with_timezone": "Mon - Oct 26, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255036"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255078,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-10-26 21:30:00 -0500",
+            "time_with_timezone": "Mon - Oct 26, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255078"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257294,
+            "title": "Ya'll Mic",
+            "start": "2026-10-27 17:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 27, 2026 - 5:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257294"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238086,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-10-27 19:00:00 -0500",
+            "time_with_timezone": "Tue - Oct 27, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238086"
+          },
+          {
+            "event_id": 271950,
+            "performance_id": 3279418,
+            "title": "Whiskey Dog",
+            "start": "2026-10-27 19:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 27, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271950",
+            "order_products_url": "/orders/new?event_id=271950&performance_id=3279418"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235466,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-10-27 20:00:00 -0500",
+            "time_with_timezone": "Tue - Oct 27, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235466"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257261,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-10-27 21:00:00 -0500",
+            "time_with_timezone": "Tue - Oct 27, 2026 - 9:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257261"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257227,
+            "title": "Open Stage",
+            "start": "2026-10-27 21:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 27, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257227"
+          },
+          {
+            "event_id": 268965,
+            "performance_id": 3270838,
+            "title": "Cryptic: The Improvised Paranormal Documentary",
+            "start": "2026-10-28 20:00:00 -0500",
+            "time_with_timezone": "Wed - Oct 28, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/268965",
+            "order_products_url": "/orders/new?event_id=268965&performance_id=3270838"
+          },
+          {
+            "event_id": 271715,
+            "performance_id": 3278490,
+            "title": "Misery Loves Company",
+            "start": "2026-10-28 20:00:00 -0500",
+            "time_with_timezone": "Wed - Oct 28, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271715",
+            "order_products_url": "/orders/new?event_id=271715&performance_id=3278490"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235716,
+            "title": "Jury Duty",
+            "start": "2026-10-28 21:30:00 -0500",
+            "time_with_timezone": "Wed - Oct 28, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235716"
+          },
+          {
+            "event_id": 272126,
+            "performance_id": 3279848,
+            "title": "Duluth: A Spooky Midwest Murder",
+            "start": "2026-10-28 21:30:00 -0500",
+            "time_with_timezone": "Wed - Oct 28, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272126",
+            "order_products_url": "/orders/new?event_id=272126&performance_id=3279848"
+          },
+          {
+            "event_id": 264980,
+            "performance_id": 3255943,
+            "title": "Murder at Moidah Manor",
+            "start": "2026-10-29 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 29, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264980",
+            "order_products_url": "/orders/new?event_id=264980&performance_id=3255943"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254031,
+            "title": "Revolving Door",
+            "start": "2026-10-29 21:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 29, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254031"
+          },
+          {
+            "event_id": 272230,
+            "performance_id": 3281684,
+            "title": "Super Scaries: The Improvised Horror Musical",
+            "start": "2026-10-30 19:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 30, 2026 - 7:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272230",
+            "order_products_url": "/orders/new?event_id=272230&performance_id=3281684"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235391,
+            "title": "Missed Call",
+            "start": "2026-10-30 20:00:00 -0500",
+            "time_with_timezone": "Fri - Oct 30, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235391"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235429,
+            "title": "Hitch*Cocktails",
+            "start": "2026-10-30 21:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 30, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235429"
+          },
+          {
+            "event_id": 190706,
+            "performance_id": 3235733,
+            "title": "Baby Wine",
+            "start": "2026-10-30 21:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 30, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/190706",
+            "order_products_url": "/orders/new?event_id=190706&performance_id=3235733"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235660,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-10-30 23:59:00 -0500",
+            "time_with_timezone": "Fri - Oct 30, 2026 - 11:59pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235660"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1793491200&end=1794096000",
+        "seconds": 1.13,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235582,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-10-31 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 31, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235582"
+          },
+          {
+            "event_id": 271020,
+            "performance_id": 3276207,
+            "title": "Splatter Theatre",
+            "start": "2026-10-31 19:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 31, 2026 - 7:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271020",
+            "order_products_url": "/orders/new?event_id=271020&performance_id=3276207"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3235544,
+            "title": "Fire & Beer",
+            "start": "2026-10-31 20:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 31, 2026 - 8:00pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3235544"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235506,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-10-31 21:30:00 -0500",
+            "time_with_timezone": "Sat - Oct 31, 2026 - 9:30pm CDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235506"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277742,
+            "title": "Open Sketch",
+            "start": "2026-11-01 17:30:00 -0600",
+            "time_with_timezone": "Sun - Nov  1, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277742"
+          },
+          {
+            "event_id": 270726,
+            "performance_id": 3275392,
+            "title": "King of Drag Season 2 Watch Party ",
+            "start": "2026-11-01 19:00:00 -0600",
+            "time_with_timezone": "Sun - Nov  1, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270726",
+            "order_products_url": "/orders/new?event_id=270726&performance_id=3275392"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238035,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-11-02 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov  2, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238035"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255037,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-11-02 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov  2, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255037"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255079,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-11-02 21:30:00 -0600",
+            "time_with_timezone": "Mon - Nov  2, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255079"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257295,
+            "title": "Ya'll Mic",
+            "start": "2026-11-03 17:30:00 -0600",
+            "time_with_timezone": "Tue - Nov  3, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257295"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238087,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-11-03 19:00:00 -0600",
+            "time_with_timezone": "Tue - Nov  3, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238087"
+          },
+          {
+            "event_id": 272148,
+            "performance_id": 3279879,
+            "title": "Blue Wave By The Lake",
+            "start": "2026-11-03 19:00:00 -0600",
+            "time_with_timezone": "Tue - Nov  3, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272148",
+            "order_products_url": "/orders/new?event_id=272148&performance_id=3279879"
+          },
+          {
+            "event_id": 271950,
+            "performance_id": 3279419,
+            "title": "Whiskey Dog",
+            "start": "2026-11-03 19:30:00 -0600",
+            "time_with_timezone": "Tue - Nov  3, 2026 - 7:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271950",
+            "order_products_url": "/orders/new?event_id=271950&performance_id=3279419"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257262,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-11-03 21:00:00 -0600",
+            "time_with_timezone": "Tue - Nov  3, 2026 - 9:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257262"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257228,
+            "title": "Open Stage",
+            "start": "2026-11-03 21:30:00 -0600",
+            "time_with_timezone": "Tue - Nov  3, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257228"
+          },
+          {
+            "event_id": 271715,
+            "performance_id": 3278491,
+            "title": "Misery Loves Company",
+            "start": "2026-11-04 20:00:00 -0600",
+            "time_with_timezone": "Wed - Nov  4, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271715",
+            "order_products_url": "/orders/new?event_id=271715&performance_id=3278491"
+          },
+          {
+            "event_id": 272124,
+            "performance_id": 3279840,
+            "title": "RANK! The Musical",
+            "start": "2026-11-04 20:00:00 -0600",
+            "time_with_timezone": "Wed - Nov  4, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272124",
+            "order_products_url": "/orders/new?event_id=272124&performance_id=3279840"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235717,
+            "title": "Jury Duty",
+            "start": "2026-11-04 21:30:00 -0600",
+            "time_with_timezone": "Wed - Nov  4, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235717"
+          },
+          {
+            "event_id": 264980,
+            "performance_id": 3255944,
+            "title": "Murder at Moidah Manor",
+            "start": "2026-11-05 19:30:00 -0600",
+            "time_with_timezone": "Thu - Nov  5, 2026 - 7:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264980",
+            "order_products_url": "/orders/new?event_id=264980&performance_id=3255944"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254032,
+            "title": "Revolving Door",
+            "start": "2026-11-05 21:30:00 -0600",
+            "time_with_timezone": "Thu - Nov  5, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254032"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235392,
+            "title": "Missed Call",
+            "start": "2026-11-06 20:00:00 -0600",
+            "time_with_timezone": "Fri - Nov  6, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235392"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235430,
+            "title": "Hitch*Cocktails",
+            "start": "2026-11-06 21:30:00 -0600",
+            "time_with_timezone": "Fri - Nov  6, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235430"
+          },
+          {
+            "event_id": 214140,
+            "performance_id": 3235684,
+            "title": "Escapades!",
+            "start": "2026-11-06 21:30:00 -0600",
+            "time_with_timezone": "Fri - Nov  6, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/214140",
+            "order_products_url": "/orders/new?event_id=214140&performance_id=3235684"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235661,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-11-06 23:59:00 -0600",
+            "time_with_timezone": "Fri - Nov  6, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235661"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1794096000&end=1794700800",
+        "seconds": 1.01,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235583,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-11-07 19:00:00 -0600",
+            "time_with_timezone": "Sat - Nov  7, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235583"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3235545,
+            "title": "Fire & Beer",
+            "start": "2026-11-07 20:00:00 -0600",
+            "time_with_timezone": "Sat - Nov  7, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3235545"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235507,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-11-07 21:30:00 -0600",
+            "time_with_timezone": "Sat - Nov  7, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235507"
+          },
+          {
+            "event_id": 272125,
+            "performance_id": 3279844,
+            "title": "Funny Planet",
+            "start": "2026-11-07 21:30:00 -0600",
+            "time_with_timezone": "Sat - Nov  7, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272125",
+            "order_products_url": "/orders/new?event_id=272125&performance_id=3279844"
+          },
+          {
+            "event_id": 200870,
+            "performance_id": 3235622,
+            "title": "We Took Edibles an Hour Ago",
+            "start": "2026-11-07 23:59:00 -0600",
+            "time_with_timezone": "Sat - Nov  7, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/200870",
+            "order_products_url": "/orders/new?event_id=200870&performance_id=3235622"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277743,
+            "title": "Open Sketch",
+            "start": "2026-11-08 17:30:00 -0600",
+            "time_with_timezone": "Sun - Nov  8, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277743"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238036,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-11-09 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov  9, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238036"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255038,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-11-09 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov  9, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255038"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255080,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-11-09 21:30:00 -0600",
+            "time_with_timezone": "Mon - Nov  9, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255080"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257296,
+            "title": "Ya'll Mic",
+            "start": "2026-11-10 17:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 10, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257296"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238088,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-11-10 19:00:00 -0600",
+            "time_with_timezone": "Tue - Nov 10, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238088"
+          },
+          {
+            "event_id": 271950,
+            "performance_id": 3279420,
+            "title": "Whiskey Dog",
+            "start": "2026-11-10 19:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 10, 2026 - 7:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271950",
+            "order_products_url": "/orders/new?event_id=271950&performance_id=3279420"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235468,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-11-10 20:00:00 -0600",
+            "time_with_timezone": "Tue - Nov 10, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235468"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257263,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-11-10 21:00:00 -0600",
+            "time_with_timezone": "Tue - Nov 10, 2026 - 9:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257263"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257229,
+            "title": "Open Stage",
+            "start": "2026-11-10 21:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 10, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257229"
+          },
+          {
+            "event_id": 272124,
+            "performance_id": 3279841,
+            "title": "RANK! The Musical",
+            "start": "2026-11-11 20:00:00 -0600",
+            "time_with_timezone": "Wed - Nov 11, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272124",
+            "order_products_url": "/orders/new?event_id=272124&performance_id=3279841"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235718,
+            "title": "Jury Duty",
+            "start": "2026-11-11 21:30:00 -0600",
+            "time_with_timezone": "Wed - Nov 11, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235718"
+          },
+          {
+            "event_id": 271110,
+            "performance_id": 3276364,
+            "title": "whackass",
+            "start": "2026-11-12 19:30:00 -0600",
+            "time_with_timezone": "Thu - Nov 12, 2026 - 7:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271110",
+            "order_products_url": "/orders/new?event_id=271110&performance_id=3276364"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254033,
+            "title": "Revolving Door",
+            "start": "2026-11-12 21:30:00 -0600",
+            "time_with_timezone": "Thu - Nov 12, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254033"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235393,
+            "title": "Missed Call",
+            "start": "2026-11-13 20:00:00 -0600",
+            "time_with_timezone": "Fri - Nov 13, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235393"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235431,
+            "title": "Hitch*Cocktails",
+            "start": "2026-11-13 21:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 13, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235431"
+          },
+          {
+            "event_id": 190706,
+            "performance_id": 3235734,
+            "title": "Baby Wine",
+            "start": "2026-11-13 21:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 13, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/190706",
+            "order_products_url": "/orders/new?event_id=190706&performance_id=3235734"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235662,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-11-13 23:59:00 -0600",
+            "time_with_timezone": "Fri - Nov 13, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235662"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1794700800&end=1795305600",
+        "seconds": 1.01,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235584,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-11-14 19:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 14, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235584"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3235546,
+            "title": "Fire & Beer",
+            "start": "2026-11-14 20:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 14, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3235546"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235508,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-11-14 21:30:00 -0600",
+            "time_with_timezone": "Sat - Nov 14, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235508"
+          },
+          {
+            "event_id": 200870,
+            "performance_id": 3235623,
+            "title": "We Took Edibles an Hour Ago",
+            "start": "2026-11-14 23:59:00 -0600",
+            "time_with_timezone": "Sat - Nov 14, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/200870",
+            "order_products_url": "/orders/new?event_id=200870&performance_id=3235623"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277744,
+            "title": "Open Sketch",
+            "start": "2026-11-15 17:30:00 -0600",
+            "time_with_timezone": "Sun - Nov 15, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277744"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238037,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-11-16 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov 16, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238037"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255039,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-11-16 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov 16, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255039"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255081,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-11-16 21:30:00 -0600",
+            "time_with_timezone": "Mon - Nov 16, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255081"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257297,
+            "title": "Ya'll Mic",
+            "start": "2026-11-17 17:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 17, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257297"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238089,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-11-17 19:00:00 -0600",
+            "time_with_timezone": "Tue - Nov 17, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238089"
+          },
+          {
+            "event_id": 271950,
+            "performance_id": 3279421,
+            "title": "Whiskey Dog",
+            "start": "2026-11-17 19:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 17, 2026 - 7:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271950",
+            "order_products_url": "/orders/new?event_id=271950&performance_id=3279421"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235469,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-11-17 20:00:00 -0600",
+            "time_with_timezone": "Tue - Nov 17, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235469"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257264,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-11-17 21:00:00 -0600",
+            "time_with_timezone": "Tue - Nov 17, 2026 - 9:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257264"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257230,
+            "title": "Open Stage",
+            "start": "2026-11-17 21:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 17, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257230"
+          },
+          {
+            "event_id": 272124,
+            "performance_id": 3279842,
+            "title": "RANK! The Musical",
+            "start": "2026-11-18 20:00:00 -0600",
+            "time_with_timezone": "Wed - Nov 18, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272124",
+            "order_products_url": "/orders/new?event_id=272124&performance_id=3279842"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235719,
+            "title": "Jury Duty",
+            "start": "2026-11-18 21:30:00 -0600",
+            "time_with_timezone": "Wed - Nov 18, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235719"
+          },
+          {
+            "event_id": 214951,
+            "performance_id": 3277842,
+            "title": "Motorcycle Rocketship",
+            "start": "2026-11-19 21:30:00 -0600",
+            "time_with_timezone": "Thu - Nov 19, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/214951",
+            "order_products_url": "/orders/new?event_id=214951&performance_id=3277842"
+          },
+          {
+            "event_id": 271111,
+            "performance_id": 3276367,
+            "title": "Annoyance Character Night ",
+            "start": "2026-11-19 21:30:00 -0600",
+            "time_with_timezone": "Thu - Nov 19, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271111",
+            "order_products_url": "/orders/new?event_id=271111&performance_id=3276367"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235394,
+            "title": "Missed Call",
+            "start": "2026-11-20 20:00:00 -0600",
+            "time_with_timezone": "Fri - Nov 20, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235394"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235432,
+            "title": "Hitch*Cocktails",
+            "start": "2026-11-20 21:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 20, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235432"
+          },
+          {
+            "event_id": 226186,
+            "performance_id": 3235675,
+            "title": "Anti-Virgin Club",
+            "start": "2026-11-20 21:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 20, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/226186",
+            "order_products_url": "/orders/new?event_id=226186&performance_id=3235675"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235663,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-11-20 23:59:00 -0600",
+            "time_with_timezone": "Fri - Nov 20, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235663"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1795305600&end=1795910400",
+        "seconds": 0.9,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235585,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-11-21 19:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 21, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235585"
+          },
+          {
+            "event_id": 254201,
+            "performance_id": 3235359,
+            "title": "Father Figures",
+            "start": "2026-11-21 20:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 21, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/254201",
+            "order_products_url": "/orders/new?event_id=254201&performance_id=3235359"
+          },
+          {
+            "event_id": 267985,
+            "performance_id": 3267243,
+            "title": "Arounded",
+            "start": "2026-11-21 20:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 21, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267985",
+            "order_products_url": "/orders/new?event_id=267985&performance_id=3267243"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235509,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-11-21 21:30:00 -0600",
+            "time_with_timezone": "Sat - Nov 21, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235509"
+          },
+          {
+            "event_id": 200870,
+            "performance_id": 3235624,
+            "title": "We Took Edibles an Hour Ago",
+            "start": "2026-11-21 23:59:00 -0600",
+            "time_with_timezone": "Sat - Nov 21, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/200870",
+            "order_products_url": "/orders/new?event_id=200870&performance_id=3235624"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277745,
+            "title": "Open Sketch",
+            "start": "2026-11-22 17:30:00 -0600",
+            "time_with_timezone": "Sun - Nov 22, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277745"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238038,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-11-23 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov 23, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238038"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255040,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-11-23 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov 23, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255040"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255082,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-11-23 21:30:00 -0600",
+            "time_with_timezone": "Mon - Nov 23, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255082"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257298,
+            "title": "Ya'll Mic",
+            "start": "2026-11-24 17:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 24, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257298"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238090,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-11-24 19:00:00 -0600",
+            "time_with_timezone": "Tue - Nov 24, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238090"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235470,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-11-24 20:00:00 -0600",
+            "time_with_timezone": "Tue - Nov 24, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235470"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257265,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-11-24 21:00:00 -0600",
+            "time_with_timezone": "Tue - Nov 24, 2026 - 9:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257265"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257231,
+            "title": "Open Stage",
+            "start": "2026-11-24 21:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 24, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257231"
+          },
+          {
+            "event_id": 272124,
+            "performance_id": 3279843,
+            "title": "RANK! The Musical",
+            "start": "2026-11-25 20:00:00 -0600",
+            "time_with_timezone": "Wed - Nov 25, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/272124",
+            "order_products_url": "/orders/new?event_id=272124&performance_id=3279843"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235720,
+            "title": "Jury Duty",
+            "start": "2026-11-25 21:30:00 -0600",
+            "time_with_timezone": "Wed - Nov 25, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235720"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254035,
+            "title": "Revolving Door",
+            "start": "2026-11-26 21:30:00 -0600",
+            "time_with_timezone": "Thu - Nov 26, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254035"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235395,
+            "title": "Missed Call",
+            "start": "2026-11-27 20:00:00 -0600",
+            "time_with_timezone": "Fri - Nov 27, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235395"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235433,
+            "title": "Hitch*Cocktails",
+            "start": "2026-11-27 21:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 27, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235433"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235664,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-11-27 23:59:00 -0600",
+            "time_with_timezone": "Fri - Nov 27, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235664"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1795910400&end=1796515200",
+        "seconds": 1.07,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235586,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-11-28 19:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 28, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235586"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3235548,
+            "title": "Fire & Beer",
+            "start": "2026-11-28 20:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 28, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3235548"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235510,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-11-28 21:30:00 -0600",
+            "time_with_timezone": "Sat - Nov 28, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235510"
+          },
+          {
+            "event_id": 271503,
+            "performance_id": 3277746,
+            "title": "Open Sketch",
+            "start": "2026-11-29 17:30:00 -0600",
+            "time_with_timezone": "Sun - Nov 29, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271503",
+            "order_products_url": "/orders/new?event_id=271503&performance_id=3277746"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238039,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-11-30 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov 30, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238039"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255041,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-11-30 20:00:00 -0600",
+            "time_with_timezone": "Mon - Nov 30, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255041"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255083,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-11-30 21:30:00 -0600",
+            "time_with_timezone": "Mon - Nov 30, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255083"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257299,
+            "title": "Ya'll Mic",
+            "start": "2026-12-01 17:30:00 -0600",
+            "time_with_timezone": "Tue - Dec  1, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257299"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238091,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-12-01 19:00:00 -0600",
+            "time_with_timezone": "Tue - Dec  1, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238091"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235471,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-12-01 20:00:00 -0600",
+            "time_with_timezone": "Tue - Dec  1, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235471"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257266,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-12-01 21:00:00 -0600",
+            "time_with_timezone": "Tue - Dec  1, 2026 - 9:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257266"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257232,
+            "title": "Open Stage",
+            "start": "2026-12-01 21:30:00 -0600",
+            "time_with_timezone": "Tue - Dec  1, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257232"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235721,
+            "title": "Jury Duty",
+            "start": "2026-12-02 21:30:00 -0600",
+            "time_with_timezone": "Wed - Dec  2, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235721"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254036,
+            "title": "Revolving Door",
+            "start": "2026-12-03 21:30:00 -0600",
+            "time_with_timezone": "Thu - Dec  3, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254036"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235396,
+            "title": "Missed Call",
+            "start": "2026-12-04 20:00:00 -0600",
+            "time_with_timezone": "Fri - Dec  4, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235396"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235434,
+            "title": "Hitch*Cocktails",
+            "start": "2026-12-04 21:30:00 -0600",
+            "time_with_timezone": "Fri - Dec  4, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235434"
+          },
+          {
+            "event_id": 214140,
+            "performance_id": 3235685,
+            "title": "Escapades!",
+            "start": "2026-12-04 21:30:00 -0600",
+            "time_with_timezone": "Fri - Dec  4, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/214140",
+            "order_products_url": "/orders/new?event_id=214140&performance_id=3235685"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235665,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-12-04 23:59:00 -0600",
+            "time_with_timezone": "Fri - Dec  4, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235665"
+          }
+        ]
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1796515200&end=1797120000",
+        "seconds": 1.37,
+        "items": [
+          {
+            "event_id": 188538,
+            "performance_id": 3235587,
+            "title": "Trigger Happy: Annoyance's Signature Improv Show",
+            "start": "2026-12-05 19:00:00 -0600",
+            "time_with_timezone": "Sat - Dec  5, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188538",
+            "order_products_url": "/orders/new?event_id=188538&performance_id=3235587"
+          },
+          {
+            "event_id": 188918,
+            "performance_id": 3235549,
+            "title": "Fire & Beer",
+            "start": "2026-12-05 20:00:00 -0600",
+            "time_with_timezone": "Sat - Dec  5, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188918",
+            "order_products_url": "/orders/new?event_id=188918&performance_id=3235549"
+          },
+          {
+            "event_id": 196531,
+            "performance_id": 3235511,
+            "title": "Best of Annoyance Sketch",
+            "start": "2026-12-05 21:30:00 -0600",
+            "time_with_timezone": "Sat - Dec  5, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/196531",
+            "order_products_url": "/orders/new?event_id=196531&performance_id=3235511"
+          },
+          {
+            "event_id": 200870,
+            "performance_id": 3235626,
+            "title": "We Took Edibles an Hour Ago",
+            "start": "2026-12-05 23:59:00 -0600",
+            "time_with_timezone": "Sat - Dec  5, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/200870",
+            "order_products_url": "/orders/new?event_id=200870&performance_id=3235626"
+          },
+          {
+            "event_id": 248462,
+            "performance_id": 3238040,
+            "title": "TRAINING CENTER: Improv Games Jam",
+            "start": "2026-12-07 20:00:00 -0600",
+            "time_with_timezone": "Mon - Dec  7, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/248462",
+            "order_products_url": "/orders/new?event_id=248462&performance_id=3238040"
+          },
+          {
+            "event_id": 264880,
+            "performance_id": 3255042,
+            "title": "Short Form Improv Jam (Student Show)",
+            "start": "2026-12-07 20:00:00 -0600",
+            "time_with_timezone": "Mon - Dec  7, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264880",
+            "order_products_url": "/orders/new?event_id=264880&performance_id=3255042"
+          },
+          {
+            "event_id": 264884,
+            "performance_id": 3255084,
+            "title": "Improv - Student Jam (Student Show)",
+            "start": "2026-12-07 21:30:00 -0600",
+            "time_with_timezone": "Mon - Dec  7, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264884",
+            "order_products_url": "/orders/new?event_id=264884&performance_id=3255084"
+          },
+          {
+            "event_id": 265334,
+            "performance_id": 3257300,
+            "title": "Ya'll Mic",
+            "start": "2026-12-08 17:30:00 -0600",
+            "time_with_timezone": "Tue - Dec  8, 2026 - 5:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265334",
+            "order_products_url": "/orders/new?event_id=265334&performance_id=3257300"
+          },
+          {
+            "event_id": 238592,
+            "performance_id": 3238092,
+            "title": "TRAINING CENTER: Musical Improv Jam",
+            "start": "2026-12-08 19:00:00 -0600",
+            "time_with_timezone": "Tue - Dec  8, 2026 - 7:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/238592",
+            "order_products_url": "/orders/new?event_id=238592&performance_id=3238092"
+          },
+          {
+            "event_id": 207875,
+            "performance_id": 3235472,
+            "title": "Tuesday Musical Improv",
+            "start": "2026-12-08 20:00:00 -0600",
+            "time_with_timezone": "Tue - Dec  8, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/207875",
+            "order_products_url": "/orders/new?event_id=207875&performance_id=3235472"
+          },
+          {
+            "event_id": 265333,
+            "performance_id": 3257267,
+            "title": "BYOT (Bring Your Own Team)",
+            "start": "2026-12-08 21:00:00 -0600",
+            "time_with_timezone": "Tue - Dec  8, 2026 - 9:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265333",
+            "order_products_url": "/orders/new?event_id=265333&performance_id=3257267"
+          },
+          {
+            "event_id": 265332,
+            "performance_id": 3257233,
+            "title": "Open Stage",
+            "start": "2026-12-08 21:30:00 -0600",
+            "time_with_timezone": "Tue - Dec  8, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265332",
+            "order_products_url": "/orders/new?event_id=265332&performance_id=3257233"
+          },
+          {
+            "event_id": 230949,
+            "performance_id": 3235722,
+            "title": "Jury Duty",
+            "start": "2026-12-09 21:30:00 -0600",
+            "time_with_timezone": "Wed - Dec  9, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/230949",
+            "order_products_url": "/orders/new?event_id=230949&performance_id=3235722"
+          },
+          {
+            "event_id": 263098,
+            "performance_id": 3254037,
+            "title": "Revolving Door",
+            "start": "2026-12-10 21:30:00 -0600",
+            "time_with_timezone": "Thu - Dec 10, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263098",
+            "order_products_url": "/orders/new?event_id=263098&performance_id=3254037"
+          },
+          {
+            "event_id": 188541,
+            "performance_id": 3235397,
+            "title": "Missed Call",
+            "start": "2026-12-11 20:00:00 -0600",
+            "time_with_timezone": "Fri - Dec 11, 2026 - 8:00pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188541",
+            "order_products_url": "/orders/new?event_id=188541&performance_id=3235397"
+          },
+          {
+            "event_id": 188394,
+            "performance_id": 3235435,
+            "title": "Hitch*Cocktails",
+            "start": "2026-12-11 21:30:00 -0600",
+            "time_with_timezone": "Fri - Dec 11, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188394",
+            "order_products_url": "/orders/new?event_id=188394&performance_id=3235435"
+          },
+          {
+            "event_id": 190706,
+            "performance_id": 3272370,
+            "title": "Baby Wine",
+            "start": "2026-12-11 21:30:00 -0600",
+            "time_with_timezone": "Fri - Dec 11, 2026 - 9:30pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/190706",
+            "order_products_url": "/orders/new?event_id=190706&performance_id=3272370"
+          },
+          {
+            "event_id": 188928,
+            "performance_id": 3235666,
+            "title": "Holy Fuck Comedy Hour",
+            "start": "2026-12-11 23:59:00 -0600",
+            "time_with_timezone": "Fri - Dec 11, 2026 - 11:59pm CST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/188928",
+            "order_products_url": "/orders/new?event_id=188928&performance_id=3235666"
+          }
+        ]
+      }
+    ],
+    "detail_probes": [
+      {
+        "url": "https://theannoyance.thundertix.com/events/188538",
+        "price": 14.0,
+        "seconds": 1.04
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/events/271020",
+        "price": 22.0,
+        "seconds": 0.3
+      },
+      {
+        "url": "https://theannoyance.thundertix.com/events/188918",
+        "price": 15.0,
+        "seconds": 1.14
+      }
+    ]
+  },
+  "visanientertainmentinc": {
+    "windows": [
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1789862400&end=1790467200",
+        "seconds": 0.47,
+        "items": [
+          {
+            "event_id": 263214,
+            "performance_id": 3249140,
+            "title": "One Funny Lisa Marie",
+            "start": "2026-09-25 19:00:00 -0500",
+            "time_with_timezone": "Fri - Sep 25, 2026 - 7:00pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263214",
+            "order_products_url": "/orders/new?event_id=263214&performance_id=3249140"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1790467200&end=1791072000",
+        "seconds": 0.63,
+        "items": [
+          {
+            "event_id": 263214,
+            "performance_id": 3249142,
+            "title": "One Funny Lisa Marie",
+            "start": "2026-09-26 17:00:00 -0500",
+            "time_with_timezone": "Sat - Sep 26, 2026 - 5:00pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263214",
+            "order_products_url": "/orders/new?event_id=263214&performance_id=3249142"
+          },
+          {
+            "event_id": 263214,
+            "performance_id": 3249143,
+            "title": "One Funny Lisa Marie",
+            "start": "2026-09-26 20:30:00 -0500",
+            "time_with_timezone": "Sat - Sep 26, 2026 - 8:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263214",
+            "order_products_url": "/orders/new?event_id=263214&performance_id=3249143"
+          },
+          {
+            "event_id": 267239,
+            "performance_id": 3263960,
+            "title": "Majesty of Rock - The Ultimate Tribute to Journey",
+            "start": "2026-09-29 19:30:00 -0500",
+            "time_with_timezone": "Tue - Sep 29, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267239",
+            "order_products_url": "/orders/new?event_id=267239&performance_id=3263960"
+          },
+          {
+            "event_id": 269423,
+            "performance_id": 3271716,
+            "title": "Rob Churchill ",
+            "start": "2026-09-30 19:30:00 -0500",
+            "time_with_timezone": "Wed - Sep 30, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/269423",
+            "order_products_url": "/orders/new?event_id=269423&performance_id=3271716"
+          },
+          {
+            "event_id": 269423,
+            "performance_id": 3271717,
+            "title": "Rob Churchill ",
+            "start": "2026-10-01 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct  1, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/269423",
+            "order_products_url": "/orders/new?event_id=269423&performance_id=3271717"
+          },
+          {
+            "event_id": 266864,
+            "performance_id": 3262198,
+            "title": "Robert Kelly!",
+            "start": "2026-10-02 18:30:00 -0500",
+            "time_with_timezone": "Fri - Oct  2, 2026 - 6:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266864",
+            "order_products_url": "/orders/new?event_id=266864&performance_id=3262198"
+          },
+          {
+            "event_id": 266864,
+            "performance_id": 3262199,
+            "title": "Robert Kelly!",
+            "start": "2026-10-02 21:30:00 -0500",
+            "time_with_timezone": "Fri - Oct  2, 2026 - 9:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266864",
+            "order_products_url": "/orders/new?event_id=266864&performance_id=3262199"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1791072000&end=1791676800",
+        "seconds": 0.94,
+        "items": [
+          {
+            "event_id": 266864,
+            "performance_id": 3262200,
+            "title": "Robert Kelly!",
+            "start": "2026-10-03 17:00:00 -0500",
+            "time_with_timezone": "Sat - Oct  3, 2026 - 5:00pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266864",
+            "order_products_url": "/orders/new?event_id=266864&performance_id=3262200"
+          },
+          {
+            "event_id": 266864,
+            "performance_id": 3262201,
+            "title": "Robert Kelly!",
+            "start": "2026-10-03 20:30:00 -0500",
+            "time_with_timezone": "Sat - Oct  3, 2026 - 8:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266864",
+            "order_products_url": "/orders/new?event_id=266864&performance_id=3262201"
+          },
+          {
+            "event_id": 260026,
+            "performance_id": 3232495,
+            "title": "Dwight Icenhower and The Blue Suede Review",
+            "start": "2026-10-06 19:30:00 -0500",
+            "time_with_timezone": "Tue - Oct  6, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/260026",
+            "order_products_url": "/orders/new?event_id=260026&performance_id=3232495"
+          },
+          {
+            "event_id": 269424,
+            "performance_id": 3271718,
+            "title": "James Yon - Make the World Laugh!",
+            "start": "2026-10-07 19:30:00 -0500",
+            "time_with_timezone": "Wed - Oct  7, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/269424",
+            "order_products_url": "/orders/new?event_id=269424&performance_id=3271718"
+          },
+          {
+            "event_id": 267779,
+            "performance_id": 3266959,
+            "title": "Des Bishop: Grey Area Tour",
+            "start": "2026-10-08 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct  8, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267779",
+            "order_products_url": "/orders/new?event_id=267779&performance_id=3266959"
+          },
+          {
+            "event_id": 267779,
+            "performance_id": 3266445,
+            "title": "Des Bishop: Grey Area Tour",
+            "start": "2026-10-09 19:30:00 -0500",
+            "time_with_timezone": "Fri - Oct  9, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267779",
+            "order_products_url": "/orders/new?event_id=267779&performance_id=3266445"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1791676800&end=1792281600",
+        "seconds": 0.6,
+        "items": [
+          {
+            "event_id": 267779,
+            "performance_id": 3266446,
+            "title": "Des Bishop: Grey Area Tour",
+            "start": "2026-10-10 17:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 10, 2026 - 5:00pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267779",
+            "order_products_url": "/orders/new?event_id=267779&performance_id=3266446"
+          },
+          {
+            "event_id": 267779,
+            "performance_id": 3266447,
+            "title": "Des Bishop: Grey Area Tour",
+            "start": "2026-10-10 20:30:00 -0500",
+            "time_with_timezone": "Sat - Oct 10, 2026 - 8:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267779",
+            "order_products_url": "/orders/new?event_id=267779&performance_id=3266447"
+          },
+          {
+            "event_id": 266474,
+            "performance_id": 3261204,
+            "title": "The Alter Eagles - A Tribute To The Eagles",
+            "start": "2026-10-13 19:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 13, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266474",
+            "order_products_url": "/orders/new?event_id=266474&performance_id=3261204"
+          },
+          {
+            "event_id": 266867,
+            "performance_id": 3262207,
+            "title": "Adam Ferrara - Actor & Comedian",
+            "start": "2026-10-14 19:30:00 -0500",
+            "time_with_timezone": "Wed - Oct 14, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266867",
+            "order_products_url": "/orders/new?event_id=266867&performance_id=3262207"
+          },
+          {
+            "event_id": 266867,
+            "performance_id": 3262208,
+            "title": "Adam Ferrara - Actor & Comedian",
+            "start": "2026-10-15 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 15, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266867",
+            "order_products_url": "/orders/new?event_id=266867&performance_id=3262208"
+          },
+          {
+            "event_id": 266867,
+            "performance_id": 3262209,
+            "title": "Adam Ferrara - Actor & Comedian",
+            "start": "2026-10-16 19:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 16, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266867",
+            "order_products_url": "/orders/new?event_id=266867&performance_id=3262209"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1792281600&end=1792886400",
+        "seconds": 0.72,
+        "items": [
+          {
+            "event_id": 266867,
+            "performance_id": 3262210,
+            "title": "Adam Ferrara - Actor & Comedian",
+            "start": "2026-10-17 17:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 17, 2026 - 5:00pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266867",
+            "order_products_url": "/orders/new?event_id=266867&performance_id=3262210"
+          },
+          {
+            "event_id": 266867,
+            "performance_id": 3262211,
+            "title": "Adam Ferrara - Actor & Comedian",
+            "start": "2026-10-17 20:30:00 -0500",
+            "time_with_timezone": "Sat - Oct 17, 2026 - 8:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266867",
+            "order_products_url": "/orders/new?event_id=266867&performance_id=3262211"
+          },
+          {
+            "event_id": 260027,
+            "performance_id": 3232496,
+            "title": "Dwight Icenhower and The Blue Suede Review",
+            "start": "2026-10-20 19:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 20, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/260027",
+            "order_products_url": "/orders/new?event_id=260027&performance_id=3232496"
+          },
+          {
+            "event_id": 263949,
+            "performance_id": 3252240,
+            "title": "Vic DiBitetto - Viral Internet Sensation",
+            "start": "2026-10-21 19:30:00 -0500",
+            "time_with_timezone": "Wed - Oct 21, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263949",
+            "order_products_url": "/orders/new?event_id=263949&performance_id=3252240"
+          },
+          {
+            "event_id": 263949,
+            "performance_id": 3252241,
+            "title": "Vic DiBitetto - Viral Internet Sensation",
+            "start": "2026-10-22 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 22, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263949",
+            "order_products_url": "/orders/new?event_id=263949&performance_id=3252241"
+          },
+          {
+            "event_id": 263949,
+            "performance_id": 3252242,
+            "title": "Vic DiBitetto - Viral Internet Sensation",
+            "start": "2026-10-23 19:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 23, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263949",
+            "order_products_url": "/orders/new?event_id=263949&performance_id=3252242"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1792886400&end=1793491200",
+        "seconds": 1.25,
+        "items": [
+          {
+            "event_id": 263949,
+            "performance_id": 3252243,
+            "title": "Vic DiBitetto - Viral Internet Sensation",
+            "start": "2026-10-24 17:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 24, 2026 - 5:00pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263949",
+            "order_products_url": "/orders/new?event_id=263949&performance_id=3252243"
+          },
+          {
+            "event_id": 263949,
+            "performance_id": 3252244,
+            "title": "Vic DiBitetto - Viral Internet Sensation",
+            "start": "2026-10-24 20:30:00 -0500",
+            "time_with_timezone": "Sat - Oct 24, 2026 - 8:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263949",
+            "order_products_url": "/orders/new?event_id=263949&performance_id=3252244"
+          },
+          {
+            "event_id": 263767,
+            "performance_id": 3251561,
+            "title": "Visani\u2019s 1st Comic Standing Comedy Competition - Finals",
+            "start": "2026-10-27 19:30:00 -0500",
+            "time_with_timezone": "Tue - Oct 27, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/263767",
+            "order_products_url": "/orders/new?event_id=263767&performance_id=3251561"
+          },
+          {
+            "event_id": 270852,
+            "performance_id": 3275687,
+            "title": "\"Goumba Johnny\" Sialiano",
+            "start": "2026-10-28 19:30:00 -0500",
+            "time_with_timezone": "Wed - Oct 28, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270852",
+            "order_products_url": "/orders/new?event_id=270852&performance_id=3275687"
+          },
+          {
+            "event_id": 270852,
+            "performance_id": 3275688,
+            "title": "\"Goumba Johnny\" Sialiano",
+            "start": "2026-10-29 19:30:00 -0500",
+            "time_with_timezone": "Thu - Oct 29, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270852",
+            "order_products_url": "/orders/new?event_id=270852&performance_id=3275688"
+          },
+          {
+            "event_id": 270852,
+            "performance_id": 3275689,
+            "title": "\"Goumba Johnny\" Sialiano",
+            "start": "2026-10-30 19:30:00 -0500",
+            "time_with_timezone": "Fri - Oct 30, 2026 - 7:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270852",
+            "order_products_url": "/orders/new?event_id=270852&performance_id=3275689"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1793491200&end=1794096000",
+        "seconds": 0.81,
+        "items": [
+          {
+            "event_id": 270852,
+            "performance_id": 3275690,
+            "title": "\"Goumba Johnny\" Sialiano",
+            "start": "2026-10-31 17:00:00 -0500",
+            "time_with_timezone": "Sat - Oct 31, 2026 - 5:00pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270852",
+            "order_products_url": "/orders/new?event_id=270852&performance_id=3275690"
+          },
+          {
+            "event_id": 270852,
+            "performance_id": 3275691,
+            "title": "\"Goumba Johnny\" Sialiano",
+            "start": "2026-10-31 20:30:00 -0500",
+            "time_with_timezone": "Sat - Oct 31, 2026 - 8:30pm EDT",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/270852",
+            "order_products_url": "/orders/new?event_id=270852&performance_id=3275691"
+          },
+          {
+            "event_id": 266612,
+            "performance_id": 3261590,
+            "title": "Bad Moon Rising - The CCR Tribute!",
+            "start": "2026-11-03 19:30:00 -0600",
+            "time_with_timezone": "Tue - Nov  3, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266612",
+            "order_products_url": "/orders/new?event_id=266612&performance_id=3261590"
+          },
+          {
+            "event_id": 267181,
+            "performance_id": 3263652,
+            "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+            "start": "2026-11-04 19:30:00 -0600",
+            "time_with_timezone": "Wed - Nov  4, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267181",
+            "order_products_url": "/orders/new?event_id=267181&performance_id=3263652"
+          },
+          {
+            "event_id": 267181,
+            "performance_id": 3263653,
+            "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+            "start": "2026-11-05 19:30:00 -0600",
+            "time_with_timezone": "Thu - Nov  5, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267181",
+            "order_products_url": "/orders/new?event_id=267181&performance_id=3263653"
+          },
+          {
+            "event_id": 267181,
+            "performance_id": 3263654,
+            "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+            "start": "2026-11-06 19:30:00 -0600",
+            "time_with_timezone": "Fri - Nov  6, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267181",
+            "order_products_url": "/orders/new?event_id=267181&performance_id=3263654"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1794096000&end=1794700800",
+        "seconds": 0.87,
+        "items": [
+          {
+            "event_id": 267181,
+            "performance_id": 3263655,
+            "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+            "start": "2026-11-07 17:00:00 -0600",
+            "time_with_timezone": "Sat - Nov  7, 2026 - 5:00pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267181",
+            "order_products_url": "/orders/new?event_id=267181&performance_id=3263655"
+          },
+          {
+            "event_id": 267181,
+            "performance_id": 3263656,
+            "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+            "start": "2026-11-07 20:30:00 -0600",
+            "time_with_timezone": "Sat - Nov  7, 2026 - 8:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267181",
+            "order_products_url": "/orders/new?event_id=267181&performance_id=3263656"
+          },
+          {
+            "event_id": 267241,
+            "performance_id": 3263965,
+            "title": "Rock of Abba",
+            "start": "2026-11-10 19:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 10, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267241",
+            "order_products_url": "/orders/new?event_id=267241&performance_id=3263965"
+          },
+          {
+            "event_id": 267233,
+            "performance_id": 3263936,
+            "title": "Ben Bankas Comedy ",
+            "start": "2026-11-13 18:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 13, 2026 - 6:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267233",
+            "order_products_url": "/orders/new?event_id=267233&performance_id=3263936"
+          },
+          {
+            "event_id": 267233,
+            "performance_id": 3263937,
+            "title": "Ben Bankas Comedy ",
+            "start": "2026-11-13 21:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 13, 2026 - 9:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267233",
+            "order_products_url": "/orders/new?event_id=267233&performance_id=3263937"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1794700800&end=1795305600",
+        "seconds": 1.25,
+        "items": [
+          {
+            "event_id": 267233,
+            "performance_id": 3263938,
+            "title": "Ben Bankas Comedy ",
+            "start": "2026-11-14 17:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 14, 2026 - 5:00pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267233",
+            "order_products_url": "/orders/new?event_id=267233&performance_id=3263938"
+          },
+          {
+            "event_id": 267233,
+            "performance_id": 3263939,
+            "title": "Ben Bankas Comedy ",
+            "start": "2026-11-14 20:30:00 -0600",
+            "time_with_timezone": "Sat - Nov 14, 2026 - 8:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267233",
+            "order_products_url": "/orders/new?event_id=267233&performance_id=3263939"
+          },
+          {
+            "event_id": 267233,
+            "performance_id": 3263940,
+            "title": "Ben Bankas Comedy ",
+            "start": "2026-11-15 18:00:00 -0600",
+            "time_with_timezone": "Sun - Nov 15, 2026 - 6:00pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267233",
+            "order_products_url": "/orders/new?event_id=267233&performance_id=3263940"
+          },
+          {
+            "event_id": 265676,
+            "performance_id": 3258748,
+            "title": "The Stone Cold And Jackal Holiday Show",
+            "start": "2026-11-16 19:30:00 -0600",
+            "time_with_timezone": "Mon - Nov 16, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/265676",
+            "order_products_url": "/orders/new?event_id=265676&performance_id=3258748"
+          },
+          {
+            "event_id": 266614,
+            "performance_id": 3261592,
+            "title": "Latitude Adjustment - The Jimmy Buffet Tribute",
+            "start": "2026-11-17 19:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 17, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266614",
+            "order_products_url": "/orders/new?event_id=266614&performance_id=3261592"
+          },
+          {
+            "event_id": 260250,
+            "performance_id": 3237580,
+            "title": "Drew Lynch",
+            "start": "2026-11-19 19:30:00 -0600",
+            "time_with_timezone": "Thu - Nov 19, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/260250",
+            "order_products_url": "/orders/new?event_id=260250&performance_id=3237580"
+          },
+          {
+            "event_id": 260250,
+            "performance_id": 3237581,
+            "title": "Drew Lynch",
+            "start": "2026-11-20 18:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 20, 2026 - 6:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/260250",
+            "order_products_url": "/orders/new?event_id=260250&performance_id=3237581"
+          },
+          {
+            "event_id": 260250,
+            "performance_id": 3237582,
+            "title": "Drew Lynch",
+            "start": "2026-11-20 21:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 20, 2026 - 9:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/260250",
+            "order_products_url": "/orders/new?event_id=260250&performance_id=3237582"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1795305600&end=1795910400",
+        "seconds": 0.57,
+        "items": [
+          {
+            "event_id": 260250,
+            "performance_id": 3237583,
+            "title": "Drew Lynch",
+            "start": "2026-11-21 18:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 21, 2026 - 6:00pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/260250",
+            "order_products_url": "/orders/new?event_id=260250&performance_id=3237583"
+          },
+          {
+            "event_id": 260250,
+            "performance_id": 3237584,
+            "title": "Drew Lynch",
+            "start": "2026-11-21 21:30:00 -0600",
+            "time_with_timezone": "Sat - Nov 21, 2026 - 9:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/260250",
+            "order_products_url": "/orders/new?event_id=260250&performance_id=3237584"
+          },
+          {
+            "event_id": 267242,
+            "performance_id": 3263966,
+            "title": "Bread Zepplin",
+            "start": "2026-11-24 19:30:00 -0600",
+            "time_with_timezone": "Tue - Nov 24, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267242",
+            "order_products_url": "/orders/new?event_id=267242&performance_id=3263966"
+          },
+          {
+            "event_id": 271720,
+            "performance_id": 3278505,
+            "title": "Jake Klark - Comedian, Writer, & Entertainer",
+            "start": "2026-11-25 19:30:00 -0600",
+            "time_with_timezone": "Wed - Nov 25, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271720",
+            "order_products_url": "/orders/new?event_id=271720&performance_id=3278505"
+          },
+          {
+            "event_id": 271720,
+            "performance_id": 3278506,
+            "title": "Jake Klark - Comedian, Writer, & Entertainer",
+            "start": "2026-11-27 19:30:00 -0600",
+            "time_with_timezone": "Fri - Nov 27, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271720",
+            "order_products_url": "/orders/new?event_id=271720&performance_id=3278506"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1795910400&end=1796515200",
+        "seconds": 1.25,
+        "items": [
+          {
+            "event_id": 271720,
+            "performance_id": 3278507,
+            "title": "Jake Klark - Comedian, Writer, & Entertainer",
+            "start": "2026-11-28 17:00:00 -0600",
+            "time_with_timezone": "Sat - Nov 28, 2026 - 5:00pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271720",
+            "order_products_url": "/orders/new?event_id=271720&performance_id=3278507"
+          },
+          {
+            "event_id": 271720,
+            "performance_id": 3278508,
+            "title": "Jake Klark - Comedian, Writer, & Entertainer",
+            "start": "2026-11-28 20:30:00 -0600",
+            "time_with_timezone": "Sat - Nov 28, 2026 - 8:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271720",
+            "order_products_url": "/orders/new?event_id=271720&performance_id=3278508"
+          },
+          {
+            "event_id": 264006,
+            "performance_id": 3252444,
+            "title": "The Ultimate Christmas Variety Show - Vegas Top Impersonators, The Edwards Twins!",
+            "start": "2026-11-29 19:30:00 -0600",
+            "time_with_timezone": "Sun - Nov 29, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264006",
+            "order_products_url": "/orders/new?event_id=264006&performance_id=3252444"
+          },
+          {
+            "event_id": 264006,
+            "performance_id": 3252445,
+            "title": "The Ultimate Christmas Variety Show - Vegas Top Impersonators, The Edwards Twins!",
+            "start": "2026-11-30 19:30:00 -0600",
+            "time_with_timezone": "Mon - Nov 30, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/264006",
+            "order_products_url": "/orders/new?event_id=264006&performance_id=3252445"
+          },
+          {
+            "event_id": 267307,
+            "performance_id": 3264213,
+            "title": "Meet Loaf - The Ultimate Meat Loaf Tribute Band",
+            "start": "2026-12-01 19:30:00 -0600",
+            "time_with_timezone": "Tue - Dec  1, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267307",
+            "order_products_url": "/orders/new?event_id=267307&performance_id=3264213"
+          },
+          {
+            "event_id": 267234,
+            "performance_id": 3263941,
+            "title": "Derek Richards",
+            "start": "2026-12-02 19:30:00 -0600",
+            "time_with_timezone": "Wed - Dec  2, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267234",
+            "order_products_url": "/orders/new?event_id=267234&performance_id=3263941"
+          },
+          {
+            "event_id": 267234,
+            "performance_id": 3263942,
+            "title": "Derek Richards",
+            "start": "2026-12-03 19:30:00 -0600",
+            "time_with_timezone": "Thu - Dec  3, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267234",
+            "order_products_url": "/orders/new?event_id=267234&performance_id=3263942"
+          },
+          {
+            "event_id": 267234,
+            "performance_id": 3263943,
+            "title": "Derek Richards",
+            "start": "2026-12-04 19:30:00 -0600",
+            "time_with_timezone": "Fri - Dec  4, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267234",
+            "order_products_url": "/orders/new?event_id=267234&performance_id=3263943"
+          }
+        ]
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1796515200&end=1797120000",
+        "seconds": 1.03,
+        "items": [
+          {
+            "event_id": 267234,
+            "performance_id": 3263944,
+            "title": "Derek Richards",
+            "start": "2026-12-05 17:00:00 -0600",
+            "time_with_timezone": "Sat - Dec  5, 2026 - 5:00pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267234",
+            "order_products_url": "/orders/new?event_id=267234&performance_id=3263944"
+          },
+          {
+            "event_id": 267234,
+            "performance_id": 3263945,
+            "title": "Derek Richards",
+            "start": "2026-12-05 20:30:00 -0600",
+            "time_with_timezone": "Sat - Dec  5, 2026 - 8:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/267234",
+            "order_products_url": "/orders/new?event_id=267234&performance_id=3263945"
+          },
+          {
+            "event_id": 260028,
+            "performance_id": 3232497,
+            "title": "Dwight Icenhower and The Blue Suede Review",
+            "start": "2026-12-07 19:30:00 -0600",
+            "time_with_timezone": "Mon - Dec  7, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/260028",
+            "order_products_url": "/orders/new?event_id=260028&performance_id=3232497"
+          },
+          {
+            "event_id": 266613,
+            "performance_id": 3261591,
+            "title": "The Alter Eagles - A Tribute To The Eagles",
+            "start": "2026-12-08 19:30:00 -0600",
+            "time_with_timezone": "Tue - Dec  8, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/266613",
+            "order_products_url": "/orders/new?event_id=266613&performance_id=3261591"
+          },
+          {
+            "event_id": 271718,
+            "performance_id": 3278496,
+            "title": "John Heffron - Celebrate Every Day!",
+            "start": "2026-12-09 19:30:00 -0600",
+            "time_with_timezone": "Wed - Dec  9, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271718",
+            "order_products_url": "/orders/new?event_id=271718&performance_id=3278496"
+          },
+          {
+            "event_id": 271718,
+            "performance_id": 3278497,
+            "title": "John Heffron - Celebrate Every Day!",
+            "start": "2026-12-10 19:30:00 -0600",
+            "time_with_timezone": "Thu - Dec 10, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271718",
+            "order_products_url": "/orders/new?event_id=271718&performance_id=3278497"
+          },
+          {
+            "event_id": 271718,
+            "performance_id": 3278498,
+            "title": "John Heffron - Celebrate Every Day!",
+            "start": "2026-12-11 19:30:00 -0600",
+            "time_with_timezone": "Fri - Dec 11, 2026 - 7:30pm EST",
+            "publicly_available": true,
+            "is_sold_out": false,
+            "truncated_url": "/events/271718",
+            "order_products_url": "/orders/new?event_id=271718&performance_id=3278498"
+          }
+        ]
+      }
+    ],
+    "detail_probes": [
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/events/263214",
+        "price": 30.0,
+        "seconds": 0.95
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/events/267239",
+        "price": 60.0,
+        "seconds": 0.93
+      },
+      {
+        "url": "https://visanientertainmentinc.thundertix.com/events/269423",
+        "price": 13.8,
+        "seconds": 0.89
+      }
+    ]
+  },
+  "runtime_reproduction": {
+    "healthy_calendar_performances": 1,
+    "optional_detail_never_returns": true,
+    "get_data_exceeded_50ms_guard": true,
+    "detail_calls": [
+      "https://example.thundertix.com/events/1"
+    ],
+    "elapsed_seconds": 0.05124216596595943,
+    "same_failed_event_url_requests_across_12_windows": 12
+  },
+  "visani_ticket_time": {
+    "url": "https://visanientertainmentinc.thundertix.com/events/263214",
+    "performance_id": 3249140,
+    "calendar_start": "2026-09-25 19:00:00 -0500",
+    "calendar_display": "Fri - Sep 25, 2026 - 7:00pm EDT",
+    "merchant_jsonld_startDate": "2026-09-25T19:00-04:00",
+    "merchant_visible": "Friday, September 25, 2026 - 07:00 PM EDT",
+    "playwright_seconds": 3.424
+  }
+}

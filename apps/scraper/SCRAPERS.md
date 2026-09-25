@@ -2480,7 +2480,7 @@ multi-date: Comedy Uncorked at Retzlaff/Hannah Nicole Vineyards —
 |---|---|
 | **Scraper key** | `thundertix` (generic — `GenericThunderTixScraper`) |
 | **Platform** | `thundertix` |
-| **DB field** | `scraping_sources.source_url` (+ optional `metadata.title_skip_prefixes`) |
+| **DB field** | `scraping_sources.source_url` (+ optional `metadata.title_skip_prefixes`, `metadata.weeks_ahead`) |
 | **Value format** | `https://{venue-slug}.thundertix.com` |
 | **Generic?** | ✅ Single scraper, configured per-venue via `scraping_sources` |
 
@@ -2493,11 +2493,16 @@ multi-date: Comedy Uncorked at Retzlaff/Hannah Nicole Vineyards —
 GET https://{venue-slug}.thundertix.com/reports/calendar?week=0&start={ts}&end={ts+7d}
 ```
 Returns a JSON array of performance objects, one per show. A single request covers a 7-day window.
-The generic scraper generates 12 weekly URLs starting from the current Sunday.
+The generic scraper generates 12 weekly URLs by default, starting from the current
+Sunday at midnight UTC. Set `metadata.weeks_ahead` to an integer from 1 through 26
+to change the horizon. Invalid values fail configuration; the runtime limits below
+apply regardless of horizon.
 
 **Key fields in each performance object:**
 - `title` — show name
 - `start` — datetime string with UTC offset (e.g. `"2026-03-24 20:00:00 -0500"`)
+- `time_with_timezone` — displayed local date/time and abbreviation, when supplied
+  (e.g. `"Fri - Sep 25, 2026 - 7:00pm EDT"`)
 - `order_products_url` — relative ticket purchase path (prepend base URL)
 - `truncated_url` — relative show page path (prepend base URL)
 - `publicly_available` — skip when `False`
@@ -2507,8 +2512,40 @@ The generic scraper generates 12 weekly URLs starting from the current Sunday.
 distinct event detail page (`truncated_url`) once per run — performances share
 a page and events recur across weekly windows — and parses the schema.org
 JSON-LD `AggregateOffer.lowPrice` into the fallback ticket (TASK-2837).
-Pages that fail to fetch are retried on a later window; missing/unparseable
-prices stay `None` (price unknown).
+Successful and failed detail requests are cached for the current run, so recurring
+events do not repeatedly retry failed pages in later windows. Missing, blocked,
+unparseable, or timed-out prices stay `None` (price unknown). Optional detail
+requests use isolated diagnostics: a bot-blocked price page is logged without
+marking otherwise valid calendar inventory unhealthy.
+
+**Runtime and failure handling:** the whole fetch phase has a 150-second deadline,
+including target rate-limit waits. Each calendar request has at most 20 seconds,
+limited further by the remaining run budget. Optional price enrichment shares a
+60-second budget across all weekly windows, with at most four concurrent detail
+requests. Each detail request gets 10 seconds after acquiring its slot, including
+rate limiting, retries, and parsing; queue time still counts against the shared
+budget. Outstanding detail tasks are cancelled and awaited at the end of fetch.
+
+Calendar timeouts, malformed response shapes, missing required performance fields,
+and invalid showtimes raise a HIGH-severity calendar data error and prevent stale
+show reconciliation. An explicit empty calendar array is a valid empty window.
+
+**Showtimes:** when `time_with_timezone` is present, parse its wall clock in the
+club's IANA timezone and verify both the weekday and timezone abbreviation for that
+date. The entity keeps an aware local datetime; persistence handles UTC conversion.
+This corrects venues such as Visani whose numeric `start` offset disagrees with
+the merchant-displayed Eastern time. Malformed displays, abbreviation mismatches,
+and ambiguous or nonexistent local times fail calendar validation before a window
+is accepted. When the display field is absent, retain the existing numeric-offset
+parser with its ISO/dateutil fallback.
+
+**Multiple-room limitation:** ThunderTix event/performance IDs distinguish concurrent
+shows, but the calendar response does not supply an explicit room name. The Annoyance
+audit found 40 same-time pairs that cannot safely share the database
+`(club_id, date, room)` identity with an empty room. Do not infer room names from
+calendar colors or seat counts, or treat fetched inventory as proof of complete
+persistence coverage. Collision protection and resolution of these identities are
+required before refreshing affected rows.
 
 **Filtering rules:**
 - Skip events where `publicly_available` is `False` (always-on, engine-level)

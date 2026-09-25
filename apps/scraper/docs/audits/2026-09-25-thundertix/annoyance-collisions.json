@@ -1,0 +1,62 @@
+{
+  "unique_performances_after_prefix_filter": 279,
+  "collision_times": 40,
+  "colliding_performances": 80,
+  "existing_collision_rows": 30,
+  "existing_first_matches": 28,
+  "existing_first_mismatches": 2,
+  "mismatches": [
+    {
+      "stored": {
+        "id": 5732294,
+        "club_id": 183,
+        "name": "Anton Sucks",
+        "date": "2026-10-16T02:30:00+00:00",
+        "room": "",
+        "show_page_url": "https://theannoyance.thundertix.com/events/270517",
+        "last_scraped_by": "thundertix",
+        "last_scraped_date": "2026-08-22T21:12:24.829208+00:00"
+      },
+      "first_source": {
+        "event_id": 214951,
+        "performance_id": 3277841,
+        "title": "Motorcycle Rocketship",
+        "start": "2026-10-15 21:30:00 -0500"
+      },
+      "alternatives": [
+        {
+          "event_id": 270517,
+          "performance_id": 3274683,
+          "title": "Anton Sucks",
+          "start": "2026-10-15 21:30:00 -0500"
+        }
+      ]
+    },
+    {
+      "stored": {
+        "id": 4910291,
+        "club_id": 183,
+        "name": "Cryptic: The Improvised Paranormal Documentary",
+        "date": "2026-10-22T01:00:00+00:00",
+        "room": "",
+        "show_page_url": "https://theannoyance.thundertix.com/events/268965",
+        "last_scraped_by": "thundertix",
+        "last_scraped_date": "2026-08-22T21:12:24.829237+00:00"
+      },
+      "first_source": {
+        "event_id": 268964,
+        "performance_id": 3279485,
+        "title": "Famous, Eventually",
+        "start": "2026-10-21 20:00:00 -0500"
+      },
+      "alternatives": [
+        {
+          "event_id": 268965,
+          "performance_id": 3270837,
+          "title": "Cryptic: The Improvised Paranormal Documentary",
+          "start": "2026-10-21 20:00:00 -0500"
+        }
+      ]
+    }
+  ]
+}

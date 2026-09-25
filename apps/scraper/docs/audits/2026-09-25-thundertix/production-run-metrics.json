@@ -1,0 +1,112 @@
+{
+  "visani": {
+    "session": {
+      "duration_seconds": 41.270841,
+      "exported_at": "2026-09-24T20:41:11.484766"
+    },
+    "shows": {
+      "scraped": 86,
+      "saved": 86,
+      "inserted": 53,
+      "updated": 33,
+      "failed_save": 0,
+      "skipped_dedup": 0,
+      "validation_failed": 0,
+      "db_errors": 0
+    },
+    "clubs": {
+      "processed": 1,
+      "successful": 1,
+      "failed": 0
+    },
+    "errors": {
+      "total": 0
+    },
+    "success_rate": 100.0,
+    "execution_times": [
+      41.270841
+    ],
+    "per_club_stats": [
+      {
+        "club": "Visani",
+        "num_shows": 86,
+        "execution_time": 41.270841,
+        "success": true,
+        "error": null,
+        "club_id": 11600,
+        "errors": 0,
+        "success_rate": 100.0,
+        "http_status": null,
+        "bot_block_detected": false,
+        "bot_block_signature": null,
+        "bot_block_provider": null,
+        "bot_block_type": null,
+        "bot_block_source": null,
+        "bot_block_stage": null,
+        "playwright_fallback_used": false,
+        "items_before_filter": 86,
+        "ticketless_shows": 0,
+        "is_synthetic": false,
+        "production_company_id": null
+      }
+    ],
+    "error_details": [],
+    "duplicate_show_details": [],
+    "run_type": "verify"
+  },
+  "annoyance": {
+    "session": {
+      "duration_seconds": 60.784032,
+      "exported_at": "2026-09-24T20:44:25.241387"
+    },
+    "shows": {
+      "scraped": 280,
+      "saved": 200,
+      "inserted": 115,
+      "updated": 85,
+      "failed_save": 0,
+      "skipped_dedup": 0,
+      "validation_failed": 80,
+      "db_errors": 0
+    },
+    "clubs": {
+      "processed": 1,
+      "successful": 1,
+      "failed": 0
+    },
+    "errors": {
+      "total": 0
+    },
+    "success_rate": 71.42857142857143,
+    "execution_times": [
+      60.784032
+    ],
+    "per_club_stats": [
+      {
+        "club": "The Annoyance Theatre",
+        "num_shows": 280,
+        "execution_time": 60.784032,
+        "success": true,
+        "error": null,
+        "club_id": 183,
+        "errors": 0,
+        "success_rate": 100.0,
+        "http_status": null,
+        "bot_block_detected": false,
+        "bot_block_signature": null,
+        "bot_block_provider": null,
+        "bot_block_type": null,
+        "bot_block_source": null,
+        "bot_block_stage": null,
+        "playwright_fallback_used": false,
+        "items_before_filter": 280,
+        "ticketless_shows": 0,
+        "is_synthetic": false,
+        "production_company_id": null
+      }
+    ],
+    "error_details": [],
+    "duplicate_show_details": [],
+    "run_type": "verify"
+  }
+}

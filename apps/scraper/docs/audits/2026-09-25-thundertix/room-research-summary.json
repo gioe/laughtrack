@@ -1,0 +1,109 @@
+{
+  "conclusion": "No authoritative current event-to-room mapping verified; do not infer real room names from calendar color or remainingSeats.",
+  "event_pages": [
+    {
+      "id": 270517,
+      "url": "https://theannoyance.thundertix.com/events/270517",
+      "seconds": 3.6878371249185875,
+      "title": "<title>Anton Sucks via ThunderTix</title>",
+      "snippets": [],
+      "jsonld": [
+        "{\"@context\":\"https://schema.org\",\"@type\":\"Event\",\"@id\":\"https://theannoyance.thundertix.com/events/270517#event\",\"name\":\"Anton Sucks\",\"description\":\"Adapted for the stage from the award-winning screenplay, ANTON SUCKS is a raunchy, queer, gothic romp with a coming-of-age beating heart. When a pubescent vampire discovers he can only drink the blood of a romantic lover, his crush on a village boy forces him to question his desire to fulfill his conservative father\u2019s expectations. If you are a fan of What We Do In The Shadows, The Addams Family, Shrek, or even Call Me By Your Name, then this one is for you.\",\"startDate\":\"2026-10-08T21:30-05:00\",\"endDate\":\"2026-10-15T21:30-05:00\",\"eventAttendanceMode\":\"https://schema.org/OfflineEventAttendanceMode\",\"location\":{\"@type\":\"Place\",\"name\":\"Annoyance Theatre\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"851 W. Belmont\",\"addressLocality\":\"Chicago\",\"addressRegion\":\"IL\",\"postalCode\":\"60657\",\"addressCountry\":\"US\"}},\"image\":[\"https://assets.thundertix.com/events/multi/216535/template3/Anton_Sucks_%285x5_Thumbnail%29_-_Gabriel_Ozaki.png?1787255152\"],\"organizer\":{\"@type\":\"Organization\",\"name\":\"Annoyance Theatre \\u0026 Bar\",\"url\":\"http://www.theannoyance.com\"},\"performer\":[{\"@type\":\"PerformingGroup\",\"name\":\"Anton Sucks\"}],\"offers\":{\"@type\":\"AggregateOffer\",\"url\":\"https://theannoyance.thundertix.com/events/270517\",\"priceCurrency\":\"USD\",\"lowPrice\":\"20.0\",\"highPrice\":\"20.0\",\"availability\":\"https://schema.org/InStock\",\"validFrom\":\"2026-08-20T14:44:00-05:00\"},\"isAccessibleForFree\":false,\"url\":\"https://theannoyance.thundertix.com/events/270517\",\"eventStatus\":\"https://schema.org/EventScheduled\"}",
+        "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Annoyance Theatre \\u0026 Bar\",\"item\":\"https://theannoyance.thundertix.com/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Anton Sucks\",\"item\":\"https://theannoyance.thundertix.com/events/270517\"}]}"
+      ]
+    },
+    {
+      "id": 214951,
+      "url": "https://theannoyance.thundertix.com/events/214951",
+      "seconds": 1.5918780840002,
+      "title": "<title>Motorcycle Rocketship via ThunderTix</title>",
+      "snippets": [],
+      "jsonld": [
+        "{\"@context\":\"https://schema.org\",\"@type\":\"Event\",\"@id\":\"https://theannoyance.thundertix.com/events/214951#event\",\"name\":\"Motorcycle Rocketship\",\"description\":\"Come see Billionaire Billy Bangles and his crew of well-meaning stargazers attempt wild schemes to bring profitability to their piece of junk space cruiser. Sketch comedy, digital shorts, song and dance \u2014 free space cruise included.\",\"startDate\":\"2026-10-15T21:30-05:00\",\"endDate\":\"2026-12-17T21:30-06:00\",\"eventAttendanceMode\":\"https://schema.org/OfflineEventAttendanceMode\",\"location\":{\"@type\":\"Place\",\"name\":\"Annoyance Theatre\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"851 W. Belmont\",\"addressLocality\":\"Chicago\",\"addressRegion\":\"IL\",\"postalCode\":\"60657\",\"addressCountry\":\"US\"}},\"image\":[\"https://assets.thundertix.com/events/multi/198159/template3/Screenshot_2026-02-10_at_3.55.50_PM.png?1770760580\"],\"organizer\":{\"@type\":\"Organization\",\"name\":\"Annoyance Theatre \\u0026 Bar\",\"url\":\"http://www.theannoyance.com\"},\"performer\":[{\"@type\":\"PerformingGroup\",\"name\":\"Motorcycle Rocketship\"}],\"offers\":{\"@type\":\"AggregateOffer\",\"url\":\"https://theannoyance.thundertix.com/events/214951\",\"priceCurrency\":\"USD\",\"lowPrice\":\"17.0\",\"highPrice\":\"17.0\",\"availability\":\"https://schema.org/InStock\",\"validFrom\":\"2023-06-28T14:13:00-05:00\"},\"isAccessibleForFree\":false,\"url\":\"https://theannoyance.thundertix.com/events/214951\",\"eventStatus\":\"https://schema.org/EventScheduled\"}",
+        "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Annoyance Theatre \\u0026 Bar\",\"item\":\"https://theannoyance.thundertix.com/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Motorcycle Rocketship\",\"item\":\"https://theannoyance.thundertix.com/events/214951\"}]}"
+      ]
+    },
+    {
+      "id": 268965,
+      "url": "https://theannoyance.thundertix.com/events/268965",
+      "seconds": 1.0746532089542598,
+      "title": "<title>Cryptic: The Improvised Paranormal Documentary via ThunderTix</title>",
+      "snippets": [],
+      "jsonld": [
+        "{\"@context\":\"https://schema.org\",\"@type\":\"Event\",\"@id\":\"https://theannoyance.thundertix.com/events/268965#event\",\"name\":\"Cryptic: The Improvised Paranormal Documentary\",\"description\":\"What if the heroes never saved the day? What if one town WAS swallowed up by a hellmouth, or infiltrated by alien imposters? Cryptic is a fully-improvised documentary in the style of true crime stories, exploring the aftermath of a small-town mystery and how it brings a community together. Complete with interviews, theories, accusations, and revelations, you'll be shocked by what we uncover. If you love true crime and tall tales, you'll love Cryptic!\",\"startDate\":\"2026-09-30T20:00-05:00\",\"endDate\":\"2026-10-28T20:00-05:00\",\"eventAttendanceMode\":\"https://schema.org/OfflineEventAttendanceMode\",\"location\":{\"@type\":\"Place\",\"name\":\"Annoyance Theatre\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"851 W. Belmont\",\"addressLocality\":\"Chicago\",\"addressRegion\":\"IL\",\"postalCode\":\"60657\",\"addressCountry\":\"US\"}},\"image\":[\"https://assets.thundertix.com/events/multi/213474/template3/Cryptic_-_Genre_List_-_2026-07-24_%28VERTICAL-LIGHT%29_-_Matt_Langhinrichs.png?1784996098\"],\"organizer\":{\"@type\":\"Organization\",\"name\":\"Annoyance Theatre \\u0026 Bar\",\"url\":\"http://www.theannoyance.com\"},\"performer\":[{\"@type\":\"PerformingGroup\",\"name\":\"Cryptic: The Improvised Paranormal Documentary\"}],\"offers\":{\"@type\":\"AggregateOffer\",\"url\":\"https://theannoyance.thundertix.com/events/268965\",\"priceCurrency\":\"USD\",\"lowPrice\":\"12.0\",\"highPrice\":\"12.0\",\"availability\":\"https://schema.org/InStock\",\"validFrom\":\"2026-07-25T11:13:00-05:00\"},\"isAccessibleForFree\":false,\"url\":\"https://theannoyance.thundertix.com/events/268965\",\"eventStatus\":\"https://schema.org/EventScheduled\"}",
+        "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Annoyance Theatre \\u0026 Bar\",\"item\":\"https://theannoyance.thundertix.com/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Cryptic: The Improvised Paranormal Documentary\",\"item\":\"https://theannoyance.thundertix.com/events/268965\"}]}"
+      ]
+    },
+    {
+      "id": 268964,
+      "url": "https://theannoyance.thundertix.com/events/268964",
+      "seconds": 1.046723874984309,
+      "title": "<title>Famous, Eventually via ThunderTix</title>",
+      "snippets": [],
+      "jsonld": [
+        "{\"@context\":\"https://schema.org\",\"@type\":\"Event\",\"@id\":\"https://theannoyance.thundertix.com/events/268964#event\",\"name\":\"Famous, Eventually\",\"description\":\"Famous, Eventually follows a young Southern woman who declares that she will do anything to become a star, anything. She makes a deadly bargain with a visiting entity for the life she believes she deserves. The show is loosely autobiographical, but it pushes Anna\u2019s real pursuit of a creative life into a heightened, cartoonishly absurd, and much darker world. How much of yourself are you willing to sacrifice to become someone?\",\"startDate\":\"2026-10-21T20:00-05:00\",\"endDate\":\"2026-10-21T20:00-05:00\",\"eventAttendanceMode\":\"https://schema.org/OfflineEventAttendanceMode\",\"location\":{\"@type\":\"Place\",\"name\":\"Annoyance Theatre\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"851 W. Belmont\",\"addressLocality\":\"Chicago\",\"addressRegion\":\"IL\",\"postalCode\":\"60657\",\"addressCountry\":\"US\"}},\"image\":[\"https://assets.thundertix.com/events/multi/213477/template3/Screenshot_2026-07-25_at_11.17.43_AM.png?1784996292\"],\"organizer\":{\"@type\":\"Organization\",\"name\":\"Annoyance Theatre \\u0026 Bar\",\"url\":\"http://www.theannoyance.com\"},\"performer\":[{\"@type\":\"PerformingGroup\",\"name\":\"Famous, Eventually\"}],\"offers\":{\"@type\":\"AggregateOffer\",\"url\":\"https://theannoyance.thundertix.com/events/268964\",\"priceCurrency\":\"USD\",\"lowPrice\":\"22.0\",\"highPrice\":\"22.0\",\"availability\":\"https://schema.org/InStock\",\"validFrom\":\"2026-07-25T11:09:00-05:00\"},\"isAccessibleForFree\":false,\"url\":\"https://theannoyance.thundertix.com/events/268964\",\"eventStatus\":\"https://schema.org/EventScheduled\"}",
+        "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Annoyance Theatre \\u0026 Bar\",\"item\":\"https://theannoyance.thundertix.com/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Famous, Eventually\",\"item\":\"https://theannoyance.thundertix.com/events/268964\"}]}"
+      ]
+    }
+  ],
+  "calendar_view": {
+    "url": "https://theannoyance.thundertix.com/events?display=calendar",
+    "html": "/private/tmp/task4051-legend-events?display=calendar.html",
+    "finding": "No visible room legend or room names in captured public DOM."
+  },
+  "official_venue": {
+    "url": "https://www.theannoyance.com/",
+    "html": "/private/tmp/task4051-official-.html",
+    "finding": "Lists Small (40 seat) and Mainstage (100 seat) theaters, without calendar color mapping."
+  },
+  "historical_counterevidence": [
+    {
+      "url": "https://www.theannoyance.com/show/motorcycle-rocketship",
+      "room": "Blackbox Theater",
+      "run": "5/21, 6/18, + 7/16",
+      "limitation": "Search-indexed historical official page; not evidence for current October performance."
+    },
+    {
+      "url": "https://www.theannoyance.com/show/cryptic",
+      "room": "Cabaret Theater",
+      "run": "5/14 - 6/4",
+      "limitation": "Search-indexed historical official page; not evidence for current September/October performance."
+    }
+  ],
+  "ticket_selection_pages": [
+    {
+      "id": "orders/new?event_id=270517&performance_id=3274682",
+      "url": "https://theannoyance.thundertix.com/orders/new?event_id=270517&performance_id=3274682",
+      "seconds": 2.9023554580053315,
+      "title": "<title>Ticketing and Box Office Software</title>",
+      "snippets": [],
+      "jsonld": []
+    },
+    {
+      "id": "orders/new?event_id=214951&performance_id=3277841",
+      "url": "https://theannoyance.thundertix.com/orders/new?event_id=214951&performance_id=3277841",
+      "seconds": 0.7892936669522896,
+      "title": "<title>Ticketing and Box Office Software</title>",
+      "snippets": [],
+      "jsonld": []
+    },
+    {
+      "id": "orders/new?event_id=268965&performance_id=3270834",
+      "url": "https://theannoyance.thundertix.com/orders/new?event_id=268965&performance_id=3270834",
+      "seconds": 1.2009636668954045,
+      "title": "<title>Ticketing and Box Office Software</title>",
+      "snippets": [],
+      "jsonld": []
+    },
+    {
+      "id": "orders/new?event_id=268964&performance_id=3279485",
+      "url": "https://theannoyance.thundertix.com/orders/new?event_id=268964&performance_id=3279485",
+      "seconds": 0.7110594169935212,
+      "title": "<title>Ticketing and Box Office Software</title>",
+      "snippets": [],
+      "jsonld": []
+    }
+  ],
+  "calendar_fields": "Current calendar objects contain backgroundColor, remainingSeats and stable event_id/performance_id but no explicit room/venue field.",
+  "changes": "Read only; no repository edits, orders, forms or production writes."
+}

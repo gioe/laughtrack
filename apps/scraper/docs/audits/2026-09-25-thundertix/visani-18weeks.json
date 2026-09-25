@@ -1,0 +1,1254 @@
+[
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1789862400&end=1790467200",
+    "seconds": 0.59,
+    "items": [
+      {
+        "start": "2026-09-25 19:00:00 -0500",
+        "title": "One Funny Lisa Marie",
+        "performance_id": 3249140,
+        "event_id": 263214,
+        "truncated_url": "/events/263214",
+        "order_products_url": "/orders/new?event_id=263214&performance_id=3249140",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Sep 25, 2026 - 7:00pm EDT",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1790467200&end=1791072000",
+    "seconds": 0.59,
+    "items": [
+      {
+        "start": "2026-09-26 17:00:00 -0500",
+        "title": "One Funny Lisa Marie",
+        "performance_id": 3249142,
+        "event_id": 263214,
+        "truncated_url": "/events/263214",
+        "order_products_url": "/orders/new?event_id=263214&performance_id=3249142",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Sep 26, 2026 - 5:00pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-09-26 20:30:00 -0500",
+        "title": "One Funny Lisa Marie",
+        "performance_id": 3249143,
+        "event_id": 263214,
+        "truncated_url": "/events/263214",
+        "order_products_url": "/orders/new?event_id=263214&performance_id=3249143",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Sep 26, 2026 - 8:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-09-29 19:30:00 -0500",
+        "title": "Majesty of Rock - The Ultimate Tribute to Journey",
+        "performance_id": 3263960,
+        "event_id": 267239,
+        "truncated_url": "/events/267239",
+        "order_products_url": "/orders/new?event_id=267239&performance_id=3263960",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Sep 29, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-09-30 19:30:00 -0500",
+        "title": "Rob Churchill ",
+        "performance_id": 3271716,
+        "event_id": 269423,
+        "truncated_url": "/events/269423",
+        "order_products_url": "/orders/new?event_id=269423&performance_id=3271716",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Sep 30, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-01 19:30:00 -0500",
+        "title": "Rob Churchill ",
+        "performance_id": 3271717,
+        "event_id": 269423,
+        "truncated_url": "/events/269423",
+        "order_products_url": "/orders/new?event_id=269423&performance_id=3271717",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Oct  1, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-02 18:30:00 -0500",
+        "title": "Robert Kelly!",
+        "performance_id": 3262198,
+        "event_id": 266864,
+        "truncated_url": "/events/266864",
+        "order_products_url": "/orders/new?event_id=266864&performance_id=3262198",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Oct  2, 2026 - 6:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-02 21:30:00 -0500",
+        "title": "Robert Kelly!",
+        "performance_id": 3262199,
+        "event_id": 266864,
+        "truncated_url": "/events/266864",
+        "order_products_url": "/orders/new?event_id=266864&performance_id=3262199",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Oct  2, 2026 - 9:30pm EDT",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1791072000&end=1791676800",
+    "seconds": 0.88,
+    "items": [
+      {
+        "start": "2026-10-03 17:00:00 -0500",
+        "title": "Robert Kelly!",
+        "performance_id": 3262200,
+        "event_id": 266864,
+        "truncated_url": "/events/266864",
+        "order_products_url": "/orders/new?event_id=266864&performance_id=3262200",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct  3, 2026 - 5:00pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-03 20:30:00 -0500",
+        "title": "Robert Kelly!",
+        "performance_id": 3262201,
+        "event_id": 266864,
+        "truncated_url": "/events/266864",
+        "order_products_url": "/orders/new?event_id=266864&performance_id=3262201",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct  3, 2026 - 8:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-06 19:30:00 -0500",
+        "title": "Dwight Icenhower and The Blue Suede Review",
+        "performance_id": 3232495,
+        "event_id": 260026,
+        "truncated_url": "/events/260026",
+        "order_products_url": "/orders/new?event_id=260026&performance_id=3232495",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Oct  6, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-07 19:30:00 -0500",
+        "title": "James Yon - Make the World Laugh!",
+        "performance_id": 3271718,
+        "event_id": 269424,
+        "truncated_url": "/events/269424",
+        "order_products_url": "/orders/new?event_id=269424&performance_id=3271718",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Oct  7, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-08 19:30:00 -0500",
+        "title": "Des Bishop: Grey Area Tour",
+        "performance_id": 3266959,
+        "event_id": 267779,
+        "truncated_url": "/events/267779",
+        "order_products_url": "/orders/new?event_id=267779&performance_id=3266959",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Oct  8, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-09 19:30:00 -0500",
+        "title": "Des Bishop: Grey Area Tour",
+        "performance_id": 3266445,
+        "event_id": 267779,
+        "truncated_url": "/events/267779",
+        "order_products_url": "/orders/new?event_id=267779&performance_id=3266445",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Oct  9, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1791676800&end=1792281600",
+    "seconds": 0.63,
+    "items": [
+      {
+        "start": "2026-10-10 17:00:00 -0500",
+        "title": "Des Bishop: Grey Area Tour",
+        "performance_id": 3266446,
+        "event_id": 267779,
+        "truncated_url": "/events/267779",
+        "order_products_url": "/orders/new?event_id=267779&performance_id=3266446",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct 10, 2026 - 5:00pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-10 20:30:00 -0500",
+        "title": "Des Bishop: Grey Area Tour",
+        "performance_id": 3266447,
+        "event_id": 267779,
+        "truncated_url": "/events/267779",
+        "order_products_url": "/orders/new?event_id=267779&performance_id=3266447",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct 10, 2026 - 8:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-13 19:30:00 -0500",
+        "title": "The Alter Eagles - A Tribute To The Eagles",
+        "performance_id": 3261204,
+        "event_id": 266474,
+        "truncated_url": "/events/266474",
+        "order_products_url": "/orders/new?event_id=266474&performance_id=3261204",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Oct 13, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-14 19:30:00 -0500",
+        "title": "Adam Ferrara - Actor & Comedian",
+        "performance_id": 3262207,
+        "event_id": 266867,
+        "truncated_url": "/events/266867",
+        "order_products_url": "/orders/new?event_id=266867&performance_id=3262207",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Oct 14, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-15 19:30:00 -0500",
+        "title": "Adam Ferrara - Actor & Comedian",
+        "performance_id": 3262208,
+        "event_id": 266867,
+        "truncated_url": "/events/266867",
+        "order_products_url": "/orders/new?event_id=266867&performance_id=3262208",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Oct 15, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-16 19:30:00 -0500",
+        "title": "Adam Ferrara - Actor & Comedian",
+        "performance_id": 3262209,
+        "event_id": 266867,
+        "truncated_url": "/events/266867",
+        "order_products_url": "/orders/new?event_id=266867&performance_id=3262209",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Oct 16, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1792281600&end=1792886400",
+    "seconds": 0.59,
+    "items": [
+      {
+        "start": "2026-10-17 17:00:00 -0500",
+        "title": "Adam Ferrara - Actor & Comedian",
+        "performance_id": 3262210,
+        "event_id": 266867,
+        "truncated_url": "/events/266867",
+        "order_products_url": "/orders/new?event_id=266867&performance_id=3262210",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct 17, 2026 - 5:00pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-17 20:30:00 -0500",
+        "title": "Adam Ferrara - Actor & Comedian",
+        "performance_id": 3262211,
+        "event_id": 266867,
+        "truncated_url": "/events/266867",
+        "order_products_url": "/orders/new?event_id=266867&performance_id=3262211",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct 17, 2026 - 8:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-20 19:30:00 -0500",
+        "title": "Dwight Icenhower and The Blue Suede Review",
+        "performance_id": 3232496,
+        "event_id": 260027,
+        "truncated_url": "/events/260027",
+        "order_products_url": "/orders/new?event_id=260027&performance_id=3232496",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Oct 20, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-21 19:30:00 -0500",
+        "title": "Vic DiBitetto - Viral Internet Sensation",
+        "performance_id": 3252240,
+        "event_id": 263949,
+        "truncated_url": "/events/263949",
+        "order_products_url": "/orders/new?event_id=263949&performance_id=3252240",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Oct 21, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-22 19:30:00 -0500",
+        "title": "Vic DiBitetto - Viral Internet Sensation",
+        "performance_id": 3252241,
+        "event_id": 263949,
+        "truncated_url": "/events/263949",
+        "order_products_url": "/orders/new?event_id=263949&performance_id=3252241",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Oct 22, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-23 19:30:00 -0500",
+        "title": "Vic DiBitetto - Viral Internet Sensation",
+        "performance_id": 3252242,
+        "event_id": 263949,
+        "truncated_url": "/events/263949",
+        "order_products_url": "/orders/new?event_id=263949&performance_id=3252242",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Oct 23, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1792886400&end=1793491200",
+    "seconds": 0.79,
+    "items": [
+      {
+        "start": "2026-10-24 17:00:00 -0500",
+        "title": "Vic DiBitetto - Viral Internet Sensation",
+        "performance_id": 3252243,
+        "event_id": 263949,
+        "truncated_url": "/events/263949",
+        "order_products_url": "/orders/new?event_id=263949&performance_id=3252243",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct 24, 2026 - 5:00pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-24 20:30:00 -0500",
+        "title": "Vic DiBitetto - Viral Internet Sensation",
+        "performance_id": 3252244,
+        "event_id": 263949,
+        "truncated_url": "/events/263949",
+        "order_products_url": "/orders/new?event_id=263949&performance_id=3252244",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct 24, 2026 - 8:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-27 19:30:00 -0500",
+        "title": "Visani\u2019s 1st Comic Standing Comedy Competition - Finals",
+        "performance_id": 3251561,
+        "event_id": 263767,
+        "truncated_url": "/events/263767",
+        "order_products_url": "/orders/new?event_id=263767&performance_id=3251561",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Oct 27, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-28 19:30:00 -0500",
+        "title": "\"Goumba Johnny\" Sialiano",
+        "performance_id": 3275687,
+        "event_id": 270852,
+        "truncated_url": "/events/270852",
+        "order_products_url": "/orders/new?event_id=270852&performance_id=3275687",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Oct 28, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-29 19:30:00 -0500",
+        "title": "\"Goumba Johnny\" Sialiano",
+        "performance_id": 3275688,
+        "event_id": 270852,
+        "truncated_url": "/events/270852",
+        "order_products_url": "/orders/new?event_id=270852&performance_id=3275688",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Oct 29, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-30 19:30:00 -0500",
+        "title": "\"Goumba Johnny\" Sialiano",
+        "performance_id": 3275689,
+        "event_id": 270852,
+        "truncated_url": "/events/270852",
+        "order_products_url": "/orders/new?event_id=270852&performance_id=3275689",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Oct 30, 2026 - 7:30pm EDT",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1793491200&end=1794096000",
+    "seconds": 0.59,
+    "items": [
+      {
+        "start": "2026-10-31 17:00:00 -0500",
+        "title": "\"Goumba Johnny\" Sialiano",
+        "performance_id": 3275690,
+        "event_id": 270852,
+        "truncated_url": "/events/270852",
+        "order_products_url": "/orders/new?event_id=270852&performance_id=3275690",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct 31, 2026 - 5:00pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-10-31 20:30:00 -0500",
+        "title": "\"Goumba Johnny\" Sialiano",
+        "performance_id": 3275691,
+        "event_id": 270852,
+        "truncated_url": "/events/270852",
+        "order_products_url": "/orders/new?event_id=270852&performance_id=3275691",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Oct 31, 2026 - 8:30pm EDT",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-03 19:30:00 -0600",
+        "title": "Bad Moon Rising - The CCR Tribute!",
+        "performance_id": 3261590,
+        "event_id": 266612,
+        "truncated_url": "/events/266612",
+        "order_products_url": "/orders/new?event_id=266612&performance_id=3261590",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Nov  3, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-04 19:30:00 -0600",
+        "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+        "performance_id": 3263652,
+        "event_id": 267181,
+        "truncated_url": "/events/267181",
+        "order_products_url": "/orders/new?event_id=267181&performance_id=3263652",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Nov  4, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-05 19:30:00 -0600",
+        "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+        "performance_id": 3263653,
+        "event_id": 267181,
+        "truncated_url": "/events/267181",
+        "order_products_url": "/orders/new?event_id=267181&performance_id=3263653",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Nov  5, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-06 19:30:00 -0600",
+        "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+        "performance_id": 3263654,
+        "event_id": 267181,
+        "truncated_url": "/events/267181",
+        "order_products_url": "/orders/new?event_id=267181&performance_id=3263654",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Nov  6, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1794096000&end=1794700800",
+    "seconds": 0.67,
+    "items": [
+      {
+        "start": "2026-11-07 17:00:00 -0600",
+        "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+        "performance_id": 3263655,
+        "event_id": 267181,
+        "truncated_url": "/events/267181",
+        "order_products_url": "/orders/new?event_id=267181&performance_id=3263655",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Nov  7, 2026 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-07 20:30:00 -0600",
+        "title": "Bret Ernst - Italian Comedian from Cobra Kai",
+        "performance_id": 3263656,
+        "event_id": 267181,
+        "truncated_url": "/events/267181",
+        "order_products_url": "/orders/new?event_id=267181&performance_id=3263656",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Nov  7, 2026 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-10 19:30:00 -0600",
+        "title": "Rock of Abba",
+        "performance_id": 3263965,
+        "event_id": 267241,
+        "truncated_url": "/events/267241",
+        "order_products_url": "/orders/new?event_id=267241&performance_id=3263965",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Nov 10, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-13 18:30:00 -0600",
+        "title": "Ben Bankas Comedy ",
+        "performance_id": 3263936,
+        "event_id": 267233,
+        "truncated_url": "/events/267233",
+        "order_products_url": "/orders/new?event_id=267233&performance_id=3263936",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Nov 13, 2026 - 6:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-13 21:30:00 -0600",
+        "title": "Ben Bankas Comedy ",
+        "performance_id": 3263937,
+        "event_id": 267233,
+        "truncated_url": "/events/267233",
+        "order_products_url": "/orders/new?event_id=267233&performance_id=3263937",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Nov 13, 2026 - 9:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1794700800&end=1795305600",
+    "seconds": 0.6,
+    "items": [
+      {
+        "start": "2026-11-14 17:00:00 -0600",
+        "title": "Ben Bankas Comedy ",
+        "performance_id": 3263938,
+        "event_id": 267233,
+        "truncated_url": "/events/267233",
+        "order_products_url": "/orders/new?event_id=267233&performance_id=3263938",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Nov 14, 2026 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-14 20:30:00 -0600",
+        "title": "Ben Bankas Comedy ",
+        "performance_id": 3263939,
+        "event_id": 267233,
+        "truncated_url": "/events/267233",
+        "order_products_url": "/orders/new?event_id=267233&performance_id=3263939",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Nov 14, 2026 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-15 18:00:00 -0600",
+        "title": "Ben Bankas Comedy ",
+        "performance_id": 3263940,
+        "event_id": 267233,
+        "truncated_url": "/events/267233",
+        "order_products_url": "/orders/new?event_id=267233&performance_id=3263940",
+        "publicly_available": true,
+        "time_with_timezone": "Sun - Nov 15, 2026 - 6:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-16 19:30:00 -0600",
+        "title": "The Stone Cold And Jackal Holiday Show",
+        "performance_id": 3258748,
+        "event_id": 265676,
+        "truncated_url": "/events/265676",
+        "order_products_url": "/orders/new?event_id=265676&performance_id=3258748",
+        "publicly_available": true,
+        "time_with_timezone": "Mon - Nov 16, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-17 19:30:00 -0600",
+        "title": "Latitude Adjustment - The Jimmy Buffet Tribute",
+        "performance_id": 3261592,
+        "event_id": 266614,
+        "truncated_url": "/events/266614",
+        "order_products_url": "/orders/new?event_id=266614&performance_id=3261592",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Nov 17, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-19 19:30:00 -0600",
+        "title": "Drew Lynch",
+        "performance_id": 3237580,
+        "event_id": 260250,
+        "truncated_url": "/events/260250",
+        "order_products_url": "/orders/new?event_id=260250&performance_id=3237580",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Nov 19, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-20 18:30:00 -0600",
+        "title": "Drew Lynch",
+        "performance_id": 3237581,
+        "event_id": 260250,
+        "truncated_url": "/events/260250",
+        "order_products_url": "/orders/new?event_id=260250&performance_id=3237581",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Nov 20, 2026 - 6:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-20 21:30:00 -0600",
+        "title": "Drew Lynch",
+        "performance_id": 3237582,
+        "event_id": 260250,
+        "truncated_url": "/events/260250",
+        "order_products_url": "/orders/new?event_id=260250&performance_id=3237582",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Nov 20, 2026 - 9:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1795305600&end=1795910400",
+    "seconds": 0.59,
+    "items": [
+      {
+        "start": "2026-11-21 18:00:00 -0600",
+        "title": "Drew Lynch",
+        "performance_id": 3237583,
+        "event_id": 260250,
+        "truncated_url": "/events/260250",
+        "order_products_url": "/orders/new?event_id=260250&performance_id=3237583",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Nov 21, 2026 - 6:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-21 21:30:00 -0600",
+        "title": "Drew Lynch",
+        "performance_id": 3237584,
+        "event_id": 260250,
+        "truncated_url": "/events/260250",
+        "order_products_url": "/orders/new?event_id=260250&performance_id=3237584",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Nov 21, 2026 - 9:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-24 19:30:00 -0600",
+        "title": "Bread Zepplin",
+        "performance_id": 3263966,
+        "event_id": 267242,
+        "truncated_url": "/events/267242",
+        "order_products_url": "/orders/new?event_id=267242&performance_id=3263966",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Nov 24, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-25 19:30:00 -0600",
+        "title": "Jake Klark - Comedian, Writer, & Entertainer",
+        "performance_id": 3278505,
+        "event_id": 271720,
+        "truncated_url": "/events/271720",
+        "order_products_url": "/orders/new?event_id=271720&performance_id=3278505",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Nov 25, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-27 19:30:00 -0600",
+        "title": "Jake Klark - Comedian, Writer, & Entertainer",
+        "performance_id": 3278506,
+        "event_id": 271720,
+        "truncated_url": "/events/271720",
+        "order_products_url": "/orders/new?event_id=271720&performance_id=3278506",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Nov 27, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1795910400&end=1796515200",
+    "seconds": 0.87,
+    "items": [
+      {
+        "start": "2026-11-28 17:00:00 -0600",
+        "title": "Jake Klark - Comedian, Writer, & Entertainer",
+        "performance_id": 3278507,
+        "event_id": 271720,
+        "truncated_url": "/events/271720",
+        "order_products_url": "/orders/new?event_id=271720&performance_id=3278507",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Nov 28, 2026 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-28 20:30:00 -0600",
+        "title": "Jake Klark - Comedian, Writer, & Entertainer",
+        "performance_id": 3278508,
+        "event_id": 271720,
+        "truncated_url": "/events/271720",
+        "order_products_url": "/orders/new?event_id=271720&performance_id=3278508",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Nov 28, 2026 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-29 19:30:00 -0600",
+        "title": "The Ultimate Christmas Variety Show - Vegas Top Impersonators, The Edwards Twins!",
+        "performance_id": 3252444,
+        "event_id": 264006,
+        "truncated_url": "/events/264006",
+        "order_products_url": "/orders/new?event_id=264006&performance_id=3252444",
+        "publicly_available": true,
+        "time_with_timezone": "Sun - Nov 29, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-11-30 19:30:00 -0600",
+        "title": "The Ultimate Christmas Variety Show - Vegas Top Impersonators, The Edwards Twins!",
+        "performance_id": 3252445,
+        "event_id": 264006,
+        "truncated_url": "/events/264006",
+        "order_products_url": "/orders/new?event_id=264006&performance_id=3252445",
+        "publicly_available": true,
+        "time_with_timezone": "Mon - Nov 30, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-01 19:30:00 -0600",
+        "title": "Meet Loaf - The Ultimate Meat Loaf Tribute Band",
+        "performance_id": 3264213,
+        "event_id": 267307,
+        "truncated_url": "/events/267307",
+        "order_products_url": "/orders/new?event_id=267307&performance_id=3264213",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Dec  1, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-02 19:30:00 -0600",
+        "title": "Derek Richards",
+        "performance_id": 3263941,
+        "event_id": 267234,
+        "truncated_url": "/events/267234",
+        "order_products_url": "/orders/new?event_id=267234&performance_id=3263941",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Dec  2, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-03 19:30:00 -0600",
+        "title": "Derek Richards",
+        "performance_id": 3263942,
+        "event_id": 267234,
+        "truncated_url": "/events/267234",
+        "order_products_url": "/orders/new?event_id=267234&performance_id=3263942",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Dec  3, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-04 19:30:00 -0600",
+        "title": "Derek Richards",
+        "performance_id": 3263943,
+        "event_id": 267234,
+        "truncated_url": "/events/267234",
+        "order_products_url": "/orders/new?event_id=267234&performance_id=3263943",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Dec  4, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1796515200&end=1797120000",
+    "seconds": 0.84,
+    "items": [
+      {
+        "start": "2026-12-05 17:00:00 -0600",
+        "title": "Derek Richards",
+        "performance_id": 3263944,
+        "event_id": 267234,
+        "truncated_url": "/events/267234",
+        "order_products_url": "/orders/new?event_id=267234&performance_id=3263944",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Dec  5, 2026 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-05 20:30:00 -0600",
+        "title": "Derek Richards",
+        "performance_id": 3263945,
+        "event_id": 267234,
+        "truncated_url": "/events/267234",
+        "order_products_url": "/orders/new?event_id=267234&performance_id=3263945",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Dec  5, 2026 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-07 19:30:00 -0600",
+        "title": "Dwight Icenhower and The Blue Suede Review",
+        "performance_id": 3232497,
+        "event_id": 260028,
+        "truncated_url": "/events/260028",
+        "order_products_url": "/orders/new?event_id=260028&performance_id=3232497",
+        "publicly_available": true,
+        "time_with_timezone": "Mon - Dec  7, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-08 19:30:00 -0600",
+        "title": "The Alter Eagles - A Tribute To The Eagles",
+        "performance_id": 3261591,
+        "event_id": 266613,
+        "truncated_url": "/events/266613",
+        "order_products_url": "/orders/new?event_id=266613&performance_id=3261591",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Dec  8, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-09 19:30:00 -0600",
+        "title": "John Heffron - Celebrate Every Day!",
+        "performance_id": 3278496,
+        "event_id": 271718,
+        "truncated_url": "/events/271718",
+        "order_products_url": "/orders/new?event_id=271718&performance_id=3278496",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Dec  9, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-10 19:30:00 -0600",
+        "title": "John Heffron - Celebrate Every Day!",
+        "performance_id": 3278497,
+        "event_id": 271718,
+        "truncated_url": "/events/271718",
+        "order_products_url": "/orders/new?event_id=271718&performance_id=3278497",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Dec 10, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-11 19:30:00 -0600",
+        "title": "John Heffron - Celebrate Every Day!",
+        "performance_id": 3278498,
+        "event_id": 271718,
+        "truncated_url": "/events/271718",
+        "order_products_url": "/orders/new?event_id=271718&performance_id=3278498",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Dec 11, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1797120000&end=1797724800",
+    "seconds": 0.88,
+    "items": [
+      {
+        "start": "2026-12-12 17:00:00 -0600",
+        "title": "John Heffron - Celebrate Every Day!",
+        "performance_id": 3278499,
+        "event_id": 271718,
+        "truncated_url": "/events/271718",
+        "order_products_url": "/orders/new?event_id=271718&performance_id=3278499",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Dec 12, 2026 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-12 20:30:00 -0600",
+        "title": "John Heffron - Celebrate Every Day!",
+        "performance_id": 3278500,
+        "event_id": 271718,
+        "truncated_url": "/events/271718",
+        "order_products_url": "/orders/new?event_id=271718&performance_id=3278500",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Dec 12, 2026 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-14 19:30:00 -0600",
+        "title": "Elvis Christmas Show",
+        "performance_id": 3232500,
+        "event_id": 260031,
+        "truncated_url": "/events/260031",
+        "order_products_url": "/orders/new?event_id=260031&performance_id=3232500",
+        "publicly_available": true,
+        "time_with_timezone": "Mon - Dec 14, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-15 19:30:00 -0600",
+        "title": "Elvis Christmas Show",
+        "performance_id": 3232501,
+        "event_id": 260031,
+        "truncated_url": "/events/260031",
+        "order_products_url": "/orders/new?event_id=260031&performance_id=3232501",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Dec 15, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-16 19:30:00 -0600",
+        "title": "Rich Guzzi - Comedian Hypnotist Christmas Spectacular!",
+        "performance_id": 3264207,
+        "event_id": 267306,
+        "truncated_url": "/events/267306",
+        "order_products_url": "/orders/new?event_id=267306&performance_id=3264207",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Dec 16, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-17 19:30:00 -0600",
+        "title": "Rich Guzzi - Comedian Hypnotist Christmas Spectacular!",
+        "performance_id": 3264208,
+        "event_id": 267306,
+        "truncated_url": "/events/267306",
+        "order_products_url": "/orders/new?event_id=267306&performance_id=3264208",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Dec 17, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-18 18:30:00 -0600",
+        "title": "Rich Guzzi - Comedian Hypnotist Christmas Spectacular!",
+        "performance_id": 3264209,
+        "event_id": 267306,
+        "truncated_url": "/events/267306",
+        "order_products_url": "/orders/new?event_id=267306&performance_id=3264209",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Dec 18, 2026 - 6:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-18 21:30:00 -0600",
+        "title": "Rich Guzzi - Comedian Hypnotist Christmas Spectacular!",
+        "performance_id": 3264210,
+        "event_id": 267306,
+        "truncated_url": "/events/267306",
+        "order_products_url": "/orders/new?event_id=267306&performance_id=3264210",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Dec 18, 2026 - 9:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1797724800&end=1798329600",
+    "seconds": 0.82,
+    "items": [
+      {
+        "start": "2026-12-19 17:00:00 -0600",
+        "title": "Rich Guzzi - Comedian Hypnotist Christmas Spectacular!",
+        "performance_id": 3264211,
+        "event_id": 267306,
+        "truncated_url": "/events/267306",
+        "order_products_url": "/orders/new?event_id=267306&performance_id=3264211",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Dec 19, 2026 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-19 20:30:00 -0600",
+        "title": "Rich Guzzi - Comedian Hypnotist Christmas Spectacular!",
+        "performance_id": 3264212,
+        "event_id": 267306,
+        "truncated_url": "/events/267306",
+        "order_products_url": "/orders/new?event_id=267306&performance_id=3264212",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Dec 19, 2026 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-21 19:30:00 -0600",
+        "title": "Almighty Queen - A Tribute to Queen",
+        "performance_id": 3264214,
+        "event_id": 267308,
+        "truncated_url": "/events/267308",
+        "order_products_url": "/orders/new?event_id=267308&performance_id=3264214",
+        "publicly_available": true,
+        "time_with_timezone": "Mon - Dec 21, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-22 19:30:00 -0600",
+        "title": "The Foreigner Experience - a Tribute",
+        "performance_id": 3264216,
+        "event_id": 267310,
+        "truncated_url": "/events/267310",
+        "order_products_url": "/orders/new?event_id=267310&performance_id=3264216",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Dec 22, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-23 19:30:00 -0600",
+        "title": "Ron Feingold - Comedy A Cappella",
+        "performance_id": 3278501,
+        "event_id": 271719,
+        "truncated_url": "/events/271719",
+        "order_products_url": "/orders/new?event_id=271719&performance_id=3278501",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Dec 23, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-24 19:30:00 -0600",
+        "title": "Ron Feingold - Comedy A Cappella",
+        "performance_id": 3278502,
+        "event_id": 271719,
+        "truncated_url": "/events/271719",
+        "order_products_url": "/orders/new?event_id=271719&performance_id=3278502",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Dec 24, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1798329600&end=1798934400",
+    "seconds": 1.11,
+    "items": [
+      {
+        "start": "2026-12-26 17:00:00 -0600",
+        "title": "Ron Feingold - Comedy A Cappella",
+        "performance_id": 3278503,
+        "event_id": 271719,
+        "truncated_url": "/events/271719",
+        "order_products_url": "/orders/new?event_id=271719&performance_id=3278503",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Dec 26, 2026 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-26 20:30:00 -0600",
+        "title": "Ron Feingold - Comedy A Cappella",
+        "performance_id": 3278504,
+        "event_id": 271719,
+        "truncated_url": "/events/271719",
+        "order_products_url": "/orders/new?event_id=271719&performance_id=3278504",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Dec 26, 2026 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-29 19:30:00 -0600",
+        "title": "Majesty of Rock - The Ultimate Tribute to Journey",
+        "performance_id": 3264215,
+        "event_id": 267309,
+        "truncated_url": "/events/267309",
+        "order_products_url": "/orders/new?event_id=267309&performance_id=3264215",
+        "publicly_available": true,
+        "time_with_timezone": "Tue - Dec 29, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2026-12-30 19:30:00 -0600",
+        "title": "Dual Headliners ~ Nathan Wallace & Sheena Reagan",
+        "performance_id": 3278509,
+        "event_id": 271721,
+        "truncated_url": "/events/271721",
+        "order_products_url": "/orders/new?event_id=271721&performance_id=3278509",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Dec 30, 2026 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-01 19:30:00 -0600",
+        "title": "Dean Napolitano - TV Star",
+        "performance_id": 3278510,
+        "event_id": 271722,
+        "truncated_url": "/events/271722",
+        "order_products_url": "/orders/new?event_id=271722&performance_id=3278510",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Jan  1, 2027 - 7:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1798934400&end=1799539200",
+    "seconds": 0.99,
+    "items": [
+      {
+        "start": "2027-01-02 17:00:00 -0600",
+        "title": "Dean Napolitano - TV Star",
+        "performance_id": 3278511,
+        "event_id": 271722,
+        "truncated_url": "/events/271722",
+        "order_products_url": "/orders/new?event_id=271722&performance_id=3278511",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Jan  2, 2027 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-02 20:30:00 -0600",
+        "title": "Dean Napolitano - TV Star",
+        "performance_id": 3278512,
+        "event_id": 271722,
+        "truncated_url": "/events/271722",
+        "order_products_url": "/orders/new?event_id=271722&performance_id=3278512",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Jan  2, 2027 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-06 19:30:00 -0600",
+        "title": "Dale Jones",
+        "performance_id": 3275958,
+        "event_id": 270956,
+        "truncated_url": "/events/270956",
+        "order_products_url": "/orders/new?event_id=270956&performance_id=3275958",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Jan  6, 2027 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-07 19:30:00 -0600",
+        "title": "Dale Jones",
+        "performance_id": 3275959,
+        "event_id": 270956,
+        "truncated_url": "/events/270956",
+        "order_products_url": "/orders/new?event_id=270956&performance_id=3275959",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Jan  7, 2027 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-08 19:30:00 -0600",
+        "title": "Dale Jones",
+        "performance_id": 3275960,
+        "event_id": 270956,
+        "truncated_url": "/events/270956",
+        "order_products_url": "/orders/new?event_id=270956&performance_id=3275960",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Jan  8, 2027 - 7:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1799539200&end=1800144000",
+    "seconds": 1.11,
+    "items": [
+      {
+        "start": "2027-01-09 17:00:00 -0600",
+        "title": "Dale Jones",
+        "performance_id": 3275961,
+        "event_id": 270956,
+        "truncated_url": "/events/270956",
+        "order_products_url": "/orders/new?event_id=270956&performance_id=3275961",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Jan  9, 2027 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-09 20:30:00 -0600",
+        "title": "Dale Jones",
+        "performance_id": 3275962,
+        "event_id": 270956,
+        "truncated_url": "/events/270956",
+        "order_products_url": "/orders/new?event_id=270956&performance_id=3275962",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Jan  9, 2027 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-13 19:30:00 -0600",
+        "title": "Tammy Pescatelli ",
+        "performance_id": 3262216,
+        "event_id": 266868,
+        "truncated_url": "/events/266868",
+        "order_products_url": "/orders/new?event_id=266868&performance_id=3262216",
+        "publicly_available": true,
+        "time_with_timezone": "Wed - Jan 13, 2027 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-14 19:30:00 -0600",
+        "title": "Tammy Pescatelli ",
+        "performance_id": 3262217,
+        "event_id": 266868,
+        "truncated_url": "/events/266868",
+        "order_products_url": "/orders/new?event_id=266868&performance_id=3262217",
+        "publicly_available": true,
+        "time_with_timezone": "Thu - Jan 14, 2027 - 7:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-15 19:30:00 -0600",
+        "title": "Tammy Pescatelli ",
+        "performance_id": 3262218,
+        "event_id": 266868,
+        "truncated_url": "/events/266868",
+        "order_products_url": "/orders/new?event_id=266868&performance_id=3262218",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Jan 15, 2027 - 7:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  },
+  {
+    "url": "https://visanientertainmentinc.thundertix.com/reports/calendar?week=0&start=1800144000&end=1800748800",
+    "seconds": 1.15,
+    "items": [
+      {
+        "start": "2027-01-16 17:00:00 -0600",
+        "title": "Tammy Pescatelli ",
+        "performance_id": 3262219,
+        "event_id": 266868,
+        "truncated_url": "/events/266868",
+        "order_products_url": "/orders/new?event_id=266868&performance_id=3262219",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Jan 16, 2027 - 5:00pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-16 20:30:00 -0600",
+        "title": "Tammy Pescatelli ",
+        "performance_id": 3262220,
+        "event_id": 266868,
+        "truncated_url": "/events/266868",
+        "order_products_url": "/orders/new?event_id=266868&performance_id=3262220",
+        "publicly_available": true,
+        "time_with_timezone": "Sat - Jan 16, 2027 - 8:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-22 18:30:00 -0600",
+        "title": "Kevin Nealon",
+        "performance_id": 3275985,
+        "event_id": 270968,
+        "truncated_url": "/events/270968",
+        "order_products_url": "/orders/new?event_id=270968&performance_id=3275985",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Jan 22, 2027 - 6:30pm EST",
+        "is_sold_out": false
+      },
+      {
+        "start": "2027-01-22 21:30:00 -0600",
+        "title": "Kevin Nealon",
+        "performance_id": 3275986,
+        "event_id": 270968,
+        "truncated_url": "/events/270968",
+        "order_products_url": "/orders/new?event_id=270968&performance_id=3275986",
+        "publicly_available": true,
+        "time_with_timezone": "Fri - Jan 22, 2027 - 9:30pm EST",
+        "is_sold_out": false
+      }
+    ]
+  }
+]
