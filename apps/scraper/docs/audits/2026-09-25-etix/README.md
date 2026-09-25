@@ -42,10 +42,38 @@ changes. A production transaction dry run changed exactly five rows; replay
 changed zero, and both runs were rolled back. No shows are deleted by the SQL.
 
 TASK-4082 tracks authoritative resolution of Ridley's five conflicting IDs.
+TASK-4083 tracks the remaining unsupported Etix access at Laughing Tap, Vixen,
+and Ann Arbor. TASK-2858 owns general scheduled reprobe automation.
 
-Scheduled-run verification results and final inventory are recorded separately
-after execution. TASK-2858 owns general scheduled reprobe automation; it does
-not substitute for restoring these current feeds.
+## Scheduled-environment outcome
+
+The migration was applied and all five source URLs were verified afterward.
+All eight single-club GitHub runs completed on commit `42bf6d8f5`, using the
+nightly browser/proxy/solver setup. Full evidence and run links are in
+[scheduled-verification.json](scheduled-verification.json).
+
+| Venue | DB run | Upcoming shows | Result |
+|---|---:|---:|---|
+| Ridley | 1454 | 102 | Supported performances persisted; five ambiguous ticket IDs omitted |
+| Robins | 1451 | 0 | Healthy calendar, no eligible comedy |
+| Winery | 1450 | 0 | Verified empty calendar |
+| Laughing Tap | 1458 | 0 | HTTP 403, bot block, `success=false` |
+| Des Plaines | 1462 | 1 | Verified Terry Fator performance persisted |
+| Raue | 1456 | 16 | Comedy performances persisted; class excluded |
+| Vixen | 1464 | 0 | HTTP 403, bot block, `success=false` |
+| Ann Arbor | 1460 | 0 | HTTP 403, bot block, `success=false` |
+
+All 119 stored names and UTC times match the source preview. Every show has a
+ticket, no ticket is falsely free, and the class/play/screening exclusions are
+absent. Existing Phil Hanley IDs 2874906/2874907 were refreshed in place with
+their original correct dates. No comedian identities were created during these
+runs. Full scraper tests passed; the Etix suite contains 90 passing cases.
+
+Observability limitation: Ridley's runtime failed-fetch signal prevents stale
+reconciliation, but the existing metrics serializer omits that counter and
+reports success when any shows exist. The runner log preserves the explicit
+five-ID conflict warning. This evidence is attached to TASK-4059; its audit
+must distinguish partial nonempty inventory from complete healthy coverage.
 
 ## Reproduction
 

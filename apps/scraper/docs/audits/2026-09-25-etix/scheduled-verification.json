@@ -1,0 +1,209 @@
+{
+  "verified_at": "2026-09-25T20:18:04.648480+00:00",
+  "tested_commit": "42bf6d8f512d4446f5daa47dd164f107c35d3443",
+  "health": [
+    {
+      "id": 4756,
+      "name": "Mark Ridley's Comedy Castle",
+      "upcoming": 102,
+      "run_id": 1454,
+      "num_shows": 102,
+      "success": true,
+      "error_message": null,
+      "bot_block_detected": false,
+      "http_status": null,
+      "created_at": "2026-09-25 20:15:44.986854+00:00"
+    },
+    {
+      "id": 8715,
+      "name": "Robins Theatre",
+      "upcoming": 0,
+      "run_id": 1451,
+      "num_shows": 0,
+      "success": true,
+      "error_message": null,
+      "bot_block_detected": false,
+      "http_status": null,
+      "created_at": "2026-09-25 20:15:37.126508+00:00"
+    },
+    {
+      "id": 8730,
+      "name": "The Original Pittsburgh Winery",
+      "upcoming": 0,
+      "run_id": 1450,
+      "num_shows": 0,
+      "success": true,
+      "error_message": null,
+      "bot_block_detected": false,
+      "http_status": null,
+      "created_at": "2026-09-25 20:15:36.097068+00:00"
+    },
+    {
+      "id": 9070,
+      "name": "The Laughing Tap",
+      "upcoming": 0,
+      "run_id": 1458,
+      "num_shows": 0,
+      "success": false,
+      "error_message": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=27614&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=27614&orderBy=1&pageNumber=1",
+      "bot_block_detected": true,
+      "http_status": 403,
+      "created_at": "2026-09-25 20:15:52.621205+00:00"
+    },
+    {
+      "id": 9072,
+      "name": "Des Plaines Theatre",
+      "upcoming": 1,
+      "run_id": 1462,
+      "num_shows": 1,
+      "success": true,
+      "error_message": null,
+      "bot_block_detected": false,
+      "http_status": null,
+      "created_at": "2026-09-25 20:16:26.245414+00:00"
+    },
+    {
+      "id": 9073,
+      "name": "Raue Center For The Arts",
+      "upcoming": 16,
+      "run_id": 1456,
+      "num_shows": 16,
+      "success": true,
+      "error_message": null,
+      "bot_block_detected": false,
+      "http_status": null,
+      "created_at": "2026-09-25 20:15:49.876566+00:00"
+    },
+    {
+      "id": 9074,
+      "name": "The Vixen",
+      "upcoming": 0,
+      "run_id": 1464,
+      "num_shows": 0,
+      "success": false,
+      "error_message": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=28278&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=28278&orderBy=1&pageNumber=1",
+      "bot_block_detected": true,
+      "http_status": 403,
+      "created_at": "2026-09-25 20:16:31.370350+00:00"
+    },
+    {
+      "id": 16122,
+      "name": "Ann Arbor Comedy Showcase",
+      "upcoming": 0,
+      "run_id": 1460,
+      "num_shows": 0,
+      "success": false,
+      "error_message": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1",
+      "bot_block_detected": true,
+      "http_status": 403,
+      "created_at": "2026-09-25 20:15:56.203216+00:00"
+    }
+  ],
+  "ticket_quality": [
+    {
+      "club_id": 4756,
+      "shows": 102,
+      "ticketless": 0,
+      "free_tickets": 0,
+      "unknown_price_tickets": 0
+    },
+    {
+      "club_id": 9072,
+      "shows": 1,
+      "ticketless": 0,
+      "free_tickets": 0,
+      "unknown_price_tickets": 1
+    },
+    {
+      "club_id": 9073,
+      "shows": 16,
+      "ticketless": 0,
+      "free_tickets": 0,
+      "unknown_price_tickets": 16
+    }
+  ],
+  "preserved_phil_hanley": [
+    {
+      "id": 2874906,
+      "name": "PHIL HANLEY",
+      "date": "2026-10-24 01:45:00+00:00",
+      "last_scraped_date": "2026-09-25 20:15:37.860732+00:00"
+    },
+    {
+      "id": 2874907,
+      "name": "PHIL HANLEY",
+      "date": "2026-10-24 23:00:00+00:00",
+      "last_scraped_date": "2026-09-25 20:15:37.860733+00:00"
+    }
+  ],
+  "excluded_titles_present": [],
+  "new_comedians_during_verification": [],
+  "source_preview_matches_all_stored_names_and_utc_times": true,
+  "github_runs": [
+    {
+      "conclusion": "success",
+      "createdAt": "2026-09-25T20:15:02Z",
+      "databaseId": 36184619947,
+      "headSha": "42bf6d8f512d4446f5daa47dd164f107c35d3443",
+      "status": "completed",
+      "url": "https://github.com/gioe/laughtrack/actions/runs/36184619947"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-09-25T20:15:01Z",
+      "databaseId": 36184616974,
+      "headSha": "42bf6d8f512d4446f5daa47dd164f107c35d3443",
+      "status": "completed",
+      "url": "https://github.com/gioe/laughtrack/actions/runs/36184616974"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-09-25T20:14:59Z",
+      "databaseId": 36184614304,
+      "headSha": "42bf6d8f512d4446f5daa47dd164f107c35d3443",
+      "status": "completed",
+      "url": "https://github.com/gioe/laughtrack/actions/runs/36184614304"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-09-25T20:14:58Z",
+      "databaseId": 36184611821,
+      "headSha": "42bf6d8f512d4446f5daa47dd164f107c35d3443",
+      "status": "completed",
+      "url": "https://github.com/gioe/laughtrack/actions/runs/36184611821"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-09-25T20:14:56Z",
+      "databaseId": 36184609096,
+      "headSha": "42bf6d8f512d4446f5daa47dd164f107c35d3443",
+      "status": "completed",
+      "url": "https://github.com/gioe/laughtrack/actions/runs/36184609096"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-09-25T20:14:54Z",
+      "databaseId": 36184606080,
+      "headSha": "42bf6d8f512d4446f5daa47dd164f107c35d3443",
+      "status": "completed",
+      "url": "https://github.com/gioe/laughtrack/actions/runs/36184606080"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-09-25T20:14:53Z",
+      "databaseId": 36184603523,
+      "headSha": "42bf6d8f512d4446f5daa47dd164f107c35d3443",
+      "status": "completed",
+      "url": "https://github.com/gioe/laughtrack/actions/runs/36184603523"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-09-25T20:14:51Z",
+      "databaseId": 36184600854,
+      "headSha": "42bf6d8f512d4446f5daa47dd164f107c35d3443",
+      "status": "completed",
+      "url": "https://github.com/gioe/laughtrack/actions/runs/36184600854"
+    }
+  ],
+  "limitations": "Ridley returns partial inventory: runtime failed-fetch diagnostics block reconciliation, but existing run metrics omit that counter and still report success=true when any shows exist. Three vendor-blocked sources correctly report success=false. TASK4082/4083 track remaining restrictions; TASK4059 tracks audit observability."
+}
