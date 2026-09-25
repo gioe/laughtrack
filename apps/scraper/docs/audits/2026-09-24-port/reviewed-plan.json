@@ -1,0 +1,2651 @@
+{
+  "captured_at": "2026-09-24T22:46:26.205189+00:00",
+  "expected_source": {
+    "id": 7054,
+    "club_id": 11482,
+    "enabled": true,
+    "platform": "custom",
+    "scraper_key": "seetickets_whitelabel",
+    "source_url": "https://wl.eventim.us/?afflky=ThePortComedyClub",
+    "metadata": {
+      "page_size": 15,
+      "max_months": 12,
+      "profile_id": "15127815",
+      "affiliate_key": "ThePortComedyClub",
+      "whitelabel_key": "ThePortComedyClub"
+    }
+  },
+  "expected_shows": {
+    "3434233": {
+      "id": 3434233,
+      "name": "New Material Night",
+      "date": "2026-06-28T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/679796?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-28T19:27:23.311975+00:00"
+    },
+    "3434234": {
+      "id": 3434234,
+      "name": "Captain's Quarters",
+      "date": "2026-06-29T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/679769?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-28T19:27:23.311983+00:00"
+    },
+    "3434236": {
+      "id": 3434236,
+      "name": "The Boiler Room",
+      "date": "2026-07-01T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697109?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335275+00:00"
+    },
+    "3434237": {
+      "id": 3434237,
+      "name": "Reggie Watts",
+      "date": "2026-07-02T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/reggie-watts/689200?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335283+00:00"
+    },
+    "3434238": {
+      "id": 3434238,
+      "name": "Reggie Watts",
+      "date": "2026-07-03T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Reggie-Watts/689201?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335286+00:00"
+    },
+    "3434239": {
+      "id": 3434239,
+      "name": "Reggie Watts",
+      "date": "2026-07-04T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Reggie-Watts/689204?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335288+00:00"
+    },
+    "3434240": {
+      "id": 3434240,
+      "name": "New Material Night",
+      "date": "2026-07-05T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697006?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335290+00:00"
+    },
+    "3434241": {
+      "id": 3434241,
+      "name": "Captain's Quarters",
+      "date": "2026-07-06T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697032?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335293+00:00"
+    },
+    "3434242": {
+      "id": 3434242,
+      "name": "Best on Broadway",
+      "date": "2026-07-07T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697084?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335295+00:00"
+    },
+    "3434243": {
+      "id": 3434243,
+      "name": "Carmen Lynch",
+      "date": "2026-07-08T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/carmen-lynch/688451?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335297+00:00"
+    },
+    "3434244": {
+      "id": 3434244,
+      "name": "Lee Syatt",
+      "date": "2026-07-09T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/lee-syatt/694774?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335299+00:00"
+    },
+    "3434245": {
+      "id": 3434245,
+      "name": "Luis J Gomez",
+      "date": "2026-07-10T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/luis-j-gomez/679256?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335302+00:00"
+    },
+    "3434246": {
+      "id": 3434246,
+      "name": "Luis J Gomez",
+      "date": "2026-07-11T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Luis-J-Gomez/679261?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335303+00:00"
+    },
+    "3434247": {
+      "id": 3434247,
+      "name": "New Material Night",
+      "date": "2026-07-12T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697007?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335305+00:00"
+    },
+    "3434248": {
+      "id": 3434248,
+      "name": "Captain's Quarters",
+      "date": "2026-07-13T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697033?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335307+00:00"
+    },
+    "3434249": {
+      "id": 3434249,
+      "name": "Best on Broadway",
+      "date": "2026-07-14T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697085?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335309+00:00"
+    },
+    "3434250": {
+      "id": 3434250,
+      "name": "The Boiler Room",
+      "date": "2026-07-15T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697110?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335311+00:00"
+    },
+    "3434251": {
+      "id": 3434251,
+      "name": "Dedrick Flynn",
+      "date": "2026-07-16T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/dedrick-flynn/676322?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335313+00:00"
+    },
+    "3434252": {
+      "id": 3434252,
+      "name": "Dedrick Flynn",
+      "date": "2026-07-17T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Dedrick-Flynn/676323?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335315+00:00"
+    },
+    "3434253": {
+      "id": 3434253,
+      "name": "Dedrick Flynn",
+      "date": "2026-07-18T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Dedrick-Flynn/676326?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335317+00:00"
+    },
+    "3434254": {
+      "id": 3434254,
+      "name": "New Material Night",
+      "date": "2026-07-19T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697008?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335318+00:00"
+    },
+    "3434255": {
+      "id": 3434255,
+      "name": "Captain's Quarters",
+      "date": "2026-07-20T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697034?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335320+00:00"
+    },
+    "3434256": {
+      "id": 3434256,
+      "name": "Best on Broadway",
+      "date": "2026-07-21T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697086?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335322+00:00"
+    },
+    "3434257": {
+      "id": 3434257,
+      "name": "The Boiler Room",
+      "date": "2026-07-22T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697111?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335324+00:00"
+    },
+    "3434258": {
+      "id": 3434258,
+      "name": "Kyle Dunnigan",
+      "date": "2026-07-23T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/kyle-dunnigan/696195?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335326+00:00"
+    },
+    "3434259": {
+      "id": 3434259,
+      "name": "Kyle Dunnigan",
+      "date": "2026-07-24T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Kyle-Dunnigan/696196?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335328+00:00"
+    },
+    "3434260": {
+      "id": 3434260,
+      "name": "Kyle Dunnigan",
+      "date": "2026-07-25T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Kyle-Dunnigan/696199?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335330+00:00"
+    },
+    "3434261": {
+      "id": 3434261,
+      "name": "New Material Night",
+      "date": "2026-07-26T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697009?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335331+00:00"
+    },
+    "3434262": {
+      "id": 3434262,
+      "name": "Captain's Quarters",
+      "date": "2026-07-27T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697035?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335333+00:00"
+    },
+    "3434263": {
+      "id": 3434263,
+      "name": "Best on Broadway",
+      "date": "2026-07-28T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697087?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335335+00:00"
+    },
+    "3434264": {
+      "id": 3434264,
+      "name": "The Boiler Room",
+      "date": "2026-07-29T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697112?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335337+00:00"
+    },
+    "3434265": {
+      "id": 3434265,
+      "name": "Malik Elassal",
+      "date": "2026-07-30T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/malik-elassal/685728?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335339+00:00"
+    },
+    "3434266": {
+      "id": 3434266,
+      "name": "Malik Elassal",
+      "date": "2026-07-31T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Malik-Elassal/685751?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335341+00:00"
+    },
+    "3434267": {
+      "id": 3434267,
+      "name": "Malik Elassal",
+      "date": "2026-08-01T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Malik-Elassal/685754?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335342+00:00"
+    },
+    "3434268": {
+      "id": 3434268,
+      "name": "New Material Night",
+      "date": "2026-08-02T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697010?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335344+00:00"
+    },
+    "3434269": {
+      "id": 3434269,
+      "name": "Captain's Quarters",
+      "date": "2026-08-03T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697036?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335346+00:00"
+    },
+    "3434270": {
+      "id": 3434270,
+      "name": "Best on Broadway",
+      "date": "2026-08-04T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697088?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335348+00:00"
+    },
+    "3434271": {
+      "id": 3434271,
+      "name": "The Boiler Room",
+      "date": "2026-08-05T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697113?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335350+00:00"
+    },
+    "3434272": {
+      "id": 3434272,
+      "name": "Winston Hodges",
+      "date": "2026-08-06T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/winston-hodges/694250?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335351+00:00"
+    },
+    "3434273": {
+      "id": 3434273,
+      "name": "Winston Hodges",
+      "date": "2026-08-07T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Winston-Hodges/694253?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335353+00:00"
+    },
+    "3434274": {
+      "id": 3434274,
+      "name": "Winston Hodges",
+      "date": "2026-08-08T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Winston-Hodges/694260?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335355+00:00"
+    },
+    "3434275": {
+      "id": 3434275,
+      "name": "New Material Night",
+      "date": "2026-08-09T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697011?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335357+00:00"
+    },
+    "3434276": {
+      "id": 3434276,
+      "name": "Captain's Quarters",
+      "date": "2026-08-10T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697037?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335359+00:00"
+    },
+    "3434277": {
+      "id": 3434277,
+      "name": "Best on Broadway",
+      "date": "2026-08-11T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697089?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335361+00:00"
+    },
+    "3434278": {
+      "id": 3434278,
+      "name": "The Boiler Room",
+      "date": "2026-08-12T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697114?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335362+00:00"
+    },
+    "3434279": {
+      "id": 3434279,
+      "name": "Dan Soder",
+      "date": "2026-08-13T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/dan-soder/689545?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335364+00:00"
+    },
+    "3434280": {
+      "id": 3434280,
+      "name": "Dan Soder",
+      "date": "2026-08-14T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Dan-Soder/689547?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335366+00:00"
+    },
+    "3434281": {
+      "id": 3434281,
+      "name": "Jay Yoder",
+      "date": "2026-08-15T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/jay-yoder/694028?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335368+00:00"
+    },
+    "3434282": {
+      "id": 3434282,
+      "name": "New Material Night",
+      "date": "2026-08-16T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697012?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335370+00:00"
+    },
+    "3434283": {
+      "id": 3434283,
+      "name": "Captain's Quarters",
+      "date": "2026-08-17T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697038?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335371+00:00"
+    },
+    "3434284": {
+      "id": 3434284,
+      "name": "Best on Broadway",
+      "date": "2026-08-18T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697090?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335373+00:00"
+    },
+    "3434285": {
+      "id": 3434285,
+      "name": "The Boiler Room",
+      "date": "2026-08-19T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697115?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335375+00:00"
+    },
+    "3434286": {
+      "id": 3434286,
+      "name": "Chanel Ali",
+      "date": "2026-08-20T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/chanel-ali/694781?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335377+00:00"
+    },
+    "3434287": {
+      "id": 3434287,
+      "name": "Rachel Feinstein",
+      "date": "2026-08-21T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/rachel-feinstein/686297?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335379+00:00"
+    },
+    "3434288": {
+      "id": 3434288,
+      "name": "Rachel Feinstein",
+      "date": "2026-08-22T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Rachel-Feinstein/686301?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335381+00:00"
+    },
+    "3434289": {
+      "id": 3434289,
+      "name": "New Material Night",
+      "date": "2026-08-23T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697013?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335383+00:00"
+    },
+    "3434290": {
+      "id": 3434290,
+      "name": "Captain's Quarters",
+      "date": "2026-08-24T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697039?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335385+00:00"
+    },
+    "3434291": {
+      "id": 3434291,
+      "name": "Suzanne Lambert",
+      "date": "2026-08-25T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/suzanne-lambert/695757?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335386+00:00"
+    },
+    "3434292": {
+      "id": 3434292,
+      "name": "Suzanne Lambert",
+      "date": "2026-08-26T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Suzanne-Lambert/695759?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335388+00:00"
+    },
+    "3434293": {
+      "id": 3434293,
+      "name": "Tommy Brennan",
+      "date": "2026-08-27T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/tommy-brennan/660021?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335390+00:00"
+    },
+    "3434294": {
+      "id": 3434294,
+      "name": "Tommy Brennan",
+      "date": "2026-08-28T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Tommy-Brennan/660023?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335392+00:00"
+    },
+    "3434295": {
+      "id": 3434295,
+      "name": "Tommy Brennan",
+      "date": "2026-08-29T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Tommy-Brennan/660025?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335394+00:00"
+    },
+    "3434296": {
+      "id": 3434296,
+      "name": "Benny Feldman",
+      "date": "2026-08-30T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/benny-feldman/694789?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:49.335395+00:00"
+    },
+    "3434297": {
+      "id": 3434297,
+      "name": "The Open Mic",
+      "date": "2026-08-31T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Open-Mic/697066?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377264+00:00"
+    },
+    "3434298": {
+      "id": 3434298,
+      "name": "Best on Broadway",
+      "date": "2026-09-01T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697092?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377272+00:00"
+    },
+    "3434299": {
+      "id": 3434299,
+      "name": "The Boiler Room",
+      "date": "2026-09-02T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697117?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377275+00:00"
+    },
+    "3434300": {
+      "id": 3434300,
+      "name": "Casey Rocket",
+      "date": "2026-09-03T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/casey-rocket/688075?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377278+00:00"
+    },
+    "3434301": {
+      "id": 3434301,
+      "name": "Casey Rocket",
+      "date": "2026-09-04T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Casey-Rocket/688078?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377280+00:00"
+    },
+    "3434302": {
+      "id": 3434302,
+      "name": "Casey Rocket",
+      "date": "2026-09-05T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Casey-Rocket/688079?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377282+00:00"
+    },
+    "3434303": {
+      "id": 3434303,
+      "name": "New Material Night",
+      "date": "2026-09-06T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697014?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377285+00:00"
+    },
+    "3434304": {
+      "id": 3434304,
+      "name": "Captain's Quarters",
+      "date": "2026-09-07T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697041?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377286+00:00"
+    },
+    "3434305": {
+      "id": 3434305,
+      "name": "Best on Broadway",
+      "date": "2026-09-08T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697093?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377288+00:00"
+    },
+    "3434306": {
+      "id": 3434306,
+      "name": "The Boiler Room",
+      "date": "2026-09-09T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697118?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377290+00:00"
+    },
+    "3434307": {
+      "id": 3434307,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-09-10T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697146?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377292+00:00"
+    },
+    "3434308": {
+      "id": 3434308,
+      "name": "Leslie Liao",
+      "date": "2026-09-11T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/leslie-liao/686614?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377294+00:00"
+    },
+    "3434309": {
+      "id": 3434309,
+      "name": "Leslie Liao",
+      "date": "2026-09-12T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Leslie-Liao/686618?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377296+00:00"
+    },
+    "3434310": {
+      "id": 3434310,
+      "name": "New Material Night",
+      "date": "2026-09-13T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697015?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377298+00:00"
+    },
+    "3434311": {
+      "id": 3434311,
+      "name": "Captain's Quarters",
+      "date": "2026-09-14T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697042?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377300+00:00"
+    },
+    "3434312": {
+      "id": 3434312,
+      "name": "Best on Broadway",
+      "date": "2026-09-15T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697094?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377302+00:00"
+    },
+    "3434313": {
+      "id": 3434313,
+      "name": "The Boiler Room",
+      "date": "2026-09-16T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697119?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377304+00:00"
+    },
+    "3434314": {
+      "id": 3434314,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-09-17T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697148?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377306+00:00"
+    },
+    "3434315": {
+      "id": 3434315,
+      "name": "Jeffrey Keller",
+      "date": "2026-09-18T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/jeffrey-keller/681126?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377307+00:00"
+    },
+    "3434316": {
+      "id": 3434316,
+      "name": "Jeffrey Keller",
+      "date": "2026-09-19T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Jeffrey-Keller/681131?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377309+00:00"
+    },
+    "3434317": {
+      "id": 3434317,
+      "name": "New Material Night",
+      "date": "2026-09-20T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697016?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377311+00:00"
+    },
+    "3434318": {
+      "id": 3434318,
+      "name": "Captain's Quarters",
+      "date": "2026-09-21T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697043?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377313+00:00"
+    },
+    "3434319": {
+      "id": 3434319,
+      "name": "Best on Broadway",
+      "date": "2026-09-22T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697134?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377315+00:00"
+    },
+    "3434320": {
+      "id": 3434320,
+      "name": "Red Richardson",
+      "date": "2026-09-23T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/red-richardson/694793?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377317+00:00"
+    },
+    "3434321": {
+      "id": 3434321,
+      "name": "Rosebud Baker",
+      "date": "2026-09-24T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/rosebud-baker/680619?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377319+00:00"
+    },
+    "3434322": {
+      "id": 3434322,
+      "name": "Rosebud Baker",
+      "date": "2026-09-25T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Rosebud-Baker/680622?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377321+00:00"
+    },
+    "3434323": {
+      "id": 3434323,
+      "name": "Rosebud Baker",
+      "date": "2026-09-26T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Rosebud-Baker/680625?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377323+00:00"
+    },
+    "3434324": {
+      "id": 3434324,
+      "name": "New Material Night",
+      "date": "2026-09-27T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697017?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377325+00:00"
+    },
+    "3434325": {
+      "id": 3434325,
+      "name": "Captain's Quarters",
+      "date": "2026-09-28T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697044?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377327+00:00"
+    },
+    "3434326": {
+      "id": 3434326,
+      "name": "Best on Broadway",
+      "date": "2026-09-29T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697095?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377329+00:00"
+    },
+    "3434327": {
+      "id": 3434327,
+      "name": "The Boiler Room",
+      "date": "2026-09-30T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697120?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377331+00:00"
+    },
+    "3434328": {
+      "id": 3434328,
+      "name": "Michael Longfellow",
+      "date": "2026-10-01T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/michael-longfellow/682818?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377333+00:00"
+    },
+    "3434329": {
+      "id": 3434329,
+      "name": "Michael Longfellow",
+      "date": "2026-10-02T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Michael-Longfellow/682820?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377335+00:00"
+    },
+    "3434330": {
+      "id": 3434330,
+      "name": "Michael Longfellow",
+      "date": "2026-10-03T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Michael-Longfellow/682824?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377337+00:00"
+    },
+    "3434331": {
+      "id": 3434331,
+      "name": "Michael Longfellow",
+      "date": "2026-10-04T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Michael-Longfellow/682822?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377339+00:00"
+    },
+    "3434332": {
+      "id": 3434332,
+      "name": "Captain's Quarters",
+      "date": "2026-10-05T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697045?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377341+00:00"
+    },
+    "3434333": {
+      "id": 3434333,
+      "name": "Best on Broadway",
+      "date": "2026-10-06T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697096?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377342+00:00"
+    },
+    "3434334": {
+      "id": 3434334,
+      "name": "The Boiler Room",
+      "date": "2026-10-07T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697121?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377344+00:00"
+    },
+    "3434335": {
+      "id": 3434335,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-10-08T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697151?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377346+00:00"
+    },
+    "3434336": {
+      "id": 3434336,
+      "name": "Bo Johnson",
+      "date": "2026-10-09T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/bo-johnson/679250?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377348+00:00"
+    },
+    "3434337": {
+      "id": 3434337,
+      "name": "Bo Johnson",
+      "date": "2026-10-10T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Bo-Johnson/679266?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377350+00:00"
+    },
+    "3434338": {
+      "id": 3434338,
+      "name": "New Material Night",
+      "date": "2026-10-11T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697019?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377352+00:00"
+    },
+    "3434339": {
+      "id": 3434339,
+      "name": "Captain's Quarters",
+      "date": "2026-10-12T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697046?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377354+00:00"
+    },
+    "3434340": {
+      "id": 3434340,
+      "name": "Best on Broadway",
+      "date": "2026-10-13T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697097?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377356+00:00"
+    },
+    "3434341": {
+      "id": 3434341,
+      "name": "The Boiler Room",
+      "date": "2026-10-14T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697122?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377358+00:00"
+    },
+    "3434342": {
+      "id": 3434342,
+      "name": "Emil Wakim",
+      "date": "2026-10-15T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/emil-wakim/688394?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377359+00:00"
+    },
+    "3434343": {
+      "id": 3434343,
+      "name": "Emil Wakim",
+      "date": "2026-10-16T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Emil-Wakim/688446?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377361+00:00"
+    },
+    "3434344": {
+      "id": 3434344,
+      "name": "Emil Wakim",
+      "date": "2026-10-17T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Emil-Wakim/688449?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377363+00:00"
+    },
+    "3434345": {
+      "id": 3434345,
+      "name": "New Material Night",
+      "date": "2026-10-18T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697020?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377365+00:00"
+    },
+    "3434346": {
+      "id": 3434346,
+      "name": "Captain's Quarters",
+      "date": "2026-10-19T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697047?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377367+00:00"
+    },
+    "3434347": {
+      "id": 3434347,
+      "name": "Best on Broadway",
+      "date": "2026-10-20T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697098?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377369+00:00"
+    },
+    "3434348": {
+      "id": 3434348,
+      "name": "The Boiler Room",
+      "date": "2026-10-21T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697123?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377371+00:00"
+    },
+    "3434349": {
+      "id": 3434349,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-10-22T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697153?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377373+00:00"
+    },
+    "3434350": {
+      "id": 3434350,
+      "name": "Peter Revello",
+      "date": "2026-10-23T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/peter-revello/690233?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377375+00:00"
+    },
+    "3434351": {
+      "id": 3434351,
+      "name": "Peter Revello",
+      "date": "2026-10-24T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Peter-Revello/690235?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377376+00:00"
+    },
+    "3434352": {
+      "id": 3434352,
+      "name": "New Material Night",
+      "date": "2026-10-25T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697021?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377378+00:00"
+    },
+    "3434353": {
+      "id": 3434353,
+      "name": "Captain's Quarters",
+      "date": "2026-10-26T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697048?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377380+00:00"
+    },
+    "3434354": {
+      "id": 3434354,
+      "name": "Liam Cullagh",
+      "date": "2026-10-27T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/liam-cullagh/689551?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377382+00:00"
+    },
+    "3434355": {
+      "id": 3434355,
+      "name": "Liam Cullagh",
+      "date": "2026-10-28T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Liam-Cullagh/689552?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377384+00:00"
+    },
+    "3434356": {
+      "id": 3434356,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-10-29T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697154?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377386+00:00"
+    },
+    "3434357": {
+      "id": 3434357,
+      "name": "Erica Rhodes",
+      "date": "2026-10-30T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/erica-rhodes/689222?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377388+00:00"
+    },
+    "3434358": {
+      "id": 3434358,
+      "name": "Erica Rhodes",
+      "date": "2026-10-31T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Erica-Rhodes/689227?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377390+00:00"
+    },
+    "3434359": {
+      "id": 3434359,
+      "name": "New Material Night",
+      "date": "2026-11-01T04:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697022?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377392+00:00"
+    },
+    "3434360": {
+      "id": 3434360,
+      "name": "Captain's Quarters",
+      "date": "2026-11-02T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697049?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377394+00:00"
+    },
+    "3434361": {
+      "id": 3434361,
+      "name": "Best on Broadway",
+      "date": "2026-11-03T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697100?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377396+00:00"
+    },
+    "3434362": {
+      "id": 3434362,
+      "name": "The Boiler Room",
+      "date": "2026-11-04T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697125?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377398+00:00"
+    },
+    "3434363": {
+      "id": 3434363,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-11-05T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697155?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377400+00:00"
+    },
+    "3434364": {
+      "id": 3434364,
+      "name": "Punkie Johnson",
+      "date": "2026-11-06T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/punkie-johnson/694980?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:51.377402+00:00"
+    },
+    "3434365": {
+      "id": 3434365,
+      "name": "Punkie Johnson",
+      "date": "2026-11-07T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Punkie-Johnson/694982?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591340+00:00"
+    },
+    "3434366": {
+      "id": 3434366,
+      "name": "New Material Night",
+      "date": "2026-11-08T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697023?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591348+00:00"
+    },
+    "3434367": {
+      "id": 3434367,
+      "name": "Captain's Quarters",
+      "date": "2026-11-09T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697050?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591352+00:00"
+    },
+    "3434368": {
+      "id": 3434368,
+      "name": "Best on Broadway",
+      "date": "2026-11-10T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697101?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591354+00:00"
+    },
+    "3434369": {
+      "id": 3434369,
+      "name": "The Boiler Room",
+      "date": "2026-11-11T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697126?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591357+00:00"
+    },
+    "3434370": {
+      "id": 3434370,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-11-12T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697156?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591360+00:00"
+    },
+    "3434371": {
+      "id": 3434371,
+      "name": "New Material Night",
+      "date": "2026-11-15T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697024?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591362+00:00"
+    },
+    "3434372": {
+      "id": 3434372,
+      "name": "Captain's Quarters",
+      "date": "2026-11-16T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697051?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591364+00:00"
+    },
+    "3434373": {
+      "id": 3434373,
+      "name": "Best on Broadway",
+      "date": "2026-11-17T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697102?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591366+00:00"
+    },
+    "3434374": {
+      "id": 3434374,
+      "name": "The Boiler Room",
+      "date": "2026-11-18T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697127?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591368+00:00"
+    },
+    "3434375": {
+      "id": 3434375,
+      "name": "Joe List",
+      "date": "2026-11-19T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/joe-list/674762?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591371+00:00"
+    },
+    "3434376": {
+      "id": 3434376,
+      "name": "Joe List",
+      "date": "2026-11-20T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Joe-List/674764?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591373+00:00"
+    },
+    "3434377": {
+      "id": 3434377,
+      "name": "Joe List",
+      "date": "2026-11-21T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Joe-List/674767?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591376+00:00"
+    },
+    "3434378": {
+      "id": 3434378,
+      "name": "New Material Night",
+      "date": "2026-11-22T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697025?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591377+00:00"
+    },
+    "3434379": {
+      "id": 3434379,
+      "name": "Captain's Quarters",
+      "date": "2026-11-23T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697052?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591379+00:00"
+    },
+    "3434380": {
+      "id": 3434380,
+      "name": "Best on Broadway",
+      "date": "2026-11-24T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697103?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591382+00:00"
+    },
+    "3434381": {
+      "id": 3434381,
+      "name": "The Boiler Room",
+      "date": "2026-11-25T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697128?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591383+00:00"
+    },
+    "3434382": {
+      "id": 3434382,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-11-26T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697158?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591385+00:00"
+    },
+    "3434383": {
+      "id": 3434383,
+      "name": "New Material Night",
+      "date": "2026-11-29T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697026?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591387+00:00"
+    },
+    "3434384": {
+      "id": 3434384,
+      "name": "Captain's Quarters",
+      "date": "2026-11-30T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697053?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591390+00:00"
+    },
+    "3434385": {
+      "id": 3434385,
+      "name": "Best on Broadway",
+      "date": "2026-12-01T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697104?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591392+00:00"
+    },
+    "3434386": {
+      "id": 3434386,
+      "name": "The Boiler Room",
+      "date": "2026-12-02T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697129?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591394+00:00"
+    },
+    "3434387": {
+      "id": 3434387,
+      "name": "Sam Jay",
+      "date": "2026-12-03T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/sam-jay/682568?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591396+00:00"
+    },
+    "3434388": {
+      "id": 3434388,
+      "name": "Sam Jay",
+      "date": "2026-12-04T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Sam-Jay/682645?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591397+00:00"
+    },
+    "3434389": {
+      "id": 3434389,
+      "name": "Sam Jay",
+      "date": "2026-12-05T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Sam-Jay/682649?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591399+00:00"
+    },
+    "3434390": {
+      "id": 3434390,
+      "name": "Sam Jay",
+      "date": "2026-12-06T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Sam-Jay/682647?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591401+00:00"
+    },
+    "3434391": {
+      "id": 3434391,
+      "name": "Captain's Quarters",
+      "date": "2026-12-07T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697054?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591403+00:00"
+    },
+    "3434392": {
+      "id": 3434392,
+      "name": "Best on Broadway",
+      "date": "2026-12-08T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697105?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591405+00:00"
+    },
+    "3434393": {
+      "id": 3434393,
+      "name": "The Boiler Room",
+      "date": "2026-12-09T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697130?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591407+00:00"
+    },
+    "3434394": {
+      "id": 3434394,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-12-10T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697160?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591409+00:00"
+    },
+    "3434395": {
+      "id": 3434395,
+      "name": "Gabby Bryan",
+      "date": "2026-12-11T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Gabby-Bryan/675086?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591411+00:00"
+    },
+    "3434396": {
+      "id": 3434396,
+      "name": "David Cross",
+      "date": "2026-12-12T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/david-cross/690855?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591413+00:00"
+    },
+    "3434397": {
+      "id": 3434397,
+      "name": "New Material Night",
+      "date": "2026-12-13T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697028?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591415+00:00"
+    },
+    "3434398": {
+      "id": 3434398,
+      "name": "Captain's Quarters",
+      "date": "2026-12-14T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697055?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591417+00:00"
+    },
+    "3434399": {
+      "id": 3434399,
+      "name": "Best on Broadway",
+      "date": "2026-12-15T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697106?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591419+00:00"
+    },
+    "3434400": {
+      "id": 3434400,
+      "name": "The Boiler Room",
+      "date": "2026-12-16T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697131?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591421+00:00"
+    },
+    "3434401": {
+      "id": 3434401,
+      "name": "Usama Siddiquee",
+      "date": "2026-12-17T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/usama-siddiquee/690246?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591423+00:00"
+    },
+    "3434402": {
+      "id": 3434402,
+      "name": "Usama Siddiquee",
+      "date": "2026-12-18T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Usama-Siddiquee/690247?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591424+00:00"
+    },
+    "3434403": {
+      "id": 3434403,
+      "name": "Usama Siddiquee",
+      "date": "2026-12-19T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Usama-Siddiquee/690250?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591426+00:00"
+    },
+    "3434404": {
+      "id": 3434404,
+      "name": "New Material Night",
+      "date": "2026-12-20T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697029?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591428+00:00"
+    },
+    "3434405": {
+      "id": 3434405,
+      "name": "Captain's Quarters",
+      "date": "2026-12-21T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697056?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591430+00:00"
+    },
+    "3434406": {
+      "id": 3434406,
+      "name": "Best on Broadway",
+      "date": "2026-12-22T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697107?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591432+00:00"
+    },
+    "3434407": {
+      "id": 3434407,
+      "name": "The Boiler Room",
+      "date": "2026-12-23T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697132?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591434+00:00"
+    },
+    "3434408": {
+      "id": 3434408,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-12-24T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697162?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591436+00:00"
+    },
+    "3434409": {
+      "id": 3434409,
+      "name": "New Material Night",
+      "date": "2026-12-27T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/New-Material-Night/697030?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591438+00:00"
+    },
+    "3434410": {
+      "id": 3434410,
+      "name": "Captain's Quarters",
+      "date": "2026-12-28T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Captains-Quarters/697057?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591439+00:00"
+    },
+    "3434411": {
+      "id": 3434411,
+      "name": "Best on Broadway",
+      "date": "2026-12-29T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Best-on-Broadway/697108?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591441+00:00"
+    },
+    "3434412": {
+      "id": 3434412,
+      "name": "The Boiler Room",
+      "date": "2026-12-30T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/The-Boiler-Room/697133?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591443+00:00"
+    },
+    "3434413": {
+      "id": 3434413,
+      "name": "Walk The Plank: Panel Show",
+      "date": "2026-12-31T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Walk-The-Plank-Panel-Show/697163?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591445+00:00"
+    },
+    "3434414": {
+      "id": 3434414,
+      "name": "Cipha Sounds",
+      "date": "2027-01-21T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/cipha-sounds/695340?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591447+00:00"
+    },
+    "3434415": {
+      "id": 3434415,
+      "name": "Cipha Sounds",
+      "date": "2027-01-22T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Cipha-Sounds/695341?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591449+00:00"
+    },
+    "3434416": {
+      "id": 3434416,
+      "name": "Cipha Sounds",
+      "date": "2027-01-23T05:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://wl.eventim.us/event/Cipha-Sounds/695345?afflky=ThePortComedyClub",
+      "last_scraped_by": "seetickets_whitelabel",
+      "last_scraped_date": "2026-06-30T22:19:53.591450+00:00"
+    }
+  },
+  "updates": {
+    "3434321": "2026-09-24T20:00:00-04:00",
+    "3434322": "2026-09-25T19:30:00-04:00",
+    "3434323": "2026-09-26T19:00:00-04:00",
+    "3434324": "2026-09-27T20:00:00-04:00",
+    "3434325": "2026-09-28T20:00:00-04:00",
+    "3434326": "2026-09-29T21:00:00-04:00",
+    "3434327": "2026-09-30T20:00:00-04:00",
+    "3434328": "2026-10-01T20:00:00-04:00",
+    "3434329": "2026-10-02T19:30:00-04:00",
+    "3434330": "2026-10-03T19:00:00-04:00",
+    "3434331": "2026-10-04T20:00:00-04:00",
+    "3434332": "2026-10-05T20:00:00-04:00",
+    "3434333": "2026-10-06T21:00:00-04:00",
+    "3434334": "2026-10-07T20:00:00-04:00",
+    "3434336": "2026-10-09T19:30:00-04:00",
+    "3434337": "2026-10-10T19:00:00-04:00",
+    "3434338": "2026-10-11T20:00:00-04:00",
+    "3434339": "2026-10-12T20:00:00-04:00",
+    "3434340": "2026-10-13T21:00:00-04:00",
+    "3434341": "2026-10-14T20:00:00-04:00",
+    "3434342": "2026-10-15T20:00:00-04:00",
+    "3434343": "2026-10-16T19:30:00-04:00",
+    "3434344": "2026-10-17T19:00:00-04:00",
+    "3434345": "2026-10-18T20:00:00-04:00",
+    "3434346": "2026-10-19T20:00:00-04:00",
+    "3434347": "2026-10-20T21:00:00-04:00",
+    "3434348": "2026-10-21T20:00:00-04:00",
+    "3434350": "2026-10-23T19:30:00-04:00",
+    "3434351": "2026-10-24T19:00:00-04:00",
+    "3434352": "2026-10-25T20:00:00-04:00",
+    "3434353": "2026-10-26T20:00:00-04:00",
+    "3434359": "2026-11-01T20:00:00-05:00",
+    "3434360": "2026-11-02T20:00:00-05:00",
+    "3434361": "2026-11-03T21:00:00-05:00",
+    "3434362": "2026-11-04T20:00:00-05:00",
+    "3434364": "2026-11-06T19:30:00-05:00",
+    "3434365": "2026-11-07T19:00:00-05:00",
+    "3434366": "2026-11-08T20:00:00-05:00",
+    "3434367": "2026-11-09T20:00:00-05:00",
+    "3434368": "2026-11-10T21:00:00-05:00",
+    "3434369": "2026-11-11T20:00:00-05:00",
+    "3434371": "2026-11-15T20:00:00-05:00",
+    "3434372": "2026-11-16T20:00:00-05:00",
+    "3434373": "2026-11-17T21:00:00-05:00",
+    "3434374": "2026-11-18T20:00:00-05:00",
+    "3434375": "2026-11-19T20:00:00-05:00",
+    "3434376": "2026-11-20T19:30:00-05:00",
+    "3434377": "2026-11-21T19:00:00-05:00",
+    "3434378": "2026-11-22T20:00:00-05:00",
+    "3434379": "2026-11-23T20:00:00-05:00",
+    "3434380": "2026-11-24T21:00:00-05:00",
+    "3434381": "2026-11-25T20:00:00-05:00",
+    "3434383": "2026-11-29T20:00:00-05:00",
+    "3434384": "2026-11-30T20:00:00-05:00",
+    "3434385": "2026-12-01T21:00:00-05:00",
+    "3434386": "2026-12-02T20:00:00-05:00",
+    "3434387": "2026-12-03T20:00:00-05:00",
+    "3434388": "2026-12-04T19:30:00-05:00",
+    "3434389": "2026-12-05T19:00:00-05:00",
+    "3434390": "2026-12-06T20:00:00-05:00",
+    "3434391": "2026-12-07T20:00:00-05:00",
+    "3434392": "2026-12-08T21:00:00-05:00",
+    "3434393": "2026-12-09T20:00:00-05:00",
+    "3434395": "2026-12-11T19:30:00-05:00",
+    "3434396": "2026-12-12T19:00:00-05:00",
+    "3434397": "2026-12-13T20:00:00-05:00",
+    "3434398": "2026-12-14T20:00:00-05:00",
+    "3434399": "2026-12-15T21:00:00-05:00",
+    "3434400": "2026-12-16T20:00:00-05:00",
+    "3434401": "2026-12-17T20:00:00-05:00",
+    "3434402": "2026-12-18T19:30:00-05:00",
+    "3434403": "2026-12-19T19:00:00-05:00",
+    "3434404": "2026-12-20T20:00:00-05:00",
+    "3434405": "2026-12-21T20:00:00-05:00",
+    "3434406": "2026-12-22T21:00:00-05:00",
+    "3434407": "2026-12-23T20:00:00-05:00",
+    "3434409": "2026-12-27T20:00:00-05:00",
+    "3434410": "2026-12-28T20:00:00-05:00",
+    "3434411": "2026-12-29T21:00:00-05:00",
+    "3434412": "2026-12-30T20:00:00-05:00",
+    "3434414": "2027-01-21T20:00:00-05:00",
+    "3434415": "2027-01-22T19:30:00-05:00",
+    "3434416": "2027-01-23T19:00:00-05:00"
+  },
+  "retire_ids": [
+    3434335,
+    3434349,
+    3434354,
+    3434355,
+    3434356,
+    3434357,
+    3434358,
+    3434363,
+    3434370,
+    3434382,
+    3434394,
+    3434408,
+    3434413
+  ],
+  "verified_events": [
+    {
+      "event_id": "680619",
+      "name": "Rosebud Baker",
+      "url": "https://wl.seetickets.us/event/rosebud-baker/680619?afflky=ThePortComedyClub",
+      "local_start": "2026-09-24T20:00:00"
+    },
+    {
+      "event_id": "704227",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704227?afflky=ThePortComedyClub",
+      "local_start": "2026-09-24T22:00:00"
+    },
+    {
+      "event_id": "680622",
+      "name": "Rosebud Baker",
+      "url": "https://wl.seetickets.us/event/Rosebud-Baker/680622?afflky=ThePortComedyClub",
+      "local_start": "2026-09-25T19:30:00"
+    },
+    {
+      "event_id": "680624",
+      "name": "Rosebud Baker",
+      "url": "https://wl.seetickets.us/event/Rosebud-Baker/680624?afflky=ThePortComedyClub",
+      "local_start": "2026-09-25T21:45:00"
+    },
+    {
+      "event_id": "680625",
+      "name": "Rosebud Baker",
+      "url": "https://wl.seetickets.us/event/Rosebud-Baker/680625?afflky=ThePortComedyClub",
+      "local_start": "2026-09-26T19:00:00"
+    },
+    {
+      "event_id": "680623",
+      "name": "Rosebud Baker",
+      "url": "https://wl.seetickets.us/event/Rosebud-Baker/680623?afflky=ThePortComedyClub",
+      "local_start": "2026-09-26T21:30:00"
+    },
+    {
+      "event_id": "697017",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697017?afflky=ThePortComedyClub",
+      "local_start": "2026-09-27T20:00:00"
+    },
+    {
+      "event_id": "697044",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697044?afflky=ThePortComedyClub",
+      "local_start": "2026-09-28T20:00:00"
+    },
+    {
+      "event_id": "697070",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697070?afflky=ThePortComedyClub",
+      "local_start": "2026-09-28T21:30:00"
+    },
+    {
+      "event_id": "697095",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697095?afflky=ThePortComedyClub",
+      "local_start": "2026-09-29T21:00:00"
+    },
+    {
+      "event_id": "697120",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697120?afflky=ThePortComedyClub",
+      "local_start": "2026-09-30T20:00:00"
+    },
+    {
+      "event_id": "682818",
+      "name": "Michael Longfellow",
+      "url": "https://wl.seetickets.us/event/michael-longfellow/682818?afflky=ThePortComedyClub",
+      "local_start": "2026-10-01T20:00:00"
+    },
+    {
+      "event_id": "704228",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704228?afflky=ThePortComedyClub",
+      "local_start": "2026-10-01T22:00:00"
+    },
+    {
+      "event_id": "682820",
+      "name": "Michael Longfellow",
+      "url": "https://wl.seetickets.us/event/Michael-Longfellow/682820?afflky=ThePortComedyClub",
+      "local_start": "2026-10-02T19:30:00"
+    },
+    {
+      "event_id": "682823",
+      "name": "Michael Longfellow",
+      "url": "https://wl.seetickets.us/event/Michael-Longfellow/682823?afflky=ThePortComedyClub",
+      "local_start": "2026-10-02T21:45:00"
+    },
+    {
+      "event_id": "682824",
+      "name": "Michael Longfellow",
+      "url": "https://wl.seetickets.us/event/Michael-Longfellow/682824?afflky=ThePortComedyClub",
+      "local_start": "2026-10-03T19:00:00"
+    },
+    {
+      "event_id": "682821",
+      "name": "Michael Longfellow",
+      "url": "https://wl.seetickets.us/event/Michael-Longfellow/682821?afflky=ThePortComedyClub",
+      "local_start": "2026-10-03T21:30:00"
+    },
+    {
+      "event_id": "682822",
+      "name": "Michael Longfellow",
+      "url": "https://wl.seetickets.us/event/Michael-Longfellow/682822?afflky=ThePortComedyClub",
+      "local_start": "2026-10-04T20:00:00"
+    },
+    {
+      "event_id": "697045",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697045?afflky=ThePortComedyClub",
+      "local_start": "2026-10-05T20:00:00"
+    },
+    {
+      "event_id": "697071",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697071?afflky=ThePortComedyClub",
+      "local_start": "2026-10-05T21:30:00"
+    },
+    {
+      "event_id": "697096",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697096?afflky=ThePortComedyClub",
+      "local_start": "2026-10-06T21:00:00"
+    },
+    {
+      "event_id": "697121",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697121?afflky=ThePortComedyClub",
+      "local_start": "2026-10-07T20:00:00"
+    },
+    {
+      "event_id": "700242",
+      "name": "Benny Nwokeabia",
+      "url": "https://wl.seetickets.us/event/benny-nwokeabia/700242?afflky=ThePortComedyClub",
+      "local_start": "2026-10-08T20:00:00"
+    },
+    {
+      "event_id": "704229",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704229?afflky=ThePortComedyClub",
+      "local_start": "2026-10-08T22:00:00"
+    },
+    {
+      "event_id": "679250",
+      "name": "Bo Johnson",
+      "url": "https://wl.seetickets.us/event/bo-johnson/679250?afflky=ThePortComedyClub",
+      "local_start": "2026-10-09T19:30:00"
+    },
+    {
+      "event_id": "679265",
+      "name": "Bo Johnson",
+      "url": "https://wl.seetickets.us/event/Bo-Johnson/679265?afflky=ThePortComedyClub",
+      "local_start": "2026-10-09T21:45:00"
+    },
+    {
+      "event_id": "679266",
+      "name": "Bo Johnson",
+      "url": "https://wl.seetickets.us/event/Bo-Johnson/679266?afflky=ThePortComedyClub",
+      "local_start": "2026-10-10T19:00:00"
+    },
+    {
+      "event_id": "679267",
+      "name": "Bo Johnson",
+      "url": "https://wl.seetickets.us/event/Bo-Johnson/679267?afflky=ThePortComedyClub",
+      "local_start": "2026-10-10T21:30:00"
+    },
+    {
+      "event_id": "697019",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697019?afflky=ThePortComedyClub",
+      "local_start": "2026-10-11T20:00:00"
+    },
+    {
+      "event_id": "699131",
+      "name": "Rob Stant",
+      "url": "https://wl.seetickets.us/event/rob-stant/699131?afflky=ThePortComedyClub",
+      "local_start": "2026-10-11T20:00:00"
+    },
+    {
+      "event_id": "697046",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697046?afflky=ThePortComedyClub",
+      "local_start": "2026-10-12T20:00:00"
+    },
+    {
+      "event_id": "697072",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697072?afflky=ThePortComedyClub",
+      "local_start": "2026-10-12T21:30:00"
+    },
+    {
+      "event_id": "697097",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697097?afflky=ThePortComedyClub",
+      "local_start": "2026-10-13T21:00:00"
+    },
+    {
+      "event_id": "697122",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697122?afflky=ThePortComedyClub",
+      "local_start": "2026-10-14T20:00:00"
+    },
+    {
+      "event_id": "688394",
+      "name": "Emil Wakim",
+      "url": "https://wl.seetickets.us/event/emil-wakim/688394?afflky=ThePortComedyClub",
+      "local_start": "2026-10-15T20:00:00"
+    },
+    {
+      "event_id": "704230",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704230?afflky=ThePortComedyClub",
+      "local_start": "2026-10-15T22:00:00"
+    },
+    {
+      "event_id": "688446",
+      "name": "Emil Wakim",
+      "url": "https://wl.seetickets.us/event/Emil-Wakim/688446?afflky=ThePortComedyClub",
+      "local_start": "2026-10-16T19:30:00"
+    },
+    {
+      "event_id": "688448",
+      "name": "Emil Wakim",
+      "url": "https://wl.seetickets.us/event/Emil-Wakim/688448?afflky=ThePortComedyClub",
+      "local_start": "2026-10-16T21:45:00"
+    },
+    {
+      "event_id": "688449",
+      "name": "Emil Wakim",
+      "url": "https://wl.seetickets.us/event/Emil-Wakim/688449?afflky=ThePortComedyClub",
+      "local_start": "2026-10-17T19:00:00"
+    },
+    {
+      "event_id": "688447",
+      "name": "Emil Wakim",
+      "url": "https://wl.seetickets.us/event/Emil-Wakim/688447?afflky=ThePortComedyClub",
+      "local_start": "2026-10-17T21:30:00"
+    },
+    {
+      "event_id": "697020",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697020?afflky=ThePortComedyClub",
+      "local_start": "2026-10-18T20:00:00"
+    },
+    {
+      "event_id": "697047",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697047?afflky=ThePortComedyClub",
+      "local_start": "2026-10-19T20:00:00"
+    },
+    {
+      "event_id": "697073",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697073?afflky=ThePortComedyClub",
+      "local_start": "2026-10-19T21:30:00"
+    },
+    {
+      "event_id": "697098",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697098?afflky=ThePortComedyClub",
+      "local_start": "2026-10-20T21:00:00"
+    },
+    {
+      "event_id": "697123",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697123?afflky=ThePortComedyClub",
+      "local_start": "2026-10-21T20:00:00"
+    },
+    {
+      "event_id": "704231",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704231?afflky=ThePortComedyClub",
+      "local_start": "2026-10-22T22:00:00"
+    },
+    {
+      "event_id": "690233",
+      "name": "Peter Revello",
+      "url": "https://wl.seetickets.us/event/peter-revello/690233?afflky=ThePortComedyClub",
+      "local_start": "2026-10-23T19:30:00"
+    },
+    {
+      "event_id": "690234",
+      "name": "Peter Revello",
+      "url": "https://wl.seetickets.us/event/Peter-Revello/690234?afflky=ThePortComedyClub",
+      "local_start": "2026-10-23T21:45:00"
+    },
+    {
+      "event_id": "690235",
+      "name": "Peter Revello",
+      "url": "https://wl.seetickets.us/event/Peter-Revello/690235?afflky=ThePortComedyClub",
+      "local_start": "2026-10-24T19:00:00"
+    },
+    {
+      "event_id": "690236",
+      "name": "Peter Revello",
+      "url": "https://wl.seetickets.us/event/Peter-Revello/690236?afflky=ThePortComedyClub",
+      "local_start": "2026-10-24T21:30:00"
+    },
+    {
+      "event_id": "697021",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697021?afflky=ThePortComedyClub",
+      "local_start": "2026-10-25T20:00:00"
+    },
+    {
+      "event_id": "697048",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697048?afflky=ThePortComedyClub",
+      "local_start": "2026-10-26T20:00:00"
+    },
+    {
+      "event_id": "697074",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697074?afflky=ThePortComedyClub",
+      "local_start": "2026-10-26T21:30:00"
+    },
+    {
+      "event_id": "704232",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704232?afflky=ThePortComedyClub",
+      "local_start": "2026-10-29T22:00:00"
+    },
+    {
+      "event_id": "706197",
+      "name": "Paris Sashay",
+      "url": "https://wl.seetickets.us/event/paris-sashay/706197?afflky=ThePortComedyClub",
+      "local_start": "2026-10-30T19:30:00"
+    },
+    {
+      "event_id": "706199",
+      "name": "Paris Sashay",
+      "url": "https://wl.seetickets.us/event/Paris-Sashay/706199?afflky=ThePortComedyClub",
+      "local_start": "2026-10-30T21:45:00"
+    },
+    {
+      "event_id": "706200",
+      "name": "Paris Sashay",
+      "url": "https://wl.seetickets.us/event/Paris-Sashay/706200?afflky=ThePortComedyClub",
+      "local_start": "2026-10-31T19:00:00"
+    },
+    {
+      "event_id": "697022",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697022?afflky=ThePortComedyClub",
+      "local_start": "2026-11-01T20:00:00"
+    },
+    {
+      "event_id": "697049",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697049?afflky=ThePortComedyClub",
+      "local_start": "2026-11-02T20:00:00"
+    },
+    {
+      "event_id": "697075",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697075?afflky=ThePortComedyClub",
+      "local_start": "2026-11-02T21:30:00"
+    },
+    {
+      "event_id": "697100",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697100?afflky=ThePortComedyClub",
+      "local_start": "2026-11-03T21:00:00"
+    },
+    {
+      "event_id": "697125",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697125?afflky=ThePortComedyClub",
+      "local_start": "2026-11-04T20:00:00"
+    },
+    {
+      "event_id": "700459",
+      "name": "Lukas McCrary",
+      "url": "https://wl.seetickets.us/event/lukas-mccrary/700459?afflky=ThePortComedyClub",
+      "local_start": "2026-11-05T20:00:00"
+    },
+    {
+      "event_id": "704233",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704233?afflky=ThePortComedyClub",
+      "local_start": "2026-11-05T22:00:00"
+    },
+    {
+      "event_id": "694980",
+      "name": "Punkie Johnson & Kalea McNeill",
+      "url": "https://wl.seetickets.us/event/punkie-johnson-and-kalea-mcneill/694980?afflky=ThePortComedyClub",
+      "local_start": "2026-11-06T19:30:00"
+    },
+    {
+      "event_id": "694981",
+      "name": "Punkie Johnson & Kalea McNeill",
+      "url": "https://wl.seetickets.us/event/punkie-johnson-and-kalea-mcneill/694981?afflky=ThePortComedyClub",
+      "local_start": "2026-11-06T21:45:00"
+    },
+    {
+      "event_id": "694982",
+      "name": "Punkie Johnson & Kalea McNeill",
+      "url": "https://wl.seetickets.us/event/punkie-johnson-and-kalea-mcneill/694982?afflky=ThePortComedyClub",
+      "local_start": "2026-11-07T19:00:00"
+    },
+    {
+      "event_id": "694983",
+      "name": "Punkie Johnson & Kalea McNeill",
+      "url": "https://wl.seetickets.us/event/punkie-johnson-and-kalea-mcneill/694983?afflky=ThePortComedyClub",
+      "local_start": "2026-11-07T21:30:00"
+    },
+    {
+      "event_id": "697023",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697023?afflky=ThePortComedyClub",
+      "local_start": "2026-11-08T20:00:00"
+    },
+    {
+      "event_id": "702585",
+      "name": "Ahmed Al-kadri",
+      "url": "https://wl.seetickets.us/event/ahmed-al-kadri/702585?afflky=ThePortComedyClub",
+      "local_start": "2026-11-08T20:00:00"
+    },
+    {
+      "event_id": "697050",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697050?afflky=ThePortComedyClub",
+      "local_start": "2026-11-09T20:00:00"
+    },
+    {
+      "event_id": "697076",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697076?afflky=ThePortComedyClub",
+      "local_start": "2026-11-09T21:30:00"
+    },
+    {
+      "event_id": "697101",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697101?afflky=ThePortComedyClub",
+      "local_start": "2026-11-10T21:00:00"
+    },
+    {
+      "event_id": "697126",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697126?afflky=ThePortComedyClub",
+      "local_start": "2026-11-11T20:00:00"
+    },
+    {
+      "event_id": "702583",
+      "name": "Jake Velazquez",
+      "url": "https://wl.seetickets.us/event/jake-velazquez/702583?afflky=ThePortComedyClub",
+      "local_start": "2026-11-11T20:00:00"
+    },
+    {
+      "event_id": "702201",
+      "name": "Bassam Shawl & Mohtasham Yaqub",
+      "url": "https://wl.seetickets.us/event/bassam-shawl-and-mohtasham-yaqub/702201?afflky=ThePortComedyClub",
+      "local_start": "2026-11-12T20:00:00"
+    },
+    {
+      "event_id": "704234",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704234?afflky=ThePortComedyClub",
+      "local_start": "2026-11-12T22:00:00"
+    },
+    {
+      "event_id": "699681",
+      "name": "Harry Settel",
+      "url": "https://wl.seetickets.us/event/harry-settel/699681?afflky=ThePortComedyClub",
+      "local_start": "2026-11-13T19:30:00"
+    },
+    {
+      "event_id": "699685",
+      "name": "Harry Settel",
+      "url": "https://wl.seetickets.us/event/harry-settel/699685?afflky=ThePortComedyClub",
+      "local_start": "2026-11-13T21:45:00"
+    },
+    {
+      "event_id": "699686",
+      "name": "Harry Settel",
+      "url": "https://wl.seetickets.us/event/Harry-Settel/699686?afflky=ThePortComedyClub",
+      "local_start": "2026-11-14T19:00:00"
+    },
+    {
+      "event_id": "699688",
+      "name": "Harry Settel",
+      "url": "https://wl.seetickets.us/event/Harry-Settel/699688?afflky=ThePortComedyClub",
+      "local_start": "2026-11-14T21:30:00"
+    },
+    {
+      "event_id": "697024",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697024?afflky=ThePortComedyClub",
+      "local_start": "2026-11-15T20:00:00"
+    },
+    {
+      "event_id": "702581",
+      "name": "Ronnie Fleming",
+      "url": "https://wl.seetickets.us/event/ronnie-fleming/702581?afflky=ThePortComedyClub",
+      "local_start": "2026-11-15T20:00:00"
+    },
+    {
+      "event_id": "697051",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697051?afflky=ThePortComedyClub",
+      "local_start": "2026-11-16T20:00:00"
+    },
+    {
+      "event_id": "697077",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697077?afflky=ThePortComedyClub",
+      "local_start": "2026-11-16T21:30:00"
+    },
+    {
+      "event_id": "697102",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697102?afflky=ThePortComedyClub",
+      "local_start": "2026-11-17T21:00:00"
+    },
+    {
+      "event_id": "697127",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697127?afflky=ThePortComedyClub",
+      "local_start": "2026-11-18T20:00:00"
+    },
+    {
+      "event_id": "674762",
+      "name": "Joe List",
+      "url": "https://wl.seetickets.us/event/joe-list/674762?afflky=ThePortComedyClub",
+      "local_start": "2026-11-19T20:00:00"
+    },
+    {
+      "event_id": "704235",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704235?afflky=ThePortComedyClub",
+      "local_start": "2026-11-19T22:00:00"
+    },
+    {
+      "event_id": "674764",
+      "name": "Joe List",
+      "url": "https://wl.seetickets.us/event/Joe-List/674764?afflky=ThePortComedyClub",
+      "local_start": "2026-11-20T19:30:00"
+    },
+    {
+      "event_id": "674766",
+      "name": "Joe List",
+      "url": "https://wl.seetickets.us/event/Joe-List/674766?afflky=ThePortComedyClub",
+      "local_start": "2026-11-20T21:45:00"
+    },
+    {
+      "event_id": "674767",
+      "name": "Joe List",
+      "url": "https://wl.seetickets.us/event/Joe-List/674767?afflky=ThePortComedyClub",
+      "local_start": "2026-11-21T19:00:00"
+    },
+    {
+      "event_id": "674765",
+      "name": "Joe List",
+      "url": "https://wl.seetickets.us/event/Joe-List/674765?afflky=ThePortComedyClub",
+      "local_start": "2026-11-21T21:30:00"
+    },
+    {
+      "event_id": "697025",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697025?afflky=ThePortComedyClub",
+      "local_start": "2026-11-22T20:00:00"
+    },
+    {
+      "event_id": "697052",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697052?afflky=ThePortComedyClub",
+      "local_start": "2026-11-23T20:00:00"
+    },
+    {
+      "event_id": "697078",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697078?afflky=ThePortComedyClub",
+      "local_start": "2026-11-23T21:30:00"
+    },
+    {
+      "event_id": "697103",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697103?afflky=ThePortComedyClub",
+      "local_start": "2026-11-24T21:00:00"
+    },
+    {
+      "event_id": "697128",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697128?afflky=ThePortComedyClub",
+      "local_start": "2026-11-25T20:00:00"
+    },
+    {
+      "event_id": "697026",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697026?afflky=ThePortComedyClub",
+      "local_start": "2026-11-29T20:00:00"
+    },
+    {
+      "event_id": "697053",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697053?afflky=ThePortComedyClub",
+      "local_start": "2026-11-30T20:00:00"
+    },
+    {
+      "event_id": "697079",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697079?afflky=ThePortComedyClub",
+      "local_start": "2026-11-30T21:30:00"
+    },
+    {
+      "event_id": "697104",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697104?afflky=ThePortComedyClub",
+      "local_start": "2026-12-01T21:00:00"
+    },
+    {
+      "event_id": "697129",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697129?afflky=ThePortComedyClub",
+      "local_start": "2026-12-02T20:00:00"
+    },
+    {
+      "event_id": "682568",
+      "name": "Sam Jay",
+      "url": "https://wl.seetickets.us/event/sam-jay/682568?afflky=ThePortComedyClub",
+      "local_start": "2026-12-03T20:00:00"
+    },
+    {
+      "event_id": "704237",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704237?afflky=ThePortComedyClub",
+      "local_start": "2026-12-03T22:00:00"
+    },
+    {
+      "event_id": "682645",
+      "name": "Sam Jay",
+      "url": "https://wl.seetickets.us/event/Sam-Jay/682645?afflky=ThePortComedyClub",
+      "local_start": "2026-12-04T19:30:00"
+    },
+    {
+      "event_id": "682648",
+      "name": "Sam Jay",
+      "url": "https://wl.seetickets.us/event/Sam-Jay/682648?afflky=ThePortComedyClub",
+      "local_start": "2026-12-04T21:45:00"
+    },
+    {
+      "event_id": "682649",
+      "name": "Sam Jay",
+      "url": "https://wl.seetickets.us/event/Sam-Jay/682649?afflky=ThePortComedyClub",
+      "local_start": "2026-12-05T19:00:00"
+    },
+    {
+      "event_id": "682646",
+      "name": "Sam Jay",
+      "url": "https://wl.seetickets.us/event/Sam-Jay/682646?afflky=ThePortComedyClub",
+      "local_start": "2026-12-05T21:30:00"
+    },
+    {
+      "event_id": "682647",
+      "name": "Sam Jay",
+      "url": "https://wl.seetickets.us/event/Sam-Jay/682647?afflky=ThePortComedyClub",
+      "local_start": "2026-12-06T20:00:00"
+    },
+    {
+      "event_id": "697054",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697054?afflky=ThePortComedyClub",
+      "local_start": "2026-12-07T20:00:00"
+    },
+    {
+      "event_id": "697080",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697080?afflky=ThePortComedyClub",
+      "local_start": "2026-12-07T21:30:00"
+    },
+    {
+      "event_id": "697105",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697105?afflky=ThePortComedyClub",
+      "local_start": "2026-12-08T21:00:00"
+    },
+    {
+      "event_id": "697130",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697130?afflky=ThePortComedyClub",
+      "local_start": "2026-12-09T20:00:00"
+    },
+    {
+      "event_id": "704238",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704238?afflky=ThePortComedyClub",
+      "local_start": "2026-12-10T22:00:00"
+    },
+    {
+      "event_id": "675086",
+      "name": "Gabby Bryan",
+      "url": "https://wl.seetickets.us/event/Gabby-Bryan/675086?afflky=ThePortComedyClub",
+      "local_start": "2026-12-11T19:30:00"
+    },
+    {
+      "event_id": "675085",
+      "name": "Gabby Bryan",
+      "url": "https://wl.seetickets.us/event/Gabby-Bryan/675085?afflky=ThePortComedyClub",
+      "local_start": "2026-12-11T21:45:00"
+    },
+    {
+      "event_id": "675087",
+      "name": "Gabby Bryan",
+      "url": "https://wl.seetickets.us/event/Gabby-Bryan/675087?afflky=ThePortComedyClub",
+      "local_start": "2026-12-12T19:00:00"
+    },
+    {
+      "event_id": "690855",
+      "name": "David Cross",
+      "url": "https://wl.seetickets.us/event/david-cross/690855?afflky=ThePortComedyClub",
+      "local_start": "2026-12-12T19:00:00"
+    },
+    {
+      "event_id": "675088",
+      "name": "Gabby Bryan",
+      "url": "https://wl.seetickets.us/event/Gabby-Bryan/675088?afflky=ThePortComedyClub",
+      "local_start": "2026-12-12T21:30:00"
+    },
+    {
+      "event_id": "697028",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697028?afflky=ThePortComedyClub",
+      "local_start": "2026-12-13T20:00:00"
+    },
+    {
+      "event_id": "697055",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697055?afflky=ThePortComedyClub",
+      "local_start": "2026-12-14T20:00:00"
+    },
+    {
+      "event_id": "697081",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697081?afflky=ThePortComedyClub",
+      "local_start": "2026-12-14T21:30:00"
+    },
+    {
+      "event_id": "697106",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697106?afflky=ThePortComedyClub",
+      "local_start": "2026-12-15T21:00:00"
+    },
+    {
+      "event_id": "697131",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697131?afflky=ThePortComedyClub",
+      "local_start": "2026-12-16T20:00:00"
+    },
+    {
+      "event_id": "690246",
+      "name": "Usama Siddiquee",
+      "url": "https://wl.seetickets.us/event/usama-siddiquee/690246?afflky=ThePortComedyClub",
+      "local_start": "2026-12-17T20:00:00"
+    },
+    {
+      "event_id": "704239",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704239?afflky=ThePortComedyClub",
+      "local_start": "2026-12-17T22:00:00"
+    },
+    {
+      "event_id": "690247",
+      "name": "Usama Siddiquee",
+      "url": "https://wl.seetickets.us/event/Usama-Siddiquee/690247?afflky=ThePortComedyClub",
+      "local_start": "2026-12-18T19:30:00"
+    },
+    {
+      "event_id": "690249",
+      "name": "Usama Siddiquee",
+      "url": "https://wl.seetickets.us/event/Usama-Siddiquee/690249?afflky=ThePortComedyClub",
+      "local_start": "2026-12-18T21:45:00"
+    },
+    {
+      "event_id": "690250",
+      "name": "Usama Siddiquee",
+      "url": "https://wl.seetickets.us/event/Usama-Siddiquee/690250?afflky=ThePortComedyClub",
+      "local_start": "2026-12-19T19:00:00"
+    },
+    {
+      "event_id": "690248",
+      "name": "Usama Siddiquee",
+      "url": "https://wl.seetickets.us/event/Usama-Siddiquee/690248?afflky=ThePortComedyClub",
+      "local_start": "2026-12-19T21:30:00"
+    },
+    {
+      "event_id": "697029",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697029?afflky=ThePortComedyClub",
+      "local_start": "2026-12-20T20:00:00"
+    },
+    {
+      "event_id": "697056",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697056?afflky=ThePortComedyClub",
+      "local_start": "2026-12-21T20:00:00"
+    },
+    {
+      "event_id": "697082",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697082?afflky=ThePortComedyClub",
+      "local_start": "2026-12-21T21:30:00"
+    },
+    {
+      "event_id": "697107",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697107?afflky=ThePortComedyClub",
+      "local_start": "2026-12-22T21:00:00"
+    },
+    {
+      "event_id": "697132",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697132?afflky=ThePortComedyClub",
+      "local_start": "2026-12-23T20:00:00"
+    },
+    {
+      "event_id": "704240",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/704240?afflky=ThePortComedyClub",
+      "local_start": "2026-12-24T22:00:00"
+    },
+    {
+      "event_id": "697030",
+      "name": "New Material Night",
+      "url": "https://wl.seetickets.us/event/New-Material-Night/697030?afflky=ThePortComedyClub",
+      "local_start": "2026-12-27T20:00:00"
+    },
+    {
+      "event_id": "697057",
+      "name": "Captain's Quarters",
+      "url": "https://wl.seetickets.us/event/Captains-Quarters/697057?afflky=ThePortComedyClub",
+      "local_start": "2026-12-28T20:00:00"
+    },
+    {
+      "event_id": "697083",
+      "name": "The Open Mic",
+      "url": "https://wl.seetickets.us/event/The-Open-Mic/697083?afflky=ThePortComedyClub",
+      "local_start": "2026-12-28T21:30:00"
+    },
+    {
+      "event_id": "697108",
+      "name": "Best on Broadway",
+      "url": "https://wl.seetickets.us/event/Best-on-Broadway/697108?afflky=ThePortComedyClub",
+      "local_start": "2026-12-29T21:00:00"
+    },
+    {
+      "event_id": "697133",
+      "name": "The Boiler Room",
+      "url": "https://wl.seetickets.us/event/The-Boiler-Room/697133?afflky=ThePortComedyClub",
+      "local_start": "2026-12-30T20:00:00"
+    },
+    {
+      "event_id": "695340",
+      "name": "Cipha Sounds",
+      "url": "https://wl.seetickets.us/event/cipha-sounds/695340?afflky=ThePortComedyClub",
+      "local_start": "2027-01-21T20:00:00"
+    },
+    {
+      "event_id": "695341",
+      "name": "Cipha Sounds",
+      "url": "https://wl.seetickets.us/event/Cipha-Sounds/695341?afflky=ThePortComedyClub",
+      "local_start": "2027-01-22T19:30:00"
+    },
+    {
+      "event_id": "695343",
+      "name": "Cipha Sounds",
+      "url": "https://wl.seetickets.us/event/Cipha-Sounds/695343?afflky=ThePortComedyClub",
+      "local_start": "2027-01-22T21:45:00"
+    },
+    {
+      "event_id": "695345",
+      "name": "Cipha Sounds",
+      "url": "https://wl.seetickets.us/event/Cipha-Sounds/695345?afflky=ThePortComedyClub",
+      "local_start": "2027-01-23T19:00:00"
+    },
+    {
+      "event_id": "695342",
+      "name": "Cipha Sounds",
+      "url": "https://wl.seetickets.us/event/Cipha-Sounds/695342?afflky=ThePortComedyClub",
+      "local_start": "2027-01-23T21:30:00"
+    }
+  ]
+}

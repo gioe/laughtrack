@@ -1,0 +1,51 @@
+{
+  "listing_elapsed": 53.659826250048354,
+  "pages": 0,
+  "events": [],
+  "elapsed": 53.736534958006814,
+  "official_calendar": {
+    "url": "https://portcomedy.com/calendar/",
+    "http_stack": "HttpClient.fetch_html curl-cffi Chrome impersonation",
+    "html_path": "/private/tmp/task4050-js-2.html",
+    "html_sha256": "94c9a39592132bc08ec6b794277af7ef66f1925dd94bd1848f93cd0d0f7cb7b3",
+    "unique_events": 147,
+    "year_month_headers": [
+      "September 2026",
+      "October 2026",
+      "November 2026",
+      "December 2026",
+      "January 2027"
+    ],
+    "event_identity": "exact ticket URL numeric Eventim/SeeTickets event ID",
+    "day_selector": "td > .date-number",
+    "month_selector": "table.seetickets-calendar previous sibling .seetickets-calendar-year-month-container",
+    "showtime_selector": ".seetickets-calendar-event-date .doortime-showtime",
+    "doors_note": "second p holds doors; first .doortime-showtime holds performance start",
+    "independent_events_path": "/private/tmp/task4050-calendar-events.json",
+    "homepage_comparison": "calendar147 vs homepage134 unique; calendar includes13additionalvalidBoilerRoomdates absenthomepage"
+  },
+  "direct_browser": {
+    "status": 403,
+    "title": "Just a moment...",
+    "snapshots": "/private/tmp/task4050-direct-{0,1,2}.html",
+    "elapsed_json": "/private/tmp/task4050-direct.json",
+    "conclusion": "Eventim first listing remains Cloudflare challenge after10seconds; existing full helper yielded0pages in53.66seconds forsinglemonth"
+  },
+  "plugin_scripts": {
+    "main": "https://portcomedy.com/wp-content/plugins/see-tickets/js/seetickets-custom-scripts.min.js",
+    "action_names": [
+      "get_seetickets_events",
+      "get_seetickets_events_search_results",
+      "get_seetickets_past_events"
+    ],
+    "endpoint": "https://portcomedy.com/wp-admin/admin-ajax.php",
+    "parameters": [
+      "action",
+      "nonce",
+      "listType",
+      "seeAjaxPage",
+      "currentList"
+    ],
+    "note": "calendar full markup alreadyserverrendered; list pagination unnecessary forcalendar134+13inventory"
+  }
+}
