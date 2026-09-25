@@ -25,6 +25,9 @@ from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.event.etix import EtixEvent
 from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.exceptions.scraping_errors import DataError, ErrorSeverity
+from laughtrack.foundation.infrastructure.http.client import _bot_block_reason
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.utils.comedy_filter import (
@@ -36,12 +39,12 @@ from laughtrack.scrapers.utils.comedy_filter import (
 
 from .data import EtixPageData
 from .extractor import EtixExtractor
-from .rockhouse import extract_rockhouse_events
+from .rockhouse import extract_rockhouse_events_with_conflicts
+from .tribe import extract_tribe_events
 from .transformer import EtixEventTransformer
 
 _ETIX_VENUE_URL = (
-    "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue"
-    "?venue_id={venue_id}&orderBy=1&pageNumber={page}"
+    "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue" "?venue_id={venue_id}&orderBy=1&pageNumber={page}"
 )
 _LAUGH_PATRIOT_PLACE_VENUE_ID = "32411"
 _LAUGH_PATRIOT_PLACE_CALENDAR_URL = "https://laughpatriotplace.com/calendar/"
@@ -63,12 +66,8 @@ _ETIX_TICKET_HREF_RE = re.compile(
     r'href=["\'](https://www\.etix\.com/ticket/[^"\']+)["\']',
     re.IGNORECASE,
 )
-_FB_MONTH_DAY_RE = re.compile(
-    r"(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2})", re.IGNORECASE
-)
-_FB_SHOW_TIME_RE = re.compile(
-    r"Show:\s*(\d{1,2}(?::\d{2})?)\s*([ap]m)", re.IGNORECASE
-)
+_FB_MONTH_DAY_RE = re.compile(r"(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2})", re.IGNORECASE)
+_FB_SHOW_TIME_RE = re.compile(r"Show:\s*(\d{1,2}(?::\d{2})?)\s*([ap]m)", re.IGNORECASE)
 _TITLE_YEAR_PREFIX_RE = re.compile(r"^\s*(\d{4})\s+(.+)$")
 _MAX_PAGES = 10
 
@@ -99,9 +98,7 @@ class EtixScraper(BaseScraper):
         m = re.search(r"/v/(\d+)/", url)
         if m:
             return m.group(1)
-        Logger.warn(
-            f"{self._log_prefix}: could not extract venue_id from scraping_url '{url}'"
-        )
+        Logger.warn(f"{self._log_prefix}: could not extract venue_id from scraping_url '{url}'")
         return ""
 
     async def collect_scraping_targets(self) -> List[str]:
@@ -142,6 +139,58 @@ class EtixScraper(BaseScraper):
         )
         return urls
 
+    @staticmethod
+    def _source_failure(message: str, cause=None) -> DataError:
+        error = DataError(message, "etix_calendar", cause)
+        error.severity = ErrorSeverity.HIGH
+        return error
+
+    def _require_source_html(self, html: Optional[str], url: str) -> str:
+        if not html or not html.strip():
+            raise self._source_failure(f"Etix mandatory source returned no HTML: {url}")
+        signature = _bot_block_reason(html)
+        if signature:
+            diagnostics = current_diagnostics()
+            if diagnostics is not None:
+                diagnostics.record_bot_block(signature, source="response_body", stage="direct_fetch")
+            raise self._source_failure(f"Etix mandatory source blocked ({signature}): {url}")
+        return html
+
+    @staticmethod
+    def _verified_rockhouse_empty(html: str) -> bool:
+        """Recognize the observed unfiltered Winery Rockhouse empty calendar.
+
+        Plain notice text elsewhere in a maintenance/error page is insufficient.
+        Contradictory event cards or active filters make the result untrusted.
+        """
+        from bs4 import BeautifulSoup
+
+        soup = BeautifulSoup(html, "html.parser")
+        calendar = soup.select_one("#desktopView")
+        if calendar is None or soup.select_one(".eventWrapper") is not None:
+            return False
+        heading = calendar.select_one("h1.rhp-events-page-title")
+        notice = calendar.select_one(":scope > .noEventsNotice")
+        form = calendar.select_one("form#rhp-bar-form")
+        if (
+            heading is None
+            or heading.get_text(" ", strip=True) != "Upcoming Events"
+            or notice is None
+            or notice.get_text(" ", strip=True) != "There were no results found."
+            or form is None
+            or calendar.select_one(".generalView") is None
+        ):
+            return False
+        for selector, expected in (
+            ("#rhp_bar_search_box", ""),
+            ("#rhp_bar_rhp_month", "0"),
+            ("#rhp-bar-just-announced", "0"),
+        ):
+            field = form.select_one(selector)
+            if field is None or field.get("value") != expected:
+                return False
+        return True
+
     async def get_data(self, url: str) -> Optional[EtixPageData]:
         """Fetch a page's events, then (opt-in) keep only comedy.
 
@@ -150,7 +199,24 @@ class EtixScraper(BaseScraper):
         unset and run the raw path unchanged.
         """
         data = await self._get_data_raw(url)
-        if not self._comedy_filter or not data or not data.event_list:
+        # Only a parser-verified empty calendar returns an explicit empty
+        # PageData. None remains an unverified or failed mandatory source.
+        if data is None:
+            raise self._source_failure(f"Etix mandatory source produced no verified events: {url}")
+        # Source-reviewed exclusions outrank every positive comedy signal.
+        # Match complete normalized titles; never broaden this to substrings.
+        excluded = self.club.source_metadata.get("excluded_event_titles", [])
+        if not isinstance(excluded, list) or any(not isinstance(title, str) or not title.strip() for title in excluded):
+            raise self._source_failure("Etix excluded_event_titles must be a list of nonempty titles")
+        normalized = {" ".join(title.casefold().split()) for title in excluded}
+        if normalized:
+            kept = [event for event in data.event_list if " ".join(event.title.casefold().split()) not in normalized]
+            Logger.info(
+                f"{self._log_prefix}: source title exclusions removed {len(data.event_list) - len(kept)} events",
+                self.logger_context,
+            )
+            data = EtixPageData(event_list=kept)
+        if not self._comedy_filter or not data.event_list:
             return data
         return await self._filter_comedy(data)
 
@@ -194,7 +260,7 @@ class EtixScraper(BaseScraper):
 
             if self._uses_funny_bone_fallback(url):
                 fallback_data = await self._get_funny_bone_fallback_data()
-                if fallback_data and fallback_data.event_list:
+                if fallback_data is not None:
                     return fallback_data
                 Logger.info(
                     f"{self._log_prefix}: Funny Bone fallback found no events for {url}",
@@ -210,6 +276,10 @@ class EtixScraper(BaseScraper):
                 )
                 return None
 
+            # Keep the existing Nashville recovery path for blocked Etix HTML.
+            if self._uses_zanies_nashville_fallback(url) and _bot_block_reason(html):
+                return await self._get_zanies_nashville_fallback_data()
+            self._require_source_html(html, url)
             events = EtixExtractor.extract_events(html)
             if not events:
                 if self._uses_zanies_nashville_fallback(url):
@@ -230,10 +300,12 @@ class EtixScraper(BaseScraper):
 
         except Exception as e:
             Logger.error(
-                f"{self._log_prefix}: error fetching {url}: {e}",
+                f"{self._log_prefix}: error fetching {url}: {type(e).__name__}: {e}",
                 self.logger_context,
             )
-            return None
+            if isinstance(e, DataError) and e.severity == ErrorSeverity.HIGH:
+                raise
+            raise self._source_failure(f"Etix mandatory source failed: {url}: {type(e).__name__}: {e}", e) from e
 
     def _uses_laugh_patriot_place_fallback(self, url: str) -> bool:
         return (
@@ -246,7 +318,7 @@ class EtixScraper(BaseScraper):
         """Use Laugh Patriot Place's public calendar when Etix is DataDome-blocked."""
         candidates: List[EtixEvent] = []
         for calendar_url, year, month in self._laugh_patriot_place_calendar_targets():
-            calendar_html = await self.fetch_html(calendar_url)
+            calendar_html = self._require_source_html(await self.fetch_html(calendar_url), calendar_url)
             if not calendar_html:
                 Logger.warn(
                     f"{self._log_prefix}: Laugh Patriot Place fallback calendar returned no HTML "
@@ -267,10 +339,8 @@ class EtixScraper(BaseScraper):
         for event in candidates:
             event_url = event.event_url or ""
             if event_url not in ticket_urls_by_event_url:
-                detail_html = await self.fetch_html(event_url)
-                ticket_urls_by_event_url[event_url] = (
-                    self._extract_laugh_patriot_place_ticket_url(detail_html or "")
-                )
+                detail_html = self._require_source_html(await self.fetch_html(event_url), event_url)
+                ticket_urls_by_event_url[event_url] = self._extract_laugh_patriot_place_ticket_url(detail_html or "")
             ticket_url = ticket_urls_by_event_url[event_url]
             if not ticket_url:
                 Logger.warn(
@@ -278,7 +348,7 @@ class EtixScraper(BaseScraper):
                     f"for '{event.title}' at {event.event_url}",
                     self.logger_context,
                 )
-                continue
+                raise self._source_failure(f"Etix fallback missing mandatory ticket identity: {event_url}")
             event.ticket_url = ticket_url
             events.append(event)
 
@@ -398,20 +468,19 @@ class EtixScraper(BaseScraper):
             html = await self.fetch_html(_ZANIES_NASHVILLE_HOME_URL)
         except Exception as e:
             Logger.warn(
-                f"{self._log_prefix}: Zanies Nashville fallback fetch failed "
-                f"for {_ZANIES_NASHVILLE_HOME_URL}: {e}",
+                f"{self._log_prefix}: Zanies Nashville fallback fetch failed " f"for {_ZANIES_NASHVILLE_HOME_URL}: {e}",
                 self.logger_context,
             )
             return None
 
         if not html:
             Logger.warn(
-                f"{self._log_prefix}: Zanies Nashville fallback returned no HTML "
-                f"for {_ZANIES_NASHVILLE_HOME_URL}",
+                f"{self._log_prefix}: Zanies Nashville fallback returned no HTML " f"for {_ZANIES_NASHVILLE_HOME_URL}",
                 self.logger_context,
             )
             return None
 
+        self._require_source_html(html, _ZANIES_NASHVILLE_HOME_URL)
         events = self._extract_zanies_nashville_events(html)
         if events:
             Logger.info(
@@ -453,12 +522,8 @@ class EtixScraper(BaseScraper):
         return events
 
     def _zanies_nashville_single_event(self, wrapper, seen: set) -> Optional[EtixEvent]:
-        title_el = wrapper.select_one(
-            "h2.rhp-event__title--grid, h2.rhp-event__title--list, h2"
-        )
-        title, title_year = self._clean_zanies_nashville_title(
-            title_el.get_text(" ", strip=True) if title_el else ""
-        )
+        title_el = wrapper.select_one("h2.rhp-event__title--grid, h2.rhp-event__title--list, h2")
+        title, title_year = self._clean_zanies_nashville_title(title_el.get_text(" ", strip=True) if title_el else "")
         date_el = wrapper.select_one(".eventMonth.singleEventDate, .eventMonth")
         ticket_a = wrapper.select_one('a[href*="etix.com/ticket/"]')
         event_a = wrapper.select_one("a.url[href]")
@@ -490,15 +555,9 @@ class EtixScraper(BaseScraper):
         )
 
     def _zanies_nashville_series_events(self, wrapper, seen: set) -> List[EtixEvent]:
-        title_el = wrapper.select_one(
-            ".rhpEventHeader a, .eventSeriesTitle a, h2.rhp-event__title--grid, h2"
-        )
-        title, title_year = self._clean_zanies_nashville_title(
-            title_el.get_text(" ", strip=True) if title_el else ""
-        )
-        event_a = wrapper.select_one(
-            ".rhpEventHeader a[href], .eventSeriesTitle a[href], a.url[href]"
-        )
+        title_el = wrapper.select_one(".rhpEventHeader a, .eventSeriesTitle a, h2.rhp-event__title--grid, h2")
+        title, title_year = self._clean_zanies_nashville_title(title_el.get_text(" ", strip=True) if title_el else "")
+        event_a = wrapper.select_one(".rhpEventHeader a[href], .eventSeriesTitle a[href], a.url[href]")
         event_url = event_a.get("href") if event_a else None
         if not title:
             return []
@@ -533,6 +592,20 @@ class EtixScraper(BaseScraper):
                 )
             )
         return results
+
+    def _extract_rockhouse_with_status(self, html: str, url: str) -> List[EtixEvent]:
+        events, conflicts = extract_rockhouse_events_with_conflicts(html, date.today())
+        if conflicts:
+            message = (
+                f"Etix source {url} has conflicting performance IDs: {', '.join(sorted(conflicts))}; "
+                f"retaining {len(events)} unambiguous events and blocking stale reconciliation"
+            )
+            Logger.warn(message, self.logger_context)
+            diagnostics = current_diagnostics()
+            if diagnostics is not None:
+                diagnostics.record_fetch_failed()
+                diagnostics.record_scrape_error(message)
+        return events
 
     async def _get_funny_bone_fallback_data(self) -> Optional[EtixPageData]:
         """Use a Funny Bone venue's public listing when Etix is DataDome-blocked.
@@ -569,7 +642,10 @@ class EtixScraper(BaseScraper):
             )
             return None
 
-        events = extract_rockhouse_events(html, date.today())
+        self._require_source_html(html, shows_url)
+        events = self._extract_rockhouse_with_status(html, shows_url)
+        if not events and self._verified_rockhouse_empty(html):
+            return EtixPageData(event_list=[])
         if events:
             Logger.info(
                 f"{self._log_prefix}: Funny Bone fallback extracted {len(events)} events from {shows_url}",
@@ -601,7 +677,18 @@ class EtixScraper(BaseScraper):
             )
             return None
 
-        events = extract_rockhouse_events(html, date.today())
+        self._require_source_html(html, shows_url)
+        from bs4 import BeautifulSoup
+
+        if BeautifulSoup(html, "html.parser").select_one("article.tribe-events-calendar-list__event") is not None:
+            events = extract_tribe_events(html)
+            if not events:
+                raise self._source_failure(f"Etix Tribe source produced no verified comedy events: {shows_url}")
+            return EtixPageData(event_list=events)
+
+        events = self._extract_rockhouse_with_status(html, shows_url)
+        if not events and self._verified_rockhouse_empty(html):
+            return EtixPageData(event_list=[])
         if events:
             Logger.info(
                 f"{self._log_prefix}: Rockhouse public source extracted {len(events)} events from {shows_url}",
@@ -628,9 +715,7 @@ class EtixScraper(BaseScraper):
         return m.group(2).strip(), year
 
     @staticmethod
-    def _zanies_nashville_iso_datetime(
-        date_text: str, time_text: str, title_year: Optional[int]
-    ) -> Optional[str]:
+    def _zanies_nashville_iso_datetime(date_text: str, time_text: str, title_year: Optional[int]) -> Optional[str]:
         from laughtrack.scrapers.implementations.api.etix.extractor import _MONTHS
 
         m = _FB_MONTH_DAY_RE.search(date_text or "")

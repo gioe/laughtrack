@@ -1,7 +1,7 @@
 """Rockhouse Partners event extraction for Etix-backed public venue pages."""
 
 import re
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 
 from laughtrack.core.entities.event.etix import EtixEvent
@@ -9,16 +9,65 @@ from laughtrack.foundation.utilities.number import parse_price_text
 
 from .extractor import _MONTHS
 
-_MONTH_DAY_RE = re.compile(
-    r"(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2})", re.IGNORECASE
-)
-_SHOW_TIME_RE = re.compile(
-    r"Show:\s*(\d{1,2}(?::\d{2})?)\s*([ap]m)", re.IGNORECASE
-)
+_MONTH_DAY_RE = re.compile(r"(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2})", re.IGNORECASE)
+_SHOW_TIME_RE = re.compile(r"\bShow\s*[:|]\s*(\d{1,2}(?::\d{2})?)\s*([ap]m)", re.IGNORECASE)
 _MONTH_YEAR_RE = re.compile(r"([A-Za-z]+)\s+(\d{4})")
+_PRICE_RANGE_RE = re.compile(
+    r"\s*\$?\s*([+-]?\d+(?:\.\d{1,2})?)\s*(?:to|[-–—])\s*" r"\$?\s*([+-]?\d+(?:\.\d{1,2})?)\s*", re.IGNORECASE
+)
+
+
+_CARD_CLASSES = {"rhp-event__single-event--list", "rhp-event__single-series--list"}
 
 
 def extract_rockhouse_events(html: str, today: date) -> List[EtixEvent]:
+    """Return only performances with explicit times and consistent identities."""
+    events, _ = extract_rockhouse_events_with_conflicts(html, today)
+    return events
+
+
+def extract_rockhouse_events_with_conflicts(
+    html: str, today: date
+) -> tuple[List[EtixEvent], dict[str, list[dict[str, Optional[str]]]]]:
+    """Expose rejected identities so callers can prevent stale-show cleanup.
+
+    A shared Etix performance ID with differing names or dates is source
+    corruption, not evidence to choose whichever card happens to appear first.
+    """
+    groups: dict[str, list[EtixEvent]] = {}
+    for event in _extract_candidates(html, today):
+        match = re.search(r"/ticket/p/(\d+)(?:/|[?#]|$)", event.ticket_url)
+        ident = match.group(1) if match else event.ticket_url
+        groups.setdefault(ident, []).append(event)
+    safe = []
+    conflicts = {}
+    for ident, candidates in groups.items():
+        identities = {(" ".join(e.title.casefold().split()), e.start_date) for e in candidates}
+        if len(identities) == 1:
+            safe.append(candidates[0])
+        else:
+            conflicts[ident] = [
+                {"title": e.title, "start_date": e.start_date, "ticket_url": e.ticket_url, "event_url": e.event_url}
+                for e in candidates
+            ]
+    return safe, conflicts
+
+
+def _owned_elements(wrapper, selector):
+    """Exclude fields belonging to a nested event card."""
+    return [
+        element
+        for element in wrapper.select(selector)
+        if next((parent for parent in element.parents if _CARD_CLASSES.intersection(parent.get("class") or [])), None)
+        is wrapper
+    ]
+
+
+def _owned_one(wrapper, selector):
+    return next(iter(_owned_elements(wrapper, selector)), None)
+
+
+def _extract_candidates(html: str, today: date) -> List[EtixEvent]:
     """Parse the Rockhouse Partners event list widget used by Etix venues."""
     try:
         from bs4 import BeautifulSoup
@@ -27,15 +76,13 @@ def extract_rockhouse_events(html: str, today: date) -> List[EtixEvent]:
 
     soup = BeautifulSoup(html, "html.parser")
     events: List[EtixEvent] = []
-    seen: set[tuple[str, str]] = set()
+    seen: set[tuple[str, str, str]] = set()
     current_year = today.year
 
     # Walk separators and event wrappers in document order so each event picks
     # up the year context from its preceding "MMMM YYYY" header.
     nodes = soup.select(
-        ".rhp-events-list-separator-month, "
-        ".rhp-event__single-event--list, "
-        ".rhp-event__single-series--list"
+        ".rhp-events-list-separator-month, " ".rhp-event__single-event--list, " ".rhp-event__single-series--list"
     )
     for node in nodes:
         classes = node.get("class") or []
@@ -59,14 +106,12 @@ def extract_rockhouse_events(html: str, today: date) -> List[EtixEvent]:
 
 
 def _single_event(wrapper, year: int, seen: set) -> Optional[EtixEvent]:
-    title_el = wrapper.select_one(
-        "h2.rhp-event__title--list, .rhp-event__title--list a"
-    )
+    title_el = _owned_one(wrapper, "h2.rhp-event__title--list, .rhp-event__title--list a")
     title = (title_el.get_text(" ", strip=True) if title_el else "").strip()
-    date_el = wrapper.select_one(".eventMonth.singleEventDate, .eventMonth")
-    time_el = wrapper.select_one(".rhp-event__time-text--list")
-    ticket_a = wrapper.select_one('a[href*="etix.com/ticket/p/"]')
-    event_a = wrapper.select_one("a.url[href]")
+    date_el = _owned_one(wrapper, ".eventMonth.singleEventDate, .eventMonth")
+    time_el = _owned_one(wrapper, ".rhp-event__time-text--list")
+    ticket_a = _owned_one(wrapper, 'a[href*="etix.com/ticket/p/"]')
+    event_a = _owned_one(wrapper, "a.url[href]")
 
     if not (title and date_el and ticket_a):
         return None
@@ -80,7 +125,7 @@ def _single_event(wrapper, year: int, seen: set) -> Optional[EtixEvent]:
         return None
 
     event_url = event_a.get("href") if event_a else None
-    key = (title, iso_dt)
+    key = (title, iso_dt, ticket_url.split("?")[0])
     if key in seen:
         return None
     seen.add(key)
@@ -95,18 +140,16 @@ def _single_event(wrapper, year: int, seen: set) -> Optional[EtixEvent]:
 
 
 def _series_events(wrapper, year: int, seen: set) -> List[EtixEvent]:
-    title_el = wrapper.select_one(
-        ".rhpEventHeader a, .eventSeriesTitle a, h2.rhp-event__title--list"
-    )
+    title_el = _owned_one(wrapper, ".rhpEventHeader a, .eventSeriesTitle a, h2.rhp-event__title--list")
     title = (title_el.get_text(" ", strip=True) if title_el else "").strip()
-    event_a = wrapper.select_one(".rhpEventHeader a, .eventSeriesTitle a, a.url[href]")
+    event_a = _owned_one(wrapper, ".rhpEventHeader a, .eventSeriesTitle a, a.url[href]")
     event_url = event_a.get("href") if event_a else None
     if not title:
         return []
 
     ticket_price = _ticket_price(wrapper)
     results: List[EtixEvent] = []
-    for li in wrapper.select("li.rhp-event-series-individual"):
+    for li in _owned_elements(wrapper, "li.rhp-event-series-individual"):
         date_el = li.select_one(".rhp-event-series-date")
         time_el = li.select_one(".rhp-event-series-time")
         ticket_a = li.select_one('a[href*="etix.com/ticket/p/"]')
@@ -118,7 +161,7 @@ def _series_events(wrapper, year: int, seen: set) -> List[EtixEvent]:
         if iso_dt is None:
             continue
         ticket_url = ticket_a.get("href", "")
-        key = (title, iso_dt)
+        key = (title, iso_dt, ticket_url.split("?")[0])
         if key in seen:
             continue
         seen.add(key)
@@ -136,17 +179,19 @@ def _series_events(wrapper, year: int, seen: set) -> List[EtixEvent]:
 
 
 def _ticket_price(wrapper) -> Optional[float]:
-    price_el = wrapper.select_one(
-        ".rhp-event__cost-text--list, "
-        ".rhp-event__cost-text--grid, "
-        ".rhp-event-price"
-    )
+    price_el = _owned_one(wrapper, ".rhp-event__cost-text--list, " ".rhp-event__cost-text--grid, " ".rhp-event-price")
     if price_el is None:
         return None
 
-    # Targeted cost-text element ("$60 to $100"): shared parser returns the
-    # min of the range, matching the old first-$ result for low-first ranges.
-    return parse_price_text(price_el.get_text(" ", strip=True))
+    text = price_el.get_text(" ", strip=True)
+    price_range = _PRICE_RANGE_RE.fullmatch(text.replace(",", ""))
+    if price_range:
+        low, high = sorted(float(value) for value in price_range.groups())
+        # A zero tier may be a companion/child ticket: it does not establish
+        # free general admission. Invalid negative ranges are also unknown.
+        if low < 0 or low == 0 < high:
+            return None
+    return parse_price_text(text)
 
 
 def _iso_datetime(date_text: str, time_text: str, year: int) -> Optional[str]:
@@ -163,31 +208,17 @@ def _iso_datetime(date_text: str, time_text: str, year: int) -> Optional[str]:
     except ValueError:
         return None
 
-    # Default 8:00 PM matches the date-only fallback in EtixEvent.
-    hour, minute = 20, 0
-    time_match = _SHOW_TIME_RE.search(time_text or "")
-    if time_match:
-        time_part = time_match.group(1)
-        ampm = time_match.group(2).lower()
-        if ":" in time_part:
-            h_str, m_str = time_part.split(":")
-            try:
-                hour = int(h_str)
-                minute = int(m_str)
-            except ValueError:
-                return None
-        else:
-            try:
-                hour = int(time_part)
-            except ValueError:
-                return None
-            minute = 0
-        if ampm == "pm" and hour != 12:
-            hour += 12
-        elif ampm == "am" and hour == 12:
-            hour = 0
-
+    matches = list(_SHOW_TIME_RE.finditer(time_text or ""))
+    if len(matches) != 1:
+        return None
+    time_part, ampm = matches[0].groups()
+    parts = time_part.split(":")
+    hour = int(parts[0])
+    minute = int(parts[1]) if len(parts) == 2 else 0
+    if not 1 <= hour <= 12 or not 0 <= minute <= 59:
+        return None
+    hour = hour % 12 + (12 if ampm.lower() == "pm" else 0)
     try:
-        return f"{year:04d}-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}:00"
+        return datetime(year, month, day, hour, minute).isoformat()
     except ValueError:
         return None

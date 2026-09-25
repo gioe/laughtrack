@@ -9,12 +9,15 @@ on a single listing.
 
 import pytest
 
-
 ETIX_URL = "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=31600&orderBy=1&pageNumber=1"
 SHOWS_URL = "https://tampa.funnybone.com/shows/"
 SOLO_TICKET_URL = "https://www.etix.com/ticket/p/42669966/mic-nite-tampa-funny-bone-comedy-club-tampa?partner_id=100"
-SERIES_TICKET_URL_1 = "https://www.etix.com/ticket/p/60545297/damn-gina-tampa-funny-bone-comedy-club-tampa?partner_id=100"
-SERIES_TICKET_URL_2 = "https://www.etix.com/ticket/p/62353810/damn-gina-tampa-funny-bone-comedy-club-tampa?partner_id=100"
+SERIES_TICKET_URL_1 = (
+    "https://www.etix.com/ticket/p/60545297/damn-gina-tampa-funny-bone-comedy-club-tampa?partner_id=100"
+)
+SERIES_TICKET_URL_2 = (
+    "https://www.etix.com/ticket/p/62353810/damn-gina-tampa-funny-bone-comedy-club-tampa?partner_id=100"
+)
 SOLO_EVENT_URL = "https://tampa.funnybone.com/event/mic-nite-114/tampa-funny-bone/"
 SERIES_EVENT_URL = "https://tampa.funnybone.com/events/category/series/damn-gina/tampa-funny-bone/"
 
@@ -151,8 +154,8 @@ async def test_tampa_funny_bone_fallback_uses_public_listing(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_tampa_funny_bone_fallback_returns_none_when_listing_empty(monkeypatch):
-    """When the public fallback page is unreachable, the scraper returns None."""
+async def test_tampa_funny_bone_fallback_fails_when_listing_unreachable(monkeypatch):
+    """An unreachable mandatory listing must block stale-show reconciliation."""
     from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
 
     scraper = EtixScraper(_club())
@@ -166,9 +169,10 @@ async def test_tampa_funny_bone_fallback_returns_none_when_listing_empty(monkeyp
     monkeypatch.setattr(EtixScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(EtixScraper, "fetch_html_bare", fake_fetch_html_bare)
 
-    result = await scraper.get_data(ETIX_URL)
+    from laughtrack.foundation.exceptions.scraping_errors import DataError
 
-    assert result is None
+    with pytest.raises(DataError):
+        await scraper.get_data(ETIX_URL)
 
 
 def test_tampa_funny_bone_fallback_only_triggers_for_venue_31600():
