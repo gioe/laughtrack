@@ -184,13 +184,17 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 if not show.last_scraped_by:
                     show.last_scraped_by = scraper_key
 
+        # Inspect the complete input before batching or generic dedup can hide
+        # simultaneous ThunderTix performances sharing the database unique key.
+        shows, thundertix_rejected = self._reject_thundertix_collisions(shows)
+
         fullcalendar_context = (
             self._fullcalendar_input_conflicts(shows)
             if any(show.last_scraped_by == "fullcalendar_json" for show in shows)
             else None
         )
         total_items = len(shows)
-        total_result = DatabaseOperationResult()
+        total_result = DatabaseOperationResult(validation_errors=thundertix_rejected)
         successful_batches = 0
         failed_batches = 0
 
@@ -588,6 +592,40 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             )
         return reconciled
 
+    @staticmethod
+    def _thundertix_performance_identity(show: Show) -> tuple:
+        tickets = set()
+        for ticket in show.tickets or []:
+            url = ticket.purchase_url or ""
+            parsed = urlsplit(url)
+            query = parse_qs(parsed.query)
+            performance_ids = tuple(query.get("performance_id", []))
+            if performance_ids:
+                tickets.add((parsed.hostname or "", tuple(query.get("event_id", [])), performance_ids))
+            elif url:
+                tickets.add((url, (), ()))
+        return (show.show_page_url or "", tuple(sorted(tickets)), show.name if not tickets else "")
+
+    def _reject_thundertix_collisions(self, shows: List[Show]) -> tuple[List[Show], int]:
+        """Reject unrepresentable simultaneous performances, without inventing rooms.
+
+        The database key is club/date/room; a recurring event's URL alone does
+        not identify a performance. Keep this guard specific to ThunderTix,
+        and signal partial persistence so reconciliation preserves prior rows.
+        """
+        identities = {}
+        for show in shows:
+            if show.last_scraped_by == "thundertix":
+                identities.setdefault(show.to_unique_key(), set()).add(self._thundertix_performance_identity(show))
+        conflicts = {key for key, values in identities.items() if len(values) > 1}
+        accepted = [
+            show for show in shows if not (show.last_scraped_by == "thundertix" and show.to_unique_key() in conflicts)
+        ]
+        rejected = len(shows) - len(accepted)
+        if rejected:
+            Logger.warn(f"Rejected {rejected} ThunderTix performances with conflicting club/date/room identities")
+        return accepted, rejected
+
     def _fullcalendar_input_conflicts(self, shows: List[Show]) -> tuple[set, set]:
         """Keep ambiguity visible even when one feed spans persistence batches."""
         destinations = {}
@@ -775,6 +813,10 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             return DatabaseOperationResult(validation_errors=len(validation_errors))
 
         self._suppress_room_matching_club_name(batch)
+        batch, thundertix_rejected = self._reject_thundertix_collisions(batch)
+        validation_errors.extend(["Conflicting ThunderTix performance identity"] * thundertix_rejected)
+        if not batch:
+            return DatabaseOperationResult(validation_errors=len(validation_errors))
         # Detect distinct FullCalendar identities targeting one physical key
         # before generic in-batch dedup can conceal the conflict. The current
         # database cannot represent those simultaneous events in the same room.

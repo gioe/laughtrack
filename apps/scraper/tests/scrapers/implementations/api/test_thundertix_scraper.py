@@ -146,9 +146,7 @@ async def test_engine_applies_publicly_available_and_title_skip_filters(monkeypa
 
 def test_generic_scraper_builds_config_from_club_source_url_only():
     """Bare base URL in source_url is used as-is; no skip-prefixes by default."""
-    scraper = GenericThunderTixScraper(
-        _club(source_url="https://postofficecafecabaret.thundertix.com")
-    )
+    scraper = GenericThunderTixScraper(_club(source_url="https://postofficecafecabaret.thundertix.com"))
 
     assert scraper.thundertix_config.base_url == "https://postofficecafecabaret.thundertix.com"
     assert scraper.thundertix_config.title_skip_prefixes == ()
@@ -163,9 +161,7 @@ def test_generic_scraper_rejects_non_thundertix_source_url(bad_url):
 
 def test_generic_scraper_strips_calendar_path_from_source_url():
     """source_url ending in /reports/calendar is normalized to the venue root."""
-    scraper = GenericThunderTixScraper(
-        _club(source_url="https://theannoyance.thundertix.com/reports/calendar")
-    )
+    scraper = GenericThunderTixScraper(_club(source_url="https://theannoyance.thundertix.com/reports/calendar"))
 
     assert scraper.thundertix_config.base_url == "https://theannoyance.thundertix.com"
 
@@ -184,17 +180,13 @@ def test_generic_scraper_parses_title_skip_prefixes_metadata():
 
 @pytest.mark.asyncio
 async def test_generic_scraper_collects_12_weekly_urls_from_club_base():
-    scraper = GenericThunderTixScraper(
-        _club(source_url="https://theannoyance.thundertix.com")
-    )
+    scraper = GenericThunderTixScraper(_club(source_url="https://theannoyance.thundertix.com"))
 
     urls = await scraper.collect_scraping_targets()
 
     assert len(urls) == 12
     for url in urls:
-        assert url.startswith(
-            "https://theannoyance.thundertix.com/reports/calendar?week=0&start="
-        )
+        assert url.startswith("https://theannoyance.thundertix.com/reports/calendar?week=0&start=")
 
 
 @pytest.mark.asyncio
@@ -226,17 +218,13 @@ async def test_generic_scraper_get_data_returns_thundertix_page_data(monkeypatch
     assert isinstance(result, ThunderTixPageData)
     assert [event.title for event in result.event_list] == ["Public Show"]
     only_event = result.event_list[0]
-    assert only_event.ticket_url == (
-        "https://theannoyance.thundertix.com/orders/new?event_id=1&performance_id=101"
-    )
+    assert only_event.ticket_url == ("https://theannoyance.thundertix.com/orders/new?event_id=1&performance_id=101")
 
 
 @pytest.mark.asyncio
 async def test_generic_scraper_get_data_returns_none_on_empty_response(monkeypatch):
     """get_data() returns None when the API returns an empty array."""
-    scraper = GenericThunderTixScraper(
-        _club(source_url="https://theannoyance.thundertix.com")
-    )
+    scraper = GenericThunderTixScraper(_club(source_url="https://theannoyance.thundertix.com"))
 
     async def fake_fetch_json_list(self, url: str):
         return []
@@ -366,15 +354,13 @@ async def test_detail_page_fetch_failure_leaves_price_none(monkeypatch):
         fetched,
     )
 
-    result = await scraper.get_data(
-        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1&end=2"
-    )
+    result = await scraper.get_data("https://theannoyance.thundertix.com/reports/calendar?week=0&start=1&end=2")
 
     assert [event.title for event in result.event_list] == ["Public Show"]
     assert result.event_list[0].price is None
-    # A failed fetch is evicted from the memo, so a later window retries it.
+    # Failed optional enrichment remains memoized for this run.
     await scraper.get_data("https://theannoyance.thundertix.com/reports/calendar?week=0&start=2&end=3")
-    assert len(fetched) == 2
+    assert len(fetched) == 1
 
 
 @pytest.mark.asyncio
@@ -392,9 +378,7 @@ async def test_detail_page_fetch_skips_venue_root_when_truncated_url_empty(monke
     fetched = []
     scraper = _scraper_with_detail_pages(monkeypatch, {}, fetched)
 
-    result = await scraper.get_data(
-        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1&end=2"
-    )
+    result = await scraper.get_data("https://theannoyance.thundertix.com/reports/calendar?week=0&start=1&end=2")
 
     assert fetched == []
     assert result.event_list[0].price is None
@@ -402,9 +386,7 @@ async def test_detail_page_fetch_skips_venue_root_when_truncated_url_empty(monke
 
 def test_to_show_carries_price_into_fallback_ticket():
     """ThunderTixPerformance.price flows into the show's fallback ticket."""
-    performance = ThunderTixPerformance.from_api_response(
-        _performance_dict(), "https://theannoyance.thundertix.com"
-    )
+    performance = ThunderTixPerformance.from_api_response(_performance_dict(), "https://theannoyance.thundertix.com")
     performance.price = 15.0
 
     show = performance.to_show(_club())
@@ -414,9 +396,7 @@ def test_to_show_carries_price_into_fallback_ticket():
 
 def test_to_show_defaults_to_price_unknown():
     """Without a detail-page price the fallback ticket stays price-unknown (None, not 0)."""
-    performance = ThunderTixPerformance.from_api_response(
-        _performance_dict(), "https://theannoyance.thundertix.com"
-    )
+    performance = ThunderTixPerformance.from_api_response(_performance_dict(), "https://theannoyance.thundertix.com")
 
     show = performance.to_show(_club())
 
@@ -453,10 +433,9 @@ def test_to_show_parses_both_start_datetime_formats(start_value, expected_utc):
     """to_show resolves both the space-separated and ISO-8601 start formats
     to the same correct aware instant (TASK-2849)."""
     data = _performance_dict()
+    data.pop("time_with_timezone")  # Exercise fallback when no displayed time exists.
     data["start"] = start_value
-    performance = ThunderTixPerformance.from_api_response(
-        data, "https://theannoyance.thundertix.com"
-    )
+    performance = ThunderTixPerformance.from_api_response(data, "https://theannoyance.thundertix.com")
 
     show = performance.to_show(_club())
 
@@ -468,25 +447,21 @@ def test_to_show_warns_only_on_non_primary_datetime_format(caplog):
     """The dateutil fallback fires a Logger.warn for a serialization flip, but
     the primary strptime path stays silent (criteria 9161/9162)."""
     iso_data = _performance_dict()
+    iso_data.pop("time_with_timezone")
     iso_data["start"] = "2026-06-10T21:30:00.000-05:00"
-    iso_perf = ThunderTixPerformance.from_api_response(
-        iso_data, "https://theannoyance.thundertix.com"
-    )
+    iso_perf = ThunderTixPerformance.from_api_response(iso_data, "https://theannoyance.thundertix.com")
 
     with caplog.at_level(logging.WARNING):
         assert iso_perf.to_show(_club()) is not None
 
     fallback_warns = [
-        r for r in caplog.records
-        if "dateutil fallback" in r.getMessage() and "ThunderTixPerformance" in r.getMessage()
+        r for r in caplog.records if "dateutil fallback" in r.getMessage() and "ThunderTixPerformance" in r.getMessage()
     ]
     assert fallback_warns, "expected a warn when the ISO-8601 fallback path fires"
 
     # The primary space-separated format must NOT trigger the fallback warn.
     caplog.clear()
-    primary_perf = ThunderTixPerformance.from_api_response(
-        _performance_dict(), "https://theannoyance.thundertix.com"
-    )
+    primary_perf = ThunderTixPerformance.from_api_response(_performance_dict(), "https://theannoyance.thundertix.com")
     with caplog.at_level(logging.WARNING):
         assert primary_perf.to_show(_club()) is not None
     assert not any(
@@ -495,19 +470,295 @@ def test_to_show_warns_only_on_non_primary_datetime_format(caplog):
 
 
 @pytest.mark.asyncio
-async def test_generic_scraper_get_data_returns_none_when_fetch_raises(monkeypatch):
-    """get_data() swallows fetch exceptions and returns None so a single bad window doesn't abort the run."""
-    scraper = GenericThunderTixScraper(
-        _club(source_url="https://theannoyance.thundertix.com")
-    )
+async def test_generic_scraper_get_data_raises_when_fetch_fails(monkeypatch):
+    """A failed calendar must not appear healthy to stale-show reconciliation."""
+    scraper = GenericThunderTixScraper(_club(source_url="https://theannoyance.thundertix.com"))
 
     async def fake_fetch_json_list(self, url: str):
         raise Exception("Connection refused")
 
     monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
 
-    result = await scraper.get_data(
-        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
+    from laughtrack.foundation.exceptions.scraping_errors import DataError
+
+    with pytest.raises(DataError):
+        await scraper.get_data("https://theannoyance.thundertix.com/reports/calendar")
+
+
+@pytest.mark.asyncio
+async def test_scrape_runtime_regression(monkeypatch):
+    """Stalled optional prices preserve all weekly performances and drain tasks."""
+    import asyncio
+
+    scraper = GenericThunderTixScraper(_club())
+    scraper._PRICE_BUDGET_SECONDS = 0.05
+    scraper._PRICE_URL_TIMEOUT_SECONDS = 1
+    calls, cancelled = [], []
+
+    async def calendar(url):
+        return [_performance_dict(event_id=1), _performance_dict(event_id=2)]
+
+    async def detail(url, **kwargs):
+        calls.append(url)
+        assert kwargs == {"skip_js_fallback": True}
+        if url.endswith("/1"):
+            return _detail_page_html("15.0")
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.append(url)
+
+    async def unlimited(url):
+        pass
+
+    scraper.fetch_json_list = calendar
+    scraper.fetch_html = detail
+    scraper.rate_limiter = SimpleNamespace(await_if_needed=unlimited)
+    targets = await scraper.collect_scraping_targets()
+    results = await asyncio.wait_for(asyncio.gather(*(scraper.get_data(url) for url in targets)), 0.5)
+    assert len(results) == 12
+    assert all([p.price for p in result.event_list] == [15.0, None] for result in results)
+    assert len(calls) == 2
+    assert len(cancelled) == 1
+    assert all(task.done() for task in scraper._run_price_tasks.values())
+    await scraper.get_data(targets[0])
+    assert len(calls) == 2
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("response", [None, RuntimeError("calendar unavailable")])
+async def test_calendar_failure_is_nonretryable(monkeypatch, response):
+    from laughtrack.foundation.exceptions.scraping_errors import DataError, ErrorSeverity
+
+    scraper = GenericThunderTixScraper(_club())
+
+    async def calendar(url):
+        if isinstance(response, Exception):
+            raise response
+        return response
+
+    scraper.fetch_json_list = calendar
+    with pytest.raises(DataError) as error:
+        await scraper.get_data("calendar")
+    assert error.value.severity == ErrorSeverity.HIGH
+
+
+@pytest.mark.asyncio
+async def test_price_concurrency_timeout_includes_limiter_and_drains(monkeypatch):
+    import asyncio
+
+    scraper = GenericThunderTixScraper(_club())
+    scraper._PRICE_URL_TIMEOUT_SECONDS = 0.03
+    scraper._PRICE_CONCURRENCY = 2
+    active = peak = cancelled = 0
+
+    async def calendar(url):
+        return [_performance_dict(event_id=i) for i in range(10)]
+
+    async def limiter(url):
+        nonlocal active, peak, cancelled
+        active += 1
+        peak = max(peak, active)
+        try:
+            await asyncio.Event().wait()
+        finally:
+            active -= 1
+            cancelled += 1
+
+    async def unexpected_fetch(*args, **kwargs):
+        pytest.fail("rate limiter never released a detail request")
+
+    scraper.fetch_json_list = calendar
+    scraper.fetch_html = unexpected_fetch
+    scraper.rate_limiter = SimpleNamespace(await_if_needed=limiter)
+    result = await asyncio.wait_for(scraper.get_data("calendar"), 0.5)
+    assert len(result.event_list) == 10
+    assert all(p.price is None for p in result.event_list)
+    assert peak == 2
+    assert active == 0
+    assert cancelled == 10
+
+
+@pytest.mark.asyncio
+async def test_run_deadline_includes_base_calendar_rate_limit():
+    import asyncio
+    from laughtrack.foundation.exceptions.scraping_errors import DataError, ErrorSeverity
+
+    scraper = GenericThunderTixScraper(_club())
+    scraper._RUN_BUDGET_SECONDS = 0.03
+    cancelled = []
+
+    async def limiter(url):
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.append(url)
+
+    scraper.rate_limiter = SimpleNamespace(await_if_needed=limiter)
+    targets = await scraper.collect_scraping_targets()
+    with pytest.raises(DataError) as error:
+        await asyncio.wait_for(scraper._fetch_all_raw_data(targets), 0.5)
+    assert error.value.severity == ErrorSeverity.HIGH
+    assert len(cancelled) == 12
+
+
+@pytest.mark.asyncio
+async def test_calendar_timeout_cancels_fetch_and_is_not_empty():
+    import asyncio
+    from laughtrack.foundation.exceptions.scraping_errors import DataError
+
+    scraper = GenericThunderTixScraper(_club())
+    scraper._CALENDAR_TIMEOUT_SECONDS = 0.03
+    cancelled = []
+
+    async def calendar(url):
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.append(url)
+
+    scraper.fetch_json_list = calendar
+    with pytest.raises(DataError):
+        await asyncio.wait_for(scraper.get_data("calendar"), 0.5)
+    assert cancelled == ["calendar"]
+
+
+@pytest.mark.asyncio
+async def test_failure_cache_resets_for_new_run(monkeypatch):
+    fetched = []
+    scraper = _scraper_with_detail_pages(
+        monkeypatch, {"https://theannoyance.thundertix.com/events/1": RuntimeError("blocked")}, fetched
     )
 
-    assert result is None
+    async def calendar(url):
+        return [_performance_dict()]
+
+    scraper.fetch_json_list = calendar
+    for _ in range(2):
+        targets = await scraper.collect_scraping_targets()
+        for url in targets:
+            result = await scraper.get_data(url)
+            assert result.event_list[0].price is None
+    assert len(fetched) == 2
+
+
+@pytest.mark.asyncio
+async def test_queued_prices_have_request_budget_after_acquiring_slot():
+    import asyncio
+
+    scraper = GenericThunderTixScraper(_club())
+    scraper._PRICE_CONCURRENCY = 1
+    scraper._PRICE_URL_TIMEOUT_SECONDS = 0.04
+    scraper._PRICE_BUDGET_SECONDS = 0.5
+
+    async def calendar(url):
+        return [_performance_dict(event_id=i) for i in range(5)]
+
+    async def detail(url):
+        await asyncio.sleep(0.02)
+        return 15.0
+
+    scraper.fetch_json_list = calendar
+    scraper._fetch_detail_page_price = detail
+    result = await scraper.get_data("calendar")
+    assert [p.price for p in result.event_list] == [15.0] * 5
+
+
+@pytest.mark.asyncio
+async def test_invalid_performance_time_marks_calendar_failed(monkeypatch):
+    from laughtrack.foundation.exceptions.scraping_errors import DataError, ErrorSeverity
+
+    scraper = GenericThunderTixScraper(_club())
+
+    async def calendar(url):
+        return [_performance_dict()]
+
+    def invalid(self, club):
+        raise ValueError("invalid displayed timezone")
+
+    scraper.fetch_json_list = calendar
+    monkeypatch.setattr(ThunderTixPerformance, "resolve_start_datetime", invalid, raising=False)
+    with pytest.raises(DataError) as error:
+        await scraper.get_data("calendar")
+    assert error.value.severity == ErrorSeverity.HIGH
+
+
+@pytest.mark.parametrize("weeks", [0, -1, 27, 100000, True, 1.5, "", "invalid", "18.0"])
+def test_rejects_invalid_calendar_horizon(weeks):
+    with pytest.raises(ValueError, match="weeks_ahead"):
+        GenericThunderTixScraper(_club(metadata={"weeks_ahead": weeks}))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("weeks", [1, "18", 26])
+async def test_configured_calendar_horizon_preserves_fixed_runtime_budget(weeks):
+    from urllib.parse import parse_qs, urlparse
+
+    scraper = GenericThunderTixScraper(_club(metadata={"weeks_ahead": weeks}))
+    targets = await scraper.collect_scraping_targets()
+    assert len(targets) == int(weeks)
+    first = parse_qs(urlparse(targets[0]).query)
+    last = parse_qs(urlparse(targets[-1]).query)
+    assert int(last["end"][0]) - int(first["start"][0]) == int(weeks) * 7 * 86400
+    assert scraper._RUN_BUDGET_SECONDS == 150
+    assert scraper._PRICE_BUDGET_SECONDS == 60
+
+
+@pytest.mark.asyncio
+async def test_optional_price_diagnostics_do_not_poison_calendar(monkeypatch):
+    from laughtrack.foundation.infrastructure.http.diagnostics import (
+        ScrapeDiagnostics,
+        bind_diagnostics,
+        reset_diagnostics,
+        current_diagnostics,
+    )
+
+    scraper = GenericThunderTixScraper(_club())
+    outer = ScrapeDiagnostics()
+
+    async def calendar(url):
+        assert current_diagnostics() is outer
+        current_diagnostics().record_response(200)
+        return [_performance_dict()]
+
+    async def detail(url, **kwargs):
+        assert current_diagnostics() is not outer
+        current_diagnostics().record_response(403)
+        current_diagnostics().record_bot_block("cloudflare challenge")
+        raise RuntimeError("blocked price")
+
+    async def unlimited(url):
+        pass
+
+    scraper.fetch_json_list = calendar
+    scraper.fetch_html = detail
+    scraper.rate_limiter = SimpleNamespace(await_if_needed=unlimited)
+    token = bind_diagnostics(outer)
+    try:
+        targets = await scraper.collect_scraping_targets()
+        results = await scraper._fetch_all_raw_data(targets)
+        assert all(result.event_list[0].price is None for result, _ in results)
+        assert current_diagnostics() is outer
+        assert outer.http_status == 200
+        assert not outer.bot_block_detected
+        assert outer.fetches_ok == 12
+        assert outer.fetches_failed == 0
+        assert scraper._price_blocked_count == 1
+    finally:
+        reset_diagnostics(token)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("change", [{"title": ""}, {"start": ""}, {"start": "invalid", "time_with_timezone": None}])
+async def test_invalid_required_performance_fails_entire_window(change):
+    from laughtrack.foundation.exceptions.scraping_errors import DataError, ErrorSeverity
+
+    scraper = GenericThunderTixScraper(_club())
+
+    async def calendar(url):
+        return [_performance_dict(), dict(_performance_dict(), **change)]
+
+    scraper.fetch_json_list = calendar
+    with pytest.raises(DataError) as error:
+        await scraper.get_data("calendar")
+    assert error.value.severity == ErrorSeverity.HIGH
