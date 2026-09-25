@@ -1,0 +1,96 @@
+{
+  "before": [
+    [
+      5865,
+      8715,
+      "https://www.etix.com/ticket/v/6228/robins-theatre",
+      {}
+    ],
+    [
+      5878,
+      8730,
+      "https://www.etix.com/ticket/v/31604/the-original-pittsburgh-winery",
+      {}
+    ],
+    [
+      5943,
+      9072,
+      "https://www.etix.com/ticket/v/20795/des-plaines-theatre",
+      {
+        "comedy_filter": true
+      }
+    ],
+    [
+      5944,
+      9073,
+      "https://www.etix.com/ticket/v/16722/raue-center-for-the-arts",
+      {
+        "comedy_filter": true
+      }
+    ],
+    [
+      6960,
+      4756,
+      "https://www.etix.com/ticket/v/3536/mark-ridleys-comedy-castle",
+      {
+        "note": "TASK-3379 re-source: comedycastle.com sells via etix; etix venue 3536 returns the full headliner calendar. ticketmaster_comedy (ZFr9jZFF6v) demoted to priority-1 fallback.",
+        "etix_venue_id": "3536"
+      }
+    ]
+  ],
+  "after": [
+    [
+      5865,
+      8715,
+      "https://robinstheatre.com/events/",
+      {
+        "comedy_filter": true,
+        "excluded_event_titles": [
+          "O Christmas Tea: A British Comedy"
+        ]
+      }
+    ],
+    [
+      5878,
+      8730,
+      "https://pittsburghwinery.com/events/",
+      {
+        "comedy_filter": true
+      }
+    ],
+    [
+      5943,
+      9072,
+      "https://desplainestheatre.com/events/category/comedy/",
+      {
+        "comedy_filter": true,
+        "comedy_title_allowlist": [
+          "terry fator"
+        ]
+      }
+    ],
+    [
+      5944,
+      9073,
+      "https://events.rauecenter.org",
+      {
+        "comedy_filter": true,
+        "excluded_event_titles": [
+          "Sitting Down to Stand Up Comedy Class"
+        ]
+      }
+    ],
+    [
+      6960,
+      4756,
+      "https://www.comedycastle.com/events/",
+      {
+        "note": "TASK-3379 re-source: comedycastle.com sells via etix; etix venue 3536 returns the full headliner calendar. ticketmaster_comedy (ZFr9jZFF6v) demoted to priority-1 fallback.",
+        "etix_venue_id": "3536"
+      }
+    ]
+  ],
+  "changed": 5,
+  "replay_changed": 0,
+  "rolled_back": true
+}

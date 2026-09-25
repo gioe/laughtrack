@@ -509,6 +509,27 @@ INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priori
 VALUES (<club_id>, 'etix'::"ScrapingPlatform", 'etix', 'https://venue.example.com/', 0, TRUE);
 ```
 
+**Recovery checks:** Use the complete official calendar rather than a homepage
+preview. Rockhouse supports explicit `Show:` and `Show |` times; missing times
+are never replaced with 8pm. Conflicting Etix performance IDs are omitted and
+mark the scrape incomplete so stale reconciliation cannot remove prior shows.
+Blocked, failed, or unrecognized pages are failures, not empty calendars. The
+observed unfiltered Rockhouse empty-calendar notice is accepted only with its
+surrounding calendar structure.
+
+Mixed-use calendars require `metadata.comedy_filter=true`. Known non-performance
+titles can be excluded with `metadata.excluded_event_titles` (exact, whitespace-
+normalized, case-insensitive matches); exclusions precede positive comedy
+matching. `comedy_title_allowlist` remains additive, not restrictive. Never
+assume that a site's “comedy” category excludes movies, plays, or classes.
+The Des Plaines Tribe listing is supported when visible and structured dates
+agree and each performance has an individual Etix ticket; pagination fails
+closed until supported. Zero-to-paid price ranges remain unknown rather than
+advertising free general admission.
+
+See [the eight-venue recovery audit](docs/audits/2026-09-25-etix/README.md)
+for verified URLs, source defects, and remaining vendor-access blockers.
+
 ---
 
 ### SeatEngine — Identification Checklist

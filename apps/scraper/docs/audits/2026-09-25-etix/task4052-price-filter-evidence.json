@@ -1,0 +1,28 @@
+{
+  "raue_price_evidence": {
+    "listing": "https://events.rauecenter.org",
+    "ranges": [
+      "$0 to $29",
+      "$0 to $30",
+      "$0 to $55",
+      "$0 to $59",
+      "$0 to $60"
+    ],
+    "detail": "https://events.rauecenter.org/event/lucys-comedy-25/raue/crystal-lake-illinois/",
+    "detail_finding": "Lucy\u2019s Comedy explicitly states tickets start at $29, member30%discount; card still says $0 to $29. Zero floor does not establish a free public admission ticket.",
+    "recommendation": "For scalar price, retain None when zero-to-positive range unless exact applicable ticket price is separately proved; positive-only ranges can retain minimum, standalone explicit free may retain0."
+  },
+  "raue_class": {
+    "title": "Sitting Down to Stand Up Comedy Class",
+    "venue": "Raue Center\u2019s School for the Arts",
+    "price": "$187.50 to $250",
+    "recommendation": "Source-level negative title regex for class/classes/workshop/course before positive comedy or known-name matching; distinguish class showcase if preserving public graduation performances."
+  },
+  "robins_play": {
+    "url": "https://robinstheatre.com/event/o-christmas-tea-a-british-comedy-2/robins-theatre/warren-ohio/",
+    "detail_excerpt": "provide the real magic and heart of this play",
+    "recommendation": "Exact per-source excluded title O Christmas Tea: A British Comedy based on verified play description; no blanket comedy-title allow."
+  },
+  "existing_helpers": "select_comedy_titles and is_comedy_event are positive matchers and do not exclude classes/screenings/plays. Lineup-name guards are not show eligibility guards.",
+  "changes": "None; research only."
+}

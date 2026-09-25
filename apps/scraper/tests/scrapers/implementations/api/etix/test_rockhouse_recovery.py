@@ -133,3 +133,36 @@ def test_zero_to_paid_range_does_not_claim_general_admission_is_free(price, expe
     html = series("Lucy Comedy", "lucy-comedy", [("Oct 15", "Show | 7 pm", MIKE)])
     html = html.replace("<ul>", f'<span class="rhp-event__cost-text--list">{price}</span><ul>')
     assert extract_rockhouse_events(html, TODAY)[0].ticket_price == expected
+
+
+@pytest.mark.parametrize("bad_time", ["Doors: 7 pm", "", "Show | 13 pm"])
+def test_partial_unparsed_card_reports_omission_for_cleanup_safety(bad_time):
+    from laughtrack.scrapers.implementations.api.etix.rockhouse import extract_rockhouse_events_with_conflicts
+
+    html = series("MIKE CRONIN", "mike-cronin", [("Oct 15", bad_time, MIKE)])
+    html += series("THANKSGIVING SPECIAL", "thanksgiving", [("Nov 25", "Show | 7:30 pm", THANKSGIVING)])
+    events, issues = extract_rockhouse_events_with_conflicts(html, TODAY)
+    assert [e.title for e in events] == ["THANKSGIVING SPECIAL"]
+    assert set(issues) == {"unparsed:62115951"}
+    assert issues["unparsed:62115951"][0]["ticket_url"] == MIKE
+
+
+def test_valid_duplicate_card_representation_prevents_false_omission():
+    from laughtrack.scrapers.implementations.api.etix.rockhouse import extract_rockhouse_events_with_conflicts
+
+    missing = series("MIKE CRONIN", "mike-cronin", [("Oct 15", "Doors: 7 pm", MIKE)])
+    valid = series("MIKE CRONIN", "mike-cronin", [("Oct 15", "Show | 7:30 pm", MIKE)])
+    for html in (missing + valid, valid + missing):
+        events, issues = extract_rockhouse_events_with_conflicts(html, TODAY)
+        assert len(events) == 1
+        assert issues == {}
+
+
+def test_invalid_other_title_is_not_mistaken_for_duplicate_representation():
+    from laughtrack.scrapers.implementations.api.etix.rockhouse import extract_rockhouse_events_with_conflicts
+
+    html = series("CAM ROWE", "cam-rowe", [("Oct 15", "Doors: 7 pm", MIKE)])
+    html += series("MIKE CRONIN", "mike-cronin", [("Oct 15", "Show | 7:30 pm", MIKE)])
+    events, issues = extract_rockhouse_events_with_conflicts(html, TODAY)
+    assert len(events) == 1
+    assert set(issues) == {"unparsed:62115951"}

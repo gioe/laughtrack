@@ -1,0 +1,104 @@
+{
+  "date": "2026-09-25",
+  "method": "Official HTML checked using actual PlaywrightBrowser; candidate sources additionally fetched using actual HttpConvenienceMixin.fetch_html_bare. No writes to production.",
+  "venues": [
+    {
+      "club_id": 8715,
+      "name": "Robins Theatre",
+      "source": "https://robinstheatre.com/events/",
+      "result": "15 Rockhouse event cards with explicit years/showtimes. Mixed music venue; only obvious comedy O Christmas Tea is theatrical. No pagination controls observed. Needs explicit comedy filtering, not unfiltered source switch."
+    },
+    {
+      "club_id": 8730,
+      "name": "Original Pittsburgh Winery",
+      "source": "https://pittsburghwinery.com/events/",
+      "result": "Verified rendered and raw official empty calendar; .noEventsNotice says There were no results found. No alternate inventory seen. Existing Rockhouse source must distinguish explicit empty from extraction failure."
+    },
+    {
+      "club_id": 9070,
+      "name": "The Laughing Tap",
+      "source": "https://laughingtap.com/tickets/",
+      "result": "Official calendar delegates to Etix. Home posters link series IDs; no reliable individual performance timestamps. Not a configuration-only fallback. Official site now states 761 N Jefferson St Milwaukee WI53202."
+    },
+    {
+      "club_id": 9072,
+      "name": "Des Plaines Theatre",
+      "source": "https://desplainestheatre.com/events/category/comedy/",
+      "result": "The Events Calendar markup/JSONLD:3 cards. Terry Fator Dec15 2026 19:30-06 verified comedy; Italian Bred Oct25 14:00-05 theatrical one-woman comedy; Cusack Dec3 film screening must exclude. Not existing Rockhouse format."
+    },
+    {
+      "club_id": 9073,
+      "name": "Raue Center",
+      "source": "https://events.rauecenter.org",
+      "result": "56 parsed performances across51single+2series wrappers, through2027. Lucy Comedy, Greenroom Improv etc have explicit showtimes. Mixed concerts/classes/theatre; use explicit show filtering. Existing Rockhouse parser capable for single cards; series require review."
+    },
+    {
+      "club_id": 9074,
+      "name": "Vixen",
+      "source": "https://vixenmchenry.com/event/blake-burkhart/",
+      "result": "Blake Burkhart free standup Sep30 2026 confirmed. JSONLD19:30-05 is explicitly doors-open19:30 in body; actual showtime not stated. Cannot fabricate. /all-events requires JS beyond captured initial page; homepage supplies event links."
+    },
+    {
+      "club_id": 16122,
+      "name": "Ann Arbor Comedy Showcase",
+      "source": "https://www.aacomedy.com",
+      "result": "Official home lists series dates and Etix links, but generic weekly times cannot prove individual performance times. Etix remains needed or new dedicated source extraction plus source verification."
+    },
+    {
+      "club_id": 4756,
+      "name": "Mark Ridley Comedy Castle",
+      "source": "https://www.comedycastle.com/events/",
+      "result": "Raw page has107unique Etix performance links,224repeated series rows,36series+6single wrappers. No pagination controls observed. Existing parser gives74incorrect/collapsed outputs due Show | time syntax falling back20:00; upstream CAM ROWE series contains Mike Cronin links, Advanced Class duplicates Thanksgiving performance. Needs strict time parsing and canonical event reconciliation before switching."
+    }
+  ],
+  "bare_fetch": [
+    {
+      "name": "robins",
+      "url": "https://robinstheatre.com/events/",
+      "bytes": 219788,
+      "seconds": 0.3443666249513626,
+      "title": "<title>\n\t\t\t\tEvents | Robins Theatre\t\t\t</title>",
+      "empty": null
+    },
+    {
+      "name": "winery",
+      "url": "https://pittsburghwinery.com/events/",
+      "bytes": 120111,
+      "seconds": 0.1738779169972986,
+      "title": "<title>\n\t\t\t\tEvents | The Original Pittsburgh Winery\t\t\t</title>",
+      "empty": "<div class=\"p-4 noEventsNotice\">There were no results found.</div>"
+    },
+    {
+      "name": "ridley",
+      "url": "https://www.comedycastle.com/events/",
+      "bytes": 809875,
+      "seconds": 0.2905251249903813,
+      "title": "<title>\n\t\t\t\tEvents | Comedy Castle\t\t\t</title>",
+      "empty": null
+    },
+    {
+      "name": "raue",
+      "url": "https://events.rauecenter.org",
+      "bytes": 487438,
+      "seconds": 0.5805728749837726,
+      "title": "<title>Raue Center For The Arts | Live Events | Crystal Lake</title>",
+      "empty": null
+    },
+    {
+      "name": "desplaines",
+      "url": "https://desplainestheatre.com/events/category/comedy/",
+      "bytes": 235230,
+      "seconds": 0.0900312919402495,
+      "title": "<title>Live Comedy Shows Des Plaines IL | Des Plaines Theatre</title>",
+      "empty": null
+    },
+    {
+      "name": "vixen-detail",
+      "url": "https://vixenmchenry.com/event/blake-burkhart/",
+      "bytes": 265702,
+      "seconds": 1.8856563749723136,
+      "title": "<title>FREE STAND UP COMEDY NIGHT FEATURING BLAKE BURKHART - The Vixen in McHenry</title>",
+      "empty": null
+    }
+  ]
+}

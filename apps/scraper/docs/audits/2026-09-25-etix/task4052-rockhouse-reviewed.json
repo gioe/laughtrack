@@ -1,0 +1,1146 @@
+{
+  "ridley": {
+    "safe": 102,
+    "future": 102,
+    "first": "2026-09-25T19:15:00",
+    "last": "2027-04-24T21:30:00",
+    "conflicts": {
+      "62115951": [
+        {
+          "title": "CAM ROWE",
+          "start_date": "2026-10-15T19:30:00",
+          "ticket_url": "https://www.etix.com/ticket/p/62115951/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/cam-rowe/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "MIKE CRONIN",
+          "start_date": "2026-10-15T19:30:00",
+          "ticket_url": "https://www.etix.com/ticket/p/62115951/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/mike-cronin/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ],
+      "84649375": [
+        {
+          "title": "CAM ROWE",
+          "start_date": "2026-10-16T19:15:00",
+          "ticket_url": "https://www.etix.com/ticket/p/84649375/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/cam-rowe/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "MIKE CRONIN",
+          "start_date": "2026-10-16T19:15:00",
+          "ticket_url": "https://www.etix.com/ticket/p/84649375/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/mike-cronin/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ],
+      "68862675": [
+        {
+          "title": "COMEDY RUMBLE COMPETITION",
+          "start_date": "2026-10-30T19:15:00",
+          "ticket_url": "https://www.etix.com/ticket/p/68862675/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/comedy-rumble-competition/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "COMEDY RUMBLE",
+          "start_date": "2026-10-30T19:15:00",
+          "ticket_url": "https://www.etix.com/ticket/p/68862675/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/comedy-rumble/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ],
+      "82720075": [
+        {
+          "title": "COMEDY RUMBLE COMPETITION",
+          "start_date": "2026-10-30T21:45:00",
+          "ticket_url": "https://www.etix.com/ticket/p/82720075/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/comedy-rumble-competition/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "COMEDY RUMBLE",
+          "start_date": "2026-10-30T21:45:00",
+          "ticket_url": "https://www.etix.com/ticket/p/82720075/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/comedy-rumble/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ],
+      "50537895": [
+        {
+          "title": "ADVANCED COMEDY CLASS SHOWCASE",
+          "start_date": "2026-11-25T19:30:00",
+          "ticket_url": "https://www.etix.com/ticket/p/50537895/the-night-before-thanksgiving-comedy-special-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/advanced-comedy-class-showcase/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "THE NIGHT BEFORE THANKSGIVING SPECIAL",
+          "start_date": "2026-11-25T19:30:00",
+          "ticket_url": "https://www.etix.com/ticket/p/50537895/the-night-before-thanksgiving-comedy-special-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/the-night-before-thanksgiving-special/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ]
+    },
+    "safe_events": [
+      {
+        "title": "GREG HAHN",
+        "start_date": "2026-09-25T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/50061160/greg-hahn-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/greg-hahn/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "GREG HAHN",
+        "start_date": "2026-09-25T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/71928750/greg-hahn-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/greg-hahn/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "GREG HAHN",
+        "start_date": "2026-09-26T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/34107008/greg-hahn-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/greg-hahn/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "GREG HAHN",
+        "start_date": "2026-09-26T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/35905716/greg-hahn-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/greg-hahn/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DETROIT TO AUSTIN COMEDY CHALLENGE",
+        "start_date": "2026-09-30T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/93363378/detroit-to-austin-comedy-challenge-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/detroit-to-austin-comedy-challenge-1/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DETROIT TO AUSTIN COMEDY CHALLENGE",
+        "start_date": "2026-10-07T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/32921953/detroit-to-austin-comedy-challenge-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/detroit-to-austin-comedy-challenge-1/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DETROIT TO AUSTIN COMEDY CHALLENGE",
+        "start_date": "2026-10-28T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/91621712/detroit-to-austin-comedy-challenge-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/detroit-to-austin-comedy-challenge-1/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DETROIT TO AUSTIN COMEDY CHALLENGE",
+        "start_date": "2026-12-09T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/65344722/detroit-to-austin-comedy-challenge-semifinals-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/detroit-to-austin-comedy-challenge-1/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DETROIT TO AUSTIN COMEDY CHALLENGE",
+        "start_date": "2026-12-16T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/53854707/detroit-to-austin-comedy-challenge-semifinals-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/detroit-to-austin-comedy-challenge-1/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "CRYSTAL MARIE",
+        "start_date": "2026-10-01T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/55167025/crystal-marie-denha-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/crystal-marie/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "IAN BAGG",
+        "start_date": "2026-10-02T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/66210484/ian-bagg-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/ian-bagg/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "IAN BAGG",
+        "start_date": "2026-10-02T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/74418459/ian-bagg-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/ian-bagg/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "IAN BAGG",
+        "start_date": "2026-10-03T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/32547798/ian-bagg-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/ian-bagg/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "IAN BAGG",
+        "start_date": "2026-10-03T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/83031273/ian-bagg-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/ian-bagg/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "TWO DYKES AND A MIC: SOAKING WET TOUR",
+        "start_date": "2026-10-04T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/64693946/two-dykes-and-a-micsoaking-wet-tour-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/two-dykes-and-a-mic-soaking-wet-tour/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "GREG WARREN",
+        "start_date": "2026-10-08T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/54216614/greg-warren-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/greg-warren/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "GREG WARREN",
+        "start_date": "2026-10-09T18:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/70532180/greg-warren-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/greg-warren/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "GREG WARREN",
+        "start_date": "2026-10-09T20:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/65055908/greg-warren-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/greg-warren/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "GREG WARREN",
+        "start_date": "2026-10-10T18:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/67189096/greg-warren-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/greg-warren/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "GREG WARREN",
+        "start_date": "2026-10-10T20:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/42407573/greg-warren-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/greg-warren/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "101 COMEDY CLASS SHOWCASE",
+        "start_date": "2026-10-13T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/35624149/101-comedy-class-showcase-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/101-comedy-class-showcase/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "101 COMEDY CLASS SHOWCASE",
+        "start_date": "2026-10-21T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/31422971/101-comedy-class-showcase-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/101-comedy-class-showcase/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "JERRY WAYNE LONGMIRE",
+        "start_date": "2026-10-14T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/98699235/jerry-wayne-longmire-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/jerry-wayne-longmire/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "CAM ROWE",
+        "start_date": "2026-12-26T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/92131822/cam-rowe-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/cam-rowe/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "CAM ROWE",
+        "start_date": "2026-12-26T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/45478958/cam-rowe-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/cam-rowe/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE CRONIN",
+        "start_date": "2026-10-16T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/64549419/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-cronin/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE CRONIN",
+        "start_date": "2026-10-17T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/70125511/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-cronin/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE CRONIN",
+        "start_date": "2026-10-17T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/78365490/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-cronin/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "EMIL WAKIM",
+        "start_date": "2026-10-18T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/52299232/emil-wakim-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/emil-wakim/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PHIL HANLEY",
+        "start_date": "2026-10-22T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/57848100/phil-hanley-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/phil-hanley/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PHIL HANLEY",
+        "start_date": "2026-10-23T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/60414247/phil-hanley-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/phil-hanley/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PHIL HANLEY",
+        "start_date": "2026-10-23T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/42949338/phil-hanley-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/phil-hanley/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PHIL HANLEY",
+        "start_date": "2026-10-24T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/66210070/phil-hanley-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/phil-hanley/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PHIL HANLEY",
+        "start_date": "2026-10-24T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/93863529/phil-hanley-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/phil-hanley/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "COMEDY RUMBLE COMPETITION",
+        "start_date": "2026-10-29T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/74803836/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/comedy-rumble-competition/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "EMO PHILIPS",
+        "start_date": "2026-11-04T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/47172579/emo-philips-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/emo-philips/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PAULY SHORE",
+        "start_date": "2026-11-06T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/69547661/pauly-shore-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/pauly-shore/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PAULY SHORE",
+        "start_date": "2026-11-06T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/96205254/pauly-shore-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/pauly-shore/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PAULY SHORE",
+        "start_date": "2026-11-07T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/41619476/pauly-shore-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/pauly-shore/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PAULY SHORE",
+        "start_date": "2026-11-07T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/56567943/pauly-shore-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/pauly-shore/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "PAULY SHORE",
+        "start_date": "2026-11-08T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/41290719/pauly-shore-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/pauly-shore/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "KEVIN LEPINE UNLEASHED",
+        "start_date": "2026-11-10T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/85172249/hypnosis-unleashed-with-kevin-lepine-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/kevin-lepine-unleashed/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MASOOD BOOMGAARD",
+        "start_date": "2026-11-11T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/30265847/masood-boomgaard-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/masood-boomgaard/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "JOHN HEFFRON",
+        "start_date": "2026-11-12T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/49375100/john-heffron-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/john-heffron/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "JOHN HEFFRON",
+        "start_date": "2026-11-13T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/31624996/john-heffron-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/john-heffron/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "JOHN HEFFRON",
+        "start_date": "2026-11-13T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/88232755/john-heffron-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/john-heffron/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "JOHN HEFFRON",
+        "start_date": "2026-11-14T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/66812050/john-heffron-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/john-heffron/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "JOHN HEFFRON",
+        "start_date": "2026-11-14T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/56720490/john-heffron-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/john-heffron/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ERICA RHODES",
+        "start_date": "2026-11-19T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/56473886/erica-rhodes-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/erica-rhodes/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ERICA RHODES",
+        "start_date": "2026-11-20T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/51088242/erica-rhodes-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/erica-rhodes/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ERICA RHODES",
+        "start_date": "2026-11-20T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/41788861/erica-rhodes-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/erica-rhodes/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ERICA RHODES",
+        "start_date": "2026-11-21T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/47681474/erica-rhodes-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/erica-rhodes/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ERICA RHODES",
+        "start_date": "2026-11-21T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/72179696/erica-rhodes-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/erica-rhodes/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE STANLEY",
+        "start_date": "2026-11-27T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/64815847/mike-stanley-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-stanley/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE STANLEY",
+        "start_date": "2026-11-27T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/51905135/mike-stanley-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-stanley/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE STANLEY",
+        "start_date": "2026-11-28T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/67561497/mike-stanley-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-stanley/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE STANLEY",
+        "start_date": "2026-11-28T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/47973525/mike-stanley-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-stanley/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "AGE IS JUST A NUMBER - SENIOR MIC",
+        "start_date": "2026-12-02T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/86734240/age-is-just-a-number-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/age-is-just-a-number-senior-mic/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DREW THOMAS",
+        "start_date": "2026-12-03T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/59129622/drew-thomas-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/drew-thomas/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DREW THOMAS",
+        "start_date": "2026-12-04T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/60082200/drew-thomas-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/drew-thomas/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DREW THOMAS",
+        "start_date": "2026-12-04T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/31278912/drew-thomas-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/drew-thomas/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DREW THOMAS",
+        "start_date": "2026-12-05T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/48390502/drew-thomas-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/drew-thomas/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DREW THOMAS",
+        "start_date": "2026-12-05T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/87876351/drew-thomas-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/drew-thomas/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "CHAD GOES DEEP",
+        "start_date": "2026-12-06T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/63019834/chad-goes-deep-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/chad-goes-deep/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ROB LITTLE",
+        "start_date": "2026-12-10T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/54644958/rob-little-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/rob-little/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ROB LITTLE",
+        "start_date": "2026-12-11T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/61967976/rob-little-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/rob-little/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ROB LITTLE",
+        "start_date": "2026-12-11T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/62234214/rob-little-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/rob-little/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ROB LITTLE",
+        "start_date": "2026-12-12T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/80353871/rob-little-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/rob-little/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ROB LITTLE",
+        "start_date": "2026-12-12T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/48173920/rob-little-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/rob-little/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SAM TALLENT",
+        "start_date": "2026-12-17T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/95166375/sam-tallent-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/sam-tallent/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SAM TALLENT",
+        "start_date": "2026-12-18T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/47085603/sam-tallent-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/sam-tallent/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SAM TALLENT",
+        "start_date": "2026-12-18T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/75863912/sam-tallent-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/sam-tallent/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SAM TALLENT",
+        "start_date": "2026-12-19T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/37841927/sam-tallent-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/sam-tallent/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SAM TALLENT",
+        "start_date": "2026-12-19T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/56267999/sam-tallent-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/sam-tallent/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "26 FOR 26 OPEN MIC",
+        "start_date": "2026-12-30T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/85019849/open-mic26-for-26-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/26-for-26-open-mic/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DAVE LANDAU",
+        "start_date": "2027-01-02T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/62397567/dave-landau-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/dave-landau/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "DAVE LANDAU",
+        "start_date": "2027-01-02T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/70795130/dave-landau-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/dave-landau/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ALONZO BODDEN",
+        "start_date": "2027-01-07T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/96547668/alonzo-bodden-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/alonzo-bodden/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ALONZO BODDEN",
+        "start_date": "2027-01-08T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/59055136/alonzo-bodden-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/alonzo-bodden/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ALONZO BODDEN",
+        "start_date": "2027-01-08T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/44556901/alonzo-bodden-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/alonzo-bodden/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ALONZO BODDEN",
+        "start_date": "2027-01-09T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/84774301/alonzo-bodden-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/alonzo-bodden/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "ALONZO BODDEN",
+        "start_date": "2027-01-09T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/43148986/alonzo-bodden-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/alonzo-bodden/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE VECCHIONE",
+        "start_date": "2027-01-14T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/91914668/mike-vecchione-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-vecchione/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE VECCHIONE",
+        "start_date": "2027-01-15T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/63711017/mike-vecchione-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-vecchione/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE VECCHIONE",
+        "start_date": "2027-01-15T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/64229649/mike-vecchione-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-vecchione/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE VECCHIONE",
+        "start_date": "2027-01-16T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/31675836/mike-vecchione-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-vecchione/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MIKE VECCHIONE",
+        "start_date": "2027-01-16T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/75264862/mike-vecchione-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mike-vecchione/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MARIO ADRION",
+        "start_date": "2027-04-02T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/42864112/mario-adrionthe-superior-comedy-tour-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mario-adrion/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MARIO ADRION",
+        "start_date": "2027-04-02T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/50656877/mario-adrionthe-superior-comedy-tour-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mario-adrion/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MARIO ADRION",
+        "start_date": "2027-04-03T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/40420617/mario-adrionthe-superior-comedy-tour-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mario-adrion/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "MARIO ADRION",
+        "start_date": "2027-04-03T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/36821653/mario-adrionthe-superior-comedy-tour-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/mario-adrion/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "RON FUNCHES",
+        "start_date": "2027-04-08T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/86647260/ron-funches-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/ron-funches/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "RON FUNCHES",
+        "start_date": "2027-04-09T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/71236646/ron-funches-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/ron-funches/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "RON FUNCHES",
+        "start_date": "2027-04-09T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/57536431/ron-funches-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/ron-funches/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "RON FUNCHES",
+        "start_date": "2027-04-10T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/59969591/ron-funches-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/ron-funches/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "RON FUNCHES",
+        "start_date": "2027-04-10T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/52334012/ron-funches-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/ron-funches/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "JEFF ALLEN SECOND FINAL FAREWELL TOUR",
+        "start_date": "2027-04-11T18:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/89637789/jeff-allenmy-second-final-farewell-tour-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/jeff-allen-second-final-farewell-tour/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SHANE TORRES",
+        "start_date": "2027-04-22T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/30198679/shane-torres-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/shane-torres/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SHANE TORRES",
+        "start_date": "2027-04-23T19:15:00",
+        "ticket_url": "https://www.etix.com/ticket/p/68196930/shane-torres-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/shane-torres/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SHANE TORRES",
+        "start_date": "2027-04-23T21:45:00",
+        "ticket_url": "https://www.etix.com/ticket/p/36446402/shane-torres-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/shane-torres/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SHANE TORRES",
+        "start_date": "2027-04-24T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/74799863/shane-torres-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/shane-torres/mark-ridleys-comedy-castle/royal-oak/"
+      },
+      {
+        "title": "SHANE TORRES",
+        "start_date": "2027-04-24T21:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/63808567/shane-torres-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+        "event_url": "https://www.comedycastle.com/events/category/series/shane-torres/mark-ridleys-comedy-castle/royal-oak/"
+      }
+    ]
+  },
+  "raue": {
+    "safe": 56,
+    "future": 56,
+    "first": "2026-09-25T20:00:00",
+    "last": "2027-06-19T19:00:00",
+    "conflicts": {},
+    "safe_events": [
+      {
+        "title": "The Dave Matthews Tribute Band",
+        "start_date": "2026-09-25T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/68975285/the-dave-matthews-tribute-band-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/the-dave-matthews-tribute-band-2/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Fleetwood Max",
+        "start_date": "2026-10-03T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/62489500/fleetwood-max-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/fleetwood-max-2/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Lucy\u2019s Comedy",
+        "start_date": "2026-10-09T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/81122615/lucys-comedy-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/lucys-comedy-25/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Greenroom Improv",
+        "start_date": "2026-10-10T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/50258929/greenroom-improv-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/greenroom-improv-26/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "An Evening with David Sedaris",
+        "start_date": "2026-10-12T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/87165633/an-evening-with-david-sedaris-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/an-evening-with-david-sedaris-2/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Sitting Down to Stand Up Comedy Class",
+        "start_date": "2026-10-13T18:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/70437920/sitting-down-to-stand-up-comedy-class-crystal-lake-raue-centers-school-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/sitting-down-to-stand-up-comedy-class-4/raue-centers-school-for-the-arts/crystal-lake-illinois/"
+      },
+      {
+        "title": "Jagged Little Pill: Alanis Morissette Tribute",
+        "start_date": "2026-10-16T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/73414434/jagged-little-pillalanis-morissette-tribute-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/jagged-little-pill-alanis-morissette-tribute/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Clay Jenkinson is Thomas Jefferson",
+        "start_date": "2026-10-17T13:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/88385905/clay-jenkinson-is-thomas-jefferson-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/clay-jenkinson-is-thomas-jefferson/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Simply Billy: A Tribute to Billy Joel",
+        "start_date": "2026-10-17T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/63628536/simply-billya-tribute-to-billy-joel-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/simply-billy-a-tribute-to-billy-joel-2/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Glass and Glow",
+        "start_date": "2026-10-24T11:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/87488339/glass-and-glow-crystal-lake-raue-centers-school-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/glass-and-glow/raue-centers-school-for-the-arts/crystal-lake-illinois/"
+      },
+      {
+        "title": "Rotary Rocks the Raue: James Garner\u2019s Tribute to Johnny Cash",
+        "start_date": "2026-10-24T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/51689296/rotary-rocks-the-rauejames-garners-tribute-to-johnny-cash-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/rotary-rocks-the-raue-james-garners-tribute-to-johnny-cash/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Anthem\u2019s Grand Illusion: A Tribute to Styx",
+        "start_date": "2026-10-30T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/86170299/anthems-grand-illusiona-tribute-to-styx-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/anthems-grand-illusion-a-tribute-to-styx/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Bourbon Country",
+        "start_date": "2026-11-06T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/35405954/bourbon-country-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/bourbon-country-3/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Love Story: Unofficial Taylor Swift Tribute",
+        "start_date": "2026-11-07T13:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/91416553/love-storyunofficial-taylor-swift-tribute-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/love-story-unofficial-taylor-swift-tribute/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Blond Ambition: Tribute to Madonna",
+        "start_date": "2026-11-07T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/39008499/blond-ambitiontribute-to-madonna-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/blond-ambition-tribute-to-madonna/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Lucy\u2019s Comedy",
+        "start_date": "2026-11-13T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/96332877/lucys-comedy-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/lucys-comedy-26/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Greenroom Improv",
+        "start_date": "2026-11-14T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/67946040/greenroom-improv-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/greenroom-improv-27/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-11-20T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/31480970/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-11-21T13:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/62025215/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-11-21T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/31323625/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-11-22T13:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/34146094/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-11-27T16:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/90071129/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-12-03T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/38976562/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-12-04T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/92761532/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-12-05T13:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/61472127/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-12-05T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/47685250/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "RCSA presents The Santa Switch",
+        "start_date": "2026-12-06T13:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/33192171/the-santa-switch-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/rcsa-presents-the-santa-switch/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "CHOIROKE",
+        "start_date": "2026-11-25T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/41372024/choiroke-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/choiroke/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Heartache Tonight",
+        "start_date": "2026-11-28T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/72514693/heartache-tonight-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/heartache-tonight-4/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Elgin Symphony Orchestra",
+        "start_date": "2026-12-11T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/90870469/elgin-symphony-orchestra-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/elgin-symphony-orchestra-4/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Sensory Performance: The Nutcracker",
+        "start_date": "2026-12-18T18:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/98522643/sensory-performancethe-nutcracker-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/sensory-performance-the-nutcracker-2/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "ENGAGE DANCE ACADEMY PRESENTS THE NUTCRACKER 2026",
+        "start_date": "2026-12-19T12:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/95331306/the-nutcracker-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/engage-dance-academy-presents-the-nutcracker-2026/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "ENGAGE DANCE ACADEMY PRESENTS THE NUTCRACKER 2026",
+        "start_date": "2026-12-19T17:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/68822155/the-nutcracker-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/engage-dance-academy-presents-the-nutcracker-2026/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "ENGAGE DANCE ACADEMY PRESENTS THE NUTCRACKER 2026",
+        "start_date": "2026-12-20T12:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/66802840/the-nutcracker-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/engage-dance-academy-presents-the-nutcracker-2026/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "ENGAGE DANCE ACADEMY PRESENTS THE NUTCRACKER 2026",
+        "start_date": "2026-12-20T17:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/91621674/the-nutcracker-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/events/category/series/engage-dance-academy-presents-the-nutcracker-2026/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "American English",
+        "start_date": "2026-12-31T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/77310193/american-english-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/american-english-3/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Blue Bayou",
+        "start_date": "2027-01-09T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/60899954/blue-bayou-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/blue-bayou/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Lucy\u2019s Comedy",
+        "start_date": "2027-01-15T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/88169898/lucys-comedy-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/lucys-comedy-27/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Greenroom Improv",
+        "start_date": "2027-01-16T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/57290797/greenroom-improv-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/greenroom-improv-28/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Journeyman presents 50 years of SLOWHAND",
+        "start_date": "2027-01-23T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/97424182/journeyman-presents-50-years-of-slowhand-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/journeyman-presents-50-years-of-slowhand/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Hey There: The Music of Rosemary Clooney",
+        "start_date": "2027-01-30T13:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/97330930/hey-therethe-music-of-rosemary-clooney-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/hey-there-the-music-of-rosemary-clooney/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "REVELATOR- A Tribute to Tedeschi Trucks Band",
+        "start_date": "2027-02-06T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/48707735/revelatora-tribute-to-tedeschi-trucks-band-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/revelator-a-tribute-to-tedeschi-trucks-band-2/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Valentine\u2019s Comedy Show",
+        "start_date": "2027-02-13T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/64627568/valentines-comedy-show-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/valentines-comedy-show-2/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Earth to Mars: The Bruno Mars Experience",
+        "start_date": "2027-02-19T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/33124491/earth-to-marsthe-bruno-mars-experience-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/earth-to-mars-the-bruno-mars-experience/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Greenroom Improv",
+        "start_date": "2027-02-20T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/80603448/greenroom-improv-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/greenroom-improv-29/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Lucy\u2019s Comedy",
+        "start_date": "2027-03-19T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/65481330/lucys-comedy-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/lucys-comedy-28/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Greenroom Improv",
+        "start_date": "2027-03-27T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/82605798/greenroom-improv-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/greenroom-improv-30/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Lucy\u2019s Comedy",
+        "start_date": "2027-04-16T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/46825229/lucys-comedy-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/lucys-comedy-29/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Greenroom Improv",
+        "start_date": "2027-04-17T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/40312942/greenroom-improv-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/greenroom-improv-31/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Forever Simon and Garfunkel",
+        "start_date": "2027-05-01T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/78368158/forever-simon-and-garfunkel-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/forever-simon-and-garfunkel-3/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Stand-Up Momedy Show",
+        "start_date": "2027-05-07T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/97802735/standup-momedy-show-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/stand-up-momedy-show-2/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Elton Rohn: Tribute to Elton John",
+        "start_date": "2027-05-08T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/89007322/elton-rohn-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/elton-rohn-3/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Thanks For The Memories: A USO Tribute",
+        "start_date": "2027-05-22T13:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/82584681/thanks-for-the-memoriesa-uso-tribute-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/thanks-for-the-memories-a-uso-tribute/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Lucy\u2019s Comedy",
+        "start_date": "2027-05-28T20:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/94951147/lucys-comedy-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/lucys-comedy-30/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "Greenroom Improv",
+        "start_date": "2027-05-29T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/55412848/greenroom-improv-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/greenroom-improv-32/raue/crystal-lake-illinois/"
+      },
+      {
+        "title": "For Fathers Comedy",
+        "start_date": "2027-06-19T19:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/79296490/for-fathers-comedy-crystal-lake-raue-center-for-the-arts?partner_id=100",
+        "event_url": "https://events.rauecenter.org/event/for-fathers-comedy-3/raue/crystal-lake-illinois/"
+      }
+    ]
+  },
+  "robins": {
+    "safe": 15,
+    "future": 15,
+    "first": "2026-09-25T19:30:00",
+    "last": "2026-12-13T17:00:00",
+    "conflicts": {},
+    "safe_events": [
+      {
+        "title": "Tell Me Lies \u2013 The Fleetwood Mac Experience",
+        "start_date": "2026-09-25T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/92779976/tell-me-lies-the-fleetwood-mac-experience-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/tell-me-lies-the-fleetwood-mac-experience/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "Rodney Atkins",
+        "start_date": "2026-10-01T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/81754884/rodney-atkins-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/rodney-atkins/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "The Baldassarre Orchestra \u2013 The Ultimate Classic Rock Experience 1965 \u2013 1975",
+        "start_date": "2026-10-03T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/95843450/the-baldassarre-orchestra-the-ultimate-classic-rock-experience-1965-1975-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/the-baldassarre-orchestra-the-ultimate-classic-rock-experience-1965-1975/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "Greg Hawkes with Eddie Japan Performing the Music of The Cars w/ Special Guest Kasim Sulton",
+        "start_date": "2026-10-10T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/52242220/greg-hawkes-with-eddie-japan-performing-the-music-of-the-cars-wspecial-guest-kasim-sulton-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/greg-hawkes-with-eddie-japan-performing-the-music-of-the-cars-w-special-guest-kasim-sulton/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "Ridin The Storm Out \u2013 REO Speedwagon Tribute",
+        "start_date": "2026-10-17T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/60929394/ridin-the-storm-out-reo-speedwagon-tribute-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/ridin-the-storm-out-reo-speedwagon-tribute/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "Vampire Circus",
+        "start_date": "2026-10-28T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/77412863/vampire-circus-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/vampire-circus/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "So Good \u2013 The Neil Diamond Experience",
+        "start_date": "2026-11-07T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/52278064/so-good-the-neil-diamond-experience-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/so-good-the-neil-diamond-experience-2/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "Ricky Skaggs & Kentucky Thunder",
+        "start_date": "2026-11-13T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/65165212/ricky-skaggs-kentucky-thunder-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/ricky-skaggs-kentucky-thunder/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "PARMALEE",
+        "start_date": "2026-11-14T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/54874938/parmalee-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/parmalee/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "The Outlaws",
+        "start_date": "2026-11-20T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/40243956/the-outlaws-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/the-outlaws/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "Blackhawk",
+        "start_date": "2026-11-21T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/35291837/blackhawk-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/blackhawk/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "Dean Z \u2013 The Ultimate Elvis Christmas",
+        "start_date": "2026-12-08T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/97646386/dean-z-the-ultimate-elvis-christmas-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/dean-z-the-ultimate-elvis-christmas-2/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "Eli Young Band",
+        "start_date": "2026-12-11T19:30:00",
+        "ticket_url": "https://www.etix.com/ticket/p/92711709/eli-young-band-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/eli-young-band/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "O Christmas Tea: A British Comedy",
+        "start_date": "2026-12-12T15:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/72767287/o-christmas-teaa-british-comedy-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/o-christmas-tea-a-british-comedy-2/robins-theatre/warren-ohio/"
+      },
+      {
+        "title": "Dave Koz & Friends Christmas Tour 2026",
+        "start_date": "2026-12-13T17:00:00",
+        "ticket_url": "https://www.etix.com/ticket/p/98455821/dave-koz-friends-christmas-tour-2026-warren-robins-theatre?partner_id=100",
+        "event_url": "https://robinstheatre.com/event/dave-koz-friends-christmas-tour-2026/robins-theatre/warren-ohio/"
+      }
+    ]
+  },
+  "winery": {
+    "safe": 0,
+    "future": 0,
+    "first": null,
+    "last": null,
+    "conflicts": {},
+    "safe_events": []
+  }
+}

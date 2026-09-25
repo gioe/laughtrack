@@ -35,9 +35,9 @@ def extract_rockhouse_events_with_conflicts(
     corruption, not evidence to choose whichever card happens to appear first.
     """
     groups: dict[str, list[EtixEvent]] = {}
-    for event in _extract_candidates(html, today):
-        match = re.search(r"/ticket/p/(\d+)(?:/|[?#]|$)", event.ticket_url)
-        ident = match.group(1) if match else event.ticket_url
+    advertised: list[dict[str, Optional[str]]] = []
+    for event in _extract_candidates(html, today, advertised):
+        ident = _ticket_identity(event.ticket_url)
         groups.setdefault(ident, []).append(event)
     safe = []
     conflicts = {}
@@ -50,7 +50,23 @@ def extract_rockhouse_events_with_conflicts(
                 {"title": e.title, "start_date": e.start_date, "ticket_url": e.ticket_url, "event_url": e.event_url}
                 for e in candidates
             ]
+    for reference in advertised:
+        ident = _ticket_identity(reference["ticket_url"] or "")
+        candidates = groups.get(ident, [])
+        title = " ".join((reference["title"] or "").casefold().split())
+        # Responsive copies may omit fields. A complete copy of the same
+        # advertised identity is enough; a differently titled card is not.
+        if candidates and (not title or any(" ".join(e.title.casefold().split()) == title for e in candidates)):
+            continue
+        bucket = conflicts.setdefault(f"unparsed:{ident}", [])
+        if reference not in bucket:
+            bucket.append(reference)
     return safe, conflicts
+
+
+def _ticket_identity(url: str) -> str:
+    match = re.search(r"/ticket/p/(\d+)(?:/|[?#]|$)", url)
+    return match.group(1) if match else url
 
 
 def _owned_elements(wrapper, selector):
@@ -67,7 +83,7 @@ def _owned_one(wrapper, selector):
     return next(iter(_owned_elements(wrapper, selector)), None)
 
 
-def _extract_candidates(html: str, today: date) -> List[EtixEvent]:
+def _extract_candidates(html: str, today: date, advertised: list[dict[str, Optional[str]]]) -> List[EtixEvent]:
     """Parse the Rockhouse Partners event list widget used by Etix venues."""
     try:
         from bs4 import BeautifulSoup
@@ -94,6 +110,20 @@ def _extract_candidates(html: str, today: date) -> List[EtixEvent]:
                 except ValueError:
                     pass
             continue
+
+        title_el = _owned_one(
+            node, ".rhpEventHeader a, .eventSeriesTitle a, h2.rhp-event__title--list, .rhp-event__title--list a"
+        )
+        event_a = _owned_one(node, ".rhpEventHeader a, .eventSeriesTitle a, a.url[href]")
+        for ticket in _owned_elements(node, 'a[href*="etix.com/ticket/p/"]'):
+            advertised.append(
+                {
+                    "title": title_el.get_text(" ", strip=True) if title_el else None,
+                    "start_date": None,
+                    "ticket_url": ticket.get("href"),
+                    "event_url": event_a.get("href") if event_a else None,
+                }
+            )
 
         if "rhp-event__single-series--list" in classes:
             events.extend(_series_events(node, current_year, seen))
