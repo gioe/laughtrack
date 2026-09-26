@@ -3507,21 +3507,26 @@ needed to avoid mis-attributing them.
 - Rendered HTML contains `window.$REDUX_STATE` with `calendar.offerings.experience[]`
 
 **API/source pattern:**
-- `TockScraper` uses `_fetch_html_with_js()` on the configured business page.
+- `TockScraper` uses the shared `fetch_html()` client on the configured business page,
+  including its configured proxy/browser fallback on challenge responses.
 - It parses the rendered `window.$REDUX_STATE` object, normalizing Tock's JavaScript-only
-  values (`undefined`, `function noop`) before JSON decoding.
+  values (`undefined`, `function noop()` and the observed `function noop(..._)`) before JSON decoding.
 - Each `GA_EVENT` experience becomes one event using `eventDetails.date`,
   `eventDetails.startTime`, `eventDetails.location`, `priceCents`, `id`, and `slug`.
-- Recurring `PRIX_FIXE` reservation pages (e.g. BATSU! Chicago) expose ticket
-  tiers as experiences plus `calendar.openDate[]` and `calendar.openTime[]`.
-  The scraper creates one show per date/time and attaches each tier as a ticket.
+- GA experiences with explicit `eventDetails.schedule[].date[]` and `slots[]`
+  expand only their own dated performances. Generic repetition rules remain partial.
+- `PRIX_FIXE` pages expose aggregate `offerings.openDate[]` and `openTime[]`
+  choices across experiences, not dated performance pairs. Do not multiply them.
+  Recurring-only feeds fail as unverified; mixed feeds retain verified GA events
+  and mark partial coverage to prevent stale-show reconciliation.
 
 **Key extraction notes:**
 - Dates/times are local to the club timezone from the club row.
 - Ticket/show URL is reconstructed as `{source_url}/event/{id}/{slug}`.
 - `priceCents` becomes a USD ticket price; missing or malformed prices stay unknown.
-- For recurring `PRIX_FIXE` pages, the show URL is the business page and ticket
-  URLs point to the tier detail pages.
+- Missing/malformed integer-cents prices remain unknown; explicit zero is free.
+- PRIX_FIXE ingestion requires an independently verified date-specific availability
+  source; ordinary venue opening hours are not performance evidence.
 - Mixed-use calendars should set `metadata.comedy_filter = true`; filtering uses
   title/description comedy keywords (`comedy`, `stand-up`, `improv`, `open mic`, etc.).
 
@@ -3540,8 +3545,13 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tock',
   data shapes and scraper keys.
 - Plain `curl` can hit Cloudflare and return a challenge page. Test fetchability with
   `PlaywrightBrowser`, not `requests`.
-- Tock also has lower-level session/protobuf APIs, but this scraper intentionally uses
-  the rendered business-page state so onboarding remains DB-configurable.
+- Missing HTML, challenges, missing/invalid Redux and incomplete GA records fail
+  mandatory fetches. An empty experience list is unverified until a loaded empty
+  calendar state is observed; it must not trigger stale cleanup.
+- Tock also has lower-level session/protobuf APIs. No supported date-specific
+  PRIX_FIXE endpoint is implemented; do not infer availability from retained DB rows.
+- TASK-4054 retains current source fixtures and scheduled-run evidence in
+  `docs/audits/2026-09-26-tock/`.
 
 **Reference implementation:**
 - `apps/scraper/src/laughtrack/scrapers/implementations/tock/`

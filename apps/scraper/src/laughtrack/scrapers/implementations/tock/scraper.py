@@ -1,18 +1,21 @@
 """Tock platform scraper.
 
 Tock business pages render the venue calendar into ``window.$REDUX_STATE``.
-Plain HTTP sees Cloudflare for many Tock pages, so this scraper uses the shared
-Playwright browser helper for the configured business page and parses the
-rendered Redux state.
+The shared HTTP client applies its configured browser/proxy fallback when
+Cloudflare blocks the initial request. Calendar decoding requires verified
+performance dates, not aggregate reservation filters.
 """
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.exceptions.scraping_errors import DataError, ErrorSeverity
+from laughtrack.foundation.infrastructure.http.client import _bot_block_reason
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.tock.data import TockPageData
@@ -41,36 +44,37 @@ class TockScraper(BaseScraper):
             return []
         return [URLUtils.normalize_url(source_url)]
 
-    async def get_data(self, target: ScrapingTarget) -> Optional[TockPageData]:
-        try:
-            html = await self._fetch_html_with_js(str(target))
-            if not html:
-                Logger.warn(
-                    f"{self._log_prefix}: Tock page returned empty HTML: {target}",
-                    self.logger_context,
-                )
-                return None
+    @staticmethod
+    def _source_failure(message: str, cause=None) -> DataError:
+        error = DataError(message, "tock_calendar", cause)
+        error.severity = ErrorSeverity.HIGH
+        return error
 
+    async def get_data(self, target: ScrapingTarget) -> TockPageData:
+        """Fail mandatory-source errors so they cannot authorize stale cleanup."""
+        try:
+            html = await self.fetch_html(str(target))
+            if not html or not html.strip():
+                raise self._source_failure(f"Tock mandatory calendar returned no HTML: {target}")
+            signature = _bot_block_reason(html)
+            if signature:
+                diagnostics = current_diagnostics()
+                if diagnostics is not None:
+                    diagnostics.record_bot_block(
+                        signature, source="response_body", stage="direct_fetch"
+                    )
+                raise self._source_failure(f"Tock mandatory calendar blocked ({signature}): {target}")
             events = extract_tock_events(
                 html,
                 source_url=str(target),
                 timezone=self.club.timezone,
                 comedy_filter=is_comedy_filter_enabled(self.club.source_metadata),
             )
-            if not events:
-                Logger.warn(
-                    f"{self._log_prefix}: No Tock events extracted from {target}",
-                    self.logger_context,
-                )
-                return None
-
             return TockPageData(events)
-        except Exception as e:
-            Logger.error(
-                f"{self._log_prefix}: Error extracting Tock page {target}: {e}",
-                self.logger_context,
-            )
-            return None
+        except Exception as exc:
+            if isinstance(exc, DataError) and exc.severity == ErrorSeverity.HIGH:
+                raise
+            raise self._source_failure(f"Tock mandatory calendar failed at {target}: {exc}", exc) from exc
 
     def transform_data(
         self,
