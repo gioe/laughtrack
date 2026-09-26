@@ -1,0 +1,25 @@
+{
+  "verified_at_utc": "2026-09-26T16:52:11.853970+00:00",
+  "workflow_url": "https://github.com/gioe/laughtrack/actions/runs/36256918267",
+  "commit": "9a309e13c97f8e87512ca818c15b25d3fc546fb2",
+  "environment": "Ubuntu 24.04; production scraper setup, Playwright Chromium, same DB/proxy/solver secrets as nightly",
+  "club_id": 189,
+  "source_id": 623,
+  "database_run_id": 1473,
+  "workflow_conclusion": "success",
+  "club_success": false,
+  "num_shows": 0,
+  "http_status": 403,
+  "bot_block_detected": true,
+  "bot_block_signature": "_cf_chl_opt",
+  "error_message": "fetch failed for https://www.ticketsource.com/thecomedyclubhouse: DataError: Mandatory calendar blocked (<title>access denied</title>): https://www.ticketsource.com/thecomedyclubhouse",
+  "inventory_before": {
+    "total": 85,
+    "upcoming": 0
+  },
+  "inventory_after": {
+    "total": 85,
+    "upcoming": 0
+  },
+  "followup_task": 4084
+}

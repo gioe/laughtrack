@@ -10,10 +10,10 @@
     "https://www.ticketsource.us/thecomedyclubhouse"
   ],
   "method": "Actual scraper PlaywrightBrowser.fetch_html with absolute worktree PYTHONPATH. No requests or curl used.",
-  "vendor_result": "Both .com and officially linked .us render TicketSource Access denied HTTP ERROR429 body,6238bytes, noeventrows.",
-  "official_result": "Official homepage accessible642360bytes; no current individual performances, no calendariframes, no alternate supported inventory source observed. General programming includesimprov,standup,scriptedcomedy; not evidence for any particular liveperformance.",
-  "recommendation": "Treat mandatory vendor source as blocked; preserve previous inventory rather than reconciling as empty. Changing .com to.us alone doesnotresolveblock. No verified individualtimes/tickets recovered.",
-  "changes": "Read only; no repository or production mutations.",
+  "vendor_result": "Both .com and officially linked .us render TicketSource Access denied / HTTP ERROR 429 bodies, 6238 bytes each, with no event rows.",
+  "official_result": "Official homepage accessible (642427 UTF-8 bytes); no current individual performances, calendar iframes or alternate supported inventory source observed. General programming includes improv, stand-up and scripted comedy; this is not evidence of any particular current performance.",
+  "recommendation": "Treat the mandatory vendor source as blocked and preserve previous inventory. Changing .com to .us alone does not resolve the block. No verified individual showtimes or ticket links recovered.",
+  "changes": "Source investigation was read-only; no repository or production mutations during probing.",
   "captured_date_utc": "2026-09-26",
   "captures": [
     {

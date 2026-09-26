@@ -41,5 +41,17 @@ club 189 before declaring source recovery.
 
 ## Validation
 
-Focused pipeline suite: 25 passed. Scheduled runner evidence will be recorded
-below after verifying the committed change with the production scraper setup.
+Focused pipeline suite: 25 passed. Full scraper commit gate passed (80.5 seconds).
+
+[Single-club workflow 36256918267](https://github.com/gioe/laughtrack/actions/runs/36256918267)
+ran commit `9a309e13c97f8e87512ca818c15b25d3fc546fb2` with the nightly setup and
+credentials. Production database run **1473** now records **success=false**,
+HTTP 403, Cloudflare bot-block diagnostics and the specific mandatory-calendar
+access-denied error. Browser fallback ran and the high-severity error stopped
+repeated fetch attempts. See `scheduled-verification.json` for retained results.
+
+The workflow itself completed successfully; this means the diagnostic job ran,
+not that venue coverage recovered. Database inventory remained **85 historical
+shows, zero upcoming shows** before and after the run. No source URL, show or
+comedian migration was applied. **TASK-4084** tracks approved vendor access and
+requires verified event coverage plus an observed empty-calendar state.
