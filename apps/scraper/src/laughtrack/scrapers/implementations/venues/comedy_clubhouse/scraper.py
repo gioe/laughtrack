@@ -12,7 +12,12 @@ Pipeline:
   3. transformation_pipeline    → ComedyClubhouseEvent.to_show() → Show objects
 """
 
-from typing import Optional
+from bs4 import BeautifulSoup
+
+from laughtrack.core.entities.event.comedy_clubhouse import _parse_iso_local
+from laughtrack.foundation.exceptions.scraping_errors import DataError, ErrorSeverity
+from laughtrack.foundation.infrastructure.http.client import _bot_block_reason
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -34,39 +39,45 @@ class ComedyClubhouseScraper(BaseScraper):
             ComedyClubhouseEventTransformer(club)
         )
 
-    async def get_data(self, url: str) -> Optional[ComedyClubhousePageData]:
-        """
-        Fetch the TicketSource listing page and extract all upcoming events.
+    @staticmethod
+    def _source_failure(message: str, cause=None) -> DataError:
+        error = DataError(message, "comedy_clubhouse_calendar", cause)
+        error.severity = ErrorSeverity.HIGH
+        return error
 
-        Args:
-            url: The TicketSource venue listing URL (from club.scraping_url).
+    async def get_data(self, url: str) -> ComedyClubhousePageData:
+        """Require a complete calendar; failed fetches must prevent reconciliation.
 
-        Returns:
-            ComedyClubhousePageData with extracted events, or None on failure.
+        No venue-specific empty-calendar markup has been verified. Until it is,
+        a zero-card response is untrusted, even if it contains an empty notice.
         """
         try:
             html = await self.fetch_html(url)
-            if not html:
-                Logger.warn(
-                    f"{self._log_prefix}: empty response for {url}",
-                    self.logger_context,
-                )
-                return None
+            if not html or not html.strip():
+                raise self._source_failure(f"Mandatory calendar returned no HTML: {url}")
+
+            signature = _bot_block_reason(html)
+            if signature:
+                diagnostics = current_diagnostics()
+                if diagnostics is not None:
+                    diagnostics.record_bot_block(signature, source="response_body", stage="direct_fetch")
+                raise self._source_failure(f"Mandatory calendar blocked ({signature}): {url}")
 
             events = ComedyClubhouseExtractor.extract_events(html)
-            if not events:
-                self._warn_empty_extraction(url, html=html)
-                return None
-
+            row_count = len(BeautifulSoup(html, "html.parser").select("div.eventRow"))
+            if not events or len(events) != row_count:
+                raise self._source_failure(
+                    f"Unverified or incomplete calendar: {len(events)}/{row_count} event rows at {url}"
+                )
+            if any(_parse_iso_local(event.start_iso, self.club.timezone or "America/Chicago") is None
+                   for event in events):
+                raise self._source_failure(f"Calendar contains invalid performance times: {url}")
             Logger.info(
                 f"{self._log_prefix}: extracted {len(events)} events from {url}",
                 self.logger_context,
             )
             return ComedyClubhousePageData(event_list=events)
-
-        except Exception as e:
-            Logger.error(
-                f"{self._log_prefix}: error fetching {url}: {e}",
-                self.logger_context,
-            )
-            return None
+        except Exception as exc:
+            if isinstance(exc, DataError) and exc.severity == ErrorSeverity.HIGH:
+                raise
+            raise self._source_failure(f"Mandatory calendar failed: {url}: {exc}", exc) from exc

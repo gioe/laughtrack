@@ -1,0 +1,35 @@
+{
+  "venue": "The Comedy Clubhouse",
+  "club_id": 189,
+  "source_id": 623,
+  "official_url": "https://www.thecomedyclubhouse.com",
+  "verified_address": "1462 N. Ashland, Chicago, IL60622",
+  "official_ticket_link": "https://www.ticketsource.us/thecomedyclubhouse",
+  "tested_urls": [
+    "https://www.ticketsource.com/thecomedyclubhouse",
+    "https://www.ticketsource.us/thecomedyclubhouse"
+  ],
+  "method": "Actual scraper PlaywrightBrowser.fetch_html with absolute worktree PYTHONPATH. No requests or curl used.",
+  "vendor_result": "Both .com and officially linked .us render TicketSource Access denied HTTP ERROR429 body,6238bytes, noeventrows.",
+  "official_result": "Official homepage accessible642360bytes; no current individual performances, no calendariframes, no alternate supported inventory source observed. General programming includesimprov,standup,scriptedcomedy; not evidence for any particular liveperformance.",
+  "recommendation": "Treat mandatory vendor source as blocked; preserve previous inventory rather than reconciling as empty. Changing .com to.us alone doesnotresolveblock. No verified individualtimes/tickets recovered.",
+  "changes": "Read only; no repository or production mutations.",
+  "captured_date_utc": "2026-09-26",
+  "captures": [
+    {
+      "source": "official",
+      "sha256": "2a29e13c69711448ea0b9aaab7d2a352f7a907fc60fc411b82b8311e827dfcca",
+      "bytes": 642427
+    },
+    {
+      "source": "ticketsource",
+      "sha256": "8c63421299afa6e0ca78a3451825d16c5580b32112b2ea65a5b105aa749c781e",
+      "bytes": 6238
+    },
+    {
+      "source": "ticketsource-us",
+      "sha256": "64fc1d2b8cce44b2e584050bfbb6a9c8fd6e9203b952ed9a0c13b99f18f77b59",
+      "bytes": 6238
+    }
+  ]
+}

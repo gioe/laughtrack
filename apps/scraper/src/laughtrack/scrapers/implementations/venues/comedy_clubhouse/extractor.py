@@ -46,8 +46,8 @@ class ComedyClubhouseExtractor:
     def _parse_row(row) -> Optional[ComedyClubhouseEvent]:
         """Parse a single div.eventRow and return a ComedyClubhouseEvent or None."""
         # Title
-        title_tag = row.find("span", itemprop="name")
-        if not title_tag:
+        title_tag = row.select_one("div.eventTitle span[itemprop=name]")
+        if not title_tag or not title_tag.get_text(strip=True):
             Logger.debug("ComedyClubhouseExtractor: skipping row — no title span")
             return None
         title = title_tag.get_text(strip=True)

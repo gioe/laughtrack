@@ -8,6 +8,8 @@ ComedyClubhouseEvent.to_show() transformation path.
 
 import pytest
 
+from laughtrack.foundation.exceptions.scraping_errors import DataError
+
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.comedy_clubhouse import ComedyClubhouseEvent
 from laughtrack.scrapers.implementations.venues.comedy_clubhouse.scraper import (
@@ -118,8 +120,8 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_on_empty_html(monkeypatch):
-    """get_data() returns None when the page returns no HTML."""
+async def test_get_data_raises_on_empty_html(monkeypatch):
+    """Missing HTML is a failed mandatory fetch."""
     scraper = ComedyClubhouseScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:
@@ -127,13 +129,13 @@ async def test_get_data_returns_none_on_empty_html(monkeypatch):
 
     monkeypatch.setattr(ComedyClubhouseScraper, "fetch_html", fake_fetch_html)
 
-    result = await scraper.get_data(LISTING_URL)
-    assert result is None
+    with pytest.raises(DataError):
+        await scraper.get_data(LISTING_URL)
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_when_no_events(monkeypatch):
-    """get_data() returns None when the page contains no eventRow cards."""
+async def test_get_data_raises_when_empty_is_unverified(monkeypatch):
+    """A generic empty notice is not evidence of an empty venue calendar."""
     scraper = ComedyClubhouseScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:
@@ -141,8 +143,8 @@ async def test_get_data_returns_none_when_no_events(monkeypatch):
 
     monkeypatch.setattr(ComedyClubhouseScraper, "fetch_html", fake_fetch_html)
 
-    result = await scraper.get_data(LISTING_URL)
-    assert result is None
+    with pytest.raises(DataError):
+        await scraper.get_data(LISTING_URL)
 
 
 # ---------------------------------------------------------------------------
@@ -296,8 +298,8 @@ def test_extractor_skips_row_with_empty_ticket_href():
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_on_extractor_exception(monkeypatch):
-    """get_data() returns None and does not propagate when extract_events() raises."""
+async def test_get_data_raises_on_extractor_exception(monkeypatch):
+    """Parser failures propagate to the failed-fetch diagnostics."""
     from laughtrack.scrapers.implementations.venues.comedy_clubhouse.extractor import (
         ComedyClubhouseExtractor,
     )
@@ -313,8 +315,8 @@ async def test_get_data_returns_none_on_extractor_exception(monkeypatch):
     monkeypatch.setattr(ComedyClubhouseScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(ComedyClubhouseExtractor, "extract_events", staticmethod(raising_extract))
 
-    result = await scraper.get_data(LISTING_URL)
-    assert result is None
+    with pytest.raises(DataError):
+        await scraper.get_data(LISTING_URL)
 
 
 def test_to_show_returns_none_when_start_iso_empty():
@@ -322,3 +324,52 @@ def test_to_show_returns_none_when_start_iso_empty():
     event = _make_event(start_iso="")
     show = event.to_show(_club())
     assert show is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("case", ["cloudflare", "denied", "missing", "transport", "unknown", "partial", "invalid_time", "venue_title", "valid"])
+async def test_blocked_calendar_recovery(case):
+    """Exercise actual fetch accounting and stale-reconciliation eligibility."""
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from laughtrack.foundation.infrastructure.http.diagnostics import (
+        ScrapeDiagnostics, bind_diagnostics, reset_diagnostics,
+    )
+    from laughtrack.utilities.domain.scraper.result import ScrapingResultProcessor
+
+    responses = {
+        "cloudflare": "<html><title>Just a moment...</title><script>window._cf_chl_opt={};</script></html>",
+        "denied": "<html><title>Access denied</title><body>HTTP ERROR 429</body></html>",
+        "missing": None,
+        "partial": _listing_page([_event_row(), _event_row(ticket_path="")]),
+        "invalid_time": _listing_page([_event_row(), _event_row(start_iso="invalid")]),
+        "venue_title": _listing_page([_event_row(title="")]),
+        "transport": RuntimeError("HTTP 403"),
+        "unknown": "<html><body>No upcoming shows</body></html>",
+        "valid": _listing_page([_event_row()]),
+    }
+    response = responses[case]
+    scraper = ComedyClubhouseScraper(_club())
+    scraper.fetch_html = AsyncMock(
+        side_effect=response if isinstance(response, Exception) else None,
+        return_value=response if not isinstance(response, Exception) else None,
+    )
+    scraper.rate_limiter = SimpleNamespace(await_if_needed=AsyncMock())
+    diagnostics = ScrapeDiagnostics()
+    token = bind_diagnostics(diagnostics)
+    try:
+        results = await scraper._fetch_all_raw_data([LISTING_URL])
+    finally:
+        reset_diagnostics(token)
+    healthy = case == "valid"
+    assert diagnostics.fetches_failed == int(not healthy)
+    assert diagnostics.fetches_ok == int(healthy)
+    assert scraper.fetch_html.await_count == 1
+    if healthy:
+        assert len(results[0][0].event_list) == 1
+    if case in {"cloudflare", "denied"}:
+        assert diagnostics.bot_block_detected
+    result = SimpleNamespace(error=None, shows=[object()] if healthy else [], fetches_failed=diagnostics.fetches_failed,
+        fetches_ok=diagnostics.fetches_ok, bot_block_detected=diagnostics.bot_block_detected,
+        items_before_filter=int(healthy))
+    assert ScrapingResultProcessor._is_clean_for_reconciliation(result) is healthy
