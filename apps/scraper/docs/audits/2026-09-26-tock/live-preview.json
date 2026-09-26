@@ -1,0 +1,153 @@
+[
+  {
+    "club_id": 9119,
+    "club_name": "My Buddy's",
+    "source_url": "https://www.exploretock.com/mybuddys",
+    "source_metadata": {
+      "comedy_filter": true
+    },
+    "shows": [
+      {
+        "name": "Stand up, Strip Down!!! September Edition!!",
+        "date": "2026-09-27T19:00:00-05:00",
+        "show_page_url": "https://www.exploretock.com/mybuddys/event/622162/stand-up-strip-down-september-edition",
+        "club_id": 9119,
+        "tickets": [
+          {
+            "purchase_url": "https://www.exploretock.com/mybuddys/event/622162/stand-up-strip-down-september-edition",
+            "price": 10.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "Wed Nite Comedy Showdown!",
+        "date": "2026-09-30T21:00:00-05:00",
+        "show_page_url": "https://www.exploretock.com/mybuddys/event/623074/wed-nite-comedy-showdown",
+        "club_id": 9119,
+        "tickets": [
+          {
+            "purchase_url": "https://www.exploretock.com/mybuddys/event/623074/wed-nite-comedy-showdown",
+            "price": 10.0,
+            "sold_out": false
+          }
+        ]
+      }
+    ],
+    "diagnostics": {
+      "http_status": 200,
+      "bot_block_detected": false,
+      "bot_block_signature": null,
+      "bot_block_provider": null,
+      "bot_block_type": null,
+      "bot_block_source": null,
+      "bot_block_stage": null,
+      "playwright_fallback_used": false,
+      "items_before_filter": 16,
+      "targets_collected": 1,
+      "fetches_ok": 1,
+      "fetches_failed": 0,
+      "cross_host_redirects_warned": [],
+      "persist_lock_timeouts": [],
+      "ticketless_shows": 0,
+      "scrape_errors": []
+    },
+    "seconds": 0.9087251250166446
+  },
+  {
+    "club_id": 11073,
+    "club_name": "BATSU! Chicago",
+    "source_url": "https://www.exploretock.com/batsu-chicago",
+    "source_metadata": {},
+    "shows": [],
+    "diagnostics": {
+      "http_status": 200,
+      "bot_block_detected": false,
+      "bot_block_signature": null,
+      "bot_block_provider": null,
+      "bot_block_type": null,
+      "bot_block_source": null,
+      "bot_block_stage": null,
+      "playwright_fallback_used": false,
+      "items_before_filter": 0,
+      "targets_collected": 1,
+      "fetches_ok": 0,
+      "fetches_failed": 1,
+      "cross_host_redirects_warned": [],
+      "persist_lock_timeouts": [],
+      "ticketless_shows": 0,
+      "scrape_errors": [
+        "fetch failed for https://www.exploretock.com/batsu-chicago: DataError: Tock mandatory calendar failed at https://www.exploretock.com/batsu-chicago: Unverified Tock recurring/unsupported availability: PRIX_FIXE"
+      ]
+    },
+    "seconds": 0.5637392500648275
+  },
+  {
+    "club_id": 16048,
+    "club_name": "BATSU!",
+    "source_url": "https://www.exploretock.com/batsunyc",
+    "source_metadata": {},
+    "shows": [
+      {
+        "name": "Laughter Party (aka \"The NOT BATSU! Stand Up Show\")",
+        "date": "2026-09-28T19:00:00-04:00",
+        "show_page_url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+        "club_id": 16048,
+        "tickets": [
+          {
+            "purchase_url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+            "price": 15.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "Laughter Party (aka \"The NOT BATSU! Stand Up Show\")",
+        "date": "2026-10-19T19:00:00-04:00",
+        "show_page_url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+        "club_id": 16048,
+        "tickets": [
+          {
+            "purchase_url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+            "price": 15.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "Laughter Party (aka \"The NOT BATSU! Stand Up Show\")",
+        "date": "2026-11-23T19:00:00-05:00",
+        "show_page_url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+        "club_id": 16048,
+        "tickets": [
+          {
+            "purchase_url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+            "price": 15.0,
+            "sold_out": false
+          }
+        ]
+      }
+    ],
+    "diagnostics": {
+      "http_status": 200,
+      "bot_block_detected": false,
+      "bot_block_signature": null,
+      "bot_block_provider": null,
+      "bot_block_type": null,
+      "bot_block_source": null,
+      "bot_block_stage": null,
+      "playwright_fallback_used": false,
+      "items_before_filter": 3,
+      "targets_collected": 1,
+      "fetches_ok": 1,
+      "fetches_failed": 1,
+      "cross_host_redirects_warned": [],
+      "persist_lock_timeouts": [],
+      "ticketless_shows": 0,
+      "scrape_errors": [
+        "Unverified Tock recurring/unsupported availability: PRIX_FIXE"
+      ]
+    },
+    "seconds": 0.7403599999379367
+  }
+]

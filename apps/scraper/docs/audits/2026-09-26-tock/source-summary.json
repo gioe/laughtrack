@@ -1,0 +1,141 @@
+{
+  "captured": "2026-09-26",
+  "fetch_method": "Actual scraper PlaywrightBrowser. Dated network probe uses browser launched by same stack. Standalone probes did not load CAPSOLVER env; failures do not establish solver-enabled production behavior.",
+  "official_schedules": {
+    "chicago": {
+      "url": "https://batsulive.com/chicago/",
+      "Thursday": [
+        "19:00"
+      ],
+      "Friday": [
+        "19:00"
+      ],
+      "Saturday": [
+        "19:00",
+        "22:00"
+      ],
+      "limitation": "Recurring rule only, no dated exception proof."
+    },
+    "nyc": {
+      "url": "https://batsulive.com/new-york/",
+      "Tuesday": [
+        "19:00"
+      ],
+      "Wednesday": [
+        "19:00"
+      ],
+      "Thursday": [
+        "19:00"
+      ],
+      "Friday": [
+        "19:00",
+        "22:00"
+      ],
+      "Saturday": [
+        "19:00",
+        "22:00"
+      ],
+      "unyearred_holiday_blackouts": [
+        "11/27",
+        "12/23",
+        "12/24",
+        "12/25",
+        "1/1",
+        "1/2"
+      ],
+      "limitation": "Page contains older2024pricing reference; holidayyears unverified. Do not use for dated deletions."
+    }
+  },
+  "inventory_evidence": "calendar.offerings.openDate and openTime apply alongside all experiences, without pair association. PRIX_FIXE eventDetails.schedule and slots empty. calendar.calendar and availability.result null. Not safe Cartesian inventory.",
+  "dated_probes": {
+    "chicago_oct10": "Search SSR accessible, no dated pairs in state",
+    "chicago_oct8": "Cloudflare challenge",
+    "nyc_oct6": "Cloudflare challenge",
+    "chicago_standard_oct2": "Cloudflare challenge; no public availability JSON responses observed."
+  },
+  "verified_ga_events": [
+    {
+      "id": 622162,
+      "title": "Stand up, Strip Down!!! September Edition!!",
+      "url": "https://www.exploretock.com/mybuddys/event/622162/stand-up-strip-down-september-edition",
+      "dates": [
+        "2026-09-27"
+      ],
+      "slots": [
+        {
+          "startTime": "19:00",
+          "endTime": "20:45"
+        }
+      ],
+      "location": {
+        "id": 0,
+        "address": "4416 North Clark Street",
+        "city": "Chicago",
+        "state": "IL",
+        "country": "US",
+        "zipCode": "60640",
+        "name": "My Buddy's",
+        "lat": 41.9622246,
+        "lng": -87.6663046
+      },
+      "priceCents": 1000,
+      "public_price": "$11 per ticket"
+    },
+    {
+      "id": 623074,
+      "title": "Wed Nite Comedy Showdown!",
+      "url": "https://www.exploretock.com/mybuddys/event/623074/wed-nite-comedy-showdown",
+      "dates": [
+        "2026-09-30"
+      ],
+      "slots": [
+        {
+          "startTime": "21:00",
+          "endTime": "23:00"
+        }
+      ],
+      "location": {
+        "id": 0,
+        "address": "4416 North Clark Street",
+        "city": "Chicago",
+        "state": "IL",
+        "country": "US",
+        "zipCode": "60640",
+        "name": "My Buddy's",
+        "lat": 41.9622246,
+        "lng": -87.6663046
+      },
+      "priceCents": 1000,
+      "public_price": "$11 per ticket"
+    },
+    {
+      "id": 355872,
+      "title": "Laughter Party (aka \"The NOT BATSU! Stand Up Show\")",
+      "url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+      "dates": [
+        "2026-09-28",
+        "2026-10-19",
+        "2026-11-23"
+      ],
+      "slots": [
+        {
+          "startTime": "19:00"
+        }
+      ],
+      "location": {
+        "id": 0,
+        "address": "67 1st Avenue",
+        "city": "New York",
+        "state": "NY",
+        "country": "US",
+        "zipCode": "10003",
+        "name": "BATSU! NYC",
+        "lat": 40.7254184,
+        "lng": -73.9872948
+      },
+      "priceCents": 1500,
+      "public_price": "$17 per ticket"
+    }
+  ],
+  "recommendation": "Disable unsupported PRIX_FIXE Cartesian expansion; preserve inventory and mark recurring coverage degraded. Recover explicit GA event schedules after fixing observed Redux noop(..._) signature. Official pages currently provide no verified exception-aware dated fallback."
+}

@@ -1,0 +1,94 @@
+[
+  {
+    "club_id": 9119,
+    "workflow_run_id": 36267614905,
+    "phase": "before_proxy",
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36267614905",
+    "diagnostic_log_lines": [
+      "verify\tRun scraper for single club\t2026-09-26T19:54:15.7524324Z 2026-09-26 19:54:15,752 | WARNING | pid=3609 | club=- | scraper=- | [ResidentialProxy] configured \u2014 10 scraper(s) allowlisted: comedy_clubhouse, comedy_mothership, etix, flappers, mccurdys_comedy_theatre, palm_beach_improv, rodneys, ticketweb, tixr, tixr_public_card",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:38.0615033Z 2026-09-26 19:54:38,060 | WARNING | pid=3609 | club=My Buddy's | scraper=tock | [CloudflareSolver] No proxy and no Turnstile sitekey \u2014 cannot solve the interstitial without a proxy (cf_clearance is IP-bound) and cannot run the proxyless token flow without a sitekey; skipping solve",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:38.0739394Z 2026-09-26 19:54:38,073 | WARNING | pid=3609 | club=My Buddy's | scraper=tock | Attempt 1/4 failed for Fetch Data: https://www.exploretock.com/mybuddys: Tock mandatory calendar blocked (just a moment): https://www.exploretock.com/mybuddys",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:38.0743858Z 2026-09-26 19:54:38,073 | ERROR | pid=3609 | club=My Buddy's | scraper=tock | TockScraper [My Buddy's]: Failed to fetch data from https://www.exploretock.com/mybuddys: Tock mandatory calendar blocked (just a moment): https://www.exploretock.com/mybuddys",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:38.0749977Z 2026-09-26 19:54:38,074 | INFO | pid=3609 | club=My Buddy's | scraper=tock | TockScraper [My Buddy's]: Scraped 0 total shows",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:38.0761218Z 2026-09-26 19:54:38,075 | INFO | pid=3609 | club=My Buddy's | scraper=tock | TockScraper [My Buddy's]: Successfully scraped 0 shows in 21.05s",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:38.8418531Z 2026-09-26 19:54:38,841 | INFO | pid=3609 | club=- | scraper=- | Scraped 0 shows for My Buddy's [http=403, bot_block=True, provider=cloudflare, type=challenge, source=response_body, stage=both, fallback=True, items_before_filter=0]",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:38.9552041Z 2026-09-26 19:54:38,841 | INFO | pid=3609 | club=- | scraper=- | Scraped 0 shows for My Buddy's [http=403, bot_block=True, provider=cloudflare, type=challenge, source=response_body, stage=both, fallback=True, items_before_filter=0]"
+    ]
+  },
+  {
+    "club_id": 11073,
+    "workflow_run_id": 36267621989,
+    "phase": "before_proxy",
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36267621989",
+    "diagnostic_log_lines": [
+      "verify\tRun scraper for single club\t2026-09-26T19:54:35.3040054Z 2026-09-26 19:54:35,303 | WARNING | pid=3419 | club=- | scraper=- | [ResidentialProxy] configured \u2014 10 scraper(s) allowlisted: comedy_clubhouse, comedy_mothership, etix, flappers, mccurdys_comedy_theatre, palm_beach_improv, rodneys, ticketweb, tixr, tixr_public_card",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:57.6867343Z 2026-09-26 19:54:57,686 | WARNING | pid=3419 | club=BATSU! Chicago | scraper=tock | [CloudflareSolver] No proxy and no Turnstile sitekey \u2014 cannot solve the interstitial without a proxy (cf_clearance is IP-bound) and cannot run the proxyless token flow without a sitekey; skipping solve",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:57.7002491Z 2026-09-26 19:54:57,697 | WARNING | pid=3419 | club=BATSU! Chicago | scraper=tock | Attempt 1/4 failed for Fetch Data: https://www.exploretock.com/batsu-chicago: Tock mandatory calendar blocked (just a moment): https://www.exploretock.com/batsu-chicago",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:57.7006652Z 2026-09-26 19:54:57,697 | ERROR | pid=3419 | club=BATSU! Chicago | scraper=tock | TockScraper [BATSU! Chicago]: Failed to fetch data from https://www.exploretock.com/batsu-chicago: Tock mandatory calendar blocked (just a moment): https://www.exploretock.com/batsu-chicago",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:57.7011599Z 2026-09-26 19:54:57,697 | INFO | pid=3419 | club=BATSU! Chicago | scraper=tock | TockScraper [BATSU! Chicago]: Scraped 0 total shows",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:57.7012731Z 2026-09-26 19:54:57,699 | INFO | pid=3419 | club=BATSU! Chicago | scraper=tock | TockScraper [BATSU! Chicago]: Successfully scraped 0 shows in 20.94s",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:58.4641669Z 2026-09-26 19:54:58,463 | INFO | pid=3419 | club=- | scraper=- | Scraped 0 shows for BATSU! Chicago [http=403, bot_block=True, provider=cloudflare, type=challenge, source=response_body, stage=both, fallback=True, items_before_filter=0]",
+      "verify\tRun scraper for single club\t2026-09-26T19:54:58.5631231Z 2026-09-26 19:54:58,463 | INFO | pid=3419 | club=- | scraper=- | Scraped 0 shows for BATSU! Chicago [http=403, bot_block=True, provider=cloudflare, type=challenge, source=response_body, stage=both, fallback=True, items_before_filter=0]"
+    ]
+  },
+  {
+    "club_id": 16048,
+    "workflow_run_id": 36267627668,
+    "phase": "before_proxy",
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36267627668",
+    "diagnostic_log_lines": [
+      "verify\tUNKNOWN STEP\t2026-09-26T19:54:42.8877661Z 2026-09-26 19:54:42,887 | WARNING | pid=3624 | club=- | scraper=- | [ResidentialProxy] configured \u2014 10 scraper(s) allowlisted: comedy_clubhouse, comedy_mothership, etix, flappers, mccurdys_comedy_theatre, palm_beach_improv, rodneys, ticketweb, tixr, tixr_public_card",
+      "verify\tUNKNOWN STEP\t2026-09-26T19:55:05.8792117Z 2026-09-26 19:55:05,878 | WARNING | pid=3624 | club=BATSU! | scraper=tock | [CloudflareSolver] No proxy and no Turnstile sitekey \u2014 cannot solve the interstitial without a proxy (cf_clearance is IP-bound) and cannot run the proxyless token flow without a sitekey; skipping solve",
+      "verify\tUNKNOWN STEP\t2026-09-26T19:55:05.8939200Z 2026-09-26 19:55:05,890 | WARNING | pid=3624 | club=BATSU! | scraper=tock | Attempt 1/4 failed for Fetch Data: https://www.exploretock.com/batsunyc: Tock mandatory calendar blocked (just a moment): https://www.exploretock.com/batsunyc",
+      "verify\tUNKNOWN STEP\t2026-09-26T19:55:05.8943858Z 2026-09-26 19:55:05,891 | ERROR | pid=3624 | club=BATSU! | scraper=tock | TockScraper [BATSU!]: Failed to fetch data from https://www.exploretock.com/batsunyc: Tock mandatory calendar blocked (just a moment): https://www.exploretock.com/batsunyc",
+      "verify\tUNKNOWN STEP\t2026-09-26T19:55:05.8962538Z 2026-09-26 19:55:05,891 | INFO | pid=3624 | club=BATSU! | scraper=tock | TockScraper [BATSU!]: Scraped 0 total shows",
+      "verify\tUNKNOWN STEP\t2026-09-26T19:55:05.8964092Z 2026-09-26 19:55:05,893 | INFO | pid=3624 | club=BATSU! | scraper=tock | TockScraper [BATSU!]: Successfully scraped 0 shows in 21.07s",
+      "verify\tUNKNOWN STEP\t2026-09-26T19:55:07.5149092Z 2026-09-26 19:55:07,514 | INFO | pid=3624 | club=- | scraper=- | Scraped 0 shows for BATSU! [http=403, bot_block=True, provider=cloudflare, type=challenge, source=response_body, stage=both, fallback=True, items_before_filter=0]",
+      "verify\tUNKNOWN STEP\t2026-09-26T19:55:07.6296321Z 2026-09-26 19:55:07,514 | INFO | pid=3624 | club=- | scraper=- | Scraped 0 shows for BATSU! [http=403, bot_block=True, provider=cloudflare, type=challenge, source=response_body, stage=both, fallback=True, items_before_filter=0]"
+    ]
+  },
+  {
+    "club_id": 9119,
+    "workflow_run_id": 36269658871,
+    "phase": "after_proxy",
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36269658871",
+    "diagnostic_log_lines": [
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:31.9381696Z 2026-09-26 20:29:31,937 | WARNING | pid=3628 | club=- | scraper=- | [ResidentialProxy] configured \u2014 11 scraper(s) allowlisted: comedy_clubhouse, comedy_mothership, etix, flappers, mccurdys_comedy_theatre, palm_beach_improv, rodneys, ticketweb, tixr, tixr_public_card, tock",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:35.3195542Z 2026-09-26 20:29:35,317 | INFO | pid=3628 | club=My Buddy's | scraper=tock | TockScraper [My Buddy's]: Scraped 2 total shows",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:35.3196599Z 2026-09-26 20:29:35,319 | INFO | pid=3628 | club=My Buddy's | scraper=tock | TockScraper [My Buddy's]: Successfully scraped 2 shows in 1.66s",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:35.3198957Z 2026-09-26 20:29:35,319 | INFO | pid=3628 | club=- | scraper=- | Persisting 2 shows for 'My Buddy's'...",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:43.5066374Z 2026-09-26 20:29:43,506 | INFO | pid=3628 | club=- | scraper=- | Scraped 2 shows for My Buddy's",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:43.5977029Z 2026-09-26 20:29:43,506 | INFO | pid=3628 | club=- | scraper=- | Scraped 2 shows for My Buddy's"
+    ]
+  },
+  {
+    "club_id": 11073,
+    "workflow_run_id": 36269666743,
+    "phase": "after_proxy",
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36269666743",
+    "diagnostic_log_lines": [
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:35.1039038Z 2026-09-26 20:29:35,103 | WARNING | pid=3706 | club=- | scraper=- | [ResidentialProxy] configured \u2014 11 scraper(s) allowlisted: comedy_clubhouse, comedy_mothership, etix, flappers, mccurdys_comedy_theatre, palm_beach_improv, rodneys, ticketweb, tixr, tixr_public_card, tock",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:38.3285829Z 2026-09-26 20:29:38,328 | WARNING | pid=3706 | club=BATSU! Chicago | scraper=tock | Attempt 1/4 failed for Fetch Data: https://www.exploretock.com/batsu-chicago: Tock mandatory calendar failed at https://www.exploretock.com/batsu-chicago: Unverified Tock recurring/unsupported availability: PRIX_FIXE",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:38.3291460Z 2026-09-26 20:29:38,328 | ERROR | pid=3706 | club=BATSU! Chicago | scraper=tock | TockScraper [BATSU! Chicago]: Failed to fetch data from https://www.exploretock.com/batsu-chicago: Tock mandatory calendar failed at https://www.exploretock.com/batsu-chicago: Unverified Tock recurring/unsupported availability: PRIX_FIXE",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:38.3298036Z 2026-09-26 20:29:38,328 | INFO | pid=3706 | club=BATSU! Chicago | scraper=tock | TockScraper [BATSU! Chicago]: Scraped 0 total shows",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:38.3305259Z 2026-09-26 20:29:38,330 | INFO | pid=3706 | club=BATSU! Chicago | scraper=tock | TockScraper [BATSU! Chicago]: Successfully scraped 0 shows in 1.53s",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:39.4611486Z 2026-09-26 20:29:39,460 | INFO | pid=3706 | club=- | scraper=- | Scraped 0 shows for BATSU! Chicago [http=200, bot_block=False, provider=None, type=None, source=None, stage=None, fallback=False, items_before_filter=0]",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:39.5400235Z 2026-09-26 20:29:39,460 | INFO | pid=3706 | club=- | scraper=- | Scraped 0 shows for BATSU! Chicago [http=200, bot_block=False, provider=None, type=None, source=None, stage=None, fallback=False, items_before_filter=0]"
+    ]
+  },
+  {
+    "club_id": 16048,
+    "workflow_run_id": 36269672866,
+    "phase": "after_proxy",
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36269672866",
+    "diagnostic_log_lines": [
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:36.2113086Z 2026-09-26 20:29:36,210 | WARNING | pid=3623 | club=- | scraper=- | [ResidentialProxy] configured \u2014 11 scraper(s) allowlisted: comedy_clubhouse, comedy_mothership, etix, flappers, mccurdys_comedy_theatre, palm_beach_improv, rodneys, ticketweb, tixr, tixr_public_card, tock",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:38.8503337Z 2026-09-26 20:29:38,849 | WARNING | pid=3623 | club=BATSU! | scraper=tock | Unverified Tock recurring/unsupported availability: PRIX_FIXE",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:38.8528364Z 2026-09-26 20:29:38,851 | INFO | pid=3623 | club=BATSU! | scraper=tock | TockScraper [BATSU!]: Scraped 3 total shows",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:38.8529911Z 2026-09-26 20:29:38,852 | INFO | pid=3623 | club=BATSU! | scraper=tock | TockScraper [BATSU!]: Successfully scraped 3 shows in 1.33s",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:38.8531641Z 2026-09-26 20:29:38,853 | INFO | pid=3623 | club=- | scraper=- | Persisting 3 shows for 'BATSU!'...",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:40.1075314Z 2026-09-26 20:29:40,107 | INFO | pid=3623 | club=- | scraper=- | Scraped 3 shows for BATSU!",
+      "verify\tUNKNOWN STEP\t2026-09-26T20:29:40.1894485Z 2026-09-26 20:29:40,107 | INFO | pid=3623 | club=- | scraper=- | Scraped 3 shows for BATSU!"
+    ]
+  }
+]

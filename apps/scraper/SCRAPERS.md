@@ -3509,6 +3509,9 @@ needed to avoid mis-attributing them.
 **API/source pattern:**
 - `TockScraper` uses the shared `fetch_html()` client on the configured business page,
   including its configured proxy/browser fallback on challenge responses.
+- Enable `scrapers.use_residential_proxy` for key `tock`: GitHub Actions direct
+  egress is Cloudflare-blocked even when local direct fetches work. TASK-4054
+  verified the existing residential proxy path on all three active venues.
 - It parses the rendered `window.$REDUX_STATE` object, normalizing Tock's JavaScript-only
   values (`undefined`, `function noop()` and the observed `function noop(..._)`) before JSON decoding.
 - Each `GA_EVENT` experience becomes one event using `eventDetails.date`,

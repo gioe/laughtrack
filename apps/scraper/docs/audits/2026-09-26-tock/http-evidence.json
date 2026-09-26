@@ -1,0 +1,29 @@
+[
+  {
+    "slug": "mybuddys",
+    "url": "https://www.exploretock.com/mybuddys",
+    "seconds": 3.6993537079542875,
+    "bytes": 453268,
+    "title": "<title data-rh=\"true\">My Buddy's - Chicago, IL | Tock</title>",
+    "has_redux": true,
+    "challenge": false
+  },
+  {
+    "slug": "batsu-chicago",
+    "url": "https://www.exploretock.com/batsu-chicago",
+    "seconds": 1.7695200419984758,
+    "bytes": 384036,
+    "title": "<title>BATSU! Chicago - Chicago, IL | Tock</title>",
+    "has_redux": true,
+    "challenge": false
+  },
+  {
+    "slug": "batsunyc",
+    "url": "https://www.exploretock.com/batsunyc",
+    "seconds": 0.7759608749765903,
+    "bytes": 376534,
+    "title": "<title data-rh=\"true\">BATSU! NYC - New York, NY | Tock</title>",
+    "has_redux": true,
+    "challenge": false
+  }
+]

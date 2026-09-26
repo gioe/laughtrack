@@ -1,0 +1,3130 @@
+[
+  {
+    "club_id": 9119,
+    "venue": "My Buddy's",
+    "id": 3092729,
+    "name": "Pirate Pub Sing!!",
+    "date": "2026-06-21T23:00:00+00:00",
+    "last_scraped_date": "2026-06-21T15:34:03.163685+00:00"
+  },
+  {
+    "club_id": 9119,
+    "venue": "My Buddy's",
+    "id": 3092731,
+    "name": "Wed Nite Comedy Showdown!",
+    "date": "2026-06-25T02:00:00+00:00",
+    "last_scraped_date": "2026-06-24T22:14:10.979304+00:00"
+  },
+  {
+    "club_id": 9119,
+    "venue": "My Buddy's",
+    "id": 3092730,
+    "name": "Stand up, Strip Down!!! June Edition!",
+    "date": "2026-06-29T00:00:00+00:00",
+    "last_scraped_date": "2026-06-24T22:14:10.979300+00:00"
+  },
+  {
+    "club_id": 9119,
+    "venue": "My Buddy's",
+    "id": 3092728,
+    "name": "Take A Shot Open Mic Comedy FINALS!!",
+    "date": "2026-06-29T02:00:00+00:00",
+    "last_scraped_date": "2026-06-24T22:14:10.979288+00:00"
+  },
+  {
+    "club_id": 9119,
+    "venue": "My Buddy's",
+    "id": 4995450,
+    "name": "Mystery Box Showcase!!!",
+    "date": "2026-08-30T04:00:00+00:00",
+    "last_scraped_date": "2026-08-05T00:26:33.015552+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228330,
+    "name": "BATSU! Chicago",
+    "date": "2026-06-27T00:00:00+00:00",
+    "last_scraped_date": "2026-06-24T22:15:53.305964+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228331,
+    "name": "BATSU! Chicago",
+    "date": "2026-06-27T03:00:00+00:00",
+    "last_scraped_date": "2026-06-24T22:15:53.305974+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228332,
+    "name": "BATSU! Chicago",
+    "date": "2026-06-28T00:00:00+00:00",
+    "last_scraped_date": "2026-06-24T22:15:53.305978+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228333,
+    "name": "BATSU! Chicago",
+    "date": "2026-06-28T03:00:00+00:00",
+    "last_scraped_date": "2026-06-24T22:15:53.305980+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228334,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-04T00:00:00+00:00",
+    "last_scraped_date": "2026-07-03T22:07:50.595254+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228335,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-04T03:00:00+00:00",
+    "last_scraped_date": "2026-07-03T22:07:50.595263+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3301966,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-05T00:00:00+00:00",
+    "last_scraped_date": "2026-07-03T22:07:50.595267+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3301967,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-05T03:00:00+00:00",
+    "last_scraped_date": "2026-07-03T22:07:50.595270+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228336,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-11T00:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298028+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228337,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-11T03:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298039+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228338,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-12T00:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298042+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228339,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-12T03:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298044+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228340,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-17T00:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298046+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228341,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-17T03:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298048+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228342,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-18T00:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298050+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228343,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-18T03:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298052+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228344,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-19T00:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298054+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228345,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-19T03:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:28:33.298055+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228346,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-24T00:00:00+00:00",
+    "last_scraped_date": "2026-07-19T21:59:15.662578+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228347,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-24T03:00:00+00:00",
+    "last_scraped_date": "2026-07-19T21:59:15.662592+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228348,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-25T00:00:00+00:00",
+    "last_scraped_date": "2026-07-19T21:59:15.662595+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228349,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-25T03:00:00+00:00",
+    "last_scraped_date": "2026-07-19T21:59:15.662598+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228350,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-26T00:00:00+00:00",
+    "last_scraped_date": "2026-07-19T21:59:15.662600+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228351,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-26T03:00:00+00:00",
+    "last_scraped_date": "2026-07-19T21:59:15.662603+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228352,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-31T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311480+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228353,
+    "name": "BATSU! Chicago",
+    "date": "2026-07-31T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311487+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228354,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-01T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311490+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228355,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-01T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311492+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228356,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-02T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311494+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228357,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-02T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311497+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228358,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-07T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311499+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228359,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-07T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311501+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228360,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-08T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311503+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228361,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-08T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311505+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228362,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-09T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311507+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228363,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-09T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311509+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228364,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-14T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311510+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228365,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-14T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311512+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228366,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-15T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311514+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228367,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-15T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311516+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228368,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-16T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311518+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228369,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-16T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311520+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228370,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-21T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311522+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228371,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-21T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311524+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228372,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-22T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311526+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228373,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-22T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311528+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228374,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-23T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311530+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228375,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-23T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311531+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228376,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-28T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311534+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228377,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-28T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311536+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228378,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-29T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311538+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228379,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-29T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311539+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228380,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-30T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311541+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228381,
+    "name": "BATSU! Chicago",
+    "date": "2026-08-30T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311543+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228382,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-04T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311545+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228383,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-04T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311547+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228384,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-05T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311549+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228385,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-05T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311551+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228386,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-06T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311553+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228387,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-06T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311555+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228388,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-11T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311557+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228389,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-11T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311559+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228390,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-12T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311561+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228391,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-12T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311563+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228392,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-13T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311565+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228393,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-13T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311567+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228394,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-18T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311569+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228395,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-18T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311571+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228396,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-19T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311573+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228397,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-19T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311575+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228398,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-20T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311577+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228399,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-20T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311579+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228400,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-25T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311580+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228401,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-25T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311582+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228402,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-26T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311584+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228403,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-26T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311586+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228404,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-27T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311588+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228405,
+    "name": "BATSU! Chicago",
+    "date": "2026-09-27T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311590+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228406,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-02T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311592+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228407,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-02T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311594+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228408,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-03T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311596+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228409,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-03T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311598+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228410,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-04T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311600+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228411,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-04T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311601+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228412,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-09T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311603+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228413,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-09T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311605+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228414,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-10T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311607+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228415,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-10T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311609+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228416,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-11T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311611+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228417,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-11T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311613+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228418,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-16T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311615+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228419,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-16T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311617+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228420,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-17T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311618+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228421,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-17T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311620+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228422,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-18T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311622+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228423,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-18T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311624+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228424,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-23T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311626+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228425,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-23T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311627+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228426,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-24T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311629+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228427,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-24T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311631+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228428,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-25T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311633+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228429,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-25T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311635+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228430,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-30T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311637+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228431,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-30T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311639+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228432,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-31T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311641+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228433,
+    "name": "BATSU! Chicago",
+    "date": "2026-10-31T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311643+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228434,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-01T00:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311645+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228435,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-01T03:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311647+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228436,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-06T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311649+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228437,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-06T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311651+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228438,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-07T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311653+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228439,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-07T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311655+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228440,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-08T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311657+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228441,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-08T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311658+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228442,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-13T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311660+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228443,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-13T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311662+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228444,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-14T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311664+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228445,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-14T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311666+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228446,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-15T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311668+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228447,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-15T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311670+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228448,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-20T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311672+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228449,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-20T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311674+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228450,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-21T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311675+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228451,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-21T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:29.311677+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228452,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-22T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130887+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228453,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-22T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130896+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228454,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-27T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130899+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228455,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-27T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130902+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228456,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-28T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130905+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228457,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-28T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130907+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228458,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-29T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130909+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228459,
+    "name": "BATSU! Chicago",
+    "date": "2026-11-29T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130912+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228460,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-04T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130914+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228461,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-04T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130917+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228462,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-05T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130919+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228463,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-05T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130921+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228464,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-06T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130923+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228465,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-06T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130926+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228466,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-11T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130928+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228467,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-11T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130930+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228468,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-12T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130933+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228469,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-12T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130935+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228470,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-13T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130937+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228471,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-13T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130939+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228472,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-18T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130941+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228473,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-18T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130944+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228474,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-19T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130946+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228475,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-19T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130948+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228476,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-20T01:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130950+00:00"
+  },
+  {
+    "club_id": 11073,
+    "venue": "BATSU! Chicago",
+    "id": 3228477,
+    "name": "BATSU! Chicago",
+    "date": "2026-12-20T04:00:00+00:00",
+    "last_scraped_date": "2026-07-29T23:27:32.130952+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804177,
+    "name": "BATSU! NYC",
+    "date": "2026-07-08T23:00:00+00:00",
+    "last_scraped_date": "2026-07-06T22:07:48.689259+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804178,
+    "name": "BATSU! NYC",
+    "date": "2026-07-09T02:00:00+00:00",
+    "last_scraped_date": "2026-07-06T22:07:48.689270+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804179,
+    "name": "BATSU! NYC",
+    "date": "2026-07-09T23:00:00+00:00",
+    "last_scraped_date": "2026-07-06T22:07:48.689273+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804180,
+    "name": "BATSU! NYC",
+    "date": "2026-07-10T02:00:00+00:00",
+    "last_scraped_date": "2026-07-06T22:07:48.689276+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804181,
+    "name": "BATSU! NYC",
+    "date": "2026-07-10T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.668979+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804182,
+    "name": "BATSU! NYC",
+    "date": "2026-07-11T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.668991+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804183,
+    "name": "BATSU! NYC",
+    "date": "2026-07-11T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.668993+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804184,
+    "name": "BATSU! NYC",
+    "date": "2026-07-12T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.668995+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804185,
+    "name": "BATSU! NYC",
+    "date": "2026-07-15T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.668996+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804186,
+    "name": "BATSU! NYC",
+    "date": "2026-07-16T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.668998+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804187,
+    "name": "BATSU! NYC",
+    "date": "2026-07-16T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669000+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804188,
+    "name": "BATSU! NYC",
+    "date": "2026-07-17T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669002+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804189,
+    "name": "BATSU! NYC",
+    "date": "2026-07-17T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669003+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804190,
+    "name": "BATSU! NYC",
+    "date": "2026-07-18T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669005+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804191,
+    "name": "BATSU! NYC",
+    "date": "2026-07-18T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669007+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804192,
+    "name": "BATSU! NYC",
+    "date": "2026-07-19T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669008+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804193,
+    "name": "BATSU! NYC",
+    "date": "2026-07-22T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669010+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804194,
+    "name": "BATSU! NYC",
+    "date": "2026-07-23T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669012+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804195,
+    "name": "BATSU! NYC",
+    "date": "2026-07-23T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669013+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804196,
+    "name": "BATSU! NYC",
+    "date": "2026-07-24T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669015+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804197,
+    "name": "BATSU! NYC",
+    "date": "2026-07-24T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669016+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804198,
+    "name": "BATSU! NYC",
+    "date": "2026-07-25T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669018+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804199,
+    "name": "BATSU! NYC",
+    "date": "2026-07-25T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669019+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804200,
+    "name": "BATSU! NYC",
+    "date": "2026-07-26T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669021+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3982907,
+    "name": "BATSU! NYC",
+    "date": "2026-07-27T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669022+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3982908,
+    "name": "BATSU! NYC",
+    "date": "2026-07-28T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669024+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804201,
+    "name": "BATSU! NYC",
+    "date": "2026-07-29T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669025+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804202,
+    "name": "BATSU! NYC",
+    "date": "2026-07-30T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669027+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804203,
+    "name": "BATSU! NYC",
+    "date": "2026-07-30T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669029+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804204,
+    "name": "BATSU! NYC",
+    "date": "2026-07-31T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669030+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804205,
+    "name": "BATSU! NYC",
+    "date": "2026-07-31T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669032+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804206,
+    "name": "BATSU! NYC",
+    "date": "2026-08-01T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669033+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804207,
+    "name": "BATSU! NYC",
+    "date": "2026-08-01T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669035+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804208,
+    "name": "BATSU! NYC",
+    "date": "2026-08-02T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669037+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804209,
+    "name": "BATSU! NYC",
+    "date": "2026-08-04T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669038+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804210,
+    "name": "BATSU! NYC",
+    "date": "2026-08-05T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669040+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804211,
+    "name": "BATSU! NYC",
+    "date": "2026-08-05T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669042+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804212,
+    "name": "BATSU! NYC",
+    "date": "2026-08-06T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669043+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804213,
+    "name": "BATSU! NYC",
+    "date": "2026-08-06T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669045+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804214,
+    "name": "BATSU! NYC",
+    "date": "2026-08-07T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669047+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804215,
+    "name": "BATSU! NYC",
+    "date": "2026-08-07T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669048+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804216,
+    "name": "BATSU! NYC",
+    "date": "2026-08-08T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669050+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804217,
+    "name": "BATSU! NYC",
+    "date": "2026-08-08T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669051+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804218,
+    "name": "BATSU! NYC",
+    "date": "2026-08-09T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669053+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804219,
+    "name": "BATSU! NYC",
+    "date": "2026-08-11T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669055+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804220,
+    "name": "BATSU! NYC",
+    "date": "2026-08-12T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669057+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804221,
+    "name": "BATSU! NYC",
+    "date": "2026-08-12T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669058+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804222,
+    "name": "BATSU! NYC",
+    "date": "2026-08-13T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669060+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804223,
+    "name": "BATSU! NYC",
+    "date": "2026-08-13T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669061+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804224,
+    "name": "BATSU! NYC",
+    "date": "2026-08-14T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669063+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804225,
+    "name": "BATSU! NYC",
+    "date": "2026-08-14T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669064+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804226,
+    "name": "BATSU! NYC",
+    "date": "2026-08-15T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669066+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804227,
+    "name": "BATSU! NYC",
+    "date": "2026-08-15T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669067+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804228,
+    "name": "BATSU! NYC",
+    "date": "2026-08-16T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669069+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804229,
+    "name": "BATSU! NYC",
+    "date": "2026-08-18T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669070+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804230,
+    "name": "BATSU! NYC",
+    "date": "2026-08-19T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669072+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804231,
+    "name": "BATSU! NYC",
+    "date": "2026-08-19T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669073+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804232,
+    "name": "BATSU! NYC",
+    "date": "2026-08-20T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669075+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804233,
+    "name": "BATSU! NYC",
+    "date": "2026-08-20T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669077+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804234,
+    "name": "BATSU! NYC",
+    "date": "2026-08-21T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669078+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804235,
+    "name": "BATSU! NYC",
+    "date": "2026-08-21T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669080+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804236,
+    "name": "BATSU! NYC",
+    "date": "2026-08-22T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669081+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804237,
+    "name": "BATSU! NYC",
+    "date": "2026-08-22T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669083+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804238,
+    "name": "BATSU! NYC",
+    "date": "2026-08-23T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669084+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804239,
+    "name": "BATSU! NYC",
+    "date": "2026-08-25T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669086+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804240,
+    "name": "BATSU! NYC",
+    "date": "2026-08-26T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669087+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804241,
+    "name": "BATSU! NYC",
+    "date": "2026-08-26T23:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669089+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804242,
+    "name": "BATSU! NYC",
+    "date": "2026-08-27T02:00:00+00:00",
+    "last_scraped_date": "2026-07-10T23:57:26.669090+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804243,
+    "name": "BATSU! NYC",
+    "date": "2026-08-27T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144330+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804244,
+    "name": "BATSU! NYC",
+    "date": "2026-08-28T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144342+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804245,
+    "name": "BATSU! NYC",
+    "date": "2026-08-28T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144346+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804246,
+    "name": "BATSU! NYC",
+    "date": "2026-08-29T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144348+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804247,
+    "name": "BATSU! NYC",
+    "date": "2026-08-29T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144351+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804248,
+    "name": "BATSU! NYC",
+    "date": "2026-08-30T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144354+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3982957,
+    "name": "Laughter Party (aka \"The NOT BATSU! Stand Up Show\")",
+    "date": "2026-08-31T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038096+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3982958,
+    "name": "BATSU! NYC",
+    "date": "2026-09-01T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144360+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804249,
+    "name": "BATSU! NYC",
+    "date": "2026-09-01T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144362+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804250,
+    "name": "BATSU! NYC",
+    "date": "2026-09-02T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144365+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804251,
+    "name": "BATSU! NYC",
+    "date": "2026-09-02T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144368+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804252,
+    "name": "BATSU! NYC",
+    "date": "2026-09-03T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144371+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804253,
+    "name": "BATSU! NYC",
+    "date": "2026-09-03T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144374+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804254,
+    "name": "BATSU! NYC",
+    "date": "2026-09-04T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144377+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804255,
+    "name": "BATSU! NYC",
+    "date": "2026-09-04T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144380+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804256,
+    "name": "BATSU! NYC",
+    "date": "2026-09-05T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144382+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804257,
+    "name": "BATSU! NYC",
+    "date": "2026-09-05T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144385+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804258,
+    "name": "BATSU! NYC",
+    "date": "2026-09-06T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144388+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804259,
+    "name": "BATSU! NYC",
+    "date": "2026-09-08T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144390+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804260,
+    "name": "BATSU! NYC",
+    "date": "2026-09-09T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144393+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804261,
+    "name": "BATSU! NYC",
+    "date": "2026-09-09T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144396+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804262,
+    "name": "BATSU! NYC",
+    "date": "2026-09-10T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144398+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804263,
+    "name": "BATSU! NYC",
+    "date": "2026-09-10T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144401+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804264,
+    "name": "BATSU! NYC",
+    "date": "2026-09-11T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144404+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804265,
+    "name": "BATSU! NYC",
+    "date": "2026-09-11T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144406+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804266,
+    "name": "BATSU! NYC",
+    "date": "2026-09-12T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144409+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804267,
+    "name": "BATSU! NYC",
+    "date": "2026-09-12T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144411+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804268,
+    "name": "BATSU! NYC",
+    "date": "2026-09-13T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144414+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804271,
+    "name": "BATSU! NYC",
+    "date": "2026-09-16T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144416+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804272,
+    "name": "BATSU! NYC",
+    "date": "2026-09-17T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144418+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804273,
+    "name": "BATSU! NYC",
+    "date": "2026-09-17T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144421+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804274,
+    "name": "BATSU! NYC",
+    "date": "2026-09-18T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144423+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804275,
+    "name": "BATSU! NYC",
+    "date": "2026-09-18T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144426+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804276,
+    "name": "BATSU! NYC",
+    "date": "2026-09-19T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144429+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804277,
+    "name": "BATSU! NYC",
+    "date": "2026-09-19T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144431+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804278,
+    "name": "BATSU! NYC",
+    "date": "2026-09-20T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144434+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804279,
+    "name": "BATSU! NYC",
+    "date": "2026-09-22T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144436+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804280,
+    "name": "BATSU! NYC",
+    "date": "2026-09-23T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144439+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804281,
+    "name": "BATSU! NYC",
+    "date": "2026-09-23T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144442+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804282,
+    "name": "BATSU! NYC",
+    "date": "2026-09-24T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144444+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804283,
+    "name": "BATSU! NYC",
+    "date": "2026-09-24T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144447+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804284,
+    "name": "BATSU! NYC",
+    "date": "2026-09-25T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144450+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804285,
+    "name": "BATSU! NYC",
+    "date": "2026-09-25T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144452+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804286,
+    "name": "BATSU! NYC",
+    "date": "2026-09-26T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144455+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804287,
+    "name": "BATSU! NYC",
+    "date": "2026-09-26T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144458+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804288,
+    "name": "BATSU! NYC",
+    "date": "2026-09-27T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144460+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804291,
+    "name": "BATSU! NYC",
+    "date": "2026-09-30T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144463+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804292,
+    "name": "BATSU! NYC",
+    "date": "2026-10-01T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144465+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804293,
+    "name": "BATSU! NYC",
+    "date": "2026-10-01T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144468+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804294,
+    "name": "BATSU! NYC",
+    "date": "2026-10-02T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144471+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804295,
+    "name": "BATSU! NYC",
+    "date": "2026-10-02T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144474+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804296,
+    "name": "BATSU! NYC",
+    "date": "2026-10-03T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144476+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804297,
+    "name": "BATSU! NYC",
+    "date": "2026-10-03T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144479+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804298,
+    "name": "BATSU! NYC",
+    "date": "2026-10-04T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144481+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804299,
+    "name": "BATSU! NYC",
+    "date": "2026-10-06T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144484+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804300,
+    "name": "BATSU! NYC",
+    "date": "2026-10-07T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144487+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804301,
+    "name": "BATSU! NYC",
+    "date": "2026-10-07T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144489+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804302,
+    "name": "BATSU! NYC",
+    "date": "2026-10-08T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144492+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804303,
+    "name": "BATSU! NYC",
+    "date": "2026-10-08T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144494+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804304,
+    "name": "BATSU! NYC",
+    "date": "2026-10-09T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144497+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804305,
+    "name": "BATSU! NYC",
+    "date": "2026-10-09T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144499+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804306,
+    "name": "BATSU! NYC",
+    "date": "2026-10-10T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144502+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804307,
+    "name": "BATSU! NYC",
+    "date": "2026-10-10T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144504+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804308,
+    "name": "BATSU! NYC",
+    "date": "2026-10-11T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144507+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804309,
+    "name": "BATSU! NYC",
+    "date": "2026-10-13T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144509+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804310,
+    "name": "BATSU! NYC",
+    "date": "2026-10-14T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144513+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804311,
+    "name": "BATSU! NYC",
+    "date": "2026-10-14T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144515+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804312,
+    "name": "BATSU! NYC",
+    "date": "2026-10-15T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144518+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804313,
+    "name": "BATSU! NYC",
+    "date": "2026-10-15T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144520+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804314,
+    "name": "BATSU! NYC",
+    "date": "2026-10-16T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144523+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804315,
+    "name": "BATSU! NYC",
+    "date": "2026-10-16T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144525+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804316,
+    "name": "BATSU! NYC",
+    "date": "2026-10-17T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144527+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804317,
+    "name": "BATSU! NYC",
+    "date": "2026-10-17T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144530+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804318,
+    "name": "BATSU! NYC",
+    "date": "2026-10-18T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144532+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804319,
+    "name": "BATSU! NYC",
+    "date": "2026-10-20T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144534+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804320,
+    "name": "BATSU! NYC",
+    "date": "2026-10-21T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144537+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804321,
+    "name": "BATSU! NYC",
+    "date": "2026-10-21T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144539+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804322,
+    "name": "BATSU! NYC",
+    "date": "2026-10-22T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144543+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804323,
+    "name": "BATSU! NYC",
+    "date": "2026-10-22T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144545+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804324,
+    "name": "BATSU! NYC",
+    "date": "2026-10-23T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144548+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804325,
+    "name": "BATSU! NYC",
+    "date": "2026-10-23T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144551+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804326,
+    "name": "BATSU! NYC",
+    "date": "2026-10-24T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144553+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804327,
+    "name": "BATSU! NYC",
+    "date": "2026-10-24T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144556+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804328,
+    "name": "BATSU! NYC",
+    "date": "2026-10-25T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144558+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804329,
+    "name": "BATSU! NYC",
+    "date": "2026-10-27T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144561+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804330,
+    "name": "BATSU! NYC",
+    "date": "2026-10-28T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144563+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804331,
+    "name": "BATSU! NYC",
+    "date": "2026-10-28T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144566+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804332,
+    "name": "BATSU! NYC",
+    "date": "2026-10-29T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144569+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804333,
+    "name": "BATSU! NYC",
+    "date": "2026-10-29T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144571+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804334,
+    "name": "BATSU! NYC",
+    "date": "2026-10-30T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144574+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804335,
+    "name": "BATSU! NYC",
+    "date": "2026-10-30T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144576+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804336,
+    "name": "BATSU! NYC",
+    "date": "2026-10-31T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144579+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804337,
+    "name": "BATSU! NYC",
+    "date": "2026-10-31T23:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144582+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804338,
+    "name": "BATSU! NYC",
+    "date": "2026-11-01T02:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144584+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804339,
+    "name": "BATSU! NYC",
+    "date": "2026-11-04T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144587+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804340,
+    "name": "BATSU! NYC",
+    "date": "2026-11-04T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144590+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804341,
+    "name": "BATSU! NYC",
+    "date": "2026-11-05T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144592+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804342,
+    "name": "BATSU! NYC",
+    "date": "2026-11-05T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144594+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804343,
+    "name": "BATSU! NYC",
+    "date": "2026-11-06T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144597+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804344,
+    "name": "BATSU! NYC",
+    "date": "2026-11-06T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:44.144599+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804345,
+    "name": "BATSU! NYC",
+    "date": "2026-11-07T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.037983+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804346,
+    "name": "BATSU! NYC",
+    "date": "2026-11-07T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.037994+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804347,
+    "name": "BATSU! NYC",
+    "date": "2026-11-08T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.037997+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804348,
+    "name": "BATSU! NYC",
+    "date": "2026-11-08T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.037998+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804349,
+    "name": "BATSU! NYC",
+    "date": "2026-11-11T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038000+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804350,
+    "name": "BATSU! NYC",
+    "date": "2026-11-11T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038002+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804351,
+    "name": "BATSU! NYC",
+    "date": "2026-11-12T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038003+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804352,
+    "name": "BATSU! NYC",
+    "date": "2026-11-12T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038005+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804353,
+    "name": "BATSU! NYC",
+    "date": "2026-11-13T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038006+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804354,
+    "name": "BATSU! NYC",
+    "date": "2026-11-13T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038008+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804355,
+    "name": "BATSU! NYC",
+    "date": "2026-11-14T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038010+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804356,
+    "name": "BATSU! NYC",
+    "date": "2026-11-14T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038011+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804357,
+    "name": "BATSU! NYC",
+    "date": "2026-11-15T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038013+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804358,
+    "name": "BATSU! NYC",
+    "date": "2026-11-15T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038015+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804359,
+    "name": "BATSU! NYC",
+    "date": "2026-11-18T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038017+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804360,
+    "name": "BATSU! NYC",
+    "date": "2026-11-18T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038018+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804361,
+    "name": "BATSU! NYC",
+    "date": "2026-11-19T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038020+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804362,
+    "name": "BATSU! NYC",
+    "date": "2026-11-19T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038021+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804363,
+    "name": "BATSU! NYC",
+    "date": "2026-11-20T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038023+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804364,
+    "name": "BATSU! NYC",
+    "date": "2026-11-20T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038025+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804365,
+    "name": "BATSU! NYC",
+    "date": "2026-11-21T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038027+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804366,
+    "name": "BATSU! NYC",
+    "date": "2026-11-21T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038028+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804367,
+    "name": "BATSU! NYC",
+    "date": "2026-11-22T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038030+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804368,
+    "name": "BATSU! NYC",
+    "date": "2026-11-22T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038031+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804369,
+    "name": "BATSU! NYC",
+    "date": "2026-11-25T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038032+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804370,
+    "name": "BATSU! NYC",
+    "date": "2026-11-25T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038034+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804371,
+    "name": "BATSU! NYC",
+    "date": "2026-11-26T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038035+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804372,
+    "name": "BATSU! NYC",
+    "date": "2026-11-26T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038037+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804373,
+    "name": "BATSU! NYC",
+    "date": "2026-11-27T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038039+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804374,
+    "name": "BATSU! NYC",
+    "date": "2026-11-27T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038040+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804375,
+    "name": "BATSU! NYC",
+    "date": "2026-11-28T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038042+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804376,
+    "name": "BATSU! NYC",
+    "date": "2026-11-28T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038043+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804377,
+    "name": "BATSU! NYC",
+    "date": "2026-11-29T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038044+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804378,
+    "name": "BATSU! NYC",
+    "date": "2026-11-29T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038046+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804379,
+    "name": "BATSU! NYC",
+    "date": "2026-12-02T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038048+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804380,
+    "name": "BATSU! NYC",
+    "date": "2026-12-02T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038049+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804381,
+    "name": "BATSU! NYC",
+    "date": "2026-12-03T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038050+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804382,
+    "name": "BATSU! NYC",
+    "date": "2026-12-03T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038052+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804383,
+    "name": "BATSU! NYC",
+    "date": "2026-12-04T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038053+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804384,
+    "name": "BATSU! NYC",
+    "date": "2026-12-04T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038055+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804385,
+    "name": "BATSU! NYC",
+    "date": "2026-12-05T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038056+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804386,
+    "name": "BATSU! NYC",
+    "date": "2026-12-05T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038058+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804387,
+    "name": "BATSU! NYC",
+    "date": "2026-12-06T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038059+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804388,
+    "name": "BATSU! NYC",
+    "date": "2026-12-06T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038060+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804389,
+    "name": "BATSU! NYC",
+    "date": "2026-12-09T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038061+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804390,
+    "name": "BATSU! NYC",
+    "date": "2026-12-09T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038063+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804391,
+    "name": "BATSU! NYC",
+    "date": "2026-12-10T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038064+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804392,
+    "name": "BATSU! NYC",
+    "date": "2026-12-10T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038066+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804393,
+    "name": "BATSU! NYC",
+    "date": "2026-12-11T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038067+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804394,
+    "name": "BATSU! NYC",
+    "date": "2026-12-11T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038069+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804395,
+    "name": "BATSU! NYC",
+    "date": "2026-12-12T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038070+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804396,
+    "name": "BATSU! NYC",
+    "date": "2026-12-12T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038072+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804397,
+    "name": "BATSU! NYC",
+    "date": "2026-12-13T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038073+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804398,
+    "name": "BATSU! NYC",
+    "date": "2026-12-13T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038075+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804399,
+    "name": "BATSU! NYC",
+    "date": "2026-12-16T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038076+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804400,
+    "name": "BATSU! NYC",
+    "date": "2026-12-16T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038078+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804401,
+    "name": "BATSU! NYC",
+    "date": "2026-12-17T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038079+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804402,
+    "name": "BATSU! NYC",
+    "date": "2026-12-17T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038081+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804403,
+    "name": "BATSU! NYC",
+    "date": "2026-12-18T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038082+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804404,
+    "name": "BATSU! NYC",
+    "date": "2026-12-18T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038083+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804405,
+    "name": "BATSU! NYC",
+    "date": "2026-12-19T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038085+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804406,
+    "name": "BATSU! NYC",
+    "date": "2026-12-19T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038086+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804407,
+    "name": "BATSU! NYC",
+    "date": "2026-12-20T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038087+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804408,
+    "name": "BATSU! NYC",
+    "date": "2026-12-20T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038089+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804409,
+    "name": "BATSU! NYC",
+    "date": "2026-12-23T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038090+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804410,
+    "name": "BATSU! NYC",
+    "date": "2026-12-23T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038092+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804411,
+    "name": "BATSU! NYC",
+    "date": "2026-12-24T00:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038093+00:00"
+  },
+  {
+    "club_id": 16048,
+    "venue": "BATSU!",
+    "id": 3804412,
+    "name": "BATSU! NYC",
+    "date": "2026-12-24T03:00:00+00:00",
+    "last_scraped_date": "2026-08-28T00:24:49.038095+00:00"
+  }
+]

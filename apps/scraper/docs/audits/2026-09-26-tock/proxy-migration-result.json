@@ -1,0 +1,8 @@
+[
+  {
+    "key": "tock",
+    "use_residential_proxy": true,
+    "filename": "20260926195800_enable_tock_proxy.sql",
+    "applied_at": "2026-09-26T20:28:35.143813+00:00"
+  }
+]
