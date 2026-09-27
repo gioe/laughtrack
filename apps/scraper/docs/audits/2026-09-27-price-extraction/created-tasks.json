@@ -1,0 +1,404 @@
+{
+  "tasks": [
+    {
+      "key": "squarespace_products",
+      "summary": "Preserve Squarespace ticket product variant prices",
+      "description": "Two real product collections expose 33 positive matched ticket prices discarded before Show conversion. Parent priceCents=0 and inactive salePrice=0 are placeholders; current unknown fallback loses actual admission pricing.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "bug",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/api/squarespace/**",
+        "apps/scraper/tests/scrapers/implementations/api/squarespace/**",
+        "apps/scraper/src/laughtrack/core/entities/event/squarespace.py"
+      ],
+      "criteria": [
+        {
+          "text": "Use captured Westside and Rhino variants to retain exact money values, cents conversion, currency, active sale semantics and stock. Reject parent zeros, inactive sale amounts, sold-out variants, discounts in prose and uncertain package prices.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/api/squarespace/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4089,
+      "context_id": 713
+    },
+    {
+      "key": "squarespace_free",
+      "summary": "Recognize explicitly free admission on dated Squarespace event details",
+      "description": "Chaos Bloom publishes a dated FREE Improv Comedy Jam with an explicit $0 admission product while stored price is unknown. Add narrowly scoped semantic free-admission support without treating incidental free text or empty prices as admission.",
+      "priority": "Low",
+      "domain": "scraper",
+      "task_type": "feature",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/api/squarespace/**",
+        "apps/scraper/tests/scrapers/implementations/api/squarespace/**",
+        "apps/scraper/src/laughtrack/core/entities/event/squarespace.py"
+      ],
+      "criteria": [
+        {
+          "text": "Use the captured Chaos Bloom event to prove free admission only after matching event URL and date. Keep the zero Halloween product, parent placeholders, free drinks and discount wording unknown; detail failure preserves the show.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/api/squarespace/test_free_admission.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4090,
+      "context_id": 714
+    },
+    {
+      "key": "secondcity",
+      "summary": "Retain Second City ticket allocation prices and availability",
+      "description": "Decoded instances already contain named allocation levels with dollar prices and fees. The adapter drops them and emits unknown tickets; 88 baseline URL/date matches demonstrate the gap across five resolvers.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "bug",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/venues/up_comedy_club/**",
+        "apps/scraper/tests/scrapers/implementations/venues/up_comedy_club/**",
+        "apps/scraper/src/laughtrack/core/entities/event/up_comedy_club.py"
+      ],
+      "criteria": [
+        {
+          "text": "Carry matching allocation levels through Show conversion with tier labels, numeric units, currency, fee policy and explicit sale-state handling. Handle string False correctly, preserve sold-out/unknown status, reject mismatched dates and do not copy another room or performance prices.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/venues/up_comedy_club/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4091,
+      "context_id": 715
+    },
+    {
+      "key": "ucb",
+      "summary": "Recover UCB physical admission prices from event details",
+      "description": "Dated UCB details publish paid in-person and explicitly free admission. Listing-only ingestion omits both; some offers describe cheaper livestream tickets and must not become physical-show prices.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "feature",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/venues/ucb/**",
+        "apps/scraper/tests/scrapers/implementations/venues/ucb/**",
+        "apps/scraper/src/laughtrack/core/entities/event/ucb.py"
+      ],
+      "criteria": [
+        {
+          "text": "Use real $20 in-person and three explicit Free Admission fixtures with exact event/date matching. Exclude livestream-only offers, distinguish advance/door tiers and fees, preserve unknown when sold out or ambiguous.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/venues/ucb/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4092,
+      "context_id": 716
+    },
+    {
+      "key": "seetickets",
+      "summary": "Retain SeeTickets calendar price ranges by event identity",
+      "description": "Port Comedy calendar HTML contains parallel list price nodes currently discarded. Three exact provider-ID/date matches publish $29-$39 ranges without requiring additional detail requests.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "bug",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/api/seetickets_whitelabel/**",
+        "apps/scraper/tests/scrapers/implementations/api/seetickets_whitelabel/**",
+        "apps/scraper/src/laughtrack/core/entities/event/seetickets_whitelabel.py"
+      ],
+      "criteria": [
+        {
+          "text": "Join positive price ranges to the corresponding authoritative calendar event ID and retain the applicable minimum and source meaning. Keep $0 placeholders unknown and reject cross-event joins, date collisions and unrelated dollar text.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/api/seetickets_whitelabel/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4093,
+      "context_id": 717
+    },
+    {
+      "key": "tnew",
+      "summary": "Enrich TNEW performances with verified admission offers",
+      "description": "Groundlings performance18662 exposes GA27 while the listing-only scraper emits unknown. Gallo seat pricing also publishes ticket and fee configuration but advertised minima require available-seat validation.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "feature",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/api/tessitura_tnew/**",
+        "apps/scraper/tests/scrapers/implementations/api/tessitura_tnew/**",
+        "apps/scraper/src/laughtrack/core/entities/event/tessitura_tnew.py"
+      ],
+      "criteria": [
+        {
+          "text": "Parse matching performance detail GA selectors and named admission tiers with exact performance/date and availability checks. Exclude Gallo talkback and meet-and-greet add-ons, unavailable seats and mismatched dates; preserve base price versus mandatory fee semantics.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/api/tessitura_tnew/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4094,
+      "context_id": 718
+    },
+    {
+      "key": "tickettailor",
+      "summary": "Recover Ticket Tailor detail offers without losing package semantics",
+      "description": "Four matched performances expose detail JSON-LD admission offers. One URL contains three dated performances and a $50 table-for-two beside $15 individual admission. Current listing ingestion discards offers.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "feature",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/ticket_tailor/**",
+        "apps/scraper/tests/scrapers/implementations/ticket_tailor/**",
+        "apps/scraper/src/laughtrack/core/entities/event/ticket_tailor.py"
+      ],
+      "criteria": [
+        {
+          "text": "Use the existing native fetcher and match each structured Event date before retaining named offer tiers. Do not divide group packages or use them as unqualified per-person minima; preserve availability, unknown on fetch failure and currency.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/ticket_tailor/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4095,
+      "context_id": 719
+    },
+    {
+      "key": "odoo",
+      "summary": "Associate Odoo registration offers with their event",
+      "description": "Comedy Plex registration price15 USD is outside the Event microdata scope, so current shared extraction yields offers=[] despite a matching purchasable registration form.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "bug",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/api/odoo_events/**",
+        "apps/scraper/tests/scrapers/implementations/api/odoo_events/**"
+      ],
+      "criteria": [
+        {
+          "text": "Extract offers from the Odoo registration form only when its action belongs to the exact event and retain tier and quantity semantics. Reject unrelated modal offers, wrong-event form actions and placeholder zeros; preserve shared microdata scope rules.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/api/odoo_events/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4096,
+      "context_id": 720
+    },
+    {
+      "key": "showpass",
+      "summary": "Add currency-safe Showpass detail price enrichment",
+      "description": "Public Showpass event detail API supplies ticket_types and CAD prices absent from calendar responses. Existing Ticket has no dedicated currency field, so price recovery must explicitly preserve currency meaning rather than silently treating CAD as USD.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "feature",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/api/showpass/**",
+        "apps/scraper/tests/scrapers/implementations/api/showpass/**",
+        "apps/scraper/src/laughtrack/core/entities/event/showpass.py"
+      ],
+      "criteria": [
+        {
+          "text": "Fetch bounded public detail data by exact event ID/date and preserve named tier, sale window, availability, units and fee meaning. Test GA15 CAD, displayed fee-inclusive17.11 and dinner/BOGO packages; publish amounts only through verified currency-safe representation, otherwise retain unknown with a documented guard.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/api/showpass/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4097,
+      "context_id": 721
+    },
+    {
+      "key": "comix",
+      "summary": "Recover Comix admission prices from linked checkout offers",
+      "description": "Two matched Leap checkout pages publish named GA15 and higher admission tiers while Comix ingestion emits unknown tickets. The $10 food minimum is not ticket admission.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "feature",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/venues/comix_roadhouse/**",
+        "apps/scraper/tests/scrapers/implementations/venues/comix_roadhouse/**",
+        "apps/scraper/src/laughtrack/core/entities/event/comix_roadhouse.py"
+      ],
+      "criteria": [
+        {
+          "text": "Enrich the exact linked performance from real checkout Event offers with bounded fetches and named tiers. Keep service charges and food minimum separate, reject unrelated events and retain unknown when checkout evidence is unavailable.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/venues/comix_roadhouse/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4098,
+      "context_id": 722
+    },
+    {
+      "key": "mccurdys",
+      "summary": "Retain McCurdys venue-published ticket prices",
+      "description": "Official venue detail pages publish Tickets $26 for matching listed performance IDs, but the extractor drops price and creates an unknown fallback. Etix access is not required for this evidence.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "bug",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/venues/mccurdys_comedy_theatre/**",
+        "apps/scraper/tests/scrapers/implementations/venues/mccurdys_comedy_theatre/**",
+        "apps/scraper/src/laughtrack/core/entities/event/mccurdys_comedy_theatre.py"
+      ],
+      "criteria": [
+        {
+          "text": "Associate scoped ticket-price text with the listed performance ID/date and carry it into validated ticket output. Do not fan a price across unrelated dates or use fees and other page amounts; preserve absent price and variable-tier semantics.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/venues/mccurdys_comedy_theatre/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4099,
+      "context_id": 723
+    },
+    {
+      "key": "zanies",
+      "summary": "Extract verified Zanies admission prices instead of placeholder zeros",
+      "description": "A dated Zanies detail publishes $37.95 for the exact Etix performance while its JSON-LD falsely says zero and the model emits unknown. Series pages need applicability checks.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "bug",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/venues/zanies/**",
+        "apps/scraper/tests/scrapers/implementations/venues/zanies/**",
+        "apps/scraper/src/laughtrack/core/entities/event/zanies.py"
+      ],
+      "criteria": [
+        {
+          "text": "Use captured single-performance visible admission text matched by ticket ID and date. Prefer proven paid admission over zero placeholders, exclude item minimums, and reject series-wide prices without performance applicability.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/venues/zanies/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4100,
+      "context_id": 724
+    },
+    {
+      "key": "flophouse",
+      "summary": "Enrich Flop House tickets from matched Eventbrite offers",
+      "description": "Reachable Eventbrite details expose AggregateOffer prices for baseline-matched Flop House performances, but feed ingestion emits unknown. One sampled performance ended before probing and is historical evidence only.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "feature",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/api/flop_house_json/**",
+        "apps/scraper/tests/scrapers/implementations/api/flop_house_json/**",
+        "apps/scraper/src/laughtrack/core/entities/event/flop_house_json.py"
+      ],
+      "criteria": [
+        {
+          "text": "Use real matching event ID/date AggregateOffer fixtures to retain admission minima through bounded detail enrichment. Require appropriate availability and tier semantics; do not reuse expired or unrelated offers or infer unprovided fee breakdowns.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/api/flop_house_json/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4101,
+      "context_id": 725
+    },
+    {
+      "key": "denver",
+      "summary": "Recover Denver Comedy Lounge prices from streamed event data",
+      "description": "Current detail pages put Event offers in streamed React data; the existing literal JSON-LD scanner returns None. The shared RSC decoder finds exact GA21 and VIP45 tiers.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "bug",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/venues/denver_comedy_lounge/**",
+        "apps/scraper/tests/scrapers/implementations/venues/denver_comedy_lounge/**"
+      ],
+      "criteria": [
+        {
+          "text": "Reuse the existing RSC decoder to extract only the requested dated Event or showData and retain ordinary admission. Reject related-show prices, business priceRange, generic from20 title text and expired pages; distinguish VIP sake packages from ordinary admission.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/venues/denver_comedy_lounge/test_price_evidence.py -q"
+        },
+        "Verify current source identity, currency, admission units, fees and availability through the actual scraper stack; report matched recovery separately from unresolved tickets and do not invent missing prices."
+      ],
+      "task_id": 4102,
+      "context_id": 726
+    },
+    {
+      "key": "happyhour",
+      "summary": "Exclude Que Sera post-show happy hours from comedy inventory",
+      "description": "78 fixed-cohort After Comedy Happy Hour records match live drink promotions. Broad comedy keyword matching admits them; their $3/$5 amounts are beverages, not admission.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "bug",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/venues/ice_house/**",
+        "apps/scraper/tests/scrapers/implementations/venues/ice_house/**",
+        "apps/scraper/src/laughtrack/core/entities/event/ice_house.py",
+        "apps/web/prisma/migrations/**"
+      ],
+      "criteria": [
+        {
+          "text": "Use real negative happy-hour and positive Bear City Comedy fixtures to filter post-show promotions without dropping actual comedy with unknown prices.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/venues/ice_house/test_non_show_products.py -q"
+        },
+        "Safely reconcile the 78 proven promotion rows with dependent-data checks and report before/after counts; never turn drink prices into ticket prices."
+      ],
+      "task_id": 4103,
+      "context_id": 727
+    },
+    {
+      "key": "seasonpass",
+      "summary": "Exclude Standing Room Only season-pass products from shows",
+      "description": "Live event536 describes a Summer Season Pass covering many shows and sold only at the box office. Its artificial dated child1655 became show3434154/ticket3773351.",
+      "priority": "Medium",
+      "domain": "scraper",
+      "task_type": "bug",
+      "assignee": "scraper",
+      "complexity": "S",
+      "scope": [
+        "apps/scraper/src/laughtrack/scrapers/implementations/api/standing_room_only/**",
+        "apps/scraper/tests/scrapers/implementations/api/standing_room_only/**",
+        "apps/scraper/src/laughtrack/core/entities/event/standing_room_only.py",
+        "apps/web/prisma/migrations/**"
+      ],
+      "criteria": [
+        {
+          "text": "Use the real pass description and ordinary performance fixture to reject membership/pass products before show conversion.",
+          "type": "test",
+          "spec": "cd apps/scraper && .venv/bin/python3 -m pytest tests/scrapers/implementations/api/standing_room_only/test_non_show_products.py -q"
+        },
+        "Reconcile the confirmed stored pass row with dependent-data checks, preserving ordinary dated performances and unknown ticket prices."
+      ],
+      "task_id": 4104,
+      "context_id": 728
+    }
+  ]
+}
