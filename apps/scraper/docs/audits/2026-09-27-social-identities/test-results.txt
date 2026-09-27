@@ -1,5 +1,4 @@
-
- RUN  v4.1.5 /Users/mattgioe/.tusk/worktrees/laughtrack/TASK-4058-social-identity-audit/apps/web
+RUN  v4.1.5 /Users/mattgioe/.tusk/worktrees/laughtrack/TASK-4058-social-identity-audit/apps/web
 
 
  Test Files  3 passed (3)
@@ -7,3 +6,7 @@
    Start at  14:03:10
    Duration  173ms (transform 142ms, setup 0ms, import 217ms, tests 17ms, environment 0ms)
 
+Full web gate: 286 files passed; savedShow.test.tsx failed three tests (2408 passed, 3 failed).
+Baseline verification: three unchanged-HEAD runs reproduced the same failures; no divergence or flakiness.
+Existing fix task: TASK-3983 (expired fixed dates in saved-show header tests).
+Machine-readable baseline verdict: test-precheck.json.
