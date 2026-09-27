@@ -260,12 +260,12 @@ None of the above → custom HTML scraper required
 | **Scraper key** | `live_nation` |
 | **DB field** | `ticketmaster_id` |
 | **Value format** | Alphanumeric Discovery API venue ID, e.g. `KovZpZAJalFA` — NOT a numeric ID |
-| **Generic?** | ✅ Already generic — no code needed for new venues |
+| **Generic?** | ✅ Generic; a new unclassified-venue exception requires evidence and a code/test change |
 
 **Detection signals:**
 - Ticketmaster widget embedded on the venue page
 - Buy links pointing to `ticketmaster.com`
-- Discovery API returns JSON-LD `@type=Event` blocks
+- Discovery API JSON exposes events under `_embedded.events`
 
 **Finding the venue ID:**
 ```bash
@@ -276,7 +276,84 @@ curl -s "https://app.ticketmaster.com/discovery/v2/venues.json?apikey=<KEY>&keyw
 **Diagnosis — 0 events returned:**
 When a Ticketmaster-backed scraper returns 0 events, first verify the stored `ticketmaster_id` is the correct **Discovery API venue ID** (alphanumeric, e.g. `KovZ917ARvk`) — NOT a numeric ID from another system. Query without any classification filter first to confirm events exist for the venue ID at all; only investigate `classificationName` filters *after* confirming the ID works.
 
-**Multi-purpose venues:** Use `scraper_key='ticketmaster_comedy'` when the Ticketmaster venue hosts concerts, sports, talks, tours, VIP add-ons, or other non-comedy events. This focused scraper calls the same Discovery API with `classificationName=Comedy`, then keeps the existing comedy transformer guard. Keep `live_nation` for comedy-first venues where uncategorized Arts & Theatre events should remain eligible.
+**Discovery selection and admission are separate.** `live_nation` fetches venue
+events without a classification filter. `ticketmaster_comedy` requests
+`classificationName=Comedy` and additionally excludes add-ons (including parking
+and VIP packages). Both paths, the national scraper, and direct client show
+creation enforce `is_ticketmaster_comedy_event` in
+[`core/clients/ticketmaster/client.py`](src/laughtrack/core/clients/ticketmaster/client.py).
+Neither the API's Comedy search result nor the choice of `live_nation` grants
+an event admission.
+
+**Comedy evidence, in precedence order (TASK-4040):**
+
+1. An event classification whose `genre.name` or `subGenre.name` is `Comedy`,
+   `Stand-up Comedy`, or `Standup Comedy` admits the event. Comparisons trim
+   whitespace and ignore case. This event-level evidence wins even if another
+   event classification or an attraction disagrees.
+2. Without event-level comedy, explicit non-comedy event classifications reject
+   the event. A genre/subgenre outside empty, `Miscellaneous`, `Undefined`, or
+   `Other` is negative evidence; so is a segment outside those values and
+   `Arts & Theatre`. `Arts & Theatre` alone is not positive evidence.
+3. Examine `_embedded.attractions[].classifications` using the same rules.
+   Any attraction with non-comedy evidence and no comedy evidence of its own
+   vetoes the remaining fallbacks, even if a different attraction is Comedy.
+4. If no veto applies, a comedy-classified attraction or title matching the
+   whole-word pattern `comedy`, `comedian(s)`, `stand-up` / `stand up` / `standup`,
+   or `improv` admits the event. Generic `Open Mic`, `roast`, `comic convention`,
+   and `sketch workshop` are not title evidence by themselves.
+5. Otherwise, admission requires an exact `_embedded.venues[].id` in
+   `_UNCLASSIFIED_COMEDY_VENUE_IDS`. This is a small, reviewed code allowlist,
+   not every venue with a comedy-sounding name or `clubs.club_type='club'`.
+   It cannot override the negative event/attraction checks above.
+
+The current exception list includes specific Punch Line, Cobb's, Just the Funny,
+and Second City Discovery IDs, including a separately vetted alternate Second
+City ID. Consult the constant for exact IDs. An uncategorized artist-name-only
+event at another venue is rejected until there is qualifying evidence; do not
+restore broad Arts & Theatre admission to accommodate it.
+
+**Validating a new unclassified-venue exception:**
+
+1. Confirm the exact venue ID and location using live Discovery `venues.json`
+   search results and `_embedded.venues` on its events. Compare with
+   `scraping_sources.ticketmaster_id` and the venue's official programming;
+   similar names, a `club_type` value, or an old numeric ticketing ID are not
+   evidence that the venue is comedy-only.
+2. Fetch `https://app.ticketmaster.com/discovery/v2/events.json` with `venueId`,
+   `size=200`, `sort=date,asc`, and explicit `startDateTime` / `endDateTime`.
+   First omit `classificationName`; inspect actual JSON and follow `page` /
+   `page.totalPages` pagination. Compare a second request with
+   `classificationName=Comedy` to distinguish fetch omissions from admission
+   rejection. Use direct HTTP JSON inspection, not a summarized web response.
+3. For representative accepted and rejected events, retain a dated, minimal
+   fixture containing event ID/title/classifications, attraction classifications,
+   and venue IDs. Record the official programming evidence and why each decision
+   is expected. Keep API keys, authenticated request URLs, and unrelated payload
+   fields out of committed evidence. A zero-event response cannot establish a
+   comedy-only exception; obtain representative evidence before adding the ID.
+4. Only after confirming comedy-only programming, add the exact ID with a venue
+   comment to `_UNCLASSIFIED_COMEDY_VENUE_IDS`. Review alternate IDs individually.
+   This changes admission only: it does not make the national or focused API
+   query return events that `classificationName=Comedy` omits. For such events,
+   verify whether an unfiltered `live_nation` source is needed under the nightly
+   source rules below.
+5. Extend `_VENUES` / `test_supported_unclassified_comedy_venues` in
+   [`test_pipeline_smoke.py`](tests/scrapers/implementations/api/ticketmaster/test_pipeline_smoke.py)
+   with an unclassified positive and an explicit non-comedy negative. Use
+   `test_unclassified_comedy_evidence` for alternate IDs and mixed evidence.
+   Keep the Arts & Theatre-only, Music, generic-title, and non-comedy attraction
+   rejection cases passing. The fixture must exercise both the transformer and
+   direct client; retain national filtering-before-upsert coverage too.
+6. From `apps/scraper/`, run the existing boundary tests with worktree source:
+
+   ```bash
+   PYTHONPATH=src .venv/bin/python3 -m pytest \
+     tests/scrapers/implementations/api/ticketmaster/test_pipeline_smoke.py \
+     tests/scrapers/implementations/api/ticketmaster/test_focused_comedy_scraper.py \
+     tests/scrapers/implementations/api/ticketmaster_national/test_ticketmaster_national_scraper.py \
+     tests/core/clients/ticketmaster/test_ticketmaster_client.py -q
+   ```
 
 **Nightly TM path is batched (`ticketmaster_national`, TASK-3042).** Do NOT add new
 TM comedy venues as per-venue `ticketmaster_comedy` nightly sources by default —
@@ -285,20 +362,32 @@ limit and blew the nightly past the 120-min GHA timeout once ~800 TM venues
 accumulated. The nightly now runs the single `ticketmaster_national` source target
 (~18 windowed national `classificationName=Comedy` calls over a 180-day horizon),
 which discovers every US comedy venue, upserts a club per venue, and persists in
-chunks. Per-venue `ticketmaster_comedy` is reserved for the **edge cases national
-cannot cover**: venues with comedy beyond the 180-day horizon or not classified
-`Comedy` nationally (national returns nothing for them). Name differences alone
-are not a keep-list reason: `ticketmaster_national` resolves discovered venues by
+chunks. Per-venue sources are reserved for **verified gaps in national coverage**.
+`ticketmaster_comedy` still uses the Comedy API filter and cannot recover events
+that filter omits; unclassified programming may need a justified `live_nation`
+source plus admission evidence. Both venue clients default to 180 days, so a
+beyond-horizon gap also requires an explicitly verified query-window change.
+Name differences alone are not a keep-list reason: `ticketmaster_national` resolves discovered venues by
 the stable `scraping_sources.ticketmaster_id` first, then falls back to name for
 brand-new venues (TASK-3043). The cutover migrations
 (`migrations/20260621_cutover_ticketmaster_comedy_to_national.sql` and
 `migrations/20260621_rekey_ticketmaster_national_upsert.sql`) key the keep-list
 on `ticketmaster_id`.
 
-**DB setup:**
+**DB setup:** Per-venue configuration belongs in `scraping_sources`, not
+`clubs`. For a justified unfiltered venue source, use the verified club and
+Discovery IDs in a reviewed migration (inspect existing source ownership and
+priorities first):
+
 ```sql
-UPDATE clubs SET scraper = 'live_nation', ticketmaster_id = 'KovZpZAJalFA' WHERE name = 'My Club';
+INSERT INTO scraping_sources
+    (club_id, platform, scraper_key, ticketmaster_id, priority, enabled, updated_at)
+VALUES
+    (<verified_club_id>, 'ticketmaster', 'live_nation', '<verified_discovery_id>', 0, true, NOW());
 ```
+
+The source row does not add an admission exception. Prefer existing national
+coverage when sufficient; do not create duplicate per-venue nightly sources.
 
 ---
 
