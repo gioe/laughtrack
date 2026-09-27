@@ -142,7 +142,7 @@ an existing visible identity with a non-public tag: preserve its suppression.
 
 apps/web/lib/data/home/findShowsForHome.ts requires a visible, non-public-tag-free
 lineup member when requireLineup is enabled. Tonight, trending-week, near-ZIP,
-favorite, rising, touring-scarcity, and affinity queries use that gate. The cohort
+favorite, rising, touring-scarcity, and affinity queries use that gate. The 363 empty-lineup rows
 currently cannot satisfy it. Restoring verified memberships can remove that
 specific exclusion, enable favorite-performer joins, and supply headliner-image
 inputs. It does not guarantee a show appears: geography, date, availability,
