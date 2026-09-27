@@ -13,7 +13,9 @@ events but the transformation pipeline drops them due to can_transform() failure
 
 import dataclasses
 import importlib.util
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -371,3 +373,79 @@ def test_supported_unclassified_comedy_venues(v):
     assert TicketmasterEventTransformer._is_comedy_event(event) is True
     event["classifications"] = [{"genre": {"name": "Dance"}}]
     assert TicketmasterEventTransformer._is_comedy_event(event) is False
+
+
+@pytest.mark.parametrize("case, expected", [
+    ("saved_discovery_event", True),
+    ("neutral_title", True),
+    ("normalized_podcast_classification", True),
+    ("no_comedy_performer", False),
+    ("no_comedy_performer_with_title_and_vetted_venue", False),
+    ("music_event", False),
+    ("unrelated_theatre", False),
+    ("podcast_wrong_genre", False),
+    ("podcast_missing_segment", False),
+    ("additional_music_event_classification", False),
+    ("additional_dance_event_classification", False),
+    ("additional_music_attraction", False),
+    ("additional_dance_attraction", False),
+    ("comedy_performer_with_music_classification", False),
+    ("podcast_attraction_with_dance_classification", False),
+])
+def test_comedy_podcast_taping_evidence(case, expected):
+    """Only the exact podcast format plus a Comedy attraction permits admission."""
+    from laughtrack.core.clients.ticketmaster.client import TicketmasterClient, is_ticketmaster_comedy_event
+
+    fixture = Path(__file__).resolve().parents[4] / "fixtures/ticketmaster/comedy_podcast_taping.json"
+    event = json.loads(fixture.read_text())["event"]
+    attractions = event["_embedded"]["attractions"]
+    assert len(attractions) == 2
+    comedy_attraction = next(
+        attraction for attraction in attractions
+        if any((classification.get("genre") or {}).get("name") == "Comedy"
+               for classification in attraction.get("classifications", []))
+    )
+    podcast_attraction = next(attraction for attraction in attractions if attraction is not comedy_attraction)
+
+    def negative_classification(genre):
+        return {"segment": {"name": "Music" if genre == "Rock" else "Arts & Theatre"},
+                "genre": {"name": genre}, "subGenre": {"name": genre}}
+
+    if case == "neutral_title":
+        event["name"] = "An Evening Together"
+    elif case == "normalized_podcast_classification":
+        for entity in (event, podcast_attraction):
+            for classification in entity["classifications"]:
+                for field in ("segment", "genre", "subGenre"):
+                    classification[field]["name"] = " " + classification[field]["name"].upper() + " "
+    elif case.startswith("no_comedy_performer"):
+        attractions.remove(comedy_attraction)
+        if case.endswith("with_title_and_vetted_venue"):
+            event["name"] = "Stand-up Comedy Podcast"
+            event["_embedded"]["venues"] = [{"id": "KovZpZAEvtFA"}]
+    elif case == "music_event":
+        event["classifications"][0]["segment"]["name"] = "Music"
+    elif case == "unrelated_theatre":
+        event["classifications"][0]["subGenre"]["name"] = "Drama"
+    elif case == "podcast_wrong_genre":
+        event["classifications"][0]["genre"]["name"] = "Miscellaneous"
+    elif case == "podcast_missing_segment":
+        event["classifications"][0].pop("segment")
+    elif case.startswith("additional_"):
+        genre = "Rock" if "music" in case else "Dance"
+        classification = negative_classification(genre)
+        if case.endswith("event_classification"):
+            event["classifications"].append(classification)
+        else:
+            attractions.append({"name": "Other Performer", "classifications": [classification]})
+    elif case == "comedy_performer_with_music_classification":
+        comedy_attraction["classifications"].append(negative_classification("Rock"))
+    elif case == "podcast_attraction_with_dance_classification":
+        podcast_attraction["classifications"].append(negative_classification("Dance"))
+
+    assert is_ticketmaster_comedy_event(event) is expected
+    assert TicketmasterEventTransformer._is_comedy_event(event) is expected
+    client = object.__new__(TicketmasterClient)
+    with patch.object(client, "_extract_basic_show_info_from_api", return_value=None) as extract:
+        assert client.create_show(event) is None
+        assert extract.called is expected

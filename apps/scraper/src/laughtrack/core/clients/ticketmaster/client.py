@@ -54,10 +54,20 @@ _UNCLASSIFIED_COMEDY_VENUE_IDS = {
 _COMEDY_TITLE = re.compile(r"\b(?:comedy|comedians?|stand[ -]?up|improv)\b", re.IGNORECASE)
 
 
-def _classification_evidence(entity: JSONDict) -> tuple[bool, bool]:
+def _is_podcast_classification(classification: JSONDict) -> bool:
+    """Only this verified Discovery format can be neutral in a comedy podcast."""
+    return tuple(
+        ((classification.get(field) or {}).get("name") or "").strip().lower()
+        for field in ("segment", "genre", "subGenre")
+    ) == ("arts & theatre", "theatre", "podcast")
+
+
+def _classification_evidence(entity: JSONDict, *, allow_podcast: bool = False) -> tuple[bool, bool]:
     """Return (explicit comedy, explicit non-comedy) for a Discovery entity."""
     comedy = non_comedy = False
     for classification in entity.get("classifications") or []:
+        if allow_podcast and _is_podcast_classification(classification):
+            continue
         names = {
             ((classification.get(field) or {}).get("name") or "").strip().lower()
             for field in ("genre", "subGenre")
@@ -75,16 +85,31 @@ def is_ticketmaster_comedy_event(event: JSONDict) -> bool:
     """Shared admission policy for venue, national, and direct client paths.
 
     Event-level Comedy remains authoritative. Otherwise explicit non-comedy
-    event/attraction metadata vetoes fallbacks. Missing or miscellaneous genre
+    event/attraction metadata vetoes fallbacks. Exact Theatre/Podcast format
+    may instead use Comedy attraction evidence, with all other negatives vetoed.
+    Missing or miscellaneous genre
     at a mixed-use venue requires a comedy attraction or a comedy title;
     Arts & Theatre alone, and the API's Comedy search filter, prove nothing.
     """
     comedy, non_comedy = _classification_evidence(event)
     if comedy:
         return True
+    embedded = event.get("_embedded") or {}
+    if any(_is_podcast_classification(c) for c in event.get("classifications") or []):
+        # Theatre/Podcast describes the format, not its subject. The companion
+        # podcast attraction may carry it too; neither a title nor venue is proof.
+        _, other_non_comedy = _classification_evidence(event, allow_podcast=True)
+        if other_non_comedy:
+            return False
+        attraction_comedy = False
+        for attraction in embedded.get("attractions") or []:
+            positive, negative = _classification_evidence(attraction, allow_podcast=True)
+            if negative:
+                return False
+            attraction_comedy |= positive
+        return attraction_comedy
     if non_comedy:
         return False
-    embedded = event.get("_embedded") or {}
     attraction_comedy = False
     for attraction in embedded.get("attractions") or []:
         comedy, non_comedy = _classification_evidence(attraction)

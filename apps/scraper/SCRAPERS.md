@@ -291,18 +291,28 @@ an event admission.
    `Stand-up Comedy`, or `Standup Comedy` admits the event. Comparisons trim
    whitespace and ignore case. This event-level evidence wins even if another
    event classification or an attraction disagrees.
-2. Without event-level comedy, explicit non-comedy event classifications reject
+2. Without event-level comedy, the narrow **comedy podcast exception** applies
+   only when an event classification is exactly `Arts & Theatre` / `Theatre` /
+   `Podcast` (segment / genre / subGenre, normalized as above). At least one
+   attraction must supply explicit Comedy evidence. Exact Theatre/Podcast rows
+   on the event or its companion podcast attraction are neutral for this check;
+   any other non-comedy classification on the event or any attraction rejects
+   it, even alongside Comedy attraction evidence. Title words and vetted venue
+   IDs cannot substitute for a Comedy attraction. The saved Funjelah taping
+   fixture in `tests/fixtures/ticketmaster/comedy_podcast_taping.json` and
+   `test_comedy_podcast_taping_evidence` cover this exception (TASK-4061).
+3. Otherwise, explicit non-comedy event classifications reject
    the event. A genre/subgenre outside empty, `Miscellaneous`, `Undefined`, or
    `Other` is negative evidence; so is a segment outside those values and
    `Arts & Theatre`. `Arts & Theatre` alone is not positive evidence.
-3. Examine `_embedded.attractions[].classifications` using the same rules.
+4. Examine `_embedded.attractions[].classifications` using the same rules.
    Any attraction with non-comedy evidence and no comedy evidence of its own
    vetoes the remaining fallbacks, even if a different attraction is Comedy.
-4. If no veto applies, a comedy-classified attraction or title matching the
+5. If no veto applies, a comedy-classified attraction or title matching the
    whole-word pattern `comedy`, `comedian(s)`, `stand-up` / `stand up` / `standup`,
    or `improv` admits the event. Generic `Open Mic`, `roast`, `comic convention`,
    and `sketch workshop` are not title evidence by themselves.
-5. Otherwise, admission requires an exact `_embedded.venues[].id` in
+6. Otherwise, admission requires an exact `_embedded.venues[].id` in
    `_UNCLASSIFIED_COMEDY_VENUE_IDS`. This is a small, reviewed code allowlist,
    not every venue with a comedy-sounding name or `clubs.club_type='club'`.
    It cannot override the negative event/attraction checks above.
