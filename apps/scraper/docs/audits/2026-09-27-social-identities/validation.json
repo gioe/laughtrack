@@ -1,0 +1,34 @@
+{
+  "captured_at": "2026-09-27T18:01:00.636982+00:00",
+  "database": "production-shaped session-local temporary tables; outer transaction rolled back",
+  "checks": [
+    "expected identity state changed",
+    "canonical/blocked parent guard changed",
+    "Instagram observation cohort changed",
+    "exactly nine expected identity changes; all UUIDs and dependent records preserved",
+    "idempotent replay",
+    "rollback would overwrite later edits",
+    "previously repaired identity",
+    "rollback restores all copied rows exactly, including follower observation",
+    "previously repaired identity"
+  ],
+  "changed_ids": [
+    746,
+    162399,
+    166992,
+    171846,
+    207621,
+    440843,
+    535810,
+    1068549,
+    1488180
+  ],
+  "baseline_row_counts": {
+    "comedians": 22,
+    "lineup_items": 305,
+    "favorite_comedians": 0,
+    "comedian_podcasts": 0,
+    "episode_appearances": 10,
+    "comedian_follower_observations": 17
+  }
+}

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.5 /Users/mattgioe/.tusk/worktrees/laughtrack/TASK-4058-social-identity-audit/apps/web
+
+
+ Test Files  3 passed (3)
+      Tests  35 passed (35)
+   Start at  14:03:10
+   Duration  173ms (transform 142ms, setup 0ms, import 217ms, tests 17ms, environment 0ms)
+
