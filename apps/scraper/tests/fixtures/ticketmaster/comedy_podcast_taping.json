@@ -1,0 +1,109 @@
+{
+  "provenance": {
+    "source": "Ticketmaster Discovery API event G5dIZ_CnDlDAh",
+    "captured_on": "2026-09-24",
+    "verified_saved_payload_on": "2026-09-27",
+    "source_task": "TASK-4040",
+    "note": "Minimal admission evidence from saved Discovery response; no request URL, credentials or unrelated payload fields. Event date 2026-10-15 at Punch Line Houston."
+  },
+  "event": {
+    "id": "G5dIZ_CnDlDAh",
+    "name": "Funjelah Live Podcast Taping w/ Anjelah Johnson-Reyes & Special Guest",
+    "classifications": [
+      {
+        "primary": true,
+        "segment": {
+          "id": "KZFzniwnSyZfZ7v7na",
+          "name": "Arts & Theatre"
+        },
+        "genre": {
+          "id": "KnvZfZ7v7l1",
+          "name": "Theatre"
+        },
+        "subGenre": {
+          "id": "KZazBEonSMnZfZ7vaaJ",
+          "name": "Podcast"
+        },
+        "type": {
+          "id": "KZAyXgnZfZ7v7nI",
+          "name": "Undefined"
+        },
+        "subType": {
+          "id": "KZFzBErXgnZfZ7v7lJ",
+          "name": "Undefined"
+        },
+        "family": false
+      }
+    ],
+    "_embedded": {
+      "attractions": [
+        {
+          "id": "K8vZpa7Loe",
+          "name": "Funjelah Podcast",
+          "classifications": [
+            {
+              "primary": true,
+              "segment": {
+                "id": "KZFzniwnSyZfZ7v7na",
+                "name": "Arts & Theatre"
+              },
+              "genre": {
+                "id": "KnvZfZ7v7l1",
+                "name": "Theatre"
+              },
+              "subGenre": {
+                "id": "KZazBEonSMnZfZ7vaaJ",
+                "name": "Podcast"
+              },
+              "type": {
+                "id": "KZAyXgnZfZ7v7lt",
+                "name": "Event Style"
+              },
+              "subType": {
+                "id": "KZFzBErXgnZfZ7vA6e",
+                "name": "Audio/Visual"
+              },
+              "family": false
+            }
+          ]
+        },
+        {
+          "id": "K8vZ917Gn00",
+          "name": "Anjelah Johnson-Reyes",
+          "classifications": [
+            {
+              "primary": true,
+              "segment": {
+                "id": "KZFzniwnSyZfZ7v7na",
+                "name": "Arts & Theatre"
+              },
+              "genre": {
+                "id": "KnvZfZ7vAe1",
+                "name": "Comedy"
+              },
+              "subGenre": {
+                "id": "KZazBEonSMnZfZ7vF17",
+                "name": "Comedy"
+              },
+              "type": {
+                "id": "KZAyXgnZfZ7v7nI",
+                "name": "Undefined"
+              },
+              "subType": {
+                "id": "KZFzBErXgnZfZ7v7lJ",
+                "name": "Undefined"
+              },
+              "family": false
+            }
+          ]
+        }
+      ],
+      "venues": [
+        {
+          "id": "KovZ917ARGO",
+          "name": "Punch Line Houston"
+        }
+      ]
+    }
+  }
+}
