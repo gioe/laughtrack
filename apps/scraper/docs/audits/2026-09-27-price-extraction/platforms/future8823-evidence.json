@@ -1,0 +1,188 @@
+{
+  "source_url": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27",
+  "ticket": {
+    "id": 7106545,
+    "purchase_url": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/",
+    "price": null,
+    "sold_out": false,
+    "show_id": 6259786,
+    "type": "General Admission",
+    "name": "Not Too Shabby",
+    "date": "2026-09-28T02:00:00+00:00",
+    "club_id": 8823,
+    "club_name": "Upright Citizens Brigade",
+    "website": "https://ucbcomedy.com",
+    "show_page_url": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27",
+    "last_scraped_by": "ucb",
+    "last_scraped_date": "2026-09-26T23:39:56.346800+00:00"
+  },
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/",
+          "url": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/",
+          "name": "Not Too Shabby - Upright Citizens Brigade",
+          "isPartOf": {
+            "@id": "https://ucbcomedy.com/#website"
+          },
+          "primaryImageOfPage": {
+            "@id": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/#primaryimage"
+          },
+          "image": {
+            "@id": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/#primaryimage"
+          },
+          "thumbnailUrl": "https://ucbcomedy.com/wp-content/uploads/2025/03/Not-Too-Shabby-Banner-JPG.jpg",
+          "datePublished": "2026-08-30T10:17:59+00:00",
+          "dateModified": "2026-08-30T10:18:41+00:00",
+          "breadcrumb": {
+            "@id": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/#breadcrumb"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": [
+            {
+              "@type": "ReadAction",
+              "target": [
+                "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/"
+              ]
+            }
+          ]
+        },
+        {
+          "@type": "ImageObject",
+          "inLanguage": "en-US",
+          "@id": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/#primaryimage",
+          "url": "https://ucbcomedy.com/wp-content/uploads/2025/03/Not-Too-Shabby-Banner-JPG.jpg",
+          "contentUrl": "https://ucbcomedy.com/wp-content/uploads/2025/03/Not-Too-Shabby-Banner-JPG.jpg",
+          "width": 2160,
+          "height": 1080
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://ucbcomedy.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Events",
+              "item": "https://ucbcomedy.com/show/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Not Too Shabby"
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://ucbcomedy.com/#website",
+          "url": "https://ucbcomedy.com/",
+          "name": "Upright Citizens Brigade",
+          "description": "Comedy Theatre and Training Center",
+          "publisher": {
+            "@id": "https://ucbcomedy.com/#organization"
+          },
+          "alternateName": "UCB Theatre",
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://ucbcomedy.com/?s={search_term_string}"
+              },
+              "query-input": {
+                "@type": "PropertyValueSpecification",
+                "valueRequired": true,
+                "valueName": "search_term_string"
+              }
+            }
+          ],
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://ucbcomedy.com/#organization",
+          "name": "Upright Citizens Brigade",
+          "alternateName": "UCB Theatre",
+          "url": "https://ucbcomedy.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "inLanguage": "en-US",
+            "@id": "https://ucbcomedy.com/#/schema/logo/image/",
+            "url": "",
+            "contentUrl": "",
+            "caption": "Upright Citizens Brigade"
+          },
+          "image": {
+            "@id": "https://ucbcomedy.com/#/schema/logo/image/"
+          },
+          "sameAs": [
+            "https://www.facebook.com/ucbtla/",
+            "https://x.com/ucbtla",
+            "https://www.youtube.com/ucbcomedy"
+          ]
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ComedyEvent",
+      "name": "Not Too Shabby",
+      "url": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/",
+      "startDate": "2026-09-27T19:00:00-07:00",
+      "endDate": "2026-09-27T20:15:00-07:00",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "description": "A weekly show where everyone can try out bits, sketches and characters! Not Too Shabby is UCB's long-running sketch open mic night every Sunday at 7pm at the UCB Annex on Bronson. Sketches! Characters! Bits! Songs! Come see future comedy stars of tomorrow try out new material with reckless abandon!\u2026",
+      "image": [
+        "https://ucbcomedy.com/wp-content/uploads/2025/03/Not-Too-Shabby-Banner-JPG.jpg"
+      ],
+      "location": {
+        "@type": "Place",
+        "name": "LA - ANNEX",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "1925 N Bronson Ave",
+          "addressLocality": "Los Angeles",
+          "addressRegion": "CA",
+          "postalCode": "90068",
+          "addressCountry": "US"
+        }
+      },
+      "organizer": {
+        "@type": "Organization",
+        "name": "Upright Citizens Brigade",
+        "url": "https://ucbcomedy.com/"
+      },
+      "performer": [
+        {
+          "@type": "Person",
+          "name": "Ezra Parter",
+          "url": "https://ucbcomedy.com/people/ezra-parter/"
+        }
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free Admission",
+          "url": "https://ucbcomedy.com/show/not-too-shabby-2026-09-27/",
+          "price": "0.00",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "validFrom": "2026-08-30T03:17:59-07:00"
+        }
+      ],
+      "isAccessibleForFree": true
+    }
+  ],
+  "visible_text": "Not Too Shabby - Upright Citizens Brigade Skip to content Upright Citizens Brigade Comedy Theatre and Training Center SHOWS LA Show Calendar NY Show Calendar Upcoming Livestreams Calendar Past Shows on Demand Class Show Calendar LA Class Shows NY Class Shows Pitch a Show CLASSES Register for Classes Getting Started at UCB Improv Sketch Writing Stand-Up Musical Improv Acting Clowning Scholarships UCB Diversity Scholarship Program UCB x SNL Scholarship TEAMS LA House Teams Betty Harold Branzino Cowboy Mama Dance Club Remix Darnell Hollywood The Fantasy Gas Money S.O.F.T. yikes! Lloyd Freak Trap Jinx PTO Maude Big Time The Faculty The Family Business Rodeo Baby Town Crier One Man\u2019s Trash (Wild Card Team) NY House Teams Betty Harold suckdog Club Gator Hot FM Rhubarb Your Girlfriend The Mall Lloyd Cruise Control WET Maude First Wife Fridge Magnet Golden Hour Mom\u2019s World Pamela Reunion Tour Auditions About Auditions 2026 UCB LA Maude/Betty Teams 2026 UCB LA Harold Teams 2026 UCB LA Lloyd Teams 2026 UCBTNY Betty Submissions 2026 UCB NY Harold/Lloyd Teams Maude Teams TALENT LA Talent NY Talent Talent DCM Talent Performing Tonight Teams Teachers CORPORATE WORKSHOPS TOURS SHOP Merch UCB Improv Manual Gift Cards ABOUT About UCB UCB LA Artistic Team Careers Contact Venues Training Center FAQ ACCOUNT My Tickets Livestreams myUCBComedy Orders Classes Settings Register for Free Log In SHOWS LA Show Calendar NY Show Calendar Upcoming Livestreams Calendar Past Shows on Demand Class Show Calendar LA Class Shows NY Class Shows Pitch a Show CLASSES Register for Classes Getting Started at UCB Improv Sketch Writing Stand-Up Musical Improv Acting Clowning Scholarships UCB Diversity Scholarship Program UCB x SNL Scholarship TEAMS LA House Teams Betty Harold Branzino Cowboy Mama Dance Club Remix Darnell Hollywood The Fantasy Gas Money S.O.F.T. yikes! Lloyd Freak Trap Jinx PTO Maude Big Time The Faculty The Family Business Rodeo Baby Town Crier One Man\u2019s Trash (Wild Card Team) NY House Teams Betty Harold suckdog Club Gator Hot FM Rhubarb Your Girlfriend The Mall Lloyd Cruise Control WET Maude First Wife Fridge Magnet Golden Hour Mom\u2019s World Pamela Reunion Tour Auditions About Auditions 2026 UCB LA Maude/Betty Teams 2026 UCB LA Harold Teams 2026 UCB LA Lloyd Teams 2026 UCBTNY Betty Submissions 2026 UCB NY Harold/Lloyd Teams Maude Teams TALENT LA Talent NY Talent Talent DCM Talent Performing Tonight Teams Teachers CORPORATE WORKSHOPS TOURS SHOP Merch UCB Improv Manual Gift Cards ABOUT About UCB UCB LA Artistic Team Careers Contact Venues Training Center FAQ ACCOUNT My Tickets Livestreams myUCBComedy Orders Classes Settings Register for Free Log In Not Too Shabby Sunday, September 27, 2026 \u2013 7:00 pm Sun, Sep 27 \u00b7 7:00 PM LA - ANNEX 75 minutes Sunday, September 27, 2026 \u2013 7:00 pm LA - ANNEX A weekly show where everyone can try out bits, sketches and characters! Not Too Shabby is UCB\u2019s long-running sketch open mic night every Sunday at 7pm at the UCB Annex on Bronson. Sketches! Characters! Bits! Songs! Come see future comedy stars of tomorrow try out new material with reckless abandon! Hosted by Public Breakup: Milan Anderson, Dani Bryan, Elizabeth Conway, Sarah Kylie, Christan Leonard, Jesse McIntosh, Ezra Parter, Sam Sibilsky Want to perform? Submissions open on the day of the show. Raffle style! We will contact you if you\u2019ve been picked. We do a Google form \u2013 but if people have questions they can email [email\u00a0protected] or hit us up on Instagram @nottooshabbyucb ! \u2014 Under 17 must be accompanied by a parent/guardian. Please use discretion, as all our shows can potentially use adult/sexual material, language, and images. Upright Citizens Brigade Annex 1925 N Bronson Ave Los Angeles, CA 90068 Talent Ezra Parter EMAIL SIGNUP Stay in the know about upcoming shows, get updates on new classes, and more. SUBSCRIBE FOLLOW US ON SOCIAL Find us on: Facebook page opens in new window X page opens in new window YouTube page opens in new window Instagram page opens in new window SHOWS CLASSES \u00a9 2026 Upright Citizens Brigade. All Rights Reserved. Terms of Service | Privacy Policy Training Center Policies Additional Policies Go to Top 0 Your Cart 0 Loading cart\u2026 Something went wrong updating your cart. Try again Nothing here yet Grab some tickets \u2014 the show is better with you in it. Browse Shows Add another show Subtotal \u00b7 fees included \u2014 Check Out Keep browsing View full cart"
+}

@@ -1,0 +1,1596 @@
+[
+  {
+    "ticket_id": 6850706,
+    "show_id": 6039378,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": false,
+    "fixture": "grisly-6039378.html",
+    "retained_full_fixture": true
+  },
+  {
+    "ticket_id": 6897251,
+    "show_id": 6079203,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6079203.html"
+  },
+  {
+    "ticket_id": 6897252,
+    "show_id": 6079204,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6079204.html"
+  },
+  {
+    "ticket_id": 6897253,
+    "show_id": 6079205,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6079205.html"
+  },
+  {
+    "ticket_id": 6897254,
+    "show_id": 6079206,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6079206.html"
+  },
+  {
+    "ticket_id": 6980206,
+    "show_id": 6150999,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "fixture": "grisly-6150999.html",
+    "retained_full_fixture": true
+  },
+  {
+    "ticket_id": 6980207,
+    "show_id": 6151000,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6151000.html"
+  },
+  {
+    "ticket_id": 6980208,
+    "show_id": 6151001,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6151001.html"
+  },
+  {
+    "ticket_id": 7040893,
+    "show_id": 6203910,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6203910.html"
+  },
+  {
+    "ticket_id": 7040894,
+    "show_id": 6203911,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6203911.html"
+  },
+  {
+    "ticket_id": 7040895,
+    "show_id": 6203912,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6203912.html"
+  },
+  {
+    "ticket_id": 7098608,
+    "show_id": 6253766,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6253766.html"
+  },
+  {
+    "ticket_id": 7098609,
+    "show_id": 6253767,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6253767.html"
+  },
+  {
+    "ticket_id": 7098610,
+    "show_id": 6253768,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6253768.html"
+  },
+  {
+    "ticket_id": 7218672,
+    "show_id": 6357354,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6357354.html"
+  },
+  {
+    "ticket_id": 7218673,
+    "show_id": 6357355,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6357355.html"
+  },
+  {
+    "ticket_id": 7246393,
+    "show_id": 6380599,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6380599.html"
+  },
+  {
+    "ticket_id": 7246394,
+    "show_id": 6380600,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6380600.html"
+  },
+  {
+    "ticket_id": 7246395,
+    "show_id": 6380601,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6380601.html"
+  },
+  {
+    "ticket_id": 7246396,
+    "show_id": 6380602,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6380602.html"
+  },
+  {
+    "ticket_id": 7329980,
+    "show_id": 6453434,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6453434.html"
+  },
+  {
+    "ticket_id": 7329981,
+    "show_id": 6453435,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6453435.html"
+  },
+  {
+    "ticket_id": 7329982,
+    "show_id": 6453436,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6453436.html"
+  },
+  {
+    "ticket_id": 7329983,
+    "show_id": 6453437,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6453437.html"
+  },
+  {
+    "ticket_id": 7387745,
+    "show_id": 6503210,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6503210.html"
+  },
+  {
+    "ticket_id": 7387746,
+    "show_id": 6503211,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6503211.html"
+  },
+  {
+    "ticket_id": 7387747,
+    "show_id": 6503212,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6503212.html"
+  },
+  {
+    "ticket_id": 7387748,
+    "show_id": 6503213,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6503213.html"
+  },
+  {
+    "ticket_id": 7437033,
+    "show_id": 6545393,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6545393.html"
+  },
+  {
+    "ticket_id": 7437034,
+    "show_id": 6545394,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6545394.html"
+  },
+  {
+    "ticket_id": 7437035,
+    "show_id": 6545395,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6545395.html"
+  },
+  {
+    "ticket_id": 7502315,
+    "show_id": 6601964,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6601964.html"
+  },
+  {
+    "ticket_id": 7502316,
+    "show_id": 6601965,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6601965.html"
+  },
+  {
+    "ticket_id": 7502317,
+    "show_id": 6601966,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6601966.html"
+  },
+  {
+    "ticket_id": 7554786,
+    "show_id": 6646627,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6646627.html"
+  },
+  {
+    "ticket_id": 7554787,
+    "show_id": 6646628,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6646628.html"
+  },
+  {
+    "ticket_id": 7554788,
+    "show_id": 6646629,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6646629.html"
+  },
+  {
+    "ticket_id": 7605000,
+    "show_id": 6690122,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6690122.html"
+  },
+  {
+    "ticket_id": 7605001,
+    "show_id": 6690123,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6690123.html"
+  },
+  {
+    "ticket_id": 7669526,
+    "show_id": 6745768,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6745768.html"
+  },
+  {
+    "ticket_id": 7669527,
+    "show_id": 6745769,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6745769.html"
+  },
+  {
+    "ticket_id": 7669528,
+    "show_id": 6745770,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6745770.html"
+  },
+  {
+    "ticket_id": 7669529,
+    "show_id": 6745771,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6745771.html"
+  },
+  {
+    "ticket_id": 7726154,
+    "show_id": 6794721,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6794721.html"
+  },
+  {
+    "ticket_id": 7726155,
+    "show_id": 6794722,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6794722.html"
+  },
+  {
+    "ticket_id": 7726212,
+    "show_id": 6794779,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6794779.html"
+  },
+  {
+    "ticket_id": 7726213,
+    "show_id": 6794780,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6794780.html"
+  },
+  {
+    "ticket_id": 7789478,
+    "show_id": 6849815,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6849815.html"
+  },
+  {
+    "ticket_id": 7789479,
+    "show_id": 6849816,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6849816.html"
+  },
+  {
+    "ticket_id": 7789480,
+    "show_id": 6849817,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6849817.html"
+  },
+  {
+    "ticket_id": 7789481,
+    "show_id": 6849818,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6849818.html"
+  },
+  {
+    "ticket_id": 7848707,
+    "show_id": 6900324,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6900324.html"
+  },
+  {
+    "ticket_id": 7848708,
+    "show_id": 6900325,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6900325.html"
+  },
+  {
+    "ticket_id": 7848709,
+    "show_id": 6900326,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6900326.html"
+  },
+  {
+    "ticket_id": 7903681,
+    "show_id": 6947546,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6947546.html"
+  },
+  {
+    "ticket_id": 7903682,
+    "show_id": 6947547,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6947547.html"
+  },
+  {
+    "ticket_id": 7903683,
+    "show_id": 6947548,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6947548.html"
+  },
+  {
+    "ticket_id": 7959378,
+    "show_id": 6995481,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6995481.html"
+  },
+  {
+    "ticket_id": 7959379,
+    "show_id": 6995482,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6995482.html"
+  },
+  {
+    "ticket_id": 7959380,
+    "show_id": 6995483,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6995483.html"
+  },
+  {
+    "ticket_id": 8006407,
+    "show_id": 7035324,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7035324.html"
+  },
+  {
+    "ticket_id": 8006408,
+    "show_id": 7035325,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7035325.html"
+  },
+  {
+    "ticket_id": 8048039,
+    "show_id": 7070583,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7070583.html"
+  },
+  {
+    "ticket_id": 8048040,
+    "show_id": 7070584,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7070584.html"
+  },
+  {
+    "ticket_id": 8048041,
+    "show_id": 7070585,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7070585.html"
+  },
+  {
+    "ticket_id": 8048042,
+    "show_id": 7070586,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7070586.html"
+  },
+  {
+    "ticket_id": 8086649,
+    "show_id": 7103722,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7103722.html"
+  },
+  {
+    "ticket_id": 8086650,
+    "show_id": 7103723,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7103723.html"
+  },
+  {
+    "ticket_id": 8086651,
+    "show_id": 7103724,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7103724.html"
+  },
+  {
+    "ticket_id": 8086652,
+    "show_id": 7103725,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7103725.html"
+  },
+  {
+    "ticket_id": 8146270,
+    "show_id": 7154699,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7154699.html"
+  },
+  {
+    "ticket_id": 8146271,
+    "show_id": 7154700,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7154700.html"
+  },
+  {
+    "ticket_id": 8146272,
+    "show_id": 7154701,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7154701.html"
+  },
+  {
+    "ticket_id": 8146273,
+    "show_id": 7154702,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7154702.html"
+  },
+  {
+    "ticket_id": 8203881,
+    "show_id": 7204081,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7204081.html"
+  },
+  {
+    "ticket_id": 8203882,
+    "show_id": 7204082,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7204082.html"
+  },
+  {
+    "ticket_id": 8203883,
+    "show_id": 7204083,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7204083.html"
+  },
+  {
+    "ticket_id": 8241105,
+    "show_id": 7235818,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7235818.html"
+  },
+  {
+    "ticket_id": 8241106,
+    "show_id": 7235819,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7235819.html"
+  },
+  {
+    "ticket_id": 8241107,
+    "show_id": 7235820,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7235820.html"
+  },
+  {
+    "ticket_id": 8296324,
+    "show_id": 7283417,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7283417.html"
+  },
+  {
+    "ticket_id": 8296325,
+    "show_id": 7283418,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7283418.html"
+  },
+  {
+    "ticket_id": 8296326,
+    "show_id": 7283419,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7283419.html"
+  },
+  {
+    "ticket_id": 8359768,
+    "show_id": 7338025,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7338025.html"
+  },
+  {
+    "ticket_id": 8359769,
+    "show_id": 7338026,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7338026.html"
+  },
+  {
+    "ticket_id": 8441076,
+    "show_id": 7408873,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7408873.html"
+  },
+  {
+    "ticket_id": 8441077,
+    "show_id": 7408874,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7408874.html"
+  },
+  {
+    "ticket_id": 8441078,
+    "show_id": 7408875,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7408875.html"
+  },
+  {
+    "ticket_id": 8441079,
+    "show_id": 7408876,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7408876.html"
+  },
+  {
+    "ticket_id": 8471381,
+    "show_id": 7433960,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7433960.html"
+  },
+  {
+    "ticket_id": 8471382,
+    "show_id": 7433961,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7433961.html"
+  },
+  {
+    "ticket_id": 8471383,
+    "show_id": 7433962,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7433962.html"
+  },
+  {
+    "ticket_id": 8471384,
+    "show_id": 7433963,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7433963.html"
+  },
+  {
+    "ticket_id": 8556094,
+    "show_id": 7507903,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7507903.html"
+  },
+  {
+    "ticket_id": 8556095,
+    "show_id": 7507904,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7507904.html"
+  },
+  {
+    "ticket_id": 8556096,
+    "show_id": 7507905,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7507905.html"
+  },
+  {
+    "ticket_id": 8556097,
+    "show_id": 7507906,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7507906.html"
+  },
+  {
+    "ticket_id": 8608917,
+    "show_id": 7553143,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7553143.html"
+  },
+  {
+    "ticket_id": 8608918,
+    "show_id": 7553144,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7553144.html"
+  },
+  {
+    "ticket_id": 8608919,
+    "show_id": 7553145,
+    "club_id": 6,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7553145.html"
+  },
+  {
+    "ticket_id": 7018499,
+    "show_id": 6184137,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6184137.html"
+  },
+  {
+    "ticket_id": 7018500,
+    "show_id": 6184138,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6184138.html"
+  },
+  {
+    "ticket_id": 7018501,
+    "show_id": 6184139,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6184139.html"
+  },
+  {
+    "ticket_id": 7264368,
+    "show_id": 6395740,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "fixture": "grisly-6395740.html",
+    "retained_full_fixture": true
+  },
+  {
+    "ticket_id": 7264369,
+    "show_id": 6395741,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6395741.html"
+  },
+  {
+    "ticket_id": 7302925,
+    "show_id": 6429317,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6429317.html"
+  },
+  {
+    "ticket_id": 7302926,
+    "show_id": 6429318,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6429318.html"
+  },
+  {
+    "ticket_id": 7360204,
+    "show_id": 6478812,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6478812.html"
+  },
+  {
+    "ticket_id": 7483545,
+    "show_id": 6585152,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6585152.html"
+  },
+  {
+    "ticket_id": 7483546,
+    "show_id": 6585153,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6585153.html"
+  },
+  {
+    "ticket_id": 7483547,
+    "show_id": 6585154,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6585154.html"
+  },
+  {
+    "ticket_id": 7189594,
+    "show_id": 6331162,
+    "club_id": 7,
+    "date_matches": false,
+    "prices": [],
+    "has_purchase_price": true,
+    "fixture": "grisly-6331162.html",
+    "retained_full_fixture": true
+  },
+  {
+    "ticket_id": 7724546,
+    "show_id": 6793444,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6793444.html"
+  },
+  {
+    "ticket_id": 7724547,
+    "show_id": 6793445,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6793445.html"
+  },
+  {
+    "ticket_id": 7763112,
+    "show_id": 6826200,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6826200.html"
+  },
+  {
+    "ticket_id": 7763113,
+    "show_id": 6826201,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6826201.html"
+  },
+  {
+    "ticket_id": 7884387,
+    "show_id": 6930457,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6930457.html"
+  },
+  {
+    "ticket_id": 7884388,
+    "show_id": 6930458,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6930458.html"
+  },
+  {
+    "ticket_id": 7884389,
+    "show_id": 6930459,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-6930459.html"
+  },
+  {
+    "ticket_id": 7998614,
+    "show_id": 7029137,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7029137.html"
+  },
+  {
+    "ticket_id": 8093355,
+    "show_id": 7108656,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7108656.html"
+  },
+  {
+    "ticket_id": 8093356,
+    "show_id": 7108657,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7108657.html"
+  },
+  {
+    "ticket_id": 8093357,
+    "show_id": 7108658,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7108658.html"
+  },
+  {
+    "ticket_id": 8154392,
+    "show_id": 7161040,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7161040.html"
+  },
+  {
+    "ticket_id": 8154393,
+    "show_id": 7161041,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7161041.html"
+  },
+  {
+    "ticket_id": 8265419,
+    "show_id": 7256545,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7256545.html"
+  },
+  {
+    "ticket_id": 8265420,
+    "show_id": 7256546,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7256546.html"
+  },
+  {
+    "ticket_id": 8265421,
+    "show_id": 7256547,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "10.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7256547.html"
+  },
+  {
+    "ticket_id": 8377105,
+    "show_id": 7352769,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7352769.html"
+  },
+  {
+    "ticket_id": 8412943,
+    "show_id": 7384464,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7384464.html"
+  },
+  {
+    "ticket_id": 8412944,
+    "show_id": 7384465,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7384465.html"
+  },
+  {
+    "ticket_id": 8493243,
+    "show_id": 7453011,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7453011.html"
+  },
+  {
+    "ticket_id": 8493244,
+    "show_id": 7453012,
+    "club_id": 7,
+    "date_matches": true,
+    "prices": [
+      "20.00"
+    ],
+    "has_purchase_price": true,
+    "retained_full_fixture": false,
+    "captured_filename": "grisly-7453012.html"
+  }
+]

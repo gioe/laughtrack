@@ -1,0 +1,172 @@
+{
+  "Bear City Comedy": {
+    "calid": "6644435d5968360cdd7c9a18",
+    "eid": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1790821800000,
+      "rid": 0
+    },
+    "when": {
+      "start": {
+        "millis": 1790821800000,
+        "tzid": "America/Los_Angeles",
+        "ltz": "PDT",
+        "offset": -25200000
+      },
+      "end": {
+        "millis": 1790832600000,
+        "tzid": "America/Los_Angeles",
+        "ltz": "PDT",
+        "offset": -25200000
+      },
+      "allDay": false
+    },
+    "content": {
+      "summary": {
+        "text": "Bear City Comedy"
+      },
+      "description": {
+        "text": "National touring comedians right here at Que Sera every Wednesday!"
+      },
+      "tagset": {
+        "tags": {
+          "default": [
+            "comedy",
+            "cocktails",
+            "laughs",
+            "comedians",
+            "long-beach",
+            "signal-hill"
+          ]
+        }
+      },
+      "place": "Que Sera",
+      "address": "1923 E 7th St, Long Beach, CA 90813, USA",
+      "location": {
+        "place_id": "ChIJF9-dsg0x3YARt84yO36joiU",
+        "name": "1923 E 7th St",
+        "latitude": 33.7756109,
+        "longitude": -118.1680968,
+        "c_street": "1923 E 7th St",
+        "c_locality": "Long Beach",
+        "c_region": "CA",
+        "c_country": "US",
+        "c_postcode": "90813"
+      },
+      "imageId": "BWC_69642b81a979152b55fec726",
+      "attachments": [],
+      "noDetail": false,
+      "version": 1,
+      "imageIdNg": "69642b81a979152b55fec726",
+      "imageSets": [
+        {
+          "ownerId": "66443d7a5968360cdd7c9932",
+          "ownerType": "user",
+          "id": "69642b81a979152b55fec726",
+          "name": "Wednesdays",
+          "altText": "Wednesdays",
+          "width": 1080,
+          "height": 1350,
+          "size": 148096,
+          "masterFormat": "jpg",
+          "variantFormat": "jpg",
+          "oldId": "BWC_69642b81a979152b55fec726",
+          "tags": []
+        }
+      ],
+      "performers": []
+    },
+    "sorter": "999_01C76DF6_0904_01C76DF6-1-01C76EAA_11-01C76DF6-0-0",
+    "ctstamp": 1717094929017,
+    "dtstamp": 1768357555976,
+    "status": {
+      "name": "scheduled"
+    },
+    "kind": "repeat",
+    "isExternal": false
+  },
+  "After Comedy Happy Hour": {
+    "calid": "6644435d5968360cdd7c9a18",
+    "eid": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1790829000000,
+      "rid": 0
+    },
+    "when": {
+      "start": {
+        "millis": 1790829000000,
+        "tzid": "America/Los_Angeles",
+        "ltz": "PDT",
+        "offset": -25200000
+      },
+      "end": {
+        "millis": 1790838000000,
+        "tzid": "America/Los_Angeles",
+        "ltz": "PDT",
+        "offset": -25200000
+      },
+      "allDay": false
+    },
+    "content": {
+      "summary": {
+        "text": "After Comedy Happy Hour"
+      },
+      "description": {
+        "text": "Every week after Bear City Comedy, Que Sera Long Beach invites you to stay for happy hour. $3 Hamms. $5 Fernet. $5 Well drinks. Come for the comedy, stay for happy hour!"
+      },
+      "tagset": {
+        "tags": {
+          "default": [
+            "long-beach",
+            "que-sera",
+            "happy-hour",
+            "live-music-and-bar"
+          ]
+        }
+      },
+      "place": "Que Sera",
+      "address": "1923 E 7th St, Long Beach, CA 90813, USA",
+      "location": {
+        "place_id": "ChIJF9-dsg0x3YARt84yO36joiU",
+        "name": "1923 E 7th St",
+        "latitude": 33.7756109,
+        "longitude": -118.1680968,
+        "c_street": "1923 E 7th St",
+        "c_locality": "Long Beach",
+        "c_region": "CA",
+        "c_country": "US",
+        "c_postcode": "90813"
+      },
+      "attachments": [],
+      "noDetail": false,
+      "version": 2,
+      "imageIdNg": "6a1de32f9301fa25d8c769aa",
+      "imageSets": [
+        {
+          "ownerId": "66443d7a5968360cdd7c9932",
+          "ownerType": "user",
+          "id": "6a1de32f9301fa25d8c769aa",
+          "name": "WednesdayAfters",
+          "altText": "WednesdayAfters",
+          "width": 1080,
+          "height": 1350,
+          "size": 138233,
+          "masterFormat": "jpg",
+          "variantFormat": "jpg",
+          "tags": []
+        }
+      ],
+      "performers": []
+    },
+    "sorter": "999_01C76E6E_0904_01C76E6E-1-01C76F04_315-01C76E6E-0-0",
+    "ctstamp": 1780343622825,
+    "dtstamp": 1780343622825,
+    "status": {
+      "name": "scheduled"
+    },
+    "kind": "repeat",
+    "isExternal": false
+  }
+}

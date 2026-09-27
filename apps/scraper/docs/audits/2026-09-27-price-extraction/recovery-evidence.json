@@ -1,0 +1,1920 @@
+[
+  {
+    "ticket_id": 6897251,
+    "show_id": 6079203,
+    "source": "grisly_pear",
+    "date": "2026-09-27T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6897252,
+    "show_id": 6079204,
+    "source": "grisly_pear",
+    "date": "2026-09-28T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6897253,
+    "show_id": 6079205,
+    "source": "grisly_pear",
+    "date": "2026-09-28T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6897254,
+    "show_id": 6079206,
+    "source": "grisly_pear",
+    "date": "2026-09-28T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6980206,
+    "show_id": 6150999,
+    "source": "grisly_pear",
+    "date": "2026-09-29T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6980207,
+    "show_id": 6151000,
+    "source": "grisly_pear",
+    "date": "2026-09-29T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6980208,
+    "show_id": 6151001,
+    "source": "grisly_pear",
+    "date": "2026-09-29T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7040893,
+    "show_id": 6203910,
+    "source": "grisly_pear",
+    "date": "2026-09-30T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7040894,
+    "show_id": 6203911,
+    "source": "grisly_pear",
+    "date": "2026-09-30T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7040895,
+    "show_id": 6203912,
+    "source": "grisly_pear",
+    "date": "2026-09-30T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7098608,
+    "show_id": 6253766,
+    "source": "grisly_pear",
+    "date": "2026-10-01T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7098609,
+    "show_id": 6253767,
+    "source": "grisly_pear",
+    "date": "2026-10-01T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7098610,
+    "show_id": 6253768,
+    "source": "grisly_pear",
+    "date": "2026-10-01T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7218672,
+    "show_id": 6357354,
+    "source": "grisly_pear",
+    "date": "2026-10-02T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7218673,
+    "show_id": 6357355,
+    "source": "grisly_pear",
+    "date": "2026-10-02T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7246393,
+    "show_id": 6380599,
+    "source": "grisly_pear",
+    "date": "2026-10-02T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7246394,
+    "show_id": 6380600,
+    "source": "grisly_pear",
+    "date": "2026-10-03T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7246395,
+    "show_id": 6380601,
+    "source": "grisly_pear",
+    "date": "2026-10-03T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7246396,
+    "show_id": 6380602,
+    "source": "grisly_pear",
+    "date": "2026-10-03T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7329980,
+    "show_id": 6453434,
+    "source": "grisly_pear",
+    "date": "2026-10-03T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7329981,
+    "show_id": 6453435,
+    "source": "grisly_pear",
+    "date": "2026-10-04T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7329982,
+    "show_id": 6453436,
+    "source": "grisly_pear",
+    "date": "2026-10-04T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7329983,
+    "show_id": 6453437,
+    "source": "grisly_pear",
+    "date": "2026-10-04T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7387745,
+    "show_id": 6503210,
+    "source": "grisly_pear",
+    "date": "2026-10-04T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7387746,
+    "show_id": 6503211,
+    "source": "grisly_pear",
+    "date": "2026-10-05T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7387747,
+    "show_id": 6503212,
+    "source": "grisly_pear",
+    "date": "2026-10-05T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7387748,
+    "show_id": 6503213,
+    "source": "grisly_pear",
+    "date": "2026-10-05T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7437033,
+    "show_id": 6545393,
+    "source": "grisly_pear",
+    "date": "2026-10-06T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7437034,
+    "show_id": 6545394,
+    "source": "grisly_pear",
+    "date": "2026-10-06T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7437035,
+    "show_id": 6545395,
+    "source": "grisly_pear",
+    "date": "2026-10-06T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7502315,
+    "show_id": 6601964,
+    "source": "grisly_pear",
+    "date": "2026-10-07T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7502316,
+    "show_id": 6601965,
+    "source": "grisly_pear",
+    "date": "2026-10-07T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7502317,
+    "show_id": 6601966,
+    "source": "grisly_pear",
+    "date": "2026-10-07T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7554786,
+    "show_id": 6646627,
+    "source": "grisly_pear",
+    "date": "2026-10-08T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7554787,
+    "show_id": 6646628,
+    "source": "grisly_pear",
+    "date": "2026-10-08T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7554788,
+    "show_id": 6646629,
+    "source": "grisly_pear",
+    "date": "2026-10-08T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7605000,
+    "show_id": 6690122,
+    "source": "grisly_pear",
+    "date": "2026-10-09T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7605001,
+    "show_id": 6690123,
+    "source": "grisly_pear",
+    "date": "2026-10-09T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7669526,
+    "show_id": 6745768,
+    "source": "grisly_pear",
+    "date": "2026-10-09T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7669527,
+    "show_id": 6745769,
+    "source": "grisly_pear",
+    "date": "2026-10-10T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7669528,
+    "show_id": 6745770,
+    "source": "grisly_pear",
+    "date": "2026-10-10T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7669529,
+    "show_id": 6745771,
+    "source": "grisly_pear",
+    "date": "2026-10-10T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7726154,
+    "show_id": 6794721,
+    "source": "grisly_pear",
+    "date": "2026-10-10T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7726155,
+    "show_id": 6794722,
+    "source": "grisly_pear",
+    "date": "2026-10-11T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7726212,
+    "show_id": 6794779,
+    "source": "grisly_pear",
+    "date": "2026-10-11T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7726213,
+    "show_id": 6794780,
+    "source": "grisly_pear",
+    "date": "2026-10-11T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7789478,
+    "show_id": 6849815,
+    "source": "grisly_pear",
+    "date": "2026-10-11T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7789479,
+    "show_id": 6849816,
+    "source": "grisly_pear",
+    "date": "2026-10-12T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7789480,
+    "show_id": 6849817,
+    "source": "grisly_pear",
+    "date": "2026-10-12T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7789481,
+    "show_id": 6849818,
+    "source": "grisly_pear",
+    "date": "2026-10-12T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7848707,
+    "show_id": 6900324,
+    "source": "grisly_pear",
+    "date": "2026-10-13T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7848708,
+    "show_id": 6900325,
+    "source": "grisly_pear",
+    "date": "2026-10-13T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7848709,
+    "show_id": 6900326,
+    "source": "grisly_pear",
+    "date": "2026-10-13T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7903681,
+    "show_id": 6947546,
+    "source": "grisly_pear",
+    "date": "2026-10-14T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7903682,
+    "show_id": 6947547,
+    "source": "grisly_pear",
+    "date": "2026-10-14T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7903683,
+    "show_id": 6947548,
+    "source": "grisly_pear",
+    "date": "2026-10-14T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7959378,
+    "show_id": 6995481,
+    "source": "grisly_pear",
+    "date": "2026-10-15T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7959379,
+    "show_id": 6995482,
+    "source": "grisly_pear",
+    "date": "2026-10-15T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7959380,
+    "show_id": 6995483,
+    "source": "grisly_pear",
+    "date": "2026-10-15T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8006407,
+    "show_id": 7035324,
+    "source": "grisly_pear",
+    "date": "2026-10-16T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8006408,
+    "show_id": 7035325,
+    "source": "grisly_pear",
+    "date": "2026-10-16T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8048039,
+    "show_id": 7070583,
+    "source": "grisly_pear",
+    "date": "2026-10-16T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8048040,
+    "show_id": 7070584,
+    "source": "grisly_pear",
+    "date": "2026-10-17T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8048041,
+    "show_id": 7070585,
+    "source": "grisly_pear",
+    "date": "2026-10-17T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8048042,
+    "show_id": 7070586,
+    "source": "grisly_pear",
+    "date": "2026-10-17T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8086649,
+    "show_id": 7103722,
+    "source": "grisly_pear",
+    "date": "2026-10-17T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8086650,
+    "show_id": 7103723,
+    "source": "grisly_pear",
+    "date": "2026-10-18T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8086651,
+    "show_id": 7103724,
+    "source": "grisly_pear",
+    "date": "2026-10-18T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8086652,
+    "show_id": 7103725,
+    "source": "grisly_pear",
+    "date": "2026-10-18T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8146270,
+    "show_id": 7154699,
+    "source": "grisly_pear",
+    "date": "2026-10-18T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8146271,
+    "show_id": 7154700,
+    "source": "grisly_pear",
+    "date": "2026-10-19T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8146272,
+    "show_id": 7154701,
+    "source": "grisly_pear",
+    "date": "2026-10-19T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8146273,
+    "show_id": 7154702,
+    "source": "grisly_pear",
+    "date": "2026-10-19T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8203881,
+    "show_id": 7204081,
+    "source": "grisly_pear",
+    "date": "2026-10-20T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8203882,
+    "show_id": 7204082,
+    "source": "grisly_pear",
+    "date": "2026-10-20T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8203883,
+    "show_id": 7204083,
+    "source": "grisly_pear",
+    "date": "2026-10-20T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8241105,
+    "show_id": 7235818,
+    "source": "grisly_pear",
+    "date": "2026-10-21T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8241106,
+    "show_id": 7235819,
+    "source": "grisly_pear",
+    "date": "2026-10-21T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8241107,
+    "show_id": 7235820,
+    "source": "grisly_pear",
+    "date": "2026-10-21T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8296324,
+    "show_id": 7283417,
+    "source": "grisly_pear",
+    "date": "2026-10-22T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8296325,
+    "show_id": 7283418,
+    "source": "grisly_pear",
+    "date": "2026-10-22T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8296326,
+    "show_id": 7283419,
+    "source": "grisly_pear",
+    "date": "2026-10-22T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8359768,
+    "show_id": 7338025,
+    "source": "grisly_pear",
+    "date": "2026-10-23T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8359769,
+    "show_id": 7338026,
+    "source": "grisly_pear",
+    "date": "2026-10-23T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8441076,
+    "show_id": 7408873,
+    "source": "grisly_pear",
+    "date": "2026-10-23T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8441077,
+    "show_id": 7408874,
+    "source": "grisly_pear",
+    "date": "2026-10-24T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8441078,
+    "show_id": 7408875,
+    "source": "grisly_pear",
+    "date": "2026-10-24T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8441079,
+    "show_id": 7408876,
+    "source": "grisly_pear",
+    "date": "2026-10-24T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8471381,
+    "show_id": 7433960,
+    "source": "grisly_pear",
+    "date": "2026-10-24T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8471382,
+    "show_id": 7433961,
+    "source": "grisly_pear",
+    "date": "2026-10-25T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8471383,
+    "show_id": 7433962,
+    "source": "grisly_pear",
+    "date": "2026-10-25T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8471384,
+    "show_id": 7433963,
+    "source": "grisly_pear",
+    "date": "2026-10-25T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8556094,
+    "show_id": 7507903,
+    "source": "grisly_pear",
+    "date": "2026-10-25T22:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8556095,
+    "show_id": 7507904,
+    "source": "grisly_pear",
+    "date": "2026-10-26T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8556096,
+    "show_id": 7507905,
+    "source": "grisly_pear",
+    "date": "2026-10-26T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8556097,
+    "show_id": 7507906,
+    "source": "grisly_pear",
+    "date": "2026-10-26T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8608917,
+    "show_id": 7553143,
+    "source": "grisly_pear",
+    "date": "2026-10-27T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8608918,
+    "show_id": 7553144,
+    "source": "grisly_pear",
+    "date": "2026-10-27T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8608919,
+    "show_id": 7553145,
+    "source": "grisly_pear",
+    "date": "2026-10-27T03:59:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7018499,
+    "show_id": 6184137,
+    "source": "grisly_pear",
+    "date": "2026-09-29T23:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7018500,
+    "show_id": 6184138,
+    "source": "grisly_pear",
+    "date": "2026-09-30T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7018501,
+    "show_id": 6184139,
+    "source": "grisly_pear",
+    "date": "2026-09-30T02:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7264368,
+    "show_id": 6395740,
+    "source": "grisly_pear",
+    "date": "2026-10-02T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7264369,
+    "show_id": 6395741,
+    "source": "grisly_pear",
+    "date": "2026-10-03T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7302925,
+    "show_id": 6429317,
+    "source": "grisly_pear",
+    "date": "2026-10-03T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7302926,
+    "show_id": 6429318,
+    "source": "grisly_pear",
+    "date": "2026-10-04T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7360204,
+    "show_id": 6478812,
+    "source": "grisly_pear",
+    "date": "2026-10-05T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7483545,
+    "show_id": 6585152,
+    "source": "grisly_pear",
+    "date": "2026-10-06T23:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7483546,
+    "show_id": 6585153,
+    "source": "grisly_pear",
+    "date": "2026-10-07T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7483547,
+    "show_id": 6585154,
+    "source": "grisly_pear",
+    "date": "2026-10-07T02:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7724546,
+    "show_id": 6793444,
+    "source": "grisly_pear",
+    "date": "2026-10-10T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7724547,
+    "show_id": 6793445,
+    "source": "grisly_pear",
+    "date": "2026-10-11T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7763112,
+    "show_id": 6826200,
+    "source": "grisly_pear",
+    "date": "2026-10-11T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7763113,
+    "show_id": 6826201,
+    "source": "grisly_pear",
+    "date": "2026-10-12T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7884387,
+    "show_id": 6930457,
+    "source": "grisly_pear",
+    "date": "2026-10-13T23:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7884388,
+    "show_id": 6930458,
+    "source": "grisly_pear",
+    "date": "2026-10-14T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7884389,
+    "show_id": 6930459,
+    "source": "grisly_pear",
+    "date": "2026-10-14T02:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7998614,
+    "show_id": 7029137,
+    "source": "grisly_pear",
+    "date": "2026-10-16T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8093355,
+    "show_id": 7108656,
+    "source": "grisly_pear",
+    "date": "2026-10-16T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8093356,
+    "show_id": 7108657,
+    "source": "grisly_pear",
+    "date": "2026-10-17T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8093357,
+    "show_id": 7108658,
+    "source": "grisly_pear",
+    "date": "2026-10-17T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8154392,
+    "show_id": 7161040,
+    "source": "grisly_pear",
+    "date": "2026-10-18T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8154393,
+    "show_id": 7161041,
+    "source": "grisly_pear",
+    "date": "2026-10-19T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8265419,
+    "show_id": 7256545,
+    "source": "grisly_pear",
+    "date": "2026-10-20T23:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8265420,
+    "show_id": 7256546,
+    "source": "grisly_pear",
+    "date": "2026-10-21T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8265421,
+    "show_id": 7256547,
+    "source": "grisly_pear",
+    "date": "2026-10-21T02:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8377105,
+    "show_id": 7352769,
+    "source": "grisly_pear",
+    "date": "2026-10-23T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8412943,
+    "show_id": 7384464,
+    "source": "grisly_pear",
+    "date": "2026-10-23T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8412944,
+    "show_id": 7384465,
+    "source": "grisly_pear",
+    "date": "2026-10-24T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8493243,
+    "show_id": 7453011,
+    "source": "grisly_pear",
+    "date": "2026-10-24T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8493244,
+    "show_id": 7453012,
+    "source": "grisly_pear",
+    "date": "2026-10-25T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6755817,
+    "show_id": 5957384,
+    "source": "squarespace",
+    "date": "2026-09-28T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7720905,
+    "show_id": 6790577,
+    "source": "squarespace",
+    "date": "2026-10-02T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369174,
+    "show_id": 7345507,
+    "source": "squarespace",
+    "date": "2026-10-03T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369175,
+    "show_id": 7345508,
+    "source": "squarespace",
+    "date": "2026-10-04T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369176,
+    "show_id": 7345509,
+    "source": "squarespace",
+    "date": "2026-10-05T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369177,
+    "show_id": 7345510,
+    "source": "squarespace",
+    "date": "2026-10-10T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369178,
+    "show_id": 7345511,
+    "source": "squarespace",
+    "date": "2026-10-11T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369179,
+    "show_id": 7345512,
+    "source": "squarespace",
+    "date": "2026-10-12T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369180,
+    "show_id": 7345513,
+    "source": "squarespace",
+    "date": "2026-10-17T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369181,
+    "show_id": 7345514,
+    "source": "squarespace",
+    "date": "2026-10-18T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369182,
+    "show_id": 7345515,
+    "source": "squarespace",
+    "date": "2026-10-19T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369183,
+    "show_id": 7345516,
+    "source": "squarespace",
+    "date": "2026-10-24T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369184,
+    "show_id": 7345517,
+    "source": "squarespace",
+    "date": "2026-10-25T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369185,
+    "show_id": 7345518,
+    "source": "squarespace",
+    "date": "2026-10-26T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369186,
+    "show_id": 7345519,
+    "source": "squarespace",
+    "date": "2026-10-31T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8369187,
+    "show_id": 7345520,
+    "source": "squarespace",
+    "date": "2026-11-01T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 5597300,
+    "show_id": 4953367,
+    "source": "squarespace",
+    "date": "2026-10-02T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7473798,
+    "show_id": 6576489,
+    "source": "squarespace",
+    "date": "2026-10-02T23:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7473799,
+    "show_id": 6576490,
+    "source": "squarespace",
+    "date": "2026-10-04T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7473800,
+    "show_id": 6576491,
+    "source": "squarespace",
+    "date": "2026-10-04T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7647735,
+    "show_id": 6726702,
+    "source": "squarespace",
+    "date": "2026-10-09T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7647736,
+    "show_id": 6726703,
+    "source": "squarespace",
+    "date": "2026-10-10T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7473801,
+    "show_id": 6576492,
+    "source": "squarespace",
+    "date": "2026-10-11T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7473802,
+    "show_id": 6576493,
+    "source": "squarespace",
+    "date": "2026-10-11T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7647739,
+    "show_id": 6726706,
+    "source": "squarespace",
+    "date": "2026-10-16T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7647740,
+    "show_id": 6726707,
+    "source": "squarespace",
+    "date": "2026-10-17T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7473803,
+    "show_id": 6576494,
+    "source": "squarespace",
+    "date": "2026-10-18T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7473804,
+    "show_id": 6576495,
+    "source": "squarespace",
+    "date": "2026-10-18T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7647743,
+    "show_id": 6726710,
+    "source": "squarespace",
+    "date": "2026-10-23T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7647744,
+    "show_id": 6726711,
+    "source": "squarespace",
+    "date": "2026-10-24T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7473805,
+    "show_id": 6576496,
+    "source": "squarespace",
+    "date": "2026-10-25T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7473806,
+    "show_id": 6576497,
+    "source": "squarespace",
+    "date": "2026-10-25T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7647747,
+    "show_id": 6726714,
+    "source": "squarespace",
+    "date": "2026-10-30T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 5571660,
+    "show_id": 4930588,
+    "source": "squarespace",
+    "date": "2026-09-27T03:00:00.853000+00:00",
+    "evidence_kind": "explicit_free"
+  },
+  {
+    "ticket_id": 8037127,
+    "show_id": 7061192,
+    "source": "up_comedy_club",
+    "date": "2026-09-29T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8037128,
+    "show_id": 7061193,
+    "source": "up_comedy_club",
+    "date": "2026-10-06T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8037129,
+    "show_id": 7061194,
+    "source": "up_comedy_club",
+    "date": "2026-10-14T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8037130,
+    "show_id": 7061195,
+    "source": "up_comedy_club",
+    "date": "2026-10-20T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7772715,
+    "show_id": 6834525,
+    "source": "up_comedy_club",
+    "date": "2026-10-16T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7772716,
+    "show_id": 6834526,
+    "source": "up_comedy_club",
+    "date": "2026-10-18T21:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7772717,
+    "show_id": 6834527,
+    "source": "up_comedy_club",
+    "date": "2026-10-23T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7772718,
+    "show_id": 6834528,
+    "source": "up_comedy_club",
+    "date": "2026-10-25T21:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7772719,
+    "show_id": 6834529,
+    "source": "up_comedy_club",
+    "date": "2026-10-30T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7772720,
+    "show_id": 6834530,
+    "source": "up_comedy_club",
+    "date": "2026-10-31T03:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7772721,
+    "show_id": 6834531,
+    "source": "up_comedy_club",
+    "date": "2026-10-31T21:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7597834,
+    "show_id": 6684313,
+    "source": "up_comedy_club",
+    "date": "2026-09-28T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 988100,
+    "show_id": 1045992,
+    "source": "up_comedy_club",
+    "date": "2026-11-26T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 988101,
+    "show_id": 1045993,
+    "source": "up_comedy_club",
+    "date": "2026-11-28T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 988102,
+    "show_id": 1045994,
+    "source": "up_comedy_club",
+    "date": "2026-11-29T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196250,
+    "show_id": 6337274,
+    "source": "up_comedy_club",
+    "date": "2026-12-04T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 988103,
+    "show_id": 1045995,
+    "source": "up_comedy_club",
+    "date": "2026-12-05T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 988104,
+    "show_id": 1045996,
+    "source": "up_comedy_club",
+    "date": "2026-12-06T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196253,
+    "show_id": 6337277,
+    "source": "up_comedy_club",
+    "date": "2026-12-07T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196254,
+    "show_id": 6337278,
+    "source": "up_comedy_club",
+    "date": "2026-12-11T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 988105,
+    "show_id": 1045997,
+    "source": "up_comedy_club",
+    "date": "2026-12-12T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456242,
+    "show_id": 2323637,
+    "source": "up_comedy_club",
+    "date": "2026-12-12T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196257,
+    "show_id": 6337281,
+    "source": "up_comedy_club",
+    "date": "2026-12-14T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 5668550,
+    "show_id": 5016417,
+    "source": "up_comedy_club",
+    "date": "2026-12-18T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 5668551,
+    "show_id": 5016418,
+    "source": "up_comedy_club",
+    "date": "2026-12-18T03:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 988107,
+    "show_id": 1045999,
+    "source": "up_comedy_club",
+    "date": "2026-12-19T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 5668553,
+    "show_id": 5016420,
+    "source": "up_comedy_club",
+    "date": "2026-12-19T03:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 988108,
+    "show_id": 1046000,
+    "source": "up_comedy_club",
+    "date": "2026-12-20T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 5668555,
+    "show_id": 5016422,
+    "source": "up_comedy_club",
+    "date": "2026-12-20T03:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196264,
+    "show_id": 6337288,
+    "source": "up_comedy_club",
+    "date": "2026-12-21T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196265,
+    "show_id": 6337289,
+    "source": "up_comedy_club",
+    "date": "2026-12-23T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196266,
+    "show_id": 6337290,
+    "source": "up_comedy_club",
+    "date": "2026-12-23T03:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196267,
+    "show_id": 6337291,
+    "source": "up_comedy_club",
+    "date": "2026-12-24T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196268,
+    "show_id": 6337292,
+    "source": "up_comedy_club",
+    "date": "2026-12-24T03:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196270,
+    "show_id": 6337294,
+    "source": "up_comedy_club",
+    "date": "2026-12-27T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196271,
+    "show_id": 6337295,
+    "source": "up_comedy_club",
+    "date": "2026-12-27T03:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7196272,
+    "show_id": 6337296,
+    "source": "up_comedy_club",
+    "date": "2026-12-28T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 413970,
+    "show_id": 481960,
+    "source": "up_comedy_club",
+    "date": "2026-09-29T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456377,
+    "show_id": 2323772,
+    "source": "up_comedy_club",
+    "date": "2026-10-03T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 467478,
+    "show_id": 535522,
+    "source": "up_comedy_club",
+    "date": "2026-10-03T20:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 413972,
+    "show_id": 481962,
+    "source": "up_comedy_club",
+    "date": "2026-10-06T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8037177,
+    "show_id": 7061242,
+    "source": "up_comedy_club",
+    "date": "2026-10-07T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456379,
+    "show_id": 2323774,
+    "source": "up_comedy_club",
+    "date": "2026-10-10T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 467480,
+    "show_id": 535524,
+    "source": "up_comedy_club",
+    "date": "2026-10-10T20:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456380,
+    "show_id": 2323775,
+    "source": "up_comedy_club",
+    "date": "2026-10-11T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 413974,
+    "show_id": 481964,
+    "source": "up_comedy_club",
+    "date": "2026-10-13T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456381,
+    "show_id": 2323776,
+    "source": "up_comedy_club",
+    "date": "2026-10-17T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 467482,
+    "show_id": 535526,
+    "source": "up_comedy_club",
+    "date": "2026-10-17T20:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456382,
+    "show_id": 2323777,
+    "source": "up_comedy_club",
+    "date": "2026-10-18T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 413976,
+    "show_id": 481966,
+    "source": "up_comedy_club",
+    "date": "2026-10-20T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456383,
+    "show_id": 2323778,
+    "source": "up_comedy_club",
+    "date": "2026-10-24T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 467484,
+    "show_id": 535528,
+    "source": "up_comedy_club",
+    "date": "2026-10-24T20:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456384,
+    "show_id": 2323779,
+    "source": "up_comedy_club",
+    "date": "2026-10-25T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 413978,
+    "show_id": 481968,
+    "source": "up_comedy_club",
+    "date": "2026-10-27T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8409658,
+    "show_id": 7381698,
+    "source": "up_comedy_club",
+    "date": "2026-10-31T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 467486,
+    "show_id": 535530,
+    "source": "up_comedy_club",
+    "date": "2026-10-31T20:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456386,
+    "show_id": 2323781,
+    "source": "up_comedy_club",
+    "date": "2026-11-01T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 413980,
+    "show_id": 481970,
+    "source": "up_comedy_club",
+    "date": "2026-11-03T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456387,
+    "show_id": 2323782,
+    "source": "up_comedy_club",
+    "date": "2026-11-07T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 467488,
+    "show_id": 535532,
+    "source": "up_comedy_club",
+    "date": "2026-11-07T21:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456388,
+    "show_id": 2323783,
+    "source": "up_comedy_club",
+    "date": "2026-11-08T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 413982,
+    "show_id": 481972,
+    "source": "up_comedy_club",
+    "date": "2026-11-10T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456389,
+    "show_id": 2323784,
+    "source": "up_comedy_club",
+    "date": "2026-11-14T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 467490,
+    "show_id": 535534,
+    "source": "up_comedy_club",
+    "date": "2026-11-14T21:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456390,
+    "show_id": 2323785,
+    "source": "up_comedy_club",
+    "date": "2026-11-15T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 413984,
+    "show_id": 481974,
+    "source": "up_comedy_club",
+    "date": "2026-11-17T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456391,
+    "show_id": 2323786,
+    "source": "up_comedy_club",
+    "date": "2026-11-21T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 467492,
+    "show_id": 535536,
+    "source": "up_comedy_club",
+    "date": "2026-11-21T21:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 2456392,
+    "show_id": 2323787,
+    "source": "up_comedy_club",
+    "date": "2026-11-22T02:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 413986,
+    "show_id": 481976,
+    "source": "up_comedy_club",
+    "date": "2026-11-24T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7257874,
+    "show_id": 6389852,
+    "source": "up_comedy_club",
+    "date": "2026-12-31T21:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7322383,
+    "show_id": 6446591,
+    "source": "up_comedy_club",
+    "date": "2027-01-01T21:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7383402,
+    "show_id": 6499506,
+    "source": "up_comedy_club",
+    "date": "2027-01-02T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7532360,
+    "show_id": 6626952,
+    "source": "up_comedy_club",
+    "date": "2027-01-05T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7772797,
+    "show_id": 6834607,
+    "source": "up_comedy_club",
+    "date": "2027-01-09T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7933999,
+    "show_id": 6973347,
+    "source": "up_comedy_club",
+    "date": "2027-01-12T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130263,
+    "show_id": 7140417,
+    "source": "up_comedy_club",
+    "date": "2027-01-16T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130264,
+    "show_id": 7140418,
+    "source": "up_comedy_club",
+    "date": "2027-01-19T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130265,
+    "show_id": 7140419,
+    "source": "up_comedy_club",
+    "date": "2027-01-23T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130266,
+    "show_id": 7140420,
+    "source": "up_comedy_club",
+    "date": "2027-01-30T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130267,
+    "show_id": 7140421,
+    "source": "up_comedy_club",
+    "date": "2027-02-02T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130268,
+    "show_id": 7140422,
+    "source": "up_comedy_club",
+    "date": "2027-02-06T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130269,
+    "show_id": 7140423,
+    "source": "up_comedy_club",
+    "date": "2027-02-09T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130270,
+    "show_id": 7140424,
+    "source": "up_comedy_club",
+    "date": "2027-02-13T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130271,
+    "show_id": 7140425,
+    "source": "up_comedy_club",
+    "date": "2027-02-16T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130272,
+    "show_id": 7140426,
+    "source": "up_comedy_club",
+    "date": "2027-02-20T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130273,
+    "show_id": 7140427,
+    "source": "up_comedy_club",
+    "date": "2027-02-23T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8130274,
+    "show_id": 7140428,
+    "source": "up_comedy_club",
+    "date": "2027-02-27T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 5574437,
+    "show_id": 4932960,
+    "source": "ucb",
+    "date": "2026-09-27T02:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 7106545,
+    "show_id": 6259786,
+    "source": "ucb",
+    "date": "2026-09-28T02:00:00+00:00",
+    "evidence_kind": "explicit_free"
+  },
+  {
+    "ticket_id": 7165002,
+    "show_id": 6310368,
+    "source": "ucb",
+    "date": "2026-09-28T00:30:00+00:00",
+    "evidence_kind": "explicit_free"
+  },
+  {
+    "ticket_id": 6438844,
+    "show_id": 5682578,
+    "source": "ucb",
+    "date": "2026-09-28T00:30:00+00:00",
+    "evidence_kind": "explicit_free"
+  },
+  {
+    "ticket_id": 3773541,
+    "show_id": 3434328,
+    "source": "seetickets_whitelabel",
+    "date": "2026-10-02T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 3773542,
+    "show_id": 3434329,
+    "source": "seetickets_whitelabel",
+    "date": "2026-10-02T23:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8449774,
+    "show_id": 7416212,
+    "source": "seetickets_whitelabel",
+    "date": "2026-10-03T01:45:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 3918380,
+    "show_id": 3503404,
+    "source": "tessitura_tnew",
+    "date": "2026-09-28T02:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6328314,
+    "show_id": 5587346,
+    "source": "ticket_tailor",
+    "date": "2026-10-03T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6328315,
+    "show_id": 5587347,
+    "source": "ticket_tailor",
+    "date": "2026-10-04T01:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 3463225,
+    "show_id": 3171127,
+    "source": "ticket_tailor",
+    "date": "2026-10-04T23:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 5827742,
+    "show_id": 5154711,
+    "source": "ticket_tailor",
+    "date": "2026-11-06T03:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 5158255,
+    "show_id": 4577194,
+    "source": "odoo_events",
+    "date": "2026-10-02T00:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 3876257,
+    "show_id": 3467852,
+    "source": "comix_roadhouse",
+    "date": "2026-09-27T21:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 3876276,
+    "show_id": 3467871,
+    "source": "comix_roadhouse",
+    "date": "2026-09-27T23:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 3207388,
+    "show_id": 2953407,
+    "source": "mccurdys_comedy_theatre",
+    "date": "2026-09-28T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 1125049,
+    "show_id": 1178321,
+    "source": "mccurdys_comedy_theatre",
+    "date": "2026-09-27T21:30:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8075377,
+    "show_id": 7093331,
+    "source": "zanies",
+    "date": "2026-09-28T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 8513139,
+    "show_id": 7470872,
+    "source": "flop_house_json",
+    "date": "2026-09-27T03:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 6397686,
+    "show_id": 5647455,
+    "source": "flop_house_json",
+    "date": "2026-09-29T00:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  },
+  {
+    "ticket_id": 4249847,
+    "show_id": 3790700,
+    "source": "denver_comedy_lounge",
+    "date": "2026-10-03T01:00:00+00:00",
+    "evidence_kind": "positive_admission"
+  }
+]

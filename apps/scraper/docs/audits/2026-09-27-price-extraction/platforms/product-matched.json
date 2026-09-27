@@ -1,0 +1,1226 @@
+[
+  {
+    "ticket_id": 6755817,
+    "show_id": 5957384,
+    "date": "2026-09-28T00:00:00+00:00",
+    "name": "September 27: Sunday Night Show @7pm",
+    "fullUrl": "/tickets/p/sept-27-2026",
+    "title": "September 27: Sunday Night Show @7pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "ec8b2884-17fd-461d-af75-cc8492b7f6f3",
+        "sku": "SQ8015217",
+        "price": 1000,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "10.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 63,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 7720905,
+    "show_id": 6790577,
+    "date": "2026-10-02T00:30:00+00:00",
+    "name": "October 1: Thursday Night Storytelling @7:30pm",
+    "fullUrl": "/tickets/p/october-1-2026",
+    "title": "October 1: Thursday Night Storytelling @7:30pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "4b6cb246-abd7-4302-9427-d14458d9e6af",
+        "sku": "SQ8213078",
+        "price": 800,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "8.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 65,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369174,
+    "show_id": 7345507,
+    "date": "2026-10-03T01:00:00+00:00",
+    "name": "October 2: Friday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-2-2026",
+    "title": "October 2: Friday Night Show @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "baab3225-0d5c-4ea5-a83e-d49afbd9baf4",
+        "sku": "SQ6213043",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369175,
+    "show_id": 7345508,
+    "date": "2026-10-04T01:00:00+00:00",
+    "name": "October 3: Saturday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-3-2026",
+    "title": "October 3: Saturday Night Show @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "9cf56a96-6bc0-4e25-bb24-e4f78a88249c",
+        "sku": "SQ1588640",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 76,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369176,
+    "show_id": 7345509,
+    "date": "2026-10-05T00:00:00+00:00",
+    "name": "October 4: Sunday Night Show @7pm",
+    "fullUrl": "/tickets/p/oct-4-2026",
+    "title": "October 4: Sunday Night Show @7pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "e91eefbf-18e3-4c01-98ad-90cc0d3fa433",
+        "sku": "SQ4227416",
+        "price": 1000,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "10.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369177,
+    "show_id": 7345510,
+    "date": "2026-10-10T01:00:00+00:00",
+    "name": "October 9: Friday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-9-2026",
+    "title": "October 9: Friday Night Show @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "f5707849-ba97-48d2-b7dd-08285fb20a2b",
+        "sku": "SQ4851130",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369178,
+    "show_id": 7345511,
+    "date": "2026-10-11T01:00:00+00:00",
+    "name": "October 10: Saturday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-10-2026",
+    "title": "October 10: Saturday Night Show @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "36eb4c66-74f7-41f2-bb5f-f67e4afc0454",
+        "sku": "SQ3282481",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369179,
+    "show_id": 7345512,
+    "date": "2026-10-12T00:00:00+00:00",
+    "name": "October 11: Sunday Night Show @7pm",
+    "fullUrl": "/tickets/p/oct-11-2026",
+    "title": "October 11: Sunday Night Show @7pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "8bf520d9-538b-49ea-8a4b-58557a6bee4d",
+        "sku": "SQ7800843",
+        "price": 1000,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "10.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369180,
+    "show_id": 7345513,
+    "date": "2026-10-17T01:00:00+00:00",
+    "name": "October 16: Friday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-16-2026",
+    "title": "October 16: Friday Night Show @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "d52da2d6-27c8-4008-9f2d-53b3bf80cc76",
+        "sku": "SQ3018608",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 74,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369181,
+    "show_id": 7345514,
+    "date": "2026-10-18T01:00:00+00:00",
+    "name": "October 17: Saturday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-17-2026",
+    "title": "October 17: Saturday Night Show @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "406de002-ebc1-492a-848e-e8d43c15ad8b",
+        "sku": "SQ5212426",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369182,
+    "show_id": 7345515,
+    "date": "2026-10-19T00:00:00+00:00",
+    "name": "October 18: Sunday Night Show @7pm",
+    "fullUrl": "/tickets/p/oct-18-2026",
+    "title": "October 18: Sunday Night Show @7pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "baf24c3c-1d06-42a5-9b71-39427a299854",
+        "sku": "SQ7323568",
+        "price": 1000,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "10.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 78,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369183,
+    "show_id": 7345516,
+    "date": "2026-10-24T01:00:00+00:00",
+    "name": "October 23: Friday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-23-2026",
+    "title": "October 23: Friday Night Show @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "541b06f6-7f34-401e-8336-c69a4afa4f40",
+        "sku": "SQ1407722",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369184,
+    "show_id": 7345517,
+    "date": "2026-10-25T01:00:00+00:00",
+    "name": "October 24: Saturday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-24-2026",
+    "title": "October 24: Saturday Night Show @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "23a976ca-851a-4a40-8022-4f994be0a06d",
+        "sku": "SQ3352624",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 79,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369185,
+    "show_id": 7345518,
+    "date": "2026-10-26T00:00:00+00:00",
+    "name": "October 25: Sunday Night Show @7pm",
+    "fullUrl": "/tickets/p/oct-25-2026",
+    "title": "October 25: Sunday Night Show @7pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "72a87587-3484-4f82-81e4-9fc02663cf90",
+        "sku": "SQ7610188",
+        "price": 1000,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "10.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369186,
+    "show_id": 7345519,
+    "date": "2026-10-31T01:00:00+00:00",
+    "name": "October 30: Friday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-30-2026",
+    "title": "October 30: Friday Night Show  @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "3eeb8c15-6dc7-4a34-8446-b57eb5519ca1",
+        "sku": "SQ2331705",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 8369187,
+    "show_id": 7345520,
+    "date": "2026-11-01T01:00:00+00:00",
+    "name": "October 31: Saturday Night Show @8pm",
+    "fullUrl": "/tickets/p/oct-31-2026",
+    "title": "October 31: Saturday Night Show @8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "6d508749-8673-4155-a905-c0826a1bac91",
+        "sku": "SQ0530178",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 80,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products9075.txt"
+  },
+  {
+    "ticket_id": 5597300,
+    "show_id": 4953367,
+    "date": "2026-10-02T00:00:00+00:00",
+    "name": "Thurs Oct 1st Open Mic 8pm",
+    "fullUrl": "/tickets/p/thurs-oct-1st-open-mic-8pm",
+    "title": "Thurs Oct 1st Open Mic 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "02760746-2d03-4000-94dc-7d3304a8ee80",
+        "sku": "SQ0204242",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 39,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7473798,
+    "show_id": 6576489,
+    "date": "2026-10-02T23:00:00+00:00",
+    "name": "Fri Oct 2nd Suffern Soccer Fundraiser 7pm",
+    "fullUrl": "/tickets/p/fri-oct-2nd-suffern-soccer-fundraiser-7pm",
+    "title": "Fri Oct 2nd Suffern Soccer Fundraiser 7pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "7be6c01a-b87f-4081-a535-a9d7e9206300",
+        "sku": "SQ6589923",
+        "price": 3500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "35.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 12,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7473799,
+    "show_id": 6576490,
+    "date": "2026-10-04T00:00:00+00:00",
+    "name": "Sat Oct 3rd Rhino Room Stand Up 8pm",
+    "fullUrl": "/tickets/p/sat-oct-3rd-rhino-room-8pm",
+    "title": "Sat Oct 3rd Rhino Room Stand Up 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "4ee2049c-c485-44f0-a5a3-3f34e3675317",
+        "sku": "SQ9383367",
+        "price": 2000,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "20.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7473800,
+    "show_id": 6576491,
+    "date": "2026-10-04T02:00:00+00:00",
+    "name": "Sat Oct 3rd After-Show Mic 10pm",
+    "fullUrl": "/tickets/p/sat-oct-3rd-after-show-mic-10pm",
+    "title": "Sat Oct 3rd After-Show Mic 10pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "264ab5c8-5385-40f3-9742-083d6f7b5b5b",
+        "sku": "SQ0172180",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7647735,
+    "show_id": 6726702,
+    "date": "2026-10-09T00:00:00+00:00",
+    "name": "Thurs Oct 8th Open Mic 8pm",
+    "fullUrl": "/tickets/p/thurs-oct-8th-open-mic-8pm",
+    "title": "Thurs Oct 8th Open Mic 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "ca43f717-62a7-4155-b165-769a28ca0459",
+        "sku": "SQ8937084",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7647736,
+    "show_id": 6726703,
+    "date": "2026-10-10T00:00:00+00:00",
+    "name": "Fri Oct 9th Improv Jam 8pm",
+    "fullUrl": "/tickets/p/fri-oct-9th-improv-jam-8pm",
+    "title": "Fri Oct 9th Improv Jam 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "961aa6b0-31a7-49f8-9573-fc41f5a47d30",
+        "sku": "SQ2970767",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7473801,
+    "show_id": 6576492,
+    "date": "2026-10-11T00:00:00+00:00",
+    "name": "Sat Oct 10th Rhino Room Stand Up 8pm",
+    "fullUrl": "/tickets/p/sat-oct-10th-rhino-room-8pm",
+    "title": "Sat Oct 10th Rhino Room Stand Up 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "b4eb84ef-acb8-45e6-a28f-590451739e3f",
+        "sku": "SQ3472736",
+        "price": 2000,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "20.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 33,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7473802,
+    "show_id": 6576493,
+    "date": "2026-10-11T02:00:00+00:00",
+    "name": "Sat Oct 10th After-Show Mic 10pm",
+    "fullUrl": "/tickets/p/sat-oct-10th-after-show-mic-10pm",
+    "title": "Sat Oct 10th After-Show Mic 10pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "aef12ae4-8f84-4b05-a377-4600833196fc",
+        "sku": "SQ6838603",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7647739,
+    "show_id": 6726706,
+    "date": "2026-10-16T00:00:00+00:00",
+    "name": "Thurs Oct 15th Open Mic 8pm",
+    "fullUrl": "/tickets/p/thurs-oct-15th-open-mic-8pm",
+    "title": "Thurs Oct 15th Open Mic 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "e045b179-1366-4d53-b949-c7d92980c848",
+        "sku": "SQ6849070",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7647740,
+    "show_id": 6726707,
+    "date": "2026-10-17T00:00:00+00:00",
+    "name": "Fri Oct 16th Bingo + Comedy = Bingomedy! 8pm",
+    "fullUrl": "/tickets/p/fri-oct-16th-bingo-comedy-bingomedy-8pm",
+    "title": "Fri Oct 16th Bingo + Comedy = Bingomedy!  8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "3b744ac2-1fc1-454e-aa95-905d600fd1fc",
+        "sku": "SQ1014934",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7473803,
+    "show_id": 6576494,
+    "date": "2026-10-18T00:00:00+00:00",
+    "name": "Sat Oct 17th Rhino Room Stand Up 8pm",
+    "fullUrl": "/tickets/p/sat-oct-17th-rhino-room-stand-up-8pm",
+    "title": "Sat Oct 17th Rhino Room Stand Up 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "eb50bbac-606e-40a8-b497-5e9fa6f29eda",
+        "sku": "SQ5687302",
+        "price": 2000,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "20.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7473804,
+    "show_id": 6576495,
+    "date": "2026-10-18T02:00:00+00:00",
+    "name": "Sat Oct 17th After-Show Mic 10pm",
+    "fullUrl": "/tickets/p/sat-oct-17th-after-show-mic-10pm",
+    "title": "Sat Oct 17th After-Show Mic 10pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "9fd78c57-0619-47ee-9b7a-0bc2db1a25fb",
+        "sku": "SQ8062922",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7647743,
+    "show_id": 6726710,
+    "date": "2026-10-23T00:00:00+00:00",
+    "name": "Thurs Oct 22nd Open Mic 8pm",
+    "fullUrl": "/tickets/p/thurs-oct-22nd-open-mic-8pm",
+    "title": "Thurs Oct 22nd Open Mic 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "3f46f6cc-9b99-4129-8163-542b7a6e3546",
+        "sku": "SQ1245211",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7647744,
+    "show_id": 6726711,
+    "date": "2026-10-24T00:00:00+00:00",
+    "name": "Fri Oct 23rd Comfy Clash Regional First Round Stand Up Contest 8pm",
+    "fullUrl": "/tickets/p/fri-oct-23rd-comfy-clash-regional-first-round-stand-up-contest-8pm",
+    "title": "Fri Oct 23rd Comfy Clash Regional First Round Stand Up Contest  8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "33be1306-52d4-4b17-87f5-3dc30b0ea9a9",
+        "sku": "SQ8777210",
+        "price": 1200,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "12.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7473805,
+    "show_id": 6576496,
+    "date": "2026-10-25T00:00:00+00:00",
+    "name": "Sat Oct 24th Rhino Room Stand Up 8pm",
+    "fullUrl": "/tickets/p/sat-oct-24th-rhino-room-stand-up-8pm",
+    "title": "Sat Oct 24th Rhino Room Stand Up 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "c6edba35-7ca5-4391-a48a-4120f5630abc",
+        "sku": "SQ3051079",
+        "price": 2000,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "20.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7473806,
+    "show_id": 6576497,
+    "date": "2026-10-25T02:00:00+00:00",
+    "name": "Sat Oct 24th After-Show Mic 10pm",
+    "fullUrl": "/tickets/p/sat-oct-24th-after-show-mic-10pm",
+    "title": "Sat Oct 24th After-Show Mic 10pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "0bffdd96-5f77-4c62-ba61-f1db1a771a85",
+        "sku": "SQ5901149",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7647747,
+    "show_id": 6726714,
+    "date": "2026-10-30T00:00:00+00:00",
+    "name": "Thurs Oct 29th Open Mic 8pm",
+    "fullUrl": "/tickets/p/thurs-oct-29th-open-mic-8pm",
+    "title": "Thurs Oct 29th Open Mic 8pm",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "f2ef4791-e21d-44ce-a6d9-e90c3ea24244",
+        "sku": "SQ5756980",
+        "price": 500,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "5.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  },
+  {
+    "ticket_id": 7702988,
+    "show_id": 6774260,
+    "date": "2026-10-31T23:00:00+00:00",
+    "name": "Sat Oct 31st Halloween Costume Party (Suffern Bar Crawl)",
+    "fullUrl": "/tickets/p/sat-oct-31st-halloween-costume-party-suffern-bar-crawl",
+    "title": "Sat Oct 31st Halloween Costume Party (Suffern Bar Crawl)",
+    "variants": [
+      {
+        "attributes": {},
+        "optionValues": [],
+        "id": "c408ddec-1d57-40dc-b0a0-95ee83f20471",
+        "sku": "SQ0972778",
+        "price": 0,
+        "salePrice": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "unlimited": false,
+        "qtyInStock": 40,
+        "width": 0.0,
+        "height": 0.0,
+        "weight": 0.0,
+        "imageIds": [],
+        "images": [],
+        "len": 0.0
+      }
+    ],
+    "fixture": "products16060.txt"
+  }
+]

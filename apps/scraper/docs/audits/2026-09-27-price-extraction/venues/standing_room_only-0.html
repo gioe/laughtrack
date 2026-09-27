@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standing Room Only - Ticket Manager - Index</title>
+
+
+    
+
+
+
+    <link href="https://kendo.cdn.telerik.com/2020.3.915/styles/kendo.bootstrap-v4.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+    <script src="https://kendo.cdn.telerik.com/2020.3.915/js/jquery.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2020.3.915/js/jszip.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2020.3.915/js/kendo.all.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2020.3.915/js/kendo.aspnetmvc.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+
+
+
+
+    
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+
+    <script src="/Scripts/js.cookie.min.js"></script>
+
+    
+
+    
+
+    
+
+
+
+</head>
+
+
+<body class="bg-light">
+
+    <br />
+    
+
+
+
+
+
+
+
+
+
+
+
+<script>
+
+        function GetEventId() {
+
+            return {
+                Id: 536
+            }
+
+        }
+
+</script>
+
+
+<div style="clear:both"></div>
+
+
+<!--Kendo Templates-->
+<script type="text/x-kendo-tmpl" id="AdminTemplate">
+
+    <div class="row eventrow rc">
+
+
+
+
+        <div class="col-lg-4">
+
+
+            <span class="eventtitle" style="padding-bottom:25px;">
+
+                <span>#:EventTitle # </span>
+
+
+            </span>
+
+
+            # if (PrimaryImageUrl != null) { #
+            <div class="mb-2 parent center-block" onclick="ToggleMedia(#:Id#, '#:PrimaryVideoUrl#')" id="EventImage#:Id#">
+
+                # if (PrimaryVideoUrl !== null) { #
+                <span class="box-auction-badge"><i class="far fa-hand-pointer" aria-hidden="true"></i> Video</span>
+                # } #
+
+                <img src="#:PrimaryImageUrl#" class="ElementImage" />
+            </div>
+            # } else { #
+
+            <img src="/Assets/img/placeholder.png" class="ElementImage" />
+            # } #
+
+            # if (PrimaryVideoUrl !== null) { #
+            <div style="display:none" class="mb-2 vidoeparent center-block" id="EventVideo#:Id#">
+                <iframe class="VideoImage" src="#:PrimaryVideoUrl#" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            # } #
+
+
+
+
+            <div style="display:none" id="DetailsForSmallScreen#:Id#" class="col-sm-4">
+
+                <br /><br />  #= decodeEntities(Description) #
+
+            </div>
+
+
+            <div id="mediaPlayer#:Id#" class="mediaPlayer" style="display:none; width: 250px; height: 250px; max-width: 100%;">
+            </div>
+
+            <br />
+
+            <div id="ButtonGroup2_#:Id#" style="display:none">
+                <button class="k-button" id="BackToPhotos#:Id#" onclick="ToggleDetails(#:Id#)">Back to Photos</button>
+            </div>
+
+
+        </div>
+
+
+        <div class="col-lg-4">
+            <div id="DescriptionLarge">
+
+                <br /><br />  #= decodeEntities(Description) #
+
+                # if (Opening1 !== null) { #
+               
+                <div class="mt-3"><b>Opening Act:</b>  #=Opening1#</div>
+
+                # } #
+
+
+                # if (Opening2 !== null) { #
+                <div><b>Middle Act:</b>  #=Opening2#</div>
+
+                # } #
+
+
+
+            </div>
+        </div>
+
+
+        <div class="col-lg-4">
+
+
+            <div class="eventtitle" style="padding-bottom:10px;padding-top:10px;">
+
+                Tickets
+            </div>
+
+
+            # if (Shows.length != 0) { #
+            # for (var i = 0; i < Shows.length; i++) { #
+
+
+
+            # if (Shows[i].SeatSoldCount < GeneralAdmissionLimit) { #
+
+            <a href="/WebOffice/ChooseSeats/#:Shows[i].EventId#/#:Shows[i].Id#">
+
+                <div style="flex-direction:unset;float:left; width:100%; background-color: aliceblue; margin-bottom: 10px;" class="card">
+                    <div>
+                        <img src="/Assets/img/calendar.png" width="40" height="40" />
+                    </div>
+                    <div style="padding: 5px 0">
+                        #: (Shows[i].DisplayDayOfWeek) #, #: (Shows[i].DisplayMonth) #   #: (Shows[i].DisplayDay) # at #:Shows[i].DisplayStartTime #
+                    </div>
+
+                </div>
+            </a>
+
+            # }  else { #
+
+
+
+            <div style="float:left; display:unset; flex-direction:unset; width:100%; background-color: lightgray; margin-bottom: 10px;" class="card">
+
+
+                <div style="float:left;">
+                    <img src="/Assets/img/calendar.png" width="40" height="40" />
+                </div>
+                <div style="padding: 5px 0; color:darkgray">
+                    #: (Shows[i].DisplayDayOfWeek) #, #: (Shows[i].DisplayMonth) #   #: (Shows[i].DisplayDay) # at #:Shows[i].DisplayStartTime #
+                </div>
+                <div style="margin-top:10px; background-color:yellow; text-align:center">Sold Out</div>
+
+            </div> <br />
+
+            # } #
+
+
+
+
+
+
+
+            # } #
+            # }  else { #
+
+            <div class="p-4">No shows scheduled yet!</div>
+            # } #
+
+        </div>
+
+    </div>
+
+
+</script>
+
+<script>
+	dataSource1 = new kendo.data.DataSource({"type":(function(){if(kendo.data.transports['aspnetmvc-ajax']){return 'aspnetmvc-ajax';} else{throw new Error('The kendo.aspnetmvc.min.js script is not included.');}})(),"transport":{"read":{"url":"/Event/ReadLiveEvents","data":GetEventId},"prefix":""},"pageSize":5,"page":1,"groupPaging":false,"total":0,"schema":{"data":"Data","total":"Total","errors":"Errors","model":{"fields":{"StatusIsComplete":{"type":"number"},"EventTitle":{"type":"string"},"Description":{"type":"string"},"TimeZone":{"type":"string"},"SalesStartPOSDateTime":{"type":"date"},"SalesStartWebsiteDateTime":{"type":"date"},"SalesStartPOSDateTimeString":{"editable":false,"type":"string"},"SalesStartWebsiteDateTimeString":{"editable":false,"type":"string"},"SalesEndTimeAmount":{"type":"number"},"VenueId":{"type":"number","defaultValue":null},"SeatChartId":{"type":"number","defaultValue":null},"Images":{"type":"object"},"Shows":{"type":"object"},"Video":{"type":"object"},"Opening1":{"type":"string"},"Opening2":{"type":"string"},"DateCreated":{"type":"date"},"SeatingType":{"type":"number"},"GeneralAdmissionLimit":{"type":"number"},"Status":{"type":"number"},"Id":{"type":"number"},"CompanyId":{"type":"number"},"LocationId":{"type":"number"},"bActive":{"type":"boolean"}}}}});
+</script>
+
+
+
+
+
+
+
+
+<div class="container">
+
+
+    
+
+
+
+
+        <style>
+            .k-pager-wrap {
+                display: none;
+            }
+        </style>
+
+
+    <div id="EventList" style="width:1280px; max-width: 100%;"></div><script>
+	kendo.syncReady(function(){jQuery("#EventList").kendoListView({"dataBound":onEventListDataBound,"dataSource":dataSource1,"template":kendo.template(jQuery('#AdminTemplate').html())});});
+</script>
+
+</div>
+
+
+
+
+<div style="padding:15px">
+    <button class="k-button k-primary" id="btnReturn">Return to Event List</button><script>
+	kendo.syncReady(function(){jQuery("#btnReturn").kendoButton({"click":onReturn});});
+</script>
+</div>
+
+<script>
+
+    //Doc Ready
+    $(function () {
+
+        var element = document.getElementById("EventList");
+        element.classList.remove("k-widget");
+
+    });
+
+
+    function ToggleMedia(id, videourl) {
+
+
+        if (videourl == 'null') return;
+
+        var evtimage = "#EventImage" + id;
+        var evtvideo = "#EventVideo" + id;
+
+        if ($(evtimage).is(':visible')) {
+
+            $(evtimage).fadeOut(500, function () {
+                $(evtvideo).fadeIn(500);
+            });
+        }
+        else {
+
+            $(evtimage).fadeOut(500, function () {
+                $(evtvideo).fadeIn(500);
+            });
+        }
+    }
+
+
+    function onReturn(e) {
+
+        $('#btnReturn').hide();
+        $('#tabStrip').fadeOut('slow',
+            function () {
+                //jQuery('#tabStrip').html("Load up:" + e);
+
+                jQuery('#EventsContainer').fadeIn('slow');
+
+
+            });
+
+    }
+
+
+    function decodeEntities(encodedString) {
+        var textArea = document.createElement('textarea');
+        textArea.innerHTML = encodedString;
+        return textArea.value;
+    }
+
+
+</script>
+
+
+<!--Video-->
+
+<style>
+
+
+    .parent {
+        margin: auto;
+        width: 200px;
+        border-style: solid;
+        border-color: lightgray;
+    }
+
+    .vidoeparent {
+        margin: auto;
+        width: 300px;
+        border-style: solid;
+        border-color: lightgray;
+    }
+
+    .ElementImage {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    .VideoImage {
+        display: block;
+        width: 100%;
+        height: 200px;
+    }
+
+    .box-auction-badge {
+        background: linear-gradient(-45deg, #49aef1 0%, #3163fa);
+        text-transform: uppercase;
+        font-weight: 700;
+        font-size: 16px;
+        position: absolute;
+        padding: 6px 15px;
+        top: 85px;
+        left: 35px;
+        color: #ffffff;
+    }
+
+    .box-auction-large-right .box-auction-badge {
+        transition: 0.33s all linear;
+        z-index: 1;
+    }
+
+    @media screen and (max-width: 600px) {
+
+        #DetailsForSmallScreen {
+            display: none;
+        }
+
+        #DescriptionLarge {
+            display: none;
+        }
+
+        .DetailsButton {
+            display: inline;
+        }
+    }
+
+    @media screen and (min-width: 601px) {
+
+
+        .DetailsButton {
+            display: none;
+        }
+
+        #DetailsForSmallScreen {
+            display: none;
+        }
+
+        #DescriptionLarge {
+            display: block;
+        }
+    }
+
+    .eventtitle {
+        padding-bottom: 30px;
+    }
+</style>
+
+
+
+
+<style>
+
+
+    #tabStrip,
+    #btnReturn {
+        display: none;
+    }
+
+
+    .eventtitle {
+        font-weight: 600;
+        font-size: 20px;
+    }
+
+    .eventrow {
+        min-height: 50px !important;
+        margin: 10px;
+        background-color: rgb(255, 255, 255) !important;
+        /*padding:0px !important;
+        margin: 0px !important;*/
+    }
+
+
+    .rc {
+        border-radius: 7px;
+        border: 1px medium #808080;
+        /*padding: 20px;*/
+    }
+
+    .k-listview {
+        box-sizing: content-box !important;
+        background-color: transparent !important;
+    }
+</style>
+
+
+
+<style>
+
+
+
+    time {
+        margin-left: 10px !important;
+    }
+
+        time.addmargin {
+            margin: 10px !important;
+        }
+
+        time.killmargin {
+            margin: 0px !important;
+        }
+
+        time.icon {
+            font-size: 1em; /* change icon size */
+            display: block;
+            position: relative;
+            width: 7em;
+            height: 7em;
+            background-color: #fff;
+            margin: 2em auto;
+            border-radius: 0.6em;
+            box-shadow: 0 1px 0 #bdbdbd, 0 2px 0 #fff, 0 3px 0 #bdbdbd, 0 4px 0 #fff, 0 5px 0 #bdbdbd, 0 0 0 1px #bdbdbd;
+            overflow: hidden;
+            -webkit-backface-visibility: hidden;
+            -webkit-transform: rotate(0deg) skewY(0deg);
+            -webkit-transform-origin: 50% 10%;
+            transform-origin: 50% 10%;
+            line-height: 1 !important;
+        }
+
+            time.icon * {
+                display: block;
+                width: 100%;
+                font-size: 1em;
+                font-weight: bold;
+                font-style: normal;
+                text-align: center;
+            }
+
+            time.icon strong {
+                position: absolute;
+                top: 0;
+                padding: 0.4em 0;
+                color: #fff;
+                background-color: #1996e4;
+                /*border-bottom: 1px solid #f37302;*/
+                box-shadow: 0 2px 0 #1996e4;
+            }
+
+            time.icon em {
+                position: absolute;
+                bottom: 0.3em;
+                color: #1996e4;
+            }
+
+            time.icon span {
+                width: 100%;
+                font-size: 2.8em;
+                letter-spacing: -0.05em;
+                padding-top: 0.7em;
+                color: #2f2f2f;
+            }
+
+            time.icon:hover, time.icon:focus {
+                -webkit-animation: swing 0.6s ease-out;
+                animation: swing 0.6s ease-out;
+            }
+
+    @-webkit-keyframes swing {
+        0% {
+            -webkit-transform: rotate(0deg) skewY(0deg);
+        }
+
+        20% {
+            -webkit-transform: rotate(12deg) skewY(4deg);
+        }
+
+        60% {
+            -webkit-transform: rotate(-9deg) skewY(-3deg);
+        }
+
+        80% {
+            -webkit-transform: rotate(6deg) skewY(-2deg);
+        }
+
+        100% {
+            -webkit-transform: rotate(0deg) skewY(0deg);
+        }
+    }
+
+    @keyframes swing {
+        0% {
+            transform: rotate(0deg) skewY(0deg);
+        }
+
+        20% {
+            transform: rotate(12deg) skewY(4deg);
+        }
+
+        60% {
+            transform: rotate(-9deg) skewY(-3deg);
+        }
+
+        80% {
+            transform: rotate(6deg) skewY(-2deg);
+        }
+
+        100% {
+            transform: rotate(0deg) skewY(0deg);
+        }
+    }
+</style>
+
+
+<script>
+
+  document.addEventListener("load", function(){
+        
+       
+    });
+</script>
+
+<script>
+
+    function onEventListDataBound(e) {
+
+        if (e !== null) { 
+
+            if (e.sender.dataSource.data().length == 0) {
+                //custom logic
+                $("#EventList").append("<div class='k-grid-norecords-template' style='margin-bottom: 50px;margin-top: 50px;'><div style='text-align: center;'>No current events</div></div>");
+            }
+        }
+
+         //When list view is done loading.... 
+        
+        try {
+            window.top.postMessage(document.body.scrollHeight + '-' + 'iframe1' + '-' + '0', "*");
+        }
+        catch(err) {
+          //Not implemented
+        }
+
+    }
+
+
+    $(function () {
+
+        try {
+            var h = document.body.scrollHeight;
+            //h = h + 50;
+            window.top.postMessage(h + '-' + 'iframe1' + '-' + '0', "*");
+            //alert(document.body.scrollHeight + " " + h);
+        } catch (err) {
+            //Not Implemented
+        }
+    });
+
+
+ 
+
+
+</script>
+
+
+
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

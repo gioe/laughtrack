@@ -1,0 +1,931 @@
+[
+  {
+    "show_id": 6039378,
+    "ticket_id": 6850706,
+    "prices_in_purchase_controls": []
+  },
+  {
+    "show_id": 6079203,
+    "ticket_id": 6897251,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6079204,
+    "ticket_id": 6897252,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6079205,
+    "ticket_id": 6897253,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6079206,
+    "ticket_id": 6897254,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6150999,
+    "ticket_id": 6980206,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6151000,
+    "ticket_id": 6980207,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6151001,
+    "ticket_id": 6980208,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6203910,
+    "ticket_id": 7040893,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6203911,
+    "ticket_id": 7040894,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6203912,
+    "ticket_id": 7040895,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6253766,
+    "ticket_id": 7098608,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6253767,
+    "ticket_id": 7098609,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6253768,
+    "ticket_id": 7098610,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6357354,
+    "ticket_id": 7218672,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6357355,
+    "ticket_id": 7218673,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6380599,
+    "ticket_id": 7246393,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6380600,
+    "ticket_id": 7246394,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6380601,
+    "ticket_id": 7246395,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6380602,
+    "ticket_id": 7246396,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6453434,
+    "ticket_id": 7329980,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6453435,
+    "ticket_id": 7329981,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6453436,
+    "ticket_id": 7329982,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6453437,
+    "ticket_id": 7329983,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6503210,
+    "ticket_id": 7387745,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6503211,
+    "ticket_id": 7387746,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6503212,
+    "ticket_id": 7387747,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6503213,
+    "ticket_id": 7387748,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6545393,
+    "ticket_id": 7437033,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6545394,
+    "ticket_id": 7437034,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6545395,
+    "ticket_id": 7437035,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6601964,
+    "ticket_id": 7502315,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6601965,
+    "ticket_id": 7502316,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6601966,
+    "ticket_id": 7502317,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6646627,
+    "ticket_id": 7554786,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6646628,
+    "ticket_id": 7554787,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6646629,
+    "ticket_id": 7554788,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6690122,
+    "ticket_id": 7605000,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6690123,
+    "ticket_id": 7605001,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6745768,
+    "ticket_id": 7669526,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6745769,
+    "ticket_id": 7669527,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6745770,
+    "ticket_id": 7669528,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6745771,
+    "ticket_id": 7669529,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6794721,
+    "ticket_id": 7726154,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6794722,
+    "ticket_id": 7726155,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6794779,
+    "ticket_id": 7726212,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6794780,
+    "ticket_id": 7726213,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6849815,
+    "ticket_id": 7789478,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6849816,
+    "ticket_id": 7789479,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6849817,
+    "ticket_id": 7789480,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6849818,
+    "ticket_id": 7789481,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6900324,
+    "ticket_id": 7848707,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6900325,
+    "ticket_id": 7848708,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6900326,
+    "ticket_id": 7848709,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6947546,
+    "ticket_id": 7903681,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6947547,
+    "ticket_id": 7903682,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6947548,
+    "ticket_id": 7903683,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6995481,
+    "ticket_id": 7959378,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6995482,
+    "ticket_id": 7959379,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6995483,
+    "ticket_id": 7959380,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7035324,
+    "ticket_id": 8006407,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7035325,
+    "ticket_id": 8006408,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7070583,
+    "ticket_id": 8048039,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7070584,
+    "ticket_id": 8048040,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7070585,
+    "ticket_id": 8048041,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7070586,
+    "ticket_id": 8048042,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7103722,
+    "ticket_id": 8086649,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7103723,
+    "ticket_id": 8086650,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7103724,
+    "ticket_id": 8086651,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7103725,
+    "ticket_id": 8086652,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7154699,
+    "ticket_id": 8146270,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7154700,
+    "ticket_id": 8146271,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7154701,
+    "ticket_id": 8146272,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7154702,
+    "ticket_id": 8146273,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7204081,
+    "ticket_id": 8203881,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7204082,
+    "ticket_id": 8203882,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7204083,
+    "ticket_id": 8203883,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7235818,
+    "ticket_id": 8241105,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7235819,
+    "ticket_id": 8241106,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7235820,
+    "ticket_id": 8241107,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7283417,
+    "ticket_id": 8296324,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7283418,
+    "ticket_id": 8296325,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7283419,
+    "ticket_id": 8296326,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7338025,
+    "ticket_id": 8359768,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7338026,
+    "ticket_id": 8359769,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7408873,
+    "ticket_id": 8441076,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7408874,
+    "ticket_id": 8441077,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7408875,
+    "ticket_id": 8441078,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7408876,
+    "ticket_id": 8441079,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7433960,
+    "ticket_id": 8471381,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7433961,
+    "ticket_id": 8471382,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7433962,
+    "ticket_id": 8471383,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7433963,
+    "ticket_id": 8471384,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7507903,
+    "ticket_id": 8556094,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7507904,
+    "ticket_id": 8556095,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7507905,
+    "ticket_id": 8556096,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7507906,
+    "ticket_id": 8556097,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7553143,
+    "ticket_id": 8608917,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7553144,
+    "ticket_id": 8608918,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7553145,
+    "ticket_id": 8608919,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6184137,
+    "ticket_id": 7018499,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6184138,
+    "ticket_id": 7018500,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6184139,
+    "ticket_id": 7018501,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6395740,
+    "ticket_id": 7264368,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6395741,
+    "ticket_id": 7264369,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6429317,
+    "ticket_id": 7302925,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6429318,
+    "ticket_id": 7302926,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6478812,
+    "ticket_id": 7360204,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6585152,
+    "ticket_id": 7483545,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6585153,
+    "ticket_id": 7483546,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6585154,
+    "ticket_id": 7483547,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6331162,
+    "ticket_id": 7189594,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6793444,
+    "ticket_id": 7724546,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6793445,
+    "ticket_id": 7724547,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6826200,
+    "ticket_id": 7763112,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6826201,
+    "ticket_id": 7763113,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 6930457,
+    "ticket_id": 7884387,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6930458,
+    "ticket_id": 7884388,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 6930459,
+    "ticket_id": 7884389,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7029137,
+    "ticket_id": 7998614,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7108656,
+    "ticket_id": 8093355,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7108657,
+    "ticket_id": 8093356,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7108658,
+    "ticket_id": 8093357,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7161040,
+    "ticket_id": 8154392,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7161041,
+    "ticket_id": 8154393,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7256545,
+    "ticket_id": 8265419,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7256546,
+    "ticket_id": 8265420,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7256547,
+    "ticket_id": 8265421,
+    "prices_in_purchase_controls": [
+      "$12.37"
+    ]
+  },
+  {
+    "show_id": 7352769,
+    "ticket_id": 8377105,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7384464,
+    "ticket_id": 8412943,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7384465,
+    "ticket_id": 8412944,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7453011,
+    "ticket_id": 8493243,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  },
+  {
+    "show_id": 7453012,
+    "ticket_id": 8493244,
+    "prices_in_purchase_controls": [
+      "$23.24"
+    ]
+  }
+]

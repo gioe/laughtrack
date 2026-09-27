@@ -1,0 +1,63 @@
+{
+  "source_url": "https://chaosbloom.com/shows-calendar/yfhmb6rftn2ns94-kkt7b-8c56t-27d8g-2rd36-6bsa7-455l8-x5sst-74nlm-2s74t-5swyx-4w2le-tr2lj-ebf9e-tck5n-txc96-x5fka-tcx6p",
+  "ticket": {
+    "id": 5571660,
+    "purchase_url": "https://chaosbloom.com/shows-calendar/yfhmb6rftn2ns94-kkt7b-8c56t-27d8g-2rd36-6bsa7-455l8-x5sst-74nlm-2s74t-5swyx-4w2le-tr2lj-ebf9e-tck5n-txc96-x5fka-tcx6p",
+    "price": null,
+    "sold_out": false,
+    "show_id": 4930588,
+    "type": "General Admission",
+    "name": "The FREE Improv Comedy Jam Saturday 9-10pm",
+    "date": "2026-09-27T03:00:00.853000+00:00",
+    "club_id": 11295,
+    "club_name": "Chaos Bloom Theater",
+    "website": "https://chaosbloom.com",
+    "show_page_url": "https://chaosbloom.com/shows-calendar/yfhmb6rftn2ns94-kkt7b-8c56t-27d8g-2rd36-6bsa7-455l8-x5sst-74nlm-2s74t-5swyx-4w2le-tr2lj-ebf9e-tck5n-txc96-x5fka-tcx6p",
+    "last_scraped_by": "squarespace",
+    "last_scraped_date": "2026-08-28T00:20:03.914297+00:00"
+  },
+  "jsonld": [
+    {
+      "url": "https://chaosbloom.com",
+      "name": "Chaos Bloom Theater",
+      "description": "<p class=\"\" style=\"white-space:pre-wrap;\">Chaos Bloom Theater  was voted Denver's Best Comedy Theater in 2025 by Westword Readers Poll.  We provide improv, sketch, clowning, standup &amp; Storytelling classes, shows and community.</p>",
+      "image": "//images.squarespace-cdn.com/content/v1/59dbc290f5e2317170ec6f38/4673528b-9481-44ae-bc16-52f47f9a6cac/ChaosBloomPaint-Transparent.png",
+      "@context": "http://schema.org",
+      "@type": "WebSite"
+    },
+    {
+      "legalName": "Chaos Bloom Theater",
+      "address": "70 South Broadway\nDenver, CO, 80209\nUnited States",
+      "email": "amey@chaosbloom.com",
+      "telephone": "7204323581",
+      "sameAs": [],
+      "@context": "http://schema.org",
+      "@type": "Organization"
+    },
+    {
+      "address": "70 South Broadway\nDenver, CO, 80209\nUnited States",
+      "image": "https://static1.squarespace.com/static/59dbc290f5e2317170ec6f38/t/63110a71ba75d024a76f6326/1790473707818/",
+      "name": "Chaos Bloom Theater",
+      "openingHours": ", , , Th 18:30-21:30, Fr 18:30-22:00, Sa 17:30-21:00, ",
+      "@context": "http://schema.org",
+      "@type": "LocalBusiness"
+    },
+    {
+      "name": "The FREE Improv Comedy Jam Saturday 9-10pm \u2014 Chaos Bloom Theater",
+      "startDate": "2026-09-26T21:00:00-0600",
+      "endDate": "2026-09-26T22:00:00-0600",
+      "image": [
+        "http://static1.squarespace.com/static/59dbc290f5e2317170ec6f38/5f63a332aa0558099ec5dd1b/6a6cda5ccff2f61a0bbba46d/1785518714938/jam.PNG?format=1500w"
+      ],
+      "location": {
+        "name": "Chaos Bloom Theater",
+        "address": "70 South Broadway\nDenver, CO, 80209\nUnited States",
+        "@context": "http://schema.org",
+        "@type": "Place"
+      },
+      "@context": "http://schema.org",
+      "@type": "Event"
+    }
+  ],
+  "visible_text": "The FREE Improv Comedy Jam Saturday 9-10pm \u2014 Chaos Bloom Theater Classes Shows Corporate Camps Contact Gift Cards About Us Our Space Instructors Performers Policies Photos Gift Cards Sign In My Account Classes Shows Corporate Camps Contact Gift Cards About Us Our Space Instructors Performers Policies Photos Gift Cards Sign In My Account Shows Calendar *Please arrive before 10 minutes past show time.\u00a0 We sell off no show tickets at 10 past the hour of your show time.\u00a0 We do not give refunds of tickets if you do not show up for the show. Back to All Events The FREE Improv Comedy Jam Saturday 9-10pm Saturday, September 26, 2026 9:00\u202fPM 10:00\u202fPM 21:00 22:00 Chaos Bloom Theater 70 South Broadway Denver, CO, 80209 United States (map) Google Calendar ICS FREE ALL Improv Comedy Jam Saturdays 9p-10p $0.00 Free ALL Improv Comedy Jam 9-10p all Saturdays hosted by John Clayman & Ed Bryan. Purchase Earlier Event: September 26 Mainstage Players Later Event: September 27 Jesting Grounds Clown Drop in Find Us Chaos Bloom Theater 70 S Broadway Denver, CO 80209 (720) 432-3581 What's On Shows Classes Corporate Events Gift Cards The Fine Print Policies & Code of Conduct Contact Us Our Space Stay Connected Instagram Facebook YouTube \u00a9 2026 Chaos Bloom Theater \u00b7 70 S Broadway, Denver CO 80209"
+}

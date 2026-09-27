@@ -1,0 +1,266 @@
+[
+  {
+    "ticket_id": 8069551,
+    "show_id": 7087960,
+    "name": "Social Hour",
+    "date": "2026-10-02T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1525",
+      "seq": 0,
+      "tid": 1790904600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069556,
+    "show_id": 7087965,
+    "name": "Social Hour",
+    "date": "2026-10-10T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1526",
+      "seq": 0,
+      "tid": 1791595800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069566,
+    "show_id": 7087975,
+    "name": "Social Hour",
+    "date": "2026-10-15T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1527",
+      "seq": 0,
+      "tid": 1792027800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069569,
+    "show_id": 7087978,
+    "name": "Social Hour",
+    "date": "2026-10-16T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1528",
+      "seq": 0,
+      "tid": 1792114200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 2626070,
+    "show_id": 2466263,
+    "name": "Social Hour",
+    "date": "2026-10-17T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1289",
+      "seq": 0,
+      "tid": 1792200600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069578,
+    "show_id": 7087987,
+    "name": "Social Hour",
+    "date": "2026-10-20T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1530",
+      "seq": 0,
+      "tid": 1792459800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069580,
+    "show_id": 7087989,
+    "name": "Social Hour",
+    "date": "2026-10-21T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1531",
+      "seq": 0,
+      "tid": 1792546200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069582,
+    "show_id": 7087991,
+    "name": "Social Hour",
+    "date": "2026-10-24T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1532",
+      "seq": 0,
+      "tid": 1792805400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069589,
+    "show_id": 7087998,
+    "name": "Social Hour",
+    "date": "2026-10-30T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1533",
+      "seq": 0,
+      "tid": 1793323800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069593,
+    "show_id": 7088002,
+    "name": "Social Hour",
+    "date": "2026-10-31T01:30:00+00:00",
+    "source_ref": {
+      "uid": "1534",
+      "seq": 0,
+      "tid": 1793410200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069598,
+    "show_id": 7088007,
+    "name": "Social Hour",
+    "date": "2026-11-07T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1535",
+      "seq": 0,
+      "tid": 1794018600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069605,
+    "show_id": 7088014,
+    "name": "Social Hour",
+    "date": "2026-11-11T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1536",
+      "seq": 0,
+      "tid": 1794364200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069607,
+    "show_id": 7088016,
+    "name": "Social Hour",
+    "date": "2026-11-12T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1537",
+      "seq": 0,
+      "tid": 1794450600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069609,
+    "show_id": 7088018,
+    "name": "Social Hour",
+    "date": "2026-11-13T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1538",
+      "seq": 0,
+      "tid": 1794537000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069611,
+    "show_id": 7088020,
+    "name": "Social Hour",
+    "date": "2026-11-14T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1539",
+      "seq": 0,
+      "tid": 1794623400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069616,
+    "show_id": 7088025,
+    "name": "Social Hour",
+    "date": "2026-11-21T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1540",
+      "seq": 0,
+      "tid": 1795228200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069837,
+    "show_id": 7088151,
+    "name": "Social Hour",
+    "date": "2026-11-28T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1541",
+      "seq": 0,
+      "tid": 1795833000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069842,
+    "show_id": 7088156,
+    "name": "Social Hour",
+    "date": "2026-12-05T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1542",
+      "seq": 0,
+      "tid": 1796437800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069849,
+    "show_id": 7088163,
+    "name": "Social Hour",
+    "date": "2026-12-11T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1543",
+      "seq": 0,
+      "tid": 1796956200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069851,
+    "show_id": 7088165,
+    "name": "Social Hour",
+    "date": "2026-12-12T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1544",
+      "seq": 0,
+      "tid": 1797042600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069853,
+    "show_id": 7088167,
+    "name": "Social Hour",
+    "date": "2026-12-16T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1545",
+      "seq": 0,
+      "tid": 1797388200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8069855,
+    "show_id": 7088169,
+    "name": "Social Hour",
+    "date": "2026-12-19T02:30:00+00:00",
+    "source_ref": {
+      "uid": "1546",
+      "seq": 0,
+      "tid": 1797647400000,
+      "rid": 0
+    }
+  }
+]

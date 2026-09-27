@@ -1,0 +1,382 @@
+{
+  "captured_at_utc": "2026-09-27T07:23:00Z",
+  "source_count": 7,
+  "cohort_tickets": 636,
+  "note": "Counts are fixed-cohort ticket rows. Lower bounds only sampled exact identity/date prices; no extrapolation to unexamined inventory. Sources are public read-only, no checkout actions.",
+  "findings": [
+    {
+      "source": "seetickets_whitelabel",
+      "cohort_tickets": 137,
+      "classification": "extraction_omission",
+      "matched_priced_lower_bound": 3,
+      "matches": [
+        {
+          "show_id": 3434328,
+          "ticket_id": 3773541,
+          "event_id": "682818",
+          "name": "Michael Longfellow",
+          "date": "2026-10-02T00:00:00+00:00",
+          "price_text": "$29.00-$39.00"
+        },
+        {
+          "show_id": 3434329,
+          "ticket_id": 3773542,
+          "event_id": "682820",
+          "name": "Michael Longfellow",
+          "date": "2026-10-02T23:30:00+00:00",
+          "price_text": "$29.00-$39.00"
+        },
+        {
+          "show_id": 7416212,
+          "ticket_id": 8449774,
+          "event_id": "682823",
+          "name": "Michael Longfellow",
+          "date": "2026-10-03T01:45:00+00:00",
+          "price_text": "$29.00-$39.00"
+        }
+      ],
+      "evidence": [
+        "seetickets_whitelabel-11482-listing.html"
+      ],
+      "cause": "Official calendar response contains a parallel list view with event-specific .price text; existing extract_calendar_events and event model discard price and always emit fallback. Three positive ranges match event ID and exact dated calendar showtime. Nine price blocks inspected; $0.00 blocks are placeholders, not proof of free admission.",
+      "recommendation": "Join list price nodes to authoritative calendar events by provider event ID; parse positive range min, preserve unknown zeros; no extra detail fetch needed.",
+      "code": [
+        "scrapers/implementations/api/seetickets_whitelabel/extractor.py",
+        "core/entities/event/seetickets_whitelabel.py"
+      ]
+    },
+    {
+      "source": "squadup",
+      "cohort_tickets": 124,
+      "classification": "upstream_list_limitation_and_protected_details",
+      "matched_priced_lower_bound": 0,
+      "evidence": [
+        "squadup-165-listing.html",
+        "squadup-175-listing.html",
+        "squadup-165-browser.html"
+      ],
+      "cause": "Live v3 feeds have no structured admission price fields, consistent convention170. Jenny Tian detail is Cloudflare challenge via actual PlaywrightBrowser; generic HTTP was403. Sunset descriptions dollar100 is bar-tab policy, not ticket price. Do not infer zero.",
+      "recommendation": "Keep honest fallback; no new repair task solely for known API limitation. Browser result local environment, not universal source unavailability."
+    },
+    {
+      "source": "showpass",
+      "cohort_tickets": 101,
+      "classification": "detail_enrichment_omission_with_currency_blocker",
+      "upstream_priced_sample_count": 2,
+      "safe_USD_lower_bound": 0,
+      "matches": [
+        {
+          "event_id": 1540189,
+          "name": "The Workshop Open Mic Night - Sept 28th",
+          "date": "2026-09-29T00:00:00Z",
+          "currency": "CAD",
+          "tickets": [
+            {
+              "id": 4461206,
+              "name": "Monday Workshop - General Admission",
+              "price": "15.00",
+              "sold_out": false,
+              "minimum_purchase": null,
+              "sale_starts_on": "2026-07-10T16:29:48.833639Z",
+              "sale_ends_on": "2026-09-29T03:30:00Z"
+            },
+            {
+              "id": 4461207,
+              "name": "Monday Workshop \u2013 BOGO Half-Price",
+              "price": "22.50",
+              "sold_out": false,
+              "minimum_purchase": null,
+              "sale_starts_on": "2025-01-02T02:30:00Z",
+              "sale_ends_on": "2026-09-29T03:30:00Z"
+            }
+          ],
+          "matched_tickets": [
+            4455021
+          ]
+        },
+        {
+          "name": "Performing September 29: Adam Tiller",
+          "date": "2026-09-29T19:30:00-06:00",
+          "offers": [
+            {
+              "@context": "http://schema.org/",
+              "@type": "Offer",
+              "name": "General Admission",
+              "url": "/performing-september-29-adam-tiller/",
+              "price": "15.00",
+              "priceCurrency": "CAD",
+              "availability": "http://schema.org/InStock",
+              "validFrom": "2026-07-30T10:18:47-06:00",
+              "validThrough": "2026-09-29T21:00:00-06:00"
+            },
+            {
+              "@context": "http://schema.org/",
+              "@type": "Offer",
+              "name": "Tuesday Half off Special",
+              "url": "/performing-september-29-adam-tiller/",
+              "price": "24.95",
+              "priceCurrency": "CAD",
+              "availability": "http://schema.org/InStock",
+              "validFrom": "2025-01-01T19:30:00-07:00",
+              "validThrough": "2026-09-29T21:00:00-06:00"
+            },
+            {
+              "@context": "http://schema.org/",
+              "@type": "Offer",
+              "name": "Dinner & Show Experience for 2",
+              "url": "/performing-september-29-adam-tiller/",
+              "price": "39.95",
+              "priceCurrency": "CAD",
+              "availability": "http://schema.org/InStock",
+              "validFrom": "2026-07-30T10:18:47-06:00",
+              "validThrough": "2026-09-29T21:00:00-06:00"
+            },
+            {
+              "@context": "http://schema.org/",
+              "@type": "Offer",
+              "name": "Dinner & Show Experience for 4",
+              "url": "/performing-september-29-adam-tiller/",
+              "price": "59.95",
+              "priceCurrency": "CAD",
+              "availability": "http://schema.org/InStock",
+              "validFrom": "2026-07-30T10:18:47-06:00",
+              "validThrough": "2026-09-29T21:00:00-06:00"
+            }
+          ],
+          "matched_tickets": [
+            5411614
+          ]
+        }
+      ],
+      "evidence": [
+        "showpass-event-api.html",
+        "showpass-818-browser.html",
+        "showpass-818-listing.html",
+        "showpass-15992-listing.html"
+      ],
+      "cause": "Calendar API lacks price fields, but public /api/public/events/{id}/ has ticket_types and currency CAD; actual browser detail embeds matching Event JSON-LD and ticket types. Model always creates fallback. Eight matched descriptions also advertise15 but are weaker evidence and include beverage5.99/BOGO traps.",
+      "recommendation": "Add bounded public detail-API enrichment only with explicit currency handling; do not persist CAD as USD into currency-less Ticket. Keep tier labels and base vs fees distinction; GA15 vs browser inclusive17.11. Other tiers include multi-ticket/dinner packages, so do not divide or drop labels."
+    },
+    {
+      "source": "tessitura_tnew",
+      "cohort_tickets": 92,
+      "classification": "detail_enrichment_omission",
+      "matched_priced_lower_bound": 1,
+      "matches": [
+        {
+          "ticket_id": 3918380,
+          "show_id": 3503404,
+          "url": "https://purchase.groundlings.com/17753/18662",
+          "date": "2026-09-28T02:30:00+00:00",
+          "price": 27,
+          "type": "General Admission",
+          "identity": "productDataModel performanceId18662, rendered September27 7:30PM matches LosAngeles conversion"
+        }
+      ],
+      "conditional_priced_samples": [
+        {
+          "ticket_id": 5766555,
+          "show_id": 5101652,
+          "url": "https://tickets.galloarts.org/11397/11398",
+          "date": "2026-10-17T02:30:00+00:00",
+          "price_config": "39/59/69/99 ticket base +9 fees",
+          "limitation": "Seat-specific configuration proves advertised ticket prices, but available seat inventory not checked; no assertion39 remains buyable. Add-on50 talkback and150 meet-and-greet require separate ticket; exclude from admission minimum."
+        }
+      ],
+      "evidence": [
+        "tessitura_tnew-8836-detail.html",
+        "tessitura_tnew-11138-detail.html"
+      ],
+      "cause": "TNEW scraper stops at production-season listing; entity always fallback. Detail ticket selectors/pricing config contain prices.",
+      "recommendation": "Bound detail enrichment, match performanceId/date, parse standard GA selector and seat pricing with availability guards, exclude add-ons, preserve base/fee semantics."
+    },
+    {
+      "source": "holdmyticket",
+      "cohort_tickets": 74,
+      "classification": "upstream_list_limitation_detail_unresolved",
+      "matched_priced_lower_bound": 0,
+      "evidence": [
+        "holdmyticket-17082-listing.html",
+        "holdmyticket-17082-detail.html",
+        "holdmyticket-17082-browser.html"
+      ],
+      "cause": "Feed ticket_price_display is empty. Sample ticket459869 returned generic app shell; actual PlaywrightBrowser also returned unpopulated app, no per-event ticket prices. Embedded event_flow460987 differs requested459869, so no event-specific claim possible.",
+      "recommendation": "Preserve fallback; optional targeted runtime-XHR investigation, not confirmed recoverable extraction repair. Zero and NaN empty-cart strings are not ticket prices."
+    },
+    {
+      "source": "ticket_tailor",
+      "cohort_tickets": 51,
+      "classification": "detail_enrichment_omission",
+      "matched_priced_lower_bound": 4,
+      "matches": [
+        {
+          "ticket_id": 6328314,
+          "show_id": 5587346,
+          "name": "Damon Sumner",
+          "date": "2026-10-03T01:30:00+00:00",
+          "event_date": "2026-10-02T19:30:00-06:00",
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Tier 1 (Table for 2)",
+              "url": "https://www.tickettailor.com/events/westrivercomedyclub/2363785",
+              "price": 50,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            },
+            {
+              "@type": "Offer",
+              "name": "Tier 2 (Table seating)",
+              "url": "https://www.tickettailor.com/events/westrivercomedyclub/2363785",
+              "price": 20,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            },
+            {
+              "@type": "Offer",
+              "name": "General Admisson Row Seating",
+              "url": "https://www.tickettailor.com/events/westrivercomedyclub/2363785",
+              "price": 15,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            }
+          ],
+          "file": "ticket_tailor-1059-native-detail.html"
+        },
+        {
+          "ticket_id": 6328315,
+          "show_id": 5587347,
+          "name": "Damon Sumner",
+          "date": "2026-10-04T01:30:00+00:00",
+          "event_date": "2026-10-03T19:30:00-06:00",
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Tier 1 (Table for 2)",
+              "url": "https://www.tickettailor.com/events/westrivercomedyclub/2363785",
+              "price": 50,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            },
+            {
+              "@type": "Offer",
+              "name": "Tier 2 (Table seating)",
+              "url": "https://www.tickettailor.com/events/westrivercomedyclub/2363785",
+              "price": 20,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            },
+            {
+              "@type": "Offer",
+              "name": "General Admisson Row Seating",
+              "url": "https://www.tickettailor.com/events/westrivercomedyclub/2363785",
+              "price": 15,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            }
+          ],
+          "file": "ticket_tailor-1059-native-detail.html"
+        },
+        {
+          "ticket_id": 3463225,
+          "show_id": 3171127,
+          "name": "Damon Sumner",
+          "date": "2026-10-04T23:00:00+00:00",
+          "event_date": "2026-10-04T17:00:00-06:00",
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Tier 1 (Table for 2)",
+              "url": "https://www.tickettailor.com/events/westrivercomedyclub/2363785",
+              "price": 50,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            },
+            {
+              "@type": "Offer",
+              "name": "Tier 2 (Table seating)",
+              "url": "https://www.tickettailor.com/events/westrivercomedyclub/2363785",
+              "price": 20,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            },
+            {
+              "@type": "Offer",
+              "name": "General Admisson Row Seating",
+              "url": "https://www.tickettailor.com/events/westrivercomedyclub/2363785",
+              "price": 15,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            }
+          ],
+          "file": "ticket_tailor-1059-native-detail.html"
+        },
+        {
+          "ticket_id": 5827742,
+          "show_id": 5154711,
+          "name": "THE DOSE: A Psychedelic Comedy Experience",
+          "date": "2026-11-06T03:00:00+00:00",
+          "event_date": "2026-11-05T19:00:00-08:00",
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Early Bird",
+              "url": "https://events.oaklandcontinentalclub.com/events/continentalclub/2347556",
+              "price": 24.75,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            },
+            {
+              "@type": "Offer",
+              "name": "General Admission",
+              "url": "https://events.oaklandcontinentalclub.com/events/continentalclub/2347556",
+              "price": 28,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            },
+            {
+              "@type": "Offer",
+              "name": "VIP",
+              "url": "https://events.oaklandcontinentalclub.com/events/continentalclub/2347556",
+              "price": 38.75,
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "USD"
+            }
+          ],
+          "file": "ticket_tailor-11123-detail.html"
+        }
+      ],
+      "evidence": [
+        "ticket_tailor-1059-native-detail.html",
+        "ticket_tailor-11123-detail.html",
+        "ticket_tailor-1059-native-listing.html"
+      ],
+      "cause": "Listing scraper and TicketTailorEvent discard all offer data and emit fallback; detail JSON-LD offers work with shared extractor. WestRiver requires existing native _fetch_listing Referer/fingerprint loop; generic403 not source-unavailable.",
+      "recommendation": "Reuse native fetcher for bounded details, correlate each JSON-LD Event by exact performance date (one URL has3dates); preserve individual GA15 vs Tablefor2 50. Continental tiers24.75/28/38.75. No unqualified package min or date fanout."
+    },
+    {
+      "source": "odoo_events",
+      "cohort_tickets": 57,
+      "classification": "microdata_scope_omission",
+      "matched_priced_lower_bound": 1,
+      "matches": [
+        {
+          "ticket_id": 5158255,
+          "show_id": 4577194,
+          "name": "Comedy Plex Presents: Matt Torres",
+          "date": "2026-10-02T00:30:00+00:00",
+          "price": 15,
+          "currency": "USD",
+          "type": "Matt Torres",
+          "url": "https://www.comedyplex.com/event/comedy-plex-presents-matt-torres-926/register"
+        }
+      ],
+      "evidence": [
+        "odoo_events-9092-detail.html",
+        "analysis.json"
+      ],
+      "cause": "Registration AggregateOffer form sits outside Event scope. Current EventExtractor._extract_microdata_events produces matching Event with offers=[]; visible registration quantity control has price15 USD and InStock. Thus shared extractor intentionally respects scopes but Odoo adapter needs event-associated registration offers.",
+      "recommendation": "Add Odoo-specific event-associated registration form extraction, verifying action matches current event; retain multi-tier quantity/package semantics and avoid sitewide amounts. Test detached modal offer, wrong-event modal, multiple tiers, unknown/zero."
+    }
+  ]
+}

@@ -1,0 +1,575 @@
+[
+  {
+    "key": "comix_roadhouse",
+    "url": "https://www.comixroadhouse.com/comics/spinnato-magic-sept2026a",
+    "row": {
+      "id": 3876257,
+      "purchase_url": "https://events.leapevents.com/event/spinnato-magic-sept2026aa1d6mtc",
+      "price": null,
+      "sold_out": false,
+      "show_id": 3467852,
+      "type": "General Admission",
+      "name": "SPINNATO'S COMEDY MAGIC",
+      "date": "2026-09-27T21:00:00+00:00",
+      "club_id": 11484,
+      "club_name": "Comix Roadhouse",
+      "website": "https://www.comixroadhouse.com/",
+      "show_page_url": "https://www.comixroadhouse.com/comics/spinnato-magic-sept2026a",
+      "last_scraped_by": "comix_roadhouse",
+      "last_scraped_date": "2026-09-26T23:34:57.188913+00:00"
+    },
+    "file": "comix_roadhouse-0.html",
+    "length": 31336,
+    "sha256": "dfe197fde105b489a586095812693509ab82c5d85d215e33a414cd70bc3730f3",
+    "price_text": [],
+    "jsonld": [
+      "\n    {\n      \"@context\": \"https://schema.org\",\n      \"@type\": \"Event\",\n      \"name\": \"SPINNATO&#39;S COMEDY MAGIC\",\n      \"startDate\": \"Sep 27, 2026\",\n      \"location\": {\n        \"@type\": \"Place\",\n        \"name\": \"Comix Roadhouse\",\n        \"address\": {\n          \"@type\": \"PostalAddress\",\n          \"streetAddress\": \"1 Mohegan Sun Blvd\",\n          \"addressLocality\": \"Uncasville\",\n          \"postalCode\": \"06382\",\n          \"addressRegion\": \"CT\",\n          \"addressCountry\": \"US\"\n        }\n      },\n      \"image\": [\n        \"https://cdn.prod.website-files.com/5fbbc7d17743e485fefe1d27/6a73248ef255ec4ec9f7cb1b_07888628-550f-44ff-84ce-ac84a151698a.jpeg\"\n       ]\n      }\n"
+    ]
+  },
+  {
+    "key": "comix_roadhouse",
+    "url": "https://www.comixroadhouse.com/comics/heather-shaw-092726",
+    "row": {
+      "id": 3876276,
+      "purchase_url": "https://events.leapevents.com/event/heather-shaw-092726fjuef5h",
+      "price": null,
+      "sold_out": false,
+      "show_id": 3467871,
+      "type": "General Admission",
+      "name": "HEATHER SHAW",
+      "date": "2026-09-27T23:00:00+00:00",
+      "club_id": 11484,
+      "club_name": "Comix Roadhouse",
+      "website": "https://www.comixroadhouse.com/",
+      "show_page_url": "https://www.comixroadhouse.com/comics/heather-shaw-092726",
+      "last_scraped_by": "comix_roadhouse",
+      "last_scraped_date": "2026-09-26T23:34:57.188915+00:00"
+    },
+    "file": "comix_roadhouse-1.html",
+    "length": 29081,
+    "sha256": "2efb2851b997695cc38357a057c50582dc1ae7c908b5c48c5279e973e4d907f2",
+    "price_text": [],
+    "jsonld": [
+      "\n    {\n      \"@context\": \"https://schema.org\",\n      \"@type\": \"Event\",\n      \"name\": \"HEATHER SHAW\",\n      \"startDate\": \"Sep 27, 2026\",\n      \"location\": {\n        \"@type\": \"Place\",\n        \"name\": \"Comix Roadhouse\",\n        \"address\": {\n          \"@type\": \"PostalAddress\",\n          \"streetAddress\": \"1 Mohegan Sun Blvd\",\n          \"addressLocality\": \"Uncasville\",\n          \"postalCode\": \"06382\",\n          \"addressRegion\": \"CT\",\n          \"addressCountry\": \"US\"\n        }\n      },\n      \"image\": [\n        \"https://cdn.prod.website-files.com/5fbbc7d17743e485fefe1d27/6a3c0c33a18e3ae132992045_f6a96a74-7edd-491f-ae98-381080c896fc.jpeg\"\n       ]\n      }\n"
+    ]
+  },
+  {
+    "key": "comix_roadhouse",
+    "url": "https://www.comixroadhouse.com/calendar/in-the-comedy-club",
+    "row": null,
+    "file": "comix_roadhouse-2.html",
+    "length": 62256,
+    "sha256": "08c04d96d5fccd7707772f9af69febeafbddca86591192bdb5cd8d1d83ba8595",
+    "price_text": [],
+    "jsonld": []
+  },
+  {
+    "key": "mccurdys_comedy_theatre",
+    "url": "https://www.etix.com/ticket/p/55715949",
+    "row": {
+      "id": 1125049,
+      "purchase_url": "https://www.etix.com/ticket/p/55715949",
+      "price": null,
+      "sold_out": false,
+      "show_id": 1178321,
+      "type": "General Admission",
+      "name": "Wyatt Cote",
+      "date": "2026-09-27T21:30:00+00:00",
+      "club_id": 1025,
+      "club_name": "McCurdy's Comedy Theatre",
+      "website": "https://www.mccurdyscomedy.com",
+      "show_page_url": "https://www.etix.com/ticket/p/55715949",
+      "last_scraped_by": "mccurdys_comedy_theatre",
+      "last_scraped_date": "2026-09-26T23:24:43.028981+00:00"
+    },
+    "file": "mccurdys_comedy_theatre-0.html",
+    "length": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "price_text": [],
+    "jsonld": []
+  },
+  {
+    "key": "mccurdys_comedy_theatre",
+    "url": "https://www.etix.com/ticket/p/53957625",
+    "row": {
+      "id": 3207388,
+      "purchase_url": "https://www.etix.com/ticket/p/53957625",
+      "price": null,
+      "sold_out": false,
+      "show_id": 2953407,
+      "type": "General Admission",
+      "name": "Drag Queen Bingo Extravaganza",
+      "date": "2026-09-28T00:00:00+00:00",
+      "club_id": 1025,
+      "club_name": "McCurdy's Comedy Theatre",
+      "website": "https://www.mccurdyscomedy.com",
+      "show_page_url": "https://www.etix.com/ticket/p/53957625",
+      "last_scraped_by": "mccurdys_comedy_theatre",
+      "last_scraped_date": "2026-09-26T23:24:43.028985+00:00"
+    },
+    "file": "mccurdys_comedy_theatre-1.html",
+    "length": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "price_text": [],
+    "jsonld": []
+  },
+  {
+    "key": "mccurdys_comedy_theatre",
+    "url": "https://www.mccurdyscomedy.com/shows/",
+    "row": null,
+    "file": "mccurdys_comedy_theatre-2.html",
+    "length": 50204,
+    "sha256": "2c7e7774c873287578e0f941bea36bcace3070961cec1e7c5c205d54d54fe809",
+    "price_text": [],
+    "jsonld": []
+  },
+  {
+    "key": "empire_comedy_club",
+    "url": "https://empirecomedyme.com/show/the-sunday-best",
+    "row": {
+      "id": 3206663,
+      "purchase_url": "https://empirecomedyme.com/show/the-sunday-best",
+      "price": null,
+      "sold_out": false,
+      "show_id": 2953012,
+      "type": "General Admission",
+      "name": "The Sunday Best",
+      "date": "2026-09-28T00:00:00+00:00",
+      "club_id": 819,
+      "club_name": "Empire Comedy Club",
+      "website": "https://www.empirecomedyme.com",
+      "show_page_url": "https://empirecomedyme.com/show/the-sunday-best",
+      "last_scraped_by": "empire_comedy_club",
+      "last_scraped_date": "2026-09-27T00:45:22.716453+00:00"
+    },
+    "file": "empire_comedy_club-0.html",
+    "length": 23815,
+    "sha256": "0ebed584a6719d8d63081da2367a5b636ae574adf921b65eea1c18fe23ca2303",
+    "price_text": [],
+    "jsonld": []
+  },
+  {
+    "key": "empire_comedy_club",
+    "url": "https://empirecomedyme.com/show/billy-wayne-davis",
+    "row": {
+      "id": 4712750,
+      "purchase_url": "https://empirecomedyme.com/show/billy-wayne-davis",
+      "price": null,
+      "sold_out": false,
+      "show_id": 4192513,
+      "type": "General Admission",
+      "name": "Billy Wayne Davis",
+      "date": "2026-09-30T23:00:00+00:00",
+      "club_id": 819,
+      "club_name": "Empire Comedy Club",
+      "website": "https://www.empirecomedyme.com",
+      "show_page_url": "https://empirecomedyme.com/show/billy-wayne-davis",
+      "last_scraped_by": "empire_comedy_club",
+      "last_scraped_date": "2026-09-27T00:45:22.716454+00:00"
+    },
+    "file": "empire_comedy_club-1.html",
+    "length": 24681,
+    "sha256": "4e3c5d7d6c0125fc56d5cbbfde090192d02d88f3190a28929a123b508aecf811",
+    "price_text": [],
+    "jsonld": []
+  },
+  {
+    "key": "empire_comedy_club",
+    "url": "https://www.empirecomedyme.com/shows/",
+    "row": null,
+    "file": "empire_comedy_club-2.html",
+    "length": 66303,
+    "sha256": "c263b3b0d436831e3e71b197e71526100a10e5c8c6d70aa6dfff35c0bbc697a9",
+    "price_text": [],
+    "jsonld": []
+  },
+  {
+    "key": "zanies",
+    "url": "https://chicago.zanies.com/calendar/category/series/2026-after-hours-with-calvin-evans/zanies-comedy-club-chicago/chicago-illinois",
+    "row": {
+      "id": 5944550,
+      "purchase_url": "https://www.etix.com/ticket/p/99276961/after-hours-with-calvin-evans-chicago-zanies-chicago?partner_id=100",
+      "price": null,
+      "sold_out": false,
+      "show_id": 5256475,
+      "type": "General Admission",
+      "name": "After Hours with Calvin Evans",
+      "date": "2026-09-27T04:15:00+00:00",
+      "club_id": 179,
+      "club_name": "Zanies Comedy Club",
+      "website": "https://chicago.zanies.com",
+      "show_page_url": "https://chicago.zanies.com/calendar/category/series/2026-after-hours-with-calvin-evans/zanies-comedy-club-chicago/chicago-illinois",
+      "last_scraped_by": "zanies",
+      "last_scraped_date": "2026-09-26T23:29:01.834033+00:00"
+    },
+    "file": "zanies-0.html",
+    "length": 161018,
+    "sha256": "23d5f8a9dc828214084e34542cee5c0eb10edd30d708b3667d9aedf84a196dad",
+    "price_text": [
+      " 2026 After Hours with Calvin Evans Ages 21 and up Find Tickets Saturday, Oct 03 - Saturday, Oct 31 $26 Overview Restrictions 21+ 2 Item minimum Seating: first come first served Tickets: Will Call is the ONLY option given when purchasing tickets. We do"
+    ],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"Place\",\"@id\":\"https://chicago.zanies.com/#place\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"1548 N Wells Street\",\"addressLocality\":\"Chicago\",\"addressRegion\":\"Illinois\",\"postalCode\":\"60610\"}},{\"@type\":\"EntertainmentBusiness\",\"@id\":\"https://chicago.zanies.com/#organization\",\"name\":\"Zanies Chicago Comedy Club\",\"url\":\"https://chicago.zanies.com\",\"sameAs\":[\"https://www.facebook.com/zanies\"],\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"1548 N Wells Street\",\"addressLocality\":\"Chicago\",\"addressRegion\":\"Illinois\",\"postalCode\":\"60610\"},\"logo\":{\"@type\":\"ImageObject\",\"@id\":\"https://chicago.zanies.com/#logo\",\"url\":\"https://chicago.zanies.com/wp-content/uploads/2021/07/Zanies-Chicago-Logo.jpg\",\"contentUrl\":\"https://chicago.zanies.com/wp-content/uploads/2021/07/Zanies-Chicago-Logo.jpg\",\"caption\":\"Zanies Chicago Comedy Club\",\"inLanguage\":\"en-US\",\"width\":\"350\",\"height\":\"102\"},\"legalName\":\"kathleen@rockhousepartners.com\",\"location\":{\"@id\":\"https://chicago.zanies.com/#place\"},\"image\":{\"@id\":\"https://chicago.zanies.com/#logo\"},\"telephone\":\"+1 312-337-4027\"},{\"@type\":\"WebSite\",\"@id\":\"https://chicago.zanies.com/#website\",\"url\":\"https://chicago.zanies.com\",\"name\":\"Zanies Chicago Comedy Club\",\"publisher\":{\"@id\":\"https://chicago.zanies.com/#organization\"},\"inLanguage\":\"en-US\"},{\"@type\":\"CollectionPage\",\"@id\":\"https://chicago.zanies.com/calendar/category/series/2026-after-hours-with-calvin-evans/zanies-comedy-club-chicago/chicago-illinois/#webpage\",\"url\":\"https://chicago.zanies.com/calendar/category/series/2026-after-hours-with-calvin-evans/zanies-comedy-club-chicago/chicago-illinois/\",\"name\":\"2026 After Hours with Calvin Evans | Zanies Chicago Comedy Club\",\"isPartOf\":{\"@id\":\"https://chicago.zanies.com/#website\"},\"inLanguage\":\"en-US\"}]}"
+    ]
+  },
+  {
+    "key": "zanies",
+    "url": "https://chicago.zanies.com/show/tim-convy-sean-obrien/zanies-comedy-club-chicago/chicago-illinois",
+    "row": {
+      "id": 8075377,
+      "purchase_url": "https://www.etix.com/ticket/p/75851627/tim-convy-sean-obrien-chicago-zanies-chicago?partner_id=100",
+      "price": null,
+      "sold_out": false,
+      "show_id": 7093331,
+      "type": "General Admission",
+      "name": "Tim Convy & Sean O\u2019Brien",
+      "date": "2026-09-28T00:00:00+00:00",
+      "club_id": 179,
+      "club_name": "Zanies Comedy Club",
+      "website": "https://chicago.zanies.com",
+      "show_page_url": "https://chicago.zanies.com/show/tim-convy-sean-obrien/zanies-comedy-club-chicago/chicago-illinois",
+      "last_scraped_by": "zanies",
+      "last_scraped_date": "2026-09-26T23:29:01.834096+00:00"
+    },
+    "file": "zanies-1.html",
+    "length": 163327,
+    "sha256": "6d4bc8b6367756c46175b9e08363572dc7bab039ced140c4e2bffeb7c298da0c",
+    "price_text": [
+      "RTS Tim Convy & Sean O\u2019Brien Ages 21 and up Buy Tickets Sunday, September 27 Doors: 6 pm Show: 7 pm $37.95 OVERVIEW\u00a0 \u2013 Special Event Restrictions 21 and over with valid photo ID Two item minimum purchase per person Seating is first come first served No"
+    ],
+    "jsonld": [
+      "{\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"Event\",\n    \"name\": \"Tim Convy &#038; Sean O&#8217;Brien\",\n    \"startDate\": \"2026-09-27T19:00:00-0500\",\n    \"url\": \"https://chicago.zanies.com/show/tim-convy-sean-obrien/zanies-comedy-club-chicago/chicago-illinois/\",\n    \"image\": \"https://chicago.zanies.com/wp-content/uploads/2026/04/tim-convy-sean-obrien.jfif\",\n    \"location\": {\n        \"@type\": \"Place\",\n        \"name\": \"Zanies Comedy Club Chicago\",\n        \"address\": \"1548 N Wells Street, Chicago, Illinois\"\n    },\n    \"offers\": {\n        \"@type\": \"Offer\",\n        \"url\": \"https://www.etix.com/ticket/p/75851627/tim-convy-sean-obrien-chicago-zanies-chicago?partner_id=100\",\n        \"price\": 0\n    }\n}"
+    ]
+  },
+  {
+    "key": "zanies",
+    "url": "https://chicago.zanies.com",
+    "row": null,
+    "file": "zanies-2.html",
+    "length": 356581,
+    "sha256": "6b0d81ea09904c2a88419be9aa055ad1a1940065c8d0cf7e7fde1f55e3fc6797",
+    "price_text": [
+      "ng Events September 2026 Sun, Sep 27 Tim Convy & Sean O\u2019Brien Ages 21 and up Doors: 6 pm Show: 7 pm $37.95 Buy Tickets More Info Mon, Sep 28 - mon, Nov 30 2026 Super Six Ages 21 and up $26 FULL PERFORMANCE LISTING Sep 28 Doors: 6 pm Show: 7 pm Tickets ",
+      " pm Show: 7 pm $37.95 Buy Tickets More Info Mon, Sep 28 - mon, Nov 30 2026 Super Six Ages 21 and up $26 FULL PERFORMANCE LISTING Sep 28 Doors: 6 pm Show: 7 pm Tickets Nov 16 Doors: 7:45 pm Show: 8:15 pm Tickets Nov 23 Doors: 6 pm Show: 7 pm Tickets Nov",
+      "w: 7 pm Tickets Find Tickets More Info Tue, Sep 29 - wed, Sep 30 2026 Red Richardson Ages 21 and up $43 FULL PERFORMANCE LISTING Sep 29 Doors: 6 pm Show: 7 pm Tickets Sep 30 Doors: 6 pm Show: 7 pm Tickets Find Tickets More Info October 2026 Thu, Oct 01",
+      " Find Tickets More Info October 2026 Thu, Oct 01 - sat, Oct 03 2026 Headliner Series Ages 21 and up $26 FULL PERFORMANCE LISTING Oct 01 Doors: 6 pm Show: 7 pm Tickets Oct 02 Doors: 6 pm Show: 7 pm Tickets Oct 02 Doors: 8:45 pm Show: 9:15 pm Tickets Oct",
+      ": 9:15 pm Tickets Find Tickets More Info Thu, Oct 01 - thu, Dec 17 2026 Roast Battle Ages 21 and up $32 - $43 FULL PERFORMANCE LISTING Oct 01 Doors: 9 pm Show: 9:30 pm Tickets Oct 15 Doors: 9 pm Show: 9:30 pm Tickets Nov 11 Doors: 9 pm Show: 9:30 pm Ti",
+      " pm Tickets Find Tickets More Info Thu, Oct 01 - thu, Dec 17 2026 Roast Battle Ages 21 and up $32 - $43 FULL PERFORMANCE LISTING Oct 01 Doors: 9 pm Show: 9:30 pm Tickets Oct 15 Doors: 9 pm Show: 9:30 pm Tickets Nov 11 Doors: 9 pm Show: 9:30 pm Tickets ",
+      " Find Tickets More Info Sat, Oct 03 - sat, Oct 31 2026 After Hours with Calvin Evans Ages 21 and up $26 FULL PERFORMANCE LISTING Oct 03 Doors: 11 pm Show: 11:15 pm Tickets Oct 10 Doors: 11 pm Show: 11:15 pm Tickets Oct 17 Doors: 11 pm Show: 11:15 pm Ti",
+      "More Info Sun, Oct 04 Parkinson\u2019s Foundation**Special Event** Ages 21 and up Doors: 3 pm Show: 4 pm $29 Buy Tickets More Info Sun, Oct 04 - tue, Oct 06 2026 Emil Wakim Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 04 Doors: 6 pm Show: 7 pm Tickets Oc",
+      " 3 pm Show: 4 pm $29 Buy Tickets More Info Sun, Oct 04 - tue, Oct 06 2026 Emil Wakim Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 04 Doors: 6 pm Show: 7 pm Tickets Oct 05 Doors: 6 pm Show: 7 pm Tickets Oct 06 Doors: 6 pm Show: 7 pm Tickets Find Tick",
+      " Show: 7 pm Tickets Find Tickets More Info Wed, Oct 07 2026 Vidura Bandara Rajapaksa Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 07 Doors: 6 pm Show: 7 pm Sold Out Oct 07 Doors: 8:45 pm Show: 9:15 pm Sold Out Find Tickets More Info Thu, Oct 08 Feli",
+      "pm Sold Out Find Tickets More Info Thu, Oct 08 Felicia Folkes Ages 21 and up Doors: 6 pm Show: 7 pm $37.95 Buy Tickets More Info Fri, Oct 09 - sat, Oct 10 2026 Josh Adam Meyers Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 09 Doors: 6 pm Show: 7 pm T",
+      "w: 7 pm $37.95 Buy Tickets More Info Fri, Oct 09 - sat, Oct 10 2026 Josh Adam Meyers Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 09 Doors: 6 pm Show: 7 pm Tickets Oct 09 Doors: 8:45 pm Show: 9:15 pm Tickets Oct 10 Doors: 6 pm Show: 7 pm Tickets Oct",
+      " Tickets More Info Sun, Oct 11 Kevin Sullivan *Special Event* Ages 21 and up Doors: 3 pm Show: 4 pm $37.95 Buy Tickets More Info Sun, Sep 27 Tim Convy & Sean O\u2019Brien Ages 21 and up Doors: 6 pm Show:  7 pm $37.95 Buy Tickets More Info Mon, Sep 28 - mon,",
+      "5 Buy Tickets More Info Sun, Sep 27 Tim Convy & Sean O\u2019Brien Ages 21 and up Doors: 6 pm Show:  7 pm $37.95 Buy Tickets More Info Mon, Sep 28 - mon, Nov 30 2026 Super Six Ages 21 and up $26 FULL PERFORMANCE LISTING Sep 28 Doors: 6 pm Show: 7 pm Tickets ",
+      "pm Show:  7 pm $37.95 Buy Tickets More Info Mon, Sep 28 - mon, Nov 30 2026 Super Six Ages 21 and up $26 FULL PERFORMANCE LISTING Sep 28 Doors: 6 pm Show: 7 pm Tickets Nov 16 Doors: 7:45 pm Show: 8:15 pm Tickets Nov 23 Doors: 6 pm Show: 7 pm Tickets Nov",
+      "w: 7 pm Tickets Find Tickets More Info Tue, Sep 29 - wed, Sep 30 2026 Red Richardson Ages 21 and up $43 FULL PERFORMANCE LISTING Sep 29 Doors: 6 pm Show: 7 pm Tickets Sep 30 Doors: 6 pm Show: 7 pm Tickets Find Tickets More Info Thu, Oct 01 - sat, Oct 0",
+      " 7 pm Tickets Find Tickets More Info Thu, Oct 01 - sat, Oct 03 2026 Headliner Series Ages 21 and up $26 FULL PERFORMANCE LISTING Oct 01 Doors: 6 pm Show: 7 pm Tickets Oct 02 Doors: 6 pm Show: 7 pm Tickets Oct 02 Doors: 8:45 pm Show: 9:15 pm Tickets Oct",
+      ": 9:15 pm Tickets Find Tickets More Info Thu, Oct 01 - thu, Dec 17 2026 Roast Battle Ages 21 and up $32 - $43 FULL PERFORMANCE LISTING Oct 01 Doors: 9 pm Show: 9:30 pm Tickets Oct 15 Doors: 9 pm Show: 9:30 pm Tickets Nov 11 Doors: 9 pm Show: 9:30 pm Ti",
+      " pm Tickets Find Tickets More Info Thu, Oct 01 - thu, Dec 17 2026 Roast Battle Ages 21 and up $32 - $43 FULL PERFORMANCE LISTING Oct 01 Doors: 9 pm Show: 9:30 pm Tickets Oct 15 Doors: 9 pm Show: 9:30 pm Tickets Nov 11 Doors: 9 pm Show: 9:30 pm Tickets ",
+      " Find Tickets More Info Sat, Oct 03 - sat, Oct 31 2026 After Hours with Calvin Evans Ages 21 and up $26 FULL PERFORMANCE LISTING Oct 03 Doors: 11 pm Show: 11:15 pm Tickets Oct 10 Doors: 11 pm Show: 11:15 pm Tickets Oct 17 Doors: 11 pm Show: 11:15 pm Ti",
+      "ore Info Sun, Oct 04 Parkinson\u2019s Foundation**Special Event** Ages 21 and up Doors: 3 pm Show:  4 pm $29 Buy Tickets More Info Sun, Oct 04 - tue, Oct 06 2026 Emil Wakim Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 04 Doors: 6 pm Show: 7 pm Tickets Oc",
+      "3 pm Show:  4 pm $29 Buy Tickets More Info Sun, Oct 04 - tue, Oct 06 2026 Emil Wakim Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 04 Doors: 6 pm Show: 7 pm Tickets Oct 05 Doors: 6 pm Show: 7 pm Tickets Oct 06 Doors: 6 pm Show: 7 pm Tickets Find Tick",
+      " Show: 7 pm Tickets Find Tickets More Info Wed, Oct 07 2026 Vidura Bandara Rajapaksa Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 07 Doors: 6 pm Show: 7 pm Sold Out Oct 07 Doors: 8:45 pm Show: 9:15 pm Sold Out Find Tickets More Info Thu, Oct 08 Feli",
+      "m Sold Out Find Tickets More Info Thu, Oct 08 Felicia Folkes Ages 21 and up Doors: 6 pm Show:  7 pm $37.95 Buy Tickets More Info Fri, Oct 09 - sat, Oct 10 2026 Josh Adam Meyers Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 09 Doors: 6 pm Show: 7 pm T",
+      ":  7 pm $37.95 Buy Tickets More Info Fri, Oct 09 - sat, Oct 10 2026 Josh Adam Meyers Ages 21 and up $37 FULL PERFORMANCE LISTING Oct 09 Doors: 6 pm Show: 7 pm Tickets Oct 09 Doors: 8:45 pm Show: 9:15 pm Tickets Oct 10 Doors: 6 pm Show: 7 pm Tickets Oct",
+      "Tickets More Info Sun, Oct 11 Kevin Sullivan *Special Event* Ages 21 and up Doors: 3 pm Show:  4 pm $37.95 Buy Tickets More Info LOAD MORE SHOWS \u00d7 Join the Zanies Mobile Club: Subscribe Now for Exclusive Offers & Early Announcements! Phone Number By pr"
+    ],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"Place\",\"@id\":\"https://chicago.zanies.com/#place\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"1548 N Wells Street\",\"addressLocality\":\"Chicago\",\"addressRegion\":\"Illinois\",\"postalCode\":\"60610\"}},{\"@type\":[\"EntertainmentBusiness\",\"Organization\"],\"@id\":\"https://chicago.zanies.com/#organization\",\"name\":\"Zanies Chicago Comedy Club\",\"url\":\"https://chicago.zanies.com\",\"sameAs\":[\"https://www.facebook.com/zanies\"],\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"1548 N Wells Street\",\"addressLocality\":\"Chicago\",\"addressRegion\":\"Illinois\",\"postalCode\":\"60610\"},\"logo\":{\"@type\":\"ImageObject\",\"@id\":\"https://chicago.zanies.com/#logo\",\"url\":\"https://chicago.zanies.com/wp-content/uploads/2021/07/Zanies-Chicago-Logo.jpg\",\"contentUrl\":\"https://chicago.zanies.com/wp-content/uploads/2021/07/Zanies-Chicago-Logo.jpg\",\"caption\":\"Zanies Chicago Comedy Club\",\"inLanguage\":\"en-US\",\"width\":\"350\",\"height\":\"102\"},\"legalName\":\"kathleen@rockhousepartners.com\",\"location\":{\"@id\":\"https://chicago.zanies.com/#place\"},\"image\":{\"@id\":\"https://chicago.zanies.com/#logo\"},\"telephone\":\"+1 312-337-4027\"},{\"@type\":\"WebSite\",\"@id\":\"https://chicago.zanies.com/#website\",\"url\":\"https://chicago.zanies.com\",\"name\":\"Zanies Chicago Comedy Club\",\"publisher\":{\"@id\":\"https://chicago.zanies.com/#organization\"},\"inLanguage\":\"en-US\",\"potentialAction\":{\"@type\":\"SearchAction\",\"target\":\"https://chicago.zanies.com/?s={search_term_string}\",\"query-input\":\"required name=search_term_string\"}},{\"@type\":\"ImageObject\",\"@id\":\"https://chicago.zanies.com/wp-content/uploads/2025/06/Summer-Laugh-Pass-WEB-BANNER.jpg\",\"url\":\"https://chicago.zanies.com/wp-content/uploads/2025/06/Summer-Laugh-Pass-WEB-BANNER.jpg\",\"width\":\"200\",\"height\":\"200\",\"inLanguage\":\"en-US\"},{\"@type\":\"WebPage\",\"@id\":\"https://chicago.zanies.com/#webpage\",\"url\":\"https://chicago.zanies.com/\",\"name\":\"Zanies | Comedy Club | Chicago, IL\",\"datePublished\":\"2023-02-03T04:35:56-06:00\",\"dateModified\":\"2026-09-24T07:41:27-05:00\",\"about\":{\"@id\":\"https://chicago.zanies.com/#organization\"},\"isPartOf\":{\"@id\":\"https://chicago.zanies.com/#website\"},\"primaryImageOfPage\":{\"@id\":\"https://chicago.zanies.com/wp-content/uploads/2025/06/Summer-Laugh-Pass-WEB-BANNER.jpg\"},\"inLanguage\":\"en-US\"},{\"@type\":\"Person\",\"@id\":\"https://chicago.zanies.com/author/mahadeo/\",\"name\":\"mahadeo\",\"url\":\"https://chicago.zanies.com/author/mahadeo/\",\"image\":{\"@type\":\"ImageObject\",\"@id\":\"https://secure.gravatar.com/avatar/8c9a71a15ee2e27a80a286f6eea0fe949319869ee89762ed5bbe862424116ddd?s=96&amp;d=mm&amp;r=g\",\"url\":\"https://secure.gravatar.com/avatar/8c9a71a15ee2e27a80a286f6eea0fe949319869ee89762ed5bbe862424116ddd?s=96&amp;d=mm&amp;r=g\",\"caption\":\"mahadeo\",\"inLanguage\":\"en-US\"},\"worksFor\":{\"@id\":\"https://chicago.zanies.com/#organization\"}},{\"@type\":\"Article\",\"headline\":\"Zanies | Comedy Club | Chicago, IL\",\"keywords\":\"zanies\",\"datePublished\":\"2023-02-03T04:35:56-06:00\",\"dateModified\":\"2026-09-24T07:41:27-05:00\",\"author\":{\"@id\":\"https://chicago.zanies.com/author/mahadeo/\",\"name\":\"mahadeo\"},\"publisher\":{\"@id\":\"https://chicago.zanies.com/#organization\"},\"description\":\"Zanies Comedy Club is the premiere comedy club located in Downtown Chicago. Zanies features some of the best comedic talent in the country.\",\"name\":\"Zanies | Comedy Club | Chicago, IL\",\"@id\":\"https://chicago.zanies.com/#richSnippet\",\"isPartOf\":{\"@id\":\"https://chicago.zanies.com/#webpage\"},\"image\":{\"@id\":\"https://chicago.zanies.com/wp-content/uploads/2025/06/Summer-Laugh-Pass-WEB-BANNER.jpg\"},\"inLanguage\":\"en-US\",\"mainEntityOfPage\":{\"@id\":\"https://chicago.zanies.com/#webpage\"}}]}"
+    ]
+  },
+  {
+    "key": "zanies",
+    "url": "https://nashville.zanies.com/",
+    "row": null,
+    "file": "zanies-3.html",
+    "length": 309001,
+    "sha256": "a6ecb0ba7701595354fd721cd7cc6c111a0be6079541473ff98c02404c29c5df",
+    "price_text": [
+      "e Zanies Box Office at (615) 269-0221 for assistance \u00d7 Zanies uses All-In Ticket Pricing. The total price listed includes ticket fees and taxes. \u00d7 CLUB CALENDAR GENERAL INFO FAQ Zanies Menu \u2013 Main Room The Lab Menu Monday Night Funnies About The Lab Direc",
+      "ab? UPCOMING EVENTS Upcoming Events Sun, Sep 27 AJ Wilkerson Ages 18 and up Doors: 5 pm Show:  6 pm $31.75 to $43.75 Zanies Buy Tickets More Info Sun, Sep 27 - sun, Dec 20 2026 Hot Fudge Ages 18 and up The Lab $24 FULL PERFORMANCE LISTING Sep 27 Doors:",
+      "NG EVENTS Upcoming Events Sun, Sep 27 AJ Wilkerson Ages 18 and up Doors: 5 pm Show:  6 pm $31.75 to $43.75 Zanies Buy Tickets More Info Sun, Sep 27 - sun, Dec 20 2026 Hot Fudge Ages 18 and up The Lab $24 FULL PERFORMANCE LISTING Sep 27 Doors: 5:30 pm S",
+      "$43.75 Zanies Buy Tickets More Info Sun, Sep 27 - sun, Dec 20 2026 Hot Fudge Ages 18 and up The Lab $24 FULL PERFORMANCE LISTING Sep 27 Doors: 5:30 pm Show: 6:30 pm Tickets Oct 31 Doors: 8:15 pm Show: 8:45 pm Tickets Nov 29 Doors: 5:30 pm Show: 6:30 pm",
+      "ets Find Tickets More Info Mon, Sep 28 - mon, Jan 25 2026 New Material Monday Ages 18 and up Zanies $16 FULL PERFORMANCE LISTING Sep 28 Doors: 6 pm Show: 7 pm Tickets Oct 05 Doors: 6 pm Show: 7 pm Tickets Oct 12 Doors: 6 pm Show: 7 pm Tickets Oct 19 Do",
+      "ets Find Tickets More Info Mon, Sep 28 - mon, Jan 25 2026/2027 Nateland Live Ages 18 and up The Lab $24 FULL PERFORMANCE LISTING Sep 28 Doors: 6 pm Show: 7 pm Tickets Oct 05 Doors: 6 pm Show: 7 pm Tickets Oct 12 Doors: 6 pm Show: 7 pm Tickets Oct 19 Do",
+      " 6 pm Show: 7 pm Tickets Find Tickets More Info Tue, Sep 29 2026 Show N Tell Ages 18 and up The Lab $15 FULL PERFORMANCE LISTING Sep 29 Doors: 6 pm Show: 7 pm Tickets Find Tickets More Info Tue, Sep 29 The Best Sex Ever Tour with Emily Morse Ages 18 an",
+      "ore Info Tue, Sep 29 The Best Sex Ever Tour with Emily Morse Ages 18 and up Doors: 6 pm Show:  7 pm $38.75 Zanies Buy Tickets More Info Wed, Sep 30 Angus Gill Ages 18 and up Doors: 6 pm Show:  7 pm $24.75 The Lab Buy Tickets More Info Wed, Sep 30 Prade",
+      "m $38.75 Zanies Buy Tickets More Info Wed, Sep 30 Angus Gill Ages 18 and up Doors: 6 pm Show:  7 pm $24.75 The Lab Buy Tickets More Info Wed, Sep 30 Prader Silly: A Night of Rare Laughs Doors: 5:30 pm Show:  7:30 pm Zanies Buy Tickets More Info Thu, Oc",
+      "pm Zanies Buy Tickets More Info Thu, Oct 01 - sat, Oct 03 2026 DYLAN CARLINO Ages 18 and up The Lab $31 FULL PERFORMANCE LISTING Oct 01 Doors: 6 pm Show: 7 pm Tickets Oct 02 Doors: 6 pm Show: 7 pm Tickets Oct 02 Doors: 8:45 pm Show: 9:15 pm Tickets Oct",
+      " pm Tickets Find Tickets More Info Thu, Oct 01 - sat, Oct 03 2026 Kyle Kinane Ages 18 and up Zanies $38 - $48 FULL PERFORMANCE LISTING Oct 01 Doors: 5:30 pm Show: 7 pm Tickets Oct 02 Doors: 5:30 pm Show: 7 pm Tickets Oct 02 Doors: 8:45 pm Show: 9:15 pm",
+      "ckets Find Tickets More Info Thu, Oct 01 - sat, Oct 03 2026 Kyle Kinane Ages 18 and up Zanies $38 - $48 FULL PERFORMANCE LISTING Oct 01 Doors: 5:30 pm Show: 7 pm Tickets Oct 02 Doors: 5:30 pm Show: 7 pm Tickets Oct 02 Doors: 8:45 pm Show: 9:15 pm Ticke",
+      " More Info Thu, Oct 01 Heather McMahan: Working It Out Ages 18 and up Doors: 8:45 pm Show:  9:15 pm $43.75 to $53.75 Zanies Sold Out More Info Sat, Oct 03 Twilight vs. Sinners Drag Brunch Ages 18 and up Doors: 11 am Show:  12 pm $26.75 to $36.75 The La",
+      " Thu, Oct 01 Heather McMahan: Working It Out Ages 18 and up Doors: 8:45 pm Show:  9:15 pm $43.75 to $53.75 Zanies Sold Out More Info Sat, Oct 03 Twilight vs. Sinners Drag Brunch Ages 18 and up Doors: 11 am Show:  12 pm $26.75 to $36.75 The Lab Buy Tick",
+      "Out More Info Sat, Oct 03 Twilight vs. Sinners Drag Brunch Ages 18 and up Doors: 11 am Show:  12 pm $26.75 to $36.75 The Lab Buy Tickets More Info Join our Mobile Club to receive priority access to show announcements and offers via text message! JOIN T",
+      "nfo Sat, Oct 03 Twilight vs. Sinners Drag Brunch Ages 18 and up Doors: 11 am Show:  12 pm $26.75 to $36.75 The Lab Buy Tickets More Info Join our Mobile Club to receive priority access to show announcements and offers via text message! JOIN THE ZANIES "
+    ],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"Place\",\"@id\":\"https://nashville.zanies.com/#place\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"2025 8th Avenue South\",\"addressLocality\":\"Nashville\",\"addressRegion\":\"Tennessee\",\"postalCode\":\"37204\"}},{\"@type\":[\"EntertainmentBusiness\",\"Organization\"],\"@id\":\"https://nashville.zanies.com/#organization\",\"name\":\"Zanies Nashville Comedy Club\",\"url\":\"https://nashville.zanies.com\",\"sameAs\":[\"https://www.facebook.com/zanies\"],\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"2025 8th Avenue South\",\"addressLocality\":\"Nashville\",\"addressRegion\":\"Tennessee\",\"postalCode\":\"37204\"},\"logo\":{\"@type\":\"ImageObject\",\"@id\":\"https://nashville.zanies.com/#logo\",\"url\":\"https://nashville.zanies.com/wp-content/uploads/2021/07/zanies_nashville_logo.jpg\",\"contentUrl\":\"https://nashville.zanies.com/wp-content/uploads/2021/07/zanies_nashville_logo.jpg\",\"caption\":\"Zanies Nashville Comedy Club\",\"inLanguage\":\"en-US\",\"width\":\"350\",\"height\":\"101\"},\"location\":{\"@id\":\"https://nashville.zanies.com/#place\"},\"image\":{\"@id\":\"https://nashville.zanies.com/#logo\"}},{\"@type\":\"WebSite\",\"@id\":\"https://nashville.zanies.com/#website\",\"url\":\"https://nashville.zanies.com\",\"name\":\"Zanies Nashville Comedy Club\",\"publisher\":{\"@id\":\"https://nashville.zanies.com/#organization\"},\"inLanguage\":\"en-US\",\"potentialAction\":{\"@type\":\"SearchAction\",\"target\":\"https://nashville.zanies.com/?s={search_term_string}\",\"query-input\":\"required name=search_term_string\"}},{\"@type\":\"ImageObject\",\"@id\":\"https://nashville.zanies.com/wp-content/uploads/2025/02/mnf_banner-768x181.jpg\",\"url\":\"https://nashville.zanies.com/wp-content/uploads/2025/02/mnf_banner-768x181.jpg\",\"width\":\"200\",\"height\":\"200\",\"inLanguage\":\"en-US\"},{\"@type\":\"WebPage\",\"@id\":\"https://nashville.zanies.com/#webpage\",\"url\":\"https://nashville.zanies.com/\",\"name\":\"Zanies | Comedy Club | Nashville, TN\",\"datePublished\":\"2021-07-15T07:14:59-05:00\",\"dateModified\":\"2026-09-26T07:40:06-05:00\",\"about\":{\"@id\":\"https://nashville.zanies.com/#organization\"},\"isPartOf\":{\"@id\":\"https://nashville.zanies.com/#website\"},\"primaryImageOfPage\":{\"@id\":\"https://nashville.zanies.com/wp-content/uploads/2025/02/mnf_banner-768x181.jpg\"},\"inLanguage\":\"en-US\"},{\"@type\":\"Person\",\"@id\":\"https://nashville.zanies.com/author/rhpwebops/\",\"name\":\"rhpwebops\",\"url\":\"https://nashville.zanies.com/author/rhpwebops/\",\"image\":{\"@type\":\"ImageObject\",\"@id\":\"https://secure.gravatar.com/avatar/54af701570b3fd102ba1524ee2c10142938e8002ff18e0bd41183522979a1b1d?s=96&amp;d=mm&amp;r=g\",\"url\":\"https://secure.gravatar.com/avatar/54af701570b3fd102ba1524ee2c10142938e8002ff18e0bd41183522979a1b1d?s=96&amp;d=mm&amp;r=g\",\"caption\":\"rhpwebops\",\"inLanguage\":\"en-US\"},\"sameAs\":[\"https://nashville.zanies.com\"],\"worksFor\":{\"@id\":\"https://nashville.zanies.com/#organization\"}},{\"@type\":\"Article\",\"headline\":\"Zanies | Comedy Club | Nashville, TN\",\"keywords\":\"zanies\",\"datePublished\":\"2021-07-15T07:14:59-05:00\",\"dateModified\":\"2026-09-26T07:40:06-05:00\",\"author\":{\"@id\":\"https://nashville.zanies.com/author/rhpwebops/\",\"name\":\"rhpwebops\"},\"publisher\":{\"@id\":\"https://nashville.zanies.com/#organization\"},\"description\":\"Zanies Comedy Club is the premiere comedy club located in Nashville, TN. Open 7 days a week, Zanies features some of the best comedic talent in the country.\",\"name\":\"Zanies | Comedy Club | Nashville, TN\",\"@id\":\"https://nashville.zanies.com/#richSnippet\",\"isPartOf\":{\"@id\":\"https://nashville.zanies.com/#webpage\"},\"image\":{\"@id\":\"https://nashville.zanies.com/wp-content/uploads/2025/02/mnf_banner-768x181.jpg\"},\"inLanguage\":\"en-US\",\"mainEntityOfPage\":{\"@id\":\"https://nashville.zanies.com/#webpage\"}}]}"
+    ]
+  },
+  {
+    "key": "flop_house_json",
+    "url": "https://www.eventbrite.com/e/tickets-2002265475938",
+    "row": {
+      "id": 8513139,
+      "purchase_url": "https://www.eventbrite.com/e/tickets-2002265475938",
+      "price": null,
+      "sold_out": false,
+      "show_id": 7470872,
+      "type": "General Admission",
+      "name": "The 11pm Comedy Show",
+      "date": "2026-09-27T03:00:00+00:00",
+      "club_id": 16061,
+      "club_name": "Flop House Comedy Club",
+      "website": "https://www.flophousecomedy.com/",
+      "show_page_url": "https://www.eventbrite.com/e/tickets-2002265475938",
+      "last_scraped_by": "flop_house_json",
+      "last_scraped_date": "2026-09-26T23:27:41.293519+00:00"
+    },
+    "file": "flop_house_json-0.html",
+    "length": 184755,
+    "sha256": "600d1c7d4d91f05acb5735f8317e3c300ad391b64be87d6315cfe6377c57157e",
+    "price_text": [
+      "nizers to get events picked for you You might also like... Browse more events with different dates, prices, and formats to find your next great experience. Still looking for the right event? Explore all events in Brooklyn and filter by date, category, and"
+    ],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@type\":\"WebPage\",\"name\":\"The 11pm Comedy Show\",\"speakable\":{\"@type\":\"SpeakableSpecification\",\"xPath\":[\"/html/head/meta[@property='og:title']/@content\",\"/html/head/meta[@name='description']/@content\"]},\"url\":\"https://www.eventbrite.com/e/the-11pm-comedy-show-tickets-2002265475938\"}",
+      "{\"@context\":\"https://schema.org\",\"@type\":\"Event\",\"name\":\"The 11pm Comedy Show\",\"description\":\"Hosted at NYC\u2019s friendliest comedy club, Flop House Comedy, featuring comics seen on Netflix, HBO, and Comedy Central\",\"url\":\"https://www.eventbrite.com/e/the-11pm-comedy-show-tickets-2002265475938\",\"image\":\"https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1188390959%2F369144123539%2F1%2Foriginal.20260707-181030?w=940&auto=format%2Ccompress&q=75&sharp=10&rect=0%2C0%2C1280%2C640&s=18c06d6e363515deffe802e2bdf03d2b\",\"eventStatus\":\"https://schema.org/EventScheduled\",\"location\":{\"@type\":\"Place\",\"name\":\"362 Grand St\",\"address\":{\"@type\":\"PostalAddress\",\"addressLocality\":\"Brooklyn\",\"addressRegion\":\"NY\",\"addressCountry\":\"US\",\"streetAddress\":\"362 Grand Street, Brooklyn, NY 11211\"}},\"organizer\":{\"@type\":\"Organization\",\"name\":\"Flop House Comedy\",\"url\":\"https://www.eventbrite.com/o/flop-house-comedy-74484939183\",\"description\":\"F\ufeffun and Cozy Comedy Club in Williamsburg, Brooklyn - Founded by Comedians!\"},\"eventAttendanceMode\":\"https://schema.org/OfflineEventAttendanceMode\",\"inLanguage\":\"en-US\",\"startDate\":\"2026-09-26T23:00:00-04:00\",\"endDate\":\"2026-09-27T00:30:00-04:00\",\"offers\":[{\"@type\":\"AggregateOffer\",\"lowPrice\":\"12.51\",\"highPrice\":\"12.51\",\"url\":\"https://www.eventbrite.com/e/the-11pm-comedy-show-tickets-2002265475938\",\"availability\":\"InStock\",\"availabilityStarts\":\"2026-09-25T05:28:04Z\",\"availabilityEnds\":\"2026-09-27T04:30:00Z\",\"validFrom\":\"2026-09-25T05:28:04Z\",\"priceCurrency\":\"USD\"}]}",
+      "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"item\":{\"@id\":\"/d/united-states/events/\",\"name\":\"United States Events\"}},{\"@type\":\"ListItem\",\"position\":2,\"item\":{\"@id\":\"/d/united-states--new-york/events/\",\"name\":\"New York Events\"}},{\"@type\":\"ListItem\",\"position\":3,\"item\":{\"@id\":\"/ttd/ny--new-york/\",\"name\":\"Things to do in New York, New York\"}}]}"
+    ]
+  },
+  {
+    "key": "flop_house_json",
+    "url": "https://www.eventbrite.com/e/tickets-1998162564018",
+    "row": {
+      "id": 6397686,
+      "purchase_url": "https://www.eventbrite.com/e/tickets-1998162564018",
+      "price": null,
+      "sold_out": false,
+      "show_id": 5647455,
+      "type": "General Admission",
+      "name": "Williamsburg Comedy Club @ Flop House",
+      "date": "2026-09-29T00:00:00+00:00",
+      "club_id": 16061,
+      "club_name": "Flop House Comedy Club",
+      "website": "https://www.flophousecomedy.com/",
+      "show_page_url": "https://www.eventbrite.com/e/tickets-1998162564018",
+      "last_scraped_by": "flop_house_json",
+      "last_scraped_date": "2026-09-26T23:27:41.293455+00:00"
+    },
+    "file": "flop_house_json-1.html",
+    "length": 185863,
+    "sha256": "a045f92dbf101c62a87c8aa9e9bc3efc82351ce5364e04b3988f59d7871d85e4",
+    "price_text": [
+      "nizers to get events picked for you You might also like... Browse more events with different dates, prices, and formats to find your next great experience. Still looking for the right event? Explore all events in Brooklyn and filter by date, category, and"
+    ],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@type\":\"WebPage\",\"name\":\"Williamsburg Comedy Club @ Flop House\",\"speakable\":{\"@type\":\"SpeakableSpecification\",\"xPath\":[\"/html/head/meta[@property='og:title']/@content\",\"/html/head/meta[@name='description']/@content\"]},\"url\":\"https://www.eventbrite.com/e/williamsburg-comedy-club-flop-house-tickets-1998162564018\"}",
+      "{\"@context\":\"https://schema.org\",\"@type\":\"Event\",\"name\":\"Williamsburg Comedy Club @ Flop House\",\"description\":\"Jimmy McCullough (NY Comedy Club) Chris Scopo (NYCF) Elle Orlando (Comedy Cellar) Nikhil Mehta (NY Comedy Club) Terry Thomas (Impractical Jo\",\"url\":\"https://www.eventbrite.com/e/williamsburg-comedy-club-flop-house-tickets-1998162564018\",\"image\":\"https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1194161525%2F369144123539%2F1%2Foriginal.20260923-023707?w=940&auto=format%2Ccompress&q=75&sharp=10&rect=0%2C0%2C1280%2C640&s=d5ffd68320831322a6f4c56590b65f73\",\"eventStatus\":\"https://schema.org/EventScheduled\",\"location\":{\"@type\":\"Place\",\"name\":\"362 Grand St\",\"address\":{\"@type\":\"PostalAddress\",\"addressLocality\":\"Brooklyn\",\"addressRegion\":\"NY\",\"addressCountry\":\"US\",\"streetAddress\":\"362 Grand Street, Brooklyn, NY 11211\"}},\"organizer\":{\"@type\":\"Organization\",\"name\":\"Flop House Comedy\",\"url\":\"https://www.eventbrite.com/o/flop-house-comedy-74484939183\",\"description\":\"F\ufeffun and Cozy Comedy Club in Williamsburg, Brooklyn - Founded by Comedians!\"},\"eventAttendanceMode\":\"https://schema.org/OfflineEventAttendanceMode\",\"inLanguage\":\"en-US\",\"startDate\":\"2026-09-28T20:00:00-04:00\",\"endDate\":\"2026-09-28T21:30:00-04:00\",\"offers\":[{\"@type\":\"AggregateOffer\",\"lowPrice\":\"19.98\",\"highPrice\":\"19.98\",\"url\":\"https://www.eventbrite.com/e/williamsburg-comedy-club-flop-house-tickets-1998162564018\",\"availability\":\"InStock\",\"availabilityStarts\":\"2026-08-17T00:24:10Z\",\"availabilityEnds\":\"2026-09-29T01:30:00Z\",\"validFrom\":\"2026-08-17T00:24:10Z\",\"priceCurrency\":\"USD\"}]}",
+      "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"item\":{\"@id\":\"/d/united-states/events/\",\"name\":\"United States Events\"}},{\"@type\":\"ListItem\",\"position\":2,\"item\":{\"@id\":\"/d/united-states--new-york/events/\",\"name\":\"New York Events\"}},{\"@type\":\"ListItem\",\"position\":3,\"item\":{\"@id\":\"/ttd/ny--new-york/\",\"name\":\"Things to do in New York, New York\"}}]}"
+    ]
+  },
+  {
+    "key": "flop_house_json",
+    "url": "https://www.flophousecomedy.com/",
+    "row": null,
+    "file": "flop_house_json-2.html",
+    "length": 7016,
+    "sha256": "2381f354b40b32ca66bda76fe11696984630e34ea3bf495c627c685a31eb5583",
+    "price_text": [],
+    "jsonld": []
+  },
+  {
+    "key": "hennepin_arts",
+    "url": "https://hennepinarts.org/events/the-algorithm-is-gonna-get-you-2026",
+    "row": {
+      "id": 4374376,
+      "purchase_url": "https://www.ticketmaster.com/event/060064D8ACA3B414",
+      "price": null,
+      "sold_out": false,
+      "show_id": 3899630,
+      "type": "General Admission",
+      "name": "The Algorithm is Gonna Get You",
+      "date": "2026-10-03T21:30:00+00:00",
+      "club_id": 12753,
+      "club_name": "Hennepin Arts",
+      "website": "https://hennepinarts.org",
+      "show_page_url": "https://hennepinarts.org/events/the-algorithm-is-gonna-get-you-2026",
+      "last_scraped_by": "hennepin_arts",
+      "last_scraped_date": "2026-09-26T23:26:33.898163+00:00"
+    },
+    "file": "hennepin_arts-0.html",
+    "length": 490306,
+    "sha256": "ade141baa803c2fbfde019c5f7d4cec58ea7d72546041e2e867e393c9e444ac6",
+    "price_text": [
+      "call 612-373-5665 or email Minneapolis.Groups@HennepinArts.com Student and educator rush 50% ticket price (credit card only) 2 ticket limit with valid Student ID Available for all performances Begins 2 hours prior to show in person at the theater About Th"
+    ],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@graph\":[{\"@id\":\"https://hennepinarts.org/#website\",\"@type\":\"WebSite\",\"name\":\"Hennepin Arts\",\"url\":\"https://hennepinarts.org/\",\"publisher\":{\"@id\":\"https://hennepinarts.org/#/schema/organization/53a1bb8\"}},{\"@id\":\"https://hennepinarts.org/events/the-algorithm-is-gonna-get-you-2026#webpage\",\"@type\":\"WebPage\",\"description\":\"From the dazzling lights of Broadway to captivating concerts, there\u2019s so much to see and do. Downtown Minneapolis has become a vibrant hub of all-things-arts.\",\"name\":\"The Algorithm is Gonna Get You\",\"url\":\"https://hennepinarts.org/events/the-algorithm-is-gonna-get-you-2026\",\"about\":{\"@id\":\"https://hennepinarts.org/#identity\"},\"breadcrumb\":{\"@id\":\"https://hennepinarts.org/events/the-algorithm-is-gonna-get-you-2026#breadcrumb\"},\"isPartOf\":{\"@id\":\"https://hennepinarts.org/#website\"},\"potentialAction\":[{\"@type\":\"ReadAction\",\"target\":[\"https://hennepinarts.org/events/the-algorithm-is-gonna-get-you-2026\"]}]},{\"@id\":\"https://hennepinarts.org/#identity\",\"@type\":\"Organization\",\"name\":\"Hennepin Arts\",\"url\":\"https://hennepinarts.org\"},{\"@id\":\"https://hennepinarts.org/events/the-algorithm-is-gonna-get-you-2026#breadcrumb\",\"@type\":\"BreadcrumbList\",\"id\":\"#breadcrumb\",\"itemListElement\":[{\"@type\":\"ListItem\",\"name\":\"Home\",\"item\":\"https://hennepinarts.org/\",\"position\":1},{\"@type\":\"ListItem\",\"name\":\"Events\",\"item\":\"https://hennepinarts.org/events\",\"position\":2},{\"@type\":\"ListItem\",\"name\":\"The Algorithm Is Gonna Get You 2026\",\"item\":\"https://hennepinarts.org/events/the-algorithm-is-gonna-get-you-2026\",\"position\":3}]},{\"@id\":\"https://hennepinarts.org/events/the-algorithm-is-gonna-get-you-2026#event\",\"@type\":\"Event\",\"description\":\"Tired of social media being so anti-social? \u00a0Sick of explaining social media to family members? Brave New Workshop and your favorite performers are back with **The Algorithm is Gonna Get You** \u2014 an all-new sketch comedy revue to help you flex on your feed, face your FOMO and finally feel the freedom to forget your phone! \",\"endDate\":\"2026-11-07\",\"eventAttendanceMode\":\"https://schema.org/OfflineEventAttendanceMode\",\"eventStatus\":\"https://schema.org/EventScheduled\",\"name\":\"The Algorithm is Gonna Get You\",\"startDate\":\"2026-08-13\",\"image\":{\"@id\":\"https://hennepinarts.org/#/schema/image/9e49b7e\"},\"location\":{\"@type\":\"Place\",\"name\":\"Dudley Riggs Theatre\",\"address\":{\"streetAddress\":\"824 Hennepin AVE\",\"addressLocality\":\"Minneapolis\",\"postalCode\":\"55403\",\"addressRegion\":\"MN\",\"addressCountry\":\"USA\"}},\"organizer\":{\"@id\":\"https://hennepinarts.org/#/schema/organization/53a1bb8\"}},{\"@id\":\"https://hennepinarts.org/#/schema/organization/53a1bb8\",\"@type\":\"Organization\",\"name\":\"Hennepin Arts\",\"url\":\"https://hennepinarts.org\"},{\"@id\":\"https://hennepinarts.org/#/schema/image/9e49b7e\",\"@type\":\"ImageObject\",\"contentUrl\":\"https://images.ctfassets.net/sjxdiqjbm079/7nLWk8JzDt97mu1xGlSwjX/2ee75807e81f194dbeaad19e5c7e4e06/BNW_Alg_Email_Image.png?fm=webp&w=1200&h=630&q=70&fit=fill\",\"url\":\"https://images.ctfassets.net/sjxdiqjbm079/7nLWk8JzDt97mu1xGlSwjX/2ee75807e81f194dbeaad19e5c7e4e06/BNW_Alg_Email_Image.png?fm=webp&w=1200&h=630&q=70&fit=fill\"}]}"
+    ]
+  },
+  {
+    "key": "hennepin_arts",
+    "url": "https://hennepinarts.org/events/lucas-zelnick-2026",
+    "row": {
+      "id": 4047084,
+      "purchase_url": "https://www.ticketmaster.com/event/06006488D1943C37",
+      "price": null,
+      "sold_out": false,
+      "show_id": 3615750,
+      "type": "General Admission",
+      "name": "Lucas Zelnick",
+      "date": "2026-10-24T00:00:00+00:00",
+      "club_id": 12753,
+      "club_name": "Hennepin Arts",
+      "website": "https://hennepinarts.org",
+      "show_page_url": "https://hennepinarts.org/events/lucas-zelnick-2026",
+      "last_scraped_by": "hennepin_arts",
+      "last_scraped_date": "2026-09-26T23:26:33.898193+00:00"
+    },
+    "file": "hennepin_arts-1.html",
+    "length": 458865,
+    "sha256": "837e43b8207ba6000a5df16c147142c3717778e58e9f4322984dbf5a6b74a938",
+    "price_text": [],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@graph\":[{\"@id\":\"https://hennepinarts.org/#website\",\"@type\":\"WebSite\",\"name\":\"Hennepin Arts\",\"url\":\"https://hennepinarts.org/\",\"publisher\":{\"@id\":\"https://hennepinarts.org/#/schema/organization/53a1bb8\"}},{\"@id\":\"https://hennepinarts.org/events/lucas-zelnick-2026#webpage\",\"@type\":\"WebPage\",\"description\":\"From the dazzling lights of Broadway to captivating concerts, there\u2019s so much to see and do. Downtown Minneapolis has become a vibrant hub of all-things-arts.\",\"name\":\"Lucas Zelnick\",\"url\":\"https://hennepinarts.org/events/lucas-zelnick-2026\",\"about\":{\"@id\":\"https://hennepinarts.org/#identity\"},\"breadcrumb\":{\"@id\":\"https://hennepinarts.org/events/lucas-zelnick-2026#breadcrumb\"},\"isPartOf\":{\"@id\":\"https://hennepinarts.org/#website\"},\"potentialAction\":[{\"@type\":\"ReadAction\",\"target\":[\"https://hennepinarts.org/events/lucas-zelnick-2026\"]}]},{\"@id\":\"https://hennepinarts.org/#identity\",\"@type\":\"Organization\",\"name\":\"Hennepin Arts\",\"url\":\"https://hennepinarts.org\"},{\"@id\":\"https://hennepinarts.org/events/lucas-zelnick-2026#breadcrumb\",\"@type\":\"BreadcrumbList\",\"id\":\"#breadcrumb\",\"itemListElement\":[{\"@type\":\"ListItem\",\"name\":\"Home\",\"item\":\"https://hennepinarts.org/\",\"position\":1},{\"@type\":\"ListItem\",\"name\":\"Events\",\"item\":\"https://hennepinarts.org/events\",\"position\":2},{\"@type\":\"ListItem\",\"name\":\"Lucas Zelnick 2026\",\"item\":\"https://hennepinarts.org/events/lucas-zelnick-2026\",\"position\":3}]},{\"@id\":\"https://hennepinarts.org/events/lucas-zelnick-2026#event\",\"@type\":\"Event\",\"description\":\"Lucas Zelnick is a stand-up comedian born, raised, and based in New York City who challenges his cushy upbringing through punch-heavy material. Lucas has been featured on Comedy Central, as a headliner at the *Netflix is a Joke Festival* and in feature films *Regulars* and *Fade to Black.*\",\"endDate\":\"2026-10-23\",\"eventAttendanceMode\":\"https://schema.org/OfflineEventAttendanceMode\",\"eventStatus\":\"https://schema.org/EventScheduled\",\"name\":\"Lucas Zelnick\",\"startDate\":\"2026-10-23\",\"image\":{\"@id\":\"https://hennepinarts.org/#/schema/image/2bb8ea\"},\"location\":{\"@type\":\"Place\",\"name\":\"Pantages Theatre\",\"address\":{\"streetAddress\":\"710 Hennepin AVE\",\"addressLocality\":\"Minneapolis\",\"postalCode\":\"55403\",\"addressRegion\":\"MN\",\"addressCountry\":\"USA\"}},\"organizer\":{\"@id\":\"https://hennepinarts.org/#/schema/organization/53a1bb8\"}},{\"@id\":\"https://hennepinarts.org/#/schema/organization/53a1bb8\",\"@type\":\"Organization\",\"name\":\"Hennepin Arts\",\"url\":\"https://hennepinarts.org\"},{\"@id\":\"https://hennepinarts.org/#/schema/image/2bb8ea\",\"@type\":\"ImageObject\",\"contentUrl\":\"https://images.ctfassets.net/sjxdiqjbm079/4zfjde3TvS8RXWVss520R5/4bf1f36feccd2db227081fabfcb1a335/Lucas-Zelnick-2026-web.jpg?fm=webp&w=1200&h=630&q=70&fit=fill\",\"url\":\"https://images.ctfassets.net/sjxdiqjbm079/4zfjde3TvS8RXWVss520R5/4bf1f36feccd2db227081fabfcb1a335/Lucas-Zelnick-2026-web.jpg?fm=webp&w=1200&h=630&q=70&fit=fill\"}]}"
+    ]
+  },
+  {
+    "key": "hennepin_arts",
+    "url": "https://hennepinarts.org/events?refinementList%5Bgenre%5D%5B0%5D=Comedy",
+    "row": null,
+    "file": "hennepin_arts-2.html",
+    "length": 344514,
+    "sha256": "d044a1d547ebeb3f43a037abf880739a6882c4d34c92bd944471aa113d7db0b8",
+    "price_text": [],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@graph\":[{\"@id\":\"https://hennepinarts.org/#website\",\"@type\":\"WebSite\",\"name\":\"Hennepin Arts\",\"url\":\"https://hennepinarts.org/\",\"publisher\":{\"@id\":\"https://hennepinarts.org/#identity\"}},{\"@id\":\"https://hennepinarts.org/events#webpage\",\"@type\":\"WebPage\",\"description\":\"From the dazzling lights of Broadway to captivating concerts, there\u2019s so much to see and do. Downtown Minneapolis has become a vibrant hub of all-things-arts.\",\"name\":\"Events\",\"url\":\"https://hennepinarts.org/events\",\"about\":{\"@id\":\"https://hennepinarts.org/#identity\"},\"breadcrumb\":{\"@id\":\"https://hennepinarts.org/events#breadcrumb\"},\"isPartOf\":{\"@id\":\"https://hennepinarts.org/#website\"},\"potentialAction\":[{\"@type\":\"ReadAction\",\"target\":[\"https://hennepinarts.org/events\"]}]},{\"@id\":\"https://hennepinarts.org/#identity\",\"@type\":\"Organization\",\"name\":\"Hennepin Arts\",\"url\":\"https://hennepinarts.org\"},{\"@id\":\"https://hennepinarts.org/events#breadcrumb\",\"@type\":\"BreadcrumbList\",\"id\":\"#breadcrumb\",\"itemListElement\":[{\"@type\":\"ListItem\",\"name\":\"Home\",\"item\":\"https://hennepinarts.org/\",\"position\":1},{\"@type\":\"ListItem\",\"name\":\"Events\",\"item\":\"https://hennepinarts.org/events\",\"position\":2}]}]}"
+    ]
+  },
+  {
+    "key": "denver_comedy_lounge",
+    "url": "https://denvercomedylounge.com/shows/saturday-10pm-2026-09-26",
+    "row": {
+      "id": 3923192,
+      "purchase_url": "https://denvercomedylounge.com/shows/saturday-10pm-2026-09-26",
+      "price": null,
+      "sold_out": false,
+      "show_id": 3507914,
+      "type": "General Admission",
+      "name": "Saturday Late Night",
+      "date": "2026-09-27T04:00:00+00:00",
+      "club_id": 11296,
+      "club_name": "Denver Comedy Lounge",
+      "website": "https://denvercomedylounge.com",
+      "show_page_url": "https://denvercomedylounge.com/shows/saturday-10pm-2026-09-26",
+      "last_scraped_by": "denver_comedy_lounge",
+      "last_scraped_date": "2026-09-26T23:25:24.867846+00:00"
+    },
+    "file": "denver_comedy_lounge-0.html",
+    "length": 28212,
+    "sha256": "58c8c972e2e56a717a2b7584529b099aa3818889dc13decfd8d5de086e4b67cf",
+    "price_text": [],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@type\":\"EntertainmentBusiness\",\"additionalType\":\"https://schema.org/ComedyClub\",\"@id\":\"https://denvercomedylounge.com/#business\",\"name\":\"Denver Comedy Lounge\",\"description\":\"Denver's premier intimate comedy club and sake bar in the RiNo Arts District. Live stand-up comedy, craft sake, and Japanese-inspired small plates.\",\"url\":\"https://denvercomedylounge.com/\",\"telephone\":\"+17204496963\",\"email\":\"info@denvercomedylounge.com\",\"priceRange\":\"$$\",\"image\":\"https://denvercomedylounge.com/og?title=Denver+Comedy+Lounge\",\"logo\":\"https://denvercomedylounge.com/images/logos/dcl-logo.webp\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"3559 Larimer St\",\"addressLocality\":\"Denver\",\"addressRegion\":\"CO\",\"postalCode\":\"80205\",\"addressCountry\":\"US\"},\"geo\":{\"@type\":\"GeoCoordinates\",\"latitude\":39.7670242,\"longitude\":-104.9737059},\"openingHoursSpecification\":[{\"@type\":\"OpeningHoursSpecification\",\"dayOfWeek\":\"Friday\",\"opens\":\"17:00\",\"closes\":\"23:00\"},{\"@type\":\"OpeningHoursSpecification\",\"dayOfWeek\":\"Saturday\",\"opens\":\"16:30\",\"closes\":\"00:00\"}],\"servesCuisine\":[\"Japanese\",\"Sake\",\"Small Plates\"],\"amenityFeature\":[{\"@type\":\"LocationFeatureSpecification\",\"name\":\"Live Comedy Shows\",\"value\":true},{\"@type\":\"LocationFeatureSpecification\",\"name\":\"Full Bar\",\"value\":true},{\"@type\":\"LocationFeatureSpecification\",\"name\":\"Private Events\",\"value\":true}],\"containsPlace\":{\"@type\":\"Brewery\",\"name\":\"Colorado Sake Co.\",\"description\":\"Craft sake brewery and tasting room sharing the venue\"},\"department\":[{\"@type\":\"FoodEstablishment\",\"name\":\"Colorado Sake Co.\",\"description\":\"Denver's first sake brewery, sharing the RiNo venue\",\"servesCuisine\":[\"Sake\",\"Japanese\"],\"hasMenu\":\"https://denvercomedylounge.com/menu\"}],\"sameAs\":[\"https://www.instagram.com/denvercomedylounge/\",\"https://www.facebook.com/denvercomedylounge/\",\"https://www.tiktok.com/@denvercomedylounge\",\"https://www.youtube.com/@denvercomedylounge\",\"https://www.eventbrite.com/o/denver-comedy-lounge-17498498067\"],\"aggregateRating\":{\"@type\":\"AggregateRating\",\"ratingValue\":\"4.6\",\"reviewCount\":\"296\",\"bestRating\":\"5\",\"worstRating\":\"1\"},\"hasMap\":\"https://www.google.com/maps/search/?api=1&query=Denver+Comedy+Lounge%2C+3559+Larimer+St%2C+Denver%2C+CO+80205\",\"areaServed\":[{\"@type\":\"City\",\"name\":\"Denver\",\"addressRegion\":\"CO\"},{\"@type\":\"Neighborhood\",\"name\":\"RiNo Arts District\"},{\"@type\":\"Neighborhood\",\"name\":\"Five Points\"},{\"@type\":\"Neighborhood\",\"name\":\"LoDo\"},{\"@type\":\"Neighborhood\",\"name\":\"Capitol Hill\"}]}"
+    ]
+  },
+  {
+    "key": "denver_comedy_lounge",
+    "url": "https://denvercomedylounge.com/shows/friday-7pm-2026-10-02",
+    "row": {
+      "id": 4249847,
+      "purchase_url": "https://denvercomedylounge.com/shows/friday-7pm-2026-10-02",
+      "price": null,
+      "sold_out": false,
+      "show_id": 3790700,
+      "type": "General Admission",
+      "name": "Friday Night Comedy",
+      "date": "2026-10-03T01:00:00+00:00",
+      "club_id": 11296,
+      "club_name": "Denver Comedy Lounge",
+      "website": "https://denvercomedylounge.com",
+      "show_page_url": "https://denvercomedylounge.com/shows/friday-7pm-2026-10-02",
+      "last_scraped_by": "denver_comedy_lounge",
+      "last_scraped_date": "2026-09-26T23:25:24.867849+00:00"
+    },
+    "file": "denver_comedy_lounge-1.html",
+    "length": 47600,
+    "sha256": "c4c1ce1d5ea047b4f8ac55b3d89070cc4bec8d142229ac3e446bb4b7503adb2a",
+    "price_text": [],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@type\":\"EntertainmentBusiness\",\"additionalType\":\"https://schema.org/ComedyClub\",\"@id\":\"https://denvercomedylounge.com/#business\",\"name\":\"Denver Comedy Lounge\",\"description\":\"Denver's premier intimate comedy club and sake bar in the RiNo Arts District. Live stand-up comedy, craft sake, and Japanese-inspired small plates.\",\"url\":\"https://denvercomedylounge.com/\",\"telephone\":\"+17204496963\",\"email\":\"info@denvercomedylounge.com\",\"priceRange\":\"$$\",\"image\":\"https://denvercomedylounge.com/og?title=Denver+Comedy+Lounge\",\"logo\":\"https://denvercomedylounge.com/images/logos/dcl-logo.webp\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"3559 Larimer St\",\"addressLocality\":\"Denver\",\"addressRegion\":\"CO\",\"postalCode\":\"80205\",\"addressCountry\":\"US\"},\"geo\":{\"@type\":\"GeoCoordinates\",\"latitude\":39.7670242,\"longitude\":-104.9737059},\"openingHoursSpecification\":[{\"@type\":\"OpeningHoursSpecification\",\"dayOfWeek\":\"Friday\",\"opens\":\"17:00\",\"closes\":\"23:00\"},{\"@type\":\"OpeningHoursSpecification\",\"dayOfWeek\":\"Saturday\",\"opens\":\"16:30\",\"closes\":\"00:00\"}],\"servesCuisine\":[\"Japanese\",\"Sake\",\"Small Plates\"],\"amenityFeature\":[{\"@type\":\"LocationFeatureSpecification\",\"name\":\"Live Comedy Shows\",\"value\":true},{\"@type\":\"LocationFeatureSpecification\",\"name\":\"Full Bar\",\"value\":true},{\"@type\":\"LocationFeatureSpecification\",\"name\":\"Private Events\",\"value\":true}],\"containsPlace\":{\"@type\":\"Brewery\",\"name\":\"Colorado Sake Co.\",\"description\":\"Craft sake brewery and tasting room sharing the venue\"},\"department\":[{\"@type\":\"FoodEstablishment\",\"name\":\"Colorado Sake Co.\",\"description\":\"Denver's first sake brewery, sharing the RiNo venue\",\"servesCuisine\":[\"Sake\",\"Japanese\"],\"hasMenu\":\"https://denvercomedylounge.com/menu\"}],\"sameAs\":[\"https://www.instagram.com/denvercomedylounge/\",\"https://www.facebook.com/denvercomedylounge/\",\"https://www.tiktok.com/@denvercomedylounge\",\"https://www.youtube.com/@denvercomedylounge\",\"https://www.eventbrite.com/o/denver-comedy-lounge-17498498067\"],\"aggregateRating\":{\"@type\":\"AggregateRating\",\"ratingValue\":\"4.6\",\"reviewCount\":\"296\",\"bestRating\":\"5\",\"worstRating\":\"1\"},\"hasMap\":\"https://www.google.com/maps/search/?api=1&query=Denver+Comedy+Lounge%2C+3559+Larimer+St%2C+Denver%2C+CO+80205\",\"areaServed\":[{\"@type\":\"City\",\"name\":\"Denver\",\"addressRegion\":\"CO\"},{\"@type\":\"Neighborhood\",\"name\":\"RiNo Arts District\"},{\"@type\":\"Neighborhood\",\"name\":\"Five Points\"},{\"@type\":\"Neighborhood\",\"name\":\"LoDo\"},{\"@type\":\"Neighborhood\",\"name\":\"Capitol Hill\"}]}"
+    ]
+  },
+  {
+    "key": "denver_comedy_lounge",
+    "url": "https://denvercomedylounge.com/shows",
+    "row": null,
+    "file": "denver_comedy_lounge-2.html",
+    "length": 139888,
+    "sha256": "c8217604f5823cf12de94a9f9584e743556fccecf9ec49955a92d119d0ebe591",
+    "price_text": [
+      "Denver Comedy Shows | Calendar & Tickets from $20 | Denver Comedy Lounge Skip to content Denver Comedy Lounge LIVE IN RINO Shows Experience Plan Your Visit GET TICKETS GIFT CARDS Comedy Shows in Den"
+    ],
+    "jsonld": [
+      "{\"@context\":\"https://schema.org\",\"@type\":\"EntertainmentBusiness\",\"additionalType\":\"https://schema.org/ComedyClub\",\"@id\":\"https://denvercomedylounge.com/#business\",\"name\":\"Denver Comedy Lounge\",\"description\":\"Denver's premier intimate comedy club and sake bar in the RiNo Arts District. Live stand-up comedy, craft sake, and Japanese-inspired small plates.\",\"url\":\"https://denvercomedylounge.com/\",\"telephone\":\"+17204496963\",\"email\":\"info@denvercomedylounge.com\",\"priceRange\":\"$$\",\"image\":\"https://denvercomedylounge.com/og?title=Denver+Comedy+Lounge\",\"logo\":\"https://denvercomedylounge.com/images/logos/dcl-logo.webp\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"3559 Larimer St\",\"addressLocality\":\"Denver\",\"addressRegion\":\"CO\",\"postalCode\":\"80205\",\"addressCountry\":\"US\"},\"geo\":{\"@type\":\"GeoCoordinates\",\"latitude\":39.7670242,\"longitude\":-104.9737059},\"openingHoursSpecification\":[{\"@type\":\"OpeningHoursSpecification\",\"dayOfWeek\":\"Friday\",\"opens\":\"17:00\",\"closes\":\"23:00\"},{\"@type\":\"OpeningHoursSpecification\",\"dayOfWeek\":\"Saturday\",\"opens\":\"16:30\",\"closes\":\"00:00\"}],\"servesCuisine\":[\"Japanese\",\"Sake\",\"Small Plates\"],\"amenityFeature\":[{\"@type\":\"LocationFeatureSpecification\",\"name\":\"Live Comedy Shows\",\"value\":true},{\"@type\":\"LocationFeatureSpecification\",\"name\":\"Full Bar\",\"value\":true},{\"@type\":\"LocationFeatureSpecification\",\"name\":\"Private Events\",\"value\":true}],\"containsPlace\":{\"@type\":\"Brewery\",\"name\":\"Colorado Sake Co.\",\"description\":\"Craft sake brewery and tasting room sharing the venue\"},\"department\":[{\"@type\":\"FoodEstablishment\",\"name\":\"Colorado Sake Co.\",\"description\":\"Denver's first sake brewery, sharing the RiNo venue\",\"servesCuisine\":[\"Sake\",\"Japanese\"],\"hasMenu\":\"https://denvercomedylounge.com/menu\"}],\"sameAs\":[\"https://www.instagram.com/denvercomedylounge/\",\"https://www.facebook.com/denvercomedylounge/\",\"https://www.tiktok.com/@denvercomedylounge\",\"https://www.youtube.com/@denvercomedylounge\",\"https://www.eventbrite.com/o/denver-comedy-lounge-17498498067\"],\"aggregateRating\":{\"@type\":\"AggregateRating\",\"ratingValue\":\"4.6\",\"reviewCount\":\"296\",\"bestRating\":\"5\",\"worstRating\":\"1\"},\"hasMap\":\"https://www.google.com/maps/search/?api=1&query=Denver+Comedy+Lounge%2C+3559+Larimer+St%2C+Denver%2C+CO+80205\",\"areaServed\":[{\"@type\":\"City\",\"name\":\"Denver\",\"addressRegion\":\"CO\"},{\"@type\":\"Neighborhood\",\"name\":\"RiNo Arts District\"},{\"@type\":\"Neighborhood\",\"name\":\"Five Points\"},{\"@type\":\"Neighborhood\",\"name\":\"LoDo\"},{\"@type\":\"Neighborhood\",\"name\":\"Capitol Hill\"}]}",
+      "{\"@context\":\"https://schema.org\",\"@type\":\"EventSeries\",\"name\":\"Friday Night Comedy at Denver Comedy Lounge\",\"description\":\"Weekly Friday night stand-up comedy shows featuring national touring comics and local favorites.\",\"url\":\"https://denvercomedylounge.com/comedy-shows/friday-night\",\"location\":{\"@type\":\"Place\",\"@id\":\"https://denvercomedylounge.com/#business\",\"name\":\"Denver Comedy Lounge\"},\"organizer\":{\"@type\":\"Organization\",\"@id\":\"https://denvercomedylounge.com/#business\",\"name\":\"Denver Comedy Lounge\"},\"eventSchedule\":{\"@type\":\"Schedule\",\"repeatFrequency\":\"P1W\",\"byDay\":\"https://schema.org/Friday\",\"startTime\":\"19:00\",\"startDate\":\"2024-01-01\"}}",
+      "{\"@context\":\"https://schema.org\",\"@type\":\"EventSeries\",\"name\":\"Saturday Night Comedy at Denver Comedy Lounge\",\"description\":\"Weekly Saturday night stand-up comedy shows \u2014 multiple showtimes from early evening through late night.\",\"url\":\"https://denvercomedylounge.com/comedy-shows/saturday-night\",\"location\":{\"@type\":\"Place\",\"@id\":\"https://denvercomedylounge.com/#business\",\"name\":\"Denver Comedy Lounge\"},\"organizer\":{\"@type\":\"Organization\",\"@id\":\"https://denvercomedylounge.com/#business\",\"name\":\"Denver Comedy Lounge\"},\"eventSchedule\":{\"@type\":\"Schedule\",\"repeatFrequency\":\"P1W\",\"byDay\":\"https://schema.org/Saturday\",\"startTime\":\"18:00\",\"startDate\":\"2024-01-01\"}}",
+      "{\"@context\":\"https://schema.org\",\"@type\":\"ItemList\",\"name\":\"Upcoming Shows at Denver Comedy Lounge\",\"numberOfItems\":63,\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 October 2\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-10-02\"}},{\"@type\":\"ListItem\",\"position\":2,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 October 2\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-10-02\"}},{\"@type\":\"ListItem\",\"position\":3,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 October 3\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-10-03\"}},{\"@type\":\"ListItem\",\"position\":4,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 October 3\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-10-03\"}},{\"@type\":\"ListItem\",\"position\":5,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 October 3\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-10-03\"}},{\"@type\":\"ListItem\",\"position\":6,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 October 9\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-10-09\"}},{\"@type\":\"ListItem\",\"position\":7,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 October 9\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-10-09\"}},{\"@type\":\"ListItem\",\"position\":8,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 October 10\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-10-10\"}},{\"@type\":\"ListItem\",\"position\":9,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 October 10\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-10-10\"}},{\"@type\":\"ListItem\",\"position\":10,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 October 10\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-10-10\"}},{\"@type\":\"ListItem\",\"position\":11,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 October 16\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-10-16\"}},{\"@type\":\"ListItem\",\"position\":12,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 October 16\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-10-16\"}},{\"@type\":\"ListItem\",\"position\":13,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 October 17\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-10-17\"}},{\"@type\":\"ListItem\",\"position\":14,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 October 17\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-10-17\"}},{\"@type\":\"ListItem\",\"position\":15,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 October 17\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-10-17\"}},{\"@type\":\"ListItem\",\"position\":16,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 October 23\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-10-23\"}},{\"@type\":\"ListItem\",\"position\":17,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 October 23\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-10-23\"}},{\"@type\":\"ListItem\",\"position\":18,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 October 24\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-10-24\"}},{\"@type\":\"ListItem\",\"position\":19,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 October 24\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-10-24\"}},{\"@type\":\"ListItem\",\"position\":20,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 October 24\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-10-24\"}},{\"@type\":\"ListItem\",\"position\":21,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 October 30\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-10-30\"}},{\"@type\":\"ListItem\",\"position\":22,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 October 30\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-10-30\"}},{\"@type\":\"ListItem\",\"position\":23,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 October 31\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-10-31\"}},{\"@type\":\"ListItem\",\"position\":24,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 October 31\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-10-31\"}},{\"@type\":\"ListItem\",\"position\":25,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 October 31\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-10-31\"}},{\"@type\":\"ListItem\",\"position\":26,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 November 6\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-11-06\"}},{\"@type\":\"ListItem\",\"position\":27,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 November 6\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-11-06\"}},{\"@type\":\"ListItem\",\"position\":28,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 November 7\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-11-07\"}},{\"@type\":\"ListItem\",\"position\":29,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 November 7\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-11-07\"}},{\"@type\":\"ListItem\",\"position\":30,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 November 7\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-11-07\"}},{\"@type\":\"ListItem\",\"position\":31,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 November 13\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-11-13\"}},{\"@type\":\"ListItem\",\"position\":32,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 November 13\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-11-13\"}},{\"@type\":\"ListItem\",\"position\":33,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 November 14\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-11-14\"}},{\"@type\":\"ListItem\",\"position\":34,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 November 14\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-11-14\"}},{\"@type\":\"ListItem\",\"position\":35,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 November 14\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-11-14\"}},{\"@type\":\"ListItem\",\"position\":36,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 November 20\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-11-20\"}},{\"@type\":\"ListItem\",\"position\":37,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 November 20\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-11-20\"}},{\"@type\":\"ListItem\",\"position\":38,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 November 21\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-11-21\"}},{\"@type\":\"ListItem\",\"position\":39,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 November 21\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-11-21\"}},{\"@type\":\"ListItem\",\"position\":40,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 November 21\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-11-21\"}},{\"@type\":\"ListItem\",\"position\":41,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 November 27\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-11-27\"}},{\"@type\":\"ListItem\",\"position\":42,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 November 27\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-11-27\"}},{\"@type\":\"ListItem\",\"position\":43,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 November 28\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-11-28\"}},{\"@type\":\"ListItem\",\"position\":44,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 November 28\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-11-28\"}},{\"@type\":\"ListItem\",\"position\":45,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 November 28\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-11-28\"}},{\"@type\":\"ListItem\",\"position\":46,\"item\":{\"@type\":\"WebPage\",\"name\":\"Jennifer Gable Live In Denver\",\"url\":\"https://denvercomedylounge.com/shows/jennifer-gable-live-in-denver-2026-12-03\"}},{\"@type\":\"ListItem\",\"position\":47,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 December 4\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-12-04\"}},{\"@type\":\"ListItem\",\"position\":48,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 December 4\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-12-04\"}},{\"@type\":\"ListItem\",\"position\":49,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 December 5\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-12-05\"}},{\"@type\":\"ListItem\",\"position\":50,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 December 5\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-12-05\"}},{\"@type\":\"ListItem\",\"position\":51,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 December 5\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-12-05\"}},{\"@type\":\"ListItem\",\"position\":52,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 December 11\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-12-11\"}},{\"@type\":\"ListItem\",\"position\":53,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 December 11\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-12-11\"}},{\"@type\":\"ListItem\",\"position\":54,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 December 12\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-12-12\"}},{\"@type\":\"ListItem\",\"position\":55,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 December 12\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-12-12\"}},{\"@type\":\"ListItem\",\"position\":56,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 December 12\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-12-12\"}},{\"@type\":\"ListItem\",\"position\":57,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 December 18\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-12-18\"}},{\"@type\":\"ListItem\",\"position\":58,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 December 18\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-12-18\"}},{\"@type\":\"ListItem\",\"position\":59,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Early Show \u2014 December 19\",\"url\":\"https://denvercomedylounge.com/shows/saturday-6pm-2026-12-19\"}},{\"@type\":\"ListItem\",\"position\":60,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Night Comedy \u2014 December 19\",\"url\":\"https://denvercomedylounge.com/shows/saturday-8pm-2026-12-19\"}},{\"@type\":\"ListItem\",\"position\":61,\"item\":{\"@type\":\"WebPage\",\"name\":\"Saturday Late Night \u2014 December 19\",\"url\":\"https://denvercomedylounge.com/shows/saturday-10pm-2026-12-19\"}},{\"@type\":\"ListItem\",\"position\":62,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Night Comedy \u2014 December 25\",\"url\":\"https://denvercomedylounge.com/shows/friday-7pm-2026-12-25\"}},{\"@type\":\"ListItem\",\"position\":63,\"item\":{\"@type\":\"WebPage\",\"name\":\"Friday Late Night \u2014 December 25\",\"url\":\"https://denvercomedylounge.com/shows/friday-9pm-2026-12-25\"}}]}",
+      "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Home\",\"item\":\"https://denvercomedylounge.com/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Shows\",\"item\":\"https://denvercomedylounge.com/shows\"}]}",
+      "{\"@context\":\"https://schema.org\",\"@type\":\"FAQPage\",\"mainEntity\":[{\"@type\":\"Question\",\"name\":\"How do I buy tickets?\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Tickets are available directly on our website at denvercomedylounge.com/shows. Select your show, choose your ticket tier, and purchase securely online. You'll receive a confirmation email with a QR code \u2014 just show it at the door. Some shows are also available on Eventbrite.\"}}]}"
+    ]
+  },
+  {
+    "key": "standing_room_only",
+    "url": "https://www.standingroomonlytickets.com/WebOffice/EventList/536",
+    "row": {
+      "id": 3773351,
+      "purchase_url": "https://www.standingroomonlytickets.com/WebOffice/EventList/536",
+      "price": null,
+      "sold_out": false,
+      "show_id": 3434154,
+      "type": "General Admission",
+      "name": "Summer Season Pass",
+      "date": "2026-09-30T19:00:00+00:00",
+      "club_id": 11473,
+      "club_name": "One Night Stans Comedy Club",
+      "website": "https://www.onenightstans.club/",
+      "show_page_url": "https://www.standingroomonlytickets.com/WebOffice/EventList/536",
+      "last_scraped_by": "standing_room_only",
+      "last_scraped_date": "2026-09-26T23:26:33.947830+00:00"
+    },
+    "file": "standing_room_only-0.html",
+    "length": 15318,
+    "sha256": "9a0e2b340a980023065296bfc367a5327b778f66c5586e6ddf206d9785ddefbd",
+    "price_text": [],
+    "jsonld": []
+  },
+  {
+    "key": "standing_room_only",
+    "url": "https://www.standingroomonlytickets.com/WebOffice/EventList/546",
+    "row": {
+      "id": 4840758,
+      "purchase_url": "https://www.standingroomonlytickets.com/WebOffice/EventList/546",
+      "price": null,
+      "sold_out": false,
+      "show_id": 4304133,
+      "type": "General Admission",
+      "name": "Basile",
+      "date": "2026-10-01T23:30:00+00:00",
+      "club_id": 11473,
+      "club_name": "One Night Stans Comedy Club",
+      "website": "https://www.onenightstans.club/",
+      "show_page_url": "https://www.standingroomonlytickets.com/WebOffice/EventList/546",
+      "last_scraped_by": "standing_room_only",
+      "last_scraped_date": "2026-09-26T23:26:33.947843+00:00"
+    },
+    "file": "standing_room_only-1.html",
+    "length": 15318,
+    "sha256": "4c355a60eeead4448605ffe04836bed4cbfb78a1bd9c45d51307ef1c43f5b818",
+    "price_text": [],
+    "jsonld": []
+  }
+]

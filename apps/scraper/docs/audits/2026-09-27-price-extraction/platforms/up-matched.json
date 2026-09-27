@@ -1,0 +1,4570 @@
+[
+  {
+    "ticket_id": 8037127,
+    "show_id": 7061192,
+    "db_date": "2026-09-29T00:30:00+00:00",
+    "source_date": "2026-09-29T00:30:00.000Z",
+    "source_name": "Monday, September 28, 2026 at 7:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa42e4b96e3bed01bcbd41b?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 10,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-fe8dccd8-939a-402c-822c-9380a89feed7_0"
+          }
+        ],
+        "instanceId": "sc-vvus-fe8dccd8-939a-402c-822c-9380a89feed7",
+        "id": "sc-vvus-fe8dccd8-939a-402c-822c-9380a89feed7_0"
+      }
+    ],
+    "fixture": "updecoded0.json"
+  },
+  {
+    "ticket_id": 8037128,
+    "show_id": 7061193,
+    "db_date": "2026-10-06T00:30:00+00:00",
+    "source_date": "2026-10-06T00:30:00.000Z",
+    "source_name": "Monday, October 5, 2026 at 7:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa42e4b96e3bed01bcbd41f?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 10,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-ca15d977-a590-46c8-a58c-5df75a21f654_0"
+          }
+        ],
+        "instanceId": "sc-vvus-ca15d977-a590-46c8-a58c-5df75a21f654",
+        "id": "sc-vvus-ca15d977-a590-46c8-a58c-5df75a21f654_0"
+      }
+    ],
+    "fixture": "updecoded0.json"
+  },
+  {
+    "ticket_id": 8037129,
+    "show_id": 7061194,
+    "db_date": "2026-10-14T00:30:00+00:00",
+    "source_date": "2026-10-14T00:30:00.000Z",
+    "source_name": "Tuesday, October 13, 2026 at 7:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa42ed88af1571df15b2eac?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 10,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-599cca20-a007-4f49-81ac-c58d0cde9dea_0"
+          }
+        ],
+        "instanceId": "sc-vvus-599cca20-a007-4f49-81ac-c58d0cde9dea",
+        "id": "sc-vvus-599cca20-a007-4f49-81ac-c58d0cde9dea_0"
+      }
+    ],
+    "fixture": "updecoded0.json"
+  },
+  {
+    "ticket_id": 8037130,
+    "show_id": 7061195,
+    "db_date": "2026-10-20T00:30:00+00:00",
+    "source_date": "2026-10-20T00:30:00.000Z",
+    "source_name": "Monday, October 19, 2026 at 7:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa42e4b96e3bed01bcbd427?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 10,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-07863777-c2a8-4daf-9d73-66cbcd8bd24c_0"
+          }
+        ],
+        "instanceId": "sc-vvus-07863777-c2a8-4daf-9d73-66cbcd8bd24c",
+        "id": "sc-vvus-07863777-c2a8-4daf-9d73-66cbcd8bd24c_0"
+      }
+    ],
+    "fixture": "updecoded0.json"
+  },
+  {
+    "ticket_id": 7772715,
+    "show_id": 6834525,
+    "db_date": "2026-10-16T00:30:00+00:00",
+    "source_date": "2026-10-16T00:30:00.000Z",
+    "source_name": "Thursday, October 15, 2026 at 7:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa41ecbade1ed30a8af57e1?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 30,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-40585f2a-c2ec-43c8-adac-a90b4fe90662_0"
+          }
+        ],
+        "instanceId": "sc-vvus-40585f2a-c2ec-43c8-adac-a90b4fe90662",
+        "id": "sc-vvus-40585f2a-c2ec-43c8-adac-a90b4fe90662_0"
+      }
+    ],
+    "fixture": "updecoded1.json"
+  },
+  {
+    "ticket_id": 7772716,
+    "show_id": 6834526,
+    "db_date": "2026-10-18T21:00:00+00:00",
+    "source_date": "2026-10-18T21:00:00.000Z",
+    "source_name": "Sunday, October 18, 2026 at 4:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa41f31f50d0f3e0db55918?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 30,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-623fbf03-38e4-41e8-83d4-8ea42d6ecb99_0"
+          }
+        ],
+        "instanceId": "sc-vvus-623fbf03-38e4-41e8-83d4-8ea42d6ecb99",
+        "id": "sc-vvus-623fbf03-38e4-41e8-83d4-8ea42d6ecb99_0"
+      }
+    ],
+    "fixture": "updecoded1.json"
+  },
+  {
+    "ticket_id": 7772717,
+    "show_id": 6834527,
+    "db_date": "2026-10-23T00:30:00+00:00",
+    "source_date": "2026-10-23T00:30:00.000Z",
+    "source_name": "Thursday, October 22, 2026 at 7:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa41ecbade1ed30a8af57e5?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 30,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-a348cd4d-71fe-42f7-a241-15b75603d440_0"
+          }
+        ],
+        "instanceId": "sc-vvus-a348cd4d-71fe-42f7-a241-15b75603d440",
+        "id": "sc-vvus-a348cd4d-71fe-42f7-a241-15b75603d440_0"
+      }
+    ],
+    "fixture": "updecoded1.json"
+  },
+  {
+    "ticket_id": 7772718,
+    "show_id": 6834528,
+    "db_date": "2026-10-25T21:00:00+00:00",
+    "source_date": "2026-10-25T21:00:00.000Z",
+    "source_name": "Sunday, October 25, 2026 at 4:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa41f31f50d0f3e0db5591c?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 30,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-6d7eae6b-f05b-4d30-905c-df93f8f4965d_0"
+          }
+        ],
+        "instanceId": "sc-vvus-6d7eae6b-f05b-4d30-905c-df93f8f4965d",
+        "id": "sc-vvus-6d7eae6b-f05b-4d30-905c-df93f8f4965d_0"
+      }
+    ],
+    "fixture": "updecoded1.json"
+  },
+  {
+    "ticket_id": 7772719,
+    "show_id": 6834529,
+    "db_date": "2026-10-30T00:30:00+00:00",
+    "source_date": "2026-10-30T00:30:00.000Z",
+    "source_name": "Thursday, October 29, 2026 at 7:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa41ecbade1ed30a8af57e9?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 30,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-5393c807-8e07-4d28-b73a-c7ab7219abe1_0"
+          }
+        ],
+        "instanceId": "sc-vvus-5393c807-8e07-4d28-b73a-c7ab7219abe1",
+        "id": "sc-vvus-5393c807-8e07-4d28-b73a-c7ab7219abe1_0"
+      }
+    ],
+    "fixture": "updecoded1.json"
+  },
+  {
+    "ticket_id": 7772720,
+    "show_id": 6834530,
+    "db_date": "2026-10-31T03:00:00+00:00",
+    "source_date": "2026-10-31T03:00:00.000Z",
+    "source_name": "Friday, October 30, 2026 at 10:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa41ee9884da9c6ed16093a?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 30,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-fd3ef0ed-e607-4de6-9052-dcb74c939a85_0"
+          }
+        ],
+        "instanceId": "sc-vvus-fd3ef0ed-e607-4de6-9052-dcb74c939a85",
+        "id": "sc-vvus-fd3ef0ed-e607-4de6-9052-dcb74c939a85_0"
+      }
+    ],
+    "fixture": "updecoded1.json"
+  },
+  {
+    "ticket_id": 7772721,
+    "show_id": 6834531,
+    "db_date": "2026-10-31T21:00:00+00:00",
+    "source_date": "2026-10-31T21:00:00.000Z",
+    "source_name": "Saturday, October 31, 2026 at 4:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa41f038ce9b9cff605aa6b?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 30,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-be28d4fc-2ed8-400b-bffd-f8c13515eae9_0"
+          }
+        ],
+        "instanceId": "sc-vvus-be28d4fc-2ed8-400b-bffd-f8c13515eae9",
+        "id": "sc-vvus-be28d4fc-2ed8-400b-bffd-f8c13515eae9_0"
+      }
+    ],
+    "fixture": "updecoded1.json"
+  },
+  {
+    "ticket_id": 7597834,
+    "show_id": 6684313,
+    "db_date": "2026-09-28T00:00:00+00:00",
+    "source_date": "2026-09-28T00:00:00.000Z",
+    "source_name": "Sunday, September 27, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a99d28695ce9b2287c2cede?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 15,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-15b0a908-3fbb-4083-ba50-c00cb781938f_0"
+          }
+        ],
+        "instanceId": "sc-vvus-15b0a908-3fbb-4083-ba50-c00cb781938f",
+        "id": "sc-vvus-15b0a908-3fbb-4083-ba50-c00cb781938f_0"
+      }
+    ],
+    "fixture": "updecoded2.json"
+  },
+  {
+    "ticket_id": 988100,
+    "show_id": 1045992,
+    "db_date": "2026-11-26T02:00:00+00:00",
+    "source_date": "2026-11-26T02:00:00.000Z",
+    "source_name": "Wednesday, November 25, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8ce?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_0"
+          }
+        ],
+        "instanceId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7",
+        "id": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_1"
+          }
+        ],
+        "instanceId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7",
+        "id": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_2"
+          }
+        ],
+        "instanceId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7",
+        "id": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 988101,
+    "show_id": 1045993,
+    "db_date": "2026-11-28T02:00:00+00:00",
+    "source_date": "2026-11-28T02:00:00.000Z",
+    "source_name": "Friday, November 27, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8d2?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_0"
+          }
+        ],
+        "instanceId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4",
+        "id": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_1"
+          }
+        ],
+        "instanceId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4",
+        "id": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_2"
+          }
+        ],
+        "instanceId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4",
+        "id": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 988102,
+    "show_id": 1045994,
+    "db_date": "2026-11-29T02:00:00+00:00",
+    "source_date": "2026-11-29T02:00:00.000Z",
+    "source_name": "Saturday, November 28, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8d6?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_0"
+          }
+        ],
+        "instanceId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7",
+        "id": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_1"
+          }
+        ],
+        "instanceId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7",
+        "id": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_2"
+          }
+        ],
+        "instanceId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7",
+        "id": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196250,
+    "show_id": 6337274,
+    "db_date": "2026-12-04T02:00:00+00:00",
+    "source_date": "2026-12-04T02:00:00.000Z",
+    "source_name": "Thursday, December 3, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a7376d525457fbc79db79e7?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_0"
+          }
+        ],
+        "instanceId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf",
+        "id": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_1"
+          }
+        ],
+        "instanceId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf",
+        "id": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_2"
+          }
+        ],
+        "instanceId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf",
+        "id": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 988103,
+    "show_id": 1045995,
+    "db_date": "2026-12-05T02:00:00+00:00",
+    "source_date": "2026-12-05T02:00:00.000Z",
+    "source_name": "Friday, December 4, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8de?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_0"
+          }
+        ],
+        "instanceId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4",
+        "id": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_1"
+          }
+        ],
+        "instanceId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4",
+        "id": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_2"
+          }
+        ],
+        "instanceId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4",
+        "id": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 988104,
+    "show_id": 1045996,
+    "db_date": "2026-12-06T02:00:00+00:00",
+    "source_date": "2026-12-06T02:00:00.000Z",
+    "source_name": "Saturday, December 5, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8e2?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_0"
+          }
+        ],
+        "instanceId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea",
+        "id": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_1"
+          }
+        ],
+        "instanceId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea",
+        "id": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_2"
+          }
+        ],
+        "instanceId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea",
+        "id": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196253,
+    "show_id": 6337277,
+    "db_date": "2026-12-07T02:00:00+00:00",
+    "source_date": "2026-12-07T02:00:00.000Z",
+    "source_name": "Sunday, December 6, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a73765d03679c4cbdf3c4c4?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_0"
+          }
+        ],
+        "instanceId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098",
+        "id": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_1"
+          }
+        ],
+        "instanceId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098",
+        "id": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_2"
+          }
+        ],
+        "instanceId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098",
+        "id": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196254,
+    "show_id": 6337278,
+    "db_date": "2026-12-11T02:00:00+00:00",
+    "source_date": "2026-12-11T02:00:00.000Z",
+    "source_name": "Thursday, December 10, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a73765d03679c4cbdf3c4c0?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_0"
+          }
+        ],
+        "instanceId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713",
+        "id": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_1"
+          }
+        ],
+        "instanceId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713",
+        "id": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_2"
+          }
+        ],
+        "instanceId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713",
+        "id": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 988105,
+    "show_id": 1045997,
+    "db_date": "2026-12-12T02:00:00+00:00",
+    "source_date": "2026-12-12T02:00:00.000Z",
+    "source_name": "Friday, December 11, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8ea?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_0"
+          }
+        ],
+        "instanceId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f",
+        "id": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_1"
+          }
+        ],
+        "instanceId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f",
+        "id": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_2"
+          }
+        ],
+        "instanceId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f",
+        "id": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 2456242,
+    "show_id": 2323637,
+    "db_date": "2026-12-12T21:30:00+00:00",
+    "source_date": "2026-12-12T21:30:00.000Z",
+    "source_name": "Saturday, December 12, 2026 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8ee?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_0"
+          }
+        ],
+        "instanceId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb",
+        "id": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_1"
+          }
+        ],
+        "instanceId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb",
+        "id": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_2"
+          }
+        ],
+        "instanceId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb",
+        "id": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196257,
+    "show_id": 6337281,
+    "db_date": "2026-12-14T02:00:00+00:00",
+    "source_date": "2026-12-14T02:00:00.000Z",
+    "source_name": "Sunday, December 13, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a73765d03679c4cbdf3c4bc?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_0"
+          }
+        ],
+        "instanceId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f",
+        "id": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_1"
+          }
+        ],
+        "instanceId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f",
+        "id": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_2"
+          }
+        ],
+        "instanceId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f",
+        "id": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 5668550,
+    "show_id": 5016417,
+    "db_date": "2026-12-18T00:30:00+00:00",
+    "source_date": "2026-12-18T00:30:00.000Z",
+    "source_name": "Thursday, December 17, 2026 at 6:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a7375bad042c9e2d1b68155?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_0"
+          }
+        ],
+        "instanceId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2",
+        "id": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_1"
+          }
+        ],
+        "instanceId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2",
+        "id": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_2"
+          }
+        ],
+        "instanceId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2",
+        "id": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 5668551,
+    "show_id": 5016418,
+    "db_date": "2026-12-18T03:30:00+00:00",
+    "source_date": "2026-12-18T03:30:00.000Z",
+    "source_name": "Thursday, December 17, 2026 at 9:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a737605e4424dd906fe2e5f?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_0"
+          }
+        ],
+        "instanceId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4",
+        "id": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_1"
+          }
+        ],
+        "instanceId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4",
+        "id": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_2"
+          }
+        ],
+        "instanceId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4",
+        "id": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 988107,
+    "show_id": 1045999,
+    "db_date": "2026-12-19T00:30:00+00:00",
+    "source_date": "2026-12-19T00:30:00.000Z",
+    "source_name": "Friday, December 18, 2026 at 6:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8f6?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_0"
+          }
+        ],
+        "instanceId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002",
+        "id": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_1"
+          }
+        ],
+        "instanceId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002",
+        "id": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_2"
+          }
+        ],
+        "instanceId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002",
+        "id": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 5668553,
+    "show_id": 5016420,
+    "db_date": "2026-12-19T03:30:00+00:00",
+    "source_date": "2026-12-19T03:30:00.000Z",
+    "source_name": "Friday, December 18, 2026 at 9:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a737605e4424dd906fe2e63?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_0"
+          }
+        ],
+        "instanceId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b",
+        "id": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_1"
+          }
+        ],
+        "instanceId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b",
+        "id": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_2"
+          }
+        ],
+        "instanceId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b",
+        "id": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 988108,
+    "show_id": 1046000,
+    "db_date": "2026-12-20T00:30:00+00:00",
+    "source_date": "2026-12-20T00:30:00.000Z",
+    "source_name": "Saturday, December 19, 2026 at 6:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a7375bad042c9e2d1b68159?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_0"
+          }
+        ],
+        "instanceId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c",
+        "id": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_1"
+          }
+        ],
+        "instanceId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c",
+        "id": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_2"
+          }
+        ],
+        "instanceId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c",
+        "id": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 5668555,
+    "show_id": 5016422,
+    "db_date": "2026-12-20T03:30:00+00:00",
+    "source_date": "2026-12-20T03:30:00.000Z",
+    "source_name": "Saturday, December 19, 2026 at 9:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a737605e4424dd906fe2e67?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_0"
+          }
+        ],
+        "instanceId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2",
+        "id": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_1"
+          }
+        ],
+        "instanceId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2",
+        "id": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_2"
+          }
+        ],
+        "instanceId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2",
+        "id": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196264,
+    "show_id": 6337288,
+    "db_date": "2026-12-21T02:00:00+00:00",
+    "source_date": "2026-12-21T02:00:00.000Z",
+    "source_name": "Sunday, December 20, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8fa?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_0"
+          }
+        ],
+        "instanceId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649",
+        "id": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_1"
+          }
+        ],
+        "instanceId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649",
+        "id": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_2"
+          }
+        ],
+        "instanceId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649",
+        "id": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196265,
+    "show_id": 6337289,
+    "db_date": "2026-12-23T00:30:00+00:00",
+    "source_date": "2026-12-23T00:30:00.000Z",
+    "source_name": "Tuesday, December 22, 2026 at 6:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a737288ad35030be9cae299?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_0"
+          }
+        ],
+        "instanceId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d",
+        "id": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_1"
+          }
+        ],
+        "instanceId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d",
+        "id": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_2"
+          }
+        ],
+        "instanceId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d",
+        "id": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196266,
+    "show_id": 6337290,
+    "db_date": "2026-12-23T03:30:00+00:00",
+    "source_date": "2026-12-23T03:30:00.000Z",
+    "source_name": "Tuesday, December 22, 2026 at 9:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a737231e07fc75f08344a34?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_0"
+          }
+        ],
+        "instanceId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692",
+        "id": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_1"
+          }
+        ],
+        "instanceId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692",
+        "id": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_2"
+          }
+        ],
+        "instanceId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692",
+        "id": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196267,
+    "show_id": 6337291,
+    "db_date": "2026-12-24T00:30:00+00:00",
+    "source_date": "2026-12-24T00:30:00.000Z",
+    "source_name": "Wednesday, December 23, 2026 at 6:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8fe?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_0"
+          }
+        ],
+        "instanceId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3",
+        "id": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_1"
+          }
+        ],
+        "instanceId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3",
+        "id": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_2"
+          }
+        ],
+        "instanceId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3",
+        "id": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196268,
+    "show_id": 6337292,
+    "db_date": "2026-12-24T03:30:00+00:00",
+    "source_date": "2026-12-24T03:30:00.000Z",
+    "source_name": "Wednesday, December 23, 2026 at 9:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a737231e07fc75f08344a38?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_0"
+          }
+        ],
+        "instanceId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4",
+        "id": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_1"
+          }
+        ],
+        "instanceId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4",
+        "id": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_2"
+          }
+        ],
+        "instanceId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4",
+        "id": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196270,
+    "show_id": 6337294,
+    "db_date": "2026-12-27T00:30:00+00:00",
+    "source_date": "2026-12-27T00:30:00.000Z",
+    "source_name": "Saturday, December 26, 2026 at 6:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d902?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_0"
+          }
+        ],
+        "instanceId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c",
+        "id": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_1"
+          }
+        ],
+        "instanceId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c",
+        "id": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_2"
+          }
+        ],
+        "instanceId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c",
+        "id": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196271,
+    "show_id": 6337295,
+    "db_date": "2026-12-27T03:30:00+00:00",
+    "source_date": "2026-12-27T03:30:00.000Z",
+    "source_name": "Saturday, December 26, 2026 at 9:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a737231e07fc75f08344a3c?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_0"
+          }
+        ],
+        "instanceId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03",
+        "id": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_1"
+          }
+        ],
+        "instanceId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03",
+        "id": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_2"
+          }
+        ],
+        "instanceId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03",
+        "id": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 7196272,
+    "show_id": 6337296,
+    "db_date": "2026-12-28T02:00:00+00:00",
+    "source_date": "2026-12-28T02:00:00.000Z",
+    "source_name": "Sunday, December 27, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d906?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_0"
+          }
+        ],
+        "instanceId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3",
+        "id": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_1"
+          }
+        ],
+        "instanceId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3",
+        "id": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_2"
+          }
+        ],
+        "instanceId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3",
+        "id": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_2"
+      }
+    ],
+    "fixture": "updecoded3.json"
+  },
+  {
+    "ticket_id": 413970,
+    "show_id": 481960,
+    "db_date": "2026-09-29T00:00:00+00:00",
+    "source_date": "2026-09-29T00:00:00.000Z",
+    "source_name": "Monday, September 28, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90643a?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_0"
+          }
+        ],
+        "instanceId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92",
+        "id": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_1"
+          }
+        ],
+        "instanceId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92",
+        "id": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_2"
+          }
+        ],
+        "instanceId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92",
+        "id": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456377,
+    "show_id": 2323772,
+    "db_date": "2026-10-03T01:00:00+00:00",
+    "source_date": "2026-10-03T01:00:00.000Z",
+    "source_name": "Friday, October 2, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84218?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_0"
+          }
+        ],
+        "instanceId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79",
+        "id": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_1"
+          }
+        ],
+        "instanceId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79",
+        "id": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_2"
+          }
+        ],
+        "instanceId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79",
+        "id": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 467478,
+    "show_id": 535522,
+    "db_date": "2026-10-03T20:30:00+00:00",
+    "source_date": "2026-10-03T20:30:00.000Z",
+    "source_name": "Saturday, October 3, 2026 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fce7?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_0"
+          }
+        ],
+        "instanceId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641",
+        "id": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_1"
+          }
+        ],
+        "instanceId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641",
+        "id": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_2"
+          }
+        ],
+        "instanceId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641",
+        "id": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 413972,
+    "show_id": 481962,
+    "db_date": "2026-10-06T00:00:00+00:00",
+    "source_date": "2026-10-06T00:00:00.000Z",
+    "source_name": "Monday, October 5, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90643e?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_0"
+          }
+        ],
+        "instanceId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e",
+        "id": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_1"
+          }
+        ],
+        "instanceId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e",
+        "id": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_2"
+          }
+        ],
+        "instanceId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e",
+        "id": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8037177,
+    "show_id": 7061242,
+    "db_date": "2026-10-07T01:00:00+00:00",
+    "source_date": "2026-10-07T01:00:00.000Z",
+    "source_name": "Tuesday, October 6, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6aaab7d7f88b2328fb5be370?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 55,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_0"
+          }
+        ],
+        "instanceId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986",
+        "id": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 75,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_1"
+          }
+        ],
+        "instanceId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986",
+        "id": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_2"
+          }
+        ],
+        "instanceId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986",
+        "id": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456379,
+    "show_id": 2323774,
+    "db_date": "2026-10-10T01:00:00+00:00",
+    "source_date": "2026-10-10T01:00:00.000Z",
+    "source_name": "Friday, October 9, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84220?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_0"
+          }
+        ],
+        "instanceId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96",
+        "id": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_1"
+          }
+        ],
+        "instanceId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96",
+        "id": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_2"
+          }
+        ],
+        "instanceId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96",
+        "id": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 467480,
+    "show_id": 535524,
+    "db_date": "2026-10-10T20:00:00+00:00",
+    "source_date": "2026-10-10T20:00:00.000Z",
+    "source_name": "Saturday, October 10, 2026 at 3:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fceb?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_0"
+          }
+        ],
+        "instanceId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304",
+        "id": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_1"
+          }
+        ],
+        "instanceId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304",
+        "id": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_2"
+          }
+        ],
+        "instanceId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304",
+        "id": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456380,
+    "show_id": 2323775,
+    "db_date": "2026-10-11T01:00:00+00:00",
+    "source_date": "2026-10-11T01:00:00.000Z",
+    "source_name": "Saturday, October 10, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84224?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_0"
+          }
+        ],
+        "instanceId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b",
+        "id": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_1"
+          }
+        ],
+        "instanceId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b",
+        "id": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_2"
+          }
+        ],
+        "instanceId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b",
+        "id": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 413974,
+    "show_id": 481964,
+    "db_date": "2026-10-13T00:00:00+00:00",
+    "source_date": "2026-10-13T00:00:00.000Z",
+    "source_name": "Monday, October 12, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906442?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_0"
+          }
+        ],
+        "instanceId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b",
+        "id": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_1"
+          }
+        ],
+        "instanceId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b",
+        "id": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_2"
+          }
+        ],
+        "instanceId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b",
+        "id": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456381,
+    "show_id": 2323776,
+    "db_date": "2026-10-17T01:00:00+00:00",
+    "source_date": "2026-10-17T01:00:00.000Z",
+    "source_name": "Friday, October 16, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84228?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_0"
+          }
+        ],
+        "instanceId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40",
+        "id": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_1"
+          }
+        ],
+        "instanceId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40",
+        "id": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_2"
+          }
+        ],
+        "instanceId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40",
+        "id": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 467482,
+    "show_id": 535526,
+    "db_date": "2026-10-17T20:30:00+00:00",
+    "source_date": "2026-10-17T20:30:00.000Z",
+    "source_name": "Saturday, October 17, 2026 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcef?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_0"
+          }
+        ],
+        "instanceId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710",
+        "id": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_1"
+          }
+        ],
+        "instanceId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710",
+        "id": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_2"
+          }
+        ],
+        "instanceId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710",
+        "id": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456382,
+    "show_id": 2323777,
+    "db_date": "2026-10-18T01:00:00+00:00",
+    "source_date": "2026-10-18T01:00:00.000Z",
+    "source_name": "Saturday, October 17, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced8422c?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_0"
+          }
+        ],
+        "instanceId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc",
+        "id": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_1"
+          }
+        ],
+        "instanceId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc",
+        "id": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_2"
+          }
+        ],
+        "instanceId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc",
+        "id": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 413976,
+    "show_id": 481966,
+    "db_date": "2026-10-20T00:00:00+00:00",
+    "source_date": "2026-10-20T00:00:00.000Z",
+    "source_name": "Monday, October 19, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906446?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_0"
+          }
+        ],
+        "instanceId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1",
+        "id": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_1"
+          }
+        ],
+        "instanceId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1",
+        "id": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_2"
+          }
+        ],
+        "instanceId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1",
+        "id": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456383,
+    "show_id": 2323778,
+    "db_date": "2026-10-24T01:00:00+00:00",
+    "source_date": "2026-10-24T01:00:00.000Z",
+    "source_name": "Friday, October 23, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84230?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_0"
+          }
+        ],
+        "instanceId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543",
+        "id": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_1"
+          }
+        ],
+        "instanceId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543",
+        "id": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_2"
+          }
+        ],
+        "instanceId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543",
+        "id": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 467484,
+    "show_id": 535528,
+    "db_date": "2026-10-24T20:00:00+00:00",
+    "source_date": "2026-10-24T20:00:00.000Z",
+    "source_name": "Saturday, October 24, 2026 at 3:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcf3?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_0"
+          }
+        ],
+        "instanceId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9",
+        "id": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_1"
+          }
+        ],
+        "instanceId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9",
+        "id": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_2"
+          }
+        ],
+        "instanceId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9",
+        "id": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456384,
+    "show_id": 2323779,
+    "db_date": "2026-10-25T01:00:00+00:00",
+    "source_date": "2026-10-25T01:00:00.000Z",
+    "source_name": "Saturday, October 24, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84234?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_0"
+          }
+        ],
+        "instanceId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7",
+        "id": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_1"
+          }
+        ],
+        "instanceId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7",
+        "id": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_2"
+          }
+        ],
+        "instanceId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7",
+        "id": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 413978,
+    "show_id": 481968,
+    "db_date": "2026-10-27T00:00:00+00:00",
+    "source_date": "2026-10-27T00:00:00.000Z",
+    "source_name": "Monday, October 26, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90644a?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_0"
+          }
+        ],
+        "instanceId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2",
+        "id": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_1"
+          }
+        ],
+        "instanceId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2",
+        "id": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_2"
+          }
+        ],
+        "instanceId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2",
+        "id": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8409658,
+    "show_id": 7381698,
+    "db_date": "2026-10-31T00:00:00+00:00",
+    "source_date": "2026-10-31T00:00:00.000Z",
+    "source_name": "Friday, October 30, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84238?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_0"
+          }
+        ],
+        "instanceId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2",
+        "id": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_1"
+          }
+        ],
+        "instanceId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2",
+        "id": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_2"
+          }
+        ],
+        "instanceId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2",
+        "id": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 467486,
+    "show_id": 535530,
+    "db_date": "2026-10-31T20:00:00+00:00",
+    "source_date": "2026-10-31T20:00:00.000Z",
+    "source_name": "Saturday, October 31, 2026 at 3:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcf7?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_0"
+          }
+        ],
+        "instanceId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658",
+        "id": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_1"
+          }
+        ],
+        "instanceId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658",
+        "id": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_2"
+          }
+        ],
+        "instanceId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658",
+        "id": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456386,
+    "show_id": 2323781,
+    "db_date": "2026-11-01T01:00:00+00:00",
+    "source_date": "2026-11-01T01:00:00.000Z",
+    "source_name": "Saturday, October 31, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced8423c?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_0"
+          }
+        ],
+        "instanceId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1",
+        "id": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_1"
+          }
+        ],
+        "instanceId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1",
+        "id": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_2"
+          }
+        ],
+        "instanceId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1",
+        "id": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 413980,
+    "show_id": 481970,
+    "db_date": "2026-11-03T01:00:00+00:00",
+    "source_date": "2026-11-03T01:00:00.000Z",
+    "source_name": "Monday, November 2, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90644e?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_0"
+          }
+        ],
+        "instanceId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4",
+        "id": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_1"
+          }
+        ],
+        "instanceId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4",
+        "id": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_2"
+          }
+        ],
+        "instanceId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4",
+        "id": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456387,
+    "show_id": 2323782,
+    "db_date": "2026-11-07T02:00:00+00:00",
+    "source_date": "2026-11-07T02:00:00.000Z",
+    "source_name": "Friday, November 6, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84240?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_0"
+          }
+        ],
+        "instanceId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60",
+        "id": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_1"
+          }
+        ],
+        "instanceId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60",
+        "id": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_2"
+          }
+        ],
+        "instanceId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60",
+        "id": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 467488,
+    "show_id": 535532,
+    "db_date": "2026-11-07T21:00:00+00:00",
+    "source_date": "2026-11-07T21:00:00.000Z",
+    "source_name": "Saturday, November 7, 2026 at 3:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcfb?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_0"
+          }
+        ],
+        "instanceId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d",
+        "id": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_1"
+          }
+        ],
+        "instanceId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d",
+        "id": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_2"
+          }
+        ],
+        "instanceId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d",
+        "id": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456388,
+    "show_id": 2323783,
+    "db_date": "2026-11-08T02:00:00+00:00",
+    "source_date": "2026-11-08T02:00:00.000Z",
+    "source_name": "Saturday, November 7, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84244?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_0"
+          }
+        ],
+        "instanceId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882",
+        "id": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_1"
+          }
+        ],
+        "instanceId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882",
+        "id": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_2"
+          }
+        ],
+        "instanceId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882",
+        "id": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 413982,
+    "show_id": 481972,
+    "db_date": "2026-11-10T01:00:00+00:00",
+    "source_date": "2026-11-10T01:00:00.000Z",
+    "source_name": "Monday, November 9, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906452?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_0"
+          }
+        ],
+        "instanceId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239",
+        "id": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_1"
+          }
+        ],
+        "instanceId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239",
+        "id": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_2"
+          }
+        ],
+        "instanceId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239",
+        "id": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456389,
+    "show_id": 2323784,
+    "db_date": "2026-11-14T02:00:00+00:00",
+    "source_date": "2026-11-14T02:00:00.000Z",
+    "source_name": "Friday, November 13, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84248?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_0"
+          }
+        ],
+        "instanceId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c",
+        "id": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_1"
+          }
+        ],
+        "instanceId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c",
+        "id": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_2"
+          }
+        ],
+        "instanceId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c",
+        "id": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 467490,
+    "show_id": 535534,
+    "db_date": "2026-11-14T21:00:00+00:00",
+    "source_date": "2026-11-14T21:00:00.000Z",
+    "source_name": "Saturday, November 14, 2026 at 3:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcff?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_0"
+          }
+        ],
+        "instanceId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de",
+        "id": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_1"
+          }
+        ],
+        "instanceId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de",
+        "id": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_2"
+          }
+        ],
+        "instanceId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de",
+        "id": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456390,
+    "show_id": 2323785,
+    "db_date": "2026-11-15T02:00:00+00:00",
+    "source_date": "2026-11-15T02:00:00.000Z",
+    "source_name": "Saturday, November 14, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced8424c?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_0"
+          }
+        ],
+        "instanceId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362",
+        "id": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_1"
+          }
+        ],
+        "instanceId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362",
+        "id": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_2"
+          }
+        ],
+        "instanceId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362",
+        "id": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 413984,
+    "show_id": 481974,
+    "db_date": "2026-11-17T01:00:00+00:00",
+    "source_date": "2026-11-17T01:00:00.000Z",
+    "source_name": "Monday, November 16, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906456?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_0"
+          }
+        ],
+        "instanceId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb",
+        "id": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_1"
+          }
+        ],
+        "instanceId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb",
+        "id": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_2"
+          }
+        ],
+        "instanceId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb",
+        "id": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456391,
+    "show_id": 2323786,
+    "db_date": "2026-11-21T02:00:00+00:00",
+    "source_date": "2026-11-21T02:00:00.000Z",
+    "source_name": "Friday, November 20, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84250?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_0"
+          }
+        ],
+        "instanceId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47",
+        "id": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_1"
+          }
+        ],
+        "instanceId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47",
+        "id": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_2"
+          }
+        ],
+        "instanceId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47",
+        "id": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 467492,
+    "show_id": 535536,
+    "db_date": "2026-11-21T21:00:00+00:00",
+    "source_date": "2026-11-21T21:00:00.000Z",
+    "source_name": "Saturday, November 21, 2026 at 3:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd03?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_0"
+          }
+        ],
+        "instanceId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f",
+        "id": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_1"
+          }
+        ],
+        "instanceId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f",
+        "id": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_2"
+          }
+        ],
+        "instanceId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f",
+        "id": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 2456392,
+    "show_id": 2323787,
+    "db_date": "2026-11-22T02:00:00+00:00",
+    "source_date": "2026-11-22T02:00:00.000Z",
+    "source_name": "Saturday, November 21, 2026 at 8:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84254?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 65,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_0"
+          }
+        ],
+        "instanceId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f",
+        "id": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 85,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_1"
+          }
+        ],
+        "instanceId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f",
+        "id": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 45,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_2"
+          }
+        ],
+        "instanceId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f",
+        "id": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 413986,
+    "show_id": 481976,
+    "db_date": "2026-11-24T01:00:00+00:00",
+    "source_date": "2026-11-24T01:00:00.000Z",
+    "source_name": "Monday, November 23, 2026 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90645a?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_0"
+          }
+        ],
+        "instanceId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd",
+        "id": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_1"
+          }
+        ],
+        "instanceId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd",
+        "id": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_2"
+          }
+        ],
+        "instanceId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd",
+        "id": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 7257874,
+    "show_id": 6389852,
+    "db_date": "2026-12-31T21:00:00+00:00",
+    "source_date": "2026-12-31T21:00:00.000Z",
+    "source_name": "Thursday, December 31, 2026 at 3:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a625418f53c1e60c208c1ec?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_0"
+          }
+        ],
+        "instanceId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727",
+        "id": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_1"
+          }
+        ],
+        "instanceId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727",
+        "id": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_2"
+          }
+        ],
+        "instanceId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727",
+        "id": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 7322383,
+    "show_id": 6446591,
+    "db_date": "2027-01-01T21:00:00+00:00",
+    "source_date": "2027-01-01T21:00:00.000Z",
+    "source_name": "Friday, January 1, 2027 at 3:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a625418f53c1e60c208c1f1?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_0"
+          }
+        ],
+        "instanceId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c",
+        "id": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_1"
+          }
+        ],
+        "instanceId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c",
+        "id": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_2"
+          }
+        ],
+        "instanceId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c",
+        "id": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 7383402,
+    "show_id": 6499506,
+    "db_date": "2027-01-02T21:30:00+00:00",
+    "source_date": "2027-01-02T21:30:00.000Z",
+    "source_name": "Saturday, January 2, 2027 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd1b?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_0"
+          }
+        ],
+        "instanceId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491",
+        "id": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_1"
+          }
+        ],
+        "instanceId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491",
+        "id": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_2"
+          }
+        ],
+        "instanceId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491",
+        "id": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 7532360,
+    "show_id": 6626952,
+    "db_date": "2027-01-05T01:00:00+00:00",
+    "source_date": "2027-01-05T01:00:00.000Z",
+    "source_name": "Monday, January 4, 2027 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906472?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_0"
+          }
+        ],
+        "instanceId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d",
+        "id": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_1"
+          }
+        ],
+        "instanceId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d",
+        "id": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_2"
+          }
+        ],
+        "instanceId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d",
+        "id": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 7772797,
+    "show_id": 6834607,
+    "db_date": "2027-01-09T21:30:00+00:00",
+    "source_date": "2027-01-09T21:30:00.000Z",
+    "source_name": "Saturday, January 9, 2027 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd1f?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_0"
+          }
+        ],
+        "instanceId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9",
+        "id": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_1"
+          }
+        ],
+        "instanceId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9",
+        "id": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_2"
+          }
+        ],
+        "instanceId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9",
+        "id": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 7933999,
+    "show_id": 6973347,
+    "db_date": "2027-01-12T01:00:00+00:00",
+    "source_date": "2027-01-12T01:00:00.000Z",
+    "source_name": "Monday, January 11, 2027 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906476?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_0"
+          }
+        ],
+        "instanceId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34",
+        "id": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_1"
+          }
+        ],
+        "instanceId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34",
+        "id": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_2"
+          }
+        ],
+        "instanceId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34",
+        "id": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130263,
+    "show_id": 7140417,
+    "db_date": "2027-01-16T21:30:00+00:00",
+    "source_date": "2027-01-16T21:30:00.000Z",
+    "source_name": "Saturday, January 16, 2027 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd23?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_0"
+          }
+        ],
+        "instanceId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a",
+        "id": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_1"
+          }
+        ],
+        "instanceId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a",
+        "id": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_2"
+          }
+        ],
+        "instanceId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a",
+        "id": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130264,
+    "show_id": 7140418,
+    "db_date": "2027-01-19T01:00:00+00:00",
+    "source_date": "2027-01-19T01:00:00.000Z",
+    "source_name": "Monday, January 18, 2027 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90647a?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_0"
+          }
+        ],
+        "instanceId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714",
+        "id": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_1"
+          }
+        ],
+        "instanceId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714",
+        "id": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_2"
+          }
+        ],
+        "instanceId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714",
+        "id": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130265,
+    "show_id": 7140419,
+    "db_date": "2027-01-23T21:30:00+00:00",
+    "source_date": "2027-01-23T21:30:00.000Z",
+    "source_name": "Saturday, January 23, 2027 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd27?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_0"
+          }
+        ],
+        "instanceId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710",
+        "id": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_1"
+          }
+        ],
+        "instanceId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710",
+        "id": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_2"
+          }
+        ],
+        "instanceId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710",
+        "id": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130266,
+    "show_id": 7140420,
+    "db_date": "2027-01-30T21:30:00+00:00",
+    "source_date": "2027-01-30T21:30:00.000Z",
+    "source_name": "Saturday, January 30, 2027 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd2b?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_0"
+          }
+        ],
+        "instanceId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7",
+        "id": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_1"
+          }
+        ],
+        "instanceId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7",
+        "id": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_2"
+          }
+        ],
+        "instanceId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7",
+        "id": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130267,
+    "show_id": 7140421,
+    "db_date": "2027-02-02T01:00:00+00:00",
+    "source_date": "2027-02-02T01:00:00.000Z",
+    "source_name": "Monday, February 1, 2027 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906482?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_0"
+          }
+        ],
+        "instanceId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c",
+        "id": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_1"
+          }
+        ],
+        "instanceId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c",
+        "id": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_2"
+          }
+        ],
+        "instanceId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c",
+        "id": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130268,
+    "show_id": 7140422,
+    "db_date": "2027-02-06T21:30:00+00:00",
+    "source_date": "2027-02-06T21:30:00.000Z",
+    "source_name": "Saturday, February 6, 2027 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd2f?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_0"
+          }
+        ],
+        "instanceId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f",
+        "id": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_1"
+          }
+        ],
+        "instanceId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f",
+        "id": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_2"
+          }
+        ],
+        "instanceId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f",
+        "id": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130269,
+    "show_id": 7140423,
+    "db_date": "2027-02-09T01:00:00+00:00",
+    "source_date": "2027-02-09T01:00:00.000Z",
+    "source_name": "Monday, February 8, 2027 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906486?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_0"
+          }
+        ],
+        "instanceId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634",
+        "id": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_1"
+          }
+        ],
+        "instanceId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634",
+        "id": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_2"
+          }
+        ],
+        "instanceId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634",
+        "id": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130270,
+    "show_id": 7140424,
+    "db_date": "2027-02-13T21:30:00+00:00",
+    "source_date": "2027-02-13T21:30:00.000Z",
+    "source_name": "Saturday, February 13, 2027 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd33?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_0"
+          }
+        ],
+        "instanceId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2",
+        "id": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_1"
+          }
+        ],
+        "instanceId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2",
+        "id": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_2"
+          }
+        ],
+        "instanceId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2",
+        "id": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130271,
+    "show_id": 7140425,
+    "db_date": "2027-02-16T01:00:00+00:00",
+    "source_date": "2027-02-16T01:00:00.000Z",
+    "source_name": "Monday, February 15, 2027 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90648a?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_0"
+          }
+        ],
+        "instanceId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce",
+        "id": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_1"
+          }
+        ],
+        "instanceId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce",
+        "id": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_2"
+          }
+        ],
+        "instanceId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce",
+        "id": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130272,
+    "show_id": 7140426,
+    "db_date": "2027-02-20T21:30:00+00:00",
+    "source_date": "2027-02-20T21:30:00.000Z",
+    "source_name": "Saturday, February 20, 2027 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd37?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_0"
+          }
+        ],
+        "instanceId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8",
+        "id": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_1"
+          }
+        ],
+        "instanceId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8",
+        "id": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_2"
+          }
+        ],
+        "instanceId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8",
+        "id": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130273,
+    "show_id": 7140427,
+    "db_date": "2027-02-23T01:00:00+00:00",
+    "source_date": "2027-02-23T01:00:00.000Z",
+    "source_name": "Monday, February 22, 2027 at 7:00 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90648e?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 49,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_0"
+          }
+        ],
+        "instanceId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111",
+        "id": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 69,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_1"
+          }
+        ],
+        "instanceId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111",
+        "id": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 39,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_2"
+          }
+        ],
+        "instanceId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111",
+        "id": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  },
+  {
+    "ticket_id": 8130274,
+    "show_id": 7140428,
+    "db_date": "2027-02-27T21:30:00+00:00",
+    "source_date": "2027-02-27T21:30:00.000Z",
+    "source_name": "Saturday, February 27, 2027 at 3:30 PM",
+    "url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd3b?useEmbed=true",
+    "allocations": [
+      {
+        "sortOrder": "1",
+        "soldOut": "False",
+        "name": "General Admission",
+        "levels": [
+          {
+            "price": 60,
+            "name": "General Admission",
+            "fee": "0",
+            "allocationId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_0"
+          }
+        ],
+        "instanceId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7",
+        "id": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_0"
+      },
+      {
+        "sortOrder": "2",
+        "soldOut": "False",
+        "name": "Premium",
+        "levels": [
+          {
+            "price": 80,
+            "name": "Premium",
+            "fee": "0",
+            "allocationId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_1"
+          }
+        ],
+        "instanceId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7",
+        "id": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_1"
+      },
+      {
+        "sortOrder": "3",
+        "soldOut": "False",
+        "name": "Value",
+        "levels": [
+          {
+            "price": 40,
+            "name": "Value",
+            "fee": "0",
+            "allocationId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_2"
+          }
+        ],
+        "instanceId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7",
+        "id": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_2"
+      }
+    ],
+    "fixture": "updecoded4.json"
+  }
+]

@@ -1,0 +1,2797 @@
+[
+  {
+    "capture": "ticketmaster_comedy-2582.json",
+    "event": {
+      "name": "Noel Miller",
+      "type": "event",
+      "id": "Z7r9jZ1A7Pwqe",
+      "test": false,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7Pwqe",
+      "locale": "en-us",
+      "images": [
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_RECOMENDATION_16_9.jpg",
+          "width": 100,
+          "height": 56,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+          "width": 2048,
+          "height": 1152,
+          "fallback": false
+        },
+        {
+          "ratio": "4_3",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_CUSTOM.jpg",
+          "width": 305,
+          "height": 225,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_EVENT_DETAIL_PAGE_16_9.jpg",
+          "width": 205,
+          "height": 115,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_RETINA_LANDSCAPE_16_9.jpg",
+          "width": 1136,
+          "height": 639,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_ARTIST_PAGE_3_2.jpg",
+          "width": 305,
+          "height": 203,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_TABLET_LANDSCAPE_16_9.jpg",
+          "width": 1024,
+          "height": 576,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_TABLET_LANDSCAPE_3_2.jpg",
+          "width": 1024,
+          "height": 683,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_RETINA_PORTRAIT_3_2.jpg",
+          "width": 640,
+          "height": 427,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_RETINA_PORTRAIT_16_9.jpg",
+          "width": 640,
+          "height": 360,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_SOURCE",
+          "width": 2426,
+          "height": 1365,
+          "fallback": false
+        }
+      ],
+      "sales": {
+        "public": {
+          "startDateTime": "1900-01-01T06:00:00Z",
+          "startTBD": false,
+          "startTBA": false,
+          "endDateTime": "2026-09-29T23:00:00Z"
+        }
+      },
+      "dates": {
+        "start": {
+          "localDate": "2026-09-29",
+          "localTime": "19:00:00",
+          "dateTime": "2026-09-29T23:00:00Z",
+          "dateTBD": false,
+          "dateTBA": false,
+          "timeTBA": false,
+          "noSpecificTime": false
+        },
+        "status": {
+          "code": "onsale"
+        },
+        "spanMultipleDays": false
+      },
+      "classifications": [
+        {
+          "primary": true,
+          "segment": {
+            "id": "KZFzniwnSyZfZ7v7na",
+            "name": "Arts & Theatre"
+          },
+          "genre": {
+            "id": "KnvZfZ7v7le",
+            "name": "Miscellaneous"
+          },
+          "subGenre": {
+            "id": "KZazBEonSMnZfZ7vF1k",
+            "name": "Miscellaneous"
+          },
+          "family": false
+        }
+      ],
+      "outlets": [
+        {
+          "url": "https://www.royaloakmusictheatre.com/",
+          "type": "venueBoxOffice"
+        },
+        {
+          "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7Pwqe",
+          "type": "tmMarketPlace"
+        }
+      ],
+      "ticketing": {
+        "allInclusivePricing": {
+          "enabled": true
+        }
+      },
+      "nameOrigin": "custom",
+      "_links": {
+        "self": {
+          "href": "/discovery/v2/events/Z7r9jZ1A7Pwqe?locale=en-us"
+        },
+        "attractions": [
+          {
+            "href": "/discovery/v2/attractions/K8vZ917psu0?locale=en-us"
+          }
+        ],
+        "venues": [
+          {
+            "href": "/discovery/v2/venues/ZFr9jZeAFA?locale=en-us"
+          }
+        ]
+      },
+      "_embedded": {
+        "venues": [
+          {
+            "name": "Royal Oak Music Theatre",
+            "type": "venue",
+            "id": "ZFr9jZeAFA",
+            "test": false,
+            "locale": "en-us",
+            "postalCode": "48067",
+            "timezone": "America/New_York",
+            "city": {
+              "name": "Royal Oak"
+            },
+            "state": {
+              "name": "Michigan",
+              "stateCode": "MI"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "318 W. 4th St."
+            },
+            "location": {
+              "longitude": "-83.137901000",
+              "latitude": "42.490700000"
+            },
+            "dmas": [
+              {
+                "id": 266
+              }
+            ],
+            "upcomingEvents": {
+              "tmr": 41,
+              "ticketmaster": 1,
+              "_total": 42,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/ZFr9jZeAFA?locale=en-us"
+              }
+            }
+          }
+        ],
+        "attractions": [
+          {
+            "name": "Noel Miller",
+            "type": "attraction",
+            "id": "K8vZ917psu0",
+            "test": false,
+            "url": "https://www.ticketmaster.com/noel-miller-tickets/artist/2469773",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/4a9/ffee1723-a1b5-4c6b-9787-75bd89d914a9_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7la",
+                  "name": "Individual"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7vAdJ",
+                  "name": "Comedian"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "tmr": 1,
+              "ticketweb": 1,
+              "_total": 2,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ917psu0?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "capture": "ticketmaster_comedy-2582.json",
+    "event": {
+      "name": "Jim Henson's Labyrinth: In Concert",
+      "type": "event",
+      "id": "Z7r9jZ1A7OJ84",
+      "test": false,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7OJ84",
+      "locale": "en-us",
+      "images": [
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_RECOMENDATION_16_9.jpg",
+          "width": 100,
+          "height": 56,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_TABLET_LANDSCAPE_3_2.jpg",
+          "width": 1024,
+          "height": 683,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_RETINA_PORTRAIT_16_9.jpg",
+          "width": 640,
+          "height": 360,
+          "fallback": false
+        },
+        {
+          "ratio": "4_3",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_CUSTOM.jpg",
+          "width": 305,
+          "height": 225,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_ARTIST_PAGE_3_2.jpg",
+          "width": 305,
+          "height": 203,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_EVENT_DETAIL_PAGE_16_9.jpg",
+          "width": 205,
+          "height": 115,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_TABLET_LANDSCAPE_16_9.jpg",
+          "width": 1024,
+          "height": 576,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_RETINA_PORTRAIT_3_2.jpg",
+          "width": 640,
+          "height": 427,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_SOURCE",
+          "width": 2426,
+          "height": 1365,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+          "width": 2048,
+          "height": 1152,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_RETINA_LANDSCAPE_16_9.jpg",
+          "width": 1136,
+          "height": 639,
+          "fallback": false
+        }
+      ],
+      "sales": {
+        "public": {
+          "startDateTime": "1900-01-01T18:00:00Z",
+          "startTBD": false,
+          "startTBA": false,
+          "endDateTime": "2026-10-01T22:30:00Z"
+        }
+      },
+      "dates": {
+        "start": {
+          "localDate": "2026-10-01",
+          "localTime": "18:30:00",
+          "dateTime": "2026-10-01T22:30:00Z",
+          "dateTBD": false,
+          "dateTBA": false,
+          "timeTBA": false,
+          "noSpecificTime": false
+        },
+        "status": {
+          "code": "onsale"
+        },
+        "spanMultipleDays": false
+      },
+      "classifications": [
+        {
+          "primary": true,
+          "segment": {
+            "id": "KZFzniwnSyZfZ7v7nn",
+            "name": "Film"
+          },
+          "genre": {
+            "id": "KnvZfZ7vAkF",
+            "name": "Family"
+          },
+          "subGenre": {
+            "id": "KZazBEonSMnZfZ7vFlt",
+            "name": "Miscellaneous"
+          },
+          "family": false
+        }
+      ],
+      "outlets": [
+        {
+          "url": "https://www.royaloakmusictheatre.com/",
+          "type": "venueBoxOffice"
+        },
+        {
+          "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7OJ84",
+          "type": "tmMarketPlace"
+        }
+      ],
+      "ticketing": {
+        "allInclusivePricing": {
+          "enabled": true
+        }
+      },
+      "nameOrigin": "custom",
+      "_links": {
+        "self": {
+          "href": "/discovery/v2/events/Z7r9jZ1A7OJ84?locale=en-us"
+        },
+        "attractions": [
+          {
+            "href": "/discovery/v2/attractions/K8vZ9173qL0?locale=en-us"
+          }
+        ],
+        "venues": [
+          {
+            "href": "/discovery/v2/venues/ZFr9jZeAFA?locale=en-us"
+          }
+        ]
+      },
+      "_embedded": {
+        "venues": [
+          {
+            "name": "Royal Oak Music Theatre",
+            "type": "venue",
+            "id": "ZFr9jZeAFA",
+            "test": false,
+            "locale": "en-us",
+            "postalCode": "48067",
+            "timezone": "America/New_York",
+            "city": {
+              "name": "Royal Oak"
+            },
+            "state": {
+              "name": "Michigan",
+              "stateCode": "MI"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "318 W. 4th St."
+            },
+            "location": {
+              "longitude": "-83.137901000",
+              "latitude": "42.490700000"
+            },
+            "dmas": [
+              {
+                "id": 266
+              }
+            ],
+            "upcomingEvents": {
+              "tmr": 41,
+              "ticketmaster": 1,
+              "_total": 42,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/ZFr9jZeAFA?locale=en-us"
+              }
+            }
+          }
+        ],
+        "attractions": [
+          {
+            "name": "Jim Henson's Labyrinth",
+            "type": "attraction",
+            "id": "K8vZ9173qL0",
+            "test": false,
+            "url": "https://www.ticketmaster.com/jim-hensons-labyrinth-tickets/artist/1992228",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/c0e/fba71797-4f68-4f49-afa8-07d5422b4c0e_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7nn",
+                  "name": "Film"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAkF",
+                  "name": "Family"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vFlt",
+                  "name": "Miscellaneous"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7nI",
+                  "name": "Undefined"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7v7lJ",
+                  "name": "Undefined"
+                },
+                "family": true
+              }
+            ],
+            "upcomingEvents": {
+              "tmr": 18,
+              "ticketmaster": 26,
+              "_total": 44,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ9173qL0?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "capture": "ticketmaster_national-33.json",
+    "event": {
+      "name": "Fumi Abe",
+      "type": "event",
+      "id": "rZ7HnEZ1AfPN-S",
+      "test": false,
+      "url": "https://www.ticketweb.com/event/fumi-abe-irvine-improv-tickets/14963873",
+      "locale": "en-us",
+      "images": [
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_TABLET_LANDSCAPE_16_9.jpg",
+          "width": 1024,
+          "height": 576,
+          "fallback": true
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+          "width": 2048,
+          "height": 1152,
+          "fallback": true
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_EVENT_DETAIL_PAGE_16_9.jpg",
+          "width": 205,
+          "height": 115,
+          "fallback": true
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_RETINA_LANDSCAPE_16_9.jpg",
+          "width": 1136,
+          "height": 639,
+          "fallback": true
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_TABLET_LANDSCAPE_3_2.jpg",
+          "width": 1024,
+          "height": 683,
+          "fallback": true
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_ARTIST_PAGE_3_2.jpg",
+          "width": 305,
+          "height": 203,
+          "fallback": true
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://i.ticketweb.com/i/00/13/56/96/83_Edp.jpg?v=5",
+          "width": 640,
+          "height": 427,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_RETINA_PORTRAIT_16_9.jpg",
+          "width": 640,
+          "height": 360,
+          "fallback": true
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_RECOMENDATION_16_9.jpg",
+          "width": 100,
+          "height": 56,
+          "fallback": true
+        },
+        {
+          "ratio": "4_3",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_CUSTOM.jpg",
+          "width": 305,
+          "height": 225,
+          "fallback": true
+        }
+      ],
+      "sales": {
+        "public": {
+          "startDateTime": "2026-06-01T15:00:00Z",
+          "startTBD": false,
+          "startTBA": false,
+          "endDateTime": "2026-09-28T01:30:00Z"
+        }
+      },
+      "dates": {
+        "access": {
+          "startDateTime": "2026-09-27T23:30:00Z",
+          "startApproximate": false,
+          "endApproximate": false
+        },
+        "start": {
+          "localDate": "2026-09-27",
+          "localTime": "18:00:00",
+          "dateTime": "2026-09-28T01:00:00Z",
+          "dateTBD": false,
+          "dateTBA": false,
+          "timeTBA": false,
+          "noSpecificTime": false
+        },
+        "end": {
+          "approximate": false,
+          "noSpecificTime": false
+        },
+        "timezone": "America/Los_Angeles",
+        "status": {
+          "code": "onsale"
+        },
+        "spanMultipleDays": false
+      },
+      "classifications": [
+        {
+          "primary": true,
+          "segment": {
+            "id": "KZFzniwnSyZfZ7v7nl",
+            "name": "Undefined"
+          },
+          "type": {
+            "id": "KZAyXgnZfZ7v7nI",
+            "name": "Undefined"
+          },
+          "subType": {
+            "id": "KZFzBErXgnZfZ7v7lJ",
+            "name": "Undefined"
+          },
+          "family": false
+        }
+      ],
+      "info": "There is a ticket delivery delay in place until two days prior to the event. Tickets will not be emailed until then. Tickets are only available online until the delivery delay is lifted. DO NOT PURCHASE TICKETS FROM ANYONE OR ANY OTHER SITE OTHER THAN IMPROV.COM TICKET RESALE IS STRICTLY PROHIBITED. TICKETS SUSPECTED OF BEING PURCHASED FOR THE SOLE PURPOSE OF RESELLING MAY BE CANCELLED AT THE DISCRETION OF THE IRVINE IMPROV. EVENT INFO: There is a two-item minimum purchase requirement in the showroom for all guests. Seating is general admission, first-come, first-served, with the exception of groups and premium booths. No cell phone use, photography or video recording is permitted during performances. All sales are final. MISCELLANOUS: For group sales info, e-mail our Events Manager to learn about special menu options and reserved seating. Additional questions may be addressed in our Frequently Asked Questions. For further assistance, contact Irvine Improv.",
+      "pleaseNote": "This event is 21 and over. Any ticket holder unable to present valid identification indicating that they are at least 21 years of age will not be admitted to this event, and will not be eligible for a refund. By purchasing tickets to this event, you are authorizing this charge and agreeing to our terms and conditions herein. \u2022 ALL SALES ARE FINAL, unless the event is canceled. \u2022 No refunds, transfers, or exchanges. Ticket resales are not permitted. \u2022 Ticket prices and fees are \"market-priced\" and may fluctuate. \u2022 Mandatory two-item minimum purchase per person in the showroom. \u2022 No photography, videography, filming, or recording during the show. \u2022 Valid photo ID and the credit card used for purchase are required to pick up tickets. \u2022 No smoking or vaping. \u2022 We reserve the right to deny/refuse entry to or remove parties who are deemed a distraction to other guests. \u2022 We reserve the right to search personal items and may prohibit various items into the venue(s). \u2022 All venues and Owner's Representatives are not responsible for any lost, stolen, or damaged property. Upon entry to our venue(s), (i) you hereby irrevocably grant the venue owner (Levity Live, LLC), and its parent(s), affiliates, subsidiaries, licensees, successors, and assigns (collectively, \"Owner\") the right to photograph, record, film, and otherwise capture your image, voice, and likeness (collectively, \"Footage\") and to own, license, assign, and/or use the Footage (and/or any portion thereof) in perpetuity, throughout the world in any and all media including, without limitation, in connection with any productions, programming, advertising, and promotion, subject to Owner's sole discretion. If any portion of these terms and conditions are found to be unenforceable, the remaining portion will remain in full force and effect. If we fail to enforce any of these Terms, it will not be considered a waiver of any of our rights. For more info: [Terms](https://improv.com/terms/)",
+      "priceRanges": [
+        {
+          "type": "standard",
+          "currency": "USD",
+          "min": 31.14,
+          "max": 101.65
+        }
+      ],
+      "nameOrigin": "custom",
+      "_links": {
+        "self": {
+          "href": "/discovery/v2/events/rZ7HnEZ1AfPN-S?locale=en-us"
+        },
+        "venues": [
+          {
+            "href": "/discovery/v2/venues/rZ7HnEZ178Ex4?locale=en-us"
+          }
+        ]
+      },
+      "_embedded": {
+        "venues": [
+          {
+            "name": "Irvine Improv",
+            "type": "venue",
+            "id": "rZ7HnEZ178Ex4",
+            "test": false,
+            "url": "https://www.ticketweb.com/venue/irvine-improv-irvine-ca/427895",
+            "locale": "en-us",
+            "postalCode": "92618",
+            "timezone": "America/Los_Angeles",
+            "city": {
+              "name": "Irvine"
+            },
+            "state": {
+              "name": "California",
+              "stateCode": "CA"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "527 Spectrum Center Dr."
+            },
+            "location": {
+              "longitude": "-117.744924",
+              "latitude": "33.652275"
+            },
+            "upcomingEvents": {
+              "ticketweb": 145,
+              "_total": 145,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/rZ7HnEZ178Ex4?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "capture": "ticketmaster_national-33.json",
+    "event": {
+      "name": "Amber Autry",
+      "type": "event",
+      "id": "rZ7HnEZ1AfAdAV",
+      "test": false,
+      "url": "https://www.ticketweb.com/event/amber-autry-irvine-improv-tickets/14143174",
+      "locale": "en-us",
+      "images": [
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_TABLET_LANDSCAPE_16_9.jpg",
+          "width": 1024,
+          "height": 576,
+          "fallback": true
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://i.ticketweb.com/i/00/12/86/45/84_Edp.jpg?v=8",
+          "width": 640,
+          "height": 427,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+          "width": 2048,
+          "height": 1152,
+          "fallback": true
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_EVENT_DETAIL_PAGE_16_9.jpg",
+          "width": 205,
+          "height": 115,
+          "fallback": true
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_RETINA_LANDSCAPE_16_9.jpg",
+          "width": 1136,
+          "height": 639,
+          "fallback": true
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_TABLET_LANDSCAPE_3_2.jpg",
+          "width": 1024,
+          "height": 683,
+          "fallback": true
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_ARTIST_PAGE_3_2.jpg",
+          "width": 305,
+          "height": 203,
+          "fallback": true
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_RETINA_PORTRAIT_16_9.jpg",
+          "width": 640,
+          "height": 360,
+          "fallback": true
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_RECOMENDATION_16_9.jpg",
+          "width": 100,
+          "height": 56,
+          "fallback": true
+        },
+        {
+          "ratio": "4_3",
+          "url": "https://s1.ticketm.net/dam/c/f51/ee785ed6-f806-4195-98f4-69f67e09df51_106201_CUSTOM.jpg",
+          "width": 305,
+          "height": 225,
+          "fallback": true
+        }
+      ],
+      "sales": {
+        "public": {
+          "startDateTime": "2026-02-11T16:00:00Z",
+          "startTBD": false,
+          "startTBA": false,
+          "endDateTime": "2026-10-01T03:00:00Z"
+        }
+      },
+      "dates": {
+        "access": {
+          "startDateTime": "2026-10-01T01:00:00Z",
+          "startApproximate": false,
+          "endApproximate": false
+        },
+        "start": {
+          "localDate": "2026-09-30",
+          "localTime": "19:30:00",
+          "dateTime": "2026-10-01T02:30:00Z",
+          "dateTBD": false,
+          "dateTBA": false,
+          "timeTBA": false,
+          "noSpecificTime": false
+        },
+        "end": {
+          "approximate": false,
+          "noSpecificTime": false
+        },
+        "timezone": "America/Los_Angeles",
+        "status": {
+          "code": "onsale"
+        },
+        "spanMultipleDays": false
+      },
+      "classifications": [
+        {
+          "primary": true,
+          "segment": {
+            "id": "KZFzniwnSyZfZ7v7nl",
+            "name": "Undefined"
+          },
+          "type": {
+            "id": "KZAyXgnZfZ7v7nI",
+            "name": "Undefined"
+          },
+          "subType": {
+            "id": "KZFzBErXgnZfZ7v7lJ",
+            "name": "Undefined"
+          },
+          "family": false
+        }
+      ],
+      "info": "There is a ticket delivery delay in place until two days prior to the event. Tickets will not be emailed until then. Tickets are only available online until the delivery delay is lifted. DO NOT PURCHASE TICKETS FROM ANYONE OR ANY OTHER SITE OTHER THAN IMPROV.COM TICKET RESALE IS STRICTLY PROHIBITED. TICKETS SUSPECTED OF BEING PURCHASED FOR THE SOLE PURPOSE OF RESELLING MAY BE CANCELLED AT THE DISCRETION OF THE IRVINE IMPROV. EVENT INFO: There is a two-item minimum purchase requirement in the showroom for all guests. Seating is general admission, first-come, first-served, with the exception of groups and premium booths. No cell phone use, photography or video recording is permitted during performances. All sales are final. MISCELLANOUS: For group sales info, e-mail our Events Manager to learn about special menu options and reserved seating. Additional questions may be addressed in our Frequently Asked Questions. For further assistance, contact Irvine Improv.",
+      "pleaseNote": "This event is 21 and over. Any ticket holder unable to present valid identification indicating that they are at least 21 years of age will not be admitted to this event, and will not be eligible for a refund. By purchasing tickets to this event, you are authorizing this charge and agreeing to our terms and conditions herein. \u2022 ALL SALES ARE FINAL, unless the event is canceled. \u2022 No refunds, transfers, or exchanges. Ticket resales are not permitted. \u2022 Ticket prices and fees are \"market-priced\" and may fluctuate. \u2022 Mandatory two-item minimum purchase per person in the showroom. \u2022 No photography, videography, filming, or recording during the show. \u2022 Valid photo ID and the credit card used for purchase are required to pick up tickets. \u2022 No smoking or vaping. \u2022 We reserve the right to deny/refuse entry to or remove parties who are deemed a distraction to other guests. \u2022 We reserve the right to search personal items and may prohibit various items into the venue(s). \u2022 All venues and Owner's Representatives are not responsible for any lost, stolen, or damaged property. Upon entry to our venue(s), (i) you hereby irrevocably grant the venue owner (Levity Live, LLC), and its parent(s), affiliates, subsidiaries, licensees, successors, and assigns (collectively, \"Owner\") the right to photograph, record, film, and otherwise capture your image, voice, and likeness (collectively, \"Footage\") and to own, license, assign, and/or use the Footage (and/or any portion thereof) in perpetuity, throughout the world in any and all media including, without limitation, in connection with any productions, programming, advertising, and promotion, subject to Owner's sole discretion. If any portion of these terms and conditions are found to be unenforceable, the remaining portion will remain in full force and effect. If we fail to enforce any of these Terms, it will not be considered a waiver of any of our rights. For more info: [Terms](https://improv.com/terms/)",
+      "priceRanges": [
+        {
+          "type": "standard",
+          "currency": "USD",
+          "min": 0.0,
+          "max": 0.0
+        }
+      ],
+      "nameOrigin": "custom",
+      "_links": {
+        "self": {
+          "href": "/discovery/v2/events/rZ7HnEZ1AfAdAV?locale=en-us"
+        },
+        "venues": [
+          {
+            "href": "/discovery/v2/venues/rZ7HnEZ178Ex4?locale=en-us"
+          }
+        ]
+      },
+      "_embedded": {
+        "venues": [
+          {
+            "name": "Irvine Improv",
+            "type": "venue",
+            "id": "rZ7HnEZ178Ex4",
+            "test": false,
+            "url": "https://www.ticketweb.com/venue/irvine-improv-irvine-ca/427895",
+            "locale": "en-us",
+            "postalCode": "92618",
+            "timezone": "America/Los_Angeles",
+            "city": {
+              "name": "Irvine"
+            },
+            "state": {
+              "name": "California",
+              "stateCode": "CA"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "527 Spectrum Center Dr."
+            },
+            "location": {
+              "longitude": "-117.744924",
+              "latitude": "33.652275"
+            },
+            "upcomingEvents": {
+              "ticketweb": 145,
+              "_total": 145,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/rZ7HnEZ178Ex4?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "capture": "ticketmaster_national-23.json",
+    "event": {
+      "name": "The Musicians of Comedy with Pat Byrne and Tom Peters",
+      "type": "event",
+      "id": "17GZv0G62YWj13p",
+      "test": false,
+      "url": "https://www.ticketmaster.com/the-musicians-of-comedy-with-pat-brooklyn-new-york-09-27-2026/event/300064FC3D70A496",
+      "locale": "en-us",
+      "images": [
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_TABLET_LANDSCAPE_3_2.jpg",
+          "width": 1024,
+          "height": 683,
+          "fallback": false
+        },
+        {
+          "ratio": "4_3",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_CUSTOM.jpg",
+          "width": 305,
+          "height": 225,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_RECOMENDATION_16_9.jpg",
+          "width": 100,
+          "height": 56,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_SOURCE",
+          "width": 2426,
+          "height": 1365,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_RETINA_PORTRAIT_16_9.jpg",
+          "width": 640,
+          "height": 360,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_EVENT_DETAIL_PAGE_16_9.jpg",
+          "width": 205,
+          "height": 115,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_RETINA_LANDSCAPE_16_9.jpg",
+          "width": 1136,
+          "height": 639,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_TABLET_LANDSCAPE_16_9.jpg",
+          "width": 1024,
+          "height": 576,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+          "width": 2048,
+          "height": 1152,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_ARTIST_PAGE_3_2.jpg",
+          "width": 305,
+          "height": 203,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/e/f46/fb701596-c5ed-4961-a130-a72f71197f46_RETINA_PORTRAIT_3_2.jpg",
+          "width": 640,
+          "height": 427,
+          "fallback": false
+        }
+      ],
+      "sales": {
+        "public": {
+          "startDateTime": "2026-07-29T17:00:00Z",
+          "startTBD": false,
+          "startTBA": false,
+          "endDateTime": "2026-09-27T20:00:00Z"
+        }
+      },
+      "dates": {
+        "start": {
+          "localDate": "2026-09-27",
+          "localTime": "15:30:00",
+          "dateTime": "2026-09-27T19:30:00Z",
+          "dateTBD": false,
+          "dateTBA": false,
+          "timeTBA": false,
+          "noSpecificTime": false
+        },
+        "timezone": "America/New_York",
+        "status": {
+          "code": "cancelled"
+        },
+        "spanMultipleDays": false
+      },
+      "classifications": [
+        {
+          "primary": true,
+          "segment": {
+            "id": "KZFzniwnSyZfZ7v7na",
+            "name": "Arts & Theatre"
+          },
+          "genre": {
+            "id": "KnvZfZ7vAe1",
+            "name": "Comedy"
+          },
+          "subGenre": {
+            "id": "KZazBEonSMnZfZ7vF17",
+            "name": "Comedy"
+          },
+          "type": {
+            "id": "KZAyXgnZfZ7v7nI",
+            "name": "Undefined"
+          },
+          "subType": {
+            "id": "KZFzBErXgnZfZ7v7lJ",
+            "name": "Undefined"
+          },
+          "family": false
+        }
+      ],
+      "promoter": {
+        "id": "653",
+        "name": "LIVE NATION MUSIC",
+        "description": "LIVE NATION MUSIC / NTL / USA"
+      },
+      "promoters": [
+        {
+          "id": "653",
+          "name": "LIVE NATION MUSIC",
+          "description": "LIVE NATION MUSIC / NTL / USA"
+        }
+      ],
+      "pleaseNote": "Unfortunately, the Event Organizer has had to cancel your event. You don't need to do a thing. We'll issue a refund to the [original method of payment](https://help.ticketmaster.com/hc/en-us/articles/9614074869009) used at time of purchase, as soon as funds are received from the Event Organizer. It should appear on your account within 14-21 days. Please Note: If the tickets were transferred to you, the refund will go to the fan who originally purchased the tickets from Ticketmaster. Please see our [Purchase Policy](https://help.ticketmaster.com/hc/en-us/articles/10465798887953-Purchase-Policy) for more information.",
+      "products": [
+        {
+          "name": "Bottomless Soda & Popcorn-THE MUSICIANS OF COMEDY-Not a Concert Ticket",
+          "id": "17GZv0G62YWEQ3w",
+          "url": "https://www.ticketmaster.com/bottomless-soda-popcornthe-musicians-of-comedynot-brooklyn-new-york-09-27-2026/event/300064FC3D9DA4B2",
+          "type": "Concession Voucher",
+          "classifications": [
+            {
+              "primary": true,
+              "segment": {
+                "id": "KZFzniwnSyZfZ7v7n1",
+                "name": "Miscellaneous"
+              },
+              "genre": {
+                "id": "KnvZfZ7v7ll",
+                "name": "Undefined"
+              },
+              "subGenre": {
+                "id": "KZazBEonSMnZfZ7vAv1",
+                "name": "Undefined"
+              },
+              "type": {
+                "id": "KZAyXgnZfZ7v7nJ",
+                "name": "Upsell"
+              },
+              "subType": {
+                "id": "KZFzBErXgnZfZ7vAkA",
+                "name": "Concession Voucher"
+              },
+              "family": false
+            }
+          ]
+        }
+      ],
+      "seatmap": {
+        "staticUrl": "https://mapsapi.tmol.io/maps/geometry/3/event/300064FC3D70A496/staticImage?type=png&systemId=HOST"
+      },
+      "accessibility": {
+        "ticketLimit": 8
+      },
+      "ticketLimit": {
+        "info": "There is an 8 ticket limit for this event."
+      },
+      "ageRestrictions": {
+        "legalAgeEnforced": false
+      },
+      "ticketing": {
+        "safeTix": {
+          "enabled": true
+        },
+        "allInclusivePricing": {
+          "enabled": true
+        }
+      },
+      "nameOrigin": "custom",
+      "ticketTextLines": {
+        "en-us": {
+          "line6": " SUN SEP 27 2026 3:30 PM  ",
+          "line5": "        149 7TH ST        ",
+          "line4": "      THE BELL HOUSE      ",
+          "line3": "W/ PAT BYRNE + TOM PETERS ",
+          "line2": "   MUSICIANS OF COMEDY    ",
+          "line1": " CANCELED-REFUNDS P.O.P.  "
+        }
+      },
+      "_links": {
+        "self": {
+          "href": "/discovery/v2/events/17GZv0G62YWj13p?locale=en-us"
+        },
+        "attractions": [
+          {
+            "href": "/discovery/v2/attractions/K8vZ917-at0?locale=en-us"
+          },
+          {
+            "href": "/discovery/v2/attractions/K8vZ9178Oi7?locale=en-us"
+          },
+          {
+            "href": "/discovery/v2/attractions/K8vZ917uye7?locale=en-us"
+          },
+          {
+            "href": "/discovery/v2/attractions/K8vZ9178BB0?locale=en-us"
+          },
+          {
+            "href": "/discovery/v2/attractions/K8vZ917QlP0?locale=en-us"
+          },
+          {
+            "href": "/discovery/v2/attractions/K8vZ91739D0?locale=en-us"
+          },
+          {
+            "href": "/discovery/v2/attractions/K8vZ9172Ga7?locale=en-us"
+          },
+          {
+            "href": "/discovery/v2/attractions/K8vZ917Qw3f?locale=en-us"
+          }
+        ],
+        "venues": [
+          {
+            "href": "/discovery/v2/venues/KovZ917ARvk?locale=en-us"
+          }
+        ]
+      },
+      "_embedded": {
+        "venues": [
+          {
+            "name": "The Bell House",
+            "type": "venue",
+            "id": "KovZ917ARvk",
+            "test": false,
+            "url": "https://www.ticketmaster.com/the-bell-house-tickets-brooklyn/venue/393383",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dbimages/23144v.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              }
+            ],
+            "postalCode": "11215",
+            "timezone": "America/New_York",
+            "city": {
+              "name": "Brooklyn"
+            },
+            "state": {
+              "name": "New York",
+              "stateCode": "NY"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "149 7th Street"
+            },
+            "location": {
+              "longitude": "-73.99156000",
+              "latitude": "40.67373000"
+            },
+            "markets": [
+              {
+                "name": "New York/Tri-State Area",
+                "id": "35"
+              }
+            ],
+            "dmas": [
+              {
+                "id": 345
+              }
+            ],
+            "boxOfficeInfo": {
+              "openHoursDetail": "On show days, The Bell House opens its doors one hour before venue doors open. For events with special circumstances, please check the event's ticketing page for specific opening times.",
+              "acceptedPaymentDetail": "We accept both cash and card payments at the box office and at our bars. For the most seamless experience, we recommend using a card.",
+              "willCallDetail": "Will call tickets are available for pickup at the box office approximately 1 hour before doors open on the day of the show. Please make sure that you have a photo ID matching the purchasers name to pick up tickets. Guests are not permitted to put tickets in will call for other guests to pick up. You will need to arrange to meet your party at the facility to deliver tickets. If tickets or passes are being left for you they will only be left at the box office. This includes meet and greet passes, backstage passes, press passes and tickets from the tour or other promotional company. These tickets will be available approximately 1 hour before doors on the day of the show. If your tickets/passes are not in will call you will need to contact the person that left them for you to determine where they are. The box office cannot contact any member of the tour for you."
+            },
+            "parkingDetail": "Street parking is available, but we recommend using public transit. By Subway: Take the F, G or R Train to the Smith 9th Streets station. Its a short walk from there. By Bus: The B61 bus stops nearby.",
+            "accessibleSeatingDetail": "For all guest accommodations, please email us at TheBellHouse@LiveNation.com to coordinate accommodations in advance of the show. Unexpected Needs: If you have had an injury or illness that requires seating, email TheBellHouse@LiveNation.com to coordinate accommodations in advance of the show. We have a limited number of seats available on the day of the show for such issues, but we cannot guarantee we will be able to seat you. Please remember that accessible seating permits for the guest with the accessible need and one companion. Interpreter Requests: If you will need an interpreter for an event, please give us at least 2 weeks notice to secure. Guests that request an interpreter will need to pick up their tickets at will call. When the tickets are picked up we will introduce you to your interpreter for the evening and take you to your seats. There is no charge to arrange for an interpreter for your visit. Hearing Assistance: Guests that require assisted listening devices can contact our venue office prior to the event to arrange for a device. Please give us at least 2 weeks notice. We can be reached via email TheBellHouse@LiveNation.com. Service Animals: Service animals are permitted inside the venue during events. Only registered working animals are permitted. The Bell House requires, consistent with the ADA, that service animals must be harnessed, leashed, or tethered, unless these devices interfere with the service animals work or the individuals disability prevents them from using these devices. Individuals who cannot use such devices must maintain control of the animal through voice, signal, or other effective methods. Wheelchairs: Our venue is wheelchair accessible. Accommodations: Our venue bathrooms, bar, and merchandise area are accessible. For any further questions or updates, feel free to contact us at TheBellHouse@LiveNation.com",
+            "generalInfo": {
+              "generalRule": "For a complete list of FAQs and information to help better plan your visit, please review the Plan Your Visit portion of our website: https://www.thebellhouseny.com/visit",
+              "childRule": "This is a 21+ venue. For events that allow for ages under 21, they must be accompanied by a parent or legal guardian. You must present a valid ID at check in. Each shows specific age requirements can be found by visiting the events corresponding ticketing page. If you have questions about a specific show, please email TheBellHouse@LiveNation.com"
+            },
+            "upcomingEvents": {
+              "ticketmaster": 86,
+              "_total": 86,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/KovZ917ARvk?locale=en-us"
+              }
+            }
+          }
+        ],
+        "attractions": [
+          {
+            "name": "Musicians of Comedy",
+            "type": "attraction",
+            "id": "K8vZ917-at0",
+            "test": false,
+            "url": "https://www.ticketmaster.com/musicians-of-comedy-tickets/artist/4596546",
+            "locale": "en-us",
+            "externalLinks": {
+              "instagram": [
+                {
+                  "url": "https://www.instagram.com/MusiciansOfComedy/"
+                }
+              ]
+            },
+            "images": [
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/cf5/aacaa0ba-056f-4b26-88c2-7679c7cf5cf5_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7la",
+                  "name": "Individual"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7vAd7",
+                  "name": "Musician"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "ticketmaster": 1,
+              "_total": 1,
+              "_filtered": 0
+            },
+            "draftStatus": "ACCEPTED",
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ917-at0?locale=en-us"
+              }
+            }
+          },
+          {
+            "name": "Pat Byrne",
+            "type": "attraction",
+            "id": "K8vZ9178Oi7",
+            "test": false,
+            "url": "https://www.ticketmaster.com/pat-byrne-tickets/artist/1800453",
+            "locale": "en-us",
+            "externalLinks": {
+              "twitter": [
+                {
+                  "url": "@patbyrne_"
+                }
+              ]
+            },
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/71a/e8cb996f-45a4-4639-a130-8330f496b71a_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7nJ",
+                  "name": "Music"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAeA",
+                  "name": "Rock"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7v6F1",
+                  "name": "Pop"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7nI",
+                  "name": "Undefined"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7v7lJ",
+                  "name": "Undefined"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "ticketmaster": 1,
+              "_total": 1,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ9178Oi7?locale=en-us"
+              }
+            }
+          },
+          {
+            "name": "Chris Gethard",
+            "type": "attraction",
+            "id": "K8vZ917uye7",
+            "test": false,
+            "url": "https://www.ticketmaster.com/chris-gethard-tickets/artist/1545160",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_SOURCE",
+                "width": 8256,
+                "height": 6192,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/eec/49aabcf0-2147-483b-a542-8950925b9eec_1355961_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7nI",
+                  "name": "Undefined"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7v7lJ",
+                  "name": "Undefined"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "ticketmaster": 1,
+              "ticketweb": 1,
+              "_total": 2,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ917uye7?locale=en-us"
+              }
+            }
+          },
+          {
+            "name": "Donwill",
+            "type": "attraction",
+            "id": "K8vZ9178BB0",
+            "test": false,
+            "url": "https://www.ticketmaster.com/donwill-tickets/artist/1838860",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/239/6b92d8b4-4418-4bea-9361-9a80c6f29239_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7nJ",
+                  "name": "Music"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAv1",
+                  "name": "Hip-Hop/Rap"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vkdA",
+                  "name": "Urban"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7nI",
+                  "name": "Undefined"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7v7lJ",
+                  "name": "Undefined"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "ticketmaster": 2,
+              "_total": 2,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ9178BB0?locale=en-us"
+              }
+            }
+          },
+          {
+            "name": "Dina Hashem",
+            "type": "attraction",
+            "id": "K8vZ917QlP0",
+            "test": false,
+            "url": "https://www.ticketmaster.com/dina-hashem-tickets/artist/2921057",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/8b8/5cad579d-f341-4348-b018-9db3ac6e38b8_1763291_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7la",
+                  "name": "Individual"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7vAdJ",
+                  "name": "Comedian"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "ticketmaster": 1,
+              "_total": 1,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ917QlP0?locale=en-us"
+              }
+            }
+          },
+          {
+            "name": "Matt Koff",
+            "type": "attraction",
+            "id": "K8vZ91739D0",
+            "test": false,
+            "url": "https://www.ticketmaster.com/matt-koff-tickets/artist/1984017",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/891/a4b1a833-5073-47c2-8a38-7ad3fee76891_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7nI",
+                  "name": "Undefined"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7v7lJ",
+                  "name": "Undefined"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "ticketmaster": 1,
+              "_total": 1,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ91739D0?locale=en-us"
+              }
+            }
+          },
+          {
+            "name": "Jim Tews",
+            "type": "attraction",
+            "id": "K8vZ9172Ga7",
+            "test": false,
+            "url": "https://www.ticketmaster.com/jim-tews-tickets/artist/1664635",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/597/089d9725-80ab-45ef-862a-76a8e38c0597_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7nI",
+                  "name": "Undefined"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7v7lJ",
+                  "name": "Undefined"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "ticketmaster": 1,
+              "_total": 1,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ9172Ga7?locale=en-us"
+              }
+            }
+          },
+          {
+            "name": "Brittany Carney",
+            "type": "attraction",
+            "id": "K8vZ917Qw3f",
+            "test": false,
+            "url": "https://www.ticketmaster.com/brittany-carney-tickets/artist/2939913",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_SOURCE",
+                "width": 2426,
+                "height": 1365,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/bd0/7a843f40-d760-499b-ba4b-717ada146bd0_1810621_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7la",
+                  "name": "Individual"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7vAdJ",
+                  "name": "Comedian"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "ticketmaster": 2,
+              "_total": 2,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ917Qw3f?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "capture": "ticketmaster_national-23.json",
+    "event": {
+      "name": "Kevin Sullivan",
+      "type": "event",
+      "id": "1AdZZ_FGkD7DMx8",
+      "test": false,
+      "url": "https://www.ticketmaster.com/kevin-sullivan-brooklyn-new-york-09-27-2026/event/3000648EC4EF7890",
+      "locale": "en-us",
+      "images": [
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_EVENT_DETAIL_PAGE_16_9.jpg",
+          "width": 205,
+          "height": 115,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_RETINA_PORTRAIT_16_9.jpg",
+          "width": 640,
+          "height": 360,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+          "width": 2048,
+          "height": 1152,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_RECOMENDATION_16_9.jpg",
+          "width": 100,
+          "height": 56,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_ARTIST_PAGE_3_2.jpg",
+          "width": 305,
+          "height": 203,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_RETINA_PORTRAIT_3_2.jpg",
+          "width": 640,
+          "height": 427,
+          "fallback": false
+        },
+        {
+          "ratio": "3_2",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_TABLET_LANDSCAPE_3_2.jpg",
+          "width": 1024,
+          "height": 683,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_TABLET_LANDSCAPE_16_9.jpg",
+          "width": 1024,
+          "height": 576,
+          "fallback": false
+        },
+        {
+          "ratio": "16_9",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_RETINA_LANDSCAPE_16_9.jpg",
+          "width": 1136,
+          "height": 639,
+          "fallback": false
+        },
+        {
+          "ratio": "4_3",
+          "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_CUSTOM.jpg",
+          "width": 305,
+          "height": 225,
+          "fallback": false
+        }
+      ],
+      "sales": {
+        "public": {
+          "startDateTime": "2026-04-16T14:00:00Z",
+          "startTBD": false,
+          "startTBA": false,
+          "endDateTime": "2026-09-28T00:00:00Z"
+        },
+        "presales": [
+          {
+            "startDateTime": "2026-04-15T15:00:00Z",
+            "endDateTime": "2026-04-16T13:30:00Z",
+            "name": "LIVE NATION PRESALE",
+            "description": "Live Nation Presales are available exclusively to Live Nation All Access members. It only takes a minute to join and membership is free. Sign into Ticketmaster with the same email address you use for All Access to automatically unlock the presale (no presale codes).",
+            "shortDescription": "Available exclusively to Live Nation All Access members",
+            "linkDescription": "Join for Free to Unlock Presale",
+            "url": "https://www.livenation.com/allaccess"
+          }
+        ]
+      },
+      "dates": {
+        "start": {
+          "localDate": "2026-09-27",
+          "localTime": "19:30:00",
+          "dateTime": "2026-09-27T23:30:00Z",
+          "dateTBD": false,
+          "dateTBA": false,
+          "timeTBA": false,
+          "noSpecificTime": false
+        },
+        "timezone": "America/New_York",
+        "status": {
+          "code": "onsale"
+        },
+        "spanMultipleDays": false
+      },
+      "classifications": [
+        {
+          "primary": true,
+          "segment": {
+            "id": "KZFzniwnSyZfZ7v7na",
+            "name": "Arts & Theatre"
+          },
+          "genre": {
+            "id": "KnvZfZ7vAe1",
+            "name": "Comedy"
+          },
+          "subGenre": {
+            "id": "KZazBEonSMnZfZ7vF17",
+            "name": "Comedy"
+          },
+          "type": {
+            "id": "KZAyXgnZfZ7v7nI",
+            "name": "Undefined"
+          },
+          "subType": {
+            "id": "KZFzBErXgnZfZ7v7lJ",
+            "name": "Undefined"
+          },
+          "family": false
+        }
+      ],
+      "promoter": {
+        "id": "653",
+        "name": "LIVE NATION MUSIC",
+        "description": "LIVE NATION MUSIC / NTL / USA"
+      },
+      "promoters": [
+        {
+          "id": "653",
+          "name": "LIVE NATION MUSIC",
+          "description": "LIVE NATION MUSIC / NTL / USA"
+        }
+      ],
+      "pleaseNote": "Kevin Sullivan is a LA-based comic known for his cosmic twist on comedy! In addition to his work on stage, Kevin has amassed over half a million followers on social media, where he's built a devoted fanbase by blending comedy w/ astrology, turning zodiac signs into punchlines. He also co-hosts the hit podcast Two Broke Gays & is now selling out shows on his Aquarian Contrarian tour, proving no matter your sign, laughing at yourself is always in the stars! Door Time: 6:30pm (front bar opens @ 5:30pm). Show Time: 7:30pm. 21 & over w/ valid, government-issued photo ID. This event is General Admission Preferred Seating & a mix of General Admission Seating & Standing Room. *All seating is 1st come, 1st served & not guaranteed. Arrive early for best selection. If you have an accessibility request, please email thebellhouse@livenation.com prior. *No outside food, drink. $.25 per each ticket sold for a majority of events at The Bell House benefits Comedy Gives Back.",
+      "seatmap": {
+        "staticUrl": "https://mapsapi.tmol.io/maps/geometry/3/event/3000648EC4EF7890/staticImage?type=png&systemId=HOST"
+      },
+      "accessibility": {
+        "ticketLimit": 8
+      },
+      "ticketLimit": {
+        "info": "There is an 8 ticket limit for this event."
+      },
+      "ageRestrictions": {
+        "legalAgeEnforced": false
+      },
+      "ticketing": {
+        "safeTix": {
+          "enabled": true
+        },
+        "allInclusivePricing": {
+          "enabled": true
+        }
+      },
+      "nameOrigin": "custom",
+      "ticketTextLines": {
+        "en-us": {
+          "line6": " SUN SEP 27 2026 7:30 PM  ",
+          "line5": "        149 7TH ST        ",
+          "line4": "      THE BELL HOUSE      ",
+          "line3": "           ****           ",
+          "line2": "      KEVIN SULLIVAN      ",
+          "line1": "   LIVE NATION PRESENTS   "
+        }
+      },
+      "_links": {
+        "self": {
+          "href": "/discovery/v2/events/1AdZZ_FGkD7DMx8?locale=en-us"
+        },
+        "attractions": [
+          {
+            "href": "/discovery/v2/attractions/K8vZ917r6tV?locale=en-us"
+          }
+        ],
+        "venues": [
+          {
+            "href": "/discovery/v2/venues/KovZ917ARvk?locale=en-us"
+          }
+        ]
+      },
+      "_embedded": {
+        "venues": [
+          {
+            "name": "The Bell House",
+            "type": "venue",
+            "id": "KovZ917ARvk",
+            "test": false,
+            "url": "https://www.ticketmaster.com/the-bell-house-tickets-brooklyn/venue/393383",
+            "locale": "en-us",
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dbimages/23144v.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              }
+            ],
+            "postalCode": "11215",
+            "timezone": "America/New_York",
+            "city": {
+              "name": "Brooklyn"
+            },
+            "state": {
+              "name": "New York",
+              "stateCode": "NY"
+            },
+            "country": {
+              "name": "United States Of America",
+              "countryCode": "US"
+            },
+            "address": {
+              "line1": "149 7th Street"
+            },
+            "location": {
+              "longitude": "-73.99156000",
+              "latitude": "40.67373000"
+            },
+            "markets": [
+              {
+                "name": "New York/Tri-State Area",
+                "id": "35"
+              }
+            ],
+            "dmas": [
+              {
+                "id": 345
+              }
+            ],
+            "boxOfficeInfo": {
+              "openHoursDetail": "On show days, The Bell House opens its doors one hour before venue doors open. For events with special circumstances, please check the event's ticketing page for specific opening times.",
+              "acceptedPaymentDetail": "We accept both cash and card payments at the box office and at our bars. For the most seamless experience, we recommend using a card.",
+              "willCallDetail": "Will call tickets are available for pickup at the box office approximately 1 hour before doors open on the day of the show. Please make sure that you have a photo ID matching the purchasers name to pick up tickets. Guests are not permitted to put tickets in will call for other guests to pick up. You will need to arrange to meet your party at the facility to deliver tickets. If tickets or passes are being left for you they will only be left at the box office. This includes meet and greet passes, backstage passes, press passes and tickets from the tour or other promotional company. These tickets will be available approximately 1 hour before doors on the day of the show. If your tickets/passes are not in will call you will need to contact the person that left them for you to determine where they are. The box office cannot contact any member of the tour for you."
+            },
+            "parkingDetail": "Street parking is available, but we recommend using public transit. By Subway: Take the F, G or R Train to the Smith 9th Streets station. Its a short walk from there. By Bus: The B61 bus stops nearby.",
+            "accessibleSeatingDetail": "For all guest accommodations, please email us at TheBellHouse@LiveNation.com to coordinate accommodations in advance of the show. Unexpected Needs: If you have had an injury or illness that requires seating, email TheBellHouse@LiveNation.com to coordinate accommodations in advance of the show. We have a limited number of seats available on the day of the show for such issues, but we cannot guarantee we will be able to seat you. Please remember that accessible seating permits for the guest with the accessible need and one companion. Interpreter Requests: If you will need an interpreter for an event, please give us at least 2 weeks notice to secure. Guests that request an interpreter will need to pick up their tickets at will call. When the tickets are picked up we will introduce you to your interpreter for the evening and take you to your seats. There is no charge to arrange for an interpreter for your visit. Hearing Assistance: Guests that require assisted listening devices can contact our venue office prior to the event to arrange for a device. Please give us at least 2 weeks notice. We can be reached via email TheBellHouse@LiveNation.com. Service Animals: Service animals are permitted inside the venue during events. Only registered working animals are permitted. The Bell House requires, consistent with the ADA, that service animals must be harnessed, leashed, or tethered, unless these devices interfere with the service animals work or the individuals disability prevents them from using these devices. Individuals who cannot use such devices must maintain control of the animal through voice, signal, or other effective methods. Wheelchairs: Our venue is wheelchair accessible. Accommodations: Our venue bathrooms, bar, and merchandise area are accessible. For any further questions or updates, feel free to contact us at TheBellHouse@LiveNation.com",
+            "generalInfo": {
+              "generalRule": "For a complete list of FAQs and information to help better plan your visit, please review the Plan Your Visit portion of our website: https://www.thebellhouseny.com/visit",
+              "childRule": "This is a 21+ venue. For events that allow for ages under 21, they must be accompanied by a parent or legal guardian. You must present a valid ID at check in. Each shows specific age requirements can be found by visiting the events corresponding ticketing page. If you have questions about a specific show, please email TheBellHouse@LiveNation.com"
+            },
+            "upcomingEvents": {
+              "ticketmaster": 86,
+              "_total": 86,
+              "_filtered": 0
+            },
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/venues/KovZ917ARvk?locale=en-us"
+              }
+            }
+          }
+        ],
+        "attractions": [
+          {
+            "name": "Kevin Sullivan",
+            "type": "attraction",
+            "id": "K8vZ917r6tV",
+            "test": false,
+            "url": "https://www.ticketmaster.com/kevin-sullivan-tickets/artist/3638769",
+            "locale": "en-us",
+            "externalLinks": {
+              "instagram": [
+                {
+                  "url": "https://www.instagram.com/kevinsullivan/"
+                }
+              ]
+            },
+            "images": [
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_EVENT_DETAIL_PAGE_16_9.jpg",
+                "width": 205,
+                "height": 115,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_RETINA_PORTRAIT_16_9.jpg",
+                "width": 640,
+                "height": 360,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_TABLET_LANDSCAPE_LARGE_16_9.jpg",
+                "width": 2048,
+                "height": 1152,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_RECOMENDATION_16_9.jpg",
+                "width": 100,
+                "height": 56,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_ARTIST_PAGE_3_2.jpg",
+                "width": 305,
+                "height": 203,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_RETINA_PORTRAIT_3_2.jpg",
+                "width": 640,
+                "height": 427,
+                "fallback": false
+              },
+              {
+                "ratio": "3_2",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_TABLET_LANDSCAPE_3_2.jpg",
+                "width": 1024,
+                "height": 683,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_TABLET_LANDSCAPE_16_9.jpg",
+                "width": 1024,
+                "height": 576,
+                "fallback": false
+              },
+              {
+                "ratio": "16_9",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_RETINA_LANDSCAPE_16_9.jpg",
+                "width": 1136,
+                "height": 639,
+                "fallback": false
+              },
+              {
+                "ratio": "4_3",
+                "url": "https://s1.ticketm.net/dam/a/ed4/2cbeec80-fc30-4baa-9eaf-e59d96ea3ed4_CUSTOM.jpg",
+                "width": 305,
+                "height": 225,
+                "fallback": false
+              }
+            ],
+            "classifications": [
+              {
+                "primary": true,
+                "segment": {
+                  "id": "KZFzniwnSyZfZ7v7na",
+                  "name": "Arts & Theatre"
+                },
+                "genre": {
+                  "id": "KnvZfZ7vAe1",
+                  "name": "Comedy"
+                },
+                "subGenre": {
+                  "id": "KZazBEonSMnZfZ7vF17",
+                  "name": "Comedy"
+                },
+                "type": {
+                  "id": "KZAyXgnZfZ7v7la",
+                  "name": "Individual"
+                },
+                "subType": {
+                  "id": "KZFzBErXgnZfZ7vAdJ",
+                  "name": "Comedian"
+                },
+                "family": false
+              }
+            ],
+            "upcomingEvents": {
+              "ticketmaster": 5,
+              "_total": 5,
+              "_filtered": 0
+            },
+            "draftStatus": "ACCEPTED",
+            "_links": {
+              "self": {
+                "href": "/discovery/v2/attractions/K8vZ917r6tV?locale=en-us"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]

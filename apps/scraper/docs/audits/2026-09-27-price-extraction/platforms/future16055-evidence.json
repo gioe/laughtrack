@@ -1,0 +1,196 @@
+{
+  "source_url": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26",
+  "ticket": {
+    "id": 6438844,
+    "purchase_url": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/",
+    "price": null,
+    "sold_out": false,
+    "show_id": 5682578,
+    "type": "General Admission",
+    "name": "*FREE* ASSSSCAT NY",
+    "date": "2026-09-28T00:30:00+00:00",
+    "club_id": 16055,
+    "club_name": "Upright Citizens Brigade Theatre New York",
+    "website": "https://ucbcomedy.com/",
+    "show_page_url": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26",
+    "last_scraped_by": "ucb",
+    "last_scraped_date": "2026-09-25T23:53:42.035350+00:00"
+  },
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/",
+          "url": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/",
+          "name": "*FREE* ASSSSCAT NY - Upright Citizens Brigade",
+          "isPartOf": {
+            "@id": "https://ucbcomedy.com/#website"
+          },
+          "primaryImageOfPage": {
+            "@id": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/#primaryimage"
+          },
+          "image": {
+            "@id": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/#primaryimage"
+          },
+          "thumbnailUrl": "https://ucbcomedy.com/wp-content/uploads/2025/12/Edits-various-show-posters-2025-12-19T155824.102.jpg",
+          "datePublished": "2026-08-07T18:09:21+00:00",
+          "dateModified": "2026-09-24T17:48:00+00:00",
+          "breadcrumb": {
+            "@id": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/#breadcrumb"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": [
+            {
+              "@type": "ReadAction",
+              "target": [
+                "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/"
+              ]
+            }
+          ]
+        },
+        {
+          "@type": "ImageObject",
+          "inLanguage": "en-US",
+          "@id": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/#primaryimage",
+          "url": "https://ucbcomedy.com/wp-content/uploads/2025/12/Edits-various-show-posters-2025-12-19T155824.102.jpg",
+          "contentUrl": "https://ucbcomedy.com/wp-content/uploads/2025/12/Edits-various-show-posters-2025-12-19T155824.102.jpg",
+          "width": 2160,
+          "height": 1080
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://ucbcomedy.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Events",
+              "item": "https://ucbcomedy.com/show/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "*FREE* ASSSSCAT NY"
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://ucbcomedy.com/#website",
+          "url": "https://ucbcomedy.com/",
+          "name": "Upright Citizens Brigade",
+          "description": "Comedy Theatre and Training Center",
+          "publisher": {
+            "@id": "https://ucbcomedy.com/#organization"
+          },
+          "alternateName": "UCB Theatre",
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://ucbcomedy.com/?s={search_term_string}"
+              },
+              "query-input": {
+                "@type": "PropertyValueSpecification",
+                "valueRequired": true,
+                "valueName": "search_term_string"
+              }
+            }
+          ],
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://ucbcomedy.com/#organization",
+          "name": "Upright Citizens Brigade",
+          "alternateName": "UCB Theatre",
+          "url": "https://ucbcomedy.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "inLanguage": "en-US",
+            "@id": "https://ucbcomedy.com/#/schema/logo/image/",
+            "url": "",
+            "contentUrl": "",
+            "caption": "Upright Citizens Brigade"
+          },
+          "image": {
+            "@id": "https://ucbcomedy.com/#/schema/logo/image/"
+          },
+          "sameAs": [
+            "https://www.facebook.com/ucbtla/",
+            "https://x.com/ucbtla",
+            "https://www.youtube.com/ucbcomedy"
+          ]
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ComedyEvent",
+      "name": "*FREE* ASSSSCAT NY",
+      "url": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/",
+      "startDate": "2026-09-27T20:30:00-04:00",
+      "endDate": "2026-09-27T22:00:00-04:00",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/MixedEventAttendanceMode",
+      "description": "UCBNY presents a *FREE* ASSSSCAT! Tickets for this show are free, but you must make a reservation online and arrive prior to 8:25pm for a seat. Seating is first come first served so any arrival after 8:25pm is not guaranteed. In-person and livestream tickets will become available on Friday, Septembe\u2026",
+      "image": [
+        "https://ucbcomedy.com/wp-content/uploads/2025/12/Edits-various-show-posters-2025-12-19T155824.102.jpg"
+      ],
+      "location": [
+        {
+          "@type": "Place",
+          "name": "NY - 14TH ST. Mainstage",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "242 E 14th St",
+            "addressLocality": "New York",
+            "addressRegion": "NY",
+            "postalCode": "10003",
+            "addressCountry": "US"
+          }
+        },
+        {
+          "@type": "VirtualLocation",
+          "url": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/watch/"
+        }
+      ],
+      "organizer": {
+        "@type": "Organization",
+        "name": "Upright Citizens Brigade",
+        "url": "https://ucbcomedy.com/"
+      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "General Admission",
+          "url": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/",
+          "price": "0.00",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "validFrom": "2026-09-25T09:00:59-07:00"
+        },
+        {
+          "@type": "Offer",
+          "name": "Live Stream",
+          "url": "https://ucbcomedy.com/show/free-asssscat-ny-09-27-26/",
+          "price": "0.00",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "validFrom": "2026-09-25T09:00:04-07:00"
+        }
+      ],
+      "isAccessibleForFree": true
+    }
+  ],
+  "visible_text": "*FREE* ASSSSCAT NY - Upright Citizens Brigade Skip to content Upright Citizens Brigade Comedy Theatre and Training Center SHOWS LA Show Calendar NY Show Calendar Upcoming Livestreams Calendar Past Shows on Demand Class Show Calendar LA Class Shows NY Class Shows Pitch a Show CLASSES Register for Classes Getting Started at UCB Improv Sketch Writing Stand-Up Musical Improv Acting Clowning Scholarships UCB Diversity Scholarship Program UCB x SNL Scholarship TEAMS LA House Teams Betty Harold Branzino Cowboy Mama Dance Club Remix Darnell Hollywood The Fantasy Gas Money S.O.F.T. yikes! Lloyd Freak Trap Jinx PTO Maude Big Time The Faculty The Family Business Rodeo Baby Town Crier One Man\u2019s Trash (Wild Card Team) NY House Teams Betty Harold suckdog Club Gator Hot FM Rhubarb Your Girlfriend The Mall Lloyd Cruise Control WET Maude First Wife Fridge Magnet Golden Hour Mom\u2019s World Pamela Reunion Tour Auditions About Auditions 2026 UCB LA Maude/Betty Teams 2026 UCB LA Harold Teams 2026 UCB LA Lloyd Teams 2026 UCBTNY Betty Submissions 2026 UCB NY Harold/Lloyd Teams Maude Teams TALENT LA Talent NY Talent Talent DCM Talent Performing Tonight Teams Teachers CORPORATE WORKSHOPS TOURS SHOP Merch UCB Improv Manual Gift Cards ABOUT About UCB UCB LA Artistic Team Careers Contact Venues Training Center FAQ ACCOUNT My Tickets Livestreams myUCBComedy Orders Classes Settings Register for Free Log In SHOWS LA Show Calendar NY Show Calendar Upcoming Livestreams Calendar Past Shows on Demand Class Show Calendar LA Class Shows NY Class Shows Pitch a Show CLASSES Register for Classes Getting Started at UCB Improv Sketch Writing Stand-Up Musical Improv Acting Clowning Scholarships UCB Diversity Scholarship Program UCB x SNL Scholarship TEAMS LA House Teams Betty Harold Branzino Cowboy Mama Dance Club Remix Darnell Hollywood The Fantasy Gas Money S.O.F.T. yikes! Lloyd Freak Trap Jinx PTO Maude Big Time The Faculty The Family Business Rodeo Baby Town Crier One Man\u2019s Trash (Wild Card Team) NY House Teams Betty Harold suckdog Club Gator Hot FM Rhubarb Your Girlfriend The Mall Lloyd Cruise Control WET Maude First Wife Fridge Magnet Golden Hour Mom\u2019s World Pamela Reunion Tour Auditions About Auditions 2026 UCB LA Maude/Betty Teams 2026 UCB LA Harold Teams 2026 UCB LA Lloyd Teams 2026 UCBTNY Betty Submissions 2026 UCB NY Harold/Lloyd Teams Maude Teams TALENT LA Talent NY Talent Talent DCM Talent Performing Tonight Teams Teachers CORPORATE WORKSHOPS TOURS SHOP Merch UCB Improv Manual Gift Cards ABOUT About UCB UCB LA Artistic Team Careers Contact Venues Training Center FAQ ACCOUNT My Tickets Livestreams myUCBComedy Orders Classes Settings Register for Free Log In *FREE* ASSSSCAT NY Sunday, September 27, 2026 \u2013 8:30 pm Sun, Sep 27 \u00b7 8:30 PM NY - 14TH ST. Mainstage 90 minutes Sunday, September 27, 2026 \u2013 8:30 pm NY - 14TH ST. Mainstage UCBNY presents a *FREE* ASSSSCAT! Tickets for this show are free, but you must make a reservation online and arrive prior to 8:25pm for a seat.\u00a0Seating is first come first served so any arrival after 8:25pm is not guaranteed. In-person and livestream tickets will become available on Friday, September 25th, at 12pm ET. Come back to this page then! If you do not reserve a seat in advance, please still show up anyways and we\u2019ll try to get you in if there are some no-shows! ASSSSCAT is UCB\u2019s signature improv show that has played to critical acclaim and sold out audiences across the country. What is ASSSSCAT? It starts with a group of improv comedians from film & TV taking the stage with a special guest monologist. After getting a suggestion from the audience, our monologist shares off-the-cuff thoughts, feelings, and true stories inspired by your suggestion. The improvisers then spin this monologue into a series of scenes that will show you why ASSSSCAT is one of the longest running improv shows in the world! Previous NY monologists include: Mark Hamill, Alan Alda, Tina Fey, Keegan-Michael Key, Ellie Kemper, Kevin Bacon, Jessica Williams, Phoebe Robinson, Kathleen Turner, Paul Shaffer, Daniel Dae Kim, Conan O\u2019Brien, and more! \u2022 \u201cThe hardest we\u2019ve laughed in a long, long time.\u201d -Out Magazine \u2022 \u201cAmong improv people today, the gold standard is a group called ASSSSCAT.\u201d -Vice Magazine \u2014 In-person tickets are FREE to reserve! Livestream links can also be reserved FOR FREE! All tickets are released at the same time, specified above. All sales are final. The show starts at the time listed. If you are not at the theater more than 5 minutes before the start of the show, we may release your tickets to the waitlist. Lineup is subject to change. Under 17 must be accompanied by a parent/guardian. Please use discretion, as all our shows can potentially use adult/sexual material, language, and images. Upright Citizens Brigade Theatre: 242 East 14th Street, New York, NY 10003 Get Your Tickets Get Your Tickets General Admission $0 $0 Free Livestream $0 $0 \u2212 + Add to Cart Need more than one? Adjust in cart. Livestream link emailed 1 hour before \u00b7 watch for 7 days. 242 E 14th St, New York, NY 10003 EMAIL SIGNUP Stay in the know about upcoming shows, get updates on new classes, and more. SUBSCRIBE FOLLOW US ON SOCIAL Find us on: Facebook page opens in new window X page opens in new window YouTube page opens in new window Instagram page opens in new window SHOWS CLASSES \u00a9 2026 Upright Citizens Brigade. All Rights Reserved. Terms of Service | Privacy Policy Training Center Policies Additional Policies Go to Top 0 Your Cart 0 Loading cart\u2026 Something went wrong updating your cart. Try again Nothing here yet Grab some tickets \u2014 the show is better with you in it. Browse Shows Add another show Subtotal \u00b7 fees included \u2014 Check Out Keep browsing View full cart"
+}

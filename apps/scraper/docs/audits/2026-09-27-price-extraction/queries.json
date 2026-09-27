@@ -1,0 +1,6 @@
+{
+  "baseline": "SELECT now() AS captured_at, COUNT(*) tickets, COUNT(*) FILTER(WHERE t.price IS NULL) missing FROM tickets t JOIN shows s ON s.id=t.show_id WHERE s.date>now()",
+  "clusters": "SELECT s.last_scraped_by,COUNT(*) tickets,COUNT(*) FILTER(WHERE t.price IS NULL) missing,COUNT(DISTINCT s.club_id) clubs FROM tickets t JOIN shows s ON s.id=t.show_id WHERE s.date>now() GROUP BY s.last_scraped_by HAVING COUNT(*)>=50 AND COUNT(*) FILTER(WHERE t.price IS NULL)*2>=COUNT(*) ORDER BY missing DESC",
+  "cohort": "WITH clusters AS (SELECT s.last_scraped_by FROM tickets t JOIN shows s ON s.id=t.show_id WHERE s.date>now() GROUP BY s.last_scraped_by HAVING COUNT(*)>=50 AND COUNT(*) FILTER(WHERE t.price IS NULL)*2>=COUNT(*)) SELECT t.*,s.name,s.date,s.club_id,c.name AS club_name,c.website,s.show_page_url,s.last_scraped_by,s.last_scraped_date FROM tickets t JOIN shows s ON s.id=t.show_id JOIN clubs c ON c.id=s.club_id WHERE s.date>now() AND s.last_scraped_by IN(SELECT last_scraped_by FROM clusters) ORDER BY s.last_scraped_by,s.club_id,s.date,t.id",
+  "sources": "SELECT ss.* FROM scraping_sources ss WHERE ss.enabled ORDER BY ss.club_id,ss.id"
+}

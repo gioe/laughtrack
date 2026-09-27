@@ -1,0 +1,64 @@
+{
+  "source_url": "https://www.rhinoimprov.com/tickets/p/thurs-oct-1st-open-mic-8pm",
+  "ticket": {
+    "id": 5597300,
+    "purchase_url": "https://www.rhinoimprov.com/tickets/p/thurs-oct-1st-open-mic-8pm",
+    "price": null,
+    "sold_out": false,
+    "show_id": 4953367,
+    "type": "General Admission",
+    "name": "Thurs Oct 1st Open Mic 8pm",
+    "date": "2026-10-02T00:00:00+00:00",
+    "club_id": 16060,
+    "club_name": "Rhino Comedy",
+    "website": "https://www.rhinoimprov.com/",
+    "show_page_url": "https://www.rhinoimprov.com/tickets/p/thurs-oct-1st-open-mic-8pm",
+    "last_scraped_by": "squarespace",
+    "last_scraped_date": "2026-09-26T23:41:28.554540+00:00"
+  },
+  "jsonld": [
+    {
+      "url": "https://www.rhinoimprov.com",
+      "name": "Rhino Comedy",
+      "@context": "http://schema.org",
+      "@type": "WebSite"
+    },
+    {
+      "legalName": "96 Lafayette Avenue",
+      "address": "Suffern, NY\nUSA",
+      "email": "RhinoComedy@gmail.com",
+      "telephone": "845-533-4616",
+      "sameAs": [
+        "https://www.instagram.com/rhinocomedyny/",
+        "https://www.facebook.com/RhinoComedy"
+      ],
+      "@context": "http://schema.org",
+      "@type": "Organization"
+    },
+    {
+      "address": "Suffern, NY\nUSA",
+      "name": "96 Lafayette Avenue",
+      "openingHours": ", , , Th 19:30-00:00, Fr 19:30-00:00, Sa 19:30-00:00, ",
+      "@context": "http://schema.org",
+      "@type": "LocalBusiness"
+    },
+    {
+      "name": "Thurs Oct 1st Open Mic 8pm \u2014 Rhino Comedy",
+      "image": "http://static1.squarespace.com/static/620be90f73cb2c702a007cae/620c0c4065861525a04a528d/6a71f481ee0be167547d87e7/1788255163577/New+Open+Mic+Ticket+template+.png?format=1500w",
+      "description": "Rhino Comedy Thursday Open Mic      *Performers sign up      HERE     Our Thursday Open Mics are a lively collection of stand ups and first timers mixing it up. All acts including music are welcomed!  Our mic includes optional \"Prompts from the Hat! \" - Very fun to give it a try.  Check out our new ",
+      "brand": "Rhino Comedy",
+      "offers": {
+        "price": 5.0,
+        "priceCurrency": "USD",
+        "url": "https://www.rhinoimprov.com/tickets/p/thurs-oct-1st-open-mic-8pm",
+        "availability": "InStock",
+        "sku": "SQ0204242",
+        "@context": "http://schema.org",
+        "@type": "Offer"
+      },
+      "@context": "http://schema.org",
+      "@type": "Product"
+    }
+  ],
+  "visible_text": "Thurs Oct 1st Open Mic 8pm \u2014 Rhino Comedy Skip to Content Open Menu Close Menu Rhino Comedy SHOW TICKETS CLASSES & WORKSHOPS MERCH STORE HARDWARE BAR MENU PRIVATE EVENTS GIFT CERTIFICATES GALLERY Suffern Soccer Fundraiser Donation 0 0 Contact Us Open Menu Close Menu Rhino Comedy SHOW TICKETS CLASSES & WORKSHOPS MERCH STORE HARDWARE BAR MENU PRIVATE EVENTS GIFT CERTIFICATES GALLERY Suffern Soccer Fundraiser Donation 0 0 Contact Us SHOW TICKETS CLASSES & WORKSHOPS MERCH STORE HARDWARE BAR MENU PRIVATE EVENTS GIFT CERTIFICATES GALLERY Suffern Soccer Fundraiser Donation Contact Us Image 1 of 2 Image 2 of 2 Thurs Oct 1st Open Mic 8pm $5.00 Rhino Comedy Thursday Open Mic *Performers sign up HERE Our Thursday Open Mics are a lively collection of stand ups and first timers mixing it up. All acts including music are welcomed! Our mic includes optional \"Prompts from the Hat! \" - Very fun to give it a try. Check out our new menu with a selection of delicious wine, beer and small plates! One item minimum suggested. *If you\u2019re coming to perform and want to pay for your ticket in advance, go ahead and purchase a ticket and then go to this link to put your name on the sign-up sheet HERE Add To Cart Added! Rhino Comedy Thursday Open Mic *Performers sign up HERE Our Thursday Open Mics are a lively collection of stand ups and first timers mixing it up. All acts including music are welcomed! Our mic includes optional \"Prompts from the Hat! \" - Very fun to give it a try. Check out our new menu with a selection of delicious wine, beer and small plates! One item minimum suggested. *If you\u2019re coming to perform and want to pay for your ticket in advance, go ahead and purchase a ticket and then go to this link to put your name on the sign-up sheet HERE EXPLORE Show Tickets | Hardware Bar Menu | Gallery Contact Us | Comedy Contest Rhino Comedy -  22 Lafayette Ave. Suffern, NY 10901 Newsletter Block This newsletter signup form needs a storage option. Edit the block and enter a storage location via the Storage tab. STAY IN THE LOOP Email Address SUBSCRIBE Thank you for signing up to our mailing list FOLLOW MADE BY LAZTEK SOLUTIONS"
+}

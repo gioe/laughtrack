@@ -1,0 +1,171 @@
+[
+  {
+    "source": "comix_roadhouse",
+    "classification": "supported_extraction_gap",
+    "cause": "Venue detail has no price; event model emits fallback without enriching linked Leap checkout. Reachable checkout offers explicit named per-person admission tiers.",
+    "repair_candidate": "Bounded checkout JSON-LD enrichment, preserve food minimum/service fee distinction and unknown on failure",
+    "evidence": [
+      "comix-checkout-0.html",
+      "comix-checkout-1.html",
+      "comix_roadhouse-1.html"
+    ],
+    "confirmed_recoverable_tickets": [
+      {
+        "ticket_id": 3876257,
+        "show_id": 3467852,
+        "date": "2026-09-27T21:00:00+00:00",
+        "url": "https://events.leapevents.com/event/spinnato-magic-sept2026aa1d6mtc",
+        "price": 15,
+        "semantics": "General Admission USD; base admission; 15% service charge and $10 food/beverage minimum separate"
+      },
+      {
+        "ticket_id": 3876276,
+        "show_id": 3467871,
+        "date": "2026-09-27T23:00:00+00:00",
+        "url": "https://events.leapevents.com/event/heather-shaw-092726fjuef5h",
+        "price": 15,
+        "semantics": "General Admission USD; base admission; 15% service charge and $10 food/beverage minimum separate"
+      }
+    ],
+    "lower_bound": 2
+  },
+  {
+    "source": "mccurdys_comedy_theatre",
+    "classification": "supported_extraction_gap",
+    "cause": "Detail extractor retains dates/ticket IDs but drops explicit Tickets $26; event model creates fallback. Etix 202 is irrelevant because venue-owned source has price.",
+    "repair_candidate": "Extract scoped detail admission price into McCurdysEvent and fallback ticket; regression cases variable tiers, absent price and fees",
+    "evidence": [
+      "mccurdys-detail-0.html",
+      "mccurdys-detail-1.html"
+    ],
+    "confirmed_recoverable_tickets": [
+      {
+        "ticket_id": 3207388,
+        "show_id": 2953407,
+        "date": "2026-09-28T00:00:00+00:00",
+        "url": "https://www.etix.com/ticket/p/53957625",
+        "price": 26,
+        "semantics": "Venue detail Tickets $26, attached only to the listed ticket ID/performance; taxes/fees not specified"
+      },
+      {
+        "ticket_id": 1125049,
+        "show_id": 1178321,
+        "date": "2026-09-27T21:30:00+00:00",
+        "url": "https://www.etix.com/ticket/p/55715949",
+        "price": 26,
+        "semantics": "Venue detail Tickets $26, attached only to the listed ticket ID/performance; taxes/fees not specified"
+      }
+    ],
+    "lower_bound": 2
+  },
+  {
+    "source": "zanies",
+    "classification": "supported_extraction_gap",
+    "cause": "ZaniesEvent lacks price; fallback always unknown. Single-show page has $37.95 with exact same Etix ID/date; JSON-LD erroneously says 0. Series prices need per-performance applicability validation.",
+    "repair_candidate": "Extract visible admission element, prefer over zero placeholder JSON-LD; support series only when price applies to target performance",
+    "evidence": [
+      "zanies-1.html",
+      "zanies-2.html",
+      "zanies-3.html"
+    ],
+    "confirmed_recoverable_tickets": [
+      {
+        "ticket_id": 8075377,
+        "show_id": 7093331,
+        "date": "2026-09-28T00:00:00+00:00",
+        "url": "https://www.etix.com/ticket/p/75851627/tim-convy-sean-obrien-chicago-zanies-chicago?partner_id=100",
+        "price": 37.95,
+        "semantics": "Single-show ticket price; two-item minimum separate; Nashville homepage states all-in fees/taxes, do not generalize that statement to Chicago"
+      }
+    ],
+    "lower_bound": 1
+  },
+  {
+    "source": "flop_house_json",
+    "classification": "supported_enrichment_gap",
+    "cause": "Static-feed model emits fallback without fetching reachable Eventbrite event offers. JSON-LD exposes AggregateOffer lowPrice and exact dates.",
+    "repair_candidate": "Reuse shared bounded detail enrichment supporting AggregateOffer and verify target event ID/date before accepting prices",
+    "evidence": [
+      "flop_house_json-0.html",
+      "flop_house_json-1.html"
+    ],
+    "confirmed_recoverable_tickets": [
+      {
+        "ticket_id": 8513139,
+        "show_id": 7470872,
+        "date": "2026-09-27T03:00:00+00:00",
+        "url": "https://www.eventbrite.com/e/tickets-2002265475938",
+        "price": 12.51,
+        "semantics": "USD AggregateOffer displayed minimum; no package labels; do not infer fee breakdown",
+        "evidence_status": "Historical within fixed baseline: event occurred before live probe. Source continues to expose date-matched $12.51 offers; do not claim currently purchasable or future recovery."
+      },
+      {
+        "ticket_id": 6397686,
+        "show_id": 5647455,
+        "date": "2026-09-29T00:00:00+00:00",
+        "url": "https://www.eventbrite.com/e/tickets-1998162564018",
+        "price": 19.98,
+        "semantics": "USD AggregateOffer displayed minimum; no package labels; do not infer fee breakdown"
+      }
+    ],
+    "lower_bound": 2
+  },
+  {
+    "source": "denver_comedy_lounge",
+    "classification": "supported_extraction_regression",
+    "cause": "Detail Event offers moved into streamed self.__next_f payload; shared RSC decoder recovers exact Event. Existing extract_offer_price returns None because it scans literal JSON-LD script blocks only. First sampled expired page returns no Event, so excluded.",
+    "repair_candidate": "Reuse core/clients/rsc/extractor.py to read actual target Event or showData; do not scan related-show tiers or business priceRange",
+    "evidence": [
+      "denver_comedy_lounge-1.html",
+      "denver-event-rsc.json"
+    ],
+    "confirmed_recoverable_tickets": [
+      {
+        "ticket_id": 4249847,
+        "show_id": 3790700,
+        "date": "2026-10-03T01:00:00+00:00",
+        "url": "https://denvercomedylounge.com/shows/friday-7pm-2026-10-02",
+        "price": 21,
+        "semantics": "General Admission USD; VIP45 includes premium sake; use ordinary admission minimum, not generic title from $20"
+      }
+    ],
+    "lower_bound": 1
+  },
+  {
+    "source": "empire_comedy_club",
+    "classification": "unresolved_secondary_surface",
+    "cause": "Listing and two sampled detail pages expose no visible dollar price or JSON-LD offers. Transformer explicitly sets price=None; checkout widget not deeply probed. No confirmed extractable admission price.",
+    "repair_candidate": "No price-fix task supported yet; keep unknown until checkout evidence",
+    "evidence": [
+      "empire_comedy_club-0.html",
+      "empire_comedy_club-1.html",
+      "empire_comedy_club-2.html"
+    ],
+    "confirmed_recoverable_tickets": [],
+    "lower_bound": 0
+  },
+  {
+    "source": "hennepin_arts",
+    "classification": "upstream_missing_checked_surface",
+    "cause": "Two current detail pages have no numeric admission price, including embedded Nuxt content scan; one mentions 50% student rush without base price. Event model intentionally emits fallback; Ticketmaster checkout not probed.",
+    "repair_candidate": "Retain unknown; percentage concession cannot establish dollar price",
+    "evidence": [
+      "hennepin_arts-0.html",
+      "hennepin_arts-1.html"
+    ],
+    "confirmed_recoverable_tickets": [],
+    "lower_bound": 0
+  },
+  {
+    "source": "standing_room_only",
+    "classification": "upstream_missing_feed_checkout_unresolved",
+    "cause": "ReadLiveEvents returned 22 events/58 show records, all ShowPriceTierCosts null. Event model emits fallback; seating checkout not probed. Season pass row is not ordinary admission.",
+    "repair_candidate": "Keep unknown; investigate checkout separately only if warranted. Route Summer Season Pass classification anomaly separately.",
+    "evidence": [
+      "sro-feed.json",
+      "standing_room_only-0.html"
+    ],
+    "confirmed_recoverable_tickets": [],
+    "lower_bound": 0
+  }
+]

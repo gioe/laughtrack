@@ -1,0 +1,92 @@
+[
+  {
+    "file": "analysis.json",
+    "bytes": 14308,
+    "sha256": "cdbb3a2f88483bc508b8be858451e13443b92c3c5f894ab7c21dbfefa784bf63"
+  },
+  {
+    "file": "holdmyticket-17082-browser.html",
+    "bytes": 472827,
+    "sha256": "dce358f16c580f478159c78c779b81e018ad7afeaddc67e582a02f5246f9c1ad"
+  },
+  {
+    "file": "holdmyticket-17082-detail.html",
+    "bytes": 10276,
+    "sha256": "ff77865e24ca86ed54717132f072c70cbcd791f860ee39a62fed804b701daca9"
+  },
+  {
+    "file": "holdmyticket-17082-listing.html",
+    "bytes": 42346,
+    "sha256": "00d4d30473db1c3cabe630cecd0a7d7d62c62af1914f15fff1e01593b05cde9a"
+  },
+  {
+    "file": "odoo_events-9092-detail.html",
+    "bytes": 63222,
+    "sha256": "592fed99ebfacbbb77eadade8c09bcf3a7dd2e43f9b6536ddeebc9f027562502"
+  },
+  {
+    "file": "seetickets_whitelabel-11482-listing.html",
+    "bytes": 298451,
+    "sha256": "e1ea4fc3f69437023e818c3b7b633f2fddbd5fdc66a27bda427c04fa4df2ab3e"
+  },
+  {
+    "file": "showpass-15992-listing.html",
+    "bytes": 149474,
+    "sha256": "3a0ef663217e9375596b7df438505b77efa42745d7bad260b01e8e683f0bebcc"
+  },
+  {
+    "file": "showpass-818-browser.html",
+    "bytes": 416580,
+    "sha256": "90374ac76c4eac4eeb70a17f603ef6881966d97c14e14fb552ea55b99c9e446d"
+  },
+  {
+    "file": "showpass-818-listing.html",
+    "bytes": 118459,
+    "sha256": "d5f63c36ce75a048ab73fa13c2d7b4caa9fbb5407059a02e67fb8e13eec86732"
+  },
+  {
+    "file": "showpass-event-api.html",
+    "bytes": 12024,
+    "sha256": "42dbe07bcc130320e3b3e2ae34c6818deac41a6fb4a1ef336823995e2651f530"
+  },
+  {
+    "file": "squadup-165-browser.html",
+    "bytes": 28617,
+    "sha256": "45dae0510b42489ada23d6e53e8a659b20006f31130b1d2cacbc0b950b280234"
+  },
+  {
+    "file": "squadup-165-listing.html",
+    "bytes": 15192,
+    "sha256": "e54d35c454c0d106d72e3e485119c3057ac8ccec47d3ba1f102bc5fdc41d86cd"
+  },
+  {
+    "file": "squadup-175-listing.html",
+    "bytes": 423371,
+    "sha256": "3e193816859788820f483e2ace867cdf06772c1c794b0f2a95c738e82f69bb4a"
+  },
+  {
+    "file": "tessitura_tnew-11138-detail.html",
+    "bytes": 90518,
+    "sha256": "c2e20ffd1d47551c7d31bd975c6aaf3b9f3b329c0946d6e05a3a5b262d986fe2"
+  },
+  {
+    "file": "tessitura_tnew-8836-detail.html",
+    "bytes": 22932,
+    "sha256": "36eaa218f8c50f6b1f0a653262ea157224d4403c236b2811ab203f78db6280c2"
+  },
+  {
+    "file": "ticket_tailor-1059-native-detail.html",
+    "bytes": 48419,
+    "sha256": "261a6bf685f6fa92313eb6af2c27f63436515e9abfe1487fc1dd892115524d9e"
+  },
+  {
+    "file": "ticket_tailor-1059-native-listing.html",
+    "bytes": 128271,
+    "sha256": "7c3082c189d10a4c25f69f726a8cd7301a8e43e62718c7560744e8da792af4f2"
+  },
+  {
+    "file": "ticket_tailor-11123-detail.html",
+    "bytes": 35336,
+    "sha256": "ca2e1adf2c2bdefbf853bf01dd761f8f3bf1a4fa8f9a132d7a5150ffc9cb63dc"
+  }
+]

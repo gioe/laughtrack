@@ -1,0 +1,228 @@
+{
+  "source_url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26",
+  "ticket": {
+    "id": 5969446,
+    "purchase_url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/",
+    "price": null,
+    "sold_out": false,
+    "show_id": 5278011,
+    "type": "General Admission",
+    "name": "ASSSSCAT LA",
+    "date": "2026-09-27T03:30:00+00:00",
+    "club_id": 8834,
+    "club_name": "Upright Citizens Brigade Theatre",
+    "website": "https://ucbcomedy.com",
+    "show_page_url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26",
+    "last_scraped_by": "ucb",
+    "last_scraped_date": "2026-09-26T23:40:17.214162+00:00"
+  },
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/",
+          "url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/",
+          "name": "ASSSSCAT LA - Upright Citizens Brigade",
+          "isPartOf": {
+            "@id": "https://ucbcomedy.com/#website"
+          },
+          "primaryImageOfPage": {
+            "@id": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/#primaryimage"
+          },
+          "image": {
+            "@id": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/#primaryimage"
+          },
+          "thumbnailUrl": "https://ucbcomedy.com/wp-content/uploads/2025/03/55a6a4d2545f18112165378a0c32b7e2-4KJFkc.tmp_.jpg",
+          "datePublished": "2026-08-10T11:40:17+00:00",
+          "dateModified": "2026-09-27T05:47:43+00:00",
+          "breadcrumb": {
+            "@id": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/#breadcrumb"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": [
+            {
+              "@type": "ReadAction",
+              "target": [
+                "https://ucbcomedy.com/show/asssscat-la-2026-09-26/"
+              ]
+            }
+          ]
+        },
+        {
+          "@type": "ImageObject",
+          "inLanguage": "en-US",
+          "@id": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/#primaryimage",
+          "url": "https://ucbcomedy.com/wp-content/uploads/2025/03/55a6a4d2545f18112165378a0c32b7e2-4KJFkc.tmp_.jpg",
+          "contentUrl": "https://ucbcomedy.com/wp-content/uploads/2025/03/55a6a4d2545f18112165378a0c32b7e2-4KJFkc.tmp_.jpg",
+          "width": 2000,
+          "height": 1000
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://ucbcomedy.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Events",
+              "item": "https://ucbcomedy.com/show/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "ASSSSCAT LA"
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://ucbcomedy.com/#website",
+          "url": "https://ucbcomedy.com/",
+          "name": "Upright Citizens Brigade",
+          "description": "Comedy Theatre and Training Center",
+          "publisher": {
+            "@id": "https://ucbcomedy.com/#organization"
+          },
+          "alternateName": "UCB Theatre",
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://ucbcomedy.com/?s={search_term_string}"
+              },
+              "query-input": {
+                "@type": "PropertyValueSpecification",
+                "valueRequired": true,
+                "valueName": "search_term_string"
+              }
+            }
+          ],
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://ucbcomedy.com/#organization",
+          "name": "Upright Citizens Brigade",
+          "alternateName": "UCB Theatre",
+          "url": "https://ucbcomedy.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "inLanguage": "en-US",
+            "@id": "https://ucbcomedy.com/#/schema/logo/image/",
+            "url": "",
+            "contentUrl": "",
+            "caption": "Upright Citizens Brigade"
+          },
+          "image": {
+            "@id": "https://ucbcomedy.com/#/schema/logo/image/"
+          },
+          "sameAs": [
+            "https://www.facebook.com/ucbtla/",
+            "https://x.com/ucbtla",
+            "https://www.youtube.com/ucbcomedy"
+          ]
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ComedyEvent",
+      "name": "ASSSSCAT LA",
+      "url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/",
+      "startDate": "2026-09-26T20:30:00-07:00",
+      "endDate": "2026-09-26T22:00:00-07:00",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/MixedEventAttendanceMode",
+      "description": "ASSSSCAT\u2014UCB\u2019s signature improv juggernaut\u2014is a live improv comedy show in Los Angeles at the Upright Citizens Brigade Theatre. An all-star comedy show featuring comedians you know from SNL, Dropout, and the world of Film & Television doing improv inspired by true stories from a surprise celebrity g\u2026",
+      "image": [
+        "https://ucbcomedy.com/wp-content/uploads/2025/03/55a6a4d2545f18112165378a0c32b7e2-4KJFkc.tmp_.jpg"
+      ],
+      "location": [
+        {
+          "@type": "Place",
+          "name": "LA - FRANKLIN",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "5919 Franklin Ave",
+            "addressLocality": "Los Angeles",
+            "addressRegion": "CA",
+            "postalCode": "90028",
+            "addressCountry": "US"
+          }
+        },
+        {
+          "@type": "VirtualLocation",
+          "url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/watch/"
+        }
+      ],
+      "organizer": {
+        "@type": "Organization",
+        "name": "Upright Citizens Brigade",
+        "url": "https://ucbcomedy.com/"
+      },
+      "performer": [
+        {
+          "@type": "Person",
+          "name": "Anna Rajo",
+          "url": "https://ucbcomedy.com/people/anna-rajo/"
+        },
+        {
+          "@type": "Person",
+          "name": "Nina Concepci\u00f3n",
+          "url": "https://ucbcomedy.com/people/nina-concepcion/"
+        },
+        {
+          "@type": "Person",
+          "name": "Jessica Eason",
+          "url": "https://ucbcomedy.com/people/jessica-eason/"
+        },
+        {
+          "@type": "Person",
+          "name": "Eli Gonzalez",
+          "url": "https://ucbcomedy.com/people/eli-gonzalez/"
+        },
+        {
+          "@type": "Person",
+          "name": "Andres Parada",
+          "url": "https://ucbcomedy.com/people/andres-parada/"
+        },
+        {
+          "@type": "Person",
+          "name": "Frank Garcia-Hejl",
+          "url": "https://ucbcomedy.com/people/frank-garcia-hejl/"
+        },
+        {
+          "@type": "Person",
+          "name": "Matt Apodaca",
+          "url": "https://ucbcomedy.com/people/matt-apodaca/"
+        },
+        {
+          "@type": "Person",
+          "name": "James Mannion",
+          "url": "https://ucbcomedy.com/people/james-mannion/"
+        }
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Live Stream",
+          "url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/",
+          "price": "11.96",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "validFrom": "2026-08-10T04:40:21-07:00"
+        }
+      ]
+    }
+  ],
+  "visible_text": "ASSSSCAT LA - Upright Citizens Brigade Skip to content Upright Citizens Brigade Comedy Theatre and Training Center SHOWS LA Show Calendar NY Show Calendar Upcoming Livestreams Calendar Past Shows on Demand Class Show Calendar LA Class Shows NY Class Shows Pitch a Show CLASSES Register for Classes Getting Started at UCB Improv Sketch Writing Stand-Up Musical Improv Acting Clowning Scholarships UCB Diversity Scholarship Program UCB x SNL Scholarship TEAMS LA House Teams Betty Harold Branzino Cowboy Mama Dance Club Remix Darnell Hollywood The Fantasy Gas Money S.O.F.T. yikes! Lloyd Freak Trap Jinx PTO Maude Big Time The Faculty The Family Business Rodeo Baby Town Crier One Man\u2019s Trash (Wild Card Team) NY House Teams Betty Harold suckdog Club Gator Hot FM Rhubarb Your Girlfriend The Mall Lloyd Cruise Control WET Maude First Wife Fridge Magnet Golden Hour Mom\u2019s World Pamela Reunion Tour Auditions About Auditions 2026 UCB LA Maude/Betty Teams 2026 UCB LA Harold Teams 2026 UCB LA Lloyd Teams 2026 UCBTNY Betty Submissions 2026 UCB NY Harold/Lloyd Teams Maude Teams TALENT LA Talent NY Talent Talent DCM Talent Performing Tonight Teams Teachers CORPORATE WORKSHOPS TOURS SHOP Merch UCB Improv Manual Gift Cards ABOUT About UCB UCB LA Artistic Team Careers Contact Venues Training Center FAQ ACCOUNT My Tickets Livestreams myUCBComedy Orders Classes Settings Register for Free Log In SHOWS LA Show Calendar NY Show Calendar Upcoming Livestreams Calendar Past Shows on Demand Class Show Calendar LA Class Shows NY Class Shows Pitch a Show CLASSES Register for Classes Getting Started at UCB Improv Sketch Writing Stand-Up Musical Improv Acting Clowning Scholarships UCB Diversity Scholarship Program UCB x SNL Scholarship TEAMS LA House Teams Betty Harold Branzino Cowboy Mama Dance Club Remix Darnell Hollywood The Fantasy Gas Money S.O.F.T. yikes! Lloyd Freak Trap Jinx PTO Maude Big Time The Faculty The Family Business Rodeo Baby Town Crier One Man\u2019s Trash (Wild Card Team) NY House Teams Betty Harold suckdog Club Gator Hot FM Rhubarb Your Girlfriend The Mall Lloyd Cruise Control WET Maude First Wife Fridge Magnet Golden Hour Mom\u2019s World Pamela Reunion Tour Auditions About Auditions 2026 UCB LA Maude/Betty Teams 2026 UCB LA Harold Teams 2026 UCB LA Lloyd Teams 2026 UCBTNY Betty Submissions 2026 UCB NY Harold/Lloyd Teams Maude Teams TALENT LA Talent NY Talent Talent DCM Talent Performing Tonight Teams Teachers CORPORATE WORKSHOPS TOURS SHOP Merch UCB Improv Manual Gift Cards ABOUT About UCB UCB LA Artistic Team Careers Contact Venues Training Center FAQ ACCOUNT My Tickets Livestreams myUCBComedy Orders Classes Settings Register for Free Log In ASSSSCAT LA Saturday, September 26, 2026 \u2013 8:30 pm Sat, Sep 26 \u00b7 8:30 PM LA - FRANKLIN 90 minutes Saturday, September 26, 2026 \u2013 8:30 pm LA - FRANKLIN 6 days left to watch ASSSSCAT\u2014UCB\u2019s signature improv juggernaut\u2014is a live improv comedy show in Los Angeles at the Upright Citizens Brigade Theatre. An all-star comedy show featuring comedians you know from SNL, Dropout, and the world of Film & Television doing improv inspired by true stories from a surprise celebrity guest. ASSSSCAT has played to critical acclaim and sold-out audiences across the country. What Is ASSSSCAT? It starts with a group of improv comedians taking the stage with a surprise celebrity guest. After getting a suggestion from the audience, our \u201cmonologist \u201c shares off-the-cuff thoughts, feelings, and true stories inspired by your suggestions. The improvisers then spin this monologue into a series of scenes that will show you why ASSSSCAT is one of the longest running improv shows in the world. Previous celebrity guests include: Will Ferrell, Mark Hamill, Tina Fey, Charles Barkley, Don Cheadle, Elizabeth Banks, Aubrey Plaza, Kumail Nanjiani, Amy Poehler, Robin Williams and more. Why See ASSSSCAT? ASSSSCAT is one of the best improv comedy shows in Los Angeles. Each show is a one-of-a-kind live comedy experience. Whether you\u2019re a longtime fan of UCB or searching for live comedy in LA for the first time, or looking for new exciting date ideas in LA, ASSSSCAT offers a chance to see the best comedians in LA at the top of their game, and don\u2019t forget the surprise celebrity guest at every show! And don\u2019t worry, if you can\u2019t see the show live, we also offer a LIVESTREAM option for all performances! Critics and audiences agree: \u201cUnbelievably funny.\u201d \u2013 LA Times \u2022 \u201cBest of LA: Best Improv.\u201d \u2013 Los Angeles Magazine \u2022 \u201cBest of LA: Best Improv Show.\u201d \u2013 LA Weekly Readers Poll \u2022 \u201cThe hardest we\u2019ve laughed in a long, long time.\u201d \u2013 Out Magazine \u2022 \u201cAmong improv people today, the gold standard is a group called ASSSSCAT.\u201d \u2013 Vice Magazine \u2022 \u201cCritics\u2019 Pick\u201d \u2013 Time Out Los Angeles About the Venue The Upright Citizens Brigade Theatre is one of the most well-known comedy venues in Los Angeles , located in the heart of Hollywood on Franklin Avenue. UCB is a top destination for live comedy shows in LA and has launched the careers of many of today\u2019s most successful comedians. If you\u2019re looking for the best improv comedy in Los Angeles, UCB Franklin is one of the city\u2019s most trusted comedy clubs. Show Details Tickets: $20 in advance, $25 on the day of the show Livestream Tickets: $10 (link emailed one hour before showtime; available indefinitely unless otherwise stated) All sales are final. The show starts at the time listed. If you are not at the theater more than 5 minutes before the start of the show, we may release your tickets to the waitlist. Under 17 must be accompanied by a parent/guardian. Please use discretion, as all our shows can potentially use adult/sexual material, language, and images. Lineup is subject to change. Upright Citizens Brigade Theatre 5919 Franklin Avenue, Los Angeles, CA Get Your Tickets Get Your Tickets Live Stream $11.96 incl. fees $10 ticket + $1.96 fee $11.96 \u2212 + Add to Cart Need more than one? Adjust in cart. 6 days left to watch. Talent Anna Rajo Nina Concepci\u00f3n Jessica Eason Eli Gonzalez Andres Parada Frank Garcia-Hejl Matt Apodaca James Mannion EMAIL SIGNUP Stay in the know about upcoming shows, get updates on new classes, and more. SUBSCRIBE FOLLOW US ON SOCIAL Find us on: Facebook page opens in new window X page opens in new window YouTube page opens in new window Instagram page opens in new window SHOWS CLASSES \u00a9 2026 Upright Citizens Brigade. All Rights Reserved. Terms of Service | Privacy Policy Training Center Policies Additional Policies Go to Top 0 Your Cart 0 Loading cart\u2026 Something went wrong updating your cart. Try again Nothing here yet Grab some tickets \u2014 the show is better with you in it. Browse Shows Add another show Subtotal \u00b7 fees included \u2014 Check Out Keep browsing View full cart"
+}

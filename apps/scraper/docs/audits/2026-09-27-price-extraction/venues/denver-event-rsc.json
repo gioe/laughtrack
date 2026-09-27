@@ -1,0 +1,66 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "Friday Night Comedy \u2014 October 2",
+  "url": "https://denvercomedylounge.com/shows/friday-7pm-2026-10-02",
+  "startDate": "2026-10-02T19:00:00-06:00",
+  "endDate": "2026-10-02T21:00:00-06:00",
+  "doorTime": "2026-10-02T18:30:00-06:00",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "location": {
+    "@type": "Place",
+    "@id": "https://denvercomedylounge.com/#business",
+    "name": "Denver Comedy Lounge",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "3559 Larimer St",
+      "addressLocality": "Denver",
+      "addressRegion": "CO",
+      "postalCode": "80205",
+      "addressCountry": "US"
+    }
+  },
+  "image": [
+    "https://cdn.sanity.io/images/o1mp11yx/production/bf72ea247e354fb09fc64da92212f22da63a02b3-1600x936.jpg?rect=0,18,1600,900&w=1920&h=1080",
+    "https://cdn.sanity.io/images/o1mp11yx/production/bf72ea247e354fb09fc64da92212f22da63a02b3-1600x936.jpg?rect=176,0,1248,936&w=1920&h=1440",
+    "https://cdn.sanity.io/images/o1mp11yx/production/bf72ea247e354fb09fc64da92212f22da63a02b3-1600x936.jpg?rect=332,0,936,936&w=1920&h=1920"
+  ],
+  "description": "Kick off your weekend at Denver's most unique comedy experience. Our 65-seat venue pairs sharp stand-up with craft sake flights and Japanese izakaya bites \u2014 right in the heart of RiNo Arts District. Doors open 30 minutes early so you can settle in, grab a drink, and get ready for a night of laughs.",
+  "organizer": {
+    "@type": "Organization",
+    "@id": "https://denvercomedylounge.com/#business",
+    "name": "Denver Comedy Lounge",
+    "url": "https://denvercomedylounge.com/"
+  },
+  "performer": {
+    "@type": "PerformingGroup",
+    "name": "Denver Comedy Lounge",
+    "url": "https://denvercomedylounge.com/"
+  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "General Admission",
+      "price": 21,
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "url": "https://denvercomedylounge.com/shows/friday-7pm-2026-10-02",
+      "validFrom": "2026-07-03T07:00:20Z"
+    },
+    {
+      "@type": "Offer",
+      "name": "VIP",
+      "price": 45,
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "url": "https://denvercomedylounge.com/shows/friday-7pm-2026-10-02",
+      "validFrom": "2026-07-03T07:00:20Z"
+    }
+  ],
+  "potentialAction": {
+    "@type": "ReserveAction",
+    "target": "https://denvercomedylounge.com/shows/friday-7pm-2026-10-02",
+    "name": "Get Tickets"
+  }
+}

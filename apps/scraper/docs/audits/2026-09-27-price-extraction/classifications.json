@@ -1,0 +1,209 @@
+[
+  {
+    "last_scraped_by": "ticketmaster_national",
+    "tickets": 6952,
+    "missing": 5799,
+    "clubs": 707,
+    "classification": "Upstream omission / supported priced exceptions",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "Matched direct API event lacks priceRanges; TicketWeb examples can carry positive ranges already supported."
+  },
+  {
+    "last_scraped_by": "live_nation",
+    "tickets": 2344,
+    "missing": 1996,
+    "clubs": 320,
+    "classification": "Documented upstream omission",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "Bellhouse and Cobb samples lack priceRanges; no invented prices."
+  },
+  {
+    "last_scraped_by": "squarespace",
+    "tickets": 358,
+    "missing": 358,
+    "clubs": 11,
+    "classification": "supported extraction gap for products; heterogeneous event collections",
+    "baseline_priced_evidence_count": 34,
+    "scope_and_limit": "Two product collections match34 cohort tickets;33 positive, one zero Halloween party not proven free. Chaos Bloom explicitly FREE jam $0.00 on dated event page. Den sample has no offers/price in fetched surface. BCC sample only discount. Elysian legacy sampled URL redirected to calendar host then404; current calendar migration beyond price scope. Remaining event inventory unexamined; do not extrapolate33 to358."
+  },
+  {
+    "last_scraped_by": "up_comedy_club",
+    "tickets": 327,
+    "missing": 327,
+    "clubs": 3,
+    "classification": "supported extraction defect",
+    "baseline_priced_evidence_count": 88,
+    "scope_and_limit": "Only5 UP-associated show resolvers checked, not all3 club discovery targets.8 additional URL matches disagree on date and excluded. ExistingTASK4065 venue/date identity audit still applies. Positive source price alone does not prove offered-now stock; onSale and allocation soldOut gates must be parsed, not Python bool of string False."
+  },
+  {
+    "last_scraped_by": "ucb",
+    "tickets": 190,
+    "missing": 190,
+    "clubs": 3,
+    "classification": "supported detail extraction gap",
+    "baseline_priced_evidence_count": 4,
+    "scope_and_limit": "Six dated detail samples only. Four source-available prices:3 verified free and1 baseline-matched20 historical-at-probe. One no-price andone mixed price/availability remain unresolved;184 unsampled baseline tickets not automatically defective."
+  },
+  {
+    "last_scraped_by": "tockify",
+    "tickets": 278,
+    "missing": 178,
+    "clubs": 2,
+    "classification": "intentional unknown fallback plus non-show contamination",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "All22 Ice House unknowns are Social Hour lacking customButtonLink, text says no ticket needed. All156 Que Sera records match live2-page data:78 Bear City Comedy publish no admission price/button;78 After Comedy Happy Hour are post-show drinks promotions admitted by broad comedy keyword filter.3/5 dollars are Hamms/Fernet/well drink prices, never admission. Existing ShowClix enrichment already supports actual ticket-button events;100 Ice House baseline tickets priced."
+  },
+  {
+    "last_scraped_by": "ticketmaster_comedy",
+    "tickets": 162,
+    "missing": 162,
+    "clubs": 14,
+    "classification": "Documented upstream omission / unmatched sample",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "Royal Oak matched API events lack ranges; one other venue query returned no events."
+  },
+  {
+    "last_scraped_by": "comix_roadhouse",
+    "tickets": 148,
+    "missing": 148,
+    "clubs": 1,
+    "classification": "supported_extraction_gap",
+    "baseline_priced_evidence_count": 2,
+    "scope_and_limit": "Venue detail has no price; event model emits fallback without enriching linked Leap checkout. Reachable checkout offers explicit named per-person admission tiers."
+  },
+  {
+    "last_scraped_by": "seetickets_whitelabel",
+    "tickets": 137,
+    "missing": 137,
+    "clubs": 1,
+    "classification": "extraction_omission",
+    "baseline_priced_evidence_count": 3,
+    "scope_and_limit": "Official calendar response contains a parallel list view with event-specific .price text; existing extract_calendar_events and event model discard price and always emit fallback. Three positive ranges match event ID and exact dated calendar showtime. Nine price blocks inspected; $0.00 blocks are placeholders, not proof of free admission."
+  },
+  {
+    "last_scraped_by": "mccurdys_comedy_theatre",
+    "tickets": 133,
+    "missing": 133,
+    "clubs": 1,
+    "classification": "supported_extraction_gap",
+    "baseline_priced_evidence_count": 2,
+    "scope_and_limit": "Detail extractor retains dates/ticket IDs but drops explicit Tickets $26; event model creates fallback. Etix 202 is irrelevant because venue-owned source has price."
+  },
+  {
+    "last_scraped_by": "grisly_pear",
+    "tickets": 133,
+    "missing": 133,
+    "clubs": 2,
+    "classification": "Supported detail extraction omission",
+    "baseline_priced_evidence_count": 131,
+    "scope_and_limit": "Date-matched purchasable GA controls; exclude one redirect mismatch and one no-control page."
+  },
+  {
+    "last_scraped_by": "squadup",
+    "tickets": 124,
+    "missing": 124,
+    "clubs": 2,
+    "classification": "upstream_list_limitation_and_protected_details",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "Live v3 feeds have no structured admission price fields, consistent convention170. Jenny Tian detail is Cloudflare challenge via actual PlaywrightBrowser; generic HTTP was403. Sunset descriptions dollar100 is bar-tab policy, not ticket price. Do not infer zero."
+  },
+  {
+    "last_scraped_by": "showpass",
+    "tickets": 101,
+    "missing": 101,
+    "clubs": 2,
+    "classification": "detail_enrichment_omission_with_currency_blocker",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "Calendar API lacks price fields, but public /api/public/events/{id}/ has ticket_types and currency CAD; actual browser detail embeds matching Event JSON-LD and ticket types. Model always creates fallback. Eight matched descriptions also advertise15 but are weaker evidence and include beverage5.99/BOGO traps."
+  },
+  {
+    "last_scraped_by": "empire_comedy_club",
+    "tickets": 96,
+    "missing": 96,
+    "clubs": 1,
+    "classification": "unresolved_secondary_surface",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "Listing and two sampled detail pages expose no visible dollar price or JSON-LD offers. Transformer explicitly sets price=None; checkout widget not deeply probed. No confirmed extractable admission price."
+  },
+  {
+    "last_scraped_by": "tessitura_tnew",
+    "tickets": 92,
+    "missing": 92,
+    "clubs": 2,
+    "classification": "detail_enrichment_omission",
+    "baseline_priced_evidence_count": 1,
+    "scope_and_limit": "TNEW scraper stops at production-season listing; entity always fallback. Detail ticket selectors/pricing config contain prices."
+  },
+  {
+    "last_scraped_by": "zanies",
+    "tickets": 80,
+    "missing": 80,
+    "clubs": 2,
+    "classification": "supported_extraction_gap",
+    "baseline_priced_evidence_count": 1,
+    "scope_and_limit": "ZaniesEvent lacks price; fallback always unknown. Single-show page has $37.95 with exact same Etix ID/date; JSON-LD erroneously says 0. Series prices need per-performance applicability validation."
+  },
+  {
+    "last_scraped_by": "flop_house_json",
+    "tickets": 74,
+    "missing": 74,
+    "clubs": 1,
+    "classification": "supported_enrichment_gap",
+    "baseline_priced_evidence_count": 2,
+    "scope_and_limit": "Static-feed model emits fallback without fetching reachable Eventbrite event offers. JSON-LD exposes AggregateOffer lowPrice and exact dates."
+  },
+  {
+    "last_scraped_by": "holdmyticket",
+    "tickets": 74,
+    "missing": 74,
+    "clubs": 1,
+    "classification": "upstream_list_limitation_detail_unresolved",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "Feed ticket_price_display is empty. Sample ticket459869 returned generic app shell; actual PlaywrightBrowser also returned unpopulated app, no per-event ticket prices. Embedded event_flow460987 differs requested459869, so no event-specific claim possible."
+  },
+  {
+    "last_scraped_by": "hennepin_arts",
+    "tickets": 63,
+    "missing": 63,
+    "clubs": 1,
+    "classification": "upstream_missing_checked_surface",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "Two current detail pages have no numeric admission price, including embedded Nuxt content scan; one mentions 50% student rush without base price. Event model intentionally emits fallback; Ticketmaster checkout not probed."
+  },
+  {
+    "last_scraped_by": "denver_comedy_lounge",
+    "tickets": 61,
+    "missing": 61,
+    "clubs": 1,
+    "classification": "supported_extraction_regression",
+    "baseline_priced_evidence_count": 1,
+    "scope_and_limit": "Detail Event offers moved into streamed self.__next_f payload; shared RSC decoder recovers exact Event. Existing extract_offer_price returns None because it scans literal JSON-LD script blocks only. First sampled expired page returns no Event, so excluded."
+  },
+  {
+    "last_scraped_by": "odoo_events",
+    "tickets": 57,
+    "missing": 57,
+    "clubs": 1,
+    "classification": "microdata_scope_omission",
+    "baseline_priced_evidence_count": 1,
+    "scope_and_limit": "Registration AggregateOffer form sits outside Event scope. Current EventExtractor._extract_microdata_events produces matching Event with offers=[]; visible registration quantity control has price15 USD and InStock. Thus shared extractor intentionally respects scopes but Odoo adapter needs event-associated registration offers."
+  },
+  {
+    "last_scraped_by": "standing_room_only",
+    "tickets": 57,
+    "missing": 57,
+    "clubs": 1,
+    "classification": "upstream_missing_feed_checkout_unresolved",
+    "baseline_priced_evidence_count": 0,
+    "scope_and_limit": "ReadLiveEvents returned 22 events/58 show records, all ShowPriceTierCosts null. Event model emits fallback; seating checkout not probed. Season pass row is not ordinary admission."
+  },
+  {
+    "last_scraped_by": "ticket_tailor",
+    "tickets": 51,
+    "missing": 51,
+    "clubs": 2,
+    "classification": "detail_enrichment_omission",
+    "baseline_priced_evidence_count": 4,
+    "scope_and_limit": "Listing scraper and TicketTailorEvent discard all offer data and emit fallback; detail JSON-LD offers work with shared extractor. WestRiver requires existing native _fetch_listing Referer/fingerprint loop; generic403 not source-unavailable."
+  }
+]

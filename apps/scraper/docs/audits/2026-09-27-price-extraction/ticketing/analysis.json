@@ -1,0 +1,188 @@
+{
+  "seetickets": {
+    "calendar_events": 144,
+    "price_blocks": 9,
+    "positive_matched_count": 3,
+    "matches": [
+      {
+        "show_id": 3434328,
+        "ticket_id": 3773541,
+        "event_id": "682818",
+        "name": "Michael Longfellow",
+        "date": "2026-10-02T00:00:00+00:00",
+        "price_text": "$29.00-$39.00"
+      },
+      {
+        "show_id": 3434329,
+        "ticket_id": 3773542,
+        "event_id": "682820",
+        "name": "Michael Longfellow",
+        "date": "2026-10-02T23:30:00+00:00",
+        "price_text": "$29.00-$39.00"
+      },
+      {
+        "show_id": 7416212,
+        "ticket_id": 8449774,
+        "event_id": "682823",
+        "name": "Michael Longfellow",
+        "date": "2026-10-03T01:45:00+00:00",
+        "price_text": "$29.00-$39.00"
+      }
+    ]
+  },
+  "odoo_events-9092": {
+    "raw_microdata": [
+      {
+        "@type": "Event",
+        "name": "Comedy Plex Presents: Matt Torres",
+        "startDate": "2026-10-02T00:30:00",
+        "url": "https://www.comedyplex.com/event/comedy-plex-presents-matt-torres-926/register",
+        "description": "Matt Torres A Chicago Native, Comedian, Actor, and Veteran of the Iraq War. Matthew has been through it all, which is how he developed his sense of humor. From the Southside of Chicago, to his time in the Marines. He has used Comedy as a tool to make the best out of life\u2019s worst situations. Matt has also made appearances on such television shows as Justified, Shameless, and Criminal Minds. *2 Drink Minimum Per Person *21 and over unless accompanied by an adult *Outside food welcome *Parking at Holley Court Garage (next to club)",
+        "location": {
+          "@type": "Place",
+          "name": "Comedy Plex",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "1128 Lake St Lower Level Oak Park IL 60301 United States",
+            "addressLocality": "",
+            "addressRegion": "",
+            "postalCode": "",
+            "addressCountry": ""
+          }
+        },
+        "offers": []
+      }
+    ],
+    "parsed": [
+      {
+        "name": "Comedy Plex Presents: Matt Torres",
+        "date": "2026-10-02 00:30:00",
+        "offers": []
+      }
+    ]
+  },
+  "ticket_tailor-11123": {
+    "raw_microdata": [],
+    "parsed": [
+      {
+        "name": "THE DOSE: A Psychedelic Comedy Experience",
+        "date": "2026-11-05 19:00:00-08:00",
+        "offers": [
+          "Offer(url='https://events.oaklandcontinentalclub.com/events/continentalclub/2347556', price_currency='USD', price=24.75, availability='https://schema.org/InStock', valid_from=None, name='Early Bird')",
+          "Offer(url='https://events.oaklandcontinentalclub.com/events/continentalclub/2347556', price_currency='USD', price=28, availability='https://schema.org/InStock', valid_from=None, name='General Admission')",
+          "Offer(url='https://events.oaklandcontinentalclub.com/events/continentalclub/2347556', price_currency='USD', price=38.75, availability='https://schema.org/InStock', valid_from=None, name='VIP')"
+        ]
+      }
+    ]
+  },
+  "showpass-818": {
+    "count": 64,
+    "matched_descriptions_with_dollar": [
+      {
+        "tickets": [
+          4455021
+        ],
+        "show_ids": [
+          3969122
+        ],
+        "name": "The Workshop Open Mic Night - Sept 28th",
+        "description": "<h3>START YOUR WEEK\u00a0WITH SOMETHING UNEXPECTED.\u00a0</h3>\n<p><strong>The Workshop</strong>\u00a0is Calgary\u2019s most dynamic Monday night comedy show \u2014 a curated open mic\u00a0blending the polish of seasoned professionals with the raw energy of fresh new voices.</p>\n<p><strong>$5.99 Wild Rose Pints all ight every Monday</strong></p>\n<p>Each week features a professional headliner, surprise sets from touring comics,\u00a0and a rotating cast of local comedians trying out new material \u2014 including\u00a0the occasional brave soul taking the stage for the very first time.</p>\n<p>Whether you\u2019re a comedy aficionado or just looking for a memorable night out,\u00a0The Workshop offers smart, spontaneous entertainment in the heart of the city.</p>\n<p>Tickets $15 | Show at 7:30 PM</p>\n<h3><a href=\"../../../../o/comedy-cave/\" target=\"_blank\">GET TICKETS</a></h3>\n<p>Come curious. Leave laughing.</p>"
+      },
+      {
+        "tickets": [
+          6640425
+        ],
+        "show_ids": [
+          5857568
+        ],
+        "name": "The Workshop Open Mic Night - Oct 5th",
+        "description": "<h3>START YOUR WEEK\u00a0WITH SOMETHING UNEXPECTED.\u00a0</h3>\n<p><strong>The Workshop</strong>\u00a0is Calgary\u2019s most dynamic Monday night comedy show \u2014 a curated open mic\u00a0blending the polish of seasoned professionals with the raw energy of fresh new voices.</p>\n<p><strong>$5.99 Wild Rose Pints all ight every Monday</strong></p>\n<p><strong>Buy one ticket get one Half Off!!</strong></p>\n<p><strong>Half price Poutine every Monday</strong></p>\n<p>Each week features a professional headliner, surprise sets from touring comics,\u00a0and a rotating cast of local comedians trying out new material \u2014 including\u00a0the occasional brave soul taking the stage for the very first time.</p>\n<p>Whether you\u2019re a comedy aficionado or just looking for a memorable night out,\u00a0The Workshop offers smart, spontaneous entertainment in the heart of the city.</p>\n<p>Tickets $15 | Show at 7:30 PM</p>\n<h3><a href=\"../../../../o/comedy-cave/\" target=\"_blank\">GET TICKETS</a></h3>\n<p>Come curious. Leave laughing.</p>"
+      },
+      {
+        "tickets": [
+          6640437
+        ],
+        "show_ids": [
+          5857580
+        ],
+        "name": "The Workshop Open Mic Night - Oct 19th",
+        "description": "<h3>START YOUR WEEK\u00a0WITH SOMETHING UNEXPECTED.\u00a0</h3>\n<p><strong>The Workshop</strong>\u00a0is Calgary\u2019s most dynamic Monday night comedy show \u2014 a curated open mic\u00a0blending the polish of seasoned professionals with the raw energy of fresh new voices.</p>\n<p><strong>$5.99 Wild Rose Pints all ight every Monday</strong></p>\n<p><strong>Buy one ticket get one Half Off!!</strong></p>\n<p><strong>Half price Poutine every Monday</strong></p>\n<p>Each week features a professional headliner, surprise sets from touring comics,\u00a0and a rotating cast of local comedians trying out new material \u2014 including\u00a0the occasional brave soul taking the stage for the very first time.</p>\n<p>Whether you\u2019re a comedy aficionado or just looking for a memorable night out,\u00a0The Workshop offers smart, spontaneous entertainment in the heart of the city.</p>\n<p>Tickets $15 | Show at 7:30 PM</p>\n<h3><a href=\"../../../../o/comedy-cave/\" target=\"_blank\">GET TICKETS</a></h3>\n<p>Come curious. Leave laughing.</p>"
+      },
+      {
+        "tickets": [
+          6640444
+        ],
+        "show_ids": [
+          5857587
+        ],
+        "name": "The Workshop Open Mic Night - Oct 26th",
+        "description": "<h3>START YOUR WEEK\u00a0WITH SOMETHING UNEXPECTED.\u00a0</h3>\n<p><strong>The Workshop</strong>\u00a0is Calgary\u2019s most dynamic Monday night comedy show \u2014 a curated open mic\u00a0blending the polish of seasoned professionals with the raw energy of fresh new voices.</p>\n<p><strong>$5.99 Wild Rose Pints all ight every Monday</strong></p>\n<p><strong>Buy one ticket get one Half Off!!</strong></p>\n<p><strong>Half price Poutine every Monday</strong></p>\n<p>Each week features a professional headliner, surprise sets from touring comics,\u00a0and a rotating cast of local comedians trying out new material \u2014 including\u00a0the occasional brave soul taking the stage for the very first time.</p>\n<p>Whether you\u2019re a comedy aficionado or just looking for a memorable night out,\u00a0The Workshop offers smart, spontaneous entertainment in the heart of the city.</p>\n<p>Tickets $15 | Show at 7:30 PM</p>\n<h3><a href=\"../../../../o/comedy-cave/\" target=\"_blank\">GET TICKETS</a></h3>\n<p>Come curious. Leave laughing.</p>"
+      },
+      {
+        "tickets": [
+          7220853
+        ],
+        "show_ids": [
+          6358912
+        ],
+        "name": "The Workshop Open Mic Night - Nov 2nd",
+        "description": "<h3>START YOUR WEEK\u00a0WITH SOMETHING UNEXPECTED.\u00a0</h3>\n<p><strong>The Workshop</strong>\u00a0is Calgary\u2019s most dynamic Monday night comedy show \u2014 a curated open mic\u00a0blending the polish of seasoned professionals with the raw energy of fresh new voices.</p>\n<p><strong>$5.99 Wild Rose Pints all ight every Monday</strong></p>\n<p><strong>Buy one ticket get one Half Off!!</strong></p>\n<p><strong>Half price Poutine every Monday</strong></p>\n<p>Each week features a professional headliner, surprise sets from touring comics,\u00a0and a rotating cast of local comedians trying out new material \u2014 including\u00a0the occasional brave soul taking the stage for the very first time.</p>\n<p>Whether you\u2019re a comedy aficionado or just looking for a memorable night out,\u00a0The Workshop offers smart, spontaneous entertainment in the heart of the city.</p>\n<p>Tickets $15 | Show at 7:30 PM</p>\n<h3><a href=\"../../../../o/comedy-cave/\" target=\"_blank\">GET TICKETS</a></h3>\n<p>Come curious. Leave laughing.</p>"
+      },
+      {
+        "tickets": [
+          8205592
+        ],
+        "show_ids": [
+          7205277
+        ],
+        "name": "The Workshop Open Mic Night - Nov 9th",
+        "description": "<h3>START YOUR WEEK\u00a0WITH SOMETHING UNEXPECTED.\u00a0</h3>\n<p><strong>The Workshop</strong>\u00a0is Calgary\u2019s most dynamic Monday night comedy show \u2014 a curated open mic\u00a0blending the polish of seasoned professionals with the raw energy of fresh new voices.</p>\n<p><strong>$5.99 Wild Rose Pints all ight every Monday</strong></p>\n<p><strong>Buy one ticket get one Half Off!!</strong></p>\n<p><strong>Half price Poutine every Monday</strong></p>\n<p>Each week features a professional headliner, surprise sets from touring comics,\u00a0and a rotating cast of local comedians trying out new material \u2014 including\u00a0the occasional brave soul taking the stage for the very first time.</p>\n<p>Whether you\u2019re a comedy aficionado or just looking for a memorable night out,\u00a0The Workshop offers smart, spontaneous entertainment in the heart of the city.</p>\n<p>Tickets $15 | Show at 7:30 PM</p>\n<h3><a href=\"../../../../o/comedy-cave/\" target=\"_blank\">GET TICKETS</a></h3>\n<p>Come curious. Leave laughing.</p>"
+      },
+      {
+        "tickets": [
+          8205599
+        ],
+        "show_ids": [
+          7205284
+        ],
+        "name": "The Workshop Open Mic Night - Nov 16th",
+        "description": "<h3>START YOUR WEEK\u00a0WITH SOMETHING UNEXPECTED.\u00a0</h3>\n<p><strong>The Workshop</strong>\u00a0is Calgary\u2019s most dynamic Monday night comedy show \u2014 a curated open mic\u00a0blending the polish of seasoned professionals with the raw energy of fresh new voices.</p>\n<p><strong>$5.99 Wild Rose Pints all ight every Monday</strong></p>\n<p><strong>Buy one ticket get one Half Off!!</strong></p>\n<p><strong>Half price Poutine every Monday</strong></p>\n<p>Each week features a professional headliner, surprise sets from touring comics,\u00a0and a rotating cast of local comedians trying out new material \u2014 including\u00a0the occasional brave soul taking the stage for the very first time.</p>\n<p>Whether you\u2019re a comedy aficionado or just looking for a memorable night out,\u00a0The Workshop offers smart, spontaneous entertainment in the heart of the city.</p>\n<p>Tickets $15 | Show at 7:30 PM</p>\n<h3><a href=\"../../../../o/comedy-cave/\" target=\"_blank\">GET TICKETS</a></h3>\n<p>Come curious. Leave laughing.</p>"
+      },
+      {
+        "tickets": [
+          8205606
+        ],
+        "show_ids": [
+          7205291
+        ],
+        "name": "The Workshop Open Mic Night - Nov 23rd",
+        "description": "<h3>START YOUR WEEK\u00a0WITH SOMETHING UNEXPECTED.\u00a0</h3>\n<p><strong>The Workshop</strong>\u00a0is Calgary\u2019s most dynamic Monday night comedy show \u2014 a curated open mic\u00a0blending the polish of seasoned professionals with the raw energy of fresh new voices.</p>\n<p><strong>$5.99 Wild Rose Pints all ight every Monday</strong></p>\n<p><strong>Buy one ticket get one Half Off!!</strong></p>\n<p><strong>Half price Poutine every Monday</strong></p>\n<p>Each week features a professional headliner, surprise sets from touring comics,\u00a0and a rotating cast of local comedians trying out new material \u2014 including\u00a0the occasional brave soul taking the stage for the very first time.</p>\n<p>Whether you\u2019re a comedy aficionado or just looking for a memorable night out,\u00a0The Workshop offers smart, spontaneous entertainment in the heart of the city.</p>\n<p>Tickets $15 | Show at 7:30 PM</p>\n<h3><a href=\"../../../../o/comedy-cave/\" target=\"_blank\">GET TICKETS</a></h3>\n<p>Come curious. Leave laughing.</p>"
+      }
+    ]
+  },
+  "showpass-15992": {
+    "count": 58,
+    "matched_descriptions_with_dollar": [
+      {
+        "tickets": [
+          6491445
+        ],
+        "show_ids": [
+          5728481
+        ],
+        "name": "Commonwealth Comedy Tour",
+        "description": "<p>Join us Wednesday September\u00a030 for an evening of laughter featuring a lineup of the best upcoming comedians in Calgary, followed by special guest headliner Lars Callieou &amp; Chris Franklin.</p>\n<p><em><strong>Tickets are $14.95, but you can snatch them up for half price if you purchase them online in advance</strong></em></p>\n<p>\u00a0</p>"
+      },
+      {
+        "tickets": [
+          7916290
+        ],
+        "show_ids": [
+          6958002
+        ],
+        "name": "Dale Ward",
+        "description": "<p>Join us Wednesday\u00a0October 7\u00a0for an evening of laughter featuring a lineup of the best upcoming comedians in Calgary, followed by special guest headliner\u00a0Dale Ward.</p>\n<p><em>Every\u00a0Wednesday is proudly presented by our good friends at Bronc Beer, featuring Great Buckin' Beer specials!!!</em></p>\n<p><em><strong>Tickets are $14.95, but you can snatch them up for half price if you purchase them online in advance</strong></em></p>\n<p>\u00a0</p>"
+      }
+    ]
+  }
+}

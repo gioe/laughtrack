@@ -1,0 +1,314 @@
+[
+  {
+    "key": "9075",
+    "url": "https://westsideimprov.com/tickets/p/sept-27-2026",
+    "ticket": {
+      "id": 6755817,
+      "purchase_url": "https://westsideimprov.com/tickets/p/sept-27-2026",
+      "price": null,
+      "sold_out": false,
+      "show_id": 5957384,
+      "type": "General Admission",
+      "name": "September 27: Sunday Night Show @7pm",
+      "date": "2026-09-28T00:00:00+00:00",
+      "club_id": 9075,
+      "club_name": "Westside Improv Studio",
+      "website": "http://westsideimprov.com/",
+      "show_page_url": "https://westsideimprov.com/tickets/p/sept-27-2026",
+      "last_scraped_by": "squarespace",
+      "last_scraped_date": "2026-09-26T23:40:31.219018+00:00"
+    },
+    "length": 1665126,
+    "sha256": "77bdf58a5e36040bd97ace0f4d4639df090637879a9bf873b5c0c8847e4e1c47"
+  },
+  {
+    "key": "16060",
+    "url": "https://www.rhinoimprov.com/tickets/p/thurs-oct-1st-open-mic-8pm",
+    "ticket": {
+      "id": 5597300,
+      "purchase_url": "https://www.rhinoimprov.com/tickets/p/thurs-oct-1st-open-mic-8pm",
+      "price": null,
+      "sold_out": false,
+      "show_id": 4953367,
+      "type": "General Admission",
+      "name": "Thurs Oct 1st Open Mic 8pm",
+      "date": "2026-10-02T00:00:00+00:00",
+      "club_id": 16060,
+      "club_name": "Rhino Comedy",
+      "website": "https://www.rhinoimprov.com/",
+      "show_page_url": "https://www.rhinoimprov.com/tickets/p/thurs-oct-1st-open-mic-8pm",
+      "last_scraped_by": "squarespace",
+      "last_scraped_date": "2026-09-26T23:41:28.554540+00:00"
+    },
+    "length": 222647,
+    "sha256": "add5660c628d11050ff5f01bbd99350aaaf788f554a66658dfa7fa3c9d146c45"
+  },
+  {
+    "key": "185",
+    "url": "https://thedentheatre.com/calendar/2026/9/3/blood-of-the-lamb-the-den-theatre-comedy-club-chicago-7tfhm-f3jhy",
+    "ticket": {
+      "id": 5601120,
+      "purchase_url": "https://thedentheatre.com/calendar/2026/9/3/blood-of-the-lamb-the-den-theatre-comedy-club-chicago-7tfhm-f3jhy",
+      "price": null,
+      "sold_out": false,
+      "show_id": 4956983,
+      "type": "General Admission",
+      "name": "Blood of the Lamb",
+      "date": "2026-09-27T20:00:00.345000+00:00",
+      "club_id": 185,
+      "club_name": "The Den Theatre",
+      "website": "https://thedentheatre.com",
+      "show_page_url": "https://thedentheatre.com/calendar/2026/9/3/blood-of-the-lamb-the-den-theatre-comedy-club-chicago-7tfhm-f3jhy",
+      "last_scraped_by": "squarespace",
+      "last_scraped_date": "2026-08-28T00:38:14.840822+00:00"
+    },
+    "length": 251846,
+    "sha256": "b9023156dcdc0c34db29f0220a77a710740b99961ec9f9a01b7f7210d963cac8"
+  },
+  {
+    "key": "164",
+    "url": "https://www.elysiantheater.com/shows/joedome0926",
+    "ticket": {
+      "id": 4183393,
+      "purchase_url": "https://www.elysiantheater.com/shows/joedome0926",
+      "price": null,
+      "sold_out": false,
+      "show_id": 3733773,
+      "type": "General Admission",
+      "name": "JoeDome (Skunk Room)",
+      "date": "2026-09-27T03:00:00.580000+00:00",
+      "club_id": 164,
+      "club_name": "The Elysian Theater",
+      "website": "https://www.elysiantheater.com",
+      "show_page_url": "https://www.elysiantheater.com/shows/joedome0926",
+      "last_scraped_by": "squarespace",
+      "last_scraped_date": "2026-08-28T00:31:45.251701+00:00"
+    },
+    "error": "HTTP Error 404: "
+  },
+  {
+    "key": "11295",
+    "url": "https://chaosbloom.com/shows-calendar/yfhmb6rftn2ns94-kkt7b-8c56t-27d8g-2rd36-6bsa7-455l8-x5sst-74nlm-2s74t-5swyx-4w2le-tr2lj-ebf9e-tck5n-txc96-x5fka-tcx6p",
+    "ticket": {
+      "id": 5571660,
+      "purchase_url": "https://chaosbloom.com/shows-calendar/yfhmb6rftn2ns94-kkt7b-8c56t-27d8g-2rd36-6bsa7-455l8-x5sst-74nlm-2s74t-5swyx-4w2le-tr2lj-ebf9e-tck5n-txc96-x5fka-tcx6p",
+      "price": null,
+      "sold_out": false,
+      "show_id": 4930588,
+      "type": "General Admission",
+      "name": "The FREE Improv Comedy Jam Saturday 9-10pm",
+      "date": "2026-09-27T03:00:00.853000+00:00",
+      "club_id": 11295,
+      "club_name": "Chaos Bloom Theater",
+      "website": "https://chaosbloom.com",
+      "show_page_url": "https://chaosbloom.com/shows-calendar/yfhmb6rftn2ns94-kkt7b-8c56t-27d8g-2rd36-6bsa7-455l8-x5sst-74nlm-2s74t-5swyx-4w2le-tr2lj-ebf9e-tck5n-txc96-x5fka-tcx6p",
+      "last_scraped_by": "squarespace",
+      "last_scraped_date": "2026-08-28T00:20:03.914297+00:00"
+    },
+    "length": 100398,
+    "sha256": "81cc133c3d6c9dc8d9ff910049e7a198b9098c0ea0cc91742e3e32be81c39e48"
+  },
+  {
+    "key": "16046",
+    "url": "https://www.brooklyncomedy.com/show-schedule/a-drag-queen-walks-into-a-bar-9-27",
+    "ticket": {
+      "id": 6710454,
+      "purchase_url": "https://www.eventbrite.com/e/a-drag-queen-walks-into-a-bar-tickets-1998785916482?aff=oddtdtcreator",
+      "price": null,
+      "sold_out": false,
+      "show_id": 5918114,
+      "type": "General Admission",
+      "name": "A Drag Queen Walks Into A Bar",
+      "date": "2026-09-27T23:00:00.115000+00:00",
+      "club_id": 16046,
+      "club_name": "Brooklyn Comedy Collective",
+      "website": "https://www.brooklyncomedy.com/",
+      "show_page_url": "https://www.brooklyncomedy.com/show-schedule/a-drag-queen-walks-into-a-bar-9-27",
+      "last_scraped_by": "squarespace",
+      "last_scraped_date": "2026-08-28T00:25:19.221530+00:00"
+    },
+    "length": 126847,
+    "sha256": "382829651b09c297f8dc86986ad601378bd5b3ef6c9c5075308e45a402085aca"
+  },
+  {
+    "key": "187",
+    "url": "https://us.tickets.secondcity.com/checkout/6a99d28695ce9b2287c2cede?useEmbed=true",
+    "ticket": {
+      "id": 7597834,
+      "purchase_url": "https://us.tickets.secondcity.com/checkout/6a99d28695ce9b2287c2cede?useEmbed=true",
+      "price": null,
+      "sold_out": false,
+      "show_id": 6684313,
+      "type": "General Admission",
+      "name": "Edie Arnold is a Loser",
+      "date": "2026-09-28T00:00:00+00:00",
+      "club_id": 187,
+      "club_name": "UP Comedy Club",
+      "website": "https://www.secondcity.com/shows/chicago/",
+      "show_page_url": "https://us.tickets.secondcity.com/checkout/6a99d28695ce9b2287c2cede?useEmbed=true",
+      "last_scraped_by": "up_comedy_club",
+      "last_scraped_date": "2026-09-26T23:29:18.657164+00:00"
+    },
+    "length": 110966,
+    "sha256": "cf63fb70d56e09860c9810cc5a20e278680bea845c86051cb296c2ff26b79c06"
+  },
+  {
+    "key": "9116",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa42b89c484e96ff0e5c5fa?useEmbed=true",
+    "ticket": {
+      "id": 7792658,
+      "purchase_url": "https://us.tickets.secondcity.com/checkout/6aa42b89c484e96ff0e5c5fa?useEmbed=true",
+      "price": null,
+      "sold_out": false,
+      "show_id": 6852297,
+      "type": "General Admission",
+      "name": "Conservatory 3 Show",
+      "date": "2026-09-27T18:00:00+00:00",
+      "club_id": 9116,
+      "club_name": "Donny's Skybox Theatre",
+      "website": "https://www.secondcity.com/locations/chicago/",
+      "show_page_url": "https://us.tickets.secondcity.com/checkout/6aa42b89c484e96ff0e5c5fa?useEmbed=true",
+      "last_scraped_by": "up_comedy_club",
+      "last_scraped_date": "2026-09-27T00:48:35.180965+00:00"
+    },
+    "length": 109417,
+    "sha256": "b7e1a7509ebece4e6254906b88d9fe37da56b7479a03b58a11f9ba38753db010"
+  },
+  {
+    "key": "16058",
+    "url": "https://us.tickets.secondcity.com/checkout/6aa83f21a5ef0dc99ea2a45f?useEmbed=true",
+    "ticket": {
+      "id": 7983648,
+      "purchase_url": "https://us.tickets.secondcity.com/checkout/6aa83f21a5ef0dc99ea2a45f?useEmbed=true",
+      "price": null,
+      "sold_out": false,
+      "show_id": 7015386,
+      "type": "General Admission",
+      "name": "Compass Party - NYC",
+      "date": "2026-09-27T23:00:00+00:00",
+      "club_id": 16058,
+      "club_name": "The Second City New York",
+      "website": "https://www.secondcity.com/shows/new-york/",
+      "show_page_url": "https://us.tickets.secondcity.com/checkout/6aa83f21a5ef0dc99ea2a45f?useEmbed=true",
+      "last_scraped_by": "up_comedy_club",
+      "last_scraped_date": "2026-09-26T23:41:34.972157+00:00"
+    },
+    "length": 112433,
+    "sha256": "8b09b75b3250fd7ae7d2ac4d2c32d08984129cf35329ee65917b4b53fa1acc56"
+  },
+  {
+    "key": "queseralb",
+    "url": "https://tockify.com/api/ngevent?calname=queseralb&max=200&startms=1790474400000",
+    "ticket": {},
+    "length": 299630,
+    "sha256": "e3e77956ba9e8d3531bf47b43f480e4b2780bb453859cb0ce498815d566e2b9e"
+  },
+  {
+    "key": "8834",
+    "url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26",
+    "ticket": {
+      "id": 5969446,
+      "purchase_url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26/",
+      "price": null,
+      "sold_out": false,
+      "show_id": 5278011,
+      "type": "General Admission",
+      "name": "ASSSSCAT LA",
+      "date": "2026-09-27T03:30:00+00:00",
+      "club_id": 8834,
+      "club_name": "Upright Citizens Brigade Theatre",
+      "website": "https://ucbcomedy.com",
+      "show_page_url": "https://ucbcomedy.com/show/asssscat-la-2026-09-26",
+      "last_scraped_by": "ucb",
+      "last_scraped_date": "2026-09-26T23:40:17.214162+00:00"
+    },
+    "length": 184814,
+    "sha256": "b6d4fda996dd7f947af0adedff2ef4ff432689c32ec1963c5cbbe5b7c567a583"
+  },
+  {
+    "key": "upresolver0",
+    "url": "https://www.secondcity.com/api/entityResolver?uri=/shows/chicago/grad-revue-pre-chi&isPreview=false",
+    "ticket": {},
+    "length": 46123,
+    "sha256": "22dcc18c17745029294141a8663d19a01ceedd91e87ce305da9a623ec4f606e2"
+  },
+  {
+    "key": "upresolver1",
+    "url": "https://www.secondcity.com/api/entityResolver?uri=/shows/chicago/clued-in-presents-travel-can-be-murder-chi&isPreview=false",
+    "ticket": {},
+    "length": 27916,
+    "sha256": "43f76cdbc1b783ca0f299d4afd403f1f2a7791b76af7a06fb21c959eb79cb9d3"
+  },
+  {
+    "key": "theicehouse",
+    "url": "https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=1790474400000",
+    "ticket": {},
+    "length": 140959,
+    "sha256": "bb54ff63b5f4fb549082a0f9a1f0d1310f0dcfdc24408403e14827e61ab28a88"
+  },
+  {
+    "key": "upresolver3",
+    "url": "https://www.secondcity.com/api/entityResolver?uri=/shows/chicago/not-today-santa-chi&isPreview=false",
+    "ticket": {},
+    "length": 68028,
+    "sha256": "d14f18ac313f7f0b33249515e8442bd088ee0f957574ca8cfb4d1e9749afbdf5"
+  },
+  {
+    "key": "upresolver2",
+    "url": "https://www.secondcity.com/api/entityResolver?uri=/shows/chicago/edie-arnold-is-a-loser-chi&isPreview=false",
+    "ticket": {},
+    "length": 19509,
+    "sha256": "fbc49ea471ba5b76c6009e8728335cf0b6747d21a89cd4521fa0eeb80ba06312"
+  },
+  {
+    "key": "8823",
+    "url": "https://ucbcomedy.com/show/our-long-harold-an-hour-long-harold-2026-09-26",
+    "ticket": {
+      "id": 7273902,
+      "purchase_url": "https://ucbcomedy.com/show/our-long-harold-an-hour-long-harold-2026-09-26/",
+      "price": null,
+      "sold_out": false,
+      "show_id": 6403911,
+      "type": "General Admission",
+      "name": "Our Long Harold: An Hour-Long Harold",
+      "date": "2026-09-27T03:00:00+00:00",
+      "club_id": 8823,
+      "club_name": "Upright Citizens Brigade",
+      "website": "https://ucbcomedy.com",
+      "show_page_url": "https://ucbcomedy.com/show/our-long-harold-an-hour-long-harold-2026-09-26",
+      "last_scraped_by": "ucb",
+      "last_scraped_date": "2026-09-26T23:39:56.346795+00:00"
+    },
+    "length": 163012,
+    "sha256": "8d69e04e3f67e923c4c29ff2ea11d958ec0428f34428fb2f6fab7d5c9cf106de"
+  },
+  {
+    "key": "16055",
+    "url": "https://ucbcomedy.com/show/sketch-cram-09-26-26",
+    "ticket": {
+      "id": 5574437,
+      "purchase_url": "https://ucbcomedy.com/show/sketch-cram-09-26-26/",
+      "price": null,
+      "sold_out": false,
+      "show_id": 4932960,
+      "type": "General Admission",
+      "name": "Sketch Cram NY",
+      "date": "2026-09-27T02:30:00+00:00",
+      "club_id": 16055,
+      "club_name": "Upright Citizens Brigade Theatre New York",
+      "website": "https://ucbcomedy.com/",
+      "show_page_url": "https://ucbcomedy.com/show/sketch-cram-09-26-26",
+      "last_scraped_by": "ucb",
+      "last_scraped_date": "2026-09-25T23:53:42.035342+00:00"
+    },
+    "length": 192824,
+    "sha256": "c2537d70abf4e0768a3826481976950d8755d224c11472dc7d000e0d43300d45"
+  },
+  {
+    "key": "upresolver4",
+    "url": "https://www.secondcity.com/api/entityResolver?uri=/shows/chicago/best-of-the-second-city-chi&isPreview=false",
+    "ticket": {},
+    "length": 131967,
+    "sha256": "ec2d5f7629e35be3d3e2574cdfe8db0ef97aa46e88edd4b989f395e8541b432e"
+  }
+]

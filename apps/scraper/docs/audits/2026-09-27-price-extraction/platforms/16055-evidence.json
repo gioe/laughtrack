@@ -1,0 +1,273 @@
+{
+  "source_url": "https://ucbcomedy.com/show/sketch-cram-09-26-26",
+  "ticket": {
+    "id": 5574437,
+    "purchase_url": "https://ucbcomedy.com/show/sketch-cram-09-26-26/",
+    "price": null,
+    "sold_out": false,
+    "show_id": 4932960,
+    "type": "General Admission",
+    "name": "Sketch Cram NY",
+    "date": "2026-09-27T02:30:00+00:00",
+    "club_id": 16055,
+    "club_name": "Upright Citizens Brigade Theatre New York",
+    "website": "https://ucbcomedy.com/",
+    "show_page_url": "https://ucbcomedy.com/show/sketch-cram-09-26-26",
+    "last_scraped_by": "ucb",
+    "last_scraped_date": "2026-09-25T23:53:42.035342+00:00"
+  },
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://ucbcomedy.com/show/sketch-cram-09-26-26/",
+          "url": "https://ucbcomedy.com/show/sketch-cram-09-26-26/",
+          "name": "Sketch Cram NY - Upright Citizens Brigade",
+          "isPartOf": {
+            "@id": "https://ucbcomedy.com/#website"
+          },
+          "primaryImageOfPage": {
+            "@id": "https://ucbcomedy.com/show/sketch-cram-09-26-26/#primaryimage"
+          },
+          "image": {
+            "@id": "https://ucbcomedy.com/show/sketch-cram-09-26-26/#primaryimage"
+          },
+          "thumbnailUrl": "https://ucbcomedy.com/wp-content/uploads/2024/12/sketch-cram_evergreen.png",
+          "datePublished": "2026-07-29T17:27:26+00:00",
+          "dateModified": "2026-09-26T14:42:36+00:00",
+          "breadcrumb": {
+            "@id": "https://ucbcomedy.com/show/sketch-cram-09-26-26/#breadcrumb"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": [
+            {
+              "@type": "ReadAction",
+              "target": [
+                "https://ucbcomedy.com/show/sketch-cram-09-26-26/"
+              ]
+            }
+          ]
+        },
+        {
+          "@type": "ImageObject",
+          "inLanguage": "en-US",
+          "@id": "https://ucbcomedy.com/show/sketch-cram-09-26-26/#primaryimage",
+          "url": "https://ucbcomedy.com/wp-content/uploads/2024/12/sketch-cram_evergreen.png",
+          "contentUrl": "https://ucbcomedy.com/wp-content/uploads/2024/12/sketch-cram_evergreen.png",
+          "width": 2160,
+          "height": 1080
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://ucbcomedy.com/show/sketch-cram-09-26-26/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://ucbcomedy.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Events",
+              "item": "https://ucbcomedy.com/show/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Sketch Cram NY"
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://ucbcomedy.com/#website",
+          "url": "https://ucbcomedy.com/",
+          "name": "Upright Citizens Brigade",
+          "description": "Comedy Theatre and Training Center",
+          "publisher": {
+            "@id": "https://ucbcomedy.com/#organization"
+          },
+          "alternateName": "UCB Theatre",
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://ucbcomedy.com/?s={search_term_string}"
+              },
+              "query-input": {
+                "@type": "PropertyValueSpecification",
+                "valueRequired": true,
+                "valueName": "search_term_string"
+              }
+            }
+          ],
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://ucbcomedy.com/#organization",
+          "name": "Upright Citizens Brigade",
+          "alternateName": "UCB Theatre",
+          "url": "https://ucbcomedy.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "inLanguage": "en-US",
+            "@id": "https://ucbcomedy.com/#/schema/logo/image/",
+            "url": "",
+            "contentUrl": "",
+            "caption": "Upright Citizens Brigade"
+          },
+          "image": {
+            "@id": "https://ucbcomedy.com/#/schema/logo/image/"
+          },
+          "sameAs": [
+            "https://www.facebook.com/ucbtla/",
+            "https://x.com/ucbtla",
+            "https://www.youtube.com/ucbcomedy"
+          ]
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ComedyEvent",
+      "name": "Sketch Cram NY",
+      "url": "https://ucbcomedy.com/show/sketch-cram-09-26-26/",
+      "startDate": "2026-09-26T22:30:00-04:00",
+      "endDate": "2026-09-26T23:30:00-04:00",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "description": "A sketch comedy show made in ONE day, featuring New York\u2019s best comedy writers and performers! Once a month, we cram together New York\u2019s best writers and performers to craft an ALL-NEW sketch comedy show from scratch IN ONE SINGLE DAY! We start the day at 9am with NOTHING, but a show is going up by\u2026",
+      "image": [
+        "https://ucbcomedy.com/wp-content/uploads/2024/12/sketch-cram_evergreen.png"
+      ],
+      "location": {
+        "@type": "Place",
+        "name": "NY - 14TH ST. Mainstage",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "242 E 14th St",
+          "addressLocality": "New York",
+          "addressRegion": "NY",
+          "postalCode": "10003",
+          "addressCountry": "US"
+        }
+      },
+      "organizer": {
+        "@type": "Organization",
+        "name": "Upright Citizens Brigade",
+        "url": "https://ucbcomedy.com/"
+      },
+      "performer": [
+        {
+          "@type": "Person",
+          "name": "Georgie Aldaco",
+          "url": "https://ucbcomedy.com/people/georgie-aldaco/"
+        },
+        {
+          "@type": "Person",
+          "name": "Jared Bronen",
+          "url": "https://ucbcomedy.com/people/jared-bronen/"
+        },
+        {
+          "@type": "Person",
+          "name": "Stacey Kulow",
+          "url": "https://ucbcomedy.com/people/stacey-kulow/"
+        },
+        {
+          "@type": "Person",
+          "name": "Hunter Nelson",
+          "url": "https://ucbcomedy.com/people/hunter-nelson/"
+        },
+        {
+          "@type": "Person",
+          "name": "Rachel Taenzler",
+          "url": "https://ucbcomedy.com/people/rachel-taenzler/"
+        },
+        {
+          "@type": "Person",
+          "name": "Alex Guaglianone",
+          "url": "https://ucbcomedy.com/people/alex-guaglianone/"
+        },
+        {
+          "@type": "Person",
+          "name": "Lara Strong"
+        },
+        {
+          "@type": "Person",
+          "name": "Sarah Padula"
+        },
+        {
+          "@type": "Person",
+          "name": "Kathryn Clinton"
+        },
+        {
+          "@type": "Person",
+          "name": "Andrew Bourne"
+        },
+        {
+          "@type": "Person",
+          "name": "Tim Daly",
+          "url": "https://ucbcomedy.com/people/tim-daly/"
+        },
+        {
+          "@type": "Person",
+          "name": "Josh Ellman",
+          "url": "https://ucbcomedy.com/people/josh-ellman/"
+        },
+        {
+          "@type": "Person",
+          "name": "Fu Goto",
+          "url": "https://ucbcomedy.com/people/fu-goto/"
+        },
+        {
+          "@type": "Person",
+          "name": "Zoe Johnson",
+          "url": "https://ucbcomedy.com/people/zoe-johnson/"
+        },
+        {
+          "@type": "Person",
+          "name": "David Saliterman",
+          "url": "https://ucbcomedy.com/people/david-saliterman/"
+        },
+        {
+          "@type": "Person",
+          "name": "Trumane Alston"
+        },
+        {
+          "@type": "Person",
+          "name": "Whitney Bae"
+        },
+        {
+          "@type": "Person",
+          "name": "Ryan Chittaphong",
+          "url": "https://ucbcomedy.com/people/ryan-chittaphong/"
+        },
+        {
+          "@type": "Person",
+          "name": "Sam Blake"
+        },
+        {
+          "@type": "Person",
+          "name": "Malika Ray",
+          "url": "https://ucbcomedy.com/people/malika-ray/"
+        },
+        {
+          "@type": "Person",
+          "name": "Julia Schroeder",
+          "url": "https://ucbcomedy.com/people/julia-schroeder/"
+        },
+        {
+          "@type": "Person",
+          "name": "Austin Rye"
+        }
+      ]
+    }
+  ],
+  "visible_text": "Sketch Cram NY - Upright Citizens Brigade Skip to content Upright Citizens Brigade Comedy Theatre and Training Center SHOWS LA Show Calendar NY Show Calendar Upcoming Livestreams Calendar Past Shows on Demand Class Show Calendar LA Class Shows NY Class Shows Pitch a Show CLASSES Register for Classes Getting Started at UCB Improv Sketch Writing Stand-Up Musical Improv Acting Clowning Scholarships UCB Diversity Scholarship Program UCB x SNL Scholarship TEAMS LA House Teams Betty Harold Branzino Cowboy Mama Dance Club Remix Darnell Hollywood The Fantasy Gas Money S.O.F.T. yikes! Lloyd Freak Trap Jinx PTO Maude Big Time The Faculty The Family Business Rodeo Baby Town Crier One Man\u2019s Trash (Wild Card Team) NY House Teams Betty Harold suckdog Club Gator Hot FM Rhubarb Your Girlfriend The Mall Lloyd Cruise Control WET Maude First Wife Fridge Magnet Golden Hour Mom\u2019s World Pamela Reunion Tour Auditions About Auditions 2026 UCB LA Maude/Betty Teams 2026 UCB LA Harold Teams 2026 UCB LA Lloyd Teams 2026 UCBTNY Betty Submissions 2026 UCB NY Harold/Lloyd Teams Maude Teams TALENT LA Talent NY Talent Talent DCM Talent Performing Tonight Teams Teachers CORPORATE WORKSHOPS TOURS SHOP Merch UCB Improv Manual Gift Cards ABOUT About UCB UCB LA Artistic Team Careers Contact Venues Training Center FAQ ACCOUNT My Tickets Livestreams myUCBComedy Orders Classes Settings Register for Free Log In SHOWS LA Show Calendar NY Show Calendar Upcoming Livestreams Calendar Past Shows on Demand Class Show Calendar LA Class Shows NY Class Shows Pitch a Show CLASSES Register for Classes Getting Started at UCB Improv Sketch Writing Stand-Up Musical Improv Acting Clowning Scholarships UCB Diversity Scholarship Program UCB x SNL Scholarship TEAMS LA House Teams Betty Harold Branzino Cowboy Mama Dance Club Remix Darnell Hollywood The Fantasy Gas Money S.O.F.T. yikes! Lloyd Freak Trap Jinx PTO Maude Big Time The Faculty The Family Business Rodeo Baby Town Crier One Man\u2019s Trash (Wild Card Team) NY House Teams Betty Harold suckdog Club Gator Hot FM Rhubarb Your Girlfriend The Mall Lloyd Cruise Control WET Maude First Wife Fridge Magnet Golden Hour Mom\u2019s World Pamela Reunion Tour Auditions About Auditions 2026 UCB LA Maude/Betty Teams 2026 UCB LA Harold Teams 2026 UCB LA Lloyd Teams 2026 UCBTNY Betty Submissions 2026 UCB NY Harold/Lloyd Teams Maude Teams TALENT LA Talent NY Talent Talent DCM Talent Performing Tonight Teams Teachers CORPORATE WORKSHOPS TOURS SHOP Merch UCB Improv Manual Gift Cards ABOUT About UCB UCB LA Artistic Team Careers Contact Venues Training Center FAQ ACCOUNT My Tickets Livestreams myUCBComedy Orders Classes Settings Register for Free Log In Sketch Cram NY Saturday, September 26, 2026 \u2013 10:30 pm Sat, Sep 26 \u00b7 10:30 PM NY - 14TH ST. Mainstage 60 minutes Saturday, September 26, 2026 \u2013 10:30 pm NY - 14TH ST. Mainstage A sketch comedy show made in ONE day, featuring New York\u2019s best comedy writers and performers! Once a month, we cram together New York\u2019s best writers and performers to craft an ALL-NEW sketch comedy show from scratch IN ONE SINGLE DAY! We start the day at 9am with NOTHING, but a show is going up by the end of the night whether we\u2019re ready or not! Sketch Cram is all the comedy you can cram into a single show, featuring writers and performers from some of your favorite shows, bringing you 100% NEW CONTENT EVERY MONTH! So grab a ticket, and cram your butt into a seat! It\u2019s Sketch Cram time, baby! SKETCH CRAM IS PRODUCED, DIRECTED AND WRITTEN BY: Georgie Aldaco ( Inside Amy Schumer, Miracle Workers [TBS], Koala Man [Hulu]) Jared Bronen ( Just for Laughs, New York Comedy Festival,\u00a0CollegeHumor) Alex Guaglianone (Maude Night, Just For Laughs, Nicholl Fellowship Finalist, Austin Screenplay Finalist) Stacey Kulow ( Maude Night, Austin Sketch Fest, Buffy the Gilmore Slayer Podcast ) Hunter Nelson ( The Onion, The Truth, ASSSSKETCH ) Rachel Taenzler ( Harold Night, PAGE Awards Finalist, Bratz Mash at UCB ) THIS MONTH\u2019S GUESTS\u2026 WRITERS: Tim Daly (Maude Night, \u201cThe Dump\u201d Podcast) Josh Ellman ( Maude Night, New York Queer Comedy Festival Finalist, Ghost Stories) Fu Goto (Harold Night, Maude Night) Zoe Johnson ( ASSSSKETCH, Maude Night, Queer Window, SF SketchFest, DC SketchFest) David Saliterman (Maude Night, The Bowery\u00a0Review) ACTORS: Trumane Alston ( Gethard & Trumane,\u00a0Shamilton! The Improvised Hip Hop Musical, Fat Ham at the Goodman Theater) Whitney Bae ( UCB, Black Improv Alliance, OG YouTuber) Sam Blake (Magnet Theater, Playhouse West) Ryan Chittaphong ( Asian AF, Story Pirates, Stella Adler Studio) Malika Ray ( 2024 UCB X SNL Diversity Scholarship Program Winner, Maude Night) Austin Rye ( Second City Theatricals, Characters Welcome, Lloyd Night) Julia Schroeder ( Maude Night, Netflix is a Joke Festival, New York Comedy Festival,\u00a0Screamboat) Rachel Taenzler ( Harold Night, PAGE Awards Finalist, Bratz Mash at UCB ) WITH A VIDEO BY: Andrew Bourne (NoBudge, Vice , Tribeca Film Festival, Outfest) \u2014 In-person tickets are $20 plus fees. All sales are final. The show starts at the time listed. If you are not at the theater more than 5 minutes before the start of the show, we may release your tickets to the waitlist. Lineup is subject to change. Under 17 must be accompanied by a parent/guardian. Please use discretion, as all our shows can potentially use adult/sexual material, language, and images. Upright Citizens Brigade Theatre: 242 East 14th Street, New York, NY 10003 Talent Georgie Aldaco Jared Bronen Stacey Kulow Hunter Nelson Rachel Taenzler Alex Guaglianone Lara Strong Sarah Padula Kathryn Clinton Andrew Bourne Tim Daly Josh Ellman Fu Goto Zoe Johnson David Saliterman Trumane Alston Whitney Bae Ryan Chittaphong Sam Blake Malika Ray Julia Schroeder Austin Rye EMAIL SIGNUP Stay in the know about upcoming shows, get updates on new classes, and more. SUBSCRIBE FOLLOW US ON SOCIAL Find us on: Facebook page opens in new window X page opens in new window YouTube page opens in new window Instagram page opens in new window SHOWS CLASSES \u00a9 2026 Upright Citizens Brigade. All Rights Reserved. Terms of Service | Privacy Policy Training Center Policies Additional Policies Go to Top 0 Your Cart 0 Loading cart\u2026 Something went wrong updating your cart. Try again Nothing here yet Grab some tickets \u2014 the show is better with you in it. Browse Shows Add another show Subtotal \u00b7 fees included \u2014 Check Out Keep browsing View full cart"
+}

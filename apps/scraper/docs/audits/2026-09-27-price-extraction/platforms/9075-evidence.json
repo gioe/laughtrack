@@ -1,0 +1,66 @@
+{
+  "source_url": "https://westsideimprov.com/tickets/p/sept-27-2026",
+  "ticket": {
+    "id": 6755817,
+    "purchase_url": "https://westsideimprov.com/tickets/p/sept-27-2026",
+    "price": null,
+    "sold_out": false,
+    "show_id": 5957384,
+    "type": "General Admission",
+    "name": "September 27: Sunday Night Show @7pm",
+    "date": "2026-09-28T00:00:00+00:00",
+    "club_id": 9075,
+    "club_name": "Westside Improv Studio",
+    "website": "http://westsideimprov.com/",
+    "show_page_url": "https://westsideimprov.com/tickets/p/sept-27-2026",
+    "last_scraped_by": "squarespace",
+    "last_scraped_date": "2026-09-26T23:40:31.219018+00:00"
+  },
+  "jsonld": [
+    {
+      "url": "https://westsideimprov.com",
+      "name": "Westside Improv",
+      "image": "//images.squarespace-cdn.com/content/v1/5cfeb24227582b000108922e/1560195714984-EGETA6RTR4Q1Y4315U8Q/logo.png",
+      "@context": "http://schema.org",
+      "@type": "WebSite"
+    },
+    {
+      "legalName": "Westside Improv",
+      "address": "125 West Front Street\nWheaton, IL, 60187\nUnited States",
+      "email": "contact@westsideimprov.com",
+      "telephone": "630-984-5839",
+      "sameAs": [
+        "https://www.facebook.com/westsideimprovstudio",
+        "https://www.instagram.com/westsideimprov/"
+      ],
+      "@context": "http://schema.org",
+      "@type": "Organization"
+    },
+    {
+      "address": "125 West Front Street\nWheaton, IL, 60187\nUnited States",
+      "image": "https://static1.squarespace.com/static/5cfeb24227582b000108922e/t/5cfeb282b35def0001757145/1790197949025/",
+      "name": "Westside Improv",
+      "openingHours": ", , , Th 19:00-22:00, Fr 19:00-22:30, Sa 19:00-22:30, ",
+      "@context": "http://schema.org",
+      "@type": "LocalBusiness"
+    },
+    {
+      "name": "September 27: Sunday Night Show @7pm \u2014 Westside Improv",
+      "image": "http://static1.squarespace.com/static/5cfeb24227582b000108922e/613eb3a09271606618a3b043/6a8c579cdcd6596822904e1e/1788266394717/SundayTickets.jpg?format=1500w",
+      "description": "Who\u2019s Playing?   Blank Slate Pocket Peanuts And our all new totally improvised soap opera \u2014 Ashes in the Wind!",
+      "brand": "Westside Improv",
+      "offers": {
+        "price": 10.0,
+        "priceCurrency": "USD",
+        "url": "https://westsideimprov.com/tickets/p/sept-27-2026",
+        "availability": "InStock",
+        "sku": "SQ8015217",
+        "@context": "http://schema.org",
+        "@type": "Offer"
+      },
+      "@context": "http://schema.org",
+      "@type": "Product"
+    }
+  ],
+  "visible_text": "September 27: Sunday Night Show @7pm \u2014 Westside Improv Skip to Content Open Menu Close Menu About Teams Classes Youth Teachers Players Corporate Login Account 0 0 Show + Tickets About Teams Classes Youth Teachers Players Corporate Login Account 0 0 Show + Tickets Open Menu Close Menu About Teams Classes Youth Teachers Players Corporate Login Account Show + Tickets Tickets \u203a September 27: Sunday Night Show @7pm Image 1 of 1 September 27: Sunday Night Show @7pm $10.00 Who\u2019s Playing? Blank Slate Pocket Peanuts And our all new totally improvised soap opera \u2014 Ashes in the Wind! Add To Cart Added! Who\u2019s Playing? Blank Slate Pocket Peanuts And our all new totally improvised soap opera \u2014 Ashes in the Wind! Checkout \u2192 125 W. Front Street Wheaton, IL 60187 contact@westsideimprov.com Newsletter Block This newsletter signup form needs a storage option. Edit the block and enter a storage location via the Storage tab. Sign up with your email address to get updates about special events, classes, and all the good stuf. Email Address Sign Up Your email is safe wth us. Thank you!"
+}

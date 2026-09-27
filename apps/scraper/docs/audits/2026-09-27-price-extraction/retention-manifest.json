@@ -1,0 +1,442 @@
+[
+  {
+    "file": "REPORT.md",
+    "bytes": 12516,
+    "sha256": "9312293fc58e4324714f735899dfb0033f6d67639bdf00cb9c7d6d9382817722"
+  },
+  {
+    "file": "baseline.json",
+    "bytes": 110,
+    "sha256": "d0d6d618c6c1ad93cfe4e0258e740ee7723532783c8246642da9117ed00225a0"
+  },
+  {
+    "file": "classifications.json",
+    "bytes": 10554,
+    "sha256": "c7f38ccf4744aa4b68b3262a0383ccf1315010509d5e5a5d337efc841e539cd5"
+  },
+  {
+    "file": "clusters.json",
+    "bytes": 2397,
+    "sha256": "c02a92444c1dfb5feae1e0af9ba5f2e1b4cf2e2010ea9e678f40fbf60cf5cab0"
+  },
+  {
+    "file": "cohort.json",
+    "bytes": 7630951,
+    "sha256": "008136f5c41edd3e4aaa2423830be10776628764fe6e088393cadf40cb55b6f3"
+  },
+  {
+    "file": "parent/grisly-6039378.html",
+    "bytes": 42369,
+    "sha256": "ab0b79f159b808531483ceedb53596dec81173cb8657e2dbd0d937aafb81cd17"
+  },
+  {
+    "file": "parent/grisly-6150999.html",
+    "bytes": 44253,
+    "sha256": "874cbed9decf6bb9442850611ef3969c0b6dca1f5bcfa5d4ce6e477fbfea1eb0"
+  },
+  {
+    "file": "parent/grisly-6331162.html",
+    "bytes": 46669,
+    "sha256": "1ac70357aec70ced458ce769855b603e7694c5a9aaf8a146a73d4b419b63330a"
+  },
+  {
+    "file": "parent/grisly-6395740.html",
+    "bytes": 47502,
+    "sha256": "07404f77b432463c9c1ea0026f8fbb42c38ff01857d19fd1c19a2e65b691e98f"
+  },
+  {
+    "file": "parent/grisly-classification.json",
+    "bytes": 33857,
+    "sha256": "bb1edd33dcc4c36807ea028682204d30be1914822470de358f6cc9b4d9521086"
+  },
+  {
+    "file": "parent/grisly-findings.json",
+    "bytes": 439746,
+    "sha256": "64489823eca01dfe30ce1a9deb96e173afafbc9d9515199393b2af94d91b4795"
+  },
+  {
+    "file": "parent/grisly-purchase-prices.json",
+    "bytes": 15543,
+    "sha256": "0055c7eac5846fdef8b1dd7f6d6a46e1064f699242eaad24d65a4adff953157e"
+  },
+  {
+    "file": "parent/ticketmaster-direct-event.json",
+    "bytes": 9029,
+    "sha256": "8339db2207237979c4eca8c99b31bfc4b1aee64672cd606a287b074ba50a1c60"
+  },
+  {
+    "file": "parent/ticketmaster-findings.json",
+    "bytes": 4113,
+    "sha256": "122c6a61677f9cfc8e0e91472e79aa54b93ddb3b28fc6b860d60a184b40472e5"
+  },
+  {
+    "file": "parent/ticketmaster-representative-events.json",
+    "bytes": 106668,
+    "sha256": "2e28bf92dd654de4c33040337d1037d0be982aefca9c5c0da55d6edd3a4e03c3"
+  },
+  {
+    "file": "platforms/11295-evidence.json",
+    "bytes": 4243,
+    "sha256": "c4216e9018c22a96fd9b16e26cfc1a88e1cca41c01be0f96eb80c9ec54c00700"
+  },
+  {
+    "file": "platforms/16055-evidence.json",
+    "bytes": 15313,
+    "sha256": "1af3b80517dba93ff396d9046af0f0c01c303614f1347215b05b3319077f2e56"
+  },
+  {
+    "file": "platforms/16060-evidence.json",
+    "bytes": 4616,
+    "sha256": "4e75e3fc95f244891a62ef5a30a221f2c5e380c1339c52703da08742ecfc9e7f"
+  },
+  {
+    "file": "platforms/8823-evidence.json",
+    "bytes": 10926,
+    "sha256": "353e63a802ead51b1757338303919eb5a8759bb9d6e72344d710481e0ec469be"
+  },
+  {
+    "file": "platforms/8834-evidence.json",
+    "bytes": 14824,
+    "sha256": "4438daa470a48a72d25a5aa8b6df10ab5a512038857e46feb20d6faf2c523c0f"
+  },
+  {
+    "file": "platforms/9075-evidence.json",
+    "bytes": 3686,
+    "sha256": "49aa9ec562a2b24faa9d4006d92ea31b5db3f54ac4f2c94caa28181041b50a53"
+  },
+  {
+    "file": "platforms/findings.json",
+    "bytes": 12016,
+    "sha256": "57f8e4b842adda7ad5496c8786eec74be20601f5c5a106d5c0182b0fdeb027a7"
+  },
+  {
+    "file": "platforms/future16055-evidence.json",
+    "bytes": 12945,
+    "sha256": "67b9254f14745f4c9b0d1e5a793841df2499b8a3fea98e240cfbdca04db37fc8"
+  },
+  {
+    "file": "platforms/future8823-evidence.json",
+    "bytes": 11126,
+    "sha256": "a4b7aef2dc87945e440618b498abfa2c3e7cc3c6108c8838f00b8ff43599a9e8"
+  },
+  {
+    "file": "platforms/future8834-evidence.json",
+    "bytes": 11282,
+    "sha256": "f6b9ad19b6ccf84537c20cc02efa1c5ad1c0422054e86d7edb273028865f18ff"
+  },
+  {
+    "file": "platforms/manifest-extra.json",
+    "bytes": 4100,
+    "sha256": "802ebaced600e738d1cb0604bef69a08ebfe663d3dc931d95ebd72220cf159c6"
+  },
+  {
+    "file": "platforms/manifest-last.json",
+    "bytes": 689,
+    "sha256": "6bf5b74d20298c04f3a5017087532b249280d7951385b0391d76dc3b2e65a883"
+  },
+  {
+    "file": "platforms/manifest.json",
+    "bytes": 12482,
+    "sha256": "9e5f53de333e864a858900576e6771a84bd73460d64e556c1035b7ca2df07a8e"
+  },
+  {
+    "file": "platforms/product-matched.json",
+    "bytes": 30996,
+    "sha256": "e199d9c59b6b99e0b4d0baa46c79b99f106064e7b1de79bf88b0e39f91a3500c"
+  },
+  {
+    "file": "platforms/products16060.txt",
+    "bytes": 160151,
+    "sha256": "82685b9dcd7d4d26ede0abf5860908b45eb3ff6ef42ade686dbeb498593f19df"
+  },
+  {
+    "file": "platforms/products9075.txt",
+    "bytes": 141336,
+    "sha256": "9b112cf8dc0e50ddcb142bf5241c1f181355a9a0a7f2df5d92cf466413673e13"
+  },
+  {
+    "file": "platforms/queseralb-matched-ids.json",
+    "bytes": 37442,
+    "sha256": "195b5a9c1729736ece7599738136e4336e2af355015465bacbdbf381eff4176f"
+  },
+  {
+    "file": "platforms/queseralb-matched-representatives.json",
+    "bytes": 4476,
+    "sha256": "205a1706d7651d66b9420ddea2ed646cff4d8206495265df5e6ab9a886a52447"
+  },
+  {
+    "file": "platforms/theicehouse-matched-ids.json",
+    "bytes": 5128,
+    "sha256": "756aa6e7a4a62eaec4bc53ef3c020e2a8467820eb25c3b73d053ae9436a95059"
+  },
+  {
+    "file": "platforms/theicehouse-matched-representatives.json",
+    "bytes": 1695,
+    "sha256": "acacc248caf65088a2fdb7518c426fc3bbd6529a33a7f3ec27d1aa594fdf0e4d"
+  },
+  {
+    "file": "platforms/up-date-mismatch.json",
+    "bytes": 13690,
+    "sha256": "f96b558c6789d4bda8310d8e4cb99a9c9e32eafe28c96d26db2ba3895957fd2f"
+  },
+  {
+    "file": "platforms/up-matched.json",
+    "bytes": 139893,
+    "sha256": "43b460bb31f67dfc6f67f326692cd8800ea5552e9432eb068c1e295a9382a9d1"
+  },
+  {
+    "file": "platforms/updecoded0.json",
+    "bytes": 5604,
+    "sha256": "ddb99411f626c9c2b88fbd377c5fac73f60f081c927155c031a2e887a90feffc"
+  },
+  {
+    "file": "platforms/updecoded1.json",
+    "bytes": 9650,
+    "sha256": "fd6fd5fbd62430f93148d1e73fb047f34c4cdd85bdc04906da025b8a9bf66fd2"
+  },
+  {
+    "file": "platforms/updecoded2.json",
+    "bytes": 1743,
+    "sha256": "6473408c3aa4e36297fcb39c514e05cbbf076802575e220cb8d9e9725440a891"
+  },
+  {
+    "file": "platforms/updecoded3.json",
+    "bytes": 56514,
+    "sha256": "9be73883f69219432ea40e764dac2a1a356fc943b546134225672f1c2dec6481"
+  },
+  {
+    "file": "platforms/updecoded4.json",
+    "bytes": 125237,
+    "sha256": "230b8a152a81ee2ea39208656f2c7ad4e60bd44e45a47285f915e94de890250f"
+  },
+  {
+    "file": "queries.json",
+    "bytes": 1155,
+    "sha256": "8e0c59ce7b7bbbc02a086d468f76a4ca3255166d1b69983289daad067d931509"
+  },
+  {
+    "file": "recovery-evidence.json",
+    "bytes": 47119,
+    "sha256": "5b304a1bf564c049ec97dbf35ea723ae30b90865114d5a184e0057f2af08c9a6"
+  },
+  {
+    "file": "sources.json",
+    "bytes": 1167290,
+    "sha256": "91b040311a02330158db863320e008d124fb5ce43ebcfbab6e7f4d3453d9d911"
+  },
+  {
+    "file": "ticketing/analysis.json",
+    "bytes": 14308,
+    "sha256": "cdbb3a2f88483bc508b8be858451e13443b92c3c5f894ab7c21dbfefa784bf63"
+  },
+  {
+    "file": "ticketing/findings.json",
+    "bytes": 16556,
+    "sha256": "f869dc89e06b7710a1b8345abf0b6f1d85793e4be5f514dc897f3d8bead79581"
+  },
+  {
+    "file": "ticketing/holdmyticket-17082-browser.html",
+    "bytes": 472827,
+    "sha256": "dce358f16c580f478159c78c779b81e018ad7afeaddc67e582a02f5246f9c1ad"
+  },
+  {
+    "file": "ticketing/holdmyticket-17082-detail.html",
+    "bytes": 10276,
+    "sha256": "ff77865e24ca86ed54717132f072c70cbcd791f860ee39a62fed804b701daca9"
+  },
+  {
+    "file": "ticketing/holdmyticket-17082-listing.html",
+    "bytes": 42346,
+    "sha256": "00d4d30473db1c3cabe630cecd0a7d7d62c62af1914f15fff1e01593b05cde9a"
+  },
+  {
+    "file": "ticketing/odoo_events-9092-detail.html",
+    "bytes": 63222,
+    "sha256": "592fed99ebfacbbb77eadade8c09bcf3a7dd2e43f9b6536ddeebc9f027562502"
+  },
+  {
+    "file": "ticketing/retention-manifest.json",
+    "bytes": 2791,
+    "sha256": "111c532d37b60f592d3b72c6410b6cf6ac08e4ab6a15611c6bd77f509835d5b3"
+  },
+  {
+    "file": "ticketing/seetickets_whitelabel-11482-listing.html",
+    "bytes": 298451,
+    "sha256": "e1ea4fc3f69437023e818c3b7b633f2fddbd5fdc66a27bda427c04fa4df2ab3e"
+  },
+  {
+    "file": "ticketing/showpass-15992-listing.html",
+    "bytes": 149474,
+    "sha256": "3a0ef663217e9375596b7df438505b77efa42745d7bad260b01e8e683f0bebcc"
+  },
+  {
+    "file": "ticketing/showpass-818-browser.html",
+    "bytes": 416580,
+    "sha256": "90374ac76c4eac4eeb70a17f603ef6881966d97c14e14fb552ea55b99c9e446d"
+  },
+  {
+    "file": "ticketing/showpass-818-listing.html",
+    "bytes": 118459,
+    "sha256": "d5f63c36ce75a048ab73fa13c2d7b4caa9fbb5407059a02e67fb8e13eec86732"
+  },
+  {
+    "file": "ticketing/showpass-event-api.html",
+    "bytes": 12024,
+    "sha256": "42dbe07bcc130320e3b3e2ae34c6818deac41a6fb4a1ef336823995e2651f530"
+  },
+  {
+    "file": "ticketing/squadup-165-browser.html",
+    "bytes": 28617,
+    "sha256": "45dae0510b42489ada23d6e53e8a659b20006f31130b1d2cacbc0b950b280234"
+  },
+  {
+    "file": "ticketing/squadup-165-listing.html",
+    "bytes": 15192,
+    "sha256": "e54d35c454c0d106d72e3e485119c3057ac8ccec47d3ba1f102bc5fdc41d86cd"
+  },
+  {
+    "file": "ticketing/squadup-175-listing.html",
+    "bytes": 423371,
+    "sha256": "3e193816859788820f483e2ace867cdf06772c1c794b0f2a95c738e82f69bb4a"
+  },
+  {
+    "file": "ticketing/tessitura_tnew-11138-detail.html",
+    "bytes": 90518,
+    "sha256": "c2e20ffd1d47551c7d31bd975c6aaf3b9f3b329c0946d6e05a3a5b262d986fe2"
+  },
+  {
+    "file": "ticketing/tessitura_tnew-8836-detail.html",
+    "bytes": 22932,
+    "sha256": "36eaa218f8c50f6b1f0a653262ea157224d4403c236b2811ab203f78db6280c2"
+  },
+  {
+    "file": "ticketing/ticket_tailor-1059-native-detail.html",
+    "bytes": 48419,
+    "sha256": "261a6bf685f6fa92313eb6af2c27f63436515e9abfe1487fc1dd892115524d9e"
+  },
+  {
+    "file": "ticketing/ticket_tailor-1059-native-listing.html",
+    "bytes": 128271,
+    "sha256": "7c3082c189d10a4c25f69f726a8cd7301a8e43e62718c7560744e8da792af4f2"
+  },
+  {
+    "file": "ticketing/ticket_tailor-11123-detail.html",
+    "bytes": 35336,
+    "sha256": "ca2e1adf2c2bdefbf853bf01dd761f8f3bf1a4fa8f9a132d7a5150ffc9cb63dc"
+  },
+  {
+    "file": "venues/comix-checkout-0.html",
+    "bytes": 112443,
+    "sha256": "2f847ea0675fc8fb1900e2d92db38d69ec4e5a6ece40d9f10e2c707496a56658"
+  },
+  {
+    "file": "venues/comix-checkout-1.html",
+    "bytes": 107141,
+    "sha256": "eb69ed6a685a70d749c9a6797e06ee09305722795b8827e19c2692ac84f652b4"
+  },
+  {
+    "file": "venues/comix_roadhouse-1.html",
+    "bytes": 29106,
+    "sha256": "2efb2851b997695cc38357a057c50582dc1ae7c908b5c48c5279e973e4d907f2"
+  },
+  {
+    "file": "venues/denver-event-rsc.json",
+    "bytes": 2627,
+    "sha256": "94c2e1fea39fd600bf013b294884a479142ed51563605190beb99eb0fe3f4f1f"
+  },
+  {
+    "file": "venues/denver_comedy_lounge-1.html",
+    "bytes": 47665,
+    "sha256": "c4c1ce1d5ea047b4f8ac55b3d89070cc4bec8d142229ac3e446bb4b7503adb2a"
+  },
+  {
+    "file": "venues/empire_comedy_club-0.html",
+    "bytes": 23825,
+    "sha256": "0ebed584a6719d8d63081da2367a5b636ae574adf921b65eea1c18fe23ca2303"
+  },
+  {
+    "file": "venues/empire_comedy_club-1.html",
+    "bytes": 24701,
+    "sha256": "4e3c5d7d6c0125fc56d5cbbfde090192d02d88f3190a28929a123b508aecf811"
+  },
+  {
+    "file": "venues/empire_comedy_club-2.html",
+    "bytes": 66309,
+    "sha256": "c263b3b0d436831e3e71b197e71526100a10e5c8c6d70aa6dfff35c0bbc697a9"
+  },
+  {
+    "file": "venues/findings.json",
+    "bytes": 7795,
+    "sha256": "6053cd96ad06ec9f32d100df8b0b68d6e75b1349d22e2a28b056bc71736ddb76"
+  },
+  {
+    "file": "venues/flop_house_json-0.html",
+    "bytes": 184778,
+    "sha256": "600d1c7d4d91f05acb5735f8317e3c300ad391b64be87d6315cfe6377c57157e"
+  },
+  {
+    "file": "venues/flop_house_json-1.html",
+    "bytes": 185876,
+    "sha256": "a045f92dbf101c62a87c8aa9e9bc3efc82351ce5364e04b3988f59d7871d85e4"
+  },
+  {
+    "file": "venues/hennepin_arts-0.html",
+    "bytes": 490503,
+    "sha256": "ade141baa803c2fbfde019c5f7d4cec58ea7d72546041e2e867e393c9e444ac6"
+  },
+  {
+    "file": "venues/hennepin_arts-1.html",
+    "bytes": 459061,
+    "sha256": "837e43b8207ba6000a5df16c147142c3717778e58e9f4322984dbf5a6b74a938"
+  },
+  {
+    "file": "venues/mccurdys-detail-0.html",
+    "bytes": 18038,
+    "sha256": "eb2ec30c66615abff218aa2cb698023bee33a266401d5f6003101b799148eb57"
+  },
+  {
+    "file": "venues/mccurdys-detail-1.html",
+    "bytes": 19295,
+    "sha256": "eb2820d99016bf01dba0e32a6ddf4e9562761a8b59e84b97059c86d90aea115f"
+  },
+  {
+    "file": "venues/probes.json",
+    "bytes": 78325,
+    "sha256": "22c07563b7c71939a160a316a5a495bd697abc4ae0aa8965a36f64707a3e47e2"
+  },
+  {
+    "file": "venues/proven-details.json",
+    "bytes": 9360,
+    "sha256": "256e4440d1c898e637074a247c9766de27618f0397851f4a117b0b525839810b"
+  },
+  {
+    "file": "venues/sro-feed.json",
+    "bytes": 74144,
+    "sha256": "db70e3d867ddf2e2b9ca1d72be0b218f38324f23c7a0e9b7a034cf61c5196acd"
+  },
+  {
+    "file": "venues/sro-season-pass.json",
+    "bytes": 2958,
+    "sha256": "03f772851be70023e59800a8bed3da383bb5df422ce01b7c3e3f74a06208877f"
+  },
+  {
+    "file": "venues/standing_room_only-0.html",
+    "bytes": 15318,
+    "sha256": "9a0e2b340a980023065296bfc367a5327b778f66c5586e6ddf206d9785ddefbd"
+  },
+  {
+    "file": "venues/zanies-1.html",
+    "bytes": 163340,
+    "sha256": "6d4bc8b6367756c46175b9e08363572dc7bab039ced140c4e2bffeb7c298da0c"
+  },
+  {
+    "file": "venues/zanies-2.html",
+    "bytes": 356594,
+    "sha256": "6b0d81ea09904c2a88419be9aa055ad1a1940065c8d0cf7e7fde1f55e3fc6797"
+  },
+  {
+    "file": "venues/zanies-3.html",
+    "bytes": 309006,
+    "sha256": "a6ecb0ba7701595354fd721cd7cc6c111a0be6079541473ff98c02404c29c5df"
+  }
+]

@@ -1,0 +1,176 @@
+{
+  "type": "Tickets",
+  "sortOrder": "0",
+  "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa42e4b96e3bed01bcbd41b?useEmbed=true",
+  "name": "Grad Revue Preview",
+  "id": "sc-show-ef7627d2-4fc0-4f1b-910b-cb4c98fc004a",
+  "instances": [
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa42e4b96e3bed01bcbd41b?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, September 28, 2026 at 7:30 PM",
+      "id": "sc-vvus-fe8dccd8-939a-402c-822c-9380a89feed7",
+      "formattedDates": {
+        "ISO8601": "2026-09-29T00:30:00.000Z"
+      },
+      "eventName": "Grad Revue Preview",
+      "eventId": "sc-show-ef7627d2-4fc0-4f1b-910b-cb4c98fc004a",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 156
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 10,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-fe8dccd8-939a-402c-822c-9380a89feed7_0"
+            }
+          ],
+          "instanceId": "sc-vvus-fe8dccd8-939a-402c-822c-9380a89feed7",
+          "id": "sc-vvus-fe8dccd8-939a-402c-822c-9380a89feed7_0"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa42e4b96e3bed01bcbd41f?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, October 5, 2026 at 7:30 PM",
+      "id": "sc-vvus-ca15d977-a590-46c8-a58c-5df75a21f654",
+      "formattedDates": {
+        "ISO8601": "2026-10-06T00:30:00.000Z"
+      },
+      "eventName": "Grad Revue Preview",
+      "eventId": "sc-show-ef7627d2-4fc0-4f1b-910b-cb4c98fc004a",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 156
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 10,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-ca15d977-a590-46c8-a58c-5df75a21f654_0"
+            }
+          ],
+          "instanceId": "sc-vvus-ca15d977-a590-46c8-a58c-5df75a21f654",
+          "id": "sc-vvus-ca15d977-a590-46c8-a58c-5df75a21f654_0"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa42ed88af1571df15b2eac?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Tuesday, October 13, 2026 at 7:30 PM",
+      "id": "sc-vvus-599cca20-a007-4f49-81ac-c58d0cde9dea",
+      "formattedDates": {
+        "ISO8601": "2026-10-14T00:30:00.000Z"
+      },
+      "eventName": "Grad Revue Preview",
+      "eventId": "sc-show-ef7627d2-4fc0-4f1b-910b-cb4c98fc004a",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 247
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 10,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-599cca20-a007-4f49-81ac-c58d0cde9dea_0"
+            }
+          ],
+          "instanceId": "sc-vvus-599cca20-a007-4f49-81ac-c58d0cde9dea",
+          "id": "sc-vvus-599cca20-a007-4f49-81ac-c58d0cde9dea_0"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa42e4b96e3bed01bcbd427?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, October 19, 2026 at 7:30 PM",
+      "id": "sc-vvus-07863777-c2a8-4daf-9d73-66cbcd8bd24c",
+      "formattedDates": {
+        "ISO8601": "2026-10-20T00:30:00.000Z"
+      },
+      "eventName": "Grad Revue Preview",
+      "eventId": "sc-show-ef7627d2-4fc0-4f1b-910b-cb4c98fc004a",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 156
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 10,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-07863777-c2a8-4daf-9d73-66cbcd8bd24c_0"
+            }
+          ],
+          "instanceId": "sc-vvus-07863777-c2a8-4daf-9d73-66cbcd8bd24c",
+          "id": "sc-vvus-07863777-c2a8-4daf-9d73-66cbcd8bd24c_0"
+        }
+      ]
+    }
+  ],
+  "detail": "",
+  "description": "",
+  "custom": [],
+  "category": "",
+  "address": "e.t.c. Theater - Chicago",
+  "venueTerm": "e-t-c-theater",
+  "valid_from": "2026-09-29T00:30:00.000Z"
+}

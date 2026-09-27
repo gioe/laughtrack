@@ -1,0 +1,1874 @@
+[
+  {
+    "ticket_id": 3256475,
+    "show_id": 2995474,
+    "name": "Bear City Comedy",
+    "date": "2026-10-01T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1790821800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256476,
+    "show_id": 2995475,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-10-01T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1790829000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256479,
+    "show_id": 2995478,
+    "name": "Bear City Comedy",
+    "date": "2026-10-08T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1791426600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256480,
+    "show_id": 2995479,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-10-08T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1791433800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256483,
+    "show_id": 2995482,
+    "name": "Bear City Comedy",
+    "date": "2026-10-15T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1792031400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256484,
+    "show_id": 2995483,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-10-15T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1792038600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256489,
+    "show_id": 2995488,
+    "name": "Bear City Comedy",
+    "date": "2026-10-22T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1792636200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256490,
+    "show_id": 2995489,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-10-22T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1792643400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256493,
+    "show_id": 2995492,
+    "name": "Bear City Comedy",
+    "date": "2026-10-29T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1793241000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256494,
+    "show_id": 2995493,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-10-29T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1793248200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256497,
+    "show_id": 2995496,
+    "name": "Bear City Comedy",
+    "date": "2026-11-05T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1793849400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256498,
+    "show_id": 2995497,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-11-05T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1793856600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256501,
+    "show_id": 2995500,
+    "name": "Bear City Comedy",
+    "date": "2026-11-12T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1794454200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256502,
+    "show_id": 2995501,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-11-12T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1794461400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256506,
+    "show_id": 2995505,
+    "name": "Bear City Comedy",
+    "date": "2026-11-19T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1795059000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256507,
+    "show_id": 2995506,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-11-19T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1795066200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256511,
+    "show_id": 2995510,
+    "name": "Bear City Comedy",
+    "date": "2026-11-26T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1795663800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256512,
+    "show_id": 2995511,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-11-26T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1795671000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256515,
+    "show_id": 2995514,
+    "name": "Bear City Comedy",
+    "date": "2026-12-03T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1796268600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256516,
+    "show_id": 2995515,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-12-03T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1796275800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256519,
+    "show_id": 2995518,
+    "name": "Bear City Comedy",
+    "date": "2026-12-10T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1796873400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256520,
+    "show_id": 2995519,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-12-10T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1796880600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256523,
+    "show_id": 2995522,
+    "name": "Bear City Comedy",
+    "date": "2026-12-17T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1797478200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256524,
+    "show_id": 2995523,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-12-17T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1797485400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256529,
+    "show_id": 2995528,
+    "name": "Bear City Comedy",
+    "date": "2026-12-24T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1798083000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256530,
+    "show_id": 2995529,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-12-24T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1798090200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256533,
+    "show_id": 2995532,
+    "name": "Bear City Comedy",
+    "date": "2026-12-31T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1798687800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256534,
+    "show_id": 2995533,
+    "name": "After Comedy Happy Hour",
+    "date": "2026-12-31T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1798695000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256537,
+    "show_id": 2995536,
+    "name": "Bear City Comedy",
+    "date": "2027-01-07T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1799292600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256538,
+    "show_id": 2995537,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-01-07T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1799299800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256541,
+    "show_id": 2995540,
+    "name": "Bear City Comedy",
+    "date": "2027-01-14T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1799897400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256542,
+    "show_id": 2995541,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-01-14T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1799904600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256547,
+    "show_id": 2995546,
+    "name": "Bear City Comedy",
+    "date": "2027-01-21T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1800502200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256548,
+    "show_id": 2995547,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-01-21T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1800509400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256551,
+    "show_id": 2995550,
+    "name": "Bear City Comedy",
+    "date": "2027-01-28T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1801107000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256552,
+    "show_id": 2995551,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-01-28T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1801114200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256555,
+    "show_id": 2995554,
+    "name": "Bear City Comedy",
+    "date": "2027-02-04T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1801711800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256556,
+    "show_id": 2995555,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-02-04T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1801719000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256559,
+    "show_id": 2995558,
+    "name": "Bear City Comedy",
+    "date": "2027-02-11T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1802316600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256560,
+    "show_id": 2995559,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-02-11T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1802323800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256563,
+    "show_id": 2995562,
+    "name": "Bear City Comedy",
+    "date": "2027-02-18T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1802921400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256564,
+    "show_id": 2995563,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-02-18T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1802928600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256569,
+    "show_id": 2995568,
+    "name": "Bear City Comedy",
+    "date": "2027-02-25T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1803526200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256570,
+    "show_id": 2995569,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-02-25T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1803533400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256573,
+    "show_id": 2995572,
+    "name": "Bear City Comedy",
+    "date": "2027-03-04T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1804131000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256574,
+    "show_id": 2995573,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-03-04T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1804138200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256577,
+    "show_id": 2995576,
+    "name": "Bear City Comedy",
+    "date": "2027-03-11T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1804735800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256578,
+    "show_id": 2995577,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-03-11T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1804743000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256581,
+    "show_id": 2995580,
+    "name": "Bear City Comedy",
+    "date": "2027-03-18T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1805337000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256582,
+    "show_id": 2995581,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-03-18T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1805344200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256587,
+    "show_id": 2995586,
+    "name": "Bear City Comedy",
+    "date": "2027-03-25T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1805941800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256588,
+    "show_id": 2995587,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-03-25T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1805949000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256591,
+    "show_id": 2995590,
+    "name": "Bear City Comedy",
+    "date": "2027-04-01T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1806546600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256592,
+    "show_id": 2995591,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-04-01T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1806553800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256595,
+    "show_id": 2995594,
+    "name": "Bear City Comedy",
+    "date": "2027-04-08T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1807151400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256596,
+    "show_id": 2995595,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-04-08T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1807158600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256599,
+    "show_id": 2995598,
+    "name": "Bear City Comedy",
+    "date": "2027-04-15T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1807756200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256600,
+    "show_id": 2995599,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-04-15T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1807763400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256605,
+    "show_id": 2995604,
+    "name": "Bear City Comedy",
+    "date": "2027-04-22T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1808361000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3717151,
+    "show_id": 3385248,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-04-22T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1808368200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256609,
+    "show_id": 2995608,
+    "name": "Bear City Comedy",
+    "date": "2027-04-29T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1808965800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 4088872,
+    "show_id": 3651382,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-04-29T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1808973000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256613,
+    "show_id": 2995612,
+    "name": "Bear City Comedy",
+    "date": "2027-05-06T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1809570600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 4463863,
+    "show_id": 3976500,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-05-06T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1809577800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256617,
+    "show_id": 2995616,
+    "name": "Bear City Comedy",
+    "date": "2027-05-13T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1810175400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256618,
+    "show_id": 2995617,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-05-13T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1810182600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256622,
+    "show_id": 2995621,
+    "name": "Bear City Comedy",
+    "date": "2027-05-20T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1810780200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8052353,
+    "show_id": 7074297,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-05-20T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1810787400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256627,
+    "show_id": 2995626,
+    "name": "Bear City Comedy",
+    "date": "2027-05-27T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1811385000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8208550,
+    "show_id": 7207897,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-05-27T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1811392200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256631,
+    "show_id": 2995630,
+    "name": "Bear City Comedy",
+    "date": "2027-06-03T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1811989800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8362311,
+    "show_id": 7340034,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-06-03T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1811997000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256635,
+    "show_id": 2995634,
+    "name": "Bear City Comedy",
+    "date": "2027-06-10T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1812594600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 6155809,
+    "show_id": 5439144,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-06-10T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1812601800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256639,
+    "show_id": 2995638,
+    "name": "Bear City Comedy",
+    "date": "2027-06-17T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1813199400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 6524714,
+    "show_id": 5757676,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-06-17T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1813206600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256645,
+    "show_id": 2995644,
+    "name": "Bear City Comedy",
+    "date": "2027-06-24T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1813804200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 7249308,
+    "show_id": 6382578,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-06-24T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1813811400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256649,
+    "show_id": 2995648,
+    "name": "Bear City Comedy",
+    "date": "2027-07-01T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1814409000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 7439193,
+    "show_id": 6547003,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-07-01T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1814416200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256653,
+    "show_id": 2995652,
+    "name": "Bear City Comedy",
+    "date": "2027-07-08T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1815013800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 7729249,
+    "show_id": 6796979,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-07-08T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1815021000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256657,
+    "show_id": 2995656,
+    "name": "Bear City Comedy",
+    "date": "2027-07-15T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1815618600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 7905843,
+    "show_id": 6949212,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-07-15T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1815625800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256663,
+    "show_id": 2995662,
+    "name": "Bear City Comedy",
+    "date": "2027-07-22T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1816223400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256664,
+    "show_id": 2995663,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-07-22T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1816230600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256667,
+    "show_id": 2995666,
+    "name": "Bear City Comedy",
+    "date": "2027-07-29T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1816828200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256668,
+    "show_id": 2995667,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-07-29T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1816835400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256671,
+    "show_id": 2995670,
+    "name": "Bear City Comedy",
+    "date": "2027-08-05T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1817433000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256672,
+    "show_id": 2995671,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-08-05T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1817440200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256675,
+    "show_id": 2995674,
+    "name": "Bear City Comedy",
+    "date": "2027-08-12T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1818037800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256676,
+    "show_id": 2995675,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-08-12T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1818045000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256680,
+    "show_id": 2995679,
+    "name": "Bear City Comedy",
+    "date": "2027-08-19T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1818642600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256681,
+    "show_id": 2995680,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-08-19T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1818649800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256685,
+    "show_id": 2995684,
+    "name": "Bear City Comedy",
+    "date": "2027-08-26T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1819247400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256686,
+    "show_id": 2995685,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-08-26T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1819254600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256689,
+    "show_id": 2995688,
+    "name": "Bear City Comedy",
+    "date": "2027-09-02T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1819852200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256690,
+    "show_id": 2995689,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-09-02T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1819859400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256693,
+    "show_id": 2995692,
+    "name": "Bear City Comedy",
+    "date": "2027-09-09T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1820457000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256694,
+    "show_id": 2995693,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-09-09T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1820464200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256697,
+    "show_id": 2995696,
+    "name": "Bear City Comedy",
+    "date": "2027-09-16T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1821061800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256698,
+    "show_id": 2995697,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-09-16T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1821069000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256703,
+    "show_id": 2995702,
+    "name": "Bear City Comedy",
+    "date": "2027-09-23T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1821666600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256704,
+    "show_id": 2995703,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-09-23T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1821673800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256707,
+    "show_id": 2995706,
+    "name": "Bear City Comedy",
+    "date": "2027-09-30T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1822271400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256708,
+    "show_id": 2995707,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-09-30T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1822278600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256711,
+    "show_id": 2995710,
+    "name": "Bear City Comedy",
+    "date": "2027-10-07T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1822876200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256712,
+    "show_id": 2995711,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-10-07T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1822883400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256715,
+    "show_id": 2995714,
+    "name": "Bear City Comedy",
+    "date": "2027-10-14T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1823481000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256716,
+    "show_id": 2995715,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-10-14T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1823488200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256721,
+    "show_id": 2995720,
+    "name": "Bear City Comedy",
+    "date": "2027-10-21T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1824085800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256722,
+    "show_id": 2995721,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-10-21T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1824093000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256725,
+    "show_id": 2995724,
+    "name": "Bear City Comedy",
+    "date": "2027-10-28T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1824690600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256726,
+    "show_id": 2995725,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-10-28T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1824697800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256729,
+    "show_id": 2995728,
+    "name": "Bear City Comedy",
+    "date": "2027-11-04T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1825295400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256730,
+    "show_id": 2995729,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-11-04T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1825302600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256733,
+    "show_id": 2995732,
+    "name": "Bear City Comedy",
+    "date": "2027-11-11T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1825903800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256734,
+    "show_id": 2995733,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-11-11T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1825911000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256737,
+    "show_id": 2995736,
+    "name": "Bear City Comedy",
+    "date": "2027-11-18T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1826508600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256738,
+    "show_id": 2995737,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-11-18T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1826515800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256743,
+    "show_id": 2995742,
+    "name": "Bear City Comedy",
+    "date": "2027-11-25T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1827113400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256744,
+    "show_id": 2995743,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-11-25T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1827120600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256747,
+    "show_id": 2995746,
+    "name": "Bear City Comedy",
+    "date": "2027-12-02T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1827718200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256748,
+    "show_id": 2995747,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-12-02T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1827725400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256751,
+    "show_id": 2995750,
+    "name": "Bear City Comedy",
+    "date": "2027-12-09T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1828323000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256752,
+    "show_id": 2995751,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-12-09T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1828330200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256755,
+    "show_id": 2995754,
+    "name": "Bear City Comedy",
+    "date": "2027-12-16T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1828927800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3256756,
+    "show_id": 2995755,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-12-16T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1828935000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3616494,
+    "show_id": 3299697,
+    "name": "Bear City Comedy",
+    "date": "2027-12-23T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1829532600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3616495,
+    "show_id": 3299698,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-12-23T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1829539800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3978518,
+    "show_id": 3555849,
+    "name": "Bear City Comedy",
+    "date": "2027-12-30T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1830137400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 3978519,
+    "show_id": 3555850,
+    "name": "After Comedy Happy Hour",
+    "date": "2027-12-30T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1830144600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 4305014,
+    "show_id": 3838643,
+    "name": "Bear City Comedy",
+    "date": "2028-01-06T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1830742200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 4305015,
+    "show_id": 3838644,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-01-06T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1830749400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 4665262,
+    "show_id": 4150978,
+    "name": "Bear City Comedy",
+    "date": "2028-01-13T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1831347000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 4665263,
+    "show_id": 4150979,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-01-13T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1831354200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 5024928,
+    "show_id": 4462606,
+    "name": "Bear City Comedy",
+    "date": "2028-01-20T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1831951800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 5024929,
+    "show_id": 4462607,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-01-20T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1831959000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 5277067,
+    "show_id": 4678266,
+    "name": "Bear City Comedy",
+    "date": "2028-01-27T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1832556600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 5277068,
+    "show_id": 4678267,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-01-27T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1832563800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 5567605,
+    "show_id": 4926896,
+    "name": "Bear City Comedy",
+    "date": "2028-02-03T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1833161400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 5567606,
+    "show_id": 4926897,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-02-03T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1833168600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 5969614,
+    "show_id": 5278179,
+    "name": "Bear City Comedy",
+    "date": "2028-02-10T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1833766200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 5969615,
+    "show_id": 5278180,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-02-10T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1833773400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 6410020,
+    "show_id": 5658374,
+    "name": "Bear City Comedy",
+    "date": "2028-02-17T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1834371000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 6410021,
+    "show_id": 5658375,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-02-17T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1834378200000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 6756911,
+    "show_id": 5958449,
+    "name": "Bear City Comedy",
+    "date": "2028-02-24T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1834975800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 6756912,
+    "show_id": 5958450,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-02-24T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1834983000000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 7249379,
+    "show_id": 6382649,
+    "name": "Bear City Comedy",
+    "date": "2028-03-02T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1835580600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 7249380,
+    "show_id": 6382650,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-03-02T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1835587800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 7675163,
+    "show_id": 6750775,
+    "name": "Bear City Comedy",
+    "date": "2028-03-09T03:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1836185400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 7675164,
+    "show_id": 6750776,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-03-09T05:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1836192600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8052438,
+    "show_id": 7074382,
+    "name": "Bear City Comedy",
+    "date": "2028-03-16T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1836786600000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8052439,
+    "show_id": 7074383,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-03-16T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1836793800000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8443388,
+    "show_id": 7410666,
+    "name": "Bear City Comedy",
+    "date": "2028-03-23T02:30:00+00:00",
+    "source_ref": {
+      "uid": "11",
+      "seq": 0,
+      "tid": 1837391400000,
+      "rid": 0
+    }
+  },
+  {
+    "ticket_id": 8443389,
+    "show_id": 7410667,
+    "name": "After Comedy Happy Hour",
+    "date": "2028-03-23T04:30:00+00:00",
+    "source_ref": {
+      "uid": "315",
+      "seq": 0,
+      "tid": 1837398600000,
+      "rid": 0
+    }
+  }
+]

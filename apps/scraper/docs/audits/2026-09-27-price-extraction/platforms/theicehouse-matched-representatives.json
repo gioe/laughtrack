@@ -1,0 +1,69 @@
+{
+  "Social Hour": {
+    "calid": "6728134fc92af43e532bee7c",
+    "eid": {
+      "uid": "1525",
+      "seq": 0,
+      "tid": 1790904600000,
+      "rid": 0
+    },
+    "when": {
+      "start": {
+        "millis": 1790904600000,
+        "tzid": "America/Los_Angeles",
+        "ltz": "PDT",
+        "offset": -25200000
+      },
+      "end": {
+        "millis": 1790908200000,
+        "tzid": "America/Los_Angeles",
+        "ltz": "PDT",
+        "offset": -25200000
+      },
+      "allDay": false
+    },
+    "content": {
+      "summary": {
+        "text": "Social Hour"
+      },
+      "description": {
+        "text": "Come early & relax in our bar/patio & enjoy our Social Hour menu featuring special pricing on food & drink items. You don't need a ticket! Come get social with us!"
+      },
+      "tagset": {
+        "tags": {
+          "default": [
+            "Bar-&-Patio"
+          ]
+        }
+      },
+      "attachments": [],
+      "noDetail": false,
+      "version": 1,
+      "imageIdNg": "6a22fdf814c830ed941a0a93",
+      "imageSets": [
+        {
+          "ownerId": "67281013c92af43e532bed63",
+          "ownerType": "user",
+          "id": "6a22fdf814c830ed941a0a93",
+          "name": "SOCIAL HOUR",
+          "altText": "SOCIAL HOUR",
+          "width": 2048,
+          "height": 1634,
+          "size": 391913,
+          "masterFormat": "jpg",
+          "variantFormat": "jpg",
+          "tags": []
+        }
+      ],
+      "performers": []
+    },
+    "sorter": "999_01C7735A_0901_01C7735A-1-01C77396_1525-01C7735A-0-0",
+    "ctstamp": 1789668765696,
+    "dtstamp": 1789668773761,
+    "status": {
+      "name": "scheduled"
+    },
+    "kind": "singleton",
+    "isExternal": false
+  }
+}

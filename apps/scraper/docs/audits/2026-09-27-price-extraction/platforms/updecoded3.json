@@ -1,0 +1,1766 @@
+{
+  "type": "Tickets",
+  "sortOrder": "0",
+  "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8ce?useEmbed=true",
+  "name": "The Second City's: Not Today, Santa",
+  "id": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+  "instances": [
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8ce?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Wednesday, November 25, 2026 at 8:00 PM",
+      "id": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7",
+      "formattedDates": {
+        "ISO8601": "2026-11-26T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_0"
+            }
+          ],
+          "instanceId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7",
+          "id": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_1"
+            }
+          ],
+          "instanceId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7",
+          "id": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_2"
+            }
+          ],
+          "instanceId": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7",
+          "id": "sc-vvus-8ca6b001-faee-422e-bc30-ffa8f79a9db7_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8d2?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, November 27, 2026 at 8:00 PM",
+      "id": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4",
+      "formattedDates": {
+        "ISO8601": "2026-11-28T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_0"
+            }
+          ],
+          "instanceId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4",
+          "id": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_1"
+            }
+          ],
+          "instanceId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4",
+          "id": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_2"
+            }
+          ],
+          "instanceId": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4",
+          "id": "sc-vvus-c67fd418-d9f3-4e3a-b9ec-cffa9d0deef4_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8d6?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, November 28, 2026 at 8:00 PM",
+      "id": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7",
+      "formattedDates": {
+        "ISO8601": "2026-11-29T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_0"
+            }
+          ],
+          "instanceId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7",
+          "id": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_1"
+            }
+          ],
+          "instanceId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7",
+          "id": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_2"
+            }
+          ],
+          "instanceId": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7",
+          "id": "sc-vvus-84e749ff-97c3-4015-bcd8-0e248a047fe7_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a7376d525457fbc79db79e7?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Thursday, December 3, 2026 at 8:00 PM",
+      "id": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf",
+      "formattedDates": {
+        "ISO8601": "2026-12-04T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_0"
+            }
+          ],
+          "instanceId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf",
+          "id": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_1"
+            }
+          ],
+          "instanceId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf",
+          "id": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_2"
+            }
+          ],
+          "instanceId": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf",
+          "id": "sc-vvus-82c706d0-494b-4e1a-9438-8c9f0d070eaf_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8de?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, December 4, 2026 at 8:00 PM",
+      "id": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4",
+      "formattedDates": {
+        "ISO8601": "2026-12-05T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_0"
+            }
+          ],
+          "instanceId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4",
+          "id": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_1"
+            }
+          ],
+          "instanceId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4",
+          "id": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_2"
+            }
+          ],
+          "instanceId": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4",
+          "id": "sc-vvus-b1ead6bd-8825-4826-81c7-0c2ac14446b4_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8e2?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, December 5, 2026 at 8:00 PM",
+      "id": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea",
+      "formattedDates": {
+        "ISO8601": "2026-12-06T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_0"
+            }
+          ],
+          "instanceId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea",
+          "id": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_1"
+            }
+          ],
+          "instanceId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea",
+          "id": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_2"
+            }
+          ],
+          "instanceId": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea",
+          "id": "sc-vvus-7617115c-2f12-4a3b-9b0a-ff336609dfea_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a73765d03679c4cbdf3c4c4?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Sunday, December 6, 2026 at 8:00 PM",
+      "id": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098",
+      "formattedDates": {
+        "ISO8601": "2026-12-07T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_0"
+            }
+          ],
+          "instanceId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098",
+          "id": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_1"
+            }
+          ],
+          "instanceId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098",
+          "id": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_2"
+            }
+          ],
+          "instanceId": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098",
+          "id": "sc-vvus-8dbb7f3f-cb63-4800-9ba1-17e722f8b098_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a73765d03679c4cbdf3c4c0?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Thursday, December 10, 2026 at 8:00 PM",
+      "id": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713",
+      "formattedDates": {
+        "ISO8601": "2026-12-11T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_0"
+            }
+          ],
+          "instanceId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713",
+          "id": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_1"
+            }
+          ],
+          "instanceId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713",
+          "id": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_2"
+            }
+          ],
+          "instanceId": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713",
+          "id": "sc-vvus-cb934a0d-2782-49a4-af09-116ec1ad2713_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8ea?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, December 11, 2026 at 8:00 PM",
+      "id": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f",
+      "formattedDates": {
+        "ISO8601": "2026-12-12T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_0"
+            }
+          ],
+          "instanceId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f",
+          "id": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_1"
+            }
+          ],
+          "instanceId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f",
+          "id": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_2"
+            }
+          ],
+          "instanceId": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f",
+          "id": "sc-vvus-4a489709-4cb0-4a0f-ac9e-696be658a79f_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8ee?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, December 12, 2026 at 3:30 PM",
+      "id": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb",
+      "formattedDates": {
+        "ISO8601": "2026-12-12T21:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_0"
+            }
+          ],
+          "instanceId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb",
+          "id": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_1"
+            }
+          ],
+          "instanceId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb",
+          "id": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_2"
+            }
+          ],
+          "instanceId": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb",
+          "id": "sc-vvus-05e47aa3-ec53-4a0a-b9f7-46d654da6ddb_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a73765d03679c4cbdf3c4bc?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Sunday, December 13, 2026 at 8:00 PM",
+      "id": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f",
+      "formattedDates": {
+        "ISO8601": "2026-12-14T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_0"
+            }
+          ],
+          "instanceId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f",
+          "id": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_1"
+            }
+          ],
+          "instanceId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f",
+          "id": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_2"
+            }
+          ],
+          "instanceId": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f",
+          "id": "sc-vvus-09bd3726-d50d-4675-85b5-c8ecca40093f_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a7375bad042c9e2d1b68155?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Thursday, December 17, 2026 at 6:30 PM",
+      "id": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2",
+      "formattedDates": {
+        "ISO8601": "2026-12-18T00:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_0"
+            }
+          ],
+          "instanceId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2",
+          "id": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_1"
+            }
+          ],
+          "instanceId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2",
+          "id": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_2"
+            }
+          ],
+          "instanceId": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2",
+          "id": "sc-vvus-e0fb8518-821a-4745-b16a-954fb01209b2_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a737605e4424dd906fe2e5f?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Thursday, December 17, 2026 at 9:30 PM",
+      "id": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4",
+      "formattedDates": {
+        "ISO8601": "2026-12-18T03:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_0"
+            }
+          ],
+          "instanceId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4",
+          "id": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_1"
+            }
+          ],
+          "instanceId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4",
+          "id": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_2"
+            }
+          ],
+          "instanceId": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4",
+          "id": "sc-vvus-7149de50-3a35-49b0-92c4-eb6f526d65d4_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8f6?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, December 18, 2026 at 6:30 PM",
+      "id": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002",
+      "formattedDates": {
+        "ISO8601": "2026-12-19T00:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_0"
+            }
+          ],
+          "instanceId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002",
+          "id": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_1"
+            }
+          ],
+          "instanceId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002",
+          "id": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_2"
+            }
+          ],
+          "instanceId": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002",
+          "id": "sc-vvus-fb031562-819c-4f06-9136-3e0731c43002_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a737605e4424dd906fe2e63?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, December 18, 2026 at 9:30 PM",
+      "id": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b",
+      "formattedDates": {
+        "ISO8601": "2026-12-19T03:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_0"
+            }
+          ],
+          "instanceId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b",
+          "id": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_1"
+            }
+          ],
+          "instanceId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b",
+          "id": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_2"
+            }
+          ],
+          "instanceId": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b",
+          "id": "sc-vvus-7b57ca94-9c96-4f87-bdc0-0616a9c3ff8b_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a7375bad042c9e2d1b68159?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, December 19, 2026 at 6:30 PM",
+      "id": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c",
+      "formattedDates": {
+        "ISO8601": "2026-12-20T00:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_0"
+            }
+          ],
+          "instanceId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c",
+          "id": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_1"
+            }
+          ],
+          "instanceId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c",
+          "id": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_2"
+            }
+          ],
+          "instanceId": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c",
+          "id": "sc-vvus-5dc6d76f-a0f7-4791-9e34-20410cd35b0c_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a737605e4424dd906fe2e67?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, December 19, 2026 at 9:30 PM",
+      "id": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2",
+      "formattedDates": {
+        "ISO8601": "2026-12-20T03:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_0"
+            }
+          ],
+          "instanceId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2",
+          "id": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_1"
+            }
+          ],
+          "instanceId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2",
+          "id": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_2"
+            }
+          ],
+          "instanceId": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2",
+          "id": "sc-vvus-5b7b20d7-e90b-4d2a-9df6-61c5e94f9ee2_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8fa?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Sunday, December 20, 2026 at 8:00 PM",
+      "id": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649",
+      "formattedDates": {
+        "ISO8601": "2026-12-21T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_0"
+            }
+          ],
+          "instanceId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649",
+          "id": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_1"
+            }
+          ],
+          "instanceId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649",
+          "id": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_2"
+            }
+          ],
+          "instanceId": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649",
+          "id": "sc-vvus-2d9f24d6-dd90-4466-8679-ea77ec9ba649_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a737288ad35030be9cae299?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Tuesday, December 22, 2026 at 6:30 PM",
+      "id": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d",
+      "formattedDates": {
+        "ISO8601": "2026-12-23T00:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_0"
+            }
+          ],
+          "instanceId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d",
+          "id": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_1"
+            }
+          ],
+          "instanceId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d",
+          "id": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_2"
+            }
+          ],
+          "instanceId": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d",
+          "id": "sc-vvus-0df90b3b-d688-40d5-8f9f-4deddfa6317d_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a737231e07fc75f08344a34?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Tuesday, December 22, 2026 at 9:30 PM",
+      "id": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692",
+      "formattedDates": {
+        "ISO8601": "2026-12-23T03:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_0"
+            }
+          ],
+          "instanceId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692",
+          "id": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_1"
+            }
+          ],
+          "instanceId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692",
+          "id": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_2"
+            }
+          ],
+          "instanceId": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692",
+          "id": "sc-vvus-1b5696df-addc-4dd2-8af0-95ce28600692_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8fe?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Wednesday, December 23, 2026 at 6:30 PM",
+      "id": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3",
+      "formattedDates": {
+        "ISO8601": "2026-12-24T00:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_0"
+            }
+          ],
+          "instanceId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3",
+          "id": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_1"
+            }
+          ],
+          "instanceId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3",
+          "id": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_2"
+            }
+          ],
+          "instanceId": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3",
+          "id": "sc-vvus-f30442cd-eadc-440f-927b-8921cd0215d3_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a737231e07fc75f08344a38?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Wednesday, December 23, 2026 at 9:30 PM",
+      "id": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4",
+      "formattedDates": {
+        "ISO8601": "2026-12-24T03:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_0"
+            }
+          ],
+          "instanceId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4",
+          "id": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_1"
+            }
+          ],
+          "instanceId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4",
+          "id": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_2"
+            }
+          ],
+          "instanceId": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4",
+          "id": "sc-vvus-85607bb0-6e0a-4e01-b500-1fda5c6a1de4_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d902?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, December 26, 2026 at 6:30 PM",
+      "id": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c",
+      "formattedDates": {
+        "ISO8601": "2026-12-27T00:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_0"
+            }
+          ],
+          "instanceId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c",
+          "id": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_1"
+            }
+          ],
+          "instanceId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c",
+          "id": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_2"
+            }
+          ],
+          "instanceId": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c",
+          "id": "sc-vvus-b0b8a2fd-6637-45af-ba05-f3047cab635c_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a737231e07fc75f08344a3c?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, December 26, 2026 at 9:30 PM",
+      "id": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03",
+      "formattedDates": {
+        "ISO8601": "2026-12-27T03:30:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_0"
+            }
+          ],
+          "instanceId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03",
+          "id": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_1"
+            }
+          ],
+          "instanceId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03",
+          "id": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_2"
+            }
+          ],
+          "instanceId": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03",
+          "id": "sc-vvus-542973b3-900a-4e1d-a1b1-d6c7f9b2ac03_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d906?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Sunday, December 27, 2026 at 8:00 PM",
+      "id": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3",
+      "formattedDates": {
+        "ISO8601": "2026-12-28T02:00:00.000Z"
+      },
+      "eventName": "The Second City's: Not Today, Santa",
+      "eventId": "sc-show-123f14b1-14ed-406e-87f8-9cc2c9c6df20",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_0"
+            }
+          ],
+          "instanceId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3",
+          "id": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_1"
+            }
+          ],
+          "instanceId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3",
+          "id": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_2"
+            }
+          ],
+          "instanceId": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3",
+          "id": "sc-vvus-a3952804-c8be-465a-b271-959f838f3cd3_2"
+        }
+      ]
+    }
+  ],
+  "detail": "",
+  "description": "",
+  "custom": [],
+  "category": "",
+  "address": "UP Comedy Club - Chicago",
+  "venueTerm": "up-comedy-club",
+  "valid_from": "2026-11-26T02:00:00.000Z"
+}
