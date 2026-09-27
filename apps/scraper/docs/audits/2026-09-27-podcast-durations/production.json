@@ -1,0 +1,10 @@
+{
+  "verified_at": "2026-09-27T13:20:17.745085+00:00",
+  "migration": "20260927131500_clear_untrusted_podcast_durations",
+  "archived": 1002,
+  "now_unknown": 1002,
+  "remaining_over_day": 0,
+  "six_to_24_hours": 282,
+  "deployment": "locally pinned Prisma migrate deploy; only pending migration",
+  "scope": "Stored durations repaired. New ingestion validation becomes active for jobs using the merged code."
+}

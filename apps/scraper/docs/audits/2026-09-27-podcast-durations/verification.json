@@ -1,0 +1,28 @@
+{
+  "captured_at": "2026-09-27T13:04:40.061462+00:00",
+  "cohort_count": 1002,
+  "exposure": [
+    {
+      "accepted_visible_associations": 0,
+      "episodes_with_appearances": 0
+    }
+  ],
+  "all_duration_counts": [
+    {
+      "total": 612624,
+      "over_day": 1002,
+      "zero": 1301,
+      "negative": 0,
+      "six_to_24_hours": 282
+    }
+  ],
+  "cohort_reparse_unknown": 1002,
+  "rehearsal": {
+    "migration_cleared": 1002,
+    "idempotent": true,
+    "valid_long_form_unchanged": true,
+    "full_rollback_equal": true,
+    "later_correction_preserved": true,
+    "same_source_resync_unknown_twice": true
+  }
+}
