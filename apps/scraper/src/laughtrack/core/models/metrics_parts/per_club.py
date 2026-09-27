@@ -25,6 +25,10 @@ class PerClubStat:
     bot_block_stage: Optional[str] = None
     playwright_fallback_used: bool = False
     items_before_filter: Optional[int] = None
+    # Optional preserves unknown coverage in snapshots written before TASK-4059.
+    targets_collected: Optional[int] = None
+    fetches_ok: Optional[int] = None
+    fetches_failed: Optional[int] = None
     # Count of shows transformed with an empty tickets list (pipeline WARNs per
     # show, shows still persisted). Lands in scraper_run_clubs.raw_stat via
     # asdict so Grafana can chart it without a schema migration (TASK-3629).

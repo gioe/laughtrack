@@ -52,6 +52,9 @@ class ScrapingMetricsSnapshot:
                     bot_block_stage=d.get("bot_block_stage"),
                     playwright_fallback_used=bool(d.get("playwright_fallback_used", False)),
                     items_before_filter=d.get("items_before_filter"),
+                    targets_collected=d.get("targets_collected"),
+                    fetches_ok=d.get("fetches_ok"),
+                    fetches_failed=d.get("fetches_failed"),
                     is_synthetic=bool(d.get("is_synthetic", False)),
                     production_company_id=d.get("production_company_id"),
                 )
