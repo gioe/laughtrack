@@ -1,0 +1,1495 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-09-27T22:10:25.219307+00:00",
+  "until": "2027-09-27T22:10:25.219307+00:00",
+  "read_only": true,
+  "upcoming_show_count": 41227,
+  "sample_limit": 10,
+  "metrics": {
+    "suspicious_lineup_identities": {
+      "count": 0,
+      "affected_show_count": 0,
+      "warning_threshold": 1,
+      "status": "clear",
+      "sample_ids": [],
+      "sample_show_ids": [],
+      "note": "Shared ingestion detector candidates; visible lineup/venue exposure, not verified false identities."
+    },
+    "cross_venue_event_candidates": {
+      "count": 129,
+      "affected_show_count": 258,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        338845,
+        338846,
+        338847,
+        338848,
+        338849,
+        338858,
+        338859,
+        338861,
+        338862,
+        338863
+      ],
+      "sample_show_ids": [
+        338845,
+        338846,
+        338847,
+        338848,
+        338849,
+        338858,
+        338859,
+        338861,
+        338862,
+        338863
+      ],
+      "note": "Same explicit event identity and instant; requires source review, never automatic deletion."
+    },
+    "room_duplicate_candidates": {
+      "count": 0,
+      "affected_show_count": 0,
+      "warning_threshold": 1,
+      "status": "clear",
+      "sample_ids": [],
+      "sample_show_ids": [],
+      "note": "Same explicit event identity and instant; requires source review, never automatic deletion."
+    },
+    "stale_room_duplicate_candidates": {
+      "count": 0,
+      "affected_show_count": 0,
+      "warning_threshold": 1,
+      "status": "clear",
+      "sample_ids": [],
+      "sample_show_ids": [],
+      "note": "Same explicit event identity and instant; requires source review, never automatic deletion."
+    },
+    "missing_zip_us": {
+      "count": 8,
+      "affected_show_count": 186,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        447,
+        469,
+        551,
+        554,
+        600,
+        613,
+        1347,
+        8713
+      ],
+      "sample_show_ids": [
+        522028,
+        1376356,
+        1376357,
+        1376358,
+        1376359,
+        1395297,
+        2760604,
+        3019125,
+        3878365,
+        3879801
+      ],
+      "note": "Upcoming inventory missing postal coverage; producer/multi-location venues require manual review."
+    },
+    "missing_zip_unknown_country": {
+      "count": 2,
+      "affected_show_count": 79,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        573,
+        10970
+      ],
+      "sample_show_ids": [
+        522199,
+        1376633,
+        1376635,
+        1376636,
+        1376637,
+        1376638,
+        1376639,
+        1376640,
+        1376641,
+        1376642
+      ],
+      "note": "Upcoming inventory missing postal coverage; producer/multi-location venues require manual review."
+    },
+    "missing_zip_other_country": {
+      "count": 2,
+      "affected_show_count": 106,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        1060,
+        1061
+      ],
+      "sample_show_ids": [
+        917570,
+        917571,
+        917573,
+        917574,
+        917576,
+        1179305,
+        1179308,
+        1242095,
+        1242097,
+        1242099
+      ],
+      "note": "Upcoming inventory missing postal coverage; producer/multi-location venues require manual review."
+    },
+    "aggregate_covered_without_direct_source": {
+      "count": 616,
+      "affected_show_count": 2319,
+      "warning_threshold": null,
+      "status": "info",
+      "sample_ids": [
+        2503,
+        2538,
+        2567,
+        2570,
+        2576,
+        2581,
+        3001,
+        4497,
+        4501,
+        4531
+      ],
+      "sample_show_ids": [
+        1794104,
+        1794105,
+        1794106,
+        1794107,
+        1794147,
+        1794155,
+        1794156,
+        1874774,
+        1874775,
+        1874776
+      ],
+      "note": "Recent aggregate or organizer-attributed writes establish indirect coverage."
+    },
+    "unverified_source_coverage": {
+      "count": 30,
+      "affected_show_count": 184,
+      "warning_threshold": null,
+      "status": "info",
+      "sample_ids": [
+        4489,
+        4495,
+        5418,
+        11825,
+        11847,
+        12220,
+        12582,
+        12605,
+        12618,
+        12621
+      ],
+      "sample_show_ids": [
+        2826591,
+        2826592,
+        2826593,
+        2826594,
+        2826595,
+        2826596,
+        2826597,
+        2826598,
+        2826599,
+        2826600
+      ],
+      "note": "No direct source or verified recent aggregate provenance; not proof of absent ingestion. See source invariant report."
+    },
+    "unknown_local_time": {
+      "count": 20,
+      "affected_show_count": 20,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        3593427,
+        3593429,
+        3593430,
+        3593431,
+        3593432,
+        3593433,
+        3593434,
+        3593714,
+        3719668,
+        4317016
+      ],
+      "sample_show_ids": [
+        3593427,
+        3593429,
+        3593430,
+        3593431,
+        3593432,
+        3593433,
+        3593434,
+        3593714,
+        3719668,
+        4317016
+      ],
+      "note": "Missing/invalid timezone; UTC midnight is not evidence of local midnight."
+    },
+    "local_midnight_candidates": {
+      "count": 83,
+      "affected_show_count": 83,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        393008,
+        394206,
+        394207,
+        394948,
+        1002411,
+        1002413,
+        1002415,
+        1002416,
+        1002417,
+        1002419
+      ],
+      "sample_show_ids": [
+        393008,
+        394206,
+        394207,
+        394948,
+        1002411,
+        1002413,
+        1002415,
+        1002416,
+        1002417,
+        1002419
+      ],
+      "note": "Known local midnight, which may be a legitimate late show; review only."
+    },
+    "unlinked_social_handle_identities": {
+      "count": 4,
+      "affected_show_count": 74,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        735,
+        165737,
+        223787,
+        223795
+      ],
+      "sample_show_ids": [
+        974915,
+        1076012,
+        1076013,
+        1076014,
+        1076015,
+        1179148,
+        1179162,
+        1179164,
+        1243932,
+        1243933
+      ],
+      "note": "Distinct visible roots sharing a normalized handle; equality does not establish identity."
+    },
+    "visible_alias_hidden_parent": {
+      "count": 0,
+      "affected_show_count": 0,
+      "warning_threshold": 1,
+      "status": "clear",
+      "sample_ids": [],
+      "sample_show_ids": [],
+      "note": "Review existing moderation lineage; do not automatically change parent eligibility."
+    },
+    "podcast_duration_over_day": {
+      "count": 0,
+      "affected_podcast_count": 0,
+      "warning_threshold": 1,
+      "status": "clear",
+      "groups": [],
+      "note": "Policy: positive whole seconds through 24h. Historical nonpositive values are a baseline, not proof of a new regression. Source label is not latest ingestion provenance."
+    },
+    "podcast_duration_nonpositive": {
+      "count": 1301,
+      "affected_podcast_count": 45,
+      "warning_threshold": 1,
+      "status": "review",
+      "groups": [
+        {
+          "podcast_id": 8,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 100,
+          "sample_episode_id": 31315,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 318,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 100,
+          "sample_episode_id": 36069,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 321,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 3,
+          "sample_episode_id": 45127,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 321,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 929404,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 358,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 100,
+          "sample_episode_id": 57538,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 827,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 175917,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 851,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 2,
+          "sample_episode_id": 179057,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 1105,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 16,
+          "sample_episode_id": 30067,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 1106,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 18,
+          "sample_episode_id": 36269,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 1146,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 36,
+          "sample_episode_id": 49777,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 1151,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 24,
+          "sample_episode_id": 36287,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 1172,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 202270,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 1178,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 2,
+          "sample_episode_id": 203429,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 1408,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 221636,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 1434,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 5,
+          "sample_episode_id": 224199,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 1691,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 240706,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 2126,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 4,
+          "sample_episode_id": 271706,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 2234,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 42,
+          "sample_episode_id": 25558,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 2402,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 24,
+          "sample_episode_id": 30584,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 5207,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 21,
+          "sample_episode_id": 44044,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 5248,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 204,
+          "sample_episode_id": 315468,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 5318,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 2,
+          "sample_episode_id": 37643,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 5389,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 351769,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 5447,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 8,
+          "sample_episode_id": 365800,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 5462,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 20,
+          "sample_episode_id": 33339,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 5463,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 20,
+          "sample_episode_id": 37866,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 5482,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 54,
+          "sample_episode_id": 26478,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 5673,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 465307,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 6561,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 4,
+          "sample_episode_id": 555710,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 6565,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 5,
+          "sample_episode_id": 555761,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 6766,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 2,
+          "sample_episode_id": 572044,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 6841,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 4,
+          "sample_episode_id": 578704,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 6885,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 2,
+          "sample_episode_id": 583847,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 7003,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 419,
+          "sample_episode_id": 896300,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 7123,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 609017,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 7283,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 4,
+          "sample_episode_id": 620427,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 7397,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 633009,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 7539,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 641101,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 7760,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 655142,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 8197,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 694609,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 8201,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 29,
+          "sample_episode_id": 695115,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 8249,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 699578,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 8270,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 700953,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 8831,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 1,
+          "sample_episode_id": 742590,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 8987,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 2,
+          "sample_episode_id": 753697,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        },
+        {
+          "podcast_id": 9194,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "nonpositive",
+          "episode_count": 10,
+          "sample_episode_id": 766451,
+          "minimum_seconds": 0,
+          "maximum_seconds": 0
+        }
+      ],
+      "note": "Policy: positive whole seconds through 24h. Historical nonpositive values are a baseline, not proof of a new regression. Source label is not latest ingestion provenance."
+    },
+    "podcast_duration_valid_long_form": {
+      "count": 282,
+      "affected_podcast_count": 22,
+      "warning_threshold": null,
+      "status": "info",
+      "groups": [
+        {
+          "podcast_id": 1591,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 233834,
+          "minimum_seconds": 27925,
+          "maximum_seconds": 27925
+        },
+        {
+          "podcast_id": 1620,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 36730,
+          "minimum_seconds": 86010,
+          "maximum_seconds": 86010
+        },
+        {
+          "podcast_id": 2329,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 287127,
+          "minimum_seconds": 21696,
+          "maximum_seconds": 21696
+        },
+        {
+          "podcast_id": 5318,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 53,
+          "sample_episode_id": 327632,
+          "minimum_seconds": 24160,
+          "maximum_seconds": 86150
+        },
+        {
+          "podcast_id": 5332,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 12,
+          "sample_episode_id": 335774,
+          "minimum_seconds": 21775,
+          "maximum_seconds": 32990
+        },
+        {
+          "podcast_id": 5500,
+          "source": "podcast_index",
+          "provenance": "duration_field_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 9,
+          "sample_episode_id": 50789,
+          "minimum_seconds": 22009,
+          "maximum_seconds": 36595
+        },
+        {
+          "podcast_id": 5500,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 373657,
+          "minimum_seconds": 29684,
+          "maximum_seconds": 29684
+        },
+        {
+          "podcast_id": 5619,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 387607,
+          "minimum_seconds": 24600,
+          "maximum_seconds": 24600
+        },
+        {
+          "podcast_id": 5654,
+          "source": "podcast_index",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 391577,
+          "minimum_seconds": 25112,
+          "maximum_seconds": 25112
+        },
+        {
+          "podcast_id": 5952,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 494015,
+          "minimum_seconds": 32477,
+          "maximum_seconds": 32477
+        },
+        {
+          "podcast_id": 6250,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 520630,
+          "minimum_seconds": 42317,
+          "maximum_seconds": 42317
+        },
+        {
+          "podcast_id": 7663,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 2,
+          "sample_episode_id": 648920,
+          "minimum_seconds": 35244,
+          "maximum_seconds": 35325
+        },
+        {
+          "podcast_id": 7781,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 2,
+          "sample_episode_id": 657661,
+          "minimum_seconds": 22855,
+          "maximum_seconds": 22874
+        },
+        {
+          "podcast_id": 7912,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 2,
+          "sample_episode_id": 667500,
+          "minimum_seconds": 29051,
+          "maximum_seconds": 49121
+        },
+        {
+          "podcast_id": 8027,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 19,
+          "sample_episode_id": 678301,
+          "minimum_seconds": 43277,
+          "maximum_seconds": 49401
+        },
+        {
+          "podcast_id": 8107,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 72,
+          "sample_episode_id": 687010,
+          "minimum_seconds": 21640,
+          "maximum_seconds": 31205
+        },
+        {
+          "podcast_id": 8132,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 688513,
+          "minimum_seconds": 29440,
+          "maximum_seconds": 29440
+        },
+        {
+          "podcast_id": 8256,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 10,
+          "sample_episode_id": 700167,
+          "minimum_seconds": 21747,
+          "maximum_seconds": 33430
+        },
+        {
+          "podcast_id": 8466,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 4,
+          "sample_episode_id": 714367,
+          "minimum_seconds": 21756,
+          "maximum_seconds": 35941
+        },
+        {
+          "podcast_id": 8855,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 743612,
+          "minimum_seconds": 36037,
+          "maximum_seconds": 36037
+        },
+        {
+          "podcast_id": 8858,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 1,
+          "sample_episode_id": 744065,
+          "minimum_seconds": 42938,
+          "maximum_seconds": 42938
+        },
+        {
+          "podcast_id": 8929,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 3,
+          "sample_episode_id": 750051,
+          "minimum_seconds": 22467,
+          "maximum_seconds": 42117
+        },
+        {
+          "podcast_id": 9601,
+          "source": "other",
+          "provenance": "rss_duration_evidence",
+          "duration_band": "valid_long_form",
+          "episode_count": 83,
+          "sample_episode_id": 835158,
+          "minimum_seconds": 28800,
+          "maximum_seconds": 38741
+        }
+      ],
+      "note": "Policy: positive whole seconds through 24h. Historical nonpositive values are a baseline, not proof of a new regression. Source label is not latest ingestion provenance."
+    },
+    "run_health_healthy_productive": {
+      "count": 0,
+      "affected_show_count": 0,
+      "warning_threshold": null,
+      "status": "clear",
+      "sample_ids": [],
+      "sample_show_ids": [],
+      "note": "Latest direct run within 30d. num_shows is extraction; per-club persistence is unknown. Missing fetch counters retain unknown coverage."
+    },
+    "run_health_healthy_empty": {
+      "count": 0,
+      "affected_show_count": 0,
+      "warning_threshold": null,
+      "status": "clear",
+      "sample_ids": [],
+      "sample_show_ids": [],
+      "note": "Latest direct run within 30d. num_shows is extraction; per-club persistence is unknown. Missing fetch counters retain unknown coverage."
+    },
+    "run_health_recovered_productive": {
+      "count": 0,
+      "affected_show_count": 0,
+      "warning_threshold": null,
+      "status": "clear",
+      "sample_ids": [],
+      "sample_show_ids": [],
+      "note": "Latest direct run within 30d. num_shows is extraction; per-club persistence is unknown. Missing fetch counters retain unknown coverage."
+    },
+    "run_health_partial_productive": {
+      "count": 13,
+      "affected_show_count": 983,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        12,
+        120,
+        126,
+        131,
+        134,
+        1352,
+        2336,
+        2358,
+        2413,
+        2577
+      ],
+      "sample_show_ids": [
+        361211,
+        394999,
+        395000,
+        476601,
+        476602,
+        476603,
+        476604,
+        476605,
+        476607,
+        476609
+      ],
+      "note": "Latest direct run within 30d. num_shows is extraction; per-club persistence is unknown. Missing fetch counters retain unknown coverage."
+    },
+    "run_health_blocked_empty": {
+      "count": 21,
+      "affected_show_count": 1467,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        189,
+        308,
+        317,
+        323,
+        656,
+        1026,
+        1027,
+        1028,
+        1030,
+        1033
+      ],
+      "sample_show_ids": [
+        818434,
+        836347,
+        836349,
+        836351,
+        836352,
+        836353,
+        836428,
+        836429,
+        836430,
+        836431
+      ],
+      "note": "Latest direct run within 30d. num_shows is extraction; per-club persistence is unknown. Missing fetch counters retain unknown coverage."
+    },
+    "run_health_failed": {
+      "count": 27,
+      "affected_show_count": 662,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        16,
+        27,
+        88,
+        183,
+        223,
+        332,
+        497,
+        565,
+        4951,
+        9070
+      ],
+      "sample_show_ids": [
+        1511380,
+        1511381,
+        1511382,
+        1511383,
+        1511384,
+        1605023,
+        1706579,
+        1706581,
+        1706583,
+        1773863
+      ],
+      "note": "Latest direct run within 30d. num_shows is extraction; per-club persistence is unknown. Missing fetch counters retain unknown coverage."
+    },
+    "run_health_unknown": {
+      "count": 1762,
+      "affected_show_count": 35611,
+      "warning_threshold": null,
+      "status": "info",
+      "sample_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        11
+      ],
+      "sample_show_ids": [
+        337228,
+        338845,
+        338846,
+        338847,
+        338848,
+        338849,
+        338858,
+        338859,
+        338861,
+        338862
+      ],
+      "note": "Latest direct run within 30d. num_shows is extraction; per-club persistence is unknown. Missing fetch counters retain unknown coverage."
+    },
+    "run_persistence_failures": {
+      "count": 24,
+      "affected_show_count": 0,
+      "warning_threshold": 1,
+      "status": "review",
+      "sample_ids": [
+        1384,
+        1388,
+        1394,
+        1396,
+        1398,
+        1402,
+        1406,
+        1408,
+        1410,
+        1414
+      ],
+      "sample_show_ids": [],
+      "note": "Global per-run failure counters; do not sum overlapping partition and merged snapshots or attribute them to individual clubs."
+    }
+  },
+  "run_persistence": [
+    {
+      "run_id": 1495,
+      "run_type": "scraper",
+      "shows_saved": 38443,
+      "shows_inserted": 205,
+      "shows_updated": 38238,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 321,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1493,
+      "run_type": "scraper_partition",
+      "shows_saved": 1485,
+      "shows_inserted": 55,
+      "shows_updated": 1430,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 0,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1491,
+      "run_type": "scraper_partition",
+      "shows_saved": 13278,
+      "shows_inserted": 35,
+      "shows_updated": 13243,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 255,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1489,
+      "run_type": "scraper_partition",
+      "shows_saved": 11072,
+      "shows_inserted": 47,
+      "shows_updated": 11025,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 65,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1487,
+      "run_type": "scraper_partition",
+      "shows_saved": 12608,
+      "shows_inserted": 68,
+      "shows_updated": 12540,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 1,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1468,
+      "run_type": "scraper_partition",
+      "shows_saved": 12263,
+      "shows_inserted": 165,
+      "shows_updated": 12098,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 1,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1466,
+      "run_type": "scraper_partition",
+      "shows_saved": 11463,
+      "shows_inserted": 274,
+      "shows_updated": 11189,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 65,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1446,
+      "run_type": "scraper",
+      "shows_saved": 39522,
+      "shows_inserted": 568,
+      "shows_updated": 38954,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 324,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1444,
+      "run_type": "scraper_partition",
+      "shows_saved": 1494,
+      "shows_inserted": 35,
+      "shows_updated": 1459,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 0,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1442,
+      "run_type": "scraper_partition",
+      "shows_saved": 11908,
+      "shows_inserted": 177,
+      "shows_updated": 11731,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 66,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1438,
+      "run_type": "scraper_partition",
+      "shows_saved": 12791,
+      "shows_inserted": 131,
+      "shows_updated": 12660,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 1,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1436,
+      "run_type": "scraper_partition",
+      "shows_saved": 13329,
+      "shows_inserted": 225,
+      "shows_updated": 13104,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 257,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1426,
+      "run_type": "scraper",
+      "shows_saved": 40211,
+      "shows_inserted": 610,
+      "shows_updated": 39601,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 328,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1424,
+      "run_type": "scraper_partition",
+      "shows_saved": 1492,
+      "shows_inserted": 37,
+      "shows_updated": 1455,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 0,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1422,
+      "run_type": "scraper_partition",
+      "shows_saved": 13694,
+      "shows_inserted": 139,
+      "shows_updated": 13555,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 259,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1420,
+      "run_type": "scraper_partition",
+      "shows_saved": 13130,
+      "shows_inserted": 262,
+      "shows_updated": 12868,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 1,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1418,
+      "run_type": "scraper_partition",
+      "shows_saved": 11895,
+      "shows_inserted": 172,
+      "shows_updated": 11723,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 68,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1414,
+      "run_type": "scraper",
+      "shows_saved": 40122,
+      "shows_inserted": 690,
+      "shows_updated": 39432,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 331,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1412,
+      "run_type": "scraper_partition",
+      "shows_saved": 1495,
+      "shows_inserted": 43,
+      "shows_updated": 1452,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 0,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1410,
+      "run_type": "scraper_partition",
+      "shows_saved": 12268,
+      "shows_inserted": 172,
+      "shows_updated": 12096,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 68,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1408,
+      "run_type": "scraper_partition",
+      "shows_saved": 12724,
+      "shows_inserted": 274,
+      "shows_updated": 12450,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 2,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1406,
+      "run_type": "scraper_partition",
+      "shows_saved": 13635,
+      "shows_inserted": 201,
+      "shows_updated": 13434,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 261,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1402,
+      "run_type": "scraper",
+      "shows_saved": 39601,
+      "shows_inserted": 869,
+      "shows_updated": 38732,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 331,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1400,
+      "run_type": "scraper_partition",
+      "shows_saved": 1491,
+      "shows_inserted": 41,
+      "shows_updated": 1450,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 0,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1398,
+      "run_type": "scraper_partition",
+      "shows_saved": 11854,
+      "shows_inserted": 417,
+      "shows_updated": 11437,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 68,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1396,
+      "run_type": "scraper_partition",
+      "shows_saved": 12636,
+      "shows_inserted": 145,
+      "shows_updated": 12491,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 2,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1394,
+      "run_type": "scraper_partition",
+      "shows_saved": 13620,
+      "shows_inserted": 266,
+      "shows_updated": 13354,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 261,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1388,
+      "run_type": "scraper",
+      "shows_saved": 38996,
+      "shows_inserted": 284,
+      "shows_updated": 38712,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 328,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1386,
+      "run_type": "scraper_partition",
+      "shows_saved": 1490,
+      "shows_inserted": 21,
+      "shows_updated": 1469,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 0,
+      "shows_db_errors": 0
+    },
+    {
+      "run_id": 1384,
+      "run_type": "scraper_partition",
+      "shows_saved": 11484,
+      "shows_inserted": 77,
+      "shows_updated": 11407,
+      "shows_failed_save": 0,
+      "shows_validation_failed": 68,
+      "shows_db_errors": 0
+    }
+  ],
+  "limitations": [
+    "Counts are potential exposure at visible venues, not exact eligibility across every discovery surface.",
+    "Candidate event identity keys do not prove a duplicate; shared calendars without event identifiers are excluded.",
+    "Episodes are audited across all dates; show exposure uses the declared window. No automatic data repair."
+  ]
+}

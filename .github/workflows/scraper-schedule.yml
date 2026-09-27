@@ -404,6 +404,62 @@ jobs:
           database-password: ${{ secrets.DATABASE_PASSWORD }}
           database-port: ${{ secrets.DATABASE_PORT }}
 
+  audit_data:
+    name: Retain read-only data anomaly audit
+    needs: [scrape_partition, scrape_production_companies, finalize]
+    # Retain evidence even when a scraper phase or finalization fails.
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/scraper
+    env:
+      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+      DATABASE_USER: ${{ secrets.DATABASE_USER }}
+      DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up scraper Python environment
+        uses: ./.github/actions/scraper-setup
+
+      - name: Audit retained data anomalies
+        run: |
+          mkdir -p audit-results
+          python -m scripts.core.audit_scraping_data --json --output audit-results/data-audit.json
+
+      - name: Audit scraping source invariants
+        if: always()
+        run: |
+          mkdir -p audit-results
+          if python -m scripts.core.check_scraping_source_invariants --json > audit-results/source-invariants.json; then
+            echo "Scraping source invariants are clean."
+          else
+            AUDIT_EXIT=$?
+            if [ "$AUDIT_EXIT" -eq 2 ]; then
+              echo "::warning::Scraping source invariant findings retained in source-invariants.json."
+            else
+              echo "::error::Scraping source invariant audit could not execute (exit $AUDIT_EXIT)."
+              exit "$AUDIT_EXIT"
+            fi
+          fi
+
+      - name: Retain data audit JSON
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: scraper-data-audit-${{ github.run_id }}
+          path: |
+            apps/scraper/audit-results/data-audit.json
+            apps/scraper/audit-results/source-invariants.json
+          if-no-files-found: error
+          retention-days: 30
+
   record_failure:
     name: Record scraper pipeline failure
     needs: [scrape_partition, scrape_production_companies, finalize]

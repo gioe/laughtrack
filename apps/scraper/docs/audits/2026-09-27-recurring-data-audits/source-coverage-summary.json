@@ -1,0 +1,135 @@
+{
+  "as_of": "2026-09-27T22:01:32.893614+00:00",
+  "coverage_days": 7,
+  "counts": {
+    "no_direct_source_clubs": 799,
+    "aggregate_covered_clubs": 655,
+    "recently_written_unknown_source_clubs": 0,
+    "coverage_unverified_clubs": 144,
+    "review_required_clubs": 142,
+    "orphan_future_show_clubs": 32,
+    "active_no_source_clubs": 112
+  },
+  "review_examples": [
+    {
+      "club_id": 4489,
+      "club_name": "Hamburger Mary's - Las Vegas",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 50,
+      "first_future_show": "2026-10-02 19:00:00+00:00",
+      "last_future_show": "2026-12-06 22:30:00+00:00",
+      "last_last_scraped_date": "2026-06-14 12:51:15.441764+00:00",
+      "last_aggregate_scraped_date": "2026-06-14 12:51:15.441764+00:00",
+      "coverage_state": "coverage_unverified"
+    },
+    {
+      "club_id": 4495,
+      "club_name": "Shubert Theatre",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 30,
+      "first_future_show": "2026-11-11 01:00:00+00:00",
+      "last_future_show": "2026-12-11 00:00:00+00:00",
+      "last_last_scraped_date": "2026-09-06 01:02:09.664737+00:00",
+      "last_aggregate_scraped_date": "2026-09-06 01:02:09.664737+00:00",
+      "coverage_state": "coverage_unverified"
+    },
+    {
+      "club_id": 15991,
+      "club_name": "Leicester Square Theatre",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 23,
+      "first_future_show": "2026-09-29 18:00:00+00:00",
+      "last_future_show": "2026-11-27 19:00:00+00:00",
+      "last_last_scraped_date": "2026-07-08 23:18:43.462359+00:00",
+      "last_aggregate_scraped_date": null,
+      "coverage_state": "coverage_unverified"
+    },
+    {
+      "club_id": 15987,
+      "club_name": "Eventim Apollo",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 14,
+      "first_future_show": "2026-10-11 18:00:00+00:00",
+      "last_future_show": "2026-12-17 20:00:00+00:00",
+      "last_last_scraped_date": "2026-07-08 23:18:25.353052+00:00",
+      "last_aggregate_scraped_date": null,
+      "coverage_state": "coverage_unverified"
+    },
+    {
+      "club_id": 15990,
+      "club_name": "L'Olympia",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 14,
+      "first_future_show": "2026-09-27 23:00:00+00:00",
+      "last_future_show": "2026-12-12 00:00:00+00:00",
+      "last_last_scraped_date": "2026-07-08 23:18:38.269137+00:00",
+      "last_aggregate_scraped_date": null,
+      "coverage_state": "coverage_unverified"
+    },
+    {
+      "club_id": 15983,
+      "club_name": "Boom Chicago",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 9,
+      "first_future_show": "2026-09-30 18:00:00+00:00",
+      "last_future_show": "2026-11-10 19:00:00+00:00",
+      "last_last_scraped_date": "2026-07-08 23:17:58.514060+00:00",
+      "last_aggregate_scraped_date": null,
+      "coverage_state": "coverage_unverified"
+    },
+    {
+      "club_id": 12582,
+      "club_name": "The Franklin House",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 8,
+      "first_future_show": "2026-10-23 23:00:00+00:00",
+      "last_future_show": "2027-03-13 00:00:00+00:00",
+      "last_last_scraped_date": "2026-09-19 23:59:47.407810+00:00",
+      "last_aggregate_scraped_date": "2026-09-19 23:59:47.407810+00:00",
+      "coverage_state": "coverage_unverified"
+    },
+    {
+      "club_id": 15984,
+      "club_name": "3Arena",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 8,
+      "first_future_show": "2026-10-07 17:30:00+00:00",
+      "last_future_show": "2026-12-13 18:30:00+00:00",
+      "last_last_scraped_date": "2026-07-08 23:18:13.019418+00:00",
+      "last_aggregate_scraped_date": null,
+      "coverage_state": "coverage_unverified"
+    },
+    {
+      "club_id": 15989,
+      "club_name": "Club Regent Event Centre",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 3,
+      "first_future_show": "2026-11-16 01:00:00+00:00",
+      "last_future_show": "2026-12-11 01:00:00+00:00",
+      "last_last_scraped_date": "2026-07-08 23:18:33.893598+00:00",
+      "last_aggregate_scraped_date": null,
+      "coverage_state": "coverage_unverified"
+    },
+    {
+      "club_id": 11847,
+      "club_name": "EXO Lounge",
+      "visible": true,
+      "status": "active",
+      "future_show_count": 2,
+      "first_future_show": "2026-10-25 01:00:00+00:00",
+      "last_future_show": "2027-02-14 02:00:00+00:00",
+      "last_last_scraped_date": "2026-09-10 00:33:15.983530+00:00",
+      "last_aggregate_scraped_date": "2026-09-10 00:33:15.983530+00:00",
+      "coverage_state": "coverage_unverified"
+    }
+  ]
+}

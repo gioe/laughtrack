@@ -304,3 +304,44 @@ def test_workflow_gates_downstream_work_and_records_unique_partitions():
     assert "github_actions_scraper_pipeline_partition_${{ matrix.partition_index }}_of_3" in workflow
     assert "actions/download-artifact@v8" in workflow
     assert "pipeline-key:" in action
+
+
+def _audit_workflow_job():
+    import yaml
+
+    repo_root = Path(__file__).resolve().parents[5]
+    workflow = yaml.safe_load((repo_root / ".github/workflows/scraper-schedule.yml").read_text())
+    return workflow["jobs"]["audit_data"]
+
+
+def test_data_audit_runs_after_failed_partitions_and_retains_only_json():
+    job = _audit_workflow_job()
+    assert job["if"] == "always()"
+    assert set(job["needs"]) == {"scrape_partition", "scrape_production_companies", "finalize"}
+    steps = job["steps"]
+    assert any("--json --output audit-results/data-audit.json" in step.get("run", "") for step in steps)
+    upload = next(step for step in steps if step.get("uses", "").startswith("actions/upload-artifact@"))
+    assert upload["if"] == "always()"
+    assert upload["with"]["retention-days"] == 30
+    assert upload["with"]["path"].split() == [
+        "apps/scraper/audit-results/data-audit.json",
+        "apps/scraper/audit-results/source-invariants.json",
+    ]
+    assert all(key.startswith("DATABASE_") for key in job["env"])
+
+
+@pytest.mark.parametrize("command_exit, expected_exit", [(0, 0), (2, 0), (1, 1), (3, 3)])
+def test_source_audit_shell_distinguishes_findings_from_execution_errors(tmp_path, command_exit, expected_exit):
+    import subprocess
+
+    step = next(step for step in _audit_workflow_job()["steps"]
+                if "check_scraping_source_invariants" in step.get("run", ""))
+    assert step["if"] == "always()"
+    # Exercise the exact workflow shell with only the external command replaced.
+    prelude = f"python() {{ echo '{{}}'; return {command_exit}; }}\n"
+    result = subprocess.run(["bash", "-e", "-c", prelude + step["run"]],
+                            cwd=tmp_path, capture_output=True, text=True)
+    assert result.returncode == expected_exit
+    assert json.loads((tmp_path / "audit-results/source-invariants.json").read_text()) == {}
+    assert ("::warning::" in result.stdout) == (command_exit == 2)
+    assert ("::error::" in result.stdout) == (command_exit not in (0, 2))
