@@ -45,194 +45,208 @@ def mod():
     return _load_module()
 
 
-def _orphan_row(**overrides):
+from datetime import datetime, timedelta, timezone
+
+AS_OF = datetime(2026, 9, 27, 12, tzinfo=timezone.utc)
+
+
+def _row(**overrides):
     row = {
         "club_id": 2287,
-        "club_name": "Big Couch",
-        "visible": False,
-        "status": "active",
-        "future_show_count": 81,
-        "first_future_show": None,
-        "last_future_show": None,
-        "first_last_scraped_date": None,
-        "last_last_scraped_date": None,
-        "last_scraped_by_values": ["eventbrite"],
-        "sample_show_page_url": "https://www.eventbrite.com/e/example",
-    }
-    row.update(overrides)
-    return row
-
-
-def _active_no_source_row(**overrides):
-    row = {
-        "club_id": 9001,
-        "club_name": "Dormant Club",
-        "city": "Austin",
-        "state": "TX",
-        "website": "https://dormant.example",
+        "club_name": "Example",
         "visible": True,
         "status": "active",
+        "future_show_count": 4,
+        "last_last_scraped_date": None,
+        "last_aggregate_scraped_date": None,
     }
     row.update(overrides)
     return row
 
 
-# ---------------------------------------------------------------------------
-# Orphan-future-shows invariant (Invariant 1)
-# ---------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "key",
+    [
+        "ticketmaster_national",
+        "next_stop_comedy",
+        "ticket_tailor",
+        "pabst_theater_group",
+        "comedian_websites",
+    ],
+)
+def test_recent_aggregate_provenance_is_coverage(mod, key):
+    assert mod.is_aggregate_covered(
+        {"last_scraped_by": key, "last_scraped_date": AS_OF}, AS_OF
+    )
 
 
-def test_main_returns_two_when_orphan_future_inventory_exists(mod, monkeypatch, capsys):
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [_orphan_row()])
-    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
-
-    assert mod.main([]) == 2
-    captured = capsys.readouterr()
-    assert "1 club(s) have future shows but no enabled scraping_sources row" in captured.out
-    assert "club=2287" in captured.out
-    assert "Big Couch" in captured.out
-    assert "future_shows=81" in captured.out
-    assert "last_scraped_by=eventbrite" in captured.out
+def test_eventbrite_requires_organizer_provenance(mod):
+    row = {"last_scraped_by": "eventbrite", "last_scraped_date": AS_OF}
+    assert not mod.is_aggregate_covered(row, AS_OF)
+    assert mod.is_aggregate_covered({**row, "scraped_by_organizer_id": 42}, AS_OF)
 
 
-def test_main_returns_zero_when_no_orphan_future_inventory(mod, monkeypatch, capsys):
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
-
-    assert mod.main([]) == 0
-    captured = capsys.readouterr()
-    assert "No clubs have future shows without an enabled scraping_sources row" in captured.out
-
-
-def test_main_returns_one_on_db_error(mod, monkeypatch, capsys):
-    def _raise():
-        raise RuntimeError("connection refused")
-
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", _raise)
-    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
-
-    assert mod.main([]) == 1
-    captured = capsys.readouterr()
-    assert "ERROR: failed to query scraping source invariants" in captured.err
-    assert "connection refused" in captured.err
+@pytest.mark.parametrize(
+    "stamp",
+    [
+        None,
+        "bad",
+        AS_OF - timedelta(days=8),
+        AS_OF + timedelta(seconds=1),
+        AS_OF.replace(tzinfo=None),
+    ],
+)
+def test_aggregate_key_without_recent_valid_timestamp_is_not_coverage(mod, stamp):
+    assert not mod.is_aggregate_covered(
+        {"last_scraped_by": "ticketmaster_national", "last_scraped_date": stamp}, AS_OF
+    )
 
 
-def test_main_json_mode_emits_parseable_payload(mod, monkeypatch, capsys):
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [_orphan_row()])
-    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
-
-    rc = mod.main(["--json"])
-    captured = capsys.readouterr()
-
-    assert rc == 2
-    payload = json.loads(captured.out)
-    assert payload["orphan_future_show_clubs"][0]["club_name"] == "Big Couch"
-    assert payload["orphan_future_show_clubs"][0]["future_show_count"] == 81
-    assert payload["active_no_source_clubs"] == []
-    assert "future shows but no enabled scraping_sources row" in captured.err
+def test_retired_key_and_generic_future_inventory_do_not_establish_coverage(mod):
+    assert not mod.is_aggregate_covered(
+        {"last_scraped_by": "eventbrite_national", "last_scraped_date": AS_OF}, AS_OF
+    )
+    assert not mod.is_aggregate_covered({"date": AS_OF + timedelta(days=10)}, AS_OF)
 
 
-def test_main_json_mode_emits_empty_payload_when_clean(mod, monkeypatch, capsys):
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
-
-    rc = mod.main(["--json"])
-    captured = capsys.readouterr()
-
-    assert rc == 0
-    payload = json.loads(captured.out)
-    assert payload["orphan_future_show_clubs"] == []
-    assert payload["active_no_source_clubs"] == []
-    assert "No clubs have future shows without an enabled scraping_sources row" in captured.err
-
-
-# ---------------------------------------------------------------------------
-# Active-clubs-missing-a-scraper invariant (Invariant 2)
-# ---------------------------------------------------------------------------
+def test_recency_boundary_and_serialized_timestamp(mod):
+    stamp = AS_OF - timedelta(days=7)
+    assert mod.is_aggregate_covered(
+        {"last_scraped_by": "next_stop_comedy", "last_scraped_date": stamp.isoformat()},
+        AS_OF,
+    )
+    assert not mod.is_aggregate_covered(
+        {
+            "last_scraped_by": "next_stop_comedy",
+            "last_scraped_date": stamp - timedelta(microseconds=1),
+        },
+        AS_OF,
+    )
 
 
-def test_main_flags_active_clubs_with_no_enabled_source(mod, monkeypatch, capsys):
-    """An active visible club with no enabled scraping_sources row trips exit 2."""
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(
-        mod,
-        "_fetch_active_no_source_rows",
-        lambda: [
-            _active_no_source_row(
-                club_id=9001,
-                club_name="Dormant Club",
+def test_classification_separates_indirect_unknown_fresh_and_unknown_stale(mod):
+    rows = [
+        _row(club_id=1, last_aggregate_scraped_date=AS_OF),
+        _row(club_id=2, last_last_scraped_date=AS_OF),
+        _row(club_id=3),
+        _row(club_id=4, future_show_count=0, last_aggregate_scraped_date=AS_OF),
+        _row(club_id=5, visible=False),
+        _row(club_id=6, status="closed"),
+    ]
+    report = mod.build_report(rows, AS_OF)
+    assert len(report["no_direct_source_clubs"]) == 6
+    assert [r["club_id"] for r in report["aggregate_covered_clubs"]] == [1, 4]
+    assert [r["club_id"] for r in report["recently_written_unknown_source_clubs"]] == [
+        2
+    ]
+    assert [r["club_id"] for r in report["review_required_clubs"]] == [3]
+    assert [r["club_id"] for r in report["orphan_future_show_clubs"]] == [3, 5, 6]
+
+
+def test_fresh_direct_write_does_not_refresh_stale_aggregate_evidence(mod):
+    report = mod.build_report(
+        [
+            _row(
+                last_aggregate_scraped_date=AS_OF - timedelta(days=8),
+                last_last_scraped_date=AS_OF,
             )
         ],
+        AS_OF,
     )
-
-    rc = mod.main([])
-    captured = capsys.readouterr()
-
-    assert rc == 2
-    assert "1 active club(s) have no enabled scraping_sources row" in captured.out
-    assert "club=9001" in captured.out
-    assert "Dormant Club" in captured.out
-    assert "website=https://dormant.example" in captured.out
+    assert report["aggregate_covered_clubs"] == []
+    assert report["review_required_clubs"] == []
+    assert report["recently_written_unknown_source_clubs"]
 
 
-def test_main_returns_zero_when_no_active_no_source_clubs(mod, monkeypatch, capsys):
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
-
-    rc = mod.main([])
-    captured = capsys.readouterr()
-
-    assert rc == 0
-    assert "No active clubs are missing an enabled scraping_sources row." in captured.out
-
-
-def test_main_json_payload_includes_active_no_source_rows(mod, monkeypatch, capsys):
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(
-        mod,
-        "_fetch_active_no_source_rows",
-        lambda: [
-            _active_no_source_row(club_id=1, club_name="Dormant One"),
-            _active_no_source_row(club_id=2, club_name="Dormant Two"),
+def test_report_whitelist_drops_urls_and_metadata(mod):
+    report = mod.build_report(
+        [
+            _row(
+                website="https://user:secret@host",
+                sample_show_page_url="https://host/?api_key=secret",
+                metadata={"password": "secret"},
+            )
         ],
+        AS_OF,
     )
-
-    rc = mod.main(["--json"])
-    payload = json.loads(capsys.readouterr().out)
-
-    assert rc == 2
-    section = payload["active_no_source_clubs"]
-    assert [r["club_id"] for r in section] == [1, 2]
-    assert section[0]["club_name"] == "Dormant One"
+    assert "secret" not in json.dumps(report, default=str)
 
 
-def test_main_reports_both_invariants_when_mixed(mod, monkeypatch, capsys):
-    """Orphan future inventory and dormant-active clubs surface together, exit 2 once."""
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [_orphan_row()])
+@pytest.mark.parametrize(
+    "rows,expected",
+    [
+        ([], 0),
+        ([_row()], 2),
+        ([_row(visible=False)], 0),
+        ([_row(future_show_count=0)], 2),
+    ],
+)
+def test_exit_codes_and_json(mod, monkeypatch, capsys, rows, expected):
+    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: rows)
+    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
+    assert mod.main(["--json"]) == expected
+    output = capsys.readouterr()
+    report = json.loads(output.out)
+    assert len(report["no_direct_source_clubs"]) == len(rows)
+    assert "INFO:" in output.err
+    assert "cannot ingest" not in output.err
+
+
+def test_fresh_unknown_write_does_not_fail_cli(mod, monkeypatch, capsys):
     monkeypatch.setattr(
         mod,
-        "_fetch_active_no_source_rows",
-        lambda: [_active_no_source_row(club_id=9001, club_name="Dormant Club")],
+        "_fetch_orphan_future_show_rows",
+        lambda: [_row(last_last_scraped_date=datetime.now(timezone.utc))],
     )
-
-    rc = mod.main([])
-    captured = capsys.readouterr()
-
-    assert rc == 2
-    assert "future shows but no enabled scraping_sources row" in captured.out
-    assert "active club(s) have no enabled scraping_sources row" in captured.out
-    assert "Big Couch" in captured.out
-    assert "Dormant Club" in captured.out
+    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
+    assert mod.main([]) == 0
+    assert "1 have other recent writes" in capsys.readouterr().out
 
 
-def test_active_no_source_query_filters_correctly(mod):
-    """SQL guards: only active + visible + no enabled source + no future shows."""
-    query = mod._ACTIVE_NO_SOURCE_QUERY
-    # Active visible clubs only — hidden/inactive venues aren't shipped to users.
-    assert "c.status = 'active'" in query
-    assert "COALESCE(c.visible, TRUE) = TRUE" in query
-    # No enabled scraping_sources row at all.
-    assert "ss.enabled = TRUE" in query
-    assert "NOT EXISTS" in query
-    # Exclude clubs already caught by Invariant 1 (orphan future inventory).
-    assert "s.date > NOW()" in query
+def test_db_errors_do_not_leak_connection_details(mod, monkeypatch, capsys):
+    def fail():
+        raise RuntimeError("postgresql://user:secret@host")
+
+    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", fail)
+    assert mod.main([]) == 1
+    error = capsys.readouterr().err
+    assert "RuntimeError" in error
+    assert "secret" not in error
+
+
+@pytest.mark.parametrize("days", ["0", "-1", "366"])
+def test_invalid_coverage_days_rejected(mod, days):
+    with pytest.raises(SystemExit):
+        mod.main(["--coverage-days", days])
+
+
+def test_queries_consider_past_persisted_evidence_and_export_no_urls(mod):
+    for query in (mod._ORPHAN_FUTURE_SHOWS_QUERY, mod._ACTIVE_NO_SOURCE_QUERY):
+        assert "LEFT JOIN shows s ON s.club_id = c.id" in query
+        assert "s.scraped_by_organizer_id IS NOT NULL" in query
+        assert "MAX(s.last_scraped_date) FILTER" in query
+        assert (
+            "WHERE s.date > NOW()" in query
+        )  # only aggregate FILTER, not join restriction
+        assert "ss.enabled = TRUE" in query
+        assert "show_page_url" not in query
+        assert "c.website" not in query
+        assert "source_url" not in query
+    assert "c.visible = TRUE" in mod._ACTIVE_NO_SOURCE_QUERY
+
+
+def test_query_session_is_readonly_and_bounded(mod, monkeypatch):
+    from unittest.mock import MagicMock
+
+    connection = MagicMock()
+    cursor = connection.cursor.return_value.__enter__.return_value
+    cursor.description = [("club_id",), ("club_name",)]
+    cursor.fetchall.return_value = [(1, "Example")]
+    manager = MagicMock()
+    manager.__enter__.return_value = connection
+    monkeypatch.setattr(mod, "get_connection", lambda **kwargs: manager)
+    assert mod._fetch_rows("SELECT 1") == [{"club_id": 1, "club_name": "Example"}]
+    connection.set_session.assert_called_once_with(readonly=True)
+    assert cursor.execute.call_args_list[0].args == (
+        "SET LOCAL statement_timeout = '60s'",
+    )

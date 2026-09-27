@@ -1,45 +1,23 @@
 #!/usr/bin/env python3
-"""
-Repeatable check: clubs with future shows must have enabled scrape config,
-and active clubs must not silently sit without any enabled scraper at all.
+"""Read-only ingestion-coverage review, including aggregate-fed venues.
 
-Invariant 1 — orphan future inventory
--------------------------------------
-Any club with future shows must have at least one enabled ``scraping_sources``
-row. ``scraping_sources`` is the source of truth for per-platform scrape
-configuration; future inventory without an enabled source usually means a stale
-writer, legacy pre-source data, or a hidden duplicate row is still carrying
-public listings.
-
-Invariant 2 — active clubs missing a scraper
---------------------------------------------
-Any club whose ``status='active'`` and ``visible`` is true must have at least
-one enabled ``scraping_sources`` row. An active venue with no enabled source
-cannot ingest new inventory: either a dedicated scraper was never wired up
-after onboarding, or every previously enabled source has since been disabled
-without the club itself being deactivated. Invariant 1 already covers the
-subset that still has future shows on the books; this invariant catches the
-quieter case where the club has no future inventory yet (or anymore) and would
-otherwise drift unscraped without a paging signal.
-
-Usage
------
-    cd apps/scraper
-    make check-scraping-source-invariants
-    make check-scraping-source-invariants ARGS='--json'
-
-Exits 0 when clean, 2 when either invariant is violated (orphan future
-inventory OR active clubs missing a scraper), and 1 for execution/query
-errors.
+A missing enabled per-club source is informational, not proof of missing
+scraping. Recent persisted aggregate/organizer provenance demonstrates indirect
+coverage. Other recent writes demonstrate activity without proving its source.
+Only stale/absent evidence at active visible clubs requests operator review
+(exit 2); this does not establish that ingestion is broken. Query errors exit 1.
 """
 
 import argparse
 import json
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+_root = next(
+    p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists()
+)
 for _path in (_root / "src", _root):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
@@ -47,184 +25,199 @@ for _path in (_root / "src", _root):
 from dotenv import load_dotenv
 
 load_dotenv(_root / ".env")
-
 from laughtrack.adapters.db import get_connection
 
+# These implementations explicitly route shows onto discovered physical venues.
+# Eventbrite is dual-mode: only organizer provenance proves indirect coverage.
+# eventbrite_national is retired and is deliberately not accepted as evidence.
+AGGREGATE_SCRAPER_KEYS = frozenset(
+    {
+        "ticketmaster_national",
+        "next_stop_comedy",
+        "ticket_tailor",
+        "pabst_theater_group",
+        "comedian_websites",
+    }
+)
+DEFAULT_COVERAGE_DAYS = 7
 
-_ORPHAN_FUTURE_SHOWS_QUERY = """
-    SELECT
-        c.id AS club_id,
-        c.name AS club_name,
-        c.visible,
-        c.status,
-        COUNT(s.id) AS future_show_count,
-        MIN(s.date) AS first_future_show,
-        MAX(s.date) AS last_future_show,
-        MIN(s.last_scraped_date) AS first_last_scraped_date,
-        MAX(s.last_scraped_date) AS last_last_scraped_date,
-        ARRAY_REMOVE(ARRAY_AGG(DISTINCT s.last_scraped_by), NULL) AS last_scraped_by_values,
-        MIN(s.show_page_url) FILTER (WHERE s.show_page_url IS NOT NULL) AS sample_show_page_url
+
+def _recent(value: Any, as_of: datetime, days: int) -> bool:
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return False
+    if not isinstance(value, datetime) or value.tzinfo is None:
+        return False
+    return as_of - timedelta(days=days) <= value <= as_of
+
+
+def is_aggregate_covered(
+    row: dict[str, Any], as_of: datetime, days: int = DEFAULT_COVERAGE_DAYS
+) -> bool:
+    """Recognize recent persisted provenance on a single show (never its date)."""
+    return (
+        row.get("last_scraped_by") in AGGREGATE_SCRAPER_KEYS
+        or row.get("scraped_by_organizer_id") is not None
+    ) and _recent(row.get("last_scraped_date"), as_of, days)
+
+
+_AGGREGATE_SQL = ", ".join("'" + key + "'" for key in sorted(AGGREGATE_SCRAPER_KEYS))
+_NO_DIRECT_SOURCE_QUERY = f"""
+    SELECT c.id AS club_id, c.name AS club_name, c.visible, c.status,
+        COUNT(s.id) FILTER (WHERE s.date > NOW()) AS future_show_count,
+        MIN(s.date) FILTER (WHERE s.date > NOW()) AS first_future_show,
+        MAX(s.date) FILTER (WHERE s.date > NOW()) AS last_future_show,
+        MAX(s.last_scraped_date) FILTER (
+            WHERE s.last_scraped_date <= NOW()) AS last_last_scraped_date,
+        MAX(s.last_scraped_date) FILTER (
+            WHERE s.last_scraped_date <= NOW() AND (
+                s.last_scraped_by IN ({_AGGREGATE_SQL})
+                OR s.scraped_by_organizer_id IS NOT NULL
+            )) AS last_aggregate_scraped_date
     FROM clubs c
-    JOIN shows s ON s.club_id = c.id
-    WHERE s.date > NOW()
-      AND NOT EXISTS (
-          SELECT 1
-          FROM scraping_sources ss
-          WHERE ss.club_id = c.id
-            AND ss.enabled = TRUE
-      )
+    LEFT JOIN shows s ON s.club_id = c.id
+    WHERE NOT EXISTS (
+        SELECT 1 FROM scraping_sources ss
+        WHERE ss.club_id = c.id AND ss.enabled = TRUE
+    )
     GROUP BY c.id, c.name, c.visible, c.status
+"""
+# Preserve these fetcher interfaces for callers while changing their meaning:
+# these are raw populations lacking a direct source, not established orphans.
+_ORPHAN_FUTURE_SHOWS_QUERY = _NO_DIRECT_SOURCE_QUERY + """
+    HAVING COUNT(s.id) FILTER (WHERE s.date > NOW()) > 0
     ORDER BY future_show_count DESC, c.id
 """
-
-
-_ACTIVE_NO_SOURCE_QUERY = """
-    SELECT
-        c.id AS club_id,
-        c.name AS club_name,
-        c.city,
-        c.state,
-        c.website,
-        c.visible,
-        c.status
-    FROM clubs c
-    WHERE c.status = 'active'
-      AND COALESCE(c.visible, TRUE) = TRUE
-      AND NOT EXISTS (
-          SELECT 1
-          FROM scraping_sources ss
-          WHERE ss.club_id = c.id
-            AND ss.enabled = TRUE
-      )
-      AND NOT EXISTS (
-          SELECT 1
-          FROM shows s
-          WHERE s.club_id = c.id
-            AND s.date > NOW()
-      )
+_ACTIVE_NO_SOURCE_QUERY = _NO_DIRECT_SOURCE_QUERY + """
+    HAVING c.status = 'active' AND c.visible = TRUE
+       AND COUNT(s.id) FILTER (WHERE s.date > NOW()) = 0
     ORDER BY c.id
 """
 
 
+def _fetch_rows(query: str) -> list[dict[str, Any]]:
+    with get_connection(autocommit=False) as conn:
+        conn.set_session(readonly=True)
+        with conn.cursor() as cur:
+            cur.execute("SET LOCAL statement_timeout = '60s'")
+            cur.execute(query)
+            cols = [d[0] for d in cur.description]
+            return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
 def _fetch_orphan_future_show_rows() -> list[dict[str, Any]]:
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(_ORPHAN_FUTURE_SHOWS_QUERY)
-        cols = [d[0] for d in cur.description]
-        rows = [dict(zip(cols, r)) for r in cur.fetchall()]
-        cur.close()
-    return rows
+    return _fetch_rows(_ORPHAN_FUTURE_SHOWS_QUERY)
 
 
 def _fetch_active_no_source_rows() -> list[dict[str, Any]]:
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(_ACTIVE_NO_SOURCE_QUERY)
-        cols = [d[0] for d in cur.description]
-        rows = [dict(zip(cols, r)) for r in cur.fetchall()]
-        cur.close()
-    return rows
+    return _fetch_rows(_ACTIVE_NO_SOURCE_QUERY)
 
 
-def _format_row(row: dict[str, Any]) -> str:
-    values = ", ".join(row.get("last_scraped_by_values") or []) or "-"
-    return (
-        f"  club={row['club_id']} ({row['club_name']!r}, "
-        f"visible={row['visible']}, status={row['status']}) "
-        f"future_shows={row['future_show_count']} "
-        f"last_scraped_by={values} "
-        f"sample_url={row.get('sample_show_page_url') or '-'}"
-    )
+# No arbitrary URLs, provider metadata or credentials are exported.
+_REPORT_FIELDS = (
+    "club_id",
+    "club_name",
+    "visible",
+    "status",
+    "future_show_count",
+    "first_future_show",
+    "last_future_show",
+    "last_last_scraped_date",
+    "last_aggregate_scraped_date",
+)
 
 
-def _format_active_no_source_row(row: dict[str, Any]) -> str:
-    return (
-        f"  club={row['club_id']} ({row['club_name']!r}, "
-        f"visible={row['visible']}, status={row['status']}) "
-        f"website={row.get('website') or '-'}"
-    )
+def build_report(
+    rows: list[dict[str, Any]], as_of: datetime, days: int = DEFAULT_COVERAGE_DAYS
+) -> dict[str, Any]:
+    classified = []
+    for row in rows:
+        item = {key: row.get(key) for key in _REPORT_FIELDS}
+        if _recent(row.get("last_aggregate_scraped_date"), as_of, days):
+            state = "aggregate_covered"
+        elif _recent(row.get("last_last_scraped_date"), as_of, days):
+            state = "recently_written_unknown_source"
+        else:
+            state = "coverage_unverified"
+        item["coverage_state"] = state
+        classified.append(item)
+    unresolved = [r for r in classified if r["coverage_state"] == "coverage_unverified"]
+    review = [r for r in unresolved if r["visible"] is True and r["status"] == "active"]
+    return {
+        "as_of": as_of.isoformat(),
+        "coverage_days": days,
+        "no_direct_source_clubs": classified,
+        "aggregate_covered_clubs": [
+            r for r in classified if r["coverage_state"] == "aggregate_covered"
+        ],
+        "recently_written_unknown_source_clubs": [
+            r
+            for r in classified
+            if r["coverage_state"] == "recently_written_unknown_source"
+        ],
+        "coverage_unverified_clubs": unresolved,
+        "review_required_clubs": review,
+        # Legacy names retained for consumers, now limited to unresolved evidence.
+        "orphan_future_show_clubs": [
+            r for r in unresolved if (r["future_show_count"] or 0) > 0
+        ],
+        "active_no_source_clubs": [r for r in review if not r["future_show_count"]],
+    }
 
 
-def _print_human_report(rows: list[dict[str, Any]], *, stream=None) -> None:
-    if stream is None:
-        stream = sys.stdout
-    if not rows:
-        print(
-            "OK: No clubs have future shows without an enabled scraping_sources row.",
-            file=stream,
-        )
-        return
-
+def _print_report(report: dict[str, Any], stream: Any) -> None:
     print(
-        f"ERROR: {len(rows)} club(s) have future shows but no enabled "
-        "scraping_sources row:",
+        f"INFO: {len(report['no_direct_source_clubs'])} club(s) lack a direct enabled source; "
+        f"{len(report['aggregate_covered_clubs'])} have recent aggregate coverage; "
+        f"{len(report['recently_written_unknown_source_clubs'])} have other recent writes.",
         file=stream,
     )
-    print(file=stream)
-    for row in rows:
-        print(_format_row(row), file=stream)
-
-
-def _print_active_no_source_report(
-    rows: list[dict[str, Any]],
-    *,
-    stream=None,
-) -> None:
-    if stream is None:
-        stream = sys.stdout
-
-    if not rows:
+    rows = report["review_required_clubs"]
+    if rows:
         print(
-            "OK: No active clubs are missing an enabled scraping_sources row.",
+            f"REVIEW: {len(rows)} active visible club(s) have unverified ingestion coverage; "
+            "absence of recent evidence does not prove ingestion is missing.",
             file=stream,
         )
-        return
-
-    print(file=stream)
-    print(
-        f"ERROR: {len(rows)} active club(s) have no enabled scraping_sources row:",
-        file=stream,
-    )
-    print(file=stream)
-    for row in rows:
-        print(_format_active_no_source_row(row), file=stream)
+        for row in rows:
+            print(
+                f"  club={row['club_id']} ({row['club_name']!r}) "
+                f"future_shows={row['future_show_count']}",
+                file=stream,
+            )
+    else:
+        print(
+            "OK: No active visible clubs need ingestion-coverage review.", file=stream
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description=(
-            "Find clubs with future shows but no enabled scraping_sources row, "
-            "and active clubs missing an enabled scraping_sources row entirely. "
-            "Exits 2 when either invariant is violated, 0 otherwise."
-        )
+        description="Review missing direct sources using recent ingestion provenance."
     )
     parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Emit a JSON document on stdout instead of the human-readable report.",
+        "--json", action="store_true", help="Emit JSON; human diagnostics go to stderr."
     )
+    parser.add_argument("--coverage-days", type=int, default=DEFAULT_COVERAGE_DAYS)
     args = parser.parse_args(argv)
-
+    if args.coverage_days < 1 or args.coverage_days > 365:
+        parser.error("--coverage-days must be between 1 and 365")
     try:
-        orphan_rows = _fetch_orphan_future_show_rows()
-        active_no_source_rows = _fetch_active_no_source_rows()
+        rows = _fetch_orphan_future_show_rows() + _fetch_active_no_source_rows()
+        report = build_report(rows, datetime.now(timezone.utc), args.coverage_days)
     except Exception as exc:
-        print(f"ERROR: failed to query scraping source invariants: {exc}", file=sys.stderr)
+        # Exception messages may contain connection URLs/passwords.
+        print(
+            f"ERROR: failed to query scraping source invariants ({type(exc).__name__})",
+            file=sys.stderr,
+        )
         return 1
-
     if args.json:
-        payload = {
-            "orphan_future_show_clubs": orphan_rows,
-            "active_no_source_clubs": active_no_source_rows,
-        }
-        print(json.dumps(payload, default=str, indent=2))
-        _print_human_report(orphan_rows, stream=sys.stderr)
-        _print_active_no_source_report(active_no_source_rows, stream=sys.stderr)
-    else:
-        _print_human_report(orphan_rows)
-        _print_active_no_source_report(active_no_source_rows)
-
-    return 2 if (orphan_rows or active_no_source_rows) else 0
+        print(json.dumps(report, default=str, indent=2))
+    _print_report(report, sys.stderr if args.json else sys.stdout)
+    return 2 if report["review_required_clubs"] else 0
 
 
 if __name__ == "__main__":

@@ -31,7 +31,7 @@ def test_midnight_checks_use_timezone_conversion():
     # The fully-converted pattern: the show's date is shifted into the club's
     # wall-clock via AT TIME ZONE before the time-of-day cast.
     converted = re.findall(
-        r"AT TIME ZONE COALESCE\(c\.timezone, 'UTC'\)\)::time = '00:00:00'",
+        r"AT TIME ZONE c\.timezone\)::time = '00:00:00'",
         _SOURCE,
     )
     # Two midnight queries: the implausible-dates query references it once
@@ -60,4 +60,5 @@ def test_no_bare_utc_midnight_comparison_remains():
 def test_midnight_queries_join_clubs_for_timezone():
     """The midnight queries must join clubs to resolve each show's timezone."""
     assert "LEFT JOIN clubs c ON c.id = s.club_id" in _SOURCE
-    assert "COALESCE(c.timezone, 'UTC')" in _SOURCE
+    assert "COALESCE(c.timezone, 'UTC')" not in _SOURCE
+    assert "unknown_local_time" in _SOURCE
