@@ -1,0 +1,3458 @@
+{
+  "captured_at": "2026-09-27T17:53:27.889760+00:00",
+  "identities": [
+    {
+      "id": 712,
+      "uuid": "84835facb19d09ae8c9858081a02bb6f",
+      "name": "Joyelle Nicole Johnson",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "joyellenicole",
+      "instagram_followers": 43000,
+      "instagram_followers_refreshed_at": "2026-07-25 08:53:54.703504+00:00",
+      "popularity": 0.097,
+      "website": "https://jococruise.com/joyelle-nicole-johnson/",
+      "home_city": "New York",
+      "home_state": "NY",
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 735,
+      "uuid": "4a0f853ec9f03b916f056a7c2e01d444",
+      "name": "Sara Hennessey",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "sarahennessey",
+      "instagram_followers": 7424,
+      "instagram_followers_refreshed_at": "2026-07-03 20:16:52.899227+00:00",
+      "popularity": 0.2073,
+      "website": "https://www.sarahennessey.com/about",
+      "home_city": "Brooklyn",
+      "home_state": "NY",
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 746,
+      "uuid": "44a9fc969bd1a5eea2132f3ed366163d",
+      "name": "Julie Lim",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "justnesh",
+      "instagram_followers": 247000,
+      "instagram_followers_refreshed_at": "2026-07-25 08:53:54.703504+00:00",
+      "popularity": 0.0099,
+      "website": null,
+      "home_city": null,
+      "home_state": null,
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 908,
+      "uuid": "b4e3873aadf93f5e2916efdf4b8ae9fe",
+      "name": "Zach McGovern",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "zachmcgovern",
+      "instagram_followers": 20699,
+      "instagram_followers_refreshed_at": "2026-07-03 20:16:52.899227+00:00",
+      "popularity": 0.4408,
+      "website": "https://of.tv/c/zach-mcgovern",
+      "home_city": "New York",
+      "home_state": "NY",
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 14618,
+      "uuid": "c1c24a8837bedbbedf90298f979e66ca",
+      "name": "Jenny Salda\u00f1a",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "littlebrowngirlshow",
+      "instagram_followers": 3072,
+      "instagram_followers_refreshed_at": "2026-07-25 08:49:53.818235+00:00",
+      "popularity": 0.0001,
+      "website": "https://jennysaldana.com/",
+      "home_city": null,
+      "home_state": null,
+      "has_image": false,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 54369,
+      "uuid": "446d2e87934a7db2ba51b2ba6fbfa588",
+      "name": "Just Nesh",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "justnesh",
+      "instagram_followers": 247000,
+      "instagram_followers_refreshed_at": "2026-07-25 08:53:54.703504+00:00",
+      "popularity": 0.4235,
+      "website": "https://justnesh.com/",
+      "home_city": "Southfield",
+      "home_state": "MI",
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 162399,
+      "uuid": "0e84d72f8c102c0051f9fd9f284b9fcc",
+      "name": "Aiden Bishop",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "aidobishop",
+      "instagram_followers": 2681,
+      "instagram_followers_refreshed_at": "2026-07-24 09:00:18.712083+00:00",
+      "popularity": 0.1388,
+      "website": null,
+      "home_city": null,
+      "home_state": null,
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 165737,
+      "uuid": "097f08077638d297fcb8795755d9e8e0",
+      "name": "Sarah Hennessey",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "sarahennessey",
+      "instagram_followers": 7424,
+      "instagram_followers_refreshed_at": "2026-07-03 20:16:52.899227+00:00",
+      "popularity": 0.134,
+      "website": null,
+      "home_city": null,
+      "home_state": null,
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 166992,
+      "uuid": "ea5234938e2632c298cab9378d87c800",
+      "name": "Joyelle Johnson",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "joyellenicole",
+      "instagram_followers": 43000,
+      "instagram_followers_refreshed_at": "2026-07-25 08:53:54.703504+00:00",
+      "popularity": 0.216,
+      "website": "https://jococruise.com/joyelle-nicole-johnson/",
+      "home_city": null,
+      "home_state": null,
+      "has_image": false,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 171846,
+      "uuid": "894e082251c914651c46be80e5b11ba3",
+      "name": "Zack McGovern",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "zachmcgovern",
+      "instagram_followers": 20699,
+      "instagram_followers_refreshed_at": "2026-07-03 20:16:52.899227+00:00",
+      "popularity": 0.1772,
+      "website": null,
+      "home_city": "New York",
+      "home_state": "NY",
+      "has_image": false,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 180157,
+      "uuid": "84be107555ab31e700ea40b27549fb3f",
+      "name": "Aidan Bishop",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "aidobishop",
+      "instagram_followers": 2681,
+      "instagram_followers_refreshed_at": "2026-07-24 09:00:18.712083+00:00",
+      "popularity": 0.1775,
+      "website": null,
+      "home_city": null,
+      "home_state": null,
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 207621,
+      "uuid": "01fc3fddfc01e13c345f7da67dfa3b7a",
+      "name": "Jenny Saldana",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "littlebrowngirlshow",
+      "instagram_followers": 3072,
+      "instagram_followers_refreshed_at": "2026-07-25 08:49:53.818235+00:00",
+      "popularity": 0.1998,
+      "website": null,
+      "home_city": "New York",
+      "home_state": "NY",
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 223894,
+      "uuid": "612feab1556a87ba24f2ab980af854aa",
+      "name": "Cory and Chad",
+      "parent_comedian_id": null,
+      "visible": false,
+      "instagram_account": null,
+      "instagram_followers": null,
+      "instagram_followers_refreshed_at": null,
+      "popularity": 0.1359,
+      "website": "https://hsjchronicle.com/smash-brothers-smash/",
+      "home_city": "Ontario",
+      "home_state": "CA",
+      "has_image": false,
+      "block_reason": "not a comic",
+      "block_added_at": "2026-06-05 12:49:09.989463+00:00"
+    },
+    {
+      "id": 226475,
+      "uuid": "5debc975dfb81fc879ef2039f1323d79",
+      "name": "Marcus D. Wiley",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "marcusdwiley",
+      "instagram_followers": 117000,
+      "instagram_followers_refreshed_at": "2026-07-23 01:40:46.803509+00:00",
+      "popularity": 0.4628,
+      "website": "https://marcusdwiley.com/",
+      "home_city": null,
+      "home_state": null,
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 235139,
+      "uuid": "11c92961155195bc9448ab27f26490c7",
+      "name": "Mojo Brookzz",
+      "parent_comedian_id": null,
+      "visible": false,
+      "instagram_account": null,
+      "instagram_followers": null,
+      "instagram_followers_refreshed_at": null,
+      "popularity": 0.3056,
+      "website": "https://mojo-brookzz.myshopify.com/",
+      "home_city": "Omaha",
+      "home_state": "NE",
+      "has_image": false,
+      "block_reason": "not a comic",
+      "block_added_at": "2026-06-06 16:07:31.514201+00:00"
+    },
+    {
+      "id": 312265,
+      "uuid": "c303bf4200ba3078714cd029032dc003",
+      "name": "Therapy Gecko",
+      "parent_comedian_id": null,
+      "visible": false,
+      "instagram_account": null,
+      "instagram_followers": null,
+      "instagram_followers_refreshed_at": null,
+      "popularity": 0.162,
+      "website": null,
+      "home_city": null,
+      "home_state": null,
+      "has_image": false,
+      "block_reason": "manual_removal",
+      "block_added_at": "2026-04-04 19:50:40.950435+00:00"
+    },
+    {
+      "id": 440843,
+      "uuid": "7c9f20c773222759068554dac0918729",
+      "name": "Cory and Chad - The Smash Brothers",
+      "parent_comedian_id": 223894,
+      "visible": true,
+      "instagram_account": null,
+      "instagram_followers": null,
+      "instagram_followers_refreshed_at": null,
+      "popularity": 0.144,
+      "website": "https://www.superfunnycomedyclub.com/shows/340809",
+      "home_city": null,
+      "home_state": null,
+      "has_image": false,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 444574,
+      "uuid": "987b19908f0241bf0102f56cc627b656",
+      "name": "Mojo Brookzz: I Know You F*ckin' Lying Tour",
+      "parent_comedian_id": 235139,
+      "visible": false,
+      "instagram_account": null,
+      "instagram_followers": null,
+      "instagram_followers_refreshed_at": null,
+      "popularity": 0.0,
+      "website": null,
+      "home_city": null,
+      "home_state": null,
+      "has_image": false,
+      "block_reason": "Decorated performer title; retain reviewed canonical parent and real performer links.",
+      "block_added_at": "2026-09-24 15:45:38.114411+00:00"
+    },
+    {
+      "id": 535810,
+      "uuid": "ef35941a3acc05a46cf84b4c5ef2ef7c",
+      "name": "Jane Don't Does America",
+      "parent_comedian_id": 549605,
+      "visible": true,
+      "instagram_account": null,
+      "instagram_followers": null,
+      "instagram_followers_refreshed_at": null,
+      "popularity": 0.0756,
+      "website": null,
+      "home_city": "Los Angeles",
+      "home_state": "CA",
+      "has_image": false,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 549605,
+      "uuid": "4496192f2de8b3bba5598c43cd6f9441",
+      "name": "Jane Don't",
+      "parent_comedian_id": null,
+      "visible": false,
+      "instagram_account": null,
+      "instagram_followers": null,
+      "instagram_followers_refreshed_at": null,
+      "popularity": 0.162,
+      "website": "https://heyjanedont.com/",
+      "home_city": null,
+      "home_state": null,
+      "has_image": false,
+      "block_reason": "not a comic",
+      "block_added_at": "2026-08-19 13:55:28.852483+00:00"
+    },
+    {
+      "id": 1068549,
+      "uuid": "88fb887986d118070a05ceda7372a13c",
+      "name": "Therapy Gecko Live",
+      "parent_comedian_id": 312265,
+      "visible": true,
+      "instagram_account": null,
+      "instagram_followers": null,
+      "instagram_followers_refreshed_at": null,
+      "popularity": 0.1188,
+      "website": null,
+      "home_city": "Appleton",
+      "home_state": "WI",
+      "has_image": false,
+      "block_reason": null,
+      "block_added_at": null
+    },
+    {
+      "id": 1488180,
+      "uuid": "ea5ac6ed07798d2b18fa0e220a1a8f75",
+      "name": "Marcus Wiley",
+      "parent_comedian_id": null,
+      "visible": true,
+      "instagram_account": "marcusdwiley",
+      "instagram_followers": 118000,
+      "instagram_followers_refreshed_at": "2026-08-05 13:16:42.539000+00:00",
+      "popularity": 0.416,
+      "website": null,
+      "home_city": null,
+      "home_state": null,
+      "has_image": true,
+      "block_reason": null,
+      "block_added_at": null
+    }
+  ],
+  "dependencies": [
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "lineups": 9,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 3
+    },
+    {
+      "id": 735,
+      "name": "Sara Hennessey",
+      "lineups": 6,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 746,
+      "name": "Julie Lim",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "lineups": 70,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 1
+    },
+    {
+      "id": 14618,
+      "name": "Jenny Salda\u00f1a",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "lineups": 16,
+      "upcoming": 13,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 162399,
+      "name": "Aiden Bishop",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 165737,
+      "name": "Sarah Hennessey",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 166992,
+      "name": "Joyelle Johnson",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 6
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "lineups": 13,
+      "upcoming": 1,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 180157,
+      "name": "Aidan Bishop",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 207621,
+      "name": "Jenny Saldana",
+      "lineups": 5,
+      "upcoming": 1,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "lineups": 13,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 1,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "lineups": 143,
+      "upcoming": 64,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 235139,
+      "name": "Mojo Brookzz",
+      "lineups": 8,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 1,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 312265,
+      "name": "Therapy Gecko",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 1,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 440843,
+      "name": "Cory and Chad - The Smash Brothers",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 444574,
+      "name": "Mojo Brookzz: I Know You F*ckin' Lying Tour",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 535810,
+      "name": "Jane Don't Does America",
+      "lineups": 1,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 549605,
+      "name": "Jane Don't",
+      "lineups": 0,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 1,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 1068549,
+      "name": "Therapy Gecko Live",
+      "lineups": 2,
+      "upcoming": 0,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "lineups": 19,
+      "upcoming": 19,
+      "favorites": 0,
+      "children": 0,
+      "podcasts": 0,
+      "appearances": 0
+    }
+  ],
+  "lineup_provenance": [
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "show_id": 229030,
+      "show_name": "Fat Black Pussycat (Lounge)",
+      "date": "2025-04-12 01:00:00+00:00",
+      "venue": "Comedy Cellar New York",
+      "show_page_url": "https://www.comedycellar.com/reservations-newyork/?showid=1744419600"
+    },
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "show_id": 229033,
+      "show_name": "MacDougal Street",
+      "date": "2025-04-12 02:45:00+00:00",
+      "venue": "Comedy Cellar New York",
+      "show_page_url": "https://www.comedycellar.com/reservations-newyork/?showid=1744425900"
+    },
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "show_id": 229045,
+      "show_name": "Fat Black Pussycat (Lounge)",
+      "date": "2025-04-13 01:00:00+00:00",
+      "venue": "Comedy Cellar New York",
+      "show_page_url": "https://www.comedycellar.com/reservations-newyork/?showid=1744506000"
+    },
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "show_id": 229060,
+      "show_name": "Village Underground",
+      "date": "2025-04-14 00:00:00+00:00",
+      "venue": "Comedy Cellar New York",
+      "show_page_url": "https://www.comedycellar.com/reservations-newyork/?showid=1744588800"
+    },
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "show_id": 229100,
+      "show_name": "Village Underground",
+      "date": "2025-04-18 03:30:00+00:00",
+      "venue": "Comedy Cellar New York",
+      "show_page_url": "https://www.comedycellar.com/reservations-newyork/?showid=1744947000"
+    },
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "show_id": 243057,
+      "show_name": "MacDougal Street",
+      "date": "2025-04-18 04:30:00+00:00",
+      "venue": "Comedy Cellar New York",
+      "show_page_url": "https://www.comedycellar.com/reservations-newyork/?showid=1744950600"
+    },
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "show_id": 243070,
+      "show_name": "Fat Black Pussycat (Bar)",
+      "date": "2025-04-20 03:30:00+00:00",
+      "venue": "Comedy Cellar New York",
+      "show_page_url": "https://www.comedycellar.com/reservations-newyork/?showid=1745119800"
+    },
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "show_id": 243082,
+      "show_name": "MacDougal Street",
+      "date": "2025-04-21 01:30:00+00:00",
+      "venue": "Comedy Cellar New York",
+      "show_page_url": "https://www.comedycellar.com/reservations-newyork/?showid=1745199000"
+    },
+    {
+      "id": 712,
+      "name": "Joyelle Nicole Johnson",
+      "show_id": 1223173,
+      "show_name": "Fat Black Pussycat Lounge",
+      "date": "2026-05-01 01:00:00+00:00",
+      "venue": "Comedy Cellar New York",
+      "show_page_url": "https://www.comedycellar.com/reservations-newyork/?showid=1777597200"
+    },
+    {
+      "id": 735,
+      "name": "Sara Hennessey",
+      "show_id": 541688,
+      "show_name": "Best of Brooklyn Stand-Up Comedy",
+      "date": "2026-04-07 01:30:00+00:00",
+      "venue": "The Tiny Cupboard",
+      "show_page_url": "https://www.thetinycupboard.com/events/best-of-brooklyn-stand-up-comedy-145"
+    },
+    {
+      "id": 735,
+      "name": "Sara Hennessey",
+      "show_id": 1402934,
+      "show_name": "Best of Brooklyn Stand-Up Comedy",
+      "date": "2026-05-02 23:00:00+00:00",
+      "venue": "The Tiny Cupboard",
+      "show_page_url": "https://www.thetinycupboard.com/events/best-of-brooklyn-stand-up-comedy-3-255"
+    },
+    {
+      "id": 735,
+      "name": "Sara Hennessey",
+      "show_id": 1402948,
+      "show_name": "Best of Brooklyn Stand-Up Comedy",
+      "date": "2026-05-08 00:30:00+00:00",
+      "venue": "The Tiny Cupboard",
+      "show_page_url": "https://www.thetinycupboard.com/events/best-of-brooklyn-stand-up-comedy-1-19"
+    },
+    {
+      "id": 735,
+      "name": "Sara Hennessey",
+      "show_id": 1402963,
+      "show_name": "Best of Brooklyn Stand-Up Comedy",
+      "date": "2026-05-12 00:00:00+00:00",
+      "venue": "The Tiny Cupboard",
+      "show_page_url": "https://www.thetinycupboard.com/events/best-of-brooklyn-stand-up-comedy-184"
+    },
+    {
+      "id": 735,
+      "name": "Sara Hennessey",
+      "show_id": 4686064,
+      "show_name": "Sara Hennessey's Stand Up Level 1 Class Show (Wednesday Section)",
+      "date": "2026-08-28 23:00:00.370000+00:00",
+      "venue": "Brooklyn Comedy Collective",
+      "show_page_url": "https://www.brooklyncomedy.com/show-schedule/standup1-sara-8-28"
+    },
+    {
+      "id": 735,
+      "name": "Sara Hennessey",
+      "show_id": 4686163,
+      "show_name": "Sara Hennessey's Stand Up Level 1 Class Show (Sunday Section)",
+      "date": "2026-09-02 23:00:00.847000+00:00",
+      "venue": "Brooklyn Comedy Collective",
+      "show_page_url": "https://www.brooklyncomedy.com/show-schedule/standup1-sara-9-2"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 275322,
+      "show_name": "Zach McGovern, Neil Wood, Jill Weiner, Rus Gutin",
+      "date": "2025-04-05 00:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-neil-wood-jill-weiner-rus-gutin"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 275318,
+      "show_name": "Zach McGovern, Eagle Witt, Caitlin Reese, Rus Gutin",
+      "date": "2025-04-05 23:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-eagle-witt-caitlin-reese-rus-gutin"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 275319,
+      "show_name": "Zach McGovern, Eagle Witt, Caitlin Reese, Rus Gutin",
+      "date": "2025-04-06 01:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-eagle-witt-caitlin-reese-rus-gutin-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 182540,
+      "show_name": "Laughing Buddha Comedy ft: Jeff Lawrence, Zach McGovern, Daryn Passarello, Dylan O\u2019Keeffe, Tanner Simon, Michael Fleming, and more. ",
+      "date": "2025-04-13 22:00:00+00:00",
+      "venue": "New York Comedy Club Upper West Side",
+      "show_page_url": "https://newyorkcomedyclub.com/events/laughing-buddha-comedy-ft-jeff-lawrence-zach-mcgovern-daryn-passarello-dylan-o-keeffe-tanner-simon-michael-fleming-and-more"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 182903,
+      "show_name": "Jon Fisch, Zach McGovern, Anthony Moore, Nonye Brown-West, Shannon Fiedler",
+      "date": "2025-04-20 02:00:00+00:00",
+      "venue": "West Side Comedy Club",
+      "show_page_url": "https://www.westsidecomedyclub.com/events/jon-fisch-zach-mcgovern-anthony-moore-nonye-brown-west-shannon-fiedler"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 275342,
+      "show_name": "Ontonio Kareem, Zach McGovern, Jill Weiner, Rus Gutin",
+      "date": "2025-04-26 00:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/ontonio-kareem-zach-mcgovern-jill-weiner-rus-gutin"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 275343,
+      "show_name": "Zach McGovern, Napoleon Emill, Michele Durante, Rus Gutin",
+      "date": "2025-04-26 23:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-napoleon-emill-michele-durante-rus-gutin"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 275344,
+      "show_name": "Zach McGovern, Napoleon Emill, Michele Durante, Rus Gutin",
+      "date": "2025-04-27 01:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-napoleon-emill-michele-durante-rus-gutin-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 182570,
+      "show_name": "Laughing Buddha Comedy ft: Jeff Lawrence, Zach McGovern, Daryn Passarello, Dylan O\u2019Keeffe, Tanner Simon, Michael Fleming, and more. ",
+      "date": "2025-04-27 22:00:00+00:00",
+      "venue": "New York Comedy Club Upper West Side",
+      "show_page_url": "https://newyorkcomedyclub.com/events/laughing-buddha-comedy-ft-jeff-lawrence-zach-mcgovern-daryn-passarello-dylan-o-keeffe-tanner-simon-michael-fleming-and-more-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 275348,
+      "show_name": "Divya Gunasekaran, Zach McGovern, Derek Humphrey, Andrew Manning",
+      "date": "2025-05-02 00:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": ""
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 304766,
+      "show_name": "Kaneez Surka, Zach McGovern, Julio Diaz, Rus Gutin",
+      "date": "2025-06-07 00:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/calendar"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 305744,
+      "show_name": "Alingon Mitra, Marina Franklin, Gus Tate, Tushar Singh, Michael Brigante",
+      "date": "2025-06-07 22:15:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/calendar"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 304617,
+      "show_name": "Midtown Comedy Club: Daniel Simonsen, Vincent James, Sean Conrad, Kate Willett, Zach McGovern, Sheba Mason, Shivaan Nadan",
+      "date": "2025-06-07 22:30:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://darkhorsecomedyclub.com/calendar"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 304615,
+      "show_name": "Midtown Comedy Club: Daniel Simonsen, Vincent James, Sean Conrad, Kate Willett, Zach McGovern, Sheba Mason, Shivaan Nadan",
+      "date": "2025-06-07 22:30:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://tribecacomedyclub.com/calendar"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 304619,
+      "show_name": "Midtown Comedy Club: Daniel Simonsen, Vincent James, Sean Conrad, Kate Willett, Zach McGovern, Sheba Mason, Shivaan Nadan",
+      "date": "2025-06-07 22:30:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://midtowncomedyclub.com/calendar"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 304791,
+      "show_name": "Zach McGovern, Jesse Eigner, Abby Washuta, Rus Gutin",
+      "date": "2025-06-28 00:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/calendar"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 337978,
+      "show_name": "Krystyna Hutchinson, Neko White, Zach McGovern, Mike Bramante, Joey Hamburger",
+      "date": "2026-03-07 20:00:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/krystyna-hutchinson-neko-white-zach-mcgovern-mike-bramante-joey-hamburger"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338509,
+      "show_name": "Alingon Mitra, Roberto Garcia, Sean Conrad, Danny Palmer, Zach McGovern, Sheba Mason, Keenan Steiner",
+      "date": "2026-03-08 00:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/alingon-mitra-roberto-garcia-sean-conrad-danny-palmer-zach-mcgovern-sheba-mason-keenan-steiner"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338500,
+      "show_name": "Alingon Mitra, Roberto Garcia, Sean Conrad, Danny Palmer, Zach McGovern, Sheba Mason, Keenan Steiner",
+      "date": "2026-03-08 00:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/alingon-mitra-roberto-garcia-sean-conrad-danny-palmer-zach-mcgovern-sheba-mason-keenan-steiner-dark-horse-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338491,
+      "show_name": "Alingon Mitra, Roberto Garcia, Sean Conrad, Danny Palmer, Zach McGovern, Sheba Mason, Keenan Steiner",
+      "date": "2026-03-08 00:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/alingon-mitra-roberto-garcia-sean-conrad-danny-palmer-zach-mcgovern-sheba-mason-keenan-steiner-tribeca-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338510,
+      "show_name": "Paul Ollinger, Alingon Mitra, Roberto Garcia, Sean Conrad, Zach McGovern, Sheba Mason",
+      "date": "2026-03-08 02:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/paul-ollinger-alingon-mitra-roberto-garcia-sean-conrad-zach-mcgovern-sheba-mason"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338501,
+      "show_name": "Paul Ollinger, Alingon Mitra, Roberto Garcia, Sean Conrad, Zach McGovern, Sheba Mason",
+      "date": "2026-03-08 02:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/paul-ollinger-alingon-mitra-roberto-garcia-sean-conrad-zach-mcgovern-sheba-mason-dark-horse-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338492,
+      "show_name": "Paul Ollinger, Alingon Mitra, Roberto Garcia, Sean Conrad, Zach McGovern, Sheba Mason",
+      "date": "2026-03-08 02:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/paul-ollinger-alingon-mitra-roberto-garcia-sean-conrad-zach-mcgovern-sheba-mason-tribeca-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338494,
+      "show_name": "Midtown Comedy Club: Isabel Hagen, Adam Strauss, Roberto Garcia, Danny Palmer, Zach McGovern, Andrea Allan",
+      "date": "2026-03-13 23:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/midtown-comedy-club-isabel-hagen-adam-strauss-roberto-garcia-danny-palmer-zach-mcgovern-andrea-allan-tribeca-comedy-club-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338503,
+      "show_name": "Midtown Comedy Club: Isabel Hagen, Adam Strauss, Roberto Garcia, Danny Palmer, Zach McGovern, Andrea Allan",
+      "date": "2026-03-13 23:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/midtown-comedy-club-isabel-hagen-adam-strauss-roberto-garcia-danny-palmer-zach-mcgovern-andrea-allan-dark-horse-comedy-club-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338512,
+      "show_name": "Midtown Comedy Club: Isabel Hagen, Adam Strauss, Roberto Garcia, Danny Palmer, Zach McGovern, Andrea Allan",
+      "date": "2026-03-13 23:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/midtown-comedy-club-isabel-hagen-adam-strauss-roberto-garcia-danny-palmer-zach-mcgovern-andrea-allan-2026-03-11140858"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338031,
+      "show_name": "Emma Willmann, Jared Harvin, Zach McGovern, Irina Chelidze, Alex Babbitt",
+      "date": "2026-03-14 19:00:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/emma-willmann-jared-harvin-zach-mcgovern-irina-chelidze-alex-babbitt"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338034,
+      "show_name": "Marina Franklin, Shane Torres, Tom Cassidy, Zach McGovern",
+      "date": "2026-03-14 21:30:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/marina-franklin-shane-torres-tom-cassidy-zach-mcgovern"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338566,
+      "show_name": "Nick Viagas, Zach McGovern, Lily Lester, Rus Gutin",
+      "date": "2026-03-21 00:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/nick-viagas-zach-mcgovern-lily-lester-rus-gutin"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338567,
+      "show_name": "Marion Grodin, Zach McGovern, Derek Humphrey, Rus Gutin",
+      "date": "2026-03-21 23:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/marion-grodin-zach-mcgovern-derek-humphrey-rus-gutin"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 338568,
+      "show_name": "Marion Grodin, Zach McGovern, Derek Humphrey, Rus Gutin",
+      "date": "2026-03-22 01:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/marion-grodin-zach-mcgovern-derek-humphrey-rus-gutin-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 542651,
+      "show_name": "Divya Gunasekaran, Igor Martinez, Zach McGovern, Rus Gutin",
+      "date": "2026-04-11 00:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/divya-gunasekaran-igor-martinez-zach-mcgovern-rus-gutin"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1558283,
+      "show_name": "Daniel Simonsen, Sean Conrad, Katie Boyle, Sheba Mason, Teresa DeGaetano, Zach McGovern",
+      "date": "2026-05-09 00:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/daniel-simonsen-sean-conrad-katie-boyle-sheba-mason-teresa-degaetano"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1558201,
+      "show_name": "Daniel Simonsen, Sean Conrad, Katie Boyle, Sheba Mason, Teresa DeGaetano, Zach McGovern",
+      "date": "2026-05-09 00:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-sean-conrad-katie-boyle-sheba-mason-teresa-degaetano-zach-mcgovern-dark-horse-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1558194,
+      "show_name": "Daniel Simonsen, Sean Conrad, Katie Boyle, Sheba Mason, Teresa DeGaetano, Zach McGovern",
+      "date": "2026-05-09 00:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-sean-conrad-katie-boyle-sheba-mason-teresa-degaetano-zach-mcgovern-tribeca-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1402128,
+      "show_name": "Leonard Ouzts, Mary Santora, Derek Humphrey, Zach McGovern, Jatty Robinson",
+      "date": "2026-05-09 03:30:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/leonard-ouzts-mary-santora-derek-humphrey-zach-mcgovern-jatty-robinson"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1558195,
+      "show_name": "Daniel Simonsen, Sean Conrad, Katie Boyle, Sheba Mason, Teresa DeGaetano, Zach McGovern",
+      "date": "2026-05-09 23:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-sean-conrad-katie-boyle-sheba-mason-teresa-degaetano-zach-mcgovern-tribeca-comedy-club-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1558284,
+      "show_name": "Daniel Simonsen, Sean Conrad, Katie Boyle, Sheba Mason, Teresa DeGaetano, Zach McGovern",
+      "date": "2026-05-09 23:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/daniel-simonsen-sean-conrad-katie-boyle-sheba-mason-teresa-degaetano-zach-mcgovern-2026-05-06164105"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1558202,
+      "show_name": "Daniel Simonsen, Sean Conrad, Katie Boyle, Sheba Mason, Teresa DeGaetano, Zach McGovern",
+      "date": "2026-05-09 23:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-sean-conrad-katie-boyle-sheba-mason-teresa-degaetano-zach-mcgovern-dark-horse-comedy-club-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1558196,
+      "show_name": "Daniel Simonsen, Sean Conrad, Katie Boyle, Sheba Mason, Teresa DeGaetano, Zach McGovern",
+      "date": "2026-05-10 01:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-sean-conrad-katie-boyle-sheba-mason-teresa-degaetano-zach-mcgovern-tribeca-comedy-club-2"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1558203,
+      "show_name": "Daniel Simonsen, Sean Conrad, Katie Boyle, Sheba Mason, Teresa DeGaetano, Zach McGovern",
+      "date": "2026-05-10 01:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-sean-conrad-katie-boyle-sheba-mason-teresa-degaetano-zach-mcgovern-dark-horse-comedy-club-2"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1558285,
+      "show_name": "Daniel Simonsen, Sean Conrad, Katie Boyle, Sheba Mason, Teresa DeGaetano, Zach McGovern",
+      "date": "2026-05-10 01:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/daniel-simonsen-sean-conrad-katie-boyle-sheba-mason-teresa-degaetano-zach-mcgovern-2026-05-06164309"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1404878,
+      "show_name": "Zach McGovern, Julio Diaz, Rus Gutin",
+      "date": "2026-05-16 00:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-julio-diaz-rus-gutin"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1404879,
+      "show_name": "Zach McGovern, Julio Diaz, Rus Gutin",
+      "date": "2026-05-16 21:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-julio-diaz-rus-gutin-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1404880,
+      "show_name": "Zach McGovern, Julio Diaz, Rus Gutin",
+      "date": "2026-05-16 23:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-julio-diaz-rus-gutin-2"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1404881,
+      "show_name": "Zach McGovern, Julio Diaz, Alan Massenburg",
+      "date": "2026-05-17 01:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-julio-diaz-alan-massenburg"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1402155,
+      "show_name": "Reg Thomas, Liz Barrett, Zach McGovern, Daniela Mora",
+      "date": "2026-05-18 23:00:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/reg-thomas-liz-barrett-zach-mcgovern-daniela-mora"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1905774,
+      "show_name": "Daniel Simonsen, Mark Gagnon, Roberto Garcia, Sean Conrad, Zach McGovern, Sheba Mason, CJ Koepp",
+      "date": "2026-05-23 22:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-mark-gagnon-roberto-garcia-sean-conrad-zach-mcgovern-sheba-mason-cj-koepp-dark-horse-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1905785,
+      "show_name": "Daniel Simonsen, Mark Gagnon, Roberto Garcia, Sean Conrad, Zach McGovern, Sheba Mason, CJ Koepp",
+      "date": "2026-05-23 22:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/daniel-simonsen-mark-gagnon-roberto-garcia-sean-conrad-zach-mcgovern-sheba-mason-cj-koepp"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1905712,
+      "show_name": "Daniel Simonsen, Mark Gagnon, Roberto Garcia, Sean Conrad, Zach McGovern, Sheba Mason, CJ Koepp",
+      "date": "2026-05-23 22:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-mark-gagnon-roberto-garcia-sean-conrad-zach-mcgovern-sheba-mason-cj-koepp-tribeca-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1905775,
+      "show_name": "Mark Gagnon, Adam Strauss, Sean Conrad, Zach McGovern, Sheba Mason, Sam Causaj",
+      "date": "2026-05-29 23:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/mark-gagnon-adam-strauss-sean-conrad-zach-mcgovern-sheba-mason-sam-causaj-dark-horse-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1905786,
+      "show_name": "Mark Gagnon, Adam Strauss, Sean Conrad, Zach McGovern, Sheba Mason, Sam Causaj",
+      "date": "2026-05-29 23:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/mark-gagnon-sean-conrad-zach-mcgovern-sheba-mason-adam-strauss-sam-causaj"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1905713,
+      "show_name": "Mark Gagnon, Adam Strauss, Sean Conrad, Zach McGovern, Sheba Mason, Sam Causaj",
+      "date": "2026-05-29 23:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/mark-gagnon-adam-strauss-sean-conrad-zach-mcgovern-sheba-mason-sam-causaj-tribeca-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1402189,
+      "show_name": "Ashton Womack, Matt Pavich, Tom Cassidy, Zach McGovern",
+      "date": "2026-05-31 03:30:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/ashton-womack-matt-pavich-tom-cassidy-zach-mcgovern"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 1402433,
+      "show_name": "Brian Scott McFadden, Fabrizio Copano, Tom Cassidy, Zach McGovern, TaTa Sherise",
+      "date": "2026-06-02 01:15:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/brian-scott-mcfadden-fabrizio-copano-tom-cassidy-zach-mcgovern-tata-sherise"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2366974,
+      "show_name": "Daniel Simonsen, Adam Strauss, Roberto Garcia, Sean Conrad, Sheba Mason, Zach McGovern",
+      "date": "2026-06-06 23:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-adam-strauss-roberto-garcia-sean-conrad-sheba-mason-zach-mcgovern"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2338156,
+      "show_name": "Daniel Simonsen, Adam Strauss, Roberto Garcia, Sean Conrad, Sheba Mason, Zach McGovern",
+      "date": "2026-06-06 23:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/daniel-simonsen-adam-strauss-roberto-garcia-sean-conrad-sheba-mason-zach-mcgovern"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2366980,
+      "show_name": "Daniel Simonsen, Adam Strauss, Roberto Garcia, Sean Conrad, Sheba Mason, Zach McGovern",
+      "date": "2026-06-06 23:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-adam-strauss-roberto-garcia-sean-conrad-sheba-mason-zach-mcgovern-dark-horse-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2366975,
+      "show_name": "Daniel Simonsen, Adam Strauss, Roberto Garcia, Sean Conrad, Sheba Mason, Zach McGovern",
+      "date": "2026-06-07 01:00:00+00:00",
+      "venue": "Tribeca Comedy Lounge",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-adam-strauss-roberto-garcia-sean-conrad-sheba-mason-zach-mcgovern-tribeca-comedy-club"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2338157,
+      "show_name": "Daniel Simonsen, Adam Strauss, Roberto Garcia, Sean Conrad, Sheba Mason, Zach McGovern",
+      "date": "2026-06-07 01:00:00+00:00",
+      "venue": "Midtown Comedy Club",
+      "show_page_url": "https://www.midtowncomedyclub.com/events/daniel-simonsen-adam-strauss-roberto-garcia-sean-conrad-sheba-mason-zach-mcgovern-2026-06-03140544"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2366981,
+      "show_name": "Daniel Simonsen, Adam Strauss, Roberto Garcia, Sean Conrad, Sheba Mason, Zach McGovern",
+      "date": "2026-06-07 01:00:00+00:00",
+      "venue": "Dark Horse Comedy Club",
+      "show_page_url": "https://www.tribecacomedyclub.com/events/daniel-simonsen-adam-strauss-roberto-garcia-sean-conrad-sheba-mason-zach-mcgovern-dark-horse-comedy-club-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2205928,
+      "show_name": "Zach McGovern, Alex Babbitt, Rus Gutin",
+      "date": "2026-06-13 21:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-alex-babbitt-rus-gutin"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2205929,
+      "show_name": "Zach McGovern, Alex Babbitt, Rus Gutin",
+      "date": "2026-06-13 23:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/zach-mcgovern-alex-babbitt-rus-gutin-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2205939,
+      "show_name": "Ben DeMarco, Zach McGovern, Rus Gutin",
+      "date": "2026-06-20 23:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/ben-demarco-zach-mcgovern-rus-gutin-1"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 2205940,
+      "show_name": "Ben DeMarco, Zach McGovern",
+      "date": "2026-06-21 01:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/ben-demarco-zach-mcgovern"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 3576827,
+      "show_name": "David James, Zach McGovern, Derek Humphrey",
+      "date": "2026-07-25 23:00:00+00:00",
+      "venue": "Atlantic City Comedy Club",
+      "show_page_url": "https://atlanticcitycomedyclub.com/events/david-james-zach-mcgovern-derek-humphrey"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 4118584,
+      "show_name": "Ayanna Dookie, Katie Hannigan, JC Mendoza, Zach McGovern, Maxwell Fine",
+      "date": "2026-08-15 03:30:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/ayanna-dookie-katie-hannigan-jc-mendoza-zach-mcgovern-maxwell-fine"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 6138293,
+      "show_name": "Judah Friedlander, Eagle Witt, Caroline Hanes, Graham Kay, Zach McGovern",
+      "date": "2026-08-31 01:20:00+00:00",
+      "venue": "New York Comedy Club Upper West Side",
+      "show_page_url": "https://newyorkcomedyclub.com/events/judah-friedlander-graham-kay-zach-mcgovern"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 4834258,
+      "show_name": "Damien Lemon, Talent Harris Jr, Rachel Williams, Zach McGovern, Nikki MacCallum",
+      "date": "2026-09-02 01:15:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/damien-lemon-talent-harris-jr-rachel-williams-zach-mcgovern-nikki-maccallum"
+    },
+    {
+      "id": 908,
+      "name": "Zach McGovern",
+      "show_id": 5684112,
+      "show_name": "Maximilian Spinelli, Aaron McCann, Zach McGovern, Erik Terrell, Salma Zaky",
+      "date": "2026-09-19 03:30:00+00:00",
+      "venue": "New York Comedy Club Midtown",
+      "show_page_url": "https://newyorkcomedyclub.com/events/maximilian-spinelli-aaron-mccann-zach-mcgovern-erik-terrell-salma-zaky"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 2202520,
+      "show_name": "Blkrose Productions Presents: Isiah Kelly, Sydney Castillo, Just Nesh Hosted By Sinck",
+      "date": "2026-06-07 22:00:00+00:00",
+      "venue": "Eastville Comedy Club Brooklyn",
+      "show_page_url": "https://www.eastvillecomedy.com/events/blkrose-productions-presents-isiah-kelly-sydney-castillo-just-nesh-hosted-by-sinck"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 3144259,
+      "show_name": "Sam Jay's Starting Lineup featuring Sam Jay, Zainab Johnson, Punkie Johnson, Just Nesh, Syd Colson, and TP",
+      "date": "2026-07-24 01:00:00+00:00",
+      "venue": "Thalia Hall",
+      "show_page_url": "https://www.ticketweb.com/event/sam-jays-starting-lineup-featuring-thalia-hall-tickets/14195424"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 4763516,
+      "show_name": "Uptown Comedy Presents: Uptown Saturday Night Chicago Takeover w Just Nesh",
+      "date": "2026-08-16 00:30:00+00:00",
+      "venue": "Uptown Comedy Corner",
+      "show_page_url": "https://www.eventbrite.com/e/uptown-comedy-presents-uptown-saturday-night-chicago-takeover-w-just-nesh-tickets-1995872824345"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 7510494,
+      "show_name": "The Red Room at Cap City: Just Nesh",
+      "date": "2026-09-30 02:15:00+00:00",
+      "venue": "Cap City Comedy Club",
+      "show_page_url": "https://www.capcitycomedy.com/shows/385578"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 6082156,
+      "show_name": "Just Nesh",
+      "date": "2026-09-30 02:30:00+00:00",
+      "venue": "Cap City Comedy Club",
+      "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1AAvofY"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 5260517,
+      "show_name": "Just Nesh",
+      "date": "2026-10-01 00:30:00+00:00",
+      "venue": "Arlington Improv",
+      "show_page_url": "https://www.ticketweb.com/event/just-nesh-arlington-improv-tickets/15025073?REFERRAL_ID=tmfeed"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 974758,
+      "show_name": "Just Nesh",
+      "date": "2026-10-02 00:30:00+00:00",
+      "venue": "Houston Improv",
+      "show_page_url": "https://www.ticketweb.com/event/just-nesh-houston-improv-tickets/15025113?pl=houstonimprov&REFID=houstonWP"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 5276354,
+      "show_name": "Just Nesh",
+      "date": "2026-10-19 02:00:00+00:00",
+      "venue": "Tommy T's Pleasanton",
+      "show_page_url": "http://tommyts.com/shows/383360"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 5004020,
+      "show_name": "JUST NESH",
+      "date": "2026-10-23 23:30:00+00:00",
+      "venue": "Punchline Comedy Lounge",
+      "show_page_url": "https://www.comedypunchline.com/shows/382916"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 5004021,
+      "show_name": "JUST NESH",
+      "date": "2026-10-24 02:00:00+00:00",
+      "venue": "Punchline Comedy Lounge",
+      "show_page_url": "https://www.comedypunchline.com/shows/382917"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 5004022,
+      "show_name": "JUST NESH",
+      "date": "2026-10-24 23:30:00+00:00",
+      "venue": "Punchline Comedy Lounge",
+      "show_page_url": "https://www.comedypunchline.com/shows/382918"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 5004023,
+      "show_name": "JUST NESH",
+      "date": "2026-10-25 02:00:00+00:00",
+      "venue": "Punchline Comedy Lounge",
+      "show_page_url": "https://www.comedypunchline.com/shows/382919"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 5004024,
+      "show_name": "JUST NESH",
+      "date": "2026-10-25 22:30:00+00:00",
+      "venue": "Punchline Comedy Lounge",
+      "show_page_url": "https://www.comedypunchline.com/shows/382920"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 5239049,
+      "show_name": "Just Nesh",
+      "date": "2026-10-29 23:00:00+00:00",
+      "venue": "Virginia Beach Funny Bone",
+      "show_page_url": "https://vb.funnybone.com/event/just-nesh/virginia-beach-funny-bone-comedy-club"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 5241570,
+      "show_name": "Just Nesh",
+      "date": "2026-11-01 23:30:00+00:00",
+      "venue": "Cleveland Funny Bone",
+      "show_page_url": "https://cleveland.funnybone.com/event/just-nesh/cleveland-improv"
+    },
+    {
+      "id": 54369,
+      "name": "Just Nesh",
+      "show_id": 6816790,
+      "show_name": "Special Event: Just Nesh",
+      "date": "2026-12-12 21:00:00+00:00",
+      "venue": "Helium Comedy Club",
+      "show_page_url": "https://philadelphia.heliumcomedy.com/shows/387622"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 182584,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2025-04-05 21:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://thestandnyc.com//shows/show/10602/2025-04-05-170000-laughing-buddha-comedy"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 182618,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2025-04-12 22:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://thestandnyc.com//shows/show/10593/2025-04-12-180000-laughing-buddha-comedy"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 182650,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2025-04-19 21:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://thestandnyc.com//shows/show/10588/2025-04-19-170000-laughing-buddha-comedy"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 182683,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2025-04-26 22:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://thestandnyc.com//shows/show/10583/2025-04-26-180000-laughing-buddha-comedy"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 300596,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2025-06-14 21:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://www.tixr.com/groups/thestandnyc/events/laughing-buddha-comedy-145940"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 300528,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2025-06-21 21:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://www.tixr.com/groups/thestandnyc/events/laughing-buddha-comedy-145941"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 300570,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2025-06-28 22:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://www.tixr.com/groups/thestandnyc/events/laughing-buddha-comedy-145942"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 347146,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2026-03-21 21:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://www.tixr.com/groups/thestandnyc/events/laughing-buddha-comedy-179845"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 470529,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2026-03-28 22:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://www.tixr.com/groups/thestandnyc/events/laughing-buddha-comedy-179844"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 524565,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2026-04-04 21:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://www.tixr.com/groups/thestandnyc/events/laughing-buddha-comedy-183122"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 837436,
+      "show_name": "Laughing Buddha Comedy",
+      "date": "2026-04-11 21:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://www.tixr.com/groups/thestandnyc/events/laughing-buddha-comedy-183123"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 4615686,
+      "show_name": "Live Comedy featuring Elon Gold, Chloe Radcliffe, Charles McBee, & More!",
+      "date": "2026-08-13 23:00:00+00:00",
+      "venue": "West Side Comedy Club",
+      "show_page_url": "https://event.tixologi.com/event/9211/tickets"
+    },
+    {
+      "id": 171846,
+      "name": "Zack McGovern",
+      "show_id": 7199980,
+      "show_name": "Friday Shows",
+      "date": "2026-10-03 00:00:00+00:00",
+      "venue": "West Side Comedy Club",
+      "show_page_url": "https://event.tixologi.com/event/9122/tickets"
+    },
+    {
+      "id": 207621,
+      "name": "Jenny Saldana",
+      "show_id": 338292,
+      "show_name": "Primetime Comedy Show at The Grisly Pear Midtown",
+      "date": "2026-03-07 00:30:00+00:00",
+      "venue": "The Grisly Pear Greenwich Village",
+      "show_page_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-midtown-03-06-26-07-30-pm"
+    },
+    {
+      "id": 207621,
+      "name": "Jenny Saldana",
+      "show_id": 541529,
+      "show_name": "Primetime Comedy Show at The Grisly Pear Greenwich Village",
+      "date": "2026-04-26 00:00:00+00:00",
+      "venue": "The Grisly Pear Greenwich Village",
+      "show_page_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-04-25-26-08-00-pm"
+    },
+    {
+      "id": 207621,
+      "name": "Jenny Saldana",
+      "show_id": 1402743,
+      "show_name": "Comedy Show at The Grisly Pear Midtown",
+      "date": "2026-05-10 01:30:00+00:00",
+      "venue": "The Grisly Pear Greenwich Village",
+      "show_page_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-05-09-26-09-30-pm"
+    },
+    {
+      "id": 207621,
+      "name": "Jenny Saldana",
+      "show_id": 1402871,
+      "show_name": "Comedy Show at The Grisly Pear Midtown",
+      "date": "2026-05-10 01:30:00+00:00",
+      "venue": "The Grisly Pear Midtown",
+      "show_page_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-05-09-26-09-30-pm"
+    },
+    {
+      "id": 207621,
+      "name": "Jenny Saldana",
+      "show_id": 6580946,
+      "show_name": "Jenny Saldana Presents: HOORAY FOR BOOBIES!",
+      "date": "2026-10-24 22:00:00+00:00",
+      "venue": "The Stand",
+      "show_page_url": "https://www.tixr.com/groups/thestandnyc/events/jenny-saldana-presents-hooray-for-boobies--206103"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283104,
+      "show_name": "The Dirty Show",
+      "date": "2025-05-22 03:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283105,
+      "show_name": "The Dirty Show",
+      "date": "2025-06-19 03:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283106,
+      "show_name": "The Dirty Show",
+      "date": "2025-07-17 03:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283107,
+      "show_name": "The Dirty Show",
+      "date": "2025-08-21 03:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283108,
+      "show_name": "The Dirty Show",
+      "date": "2025-09-18 03:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283109,
+      "show_name": "The Dirty Show",
+      "date": "2025-10-16 03:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283110,
+      "show_name": "The Dirty Show",
+      "date": "2025-11-20 04:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283111,
+      "show_name": "The Dirty Show",
+      "date": "2025-12-18 04:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283112,
+      "show_name": "The Dirty Show",
+      "date": "2026-01-22 04:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283113,
+      "show_name": "The Dirty Show",
+      "date": "2026-02-19 04:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 283114,
+      "show_name": "The Dirty Show",
+      "date": "2026-03-19 03:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://improv.com/comic/cory+and+chad/"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 974600,
+      "show_name": "The Dirty Show 20-Year Anniversary Feat: Pablo Francisco, Concrete, Plus Surprise Guests!",
+      "date": "2026-04-16 03:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://www.ticketweb.com/event/the-dirty-show-20-year-ontario-improv-tickets/14690043?pl=ontarioimprov&REFID=ontarioWP"
+    },
+    {
+      "id": 223894,
+      "name": "Cory and Chad",
+      "show_id": 1382419,
+      "show_name": "The Dirty Show",
+      "date": "2026-05-21 03:00:00+00:00",
+      "venue": "Ontario Improv",
+      "show_page_url": "https://www.ticketweb.com/event/the-dirty-show-ontario-improv-tickets/14081074?pl=ontarioimprov&REFID=ontarioWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 307692,
+      "show_name": "Marcus D. Wiley",
+      "date": "2025-07-27 23:30:00+00:00",
+      "venue": "Fort Lauderdale Improv",
+      "show_page_url": "https://services.seatengine.com/api/v1/venues/435/shows/307600"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 394615,
+      "show_name": "MARCUS D. WILEY",
+      "date": "2026-03-26 23:30:00+00:00",
+      "venue": "Magoobys Joke House",
+      "show_page_url": "https://magoobys.com/shows/336213"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 476080,
+      "show_name": "MARCUS D. WILEY",
+      "date": "2026-03-27 23:00:00+00:00",
+      "venue": "Magoobys Joke House",
+      "show_page_url": "https://magoobys.com/shows/336214"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 476081,
+      "show_name": "MARCUS D. WILEY",
+      "date": "2026-03-28 01:30:00+00:00",
+      "venue": "Magoobys Joke House",
+      "show_page_url": "https://magoobys.com/shows/336216"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 487522,
+      "show_name": "MARCUS D. WILEY",
+      "date": "2026-03-28 23:00:00+00:00",
+      "venue": "Magoobys Joke House",
+      "show_page_url": "https://magoobys.com/shows/336215"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 487523,
+      "show_name": "MARCUS D. WILEY",
+      "date": "2026-03-29 01:30:00+00:00",
+      "venue": "Magoobys Joke House",
+      "show_page_url": "https://magoobys.com/shows/336217"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 392440,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-03 02:00:00+00:00",
+      "venue": "Tacoma Comedy Club",
+      "show_page_url": "https://tacomacomedyclub.com/shows/331360"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 768115,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-04 02:00:00+00:00",
+      "venue": "Tacoma Comedy Club",
+      "show_page_url": "https://tacomacomedyclub.com/shows/331361"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 786338,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-05 01:00:00+00:00",
+      "venue": "Tacoma Comedy Club",
+      "show_page_url": "https://tacomacomedyclub.com/shows/331362"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 786339,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-05 03:45:00+00:00",
+      "venue": "Tacoma Comedy Club",
+      "show_page_url": "https://tacomacomedyclub.com/shows/331363"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 335313,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-11 00:30:00+00:00",
+      "venue": "Addison Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-addison-improv-tickets/14076494?pl=addisonimprov&REFID=addisonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 335314,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-11 02:45:00+00:00",
+      "venue": "Addison Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-addison-improv-tickets/14076514?pl=addisonimprov&REFID=addisonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 802381,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-11 21:00:00+00:00",
+      "venue": "Addison Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-addison-improv-tickets/14835393?pl=addisonimprov&REFID=addisonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 335315,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-12 00:00:00+00:00",
+      "venue": "Addison Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-addison-improv-tickets/14076534?pl=addisonimprov&REFID=addisonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 335316,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-12 02:30:00+00:00",
+      "venue": "Addison Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-addison-improv-tickets/14076504?pl=addisonimprov&REFID=addisonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 859485,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-12 21:30:00+00:00",
+      "venue": "Addison Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-addison-improv-tickets/14839083?pl=addisonimprov&REFID=addisonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 335317,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-13 00:30:00+00:00",
+      "venue": "Addison Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-addison-improv-tickets/14076524?pl=addisonimprov&REFID=addisonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1074855,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-17 23:00:00+00:00",
+      "venue": "Virginia Beach Funny Bone",
+      "show_page_url": "https://www.etix.com/ticket/p/78463422/marcus-dwiley-virginia-beach-funny-bone-comedy-club-virginia-beach?gclid="
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1074856,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-18 01:45:00+00:00",
+      "venue": "Virginia Beach Funny Bone",
+      "show_page_url": "https://www.etix.com/ticket/p/41724052/marcus-dwiley-virginia-beach-funny-bone-comedy-club-virginia-beach?gclid="
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1074857,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-18 04:00:00+00:00",
+      "venue": "Virginia Beach Funny Bone",
+      "show_page_url": "https://www.etix.com/ticket/p/35151256/marcus-dwiley-virginia-beach-funny-bone-comedy-club-virginia-beach"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1074858,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-04-19 01:30:00+00:00",
+      "venue": "Virginia Beach Funny Bone",
+      "show_page_url": "https://www.etix.com/ticket/p/79920537/marcus-dwiley-virginia-beach-funny-bone-comedy-club-virginia-beach?gclid="
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 493881,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-15 03:00:00+00:00",
+      "venue": "Punch Line Comedy Club - San Francisco",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-san-francisco-california-05-14-2026/event/1C00644ADBDEF477"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 493882,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-16 02:00:00+00:00",
+      "venue": "Punch Line Comedy Club - San Francisco",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-san-francisco-california-05-15-2026/event/1C00644ADBE3F47E"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 493883,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-16 04:15:00+00:00",
+      "venue": "Punch Line Comedy Club - San Francisco",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-san-francisco-california-05-15-2026/event/1C00644ADBE8F487"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 493884,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-17 01:00:00+00:00",
+      "venue": "Punch Line Comedy Club - San Francisco",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-san-francisco-california-05-16-2026/event/1C00644ADBECF48E"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 493885,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-17 03:30:00+00:00",
+      "venue": "Punch Line Comedy Club - San Francisco",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-san-francisco-california-05-16-2026/event/1C00644ADBF1F493"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 974845,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-23 00:00:00+00:00",
+      "venue": "LOL San Antonio",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-laugh-out-loud-comedy-club-tickets/14551933?pl=lolsanantonio&REFID=sanantonioWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 974846,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-23 02:30:00+00:00",
+      "venue": "LOL San Antonio",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-laugh-out-loud-comedy-club-tickets/14551963?pl=lolsanantonio&REFID=sanantonioWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 974847,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-24 00:00:00+00:00",
+      "venue": "LOL San Antonio",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-laugh-out-loud-comedy-club-tickets/14551973?pl=lolsanantonio&REFID=sanantonioWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 974848,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-24 02:30:00+00:00",
+      "venue": "LOL San Antonio",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-laugh-out-loud-comedy-club-tickets/14551943?pl=lolsanantonio&REFID=sanantonioWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 974849,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-05-25 00:00:00+00:00",
+      "venue": "LOL San Antonio",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-laugh-out-loud-comedy-club-tickets/14551953?pl=lolsanantonio&REFID=sanantonioWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1780212,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-05-29 23:00:00+00:00",
+      "venue": "Helium Comedy Club - Atlanta",
+      "show_page_url": "https://atlanta.heliumcomedy.com/shows/359834"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1780214,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-05-30 01:15:00+00:00",
+      "venue": "Helium Comedy Club - Atlanta",
+      "show_page_url": "https://atlanta.heliumcomedy.com/shows/359835"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1780216,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-05-30 22:00:00+00:00",
+      "venue": "Helium Comedy Club - Atlanta",
+      "show_page_url": "https://atlanta.heliumcomedy.com/shows/359836"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1780218,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-05-31 00:30:00+00:00",
+      "venue": "Helium Comedy Club - Atlanta",
+      "show_page_url": "https://atlanta.heliumcomedy.com/shows/359837"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1780220,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-05-31 23:00:00+00:00",
+      "venue": "Helium Comedy Club - Atlanta",
+      "show_page_url": "https://atlanta.heliumcomedy.com/shows/359838"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1156505,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-06-05 23:00:00+00:00",
+      "venue": "Columbus Funny Bone",
+      "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7jV7F"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1068947,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-06-06 01:45:00+00:00",
+      "venue": "Columbus Funny Bone",
+      "show_page_url": "https://www.etix.com/ticket/p/68361192/marcus-dwiley-columbus-funny-bone-comedy-club-columbus?gclid="
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1156506,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-06-06 22:30:00+00:00",
+      "venue": "Columbus Funny Bone",
+      "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7jV7e"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1156507,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-06-07 01:15:00+00:00",
+      "venue": "Columbus Funny Bone",
+      "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7jV76"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 2832542,
+      "show_name": "Jokes Jazz & Jams: A Fathers Day Takeover",
+      "date": "2026-06-21 23:00:00+00:00",
+      "venue": "The Aretha Franklin Amphitheatre",
+      "show_page_url": "https://www.ticketmaster.com/jokes-jazz-jams-a-fathers-day-detroit-michigan-06-21-2026/event/0800647EC4DD63E8"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1768679,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-06-27 00:00:00+00:00",
+      "venue": "Milwaukee Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-milwaukee-improv-main-room-tickets/14178674?pl=milwaukeeimprov&REFID=milWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1768680,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-06-27 23:30:00+00:00",
+      "venue": "Milwaukee Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-milwaukee-improv-main-room-tickets/14178684?pl=milwaukeeimprov&REFID=milWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1768681,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-06-28 02:00:00+00:00",
+      "venue": "Milwaukee Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-milwaukee-improv-main-room-tickets/14178704?pl=milwaukeeimprov&REFID=milWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1768682,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-06-28 23:00:00+00:00",
+      "venue": "Milwaukee Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-milwaukee-improv-main-room-tickets/14178694?pl=milwaukeeimprov&REFID=milWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 401772,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-07-09 23:00:00+00:00",
+      "venue": "DC Improv",
+      "show_page_url": "https://dcimprov-com.seatengine.com/shows/362876"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 401777,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-07-12 22:00:00+00:00",
+      "venue": "DC Improv",
+      "show_page_url": "https://dcimprov-com.seatengine.com/shows/362873"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 3866572,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-07-13 00:30:00+00:00",
+      "venue": "DC Improv",
+      "show_page_url": "https://dcimprov-com.seatengine.com/shows/379685"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1069109,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-07-17 23:30:00+00:00",
+      "venue": "Dayton Funny Bone",
+      "show_page_url": "https://dayton.funnybone.com/events/category/series/marcus-d-wiley/dayton-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1069110,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-07-18 22:30:00+00:00",
+      "venue": "Dayton Funny Bone",
+      "show_page_url": "https://dayton.funnybone.com/events/category/series/marcus-d-wiley/dayton-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1069111,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-07-19 01:15:00+00:00",
+      "venue": "Dayton Funny Bone",
+      "show_page_url": "https://dayton.funnybone.com/events/category/series/marcus-d-wiley/dayton-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 361452,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-07-24 23:00:00+00:00",
+      "venue": "Helium & Elements Restaurant - Buffalo",
+      "show_page_url": "https://buffalo.heliumcomedy.com/shows/363758"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 361453,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-07-25 01:15:00+00:00",
+      "venue": "Helium & Elements Restaurant - Buffalo",
+      "show_page_url": "https://buffalo.heliumcomedy.com/shows/363759"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 361454,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-07-25 22:00:00+00:00",
+      "venue": "Helium & Elements Restaurant - Buffalo",
+      "show_page_url": "https://buffalo.heliumcomedy.com/shows/363761"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 361455,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-07-26 00:30:00+00:00",
+      "venue": "Helium & Elements Restaurant - Buffalo",
+      "show_page_url": "https://buffalo.heliumcomedy.com/shows/363762"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 361456,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-07-26 23:00:00+00:00",
+      "venue": "Helium & Elements Restaurant - Buffalo",
+      "show_page_url": "https://buffalo.heliumcomedy.com/shows/363760"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1270877,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-07 23:00:00+00:00",
+      "venue": "Punch Line Philly",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-philadelphia-pennsylvania-08-07-2026/event/020064901819EACB"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1270878,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-08 22:00:00+00:00",
+      "venue": "Punch Line Philly",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-philadelphia-pennsylvania-08-08-2026/event/020064901816EAC0"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1270879,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-09 00:30:00+00:00",
+      "venue": "Punch Line Philly",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-philadelphia-pennsylvania-08-08-2026/event/020064901814EAB7"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1270880,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-09 22:00:00+00:00",
+      "venue": "Punch Line Philly",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-philadelphia-pennsylvania-08-09-2026/event/020064901811EAAF"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 3467931,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-21 23:00:00+00:00",
+      "venue": "Toledo Funny Bone",
+      "show_page_url": "https://toledo.funnybone.com/events/category/series/marcus-d-wiley/toledo-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 3467933,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-22 22:30:00+00:00",
+      "venue": "Toledo Funny Bone",
+      "show_page_url": "https://toledo.funnybone.com/events/category/series/marcus-d-wiley/toledo-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 3467934,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-23 01:15:00+00:00",
+      "venue": "Toledo Funny Bone",
+      "show_page_url": "https://toledo.funnybone.com/events/category/series/marcus-d-wiley/toledo-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1771488,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-29 01:30:00+00:00",
+      "venue": "Denver Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-denver-improv-tickets/14879413?pl=denverimprov&REFID=denverWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1771489,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-30 00:30:00+00:00",
+      "venue": "Denver Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-denver-improv-tickets/14879423?pl=denverimprov&REFID=denverWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1771490,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-30 03:15:00+00:00",
+      "venue": "Denver Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-denver-improv-tickets/14879433?pl=denverimprov&REFID=denverWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1771491,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-08-31 00:00:00+00:00",
+      "venue": "Denver Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-denver-improv-tickets/14879443?pl=denverimprov&REFID=denverWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1076141,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-09-04 23:00:00+00:00",
+      "venue": "Tampa Funny Bone",
+      "show_page_url": "https://tampa.funnybone.com/events/category/series/marcus-d-wiley/tampa-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1076142,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-09-05 01:45:00+00:00",
+      "venue": "Tampa Funny Bone",
+      "show_page_url": "https://tampa.funnybone.com/events/category/series/marcus-d-wiley/tampa-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6317631,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-09-05 20:00:00+00:00",
+      "venue": "Tampa Funny Bone",
+      "show_page_url": "https://tampa.funnybone.com/events/category/series/marcus-d-wiley/tampa-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1076143,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-09-05 22:30:00+00:00",
+      "venue": "Tampa Funny Bone",
+      "show_page_url": "https://tampa.funnybone.com/events/category/series/marcus-d-wiley/tampa-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1076144,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-09-06 01:15:00+00:00",
+      "venue": "Tampa Funny Bone",
+      "show_page_url": "https://tampa.funnybone.com/events/category/series/marcus-d-wiley/tampa-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 4245189,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-09-18 00:00:00+00:00",
+      "venue": "Omaha Funny Bone",
+      "show_page_url": "https://omaha.funnybone.com/event/marcus-d-wiley-3/omaha-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1776590,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-09-19 00:00:00+00:00",
+      "venue": "Helium & Elements Restaurant -St. Louis",
+      "show_page_url": "https://st-louis.heliumcomedy.com/shows/363763"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1776591,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-09-19 02:15:00+00:00",
+      "venue": "Helium & Elements Restaurant -St. Louis",
+      "show_page_url": "https://st-louis.heliumcomedy.com/shows/363764"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1776592,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-09-19 23:00:00+00:00",
+      "venue": "Helium & Elements Restaurant -St. Louis",
+      "show_page_url": "https://st-louis.heliumcomedy.com/shows/363766"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1776593,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-09-20 01:30:00+00:00",
+      "venue": "Helium & Elements Restaurant -St. Louis",
+      "show_page_url": "https://st-louis.heliumcomedy.com/shows/363767"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1776594,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-09-20 23:00:00+00:00",
+      "venue": "Helium & Elements Restaurant -St. Louis",
+      "show_page_url": "https://st-louis.heliumcomedy.com/shows/363765"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6952689,
+      "show_name": "Special Event: Marcus D. Wiley",
+      "date": "2026-09-21 01:15:00+00:00",
+      "venue": "Helium & Elements Restaurant -St. Louis",
+      "show_page_url": "https://st-louis.heliumcomedy.com/shows/387822"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1075998,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-02 23:00:00+00:00",
+      "venue": "Cleveland Funny Bone",
+      "show_page_url": "https://cleveland.funnybone.com/events/category/series/marcus-d-wiley/cleveland-improv"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1075999,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-03 01:30:00+00:00",
+      "venue": "Cleveland Funny Bone",
+      "show_page_url": "https://cleveland.funnybone.com/events/category/series/marcus-d-wiley/cleveland-improv"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1076000,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-03 22:30:00+00:00",
+      "venue": "Cleveland Funny Bone",
+      "show_page_url": "https://cleveland.funnybone.com/events/category/series/marcus-d-wiley/cleveland-improv"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1076001,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-04 01:00:00+00:00",
+      "venue": "Cleveland Funny Bone",
+      "show_page_url": "https://cleveland.funnybone.com/events/category/series/marcus-d-wiley/cleveland-improv"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1074464,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-09 23:00:00+00:00",
+      "venue": "Syracuse Funny Bone",
+      "show_page_url": "https://syracuse.funnybone.com/events/category/series/marcus-d-wiley/funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1074465,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-10 22:30:00+00:00",
+      "venue": "Syracuse Funny Bone",
+      "show_page_url": "https://syracuse.funnybone.com/events/category/series/marcus-d-wiley/funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1074466,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-11 01:15:00+00:00",
+      "venue": "Syracuse Funny Bone",
+      "show_page_url": "https://syracuse.funnybone.com/events/category/series/marcus-d-wiley/funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1851406,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-17 00:30:00+00:00",
+      "venue": "Arlington Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-arlington-improv-tickets/14930623?REFERRAL_ID=tmfeed"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1851407,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-17 02:45:00+00:00",
+      "venue": "Arlington Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-arlington-improv-tickets/14930643?REFERRAL_ID=tmfeed"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1851408,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-18 00:00:00+00:00",
+      "venue": "Arlington Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-arlington-improv-tickets/14930633?REFERRAL_ID=tmfeed"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1851409,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-18 02:30:00+00:00",
+      "venue": "Arlington Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-arlington-improv-tickets/14930653?REFERRAL_ID=tmfeed"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1851410,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-19 00:00:00+00:00",
+      "venue": "Arlington Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-arlington-improv-tickets/14930663?REFERRAL_ID=tmfeed"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 4983659,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-24 23:00:00+00:00",
+      "venue": "Albany Municipal Auditorium",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-albany-georgia-10-24-2026/event/220064FEE32770D5"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1769435,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-30 23:00:00+00:00",
+      "venue": "Pittsburgh Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-pittsburgh-improv-tickets/14879463?pl=pittsburghimprov&REFID=pittsburghWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1769436,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-10-31 22:30:00+00:00",
+      "venue": "Pittsburgh Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-pittsburgh-improv-tickets/14879483?pl=pittsburghimprov&REFID=pittsburghWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1769437,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-01 01:00:00+00:00",
+      "venue": "Pittsburgh Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-pittsburgh-improv-tickets/14879473?pl=pittsburghimprov&REFID=pittsburghWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1769438,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-01 23:00:00+00:00",
+      "venue": "Pittsburgh Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-pittsburgh-improv-tickets/14879493?pl=pittsburghimprov&REFID=pittsburghWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1075173,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-21 00:00:00+00:00",
+      "venue": "Richmond Funny Bone",
+      "show_page_url": "https://richmond.funnybone.com/events/category/series/marcus-d-wiley/richmond-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1075174,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-21 02:45:00+00:00",
+      "venue": "Richmond Funny Bone",
+      "show_page_url": "https://richmond.funnybone.com/events/category/series/marcus-d-wiley/richmond-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1075175,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-21 23:30:00+00:00",
+      "venue": "Richmond Funny Bone",
+      "show_page_url": "https://richmond.funnybone.com/events/category/series/marcus-d-wiley/richmond-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1075176,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-22 02:15:00+00:00",
+      "venue": "Richmond Funny Bone",
+      "show_page_url": "https://richmond.funnybone.com/events/category/series/marcus-d-wiley/richmond-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1769873,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-28 00:00:00+00:00",
+      "venue": "Raleigh Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-raleigh-improv-tickets/14879513?pl=raleighimprov&REFID=raleighWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1769874,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-28 23:30:00+00:00",
+      "venue": "Raleigh Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-raleigh-improv-tickets/14879533?pl=raleighimprov&REFID=raleighWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1769875,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-29 02:00:00+00:00",
+      "venue": "Raleigh Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-raleigh-improv-tickets/14879543?pl=raleighimprov&REFID=raleighWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 1769876,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-11-29 23:00:00+00:00",
+      "venue": "Raleigh Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-raleigh-improv-tickets/14879523?pl=raleighimprov&REFID=raleighWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6899171,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-12-06 01:00:00+00:00",
+      "venue": "Minglewood Hall",
+      "show_page_url": "https://www.ticketmaster.com/marcus-d-wiley-memphis-tennessee-12-05-2026/event/1B0064FEDA75FC7E"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 2683307,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-12-12 01:00:00+00:00",
+      "venue": "Chicago Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-chicago-improv-tickets/14986113?pl=chicagoimprov&REFID=chicagoWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 2683308,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-12-12 03:30:00+00:00",
+      "venue": "Chicago Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-chicago-improv-tickets/14986133?pl=chicagoimprov&REFID=chicagoWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 2683309,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-12-13 01:00:00+00:00",
+      "venue": "Chicago Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-chicago-improv-tickets/14986143?pl=chicagoimprov&REFID=chicagoWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 2683310,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-12-13 03:30:00+00:00",
+      "venue": "Chicago Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-chicago-improv-tickets/14986153?pl=chicagoimprov&REFID=chicagoWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 2683311,
+      "show_name": "Marcus D. Wiley",
+      "date": "2026-12-14 00:00:00+00:00",
+      "venue": "Chicago Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-chicago-improv-tickets/14986123?pl=chicagoimprov&REFID=chicagoWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6137518,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-01-09 01:00:00+00:00",
+      "venue": "Huntsville Levity Live",
+      "show_page_url": "https://levitylive.com/huntsville/comic/marcus+d.+wiley"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6137519,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-01-10 00:30:00+00:00",
+      "venue": "Huntsville Levity Live",
+      "show_page_url": "https://levitylive.com/huntsville/comic/marcus+d.+wiley"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6137520,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-01-10 02:45:00+00:00",
+      "venue": "Huntsville Levity Live",
+      "show_page_url": "https://levitylive.com/huntsville/comic/marcus+d.+wiley"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6137521,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-01-11 00:00:00+00:00",
+      "venue": "Huntsville Levity Live",
+      "show_page_url": "https://levitylive.com/huntsville/comic/marcus+d.+wiley"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7406356,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-02-12 00:30:00+00:00",
+      "venue": "Houston Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-houston-improv-tickets/14300234?pl=houstonimprov&REFID=houstonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7391346,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-02-13 00:00:00+00:00",
+      "venue": "Houston Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-houston-improv-tickets/14300254?pl=houstonimprov&REFID=houstonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7391347,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-02-13 02:30:00+00:00",
+      "venue": "Houston Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-houston-improv-tickets/14300274?pl=houstonimprov&REFID=houstonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7391348,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-02-13 22:00:00+00:00",
+      "venue": "Houston Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-houston-improv-tickets/14300244?pl=houstonimprov&REFID=houstonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7391349,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-02-14 01:00:00+00:00",
+      "venue": "Houston Improv",
+      "show_page_url": "https://www.ticketweb.com/event/marcus-d-wiley-houston-improv-tickets/14300264?pl=houstonimprov&REFID=houstonWP"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7000442,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-04-02 23:00:00+00:00",
+      "venue": "Orlando Funny Bone",
+      "show_page_url": "https://orlando.funnybone.com/events/category/series/marcus-d-wiley/orlando-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7000443,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-04-03 01:30:00+00:00",
+      "venue": "Orlando Funny Bone",
+      "show_page_url": "https://orlando.funnybone.com/events/category/series/marcus-d-wiley/orlando-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7000444,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-04-03 22:30:00+00:00",
+      "venue": "Orlando Funny Bone",
+      "show_page_url": "https://orlando.funnybone.com/events/category/series/marcus-d-wiley/orlando-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7000445,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-04-04 01:00:00+00:00",
+      "venue": "Orlando Funny Bone",
+      "show_page_url": "https://orlando.funnybone.com/events/category/series/marcus-d-wiley/orlando-funny-bone"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6301019,
+      "show_name": "MARCUS D. WILEY",
+      "date": "2027-04-24 02:00:00+00:00",
+      "venue": "Mic Drop Comedy",
+      "show_page_url": "http://www.micdropcomedy.com/shows/385909"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6301020,
+      "show_name": "MARCUS D. WILEY",
+      "date": "2027-04-24 04:30:00+00:00",
+      "venue": "Mic Drop Comedy",
+      "show_page_url": "http://www.micdropcomedy.com/shows/385911"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6301021,
+      "show_name": "MARCUS D. WILEY",
+      "date": "2027-04-25 01:00:00+00:00",
+      "venue": "Mic Drop Comedy",
+      "show_page_url": "http://www.micdropcomedy.com/shows/385910"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6301022,
+      "show_name": "MARCUS D. WILEY",
+      "date": "2027-04-25 03:30:00+00:00",
+      "venue": "Mic Drop Comedy",
+      "show_page_url": "http://www.micdropcomedy.com/shows/385912"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6434864,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-04-30 23:00:00+00:00",
+      "venue": "Laugh Boston",
+      "show_page_url": "https://www.tixr.com/groups/laughboston/events/marcus-d-wiley-205860"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6434865,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-05-01 22:00:00+00:00",
+      "venue": "Laugh Boston",
+      "show_page_url": "https://www.tixr.com/groups/laughboston/events/marcus-d-wiley-205863"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6434866,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-05-02 00:30:00+00:00",
+      "venue": "Laugh Boston",
+      "show_page_url": "https://www.tixr.com/groups/laughboston/events/marcus-d-wiley-205862"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6952017,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-05-28 22:45:00+00:00",
+      "venue": "Virginia Beach Funny Bone",
+      "show_page_url": "https://vb.funnybone.com/events/category/series/marcus-d-wiley/virginia-beach-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6952018,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-05-29 01:30:00+00:00",
+      "venue": "Virginia Beach Funny Bone",
+      "show_page_url": "https://vb.funnybone.com/events/category/series/marcus-d-wiley/virginia-beach-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6952019,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-05-29 22:00:00+00:00",
+      "venue": "Virginia Beach Funny Bone",
+      "show_page_url": "https://vb.funnybone.com/events/category/series/marcus-d-wiley/virginia-beach-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 6952120,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-05-30 01:00:00+00:00",
+      "venue": "Virginia Beach Funny Bone",
+      "show_page_url": "https://vb.funnybone.com/events/category/series/marcus-d-wiley/virginia-beach-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 4271489,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-06-12 01:00:00+00:00",
+      "venue": "Charlotte Comedy Zone",
+      "show_page_url": "https://www.cltcomedyzone.com/shows/380760"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 4271490,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-06-12 03:30:00+00:00",
+      "venue": "Charlotte Comedy Zone",
+      "show_page_url": "https://www.cltcomedyzone.com/shows/380763"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 4271491,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-06-13 00:00:00+00:00",
+      "venue": "Charlotte Comedy Zone",
+      "show_page_url": "https://www.cltcomedyzone.com/shows/380761"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 4271492,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-06-13 02:45:00+00:00",
+      "venue": "Charlotte Comedy Zone",
+      "show_page_url": "https://www.cltcomedyzone.com/shows/380764"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 4271493,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-06-14 00:00:00+00:00",
+      "venue": "Charlotte Comedy Zone",
+      "show_page_url": "https://www.cltcomedyzone.com/shows/380762"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7005097,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-07-30 23:00:00+00:00",
+      "venue": "Liberty Funny Bone",
+      "show_page_url": "https://liberty.funnybone.com/events/category/series/marcus-d-wiley/liberty-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7005098,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-07-31 01:30:00+00:00",
+      "venue": "Liberty Funny Bone",
+      "show_page_url": "https://liberty.funnybone.com/events/category/series/marcus-d-wiley/liberty-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7005099,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-07-31 22:30:00+00:00",
+      "venue": "Liberty Funny Bone",
+      "show_page_url": "https://liberty.funnybone.com/events/category/series/marcus-d-wiley/liberty-funny-bone-comedy-club"
+    },
+    {
+      "id": 226475,
+      "name": "Marcus D. Wiley",
+      "show_id": 7005100,
+      "show_name": "Marcus D. Wiley",
+      "date": "2027-08-01 01:00:00+00:00",
+      "venue": "Liberty Funny Bone",
+      "show_page_url": "https://liberty.funnybone.com/events/category/series/marcus-d-wiley/liberty-funny-bone-comedy-club"
+    },
+    {
+      "id": 235139,
+      "name": "Mojo Brookzz",
+      "show_id": 974488,
+      "show_name": "Mojo Brookzz",
+      "date": "2026-06-06 01:30:00+00:00",
+      "venue": "Denver Improv",
+      "show_page_url": "https://www.ticketweb.com/event/mojo-brookzz-denver-improv-tickets/14088954?pl=denverimprov&REFID=denverWP"
+    },
+    {
+      "id": 235139,
+      "name": "Mojo Brookzz",
+      "show_id": 974489,
+      "show_name": "Mojo Brookzz",
+      "date": "2026-06-06 03:45:00+00:00",
+      "venue": "Denver Improv",
+      "show_page_url": "https://www.ticketweb.com/event/mojo-brookzz-denver-improv-tickets/14088984?pl=denverimprov&REFID=denverWP"
+    },
+    {
+      "id": 235139,
+      "name": "Mojo Brookzz",
+      "show_id": 1280293,
+      "show_name": "Mojo Brookzz",
+      "date": "2026-06-13 00:00:00+00:00",
+      "venue": "Omaha Funny Bone",
+      "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7xfC3"
+    },
+    {
+      "id": 235139,
+      "name": "Mojo Brookzz",
+      "show_id": 1073998,
+      "show_name": "Mojo Brookzz",
+      "date": "2026-06-13 02:45:00+00:00",
+      "venue": "Omaha Funny Bone",
+      "show_page_url": "https://www.etix.com/ticket/p/65911546/mojo-brookzz-omaha-funny-bone-comedy-club-omaha?gclid="
+    },
+    {
+      "id": 235139,
+      "name": "Mojo Brookzz",
+      "show_id": 1073999,
+      "show_name": "Mojo Brookzz",
+      "date": "2026-06-13 23:30:00+00:00",
+      "venue": "Omaha Funny Bone",
+      "show_page_url": "https://www.etix.com/ticket/p/70131455/mojo-brookzz-omaha-funny-bone-comedy-club-omaha?gclid="
+    },
+    {
+      "id": 235139,
+      "name": "Mojo Brookzz",
+      "show_id": 1074000,
+      "show_name": "Mojo Brookzz",
+      "date": "2026-06-14 02:15:00+00:00",
+      "venue": "Omaha Funny Bone",
+      "show_page_url": "https://www.etix.com/ticket/p/54442441/mojo-brookzz-omaha-funny-bone-comedy-club-omaha?gclid="
+    },
+    {
+      "id": 235139,
+      "name": "Mojo Brookzz",
+      "show_id": 1074001,
+      "show_name": "Mojo Brookzz",
+      "date": "2026-06-14 23:00:00+00:00",
+      "venue": "Omaha Funny Bone",
+      "show_page_url": "https://www.etix.com/ticket/p/33619075/mojo-brookzz-omaha-funny-bone-comedy-club-omaha?gclid="
+    },
+    {
+      "id": 235139,
+      "name": "Mojo Brookzz",
+      "show_id": 394530,
+      "show_name": "Comedian Mojo Brookzz Live in Naples, Florida!",
+      "date": "2026-08-01 00:30:00+00:00",
+      "venue": "Off The Hook Comedy Club",
+      "show_page_url": "https://www.offthehookcomedy.com/shows/353539"
+    },
+    {
+      "id": 535810,
+      "name": "Jane Don't Does America",
+      "show_id": 1348962,
+      "show_name": "Jane Don't Does America",
+      "date": "2026-09-05 04:30:00+00:00",
+      "venue": "Dynasty Typewriter",
+      "show_page_url": "https://squadup.com/events/janedont"
+    },
+    {
+      "id": 1068549,
+      "name": "Therapy Gecko Live",
+      "show_id": 475659,
+      "show_name": "Therapy Gecko Live",
+      "date": "2026-06-18 23:00:00+00:00",
+      "venue": "Hilarities 4th Street Theatre",
+      "show_page_url": "https://www.hilarities.com/shows/357169"
+    },
+    {
+      "id": 1068549,
+      "name": "Therapy Gecko Live",
+      "show_id": 1928150,
+      "show_name": "Therapy Gecko Live",
+      "date": "2026-08-16 23:00:00+00:00",
+      "venue": "Skyline Comedy Club",
+      "show_page_url": "https://www.skylinecomedy.com/shows/373482"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4228143,
+      "show_name": "Marcus Wiley",
+      "date": "2027-01-16 00:00:00+00:00",
+      "venue": "Greenville Comedy Zone",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/380682"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4272298,
+      "show_name": "Marcus Wiley",
+      "date": "2027-01-16 02:00:00+00:00",
+      "venue": "Greenville Comedy Zone",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/380685"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4272299,
+      "show_name": "Marcus Wiley",
+      "date": "2027-01-16 23:00:00+00:00",
+      "venue": "Greenville Comedy Zone",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/380683"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4272300,
+      "show_name": "Marcus Wiley",
+      "date": "2027-01-17 02:00:00+00:00",
+      "venue": "Greenville Comedy Zone",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/380686"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4272301,
+      "show_name": "Marcus Wiley",
+      "date": "2027-01-17 23:00:00+00:00",
+      "venue": "Greenville Comedy Zone",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/380684"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4227024,
+      "show_name": "Marcus Wiley",
+      "date": "2027-01-29 02:15:00+00:00",
+      "venue": "Jacksonville Comedy Zone",
+      "show_page_url": "https://www.comedyzone.com/shows/380652"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4227025,
+      "show_name": "Marcus Wiley",
+      "date": "2027-01-30 02:15:00+00:00",
+      "venue": "Jacksonville Comedy Zone",
+      "show_page_url": "https://www.comedyzone.com/shows/380653"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4227026,
+      "show_name": "Marcus Wiley",
+      "date": "2027-01-31 02:00:00+00:00",
+      "venue": "Jacksonville Comedy Zone",
+      "show_page_url": "https://www.comedyzone.com/shows/380654"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4227027,
+      "show_name": "Marcus Wiley",
+      "date": "2027-01-31 04:30:00+00:00",
+      "venue": "Jacksonville Comedy Zone",
+      "show_page_url": "https://www.comedyzone.com/shows/380655"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 5028172,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-05 01:00:00+00:00",
+      "venue": "Harrisburg Comedy Zone",
+      "show_page_url": "https://harrisburgcomedyzone.com/shows/382894"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 5028173,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-05 23:30:00+00:00",
+      "venue": "Harrisburg Comedy Zone",
+      "show_page_url": "https://harrisburgcomedyzone.com/shows/382895"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 5028174,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-06 01:45:00+00:00",
+      "venue": "Harrisburg Comedy Zone",
+      "show_page_url": "https://harrisburgcomedyzone.com/shows/382896"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 5028175,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-06 23:00:00+00:00",
+      "venue": "Harrisburg Comedy Zone",
+      "show_page_url": "https://harrisburgcomedyzone.com/shows/382897"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 5028176,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-07 01:30:00+00:00",
+      "venue": "Harrisburg Comedy Zone",
+      "show_page_url": "https://harrisburgcomedyzone.com/shows/382898"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4226731,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-20 01:00:00+00:00",
+      "venue": "Greensboro Comedy Zone",
+      "show_page_url": "https://thecomedyzone.com/shows/380688"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4226732,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-20 03:00:00+00:00",
+      "venue": "Greensboro Comedy Zone",
+      "show_page_url": "https://thecomedyzone.com/shows/380691"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4226733,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-21 01:00:00+00:00",
+      "venue": "Greensboro Comedy Zone",
+      "show_page_url": "https://thecomedyzone.com/shows/380689"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4226734,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-21 03:00:00+00:00",
+      "venue": "Greensboro Comedy Zone",
+      "show_page_url": "https://thecomedyzone.com/shows/380692"
+    },
+    {
+      "id": 1488180,
+      "name": "Marcus Wiley",
+      "show_id": 4226735,
+      "show_name": "Marcus Wiley",
+      "date": "2027-03-22 01:00:00+00:00",
+      "venue": "Greensboro Comedy Zone",
+      "show_page_url": "https://thecomedyzone.com/shows/380690"
+    }
+  ],
+  "hidden_parent_visible_children": [
+    {
+      "id": 440843,
+      "name": "Cory and Chad - The Smash Brothers",
+      "parent_comedian_id": 223894,
+      "parent": "Cory and Chad"
+    },
+    {
+      "id": 535810,
+      "name": "Jane Don't Does America",
+      "parent_comedian_id": 549605,
+      "parent": "Jane Don't"
+    },
+    {
+      "id": 1068549,
+      "name": "Therapy Gecko Live",
+      "parent_comedian_id": 312265,
+      "parent": "Therapy Gecko"
+    }
+  ],
+  "unlinked_handles": [
+    {
+      "handle": "aidobishop",
+      "ids": [
+        162399,
+        180157
+      ],
+      "names": [
+        "Aiden Bishop",
+        "Aidan Bishop"
+      ]
+    },
+    {
+      "handle": "joyellenicole",
+      "ids": [
+        712,
+        166992
+      ],
+      "names": [
+        "Joyelle Nicole Johnson",
+        "Joyelle Johnson"
+      ]
+    },
+    {
+      "handle": "justnesh",
+      "ids": [
+        746,
+        54369
+      ],
+      "names": [
+        "Julie Lim",
+        "Just Nesh"
+      ]
+    },
+    {
+      "handle": "littlebrowngirlshow",
+      "ids": [
+        14618,
+        207621
+      ],
+      "names": [
+        "Jenny Salda\u00f1a",
+        "Jenny Saldana"
+      ]
+    },
+    {
+      "handle": "marcusdwiley",
+      "ids": [
+        226475,
+        1488180
+      ],
+      "names": [
+        "Marcus D. Wiley",
+        "Marcus Wiley"
+      ]
+    },
+    {
+      "handle": "sarahennessey",
+      "ids": [
+        735,
+        165737
+      ],
+      "names": [
+        "Sara Hennessey",
+        "Sarah Hennessey"
+      ]
+    },
+    {
+      "handle": "zachmcgovern",
+      "ids": [
+        908,
+        171846
+      ],
+      "names": [
+        "Zach McGovern",
+        "Zack McGovern"
+      ]
+    }
+  ],
+  "julie_observations": [
+    {
+      "id": 693,
+      "comedian_id": 746,
+      "platform": "instagram",
+      "follower_count": 247000,
+      "observed_at": "2026-07-25 00:00:00+00:00",
+      "created_at": "2026-07-25 08:53:54.703504+00:00"
+    }
+  ],
+  "image_assets": []
+}
