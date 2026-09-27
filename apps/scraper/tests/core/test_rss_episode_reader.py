@@ -140,6 +140,54 @@ def _podcast(**overrides: Any) -> mod.PodcastRssFeed:
     return mod.PodcastRssFeed(**values)
 
 
+@pytest.mark.parametrize(
+    "value",
+    [
+        None, "", "  ", 0, "0", "00:00", "00:00:00", -1, "-1",
+        True, False, 1.5, 3600.0, "1.5", "1e3", "+1", "-1:30",
+        "1:-30", "1:60", "1:60:00", "1:00:60", "1: 01", ":30",
+        "1:", "1::01", "1:2:3:4", "１２３", "١:٠١", "²",
+        "453201:03:01", 1631523781, "1631523781", 3600000, "9" * 5000,
+    ],
+)
+def test_implausible_duration_validation(value):
+    assert mod.parse_duration_seconds(value) is None
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (1, 1), ("1", 1), (" 3661 ", 3661), ("00:01", 1),
+        ("61:01", 3661), ("01:01:01", 3661), ("6:00:00", 21600),
+        ("12:00:00", 43200), ("720:00", 43200), (86399, 86399),
+        ("23:59:59", 86399), (86400, 86400), ("86400", 86400),
+        ("1440:00", 86400), ("24:00:00", 86400), (86401, None),
+        ("86401", None), ("1440:01", None), ("24:00:01", None),
+        ("25:00:00", None), ("0" * 5000 + "1", 1),
+    ],
+)
+def test_duration_policy_boundaries(value, expected):
+    assert mod.parse_duration_seconds(value) == expected
+
+
+def test_invalid_rss_duration_stays_unknown_on_resync_and_retains_raw_value(monkeypatch):
+    rss = """<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+      <channel><title>Comedy Talk</title><item>
+        <guid>invalid-duration-guid</guid><title>Publisher duration error</title>
+        <itunes:duration>453201:03:01</itunes:duration>
+      </item></channel></rss>"""
+    monkeypatch.setattr(mod.requests, "get", lambda *_args, **_kwargs: _FakeResponse(text=rss))
+    conn = _FakeConn()
+
+    for _ in range(2):
+        mod.sync_podcast_episodes_from_rss(conn, _podcast(source_payload={}), dry_run=False)
+
+    assert len(conn.upserts) == 2
+    for params in conn.upserts:
+        assert params[7] is None
+        assert json.loads(params[12])["itunes_duration"] == "453201:03:01"
+
+
 def test_fetches_rss_with_conditional_cache_headers_and_parses_entries(monkeypatch):
     calls: list[dict[str, Any]] = []
     rss = """<?xml version="1.0" encoding="UTF-8"?>

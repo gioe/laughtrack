@@ -452,24 +452,40 @@ def _iso_from_struct_time(value: Any) -> Optional[str]:
         return None
 
 
-def _duration_seconds(value: Any) -> Optional[int]:
+def parse_duration_seconds(value: Any) -> Optional[int]:
+    """Accept positive whole seconds through 24 hours, otherwise report unknown.
+
+    The one-day ceiling is an ingestion confidence policy, not an assertion that
+    longer recordings cannot exist. It preserves long-form 6/12/24-hour content
+    while withholding implausible publisher metadata. Never guess milliseconds
+    or reinterpret malformed clock components; the raw value remains in the
+    episode's source_payload for investigation.
+    """
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value if 0 < value <= 24 * 60 * 60 else None
     raw = _string_or_none(value)
     if not raw:
         return None
-    if raw.isdigit():
-        return int(raw)
     parts = raw.split(":")
-    if not 2 <= len(parts) <= 3:
+    if not 1 <= len(parts) <= 3 or any(re.fullmatch(r"[0-9]+", part) is None for part in parts):
         return None
-    try:
-        numbers = [int(part) for part in parts]
-    except ValueError:
+    # Bound significant digits before int() so malformed, extremely large feed
+    # values cannot trip Python's integer-string conversion limit.
+    parts = [part.lstrip("0") or "0" for part in parts]
+    if any(len(part) > 5 for part in parts):
         return None
-    if len(numbers) == 2:
-        minutes, seconds = numbers
-        return minutes * 60 + seconds
-    hours, minutes, seconds = numbers
-    return hours * 3600 + minutes * 60 + seconds
+    numbers = [int(part) for part in parts]
+    if len(numbers) > 1 and numbers[-1] >= 60:
+        return None
+    if len(numbers) == 3 and numbers[1] >= 60:
+        return None
+    if len(numbers) == 1:
+        seconds = numbers[0]
+    elif len(numbers) == 2:
+        seconds = numbers[0] * 60 + numbers[1]
+    else:
+        seconds = numbers[0] * 3600 + numbers[1] * 60 + numbers[2]
+    return seconds if 0 < seconds <= 24 * 60 * 60 else None
 
 
 def _json_safe(value: Any) -> dict[str, Any]:
@@ -511,7 +527,7 @@ def _episode_from_entry(podcast: PodcastRssFeed, entry: Any) -> Optional[RssEpis
         title=title,
         description=_string_or_none(entry.get("summary") or entry.get("description")),
         release_date=_iso_from_struct_time(entry.get("published_parsed") or entry.get("updated_parsed")),
-        duration_seconds=_duration_seconds(entry.get("itunes_duration")),
+        duration_seconds=parse_duration_seconds(entry.get("itunes_duration")),
         episode_url=episode_url,
         audio_url=audio_url,
         external_ids=external_ids,

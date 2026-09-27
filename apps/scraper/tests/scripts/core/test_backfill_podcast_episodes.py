@@ -200,6 +200,22 @@ def test_episode_from_payload_preserves_stable_ids_and_matching_metadata():
     assert episode.source_payload["feedTitle"] == "Comedy Talk"
 
 
+@pytest.mark.parametrize(
+    ("duration", "expected"),
+    [(1631523781, None), (3600000, None), (86401, None), (0, None),
+     (-1, None), (True, None), (1.5, None), (3661, 3661), ("3661", 3661),
+     (21600, 21600), (43200, 43200), (86400, 86400)],
+)
+def test_podcast_index_duration_uses_shared_validation(duration, expected):
+    payload = {"id": 987, "title": "Duration policy", "duration": duration}
+    episode = mod.episode_from_payload(
+        podcast_id=42, source_podcast_id="1001", episode=payload,
+    )
+    assert episode is not None
+    assert episode.duration_seconds == expected
+    assert episode.source_payload == payload
+
+
 def test_backfill_dry_run_fetches_but_does_not_write(monkeypatch):
     conn = _FakeConn(
         [

@@ -26,6 +26,7 @@ from laughtrack.adapters.db import get_connection
 from laughtrack.core.rss_episode_reader import (
     find_episode_id_by_source,
     find_logical_episode_id,
+    parse_duration_seconds,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
@@ -495,7 +496,7 @@ def episode_from_payload(
 
     guid = _string_or_none(episode.get("guid"))
     release_date = _iso_from_timestamp(episode.get("datePublished"))
-    duration_seconds = _int_or_none(episode.get("duration"))
+    duration_seconds = parse_duration_seconds(episode.get("duration"))
     episode_url = _episode_url_from_payload(episode)
     audio_url = _audio_url_from_payload(episode)
     podcast_index_episode_id = episode.get("id")
