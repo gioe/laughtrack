@@ -1,0 +1,3936 @@
+{
+  "type": "Tickets",
+  "sortOrder": "65",
+  "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fce3?useEmbed=true",
+  "name": "Best of The Second City",
+  "id": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+  "instances": [
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fce3?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, September 26, 2026 at 3:00 PM",
+      "id": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871",
+      "formattedDates": {
+        "ISO8601": "2026-09-26T20:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871_0"
+            }
+          ],
+          "instanceId": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871",
+          "id": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871_1"
+            }
+          ],
+          "instanceId": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871",
+          "id": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "True",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871_2"
+            }
+          ],
+          "instanceId": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871",
+          "id": "sc-vvus-19a25dff-e00c-459d-8771-95097d0db871_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 1,
+      "seatingType": "Reserved",
+      "purchaseUrl": "",
+      "saleState": "notAvailable",
+      "onSale": false,
+      "onSaleLabel": "Not Available",
+      "unavailableReason": "no purchasable ticket types (none active & priced & in stock)",
+      "saleStatus": "On Sale",
+      "name": "Saturday, September 26, 2026 at 8:00 PM",
+      "id": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b",
+      "formattedDates": {
+        "ISO8601": "2026-09-27T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 240
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "True",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b_0"
+            }
+          ],
+          "instanceId": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b",
+          "id": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "True",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b_1"
+            }
+          ],
+          "instanceId": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b",
+          "id": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "True",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b_2"
+            }
+          ],
+          "instanceId": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b",
+          "id": "sc-vvus-1fa58db3-2aa0-4d42-a4eb-162779b5f00b_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90643a?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, September 28, 2026 at 7:00 PM",
+      "id": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92",
+      "formattedDates": {
+        "ISO8601": "2026-09-29T00:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_0"
+            }
+          ],
+          "instanceId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92",
+          "id": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_1"
+            }
+          ],
+          "instanceId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92",
+          "id": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_2"
+            }
+          ],
+          "instanceId": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92",
+          "id": "sc-vvus-c6f56ca1-3096-461c-921b-08969f75ae92_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84218?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, October 2, 2026 at 8:00 PM",
+      "id": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79",
+      "formattedDates": {
+        "ISO8601": "2026-10-03T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_0"
+            }
+          ],
+          "instanceId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79",
+          "id": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_1"
+            }
+          ],
+          "instanceId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79",
+          "id": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_2"
+            }
+          ],
+          "instanceId": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79",
+          "id": "sc-vvus-ced46885-6438-4d5e-b2b4-b62ed10a5c79_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fce7?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 3, 2026 at 3:30 PM",
+      "id": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641",
+      "formattedDates": {
+        "ISO8601": "2026-10-03T20:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_0"
+            }
+          ],
+          "instanceId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641",
+          "id": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_1"
+            }
+          ],
+          "instanceId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641",
+          "id": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_2"
+            }
+          ],
+          "instanceId": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641",
+          "id": "sc-vvus-22450fa8-d412-462f-8581-3634b0199641_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 1,
+      "seatingType": "Reserved",
+      "purchaseUrl": "",
+      "saleState": "notAvailable",
+      "onSale": false,
+      "onSaleLabel": "Not Available",
+      "unavailableReason": "no purchasable ticket types (none active & priced & in stock)",
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 3, 2026 at 8:00 PM",
+      "id": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85",
+      "formattedDates": {
+        "ISO8601": "2026-10-04T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "True",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85_0"
+            }
+          ],
+          "instanceId": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85",
+          "id": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "True",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85_1"
+            }
+          ],
+          "instanceId": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85",
+          "id": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "True",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85_2"
+            }
+          ],
+          "instanceId": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85",
+          "id": "sc-vvus-c3eea5c8-75bf-4cad-9649-264d5a341b85_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90643e?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, October 5, 2026 at 7:00 PM",
+      "id": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e",
+      "formattedDates": {
+        "ISO8601": "2026-10-06T00:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_0"
+            }
+          ],
+          "instanceId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e",
+          "id": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_1"
+            }
+          ],
+          "instanceId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e",
+          "id": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_2"
+            }
+          ],
+          "instanceId": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e",
+          "id": "sc-vvus-c92e9110-9c82-4bb6-9c00-940b5baf2c5e_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aaab7d7f88b2328fb5be370?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Tuesday, October 6, 2026 at 8:00 PM",
+      "id": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986",
+      "formattedDates": {
+        "ISO8601": "2026-10-07T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 55,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_0"
+            }
+          ],
+          "instanceId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986",
+          "id": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 75,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_1"
+            }
+          ],
+          "instanceId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986",
+          "id": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_2"
+            }
+          ],
+          "instanceId": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986",
+          "id": "sc-vvus-712617fc-5e47-4f8e-84b5-a5234eb5f986_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84220?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, October 9, 2026 at 8:00 PM",
+      "id": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96",
+      "formattedDates": {
+        "ISO8601": "2026-10-10T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_0"
+            }
+          ],
+          "instanceId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96",
+          "id": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_1"
+            }
+          ],
+          "instanceId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96",
+          "id": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_2"
+            }
+          ],
+          "instanceId": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96",
+          "id": "sc-vvus-9e390547-f527-4fb5-9458-13d1d9171d96_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fceb?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 10, 2026 at 3:00 PM",
+      "id": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304",
+      "formattedDates": {
+        "ISO8601": "2026-10-10T20:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_0"
+            }
+          ],
+          "instanceId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304",
+          "id": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_1"
+            }
+          ],
+          "instanceId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304",
+          "id": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_2"
+            }
+          ],
+          "instanceId": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304",
+          "id": "sc-vvus-01805a5f-710e-4959-bc36-6ab6b10b5304_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84224?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 10, 2026 at 8:00 PM",
+      "id": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b",
+      "formattedDates": {
+        "ISO8601": "2026-10-11T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_0"
+            }
+          ],
+          "instanceId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b",
+          "id": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_1"
+            }
+          ],
+          "instanceId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b",
+          "id": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_2"
+            }
+          ],
+          "instanceId": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b",
+          "id": "sc-vvus-5a10dc72-c699-4cd1-bae0-5be449f0bc0b_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906442?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, October 12, 2026 at 7:00 PM",
+      "id": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b",
+      "formattedDates": {
+        "ISO8601": "2026-10-13T00:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_0"
+            }
+          ],
+          "instanceId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b",
+          "id": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_1"
+            }
+          ],
+          "instanceId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b",
+          "id": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_2"
+            }
+          ],
+          "instanceId": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b",
+          "id": "sc-vvus-28f814f0-a78e-4ffb-a7ef-22e67fb3050b_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84228?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, October 16, 2026 at 8:00 PM",
+      "id": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40",
+      "formattedDates": {
+        "ISO8601": "2026-10-17T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_0"
+            }
+          ],
+          "instanceId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40",
+          "id": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_1"
+            }
+          ],
+          "instanceId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40",
+          "id": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_2"
+            }
+          ],
+          "instanceId": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40",
+          "id": "sc-vvus-be17f9be-8ccb-4a7a-86b9-ed393c018d40_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcef?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 17, 2026 at 3:30 PM",
+      "id": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710",
+      "formattedDates": {
+        "ISO8601": "2026-10-17T20:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_0"
+            }
+          ],
+          "instanceId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710",
+          "id": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_1"
+            }
+          ],
+          "instanceId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710",
+          "id": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_2"
+            }
+          ],
+          "instanceId": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710",
+          "id": "sc-vvus-7bd0a139-8765-4712-8ba5-e739ab785710_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced8422c?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 17, 2026 at 8:00 PM",
+      "id": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc",
+      "formattedDates": {
+        "ISO8601": "2026-10-18T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_0"
+            }
+          ],
+          "instanceId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc",
+          "id": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_1"
+            }
+          ],
+          "instanceId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc",
+          "id": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_2"
+            }
+          ],
+          "instanceId": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc",
+          "id": "sc-vvus-16d40acf-b93b-4f60-9885-aeaf75a8b0dc_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906446?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, October 19, 2026 at 7:00 PM",
+      "id": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1",
+      "formattedDates": {
+        "ISO8601": "2026-10-20T00:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_0"
+            }
+          ],
+          "instanceId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1",
+          "id": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_1"
+            }
+          ],
+          "instanceId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1",
+          "id": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_2"
+            }
+          ],
+          "instanceId": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1",
+          "id": "sc-vvus-d13aabdd-6e84-4cc0-8943-8784764da0c1_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84230?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, October 23, 2026 at 8:00 PM",
+      "id": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543",
+      "formattedDates": {
+        "ISO8601": "2026-10-24T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_0"
+            }
+          ],
+          "instanceId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543",
+          "id": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_1"
+            }
+          ],
+          "instanceId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543",
+          "id": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_2"
+            }
+          ],
+          "instanceId": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543",
+          "id": "sc-vvus-ef5ca96f-f105-4ca5-ab70-19c701da1543_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcf3?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 24, 2026 at 3:00 PM",
+      "id": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9",
+      "formattedDates": {
+        "ISO8601": "2026-10-24T20:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_0"
+            }
+          ],
+          "instanceId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9",
+          "id": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_1"
+            }
+          ],
+          "instanceId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9",
+          "id": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_2"
+            }
+          ],
+          "instanceId": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9",
+          "id": "sc-vvus-67b58283-5f7e-467a-b752-2ad81389d6a9_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84234?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 24, 2026 at 8:00 PM",
+      "id": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7",
+      "formattedDates": {
+        "ISO8601": "2026-10-25T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_0"
+            }
+          ],
+          "instanceId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7",
+          "id": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_1"
+            }
+          ],
+          "instanceId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7",
+          "id": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_2"
+            }
+          ],
+          "instanceId": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7",
+          "id": "sc-vvus-efc622ab-3bb1-49b8-a0ac-e8fb5c702ba7_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90644a?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, October 26, 2026 at 7:00 PM",
+      "id": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2",
+      "formattedDates": {
+        "ISO8601": "2026-10-27T00:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_0"
+            }
+          ],
+          "instanceId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2",
+          "id": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_1"
+            }
+          ],
+          "instanceId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2",
+          "id": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_2"
+            }
+          ],
+          "instanceId": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2",
+          "id": "sc-vvus-501899a3-f19b-4b13-bc48-bceb7dabc8b2_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84238?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, October 30, 2026 at 7:00 PM",
+      "id": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2",
+      "formattedDates": {
+        "ISO8601": "2026-10-31T00:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_0"
+            }
+          ],
+          "instanceId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2",
+          "id": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_1"
+            }
+          ],
+          "instanceId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2",
+          "id": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_2"
+            }
+          ],
+          "instanceId": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2",
+          "id": "sc-vvus-6b9d0fa1-96e2-4ee4-909b-0023160edac2_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcf7?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 31, 2026 at 3:00 PM",
+      "id": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658",
+      "formattedDates": {
+        "ISO8601": "2026-10-31T20:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_0"
+            }
+          ],
+          "instanceId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658",
+          "id": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_1"
+            }
+          ],
+          "instanceId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658",
+          "id": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_2"
+            }
+          ],
+          "instanceId": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658",
+          "id": "sc-vvus-b5a8341b-581b-467e-9fbd-359369a90658_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced8423c?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 31, 2026 at 8:00 PM",
+      "id": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1",
+      "formattedDates": {
+        "ISO8601": "2026-11-01T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_0"
+            }
+          ],
+          "instanceId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1",
+          "id": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_1"
+            }
+          ],
+          "instanceId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1",
+          "id": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_2"
+            }
+          ],
+          "instanceId": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1",
+          "id": "sc-vvus-68355992-ea89-4cba-ab67-f13df6255ea1_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90644e?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, November 2, 2026 at 7:00 PM",
+      "id": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4",
+      "formattedDates": {
+        "ISO8601": "2026-11-03T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_0"
+            }
+          ],
+          "instanceId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4",
+          "id": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_1"
+            }
+          ],
+          "instanceId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4",
+          "id": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_2"
+            }
+          ],
+          "instanceId": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4",
+          "id": "sc-vvus-0fd71ddd-d5b7-4608-bae5-e28e5d4baea4_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84240?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, November 6, 2026 at 8:00 PM",
+      "id": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60",
+      "formattedDates": {
+        "ISO8601": "2026-11-07T02:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_0"
+            }
+          ],
+          "instanceId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60",
+          "id": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_1"
+            }
+          ],
+          "instanceId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60",
+          "id": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_2"
+            }
+          ],
+          "instanceId": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60",
+          "id": "sc-vvus-5350510c-9346-4b44-ad15-c0a175509c60_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcfb?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, November 7, 2026 at 3:00 PM",
+      "id": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d",
+      "formattedDates": {
+        "ISO8601": "2026-11-07T21:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_0"
+            }
+          ],
+          "instanceId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d",
+          "id": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_1"
+            }
+          ],
+          "instanceId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d",
+          "id": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_2"
+            }
+          ],
+          "instanceId": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d",
+          "id": "sc-vvus-f70e93f3-99bd-45e3-980d-3e86c204eb5d_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84244?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, November 7, 2026 at 8:00 PM",
+      "id": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882",
+      "formattedDates": {
+        "ISO8601": "2026-11-08T02:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_0"
+            }
+          ],
+          "instanceId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882",
+          "id": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_1"
+            }
+          ],
+          "instanceId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882",
+          "id": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_2"
+            }
+          ],
+          "instanceId": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882",
+          "id": "sc-vvus-61925783-bbcf-41fe-b786-3e7deeb6d882_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906452?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, November 9, 2026 at 7:00 PM",
+      "id": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239",
+      "formattedDates": {
+        "ISO8601": "2026-11-10T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_0"
+            }
+          ],
+          "instanceId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239",
+          "id": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_1"
+            }
+          ],
+          "instanceId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239",
+          "id": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_2"
+            }
+          ],
+          "instanceId": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239",
+          "id": "sc-vvus-3d1dfd51-5ddc-49b9-a081-af6660fe9239_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84248?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, November 13, 2026 at 8:00 PM",
+      "id": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c",
+      "formattedDates": {
+        "ISO8601": "2026-11-14T02:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_0"
+            }
+          ],
+          "instanceId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c",
+          "id": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_1"
+            }
+          ],
+          "instanceId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c",
+          "id": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_2"
+            }
+          ],
+          "instanceId": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c",
+          "id": "sc-vvus-98bb3740-1fd7-4833-b055-35ae68c93e2c_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcff?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, November 14, 2026 at 3:00 PM",
+      "id": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de",
+      "formattedDates": {
+        "ISO8601": "2026-11-14T21:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_0"
+            }
+          ],
+          "instanceId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de",
+          "id": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_1"
+            }
+          ],
+          "instanceId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de",
+          "id": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_2"
+            }
+          ],
+          "instanceId": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de",
+          "id": "sc-vvus-1db1d786-8523-4a30-9cbf-7c5cc1d071de_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced8424c?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, November 14, 2026 at 8:00 PM",
+      "id": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362",
+      "formattedDates": {
+        "ISO8601": "2026-11-15T02:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_0"
+            }
+          ],
+          "instanceId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362",
+          "id": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_1"
+            }
+          ],
+          "instanceId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362",
+          "id": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_2"
+            }
+          ],
+          "instanceId": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362",
+          "id": "sc-vvus-3ff8dd64-815a-432a-86d1-1005f9173362_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906456?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, November 16, 2026 at 7:00 PM",
+      "id": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb",
+      "formattedDates": {
+        "ISO8601": "2026-11-17T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_0"
+            }
+          ],
+          "instanceId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb",
+          "id": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_1"
+            }
+          ],
+          "instanceId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb",
+          "id": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_2"
+            }
+          ],
+          "instanceId": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb",
+          "id": "sc-vvus-a0b9e627-a4f8-4a96-8114-7d3b70aa9efb_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84250?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, November 20, 2026 at 8:00 PM",
+      "id": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47",
+      "formattedDates": {
+        "ISO8601": "2026-11-21T02:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_0"
+            }
+          ],
+          "instanceId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47",
+          "id": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_1"
+            }
+          ],
+          "instanceId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47",
+          "id": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_2"
+            }
+          ],
+          "instanceId": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47",
+          "id": "sc-vvus-f71b81f6-87ab-484b-bc12-cddaa82d9b47_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd03?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, November 21, 2026 at 3:00 PM",
+      "id": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f",
+      "formattedDates": {
+        "ISO8601": "2026-11-21T21:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_0"
+            }
+          ],
+          "instanceId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f",
+          "id": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_1"
+            }
+          ],
+          "instanceId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f",
+          "id": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_2"
+            }
+          ],
+          "instanceId": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f",
+          "id": "sc-vvus-bb2c2116-fae8-4c5e-8e85-242d925e471f_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84254?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, November 21, 2026 at 8:00 PM",
+      "id": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f",
+      "formattedDates": {
+        "ISO8601": "2026-11-22T02:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_0"
+            }
+          ],
+          "instanceId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f",
+          "id": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_1"
+            }
+          ],
+          "instanceId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f",
+          "id": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_2"
+            }
+          ],
+          "instanceId": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f",
+          "id": "sc-vvus-e8943324-7ea7-47a5-bb4f-5e9fa1d7556f_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90645a?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, November 23, 2026 at 7:00 PM",
+      "id": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd",
+      "formattedDates": {
+        "ISO8601": "2026-11-24T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_0"
+            }
+          ],
+          "instanceId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd",
+          "id": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_1"
+            }
+          ],
+          "instanceId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd",
+          "id": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_2"
+            }
+          ],
+          "instanceId": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd",
+          "id": "sc-vvus-6a7eb398-3615-4cf8-af56-60e4428cf4dd_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84258?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, November 27, 2026 at 8:00 PM",
+      "id": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf",
+      "formattedDates": {
+        "ISO8601": "2026-11-28T02:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf_0"
+            }
+          ],
+          "instanceId": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf",
+          "id": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf_1"
+            }
+          ],
+          "instanceId": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf",
+          "id": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf_2"
+            }
+          ],
+          "instanceId": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf",
+          "id": "sc-vvus-83fc1b2a-1686-4d67-a0b3-93b1cad75aaf_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced8425c?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, November 28, 2026 at 8:00 PM",
+      "id": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219",
+      "formattedDates": {
+        "ISO8601": "2026-11-29T02:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 65,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219_0"
+            }
+          ],
+          "instanceId": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219",
+          "id": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 85,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219_1"
+            }
+          ],
+          "instanceId": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219",
+          "id": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 45,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219_2"
+            }
+          ],
+          "instanceId": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219",
+          "id": "sc-vvus-181015d4-8e07-4673-8de0-2a7489b33219_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a625418f53c1e60c208c1ec?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Thursday, December 31, 2026 at 3:00 PM",
+      "id": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727",
+      "formattedDates": {
+        "ISO8601": "2026-12-31T21:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_0"
+            }
+          ],
+          "instanceId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727",
+          "id": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_1"
+            }
+          ],
+          "instanceId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727",
+          "id": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_2"
+            }
+          ],
+          "instanceId": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727",
+          "id": "sc-vvus-b2214dd2-c27d-42e1-9d34-1187d6fa7727_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a625418f53c1e60c208c1f1?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, January 1, 2027 at 3:00 PM",
+      "id": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c",
+      "formattedDates": {
+        "ISO8601": "2027-01-01T21:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 286
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_0"
+            }
+          ],
+          "instanceId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c",
+          "id": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_1"
+            }
+          ],
+          "instanceId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c",
+          "id": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_2"
+            }
+          ],
+          "instanceId": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c",
+          "id": "sc-vvus-dac86814-6206-44fa-87f0-c08a06f26e1c_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd1b?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, January 2, 2027 at 3:30 PM",
+      "id": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491",
+      "formattedDates": {
+        "ISO8601": "2027-01-02T21:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_0"
+            }
+          ],
+          "instanceId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491",
+          "id": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_1"
+            }
+          ],
+          "instanceId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491",
+          "id": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_2"
+            }
+          ],
+          "instanceId": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491",
+          "id": "sc-vvus-ba10020b-525f-437c-8e4f-35b5cd5ab491_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906472?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, January 4, 2027 at 7:00 PM",
+      "id": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d",
+      "formattedDates": {
+        "ISO8601": "2027-01-05T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_0"
+            }
+          ],
+          "instanceId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d",
+          "id": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_1"
+            }
+          ],
+          "instanceId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d",
+          "id": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_2"
+            }
+          ],
+          "instanceId": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d",
+          "id": "sc-vvus-eee80c50-e944-4657-af9c-432004a6644d_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd1f?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, January 9, 2027 at 3:30 PM",
+      "id": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9",
+      "formattedDates": {
+        "ISO8601": "2027-01-09T21:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_0"
+            }
+          ],
+          "instanceId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9",
+          "id": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_1"
+            }
+          ],
+          "instanceId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9",
+          "id": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_2"
+            }
+          ],
+          "instanceId": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9",
+          "id": "sc-vvus-4cabd55a-dccf-4796-9478-ed804b1808d9_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906476?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, January 11, 2027 at 7:00 PM",
+      "id": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34",
+      "formattedDates": {
+        "ISO8601": "2027-01-12T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_0"
+            }
+          ],
+          "instanceId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34",
+          "id": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_1"
+            }
+          ],
+          "instanceId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34",
+          "id": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_2"
+            }
+          ],
+          "instanceId": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34",
+          "id": "sc-vvus-121b6cff-1dc0-43df-babe-6693ec5e0f34_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd23?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, January 16, 2027 at 3:30 PM",
+      "id": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a",
+      "formattedDates": {
+        "ISO8601": "2027-01-16T21:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_0"
+            }
+          ],
+          "instanceId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a",
+          "id": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_1"
+            }
+          ],
+          "instanceId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a",
+          "id": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_2"
+            }
+          ],
+          "instanceId": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a",
+          "id": "sc-vvus-3481262f-18d6-45c4-a04a-d7e73d75e08a_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90647a?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, January 18, 2027 at 7:00 PM",
+      "id": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714",
+      "formattedDates": {
+        "ISO8601": "2027-01-19T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_0"
+            }
+          ],
+          "instanceId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714",
+          "id": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_1"
+            }
+          ],
+          "instanceId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714",
+          "id": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_2"
+            }
+          ],
+          "instanceId": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714",
+          "id": "sc-vvus-ff68cbb0-ca40-4982-96b6-db32ee1c8714_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd27?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, January 23, 2027 at 3:30 PM",
+      "id": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710",
+      "formattedDates": {
+        "ISO8601": "2027-01-23T21:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_0"
+            }
+          ],
+          "instanceId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710",
+          "id": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_1"
+            }
+          ],
+          "instanceId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710",
+          "id": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_2"
+            }
+          ],
+          "instanceId": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710",
+          "id": "sc-vvus-5d18fbbb-3751-47d9-b08a-100a12c4e710_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd2b?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, January 30, 2027 at 3:30 PM",
+      "id": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7",
+      "formattedDates": {
+        "ISO8601": "2027-01-30T21:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_0"
+            }
+          ],
+          "instanceId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7",
+          "id": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_1"
+            }
+          ],
+          "instanceId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7",
+          "id": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_2"
+            }
+          ],
+          "instanceId": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7",
+          "id": "sc-vvus-d3b8ad36-e9ea-455a-9e0d-a2aec6e054a7_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906482?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, February 1, 2027 at 7:00 PM",
+      "id": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c",
+      "formattedDates": {
+        "ISO8601": "2027-02-02T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_0"
+            }
+          ],
+          "instanceId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c",
+          "id": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_1"
+            }
+          ],
+          "instanceId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c",
+          "id": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_2"
+            }
+          ],
+          "instanceId": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c",
+          "id": "sc-vvus-e0829af3-0274-4f1f-9296-c5c3f9ebde3c_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd2f?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, February 6, 2027 at 3:30 PM",
+      "id": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f",
+      "formattedDates": {
+        "ISO8601": "2027-02-06T21:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_0"
+            }
+          ],
+          "instanceId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f",
+          "id": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_1"
+            }
+          ],
+          "instanceId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f",
+          "id": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_2"
+            }
+          ],
+          "instanceId": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f",
+          "id": "sc-vvus-b4f84dca-4915-43b3-9dbf-5c803852f80f_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e906486?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, February 8, 2027 at 7:00 PM",
+      "id": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634",
+      "formattedDates": {
+        "ISO8601": "2027-02-09T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_0"
+            }
+          ],
+          "instanceId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634",
+          "id": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_1"
+            }
+          ],
+          "instanceId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634",
+          "id": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_2"
+            }
+          ],
+          "instanceId": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634",
+          "id": "sc-vvus-78a591ca-f3a1-4bec-bafe-9a7b86de5634_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd33?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, February 13, 2027 at 3:30 PM",
+      "id": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2",
+      "formattedDates": {
+        "ISO8601": "2027-02-13T21:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_0"
+            }
+          ],
+          "instanceId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2",
+          "id": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_1"
+            }
+          ],
+          "instanceId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2",
+          "id": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_2"
+            }
+          ],
+          "instanceId": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2",
+          "id": "sc-vvus-f47c0cff-43df-4905-9fac-b217df47cfe2_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90648a?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, February 15, 2027 at 7:00 PM",
+      "id": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce",
+      "formattedDates": {
+        "ISO8601": "2027-02-16T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_0"
+            }
+          ],
+          "instanceId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce",
+          "id": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_1"
+            }
+          ],
+          "instanceId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce",
+          "id": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_2"
+            }
+          ],
+          "instanceId": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce",
+          "id": "sc-vvus-a92901a1-5de8-43d4-ab7d-365eab36efce_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd37?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, February 20, 2027 at 3:30 PM",
+      "id": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8",
+      "formattedDates": {
+        "ISO8601": "2027-02-20T21:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_0"
+            }
+          ],
+          "instanceId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8",
+          "id": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_1"
+            }
+          ],
+          "instanceId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8",
+          "id": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_2"
+            }
+          ],
+          "instanceId": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8",
+          "id": "sc-vvus-175e15fa-9493-4c26-8151-d6b887d3d9e8_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1effabeb65f5d62e90648e?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Monday, February 22, 2027 at 7:00 PM",
+      "id": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111",
+      "formattedDates": {
+        "ISO8601": "2027-02-23T01:00:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 49,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_0"
+            }
+          ],
+          "instanceId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111",
+          "id": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 69,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_1"
+            }
+          ],
+          "instanceId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111",
+          "id": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 39,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_2"
+            }
+          ],
+          "instanceId": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111",
+          "id": "sc-vvus-c79ed82a-cd89-4158-a684-be24ce779111_2"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "Reserved",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd3b?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, February 27, 2027 at 3:30 PM",
+      "id": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7",
+      "formattedDates": {
+        "ISO8601": "2027-02-27T21:30:00.000Z"
+      },
+      "eventName": "Best of The Second City",
+      "eventId": "sc-show-ad4bd8bc-f5ad-4e1d-8b8a-ac88fa2f61cf",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 285
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 60,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_0"
+            }
+          ],
+          "instanceId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7",
+          "id": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_0"
+        },
+        {
+          "sortOrder": "2",
+          "soldOut": "False",
+          "name": "Premium",
+          "levels": [
+            {
+              "price": 80,
+              "name": "Premium",
+              "fee": "0",
+              "allocationId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_1"
+            }
+          ],
+          "instanceId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7",
+          "id": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_1"
+        },
+        {
+          "sortOrder": "3",
+          "soldOut": "False",
+          "name": "Value",
+          "levels": [
+            {
+              "price": 40,
+              "name": "Value",
+              "fee": "0",
+              "allocationId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_2"
+            }
+          ],
+          "instanceId": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7",
+          "id": "sc-vvus-70afb156-4c9b-49ad-aede-ad827b14faf7_2"
+        }
+      ]
+    }
+  ],
+  "detail": "",
+  "description": "",
+  "custom": [],
+  "category": "",
+  "address": "Chicago Mainstage",
+  "venueTerm": "chicago-mainstage",
+  "valid_from": "2026-09-26T20:00:00.000Z"
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "club_id": 6,
+    "name": "The Grisly Pear Greenwich Village",
+    "upcoming": 99,
+    "empty_raw": 99,
+    "empty_public": 99,
+    "available_but_no_public_lineup": 99
+  },
+  {
+    "club_id": 7,
+    "name": "The Grisly Pear Midtown",
+    "upcoming": 33,
+    "empty_raw": 33,
+    "empty_public": 33,
+    "available_but_no_public_lineup": 33
+  },
+  {
+    "club_id": 18,
+    "name": "Gotham Comedy Club",
+    "upcoming": 117,
+    "empty_raw": 115,
+    "empty_public": 115,
+    "available_but_no_public_lineup": 115
+  },
+  {
+    "club_id": 187,
+    "name": "UP Comedy Club",
+    "upcoming": 116,
+    "empty_raw": 116,
+    "empty_public": 116,
+    "available_but_no_public_lineup": 116
+  }
+]

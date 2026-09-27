@@ -1,0 +1,952 @@
+[
+  {
+    "source_name": "Aaron Berg",
+    "id": 1179,
+    "uuid": "2328607e15f1ab499c98a68e76fbb441",
+    "name": "Aaron Berg",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Abby Washuta",
+    "id": 30,
+    "uuid": "69c8700b72f6f3a457dfca5ee6757023",
+    "name": "Abby Washuta",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Adam Gabel",
+    "id": 12,
+    "uuid": "38d7bddae94000ea0d754feba5a588ab",
+    "name": "Adam Gabel",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Adam Muller",
+    "id": 42,
+    "uuid": "9609b5e9d944d9d2505fedadcf400000",
+    "name": "Adam Muller",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Adam Nate Levine",
+    "id": 492743,
+    "uuid": "e7053242a470a740ef37515682f4d365",
+    "name": "Adam Nate Levine",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Alexis Bradby",
+    "id": 69,
+    "uuid": "fccb98bbe32c74df25158f1a8e3bae8f",
+    "name": "Alexis Bradby",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Amada Caba",
+    "id": 234285,
+    "uuid": "d42b95f4d7df8d2008f60fcf9055dda2",
+    "name": "Amada Caba",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Andr\u00e9 de Freitas",
+    "id": 485953,
+    "uuid": "49fa1aab546933f3039e614786fdf58e",
+    "name": "Andr\u00e9 de Freitas",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Andy Aluise",
+    "id": 118589,
+    "uuid": "659273627a50eceae11de47b3a5d7bc3",
+    "name": "Andy Aluise",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Anna Bianco",
+    "id": 19,
+    "uuid": "e29662c146349036bbf2cbf5fd37621b",
+    "name": "Anna Bianco",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "April Boddie",
+    "id": 13882,
+    "uuid": "8367ab46dba3681a31c9ba25532d8fe4",
+    "name": "April Boddie",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Ben Callahan",
+    "id": 234198,
+    "uuid": "4358e68e80aae3ecc5450ba15abee521",
+    "name": "Ben Callahan",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Ben Frank",
+    "id": 108,
+    "uuid": "438fd24c1a31427c9e0bb913ae826b71",
+    "name": "Ben Frank",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Brandon Trusso",
+    "id": 2,
+    "uuid": "f7da553c18f747b7e9d0395811efea3f",
+    "name": "Brandon Trusso",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Byron Austin",
+    "id": 152895,
+    "uuid": "2e034edf3f6b2d9ca5ee61bb347497c5",
+    "name": "Byron Austin",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Cab Washington",
+    "id": 772,
+    "uuid": "8db720b242bbcab42877020827c77773",
+    "name": "Cab Washington",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Caitlin Peluffo",
+    "id": 659,
+    "uuid": "3dc43a242c3ad2bcd1c40810b10493d5",
+    "name": "Caitlin Peluffo",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Caitlin Reese",
+    "id": 172,
+    "uuid": "a95cb78c558560fb5ec588d9ab348fa2",
+    "name": "Caitlin Reese",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Cameron Stafford",
+    "id": 492693,
+    "uuid": "65f6678ef2bd1bfc0b6ae093ffdc56cf",
+    "name": "Cameron Stafford",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Candyce Cook",
+    "id": 7,
+    "uuid": "7f73390806d63d24641fc15c321d0028",
+    "name": "Candyce Cook",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Carmen Lagala",
+    "id": 23,
+    "uuid": "53ac5a780ba21a7ecaea6e97ccccf2ed",
+    "name": "Carmen Lagala",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Carmen Lynch",
+    "id": 1046,
+    "uuid": "6c787a48055825d853e66e8b234ea5d4",
+    "name": "Carmen Lynch",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Chris Condren",
+    "id": 234049,
+    "uuid": "a6406bc1f13ba018956faa592135ef7e",
+    "name": "Chris Condren",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Chris Hamilton",
+    "id": 163,
+    "uuid": "ac3ff75bdb13be5b958504b12c2d08fa",
+    "name": "Chris Hamilton",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Chris Keise",
+    "id": 132,
+    "uuid": "8972aa959d66b122fee2d75cab8d5841",
+    "name": "Chris Keise",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Chris Reiter",
+    "id": 20,
+    "uuid": "2f37a3aa993a0d47375258534b12e8df",
+    "name": "Chris Reiter",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Christian Finnegan",
+    "id": 848,
+    "uuid": "e092d67c5d72812aff51bb6314df5531",
+    "name": "Christian Finnegan",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Christy Miller",
+    "id": 256,
+    "uuid": "e97b6066908ef91246b5d39870eaf952",
+    "name": "Christy Miller",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Connor Meade",
+    "id": 145307,
+    "uuid": "8d3c8ec46e7ef6d94d660b6324c8bceb",
+    "name": "Connor Meade",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Cooper Kim",
+    "id": 5276,
+    "uuid": "592d0d1356574e2e0b669f8f7b1dd440",
+    "name": "Cooper Kim",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Corinne Fisher",
+    "id": 1028,
+    "uuid": "a87208ba73f5f9da090a4076021275a0",
+    "name": "Corinne Fisher",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Cory Kahaney",
+    "id": 13994,
+    "uuid": "08468d7a42f2b83d071ecf68a43d324c",
+    "name": "Cory Kahaney",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Dave Caggiano",
+    "id": 234225,
+    "uuid": "961e8320e379a76e446e4c657f39f1d3",
+    "name": "Dave Caggiano",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Derek Gaines",
+    "id": 1175,
+    "uuid": "9dd6f20c5508d0c3545dfad0f5ad7c70",
+    "name": "Derek Gaines",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Derick Gonzalez",
+    "id": 212405,
+    "uuid": "433b63b8a98714d515bfa858bea4aabd",
+    "name": "Derick Gonzalez",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Dj Collins",
+    "id": 157720,
+    "uuid": "16d5355526aac48df320604bc44d42fa",
+    "name": "Dj Collins",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": true
+  },
+  {
+    "source_name": "Dominic Leonelli",
+    "id": 95,
+    "uuid": "d8d93b528ee02ea6f8df0bbffd632db2",
+    "name": "Dominic Leonelli",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Doug Uram",
+    "id": 144,
+    "uuid": "6f9c91f54288bb23238215de7a7f5a83",
+    "name": "Doug Uram",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Drew Beekler",
+    "id": 111,
+    "uuid": "0174b90d39145fc15586f16288c13ab8",
+    "name": "Drew Beekler",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Erica Spera",
+    "id": 86510,
+    "uuid": "ab7e3e7ab068f8d9ade55f57d5f74e0a",
+    "name": "Erica Spera",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Erin Jackson",
+    "id": 4220,
+    "uuid": "0af7f01e82addc453ced141df0c3cffa",
+    "name": "Erin Jackson",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Esther Chen",
+    "id": 4,
+    "uuid": "47bb4275c093cd7f290aaedfec778cb9",
+    "name": "Esther Chen",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Gabe Dorado",
+    "id": 9,
+    "uuid": "9f6df3633e6659623a81e27d46f72c18",
+    "name": "Gabe Dorado",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Gibran Saleem",
+    "id": 484,
+    "uuid": "be5d8d2732811550eee474bccb2bffc3",
+    "name": "Gibran Saleem",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Graham Kay",
+    "id": 999,
+    "uuid": "2c78cca8ef777a8d2d2ef32b5ce8df91",
+    "name": "Graham Kay",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Igor Martinez",
+    "id": 91,
+    "uuid": "7db2206f20ad631bc4d5afff1c6fdb52",
+    "name": "Igor Martinez",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "J Smitty",
+    "id": 53736,
+    "uuid": "ac59a2acb15c6fbdc8803ad36f8c8f4a",
+    "name": "J Smitty",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Ja-Ron Young",
+    "id": 839,
+    "uuid": "22a4c28ca3bff445fd36fe7781145f1f",
+    "name": "Ja-Ron Young",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Jake Silberman",
+    "id": 145342,
+    "uuid": "61bda54eb8b33ebd0ec96582d30ba89d",
+    "name": "Jake Silberman",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Jake Velazquez",
+    "id": 60,
+    "uuid": "c7fa4f464aa7f13ad1caa16111c57970",
+    "name": "Jake Velazquez",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "James Mwaura",
+    "id": 767,
+    "uuid": "9057808f9f2ca654f9926edaaf0200fc",
+    "name": "James Mwaura",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Jatty Robinson",
+    "id": 375,
+    "uuid": "bc7f82a24e6e0587b2a3873b86d24038",
+    "name": "Jatty Robinson",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Jenae Boston",
+    "id": 31736,
+    "uuid": "72b61c54970c134d39116cfbe32f9de9",
+    "name": "Jenae Boston",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Jenny Saldana",
+    "id": 207621,
+    "uuid": "01fc3fddfc01e13c345f7da67dfa3b7a",
+    "name": "Jenny Saldana",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Joe Russell",
+    "id": 13,
+    "uuid": "9ccfdbcb30239b354adac2d12eea511d",
+    "name": "Joe Russell",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Joseph Rosenzweig",
+    "id": 234203,
+    "uuid": "08287850c9f464657f0eca56207ddea2",
+    "name": "Joseph Rosenzweig",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Jourdain Fisher",
+    "id": 791,
+    "uuid": "ca28b4209a216a5affc83595849e1d33",
+    "name": "Jourdain Fisher",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Julia Kastner",
+    "id": 916,
+    "uuid": "5ab643171146e8345e91771b90be1caf",
+    "name": "Julia Kastner",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Julianna Dudley",
+    "id": null,
+    "uuid": null,
+    "name": null,
+    "visible": null,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Kevin Dombrowski",
+    "id": 869,
+    "uuid": "3920e63bac4304382e44150462ada6d8",
+    "name": "Kevin Dombrowski",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Leclerc Andre",
+    "id": 4105,
+    "uuid": "499af72d664a4da365d602712ac0392f",
+    "name": "LeClerc Andre",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Linette Palladino",
+    "id": 106,
+    "uuid": "3ae6094d7f1c78728b33a72229d2424e",
+    "name": "Linette Palladino",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Liza Treyger",
+    "id": 710,
+    "uuid": "65f8f854593ac37eeff4641e3ebb817d",
+    "name": "Liza Treyger",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Malorie Bryant",
+    "id": 17,
+    "uuid": "3ace18f26f1c514f06cf9124c02097d8",
+    "name": "Malorie Bryant",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Mark Normand",
+    "id": 874,
+    "uuid": "e7b44caab5051dae1127e4189f37a5bb",
+    "name": "Mark Normand",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Matt Bowman",
+    "id": 37,
+    "uuid": "7c02142da46bad0a2b9699e99e2296ee",
+    "name": "Matt Bowman",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Monte Marshall",
+    "id": null,
+    "uuid": null,
+    "name": null,
+    "visible": null,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Neko White",
+    "id": 833,
+    "uuid": "26862f5bec70265eb6f7c083a7603def",
+    "name": "Neko White",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Nikhil Mehta",
+    "id": 39,
+    "uuid": "b3eafaa078f2be580b30f246eb8f334f",
+    "name": "Nikhil Mehta",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Nikki MacCallum",
+    "id": 165,
+    "uuid": "c22d498942530c800d7e8e123d178aa6",
+    "name": "Nikki MacCallum",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Noah Miller",
+    "id": 23388,
+    "uuid": "6d95058a99cafc50fa9200ed790cb1af",
+    "name": "Noah Miller",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Patrick Holbert",
+    "id": 221,
+    "uuid": "53fccbef68aaebdb31c657fd28cdd109",
+    "name": "Patrick Holbert",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Peter Revello",
+    "id": 1243,
+    "uuid": "4dc5b4dfacc5deda48a6043df85d6d0d",
+    "name": "Peter Revello",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Philipp Kostelecky",
+    "id": 233532,
+    "uuid": "1520a98647900b47708249667a979b6f",
+    "name": "Philipp Kostelecky",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Rachel Lenihan",
+    "id": 31655,
+    "uuid": "7e7d6fd4a3d09dc631568912b6e46958",
+    "name": "Rachel Lenihan",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Reuben Wolf",
+    "id": 3517,
+    "uuid": "29517ab67712b56b37d253811040d41f",
+    "name": "Reuben Wolf",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Rich Francese",
+    "id": 4118,
+    "uuid": "d8b287509acd8ddf3bba4596700633fb",
+    "name": "Rich Francese",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Richie Redding",
+    "id": 1277,
+    "uuid": "dd1e0d8d1c681beb973a4f4f96a067f9",
+    "name": "Richie Redding",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Royale Watkins",
+    "id": 734357,
+    "uuid": "2bb92066083ac52c8bda0f5c2a4a8374",
+    "name": "Royale Watkins",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Ryan O'Toole",
+    "id": 234218,
+    "uuid": "65fa5ece854f27d8e9dee417d3c6d71f",
+    "name": "Ryan O'Toole",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Ryan Thomas",
+    "id": 102,
+    "uuid": "e2322eb69c6101350acdc7987498bcb6",
+    "name": "Ryan Thomas",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Seaton Smith",
+    "id": 831,
+    "uuid": "3b9842dbcb3519f9f24082aa8dfe7e38",
+    "name": "Seaton Smith",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Shane Torres",
+    "id": 656,
+    "uuid": "dfcf2616da3f81447037fe8dc13bdd73",
+    "name": "Shane Torres",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Shaun Eli",
+    "id": null,
+    "uuid": null,
+    "name": null,
+    "visible": null,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Shyam Subramanian",
+    "id": 14790,
+    "uuid": "14dbfaad412216ee6b4084578de5025c",
+    "name": "Shyam Subramanian",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Soo Ra",
+    "id": 38,
+    "uuid": "116fb69d6772952c80ad5f02f038393f",
+    "name": "Soo Ra",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Talib Babb",
+    "id": 70136,
+    "uuid": "4571a897567bf47f9178124f715ebf2a",
+    "name": "Talib Babb",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Tanner Riley",
+    "id": 268,
+    "uuid": "c9ffdce917ac100824ff74352227c1c8",
+    "name": "Tanner Riley",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Teressa DeGaetano",
+    "id": null,
+    "uuid": null,
+    "name": null,
+    "visible": null,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Tina Zhu",
+    "id": 234249,
+    "uuid": "d0a1da066d8ee640f6dfaf0911e5dcc2",
+    "name": "Tina Zhu",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Tomas Liebel",
+    "id": 234236,
+    "uuid": "acb23fd43efac2b93f3d4095d84b0cd5",
+    "name": "Tomas Liebel",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Troy Alan",
+    "id": 103,
+    "uuid": "4db8524753e3c564f58cafd78b5ba9ce",
+    "name": "Troy Alan",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Tyler Groce",
+    "id": 56952,
+    "uuid": "e4d10fb2cf5d2c15595985325e7a3943",
+    "name": "Tyler Groce",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Vlad Caamano",
+    "id": 1081939,
+    "uuid": "075cc7de7932e3b7cecf2f58a3069385",
+    "name": "Vlad Caamano",
+    "visible": true,
+    "parent_comedian_id": 1154,
+    "denied": false,
+    "nonpublic_tag": false
+  },
+  {
+    "source_name": "Zach Braviette",
+    "id": 70240,
+    "uuid": "78becec4ab26782370edb015e96698c5",
+    "name": "Zach Braviette",
+    "visible": true,
+    "parent_comedian_id": null,
+    "denied": false,
+    "nonpublic_tag": false
+  }
+]

@@ -1,0 +1,354 @@
+{
+  "captured_at": "2026-09-26T22:42:38.174581+00:00",
+  "club_id": 187,
+  "db_upcoming_count": 116,
+  "source_documents": [
+    {
+      "resolver_fixture": "resolver-0.json",
+      "uri": "/shows/chicago/grad-revue-pre-chi",
+      "title": "Grad Revue Preview",
+      "current_upstream_future_instances": 4,
+      "matched_database_ids": [
+        7061192,
+        7061193,
+        7061194,
+        7061195
+      ],
+      "matched_count": 4,
+      "cast_member_field": null,
+      "ticket_address": "e.t.c. Theater - Chicago",
+      "ticket_venue_term": "e-t-c-theater",
+      "classification": "ambiguous class rosters, cannot assign dates"
+    },
+    {
+      "resolver_fixture": "resolver-1.json",
+      "uri": "/shows/chicago/clued-in-presents-travel-can-be-murder-chi",
+      "title": "Clued In Presents: Travel Can Be Murder",
+      "current_upstream_future_instances": 7,
+      "matched_database_ids": [
+        6834525,
+        6834526,
+        6834527,
+        6834528,
+        6834529,
+        6834530,
+        6834531
+      ],
+      "matched_count": 7,
+      "cast_member_field": null,
+      "ticket_address": "UP Comedy Club - Chicago",
+      "ticket_venue_term": "up-comedy-club",
+      "classification": "no named cast in current source"
+    },
+    {
+      "resolver_fixture": "resolver-2.json",
+      "uri": "/shows/chicago/edie-arnold-is-a-loser-chi",
+      "title": "Edie Arnold is a Loser",
+      "current_upstream_future_instances": 1,
+      "matched_database_ids": [
+        6684313
+      ],
+      "matched_count": 1,
+      "cast_member_field": null,
+      "ticket_address": "UP Comedy Club - Chicago",
+      "ticket_venue_term": "up-comedy-club",
+      "classification": "no named cast in current source"
+    },
+    {
+      "resolver_fixture": "resolver-3.json",
+      "uri": "/shows/chicago/not-today-santa-chi",
+      "title": "The Second City\u2019s: Not Today, Santa",
+      "current_upstream_future_instances": 25,
+      "matched_database_ids": [
+        1045992,
+        1045993,
+        1045994,
+        6337274,
+        1045995,
+        1045996,
+        6337277,
+        6337278,
+        1045997,
+        2323637,
+        1045998,
+        6337281,
+        5016417,
+        5016418,
+        1045999,
+        5016420,
+        1046000,
+        5016422,
+        6337288,
+        6337289,
+        6337290,
+        6337291,
+        6337292,
+        6337294,
+        6337295,
+        6337296
+      ],
+      "matched_count": 26,
+      "cast_member_field": null,
+      "ticket_address": "UP Comedy Club - Chicago",
+      "ticket_venue_term": "up-comedy-club",
+      "classification": "no named cast in current source"
+    },
+    {
+      "resolver_fixture": "resolver-4.json",
+      "uri": "/shows/chicago/best-of-the-second-city-chi",
+      "title": "Best of The Second City",
+      "current_upstream_future_instances": 55,
+      "matched_database_ids": [
+        481960,
+        2323772,
+        535522,
+        481962,
+        7061242,
+        2323774,
+        535524,
+        6337322,
+        2323775,
+        481964,
+        2323776,
+        535526,
+        2323777,
+        481966,
+        2323778,
+        535528,
+        6337330,
+        2323779,
+        481968,
+        7381698,
+        2323780,
+        535530,
+        6337334,
+        2323781,
+        481970,
+        2323782,
+        535532,
+        6337338,
+        2323783,
+        481972,
+        2323784,
+        535534,
+        6337342,
+        2323785,
+        481974,
+        2323786,
+        535536,
+        6337346,
+        2323787,
+        481976,
+        6389852,
+        6446591,
+        6499506,
+        6626952,
+        6834607,
+        6973347,
+        7140417,
+        7140418,
+        7140419,
+        7140420,
+        7140421,
+        7140422,
+        7140423,
+        7140424,
+        7140425,
+        7140426,
+        7140427,
+        7140428
+      ],
+      "matched_count": 58,
+      "cast_member_field": null,
+      "ticket_address": "Chicago Mainstage",
+      "ticket_venue_term": "chicago-mainstage",
+      "classification": "no named current cast (alumni marketing excluded)"
+    }
+  ],
+  "database_ids_not_in_current_future_source": [
+    2323771,
+    2323773,
+    2323632,
+    2323633,
+    2323634,
+    2323635,
+    2323636,
+    2323638,
+    2323639,
+    2323640,
+    2323641,
+    2323642,
+    2323643,
+    2323644,
+    6034219,
+    6337293,
+    6134396,
+    6202429,
+    6235574,
+    6297354
+  ],
+  "matched_count": 96,
+  "safe_recoverable_lineup_count": 0,
+  "ambiguous_cast_show_ids": [
+    7061192,
+    7061193,
+    7061194,
+    7061195
+  ],
+  "notes": [
+    "Readonly fetch via UPComedyClubScraper.fetch_json; no persistence.",
+    "Grad Revue description supplies two different class rosters (11 and 8 performers), separate directors/technicians/music directors. No date mapping; class weekday is not performance weekday.",
+    "All five castAndProduction.castMember values null.",
+    "Best of description name-drops Tina Fey, Stephen Colbert, Steve Carell as alumni; these are not current performers.",
+    "Current ticket payload address differs from UP for Grad Revue and Best of. Per-instance venueId empty. Requires venue verification; do not mass-reassign based on show-level address alone.",
+    "Source absence is not cancellation evidence; unmatched stored rows not deleted."
+  ],
+  "same_purchase_url_groups": [
+    [
+      {
+        "id": 535524,
+        "name": "Best of The Second City",
+        "date": "2026-10-10T20:00:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fceb?useEmbed=true"
+      },
+      {
+        "id": 6337322,
+        "name": "Best of The Second City",
+        "date": "2026-10-10T20:30:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fceb?useEmbed=true"
+      }
+    ],
+    [
+      {
+        "id": 535528,
+        "name": "Best of The Second City",
+        "date": "2026-10-24T20:00:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcf3?useEmbed=true"
+      },
+      {
+        "id": 6337330,
+        "name": "Best of The Second City",
+        "date": "2026-10-24T20:30:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcf3?useEmbed=true"
+      }
+    ],
+    [
+      {
+        "id": 7381698,
+        "name": "Best of The Second City",
+        "date": "2026-10-31T00:00:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84238?useEmbed=true"
+      },
+      {
+        "id": 2323780,
+        "name": "Best of The Second City",
+        "date": "2026-10-31T01:00:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84238?useEmbed=true"
+      }
+    ],
+    [
+      {
+        "id": 535530,
+        "name": "Best of The Second City",
+        "date": "2026-10-31T20:00:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcf7?useEmbed=true"
+      },
+      {
+        "id": 6337334,
+        "name": "Best of The Second City",
+        "date": "2026-10-31T20:30:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcf7?useEmbed=true"
+      }
+    ],
+    [
+      {
+        "id": 535532,
+        "name": "Best of The Second City",
+        "date": "2026-11-07T21:00:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcfb?useEmbed=true"
+      },
+      {
+        "id": 6337338,
+        "name": "Best of The Second City",
+        "date": "2026-11-07T21:30:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcfb?useEmbed=true"
+      }
+    ],
+    [
+      {
+        "id": 535534,
+        "name": "Best of The Second City",
+        "date": "2026-11-14T21:00:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcff?useEmbed=true"
+      },
+      {
+        "id": 6337342,
+        "name": "Best of The Second City",
+        "date": "2026-11-14T21:30:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fcff?useEmbed=true"
+      }
+    ],
+    [
+      {
+        "id": 535536,
+        "name": "Best of The Second City",
+        "date": "2026-11-21T21:00:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd03?useEmbed=true"
+      },
+      {
+        "id": 6337346,
+        "name": "Best of The Second City",
+        "date": "2026-11-21T21:30:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1eff46c38030038299fd03?useEmbed=true"
+      }
+    ],
+    [
+      {
+        "id": 2323637,
+        "name": "The Second City's: Not Today, Santa",
+        "date": "2026-12-12T21:30:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8ee?useEmbed=true"
+      },
+      {
+        "id": 1045998,
+        "name": "The Second City's: Not Today, Santa",
+        "date": "2026-12-13T02:00:00+00:00",
+        "show_page_url": "https://us.tickets.secondcity.com/checkout/6a1f04151cf4311465e2d8ee?useEmbed=true"
+      }
+    ]
+  ],
+  "current_upstream_future_instances": 92,
+  "matched_without_cast_count": 92,
+  "unmatched_title_counts": {
+    "Best of The Second City": 2,
+    "Not Today, Santa": 17,
+    "The Second City's: Not Today, Santa": 1
+  },
+  "upstream_future_not_matched_to_db": [
+    {
+      "resolver": 4,
+      "name": "Best of The Second City",
+      "date": "2026-09-27T01:00:00.000Z",
+      "purchase_url": ""
+    },
+    {
+      "resolver": 4,
+      "name": "Best of The Second City",
+      "date": "2026-10-04T01:00:00.000Z",
+      "purchase_url": ""
+    },
+    {
+      "resolver": 4,
+      "name": "Best of The Second City",
+      "date": "2026-11-28T02:00:00.000Z",
+      "purchase_url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced84258?useEmbed=true"
+    },
+    {
+      "resolver": 4,
+      "name": "Best of The Second City",
+      "date": "2026-11-29T02:00:00.000Z",
+      "purchase_url": "https://us.tickets.secondcity.com/checkout/6a1f18b5cb468499ced8425c?useEmbed=true"
+    }
+  ],
+  "unique_matched_source_urls": 88
+}

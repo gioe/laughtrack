@@ -1,0 +1,770 @@
+{
+  "source_named_shows": 44,
+  "named_memberships": 180,
+  "unique_source_names": 95,
+  "shows_with_existing_public_exact_name_match": 44,
+  "source_names_without_exact_match": [
+    "Julianna Dudley",
+    "Monte Marshall",
+    "Shaun Eli",
+    "Teressa DeGaetano"
+  ],
+  "denied_names": [],
+  "matched_hidden_or_nonpublic": [
+    {
+      "source_name": "Dj Collins",
+      "id": 157720,
+      "uuid": "16d5355526aac48df320604bc44d42fa",
+      "name": "Dj Collins",
+      "visible": true,
+      "parent_comedian_id": null,
+      "denied": false,
+      "nonpublic_tag": true
+    }
+  ],
+  "recoverable_shows": [
+    {
+      "id": 6039376,
+      "club_id": 6,
+      "names": [
+        "Brandon Trusso",
+        "Dominic Leonelli",
+        "Ben Callahan",
+        "Nikhil Mehta",
+        "Tomas Liebel"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Brandon Trusso",
+        "Dominic Leonelli",
+        "Ben Callahan",
+        "Nikhil Mehta",
+        "Tomas Liebel"
+      ]
+    },
+    {
+      "id": 6039377,
+      "club_id": 6,
+      "names": [
+        "Malorie Bryant",
+        "Abby Washuta",
+        "Cameron Stafford",
+        "Brandon Trusso",
+        "Jatty Robinson"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Malorie Bryant",
+        "Abby Washuta",
+        "Cameron Stafford",
+        "Brandon Trusso",
+        "Jatty Robinson"
+      ]
+    },
+    {
+      "id": 6039378,
+      "club_id": 6,
+      "names": [
+        "Joe Russell",
+        "Ryan O'Toole",
+        "Tanner Riley"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Joe Russell",
+        "Ryan O'Toole",
+        "Tanner Riley"
+      ]
+    },
+    {
+      "id": 6079203,
+      "club_id": 6,
+      "names": [
+        "Igor Martinez",
+        "Nikki MacCallum"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Igor Martinez",
+        "Nikki MacCallum"
+      ]
+    },
+    {
+      "id": 6079204,
+      "club_id": 6,
+      "names": [
+        "Candyce Cook",
+        "Ben Frank",
+        "Dj Collins",
+        "Noah Miller"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Candyce Cook",
+        "Ben Frank",
+        "Noah Miller"
+      ]
+    },
+    {
+      "id": 6079205,
+      "club_id": 6,
+      "names": [
+        "Nikhil Mehta",
+        "Andy Aluise",
+        "Monte Marshall",
+        "Carmen Lagala"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Nikhil Mehta",
+        "Andy Aluise",
+        "Carmen Lagala"
+      ]
+    },
+    {
+      "id": 6079206,
+      "club_id": 6,
+      "names": [
+        "Ben Callahan",
+        "Jake Silberman",
+        "Talib Babb",
+        "Tyler Groce"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Ben Callahan",
+        "Jake Silberman",
+        "Talib Babb",
+        "Tyler Groce"
+      ]
+    },
+    {
+      "id": 6150999,
+      "club_id": 6,
+      "names": [
+        "Abby Washuta",
+        "Tina Zhu"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Abby Washuta",
+        "Tina Zhu"
+      ]
+    },
+    {
+      "id": 6151000,
+      "club_id": 6,
+      "names": [
+        "Ben Callahan",
+        "Alexis Bradby",
+        "Ryan O'Toole",
+        "Jake Velazquez",
+        "Adam Nate Levine"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Ben Callahan",
+        "Alexis Bradby",
+        "Ryan O'Toole",
+        "Jake Velazquez",
+        "Adam Nate Levine"
+      ]
+    },
+    {
+      "id": 6151001,
+      "club_id": 6,
+      "names": [
+        "Adam Gabel",
+        "Andy Aluise",
+        "Ben Frank",
+        "Monte Marshall",
+        "Drew Beekler"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Adam Gabel",
+        "Andy Aluise",
+        "Ben Frank",
+        "Drew Beekler"
+      ]
+    },
+    {
+      "id": 6203910,
+      "club_id": 6,
+      "names": [
+        "Matt Bowman",
+        "Ja-Ron Young",
+        "Amada Caba",
+        "Reuben Wolf"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Matt Bowman",
+        "Ja-Ron Young",
+        "Amada Caba",
+        "Reuben Wolf"
+      ]
+    },
+    {
+      "id": 6203911,
+      "club_id": 6,
+      "names": [
+        "Tanner Riley",
+        "Adam Nate Levine",
+        "Tomas Liebel"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Tanner Riley",
+        "Adam Nate Levine",
+        "Tomas Liebel"
+      ]
+    },
+    {
+      "id": 6203912,
+      "club_id": 6,
+      "names": [
+        "Jake Silberman",
+        "Joseph Rosenzweig",
+        "Chris Keise",
+        "Talib Babb"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Jake Silberman",
+        "Joseph Rosenzweig",
+        "Chris Keise",
+        "Talib Babb"
+      ]
+    },
+    {
+      "id": 6253766,
+      "club_id": 6,
+      "names": [
+        "Malorie Bryant",
+        "Chris Reiter",
+        "Chris Condren"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Malorie Bryant",
+        "Chris Reiter",
+        "Chris Condren"
+      ]
+    },
+    {
+      "id": 6253767,
+      "club_id": 6,
+      "names": [
+        "Linette Palladino",
+        "Alexis Bradby",
+        "Cooper Kim",
+        "Tina Zhu",
+        "Chris Hamilton",
+        "Dominic Leonelli"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Linette Palladino",
+        "Alexis Bradby",
+        "Cooper Kim",
+        "Tina Zhu",
+        "Chris Hamilton",
+        "Dominic Leonelli"
+      ]
+    },
+    {
+      "id": 6253768,
+      "club_id": 6,
+      "names": [
+        "Adam Gabel",
+        "Tyler Groce",
+        "Cooper Kim",
+        "Drew Beekler",
+        "Julia Kastner"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Adam Gabel",
+        "Tyler Groce",
+        "Cooper Kim",
+        "Drew Beekler",
+        "Julia Kastner"
+      ]
+    },
+    {
+      "id": 6395740,
+      "club_id": 7,
+      "names": [
+        "Tanner Riley",
+        "Dj Collins",
+        "Caitlin Reese"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Tanner Riley",
+        "Caitlin Reese"
+      ]
+    },
+    {
+      "id": 6429317,
+      "club_id": 7,
+      "names": [
+        "Candyce Cook",
+        "Dave Caggiano",
+        "Byron Austin",
+        "Patrick Holbert"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Candyce Cook",
+        "Dave Caggiano",
+        "Byron Austin",
+        "Patrick Holbert"
+      ]
+    },
+    {
+      "id": 6429318,
+      "club_id": 7,
+      "names": [
+        "Doug Uram",
+        "Derick Gonzalez",
+        "Adam Nate Levine",
+        "Adam Muller",
+        "Candyce Cook"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Doug Uram",
+        "Derick Gonzalez",
+        "Adam Nate Levine",
+        "Adam Muller",
+        "Candyce Cook"
+      ]
+    },
+    {
+      "id": 6478812,
+      "club_id": 7,
+      "names": [
+        "Tanner Riley",
+        "Tyler Groce",
+        "Christy Miller",
+        "Dj Collins"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Tanner Riley",
+        "Tyler Groce",
+        "Christy Miller"
+      ]
+    },
+    {
+      "id": 6793444,
+      "club_id": 7,
+      "names": [
+        "Joe Russell",
+        "Julia Kastner",
+        "Dj Collins",
+        "April Boddie"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Joe Russell",
+        "Julia Kastner",
+        "April Boddie"
+      ]
+    },
+    {
+      "id": 6793445,
+      "club_id": 7,
+      "names": [
+        "Adam Gabel",
+        "Dj Collins",
+        "Tina Zhu",
+        "Joe Russell",
+        "Nikhil Mehta"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Adam Gabel",
+        "Tina Zhu",
+        "Joe Russell",
+        "Nikhil Mehta"
+      ]
+    },
+    {
+      "id": 6826200,
+      "club_id": 7,
+      "names": [
+        "Ben Callahan",
+        "Chris Hamilton",
+        "Reuben Wolf",
+        "Esther Chen",
+        "Julianna Dudley"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Ben Callahan",
+        "Chris Hamilton",
+        "Reuben Wolf",
+        "Esther Chen"
+      ]
+    },
+    {
+      "id": 6826201,
+      "club_id": 7,
+      "names": [
+        "Igor Martinez",
+        "Tanner Riley",
+        "Connor Meade",
+        "Jenae Boston"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Igor Martinez",
+        "Tanner Riley",
+        "Connor Meade",
+        "Jenae Boston"
+      ]
+    },
+    {
+      "id": 7029137,
+      "club_id": 7,
+      "names": [
+        "Andy Aluise",
+        "Cab Washington",
+        "Corinne Fisher",
+        "Malorie Bryant"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Andy Aluise",
+        "Cab Washington",
+        "Corinne Fisher",
+        "Malorie Bryant"
+      ]
+    },
+    {
+      "id": 7108656,
+      "club_id": 7,
+      "names": [
+        "Zach Braviette",
+        "Ryan Thomas",
+        "Amada Caba",
+        "Caitlin Reese",
+        "Gabe Dorado"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Zach Braviette",
+        "Ryan Thomas",
+        "Amada Caba",
+        "Caitlin Reese",
+        "Gabe Dorado"
+      ]
+    },
+    {
+      "id": 7108657,
+      "club_id": 7,
+      "names": [
+        "Igor Martinez",
+        "Julia Kastner",
+        "Cooper Kim",
+        "Corinne Fisher",
+        "James Mwaura"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Igor Martinez",
+        "Julia Kastner",
+        "Cooper Kim",
+        "Corinne Fisher",
+        "James Mwaura"
+      ]
+    },
+    {
+      "id": 7108658,
+      "club_id": 7,
+      "names": [
+        "Tanner Riley",
+        "Ryan Thomas",
+        "Anna Bianco",
+        "Soo Ra"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Tanner Riley",
+        "Ryan Thomas",
+        "Anna Bianco",
+        "Soo Ra"
+      ]
+    },
+    {
+      "id": 7161040,
+      "club_id": 7,
+      "names": [
+        "Ben Callahan",
+        "Derick Gonzalez",
+        "Jenny Saldana"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Ben Callahan",
+        "Derick Gonzalez",
+        "Jenny Saldana"
+      ]
+    },
+    {
+      "id": 7161041,
+      "club_id": 7,
+      "names": [
+        "Tanner Riley",
+        "Cooper Kim"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Tanner Riley",
+        "Cooper Kim"
+      ]
+    },
+    {
+      "id": 7352769,
+      "club_id": 7,
+      "names": [
+        "Nikki MacCallum",
+        "Alexis Bradby",
+        "Shyam Subramanian",
+        "Andy Aluise",
+        "Rachel Lenihan"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Nikki MacCallum",
+        "Alexis Bradby",
+        "Shyam Subramanian",
+        "Andy Aluise",
+        "Rachel Lenihan"
+      ]
+    },
+    {
+      "id": 7384464,
+      "club_id": 7,
+      "names": [
+        "Candyce Cook",
+        "Dj Collins",
+        "Ben Callahan",
+        "Reuben Wolf",
+        "Gibran Saleem",
+        "J Smitty"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Candyce Cook",
+        "Ben Callahan",
+        "Reuben Wolf",
+        "Gibran Saleem",
+        "J Smitty"
+      ]
+    },
+    {
+      "id": 7384465,
+      "club_id": 7,
+      "names": [
+        "Matt Bowman",
+        "Troy Alan",
+        "Alexis Bradby",
+        "Derick Gonzalez"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Matt Bowman",
+        "Troy Alan",
+        "Alexis Bradby",
+        "Derick Gonzalez"
+      ]
+    },
+    {
+      "id": 7453011,
+      "club_id": 7,
+      "names": [
+        "Nikki MacCallum",
+        "Derick Gonzalez",
+        "Esther Chen",
+        "Gabe Dorado"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Nikki MacCallum",
+        "Derick Gonzalez",
+        "Esther Chen",
+        "Gabe Dorado"
+      ]
+    },
+    {
+      "id": 7453012,
+      "club_id": 7,
+      "names": [
+        "Zach Braviette",
+        "Dj Collins",
+        "Tomas Liebel",
+        "Nikki MacCallum",
+        "Troy Alan"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Zach Braviette",
+        "Tomas Liebel",
+        "Nikki MacCallum",
+        "Troy Alan"
+      ]
+    },
+    {
+      "id": 5509344,
+      "club_id": 18,
+      "names": [
+        "Peter Revello",
+        "Leclerc Andre",
+        "Erin Jackson",
+        "Vlad Caamano",
+        "Teressa DeGaetano"
+      ],
+      "medium": "poster",
+      "existing_public_names": [
+        "Peter Revello",
+        "Leclerc Andre",
+        "Erin Jackson",
+        "Vlad Caamano"
+      ]
+    },
+    {
+      "id": 3985663,
+      "club_id": 18,
+      "names": [
+        "Peter Revello",
+        "Neko White",
+        "Carmen Lynch",
+        "Philipp Kostelecky",
+        "Kevin Dombrowski"
+      ],
+      "medium": "poster",
+      "existing_public_names": [
+        "Peter Revello",
+        "Neko White",
+        "Carmen Lynch",
+        "Philipp Kostelecky",
+        "Kevin Dombrowski"
+      ]
+    },
+    {
+      "id": 5509343,
+      "club_id": 18,
+      "names": [
+        "Peter Revello",
+        "Neko White",
+        "Carmen Lynch",
+        "Graham Kay",
+        "Teressa DeGaetano"
+      ],
+      "medium": "poster",
+      "existing_public_names": [
+        "Peter Revello",
+        "Neko White",
+        "Carmen Lynch",
+        "Graham Kay"
+      ]
+    },
+    {
+      "id": 3985662,
+      "club_id": 18,
+      "names": [
+        "Derek Gaines",
+        "Erica Spera",
+        "Andr\u00e9 de Freitas",
+        "Graham Kay",
+        "Kevin Dombrowski"
+      ],
+      "medium": "poster",
+      "existing_public_names": [
+        "Derek Gaines",
+        "Erica Spera",
+        "Andr\u00e9 de Freitas",
+        "Graham Kay",
+        "Kevin Dombrowski"
+      ]
+    },
+    {
+      "id": 5009565,
+      "club_id": 18,
+      "names": [
+        "Caitlin Peluffo",
+        "Seaton Smith",
+        "Christian Finnegan",
+        "Rich Francese",
+        "Kevin Dombrowski"
+      ],
+      "medium": "poster",
+      "existing_public_names": [
+        "Caitlin Peluffo",
+        "Seaton Smith",
+        "Christian Finnegan",
+        "Rich Francese",
+        "Kevin Dombrowski"
+      ]
+    },
+    {
+      "id": 7275695,
+      "club_id": 18,
+      "names": [
+        "Liza Treyger",
+        "Shane Torres",
+        "Jourdain Fisher",
+        "Richie Redding"
+      ],
+      "medium": "poster",
+      "existing_public_names": [
+        "Liza Treyger",
+        "Shane Torres",
+        "Jourdain Fisher",
+        "Richie Redding"
+      ]
+    },
+    {
+      "id": 6370626,
+      "club_id": 18,
+      "names": [
+        "Royale Watkins"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Royale Watkins"
+      ]
+    },
+    {
+      "id": 4400553,
+      "club_id": 18,
+      "names": [
+        "Mark Normand",
+        "Aaron Berg",
+        "Cory Kahaney",
+        "Shaun Eli"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Mark Normand",
+        "Aaron Berg",
+        "Cory Kahaney"
+      ]
+    },
+    {
+      "id": 5645376,
+      "club_id": 18,
+      "names": [
+        "Royale Watkins"
+      ],
+      "medium": "text",
+      "existing_public_names": [
+        "Royale Watkins"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "captured_at": "2026-09-26T22:45:00Z",
+  "snapshot_rows": 132,
+  "http_fetched": 131,
+  "counts_by_club": {
+    "6": {
+      "extraction_defect": 16,
+      "no_explicit_performers_published": 83
+    },
+    "7": {
+      "no_explicit_performers_published": 12,
+      "extraction_defect": 19,
+      "unresolved_fetch_failure": 1,
+      "unresolved_redirect_identity_mismatch": 1
+    }
+  },
+  "proven_recoverable_shows": 35,
+  "validated_assignments_on_matched_shows": 145,
+  "recoverable_stored_urls_emitted_by_current_extractor": [
+    6079203
+  ],
+  "recoverable_canonical_urls_present_on_calendar": 35,
+  "redirect_failure": {
+    "id": 6395741,
+    "http_error": "curl47 maximum30redirects",
+    "browser_error": "net::ERR_TOO_MANY_REDIRECTS"
+  },
+  "mismatched_identity": {
+    "id": 6331162,
+    "db_local_date": "2026-10-08T21:30:00-04:00",
+    "detail_local_date": "2026-10-01T21:30:00-04:00",
+    "safe_to_copy_lineup": false
+  },
+  "root_causes": [
+    "Calendar extractor only accepts YYYY-MM-DDHHMMSS terminal slugs and skips newly published MM-DD-YY-HH-MM-am/pm canonical URLs",
+    "Scraper never fetches detail pages; GrislyPearEvent.to_show explicitly sets lineup=[] although details contain event-specific JSON-LD performer and Featuring blocks"
+  ],
+  "fixtures": [
+    {
+      "file": "6039376-lineup-excerpt.html",
+      "show_id": 6039376,
+      "url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-26200000",
+      "original_sha256": "c28652eab907df8ed73160305db418ba049f5985f33f01323ac1dda178e3711b"
+    },
+    {
+      "file": "6395740-lineup-excerpt.html",
+      "show_id": 6395740,
+      "url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-02193000",
+      "original_sha256": "17e28194959d62c083ba485479296606138619ef6e990482a94c08f84833db7f"
+    },
+    {
+      "file": "6357354-lineup-excerpt.html",
+      "show_id": 6357354,
+      "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-01220000",
+      "original_sha256": "8a3351a8224df87bdd96c61ba962dbcf8d588d30424b18e4c43ffe4e47dc0a82"
+    },
+    {
+      "file": "6331162-lineup-excerpt.html",
+      "show_id": 6331162,
+      "url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-08213000",
+      "original_sha256": "4d6644f3c97cc7d6dd187b8223f813377cf7f1f0063f73110702390381cf6e53"
+    }
+  ],
+  "limitations": [
+    "95 fetched pages publish no explicit event-specific performers now; cannot prove permanent absence",
+    "35 recoverable rows means safe evidence for stored show identities, not already fixed or persisted",
+    "No suppression inferred; parent audits canonical/deny state separately",
+    "Fresh actual HttpClient fetch of public sources; pipeline replay runs get_data and to_show(enhanced=False), not persistence"
+  ]
+}

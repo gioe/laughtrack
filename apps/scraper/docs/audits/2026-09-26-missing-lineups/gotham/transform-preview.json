@@ -1,0 +1,91 @@
+[
+  {
+    "show_id": 5509344,
+    "expected_named_people": [
+      "Peter Revello",
+      "Leclerc Andre",
+      "Erin Jackson",
+      "Vlad Caamano",
+      "Teressa DeGaetano"
+    ],
+    "actual_lineup": []
+  },
+  {
+    "show_id": 3985663,
+    "expected_named_people": [
+      "Peter Revello",
+      "Neko White",
+      "Carmen Lynch",
+      "Philipp Kostelecky",
+      "Kevin Dombrowski"
+    ],
+    "actual_lineup": []
+  },
+  {
+    "show_id": 5509343,
+    "expected_named_people": [
+      "Peter Revello",
+      "Neko White",
+      "Carmen Lynch",
+      "Graham Kay",
+      "Teressa DeGaetano"
+    ],
+    "actual_lineup": []
+  },
+  {
+    "show_id": 3985662,
+    "expected_named_people": [
+      "Derek Gaines",
+      "Erica Spera",
+      "Andr\u00e9 de Freitas",
+      "Graham Kay",
+      "Kevin Dombrowski"
+    ],
+    "actual_lineup": []
+  },
+  {
+    "show_id": 5009565,
+    "expected_named_people": [
+      "Caitlin Peluffo",
+      "Seaton Smith",
+      "Christian Finnegan",
+      "Rich Francese",
+      "Kevin Dombrowski"
+    ],
+    "actual_lineup": []
+  },
+  {
+    "show_id": 7275695,
+    "expected_named_people": [
+      "Liza Treyger",
+      "Shane Torres",
+      "Jourdain Fisher",
+      "Richie Redding"
+    ],
+    "actual_lineup": []
+  },
+  {
+    "show_id": 6370626,
+    "expected_named_people": [
+      "Royale Watkins"
+    ],
+    "actual_lineup": []
+  },
+  {
+    "show_id": 4400553,
+    "expected_named_people": [
+      "Mark Normand",
+      "Aaron Berg",
+      "Cory Kahaney",
+      "Shaun Eli"
+    ],
+    "actual_lineup": []
+  },
+  {
+    "show_id": 5645376,
+    "expected_named_people": [
+      "Royale Watkins"
+    ],
+    "actual_lineup": []
+  }
+]

@@ -1,0 +1,56 @@
+{
+  "type": "Tickets",
+  "sortOrder": "0",
+  "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a99d28695ce9b2287c2cede?useEmbed=true",
+  "name": "Edie Arnold is a Loser",
+  "id": "sc-show-82e619c8-71a3-4b8c-a885-6782eb8b6736",
+  "instances": [
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6a99d28695ce9b2287c2cede?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Sunday, September 27, 2026 at 7:00 PM",
+      "id": "sc-vvus-15b0a908-3fbb-4083-ba50-c00cb781938f",
+      "formattedDates": {
+        "ISO8601": "2026-09-28T00:00:00.000Z"
+      },
+      "eventName": "Edie Arnold is a Loser",
+      "eventId": "sc-show-82e619c8-71a3-4b8c-a885-6782eb8b6736",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 15,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-15b0a908-3fbb-4083-ba50-c00cb781938f_0"
+            }
+          ],
+          "instanceId": "sc-vvus-15b0a908-3fbb-4083-ba50-c00cb781938f",
+          "id": "sc-vvus-15b0a908-3fbb-4083-ba50-c00cb781938f_0"
+        }
+      ]
+    }
+  ],
+  "detail": "",
+  "description": "",
+  "custom": [],
+  "category": "",
+  "address": "UP Comedy Club - Chicago",
+  "venueTerm": "up-comedy-club",
+  "valid_from": "2026-09-28T00:00:00.000Z"
+}

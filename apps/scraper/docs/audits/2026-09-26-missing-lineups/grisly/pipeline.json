@@ -1,0 +1,16 @@
+[
+  {
+    "club_id": 6,
+    "events": 87,
+    "show_count": 87,
+    "nonempty_lineups": 0,
+    "note": "Actual current get_data and to_show paths, replaying same-day HttpClient calendar fixture, no persistence."
+  },
+  {
+    "club_id": 7,
+    "events": 12,
+    "show_count": 12,
+    "nonempty_lineups": 0,
+    "note": "Actual current get_data and to_show paths, replaying same-day HttpClient calendar fixture, no persistence."
+  }
+]

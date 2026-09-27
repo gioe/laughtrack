@@ -1,0 +1,3531 @@
+[
+  {
+    "id": 6039376,
+    "club_id": 6,
+    "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-27T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-26200000",
+    "length": 46588,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-26T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-09-26-26-08-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Brandon Trusso",
+      "Dominic Leonelli",
+      "Ben Callahan",
+      "Nikhil Mehta",
+      "Special Guest",
+      "Tomas Liebel"
+    ],
+    "featuring_names": [
+      "Dominic Leonelli",
+      "Brandon Trusso",
+      "Nikhil Mehta",
+      "Ben Callahan",
+      "Tomas Liebel",
+      "Special Guest"
+    ],
+    "validated_names": [
+      "Brandon Trusso",
+      "Dominic Leonelli",
+      "Ben Callahan",
+      "Nikhil Mehta",
+      "Tomas Liebel"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "c28652eab907df8ed73160305db418ba049f5985f33f01323ac1dda178e3711b",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6039377,
+    "club_id": 6,
+    "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-27T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-26220000",
+    "length": 45856,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-26T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-09-26-26-10-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Malorie Bryant",
+      "Abby Washuta",
+      "Cameron Stafford",
+      "Brandon Trusso",
+      "Jatty Robinson"
+    ],
+    "featuring_names": [
+      "Brandon Trusso",
+      "Cameron Stafford",
+      "Jatty Robinson",
+      "Malorie Bryant",
+      "Abby Washuta"
+    ],
+    "validated_names": [
+      "Malorie Bryant",
+      "Abby Washuta",
+      "Cameron Stafford",
+      "Brandon Trusso",
+      "Jatty Robinson"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "43707598353fe3e341f2e56b6efd2bb923f0633de6a70d9c16b69839b9225642",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6039378,
+    "club_id": 6,
+    "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+    "date": "2026-09-27T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-09-26235900",
+    "length": 44330,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-09-26T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-09-26-26-11-59-pm"
+      }
+    ],
+    "performer_names": [
+      "Joe Russell",
+      "Ryan O'Toole",
+      "Tanner Riley"
+    ],
+    "featuring_names": [
+      "Ryan O'Toole",
+      "Tanner Riley",
+      "Joe Russell"
+    ],
+    "validated_names": [
+      "Joe Russell",
+      "Ryan O'Toole",
+      "Tanner Riley"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "6695d347faba73e325063e3fa8607deda492ec50ee216331ba2ace0b2fa21730",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6079203,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-27T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-27180000",
+    "length": 44265,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-27T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-27180000"
+      }
+    ],
+    "performer_names": [
+      "Igor Martinez",
+      "Special Guest",
+      "Nikki MacCallum"
+    ],
+    "featuring_names": [
+      "Nikki MacCallum",
+      "Igor Martinez",
+      "Special Guest"
+    ],
+    "validated_names": [
+      "Igor Martinez",
+      "Nikki MacCallum"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "1648955d465a32f111642087e163f08fd8a903457d1f76c4f445ce1cc80f8df8",
+    "on_current_listing": true,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6079204,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-28T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-27200000",
+    "length": 44906,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-27T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-09-27-26-08-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Candyce Cook",
+      "Ben Frank",
+      "Dj Collins",
+      "Noah Miller"
+    ],
+    "featuring_names": [
+      "Ben Frank",
+      "Dj Collins",
+      "Noah Miller",
+      "Candyce Cook"
+    ],
+    "validated_names": [
+      "Candyce Cook",
+      "Ben Frank",
+      "Dj Collins",
+      "Noah Miller"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "fb95a4524f97c1c958b1e24098a50af6acb7d1f24f78dc85aa44d0ea7da2b003",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6079205,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-28T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-27220000",
+    "length": 44888,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-27T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-09-27-26-10-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Nikhil Mehta",
+      "Andy Aluise",
+      "Monte Marshall",
+      "Carmen Lagala"
+    ],
+    "featuring_names": [
+      "Nikhil Mehta",
+      "Andy Aluise",
+      "Monte Marshall",
+      "Carmen Lagala"
+    ],
+    "validated_names": [
+      "Nikhil Mehta",
+      "Andy Aluise",
+      "Monte Marshall",
+      "Carmen Lagala"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "71018d980f9bc532b89327af0fcaf0d50e510d789ada3beb2faccfc199ad36a4",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6079206,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-28T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-27235900",
+    "length": 44901,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-27T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-09-27-26-11-59-pm"
+      }
+    ],
+    "performer_names": [
+      "Ben Callahan",
+      "Jake Silberman",
+      "Talib Babb",
+      "Tyler Groce"
+    ],
+    "featuring_names": [
+      "Talib Babb",
+      "Ben Callahan",
+      "Tyler Groce",
+      "Jake Silberman"
+    ],
+    "validated_names": [
+      "Ben Callahan",
+      "Jake Silberman",
+      "Talib Babb",
+      "Tyler Groce"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "de7f5a371a864b212cb14024ace84557b0525a4aa9c48a6e754f15af09fea538",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6150999,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-29T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-28200000",
+    "length": 44247,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-28T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-09-28-26-08-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Abby Washuta",
+      "Tina Zhu",
+      "Special Guest"
+    ],
+    "featuring_names": [
+      "Tina Zhu",
+      "Special Guest",
+      "Abby Washuta"
+    ],
+    "validated_names": [
+      "Abby Washuta",
+      "Tina Zhu"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "f6067095541d0280e9ff9f634092d08d6e095ec426f41b5b632429b513b79961",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6151000,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-29T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-28220000",
+    "length": 45630,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-28T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-09-28-26-10-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Ben Callahan",
+      "Alexis Bradby",
+      "Ryan O'Toole",
+      "Jake Velazquez",
+      "Adam Nate Levine"
+    ],
+    "featuring_names": [
+      "Alexis Bradby",
+      "Jake Velazquez",
+      "Ryan O'Toole",
+      "Adam Nate Levine",
+      "Ben Callahan"
+    ],
+    "validated_names": [
+      "Ben Callahan",
+      "Alexis Bradby",
+      "Ryan O'Toole",
+      "Jake Velazquez",
+      "Adam Nate Levine"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "9c0de987def6b354395634e820e2448f17bf388c09f1c13a0df00f8cb970fd61",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6151001,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at Grisly Pear Classic",
+    "date": "2026-09-29T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-09-28235900",
+    "length": 45554,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-09-28T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-09-28-26-11-59-pm"
+      }
+    ],
+    "performer_names": [
+      "Adam Gabel",
+      "Andy Aluise",
+      "Ben Frank",
+      "Monte Marshall",
+      "Drew Beekler"
+    ],
+    "featuring_names": [
+      "Ben Frank",
+      "Drew Beekler",
+      "Andy Aluise",
+      "Monte Marshall",
+      "Adam Gabel"
+    ],
+    "validated_names": [
+      "Adam Gabel",
+      "Andy Aluise",
+      "Ben Frank",
+      "Monte Marshall",
+      "Drew Beekler"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "2cb726cb753a06928ecb8be57f144a039b5accd10096c504837e47e794e33155",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6203910,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-30T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-29200000",
+    "length": 45067,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-29T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-09-29-26-08-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Matt Bowman",
+      "Ja-Ron Young",
+      "Amada Caba",
+      "Reuben Wolf"
+    ],
+    "featuring_names": [
+      "Matt Bowman",
+      "Amada Caba",
+      "Ja-Ron Young",
+      "Reuben Wolf"
+    ],
+    "validated_names": [
+      "Matt Bowman",
+      "Ja-Ron Young",
+      "Amada Caba",
+      "Reuben Wolf"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "5d56ec193bba304b38eb587303e3e4eee0ee83c3bd67b8a1d4c8f2cee4cb78ea",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6203911,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-30T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-29220000",
+    "length": 44190,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-29T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-09-29-26-10-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Tanner Riley",
+      "Adam Nate Levine",
+      "Tomas Liebel"
+    ],
+    "featuring_names": [
+      "Adam Nate Levine",
+      "Tanner Riley",
+      "Tomas Liebel"
+    ],
+    "validated_names": [
+      "Tanner Riley",
+      "Adam Nate Levine",
+      "Tomas Liebel"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "02201a8fe7d9e735e53e2bac98218a078bef93160cfc3e0cc7abcc5f29cd0022",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6203912,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-09-30T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-29235900",
+    "length": 44874,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-29T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-09-29-26-11-59-pm"
+      }
+    ],
+    "performer_names": [
+      "Jake Silberman",
+      "Joseph Rosenzweig",
+      "Chris Keise",
+      "Talib Babb"
+    ],
+    "featuring_names": [
+      "Talib Babb",
+      "Joseph Rosenzweig",
+      "Chris Keise",
+      "Jake Silberman"
+    ],
+    "validated_names": [
+      "Jake Silberman",
+      "Joseph Rosenzweig",
+      "Chris Keise",
+      "Talib Babb"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "eff134276c9762cd69d162d5269e1f2b4267043cc7529e0e102f180607ae3f25",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6253766,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-01T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-30200000",
+    "length": 45026,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-30T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-09-30-26-08-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Malorie Bryant",
+      "Chris Reiter",
+      "Special Guest",
+      "Chris Condren"
+    ],
+    "featuring_names": [
+      "Chris Reiter",
+      "Special Guest",
+      "Malorie Bryant",
+      "Chris Condren"
+    ],
+    "validated_names": [
+      "Malorie Bryant",
+      "Chris Reiter",
+      "Chris Condren"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "b34246c420dd939d359080bed2c7ecea2c9f9befdb9da73bc23230b1dd2add24",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6253767,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-01T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-09-30220000",
+    "length": 46417,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-09-30T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-09-30-26-10-00-pm"
+      }
+    ],
+    "performer_names": [
+      "Linette Palladino",
+      "Alexis Bradby",
+      "Cooper Kim",
+      "Tina Zhu",
+      "Chris Hamilton",
+      "Dominic Leonelli"
+    ],
+    "featuring_names": [
+      "Linette Palladino",
+      "Dominic Leonelli",
+      "Alexis Bradby",
+      "Cooper Kim",
+      "Tina Zhu",
+      "Chris Hamilton"
+    ],
+    "validated_names": [
+      "Linette Palladino",
+      "Alexis Bradby",
+      "Cooper Kim",
+      "Tina Zhu",
+      "Chris Hamilton",
+      "Dominic Leonelli"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "a05c52f389ba1d065d59127e380c116e5803fbf3ec6325d2a865bbf189ebc609",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6253768,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-01T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-09-30235900",
+    "length": 45679,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-09-30T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-09-30-26-11-59-pm"
+      }
+    ],
+    "performer_names": [
+      "Adam Gabel",
+      "Tyler Groce",
+      "Cooper Kim",
+      "Drew Beekler",
+      "Julia Kastner"
+    ],
+    "featuring_names": [
+      "Cooper Kim",
+      "Drew Beekler",
+      "Julia Kastner",
+      "Tyler Groce",
+      "Adam Gabel"
+    ],
+    "validated_names": [
+      "Adam Gabel",
+      "Tyler Groce",
+      "Cooper Kim",
+      "Drew Beekler",
+      "Julia Kastner"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "5ffad5b5874fb4e45e274979814f56b3f8cf7c8cfb72b21131f6f62b66a1e963",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6357354,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-02T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-01220000",
+    "length": 41810,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-01T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-01220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "8a3351a8224df87bdd96c61ba962dbcf8d588d30424b18e4c43ffe4e47dc0a82",
+    "on_current_listing": true
+  },
+  {
+    "id": 6357355,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-02T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-01235900",
+    "length": 41863,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-01T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-01235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "188d15585312aa7da5a10902250c6a9245492f716c9df5bb0a5d858ae850b743",
+    "on_current_listing": true
+  },
+  {
+    "id": 6380599,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-02T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-02180000",
+    "length": 41797,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-02T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-02180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "8e4f2cf6ad26a645baac16dcc29111f94601216580ae8f74941393fc2ee59bcc",
+    "on_current_listing": true
+  },
+  {
+    "id": 6380600,
+    "club_id": 6,
+    "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-03T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-02200000",
+    "length": 41841,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-02T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-02200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "440ea0d26c14b13856c502588733c42e9e1e4050976d97c240ea99d59a39a23c",
+    "on_current_listing": true
+  },
+  {
+    "id": 6380601,
+    "club_id": 6,
+    "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-03T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-02220000",
+    "length": 41881,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-02T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-02220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "fb84de674c59b7939921a3de521f0890a38646078ed35695c5141b439eea43ea",
+    "on_current_listing": true
+  },
+  {
+    "id": 6380602,
+    "club_id": 6,
+    "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-03T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-02235900",
+    "length": 41971,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-02T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-02235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "c4a08da83c2d8bea8fd0e0eacf5e3355507ab1be22d4bbd35d741aab438920a3",
+    "on_current_listing": true
+  },
+  {
+    "id": 6453434,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-03T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-03180000",
+    "length": 41794,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-03T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-03180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "61552b095aec952a8451dc6876b2a59f60182774c7e5e783a34912baf74aa973",
+    "on_current_listing": true
+  },
+  {
+    "id": 6453435,
+    "club_id": 6,
+    "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-04T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-03200000",
+    "length": 42061,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-03T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-03200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "fca07e1694bb8b50e5b9ad826f25dff6d38825876d9d71bc49c46f89ea81fc0a",
+    "on_current_listing": true
+  },
+  {
+    "id": 6453436,
+    "club_id": 6,
+    "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-04T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-03220000",
+    "length": 42033,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-03T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-03220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "cf0ca07e9544df60bae4ddcc0bba417e2dce67a3587173823b27f173e535b916",
+    "on_current_listing": true
+  },
+  {
+    "id": 6453437,
+    "club_id": 6,
+    "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-04T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-03235900",
+    "length": 41896,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-03T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-03235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "0f0939c8f2a1af400ed22c98a19afdde075e4805461e9a2b691bfe3460caad9f",
+    "on_current_listing": true
+  },
+  {
+    "id": 6503210,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-04T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04180000",
+    "length": 41751,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-04T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "bb6bd2cd7c16dd92ee81d6e2723dd6b1aa6a26c360727f3784755d1390ec9dfa",
+    "on_current_listing": true
+  },
+  {
+    "id": 6503211,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-05T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04200000",
+    "length": 41720,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-04T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "aa97673cb767ec4177392bbac03c996534d11645072a91ecd7e0fc174ce062d2",
+    "on_current_listing": true
+  },
+  {
+    "id": 6503212,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-05T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04220000",
+    "length": 41804,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-04T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "aa625b8860cbb8370cd8f4e94859300c83d498b65f7b6303757bfeb666646508",
+    "on_current_listing": true
+  },
+  {
+    "id": 6503213,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-05T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04235900",
+    "length": 41745,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-04T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "4f2fce43025804ed5af412d3f4824252f98fb8f23a5c81f8eac3c52ff7a27439",
+    "on_current_listing": true
+  },
+  {
+    "id": 6545393,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-06T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-05200000",
+    "length": 41847,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-05T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-05200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "b150569e925ef07081ea437088a0d0e4574a77c7a5aacd9374dfed52bb87e187",
+    "on_current_listing": true
+  },
+  {
+    "id": 6545394,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-06T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-05220000",
+    "length": 41745,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-05T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-05220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "ad3c3728b178688c1d8ba1c3555debf9a469ffd4f1c2be35c665ca183439e148",
+    "on_current_listing": true
+  },
+  {
+    "id": 6545395,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-06T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-05235900",
+    "length": 41712,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-05T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-05235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "1efafc6e5bb602dc4e357560ff71e194f0f8f90d86faeb840d587b555aac3991",
+    "on_current_listing": true
+  },
+  {
+    "id": 6601964,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-07T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-06200000",
+    "length": 41998,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-06T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-06200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "26e459045b902d43db4cebc4e7e0a826ecf6d332373a9f3dfa7f03c78fc26cf9",
+    "on_current_listing": true
+  },
+  {
+    "id": 6601965,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-07T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-06220000",
+    "length": 41781,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-06T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-06220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "1a5c6b71e9f3c460f4648ac149ff610e960e7a202b7a45b344c56cec864fab36",
+    "on_current_listing": true
+  },
+  {
+    "id": 6601966,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-07T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-06235900",
+    "length": 41742,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-06T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-06235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "44aa53fd99eb06331885655e8fdc787e3e6dc676e0c332744f0e3d36b5a53d5a",
+    "on_current_listing": true
+  },
+  {
+    "id": 6646627,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-08T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-07200000",
+    "length": 41931,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-07T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-07200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "46eae1e319c42e53ad38addd036ec3394f641f3d312701a7f4bfd9675604df1c",
+    "on_current_listing": true
+  },
+  {
+    "id": 6646628,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-08T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-07220000",
+    "length": 41812,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-07T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-07220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "3bba41b78bdd87e360d1b1389b0ac9174f0771cd87fbe922c49d3810554d0f2c",
+    "on_current_listing": true
+  },
+  {
+    "id": 6646629,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-08T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-07235900",
+    "length": 41613,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-07T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-07235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "a5e750440d01bc88485a339ea051eccc75b5c218c6d16e3f927c2e4d0b8cd9cf",
+    "on_current_listing": true
+  },
+  {
+    "id": 6690122,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-09T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-08220000",
+    "length": 41793,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-08T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-08220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "d89757fed15a954545ad0bd9e7efe3ac2e4fdda065fa97da0effe346cfa5021a",
+    "on_current_listing": true
+  },
+  {
+    "id": 6690123,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-09T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-08235900",
+    "length": 41863,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-08T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-08235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "787571e2c396950b32ed26de0545f7fa32f767c8606af3b0d05ea7065b561a85",
+    "on_current_listing": true
+  },
+  {
+    "id": 6745768,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-09T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-09180000",
+    "length": 41801,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-09T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-09180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "86f3677159a75d779c16a4f89591f63c37df8f3f578ffb2e153cf111cf1781b9",
+    "on_current_listing": true
+  },
+  {
+    "id": 6745769,
+    "club_id": 6,
+    "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-10T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-09200000",
+    "length": 41900,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-09T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-09200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "e7609fb3c75f943c2030d52c495e4b221e9438446153610b8f9b0d99d00ed005",
+    "on_current_listing": true
+  },
+  {
+    "id": 6745770,
+    "club_id": 6,
+    "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-10T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-09220000",
+    "length": 41934,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-09T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-09220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "75be3250f5f93cf383c6074cafec79ec850dd41b3d595d89861c3071812bb8a9",
+    "on_current_listing": true
+  },
+  {
+    "id": 6745771,
+    "club_id": 6,
+    "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-10T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-09235900",
+    "length": 41971,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-09T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-09235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "c6eec05b2254fdfca0eb37911dacedf6ea35fffbc04ba54781be8720f4c419df",
+    "on_current_listing": true
+  },
+  {
+    "id": 6794721,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-10T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-10180000",
+    "length": 41795,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-10T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-10180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "81ccb7be070ed40b5f2b92a680cd467fa0a89f11f63e28d8cb448af01cbe0b6e",
+    "on_current_listing": true
+  },
+  {
+    "id": 6794722,
+    "club_id": 6,
+    "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-11T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-10200000",
+    "length": 42062,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-10T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-10200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "7d261e6e06a799b881470954a9bfa5425a75a3a4796207b1aa90aca441c64156",
+    "on_current_listing": true
+  },
+  {
+    "id": 6794779,
+    "club_id": 6,
+    "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-11T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-10220000",
+    "length": 42034,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-10T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-10220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "bc3b3a6315e381ca4edc52ceaf259924ea496b71fdd456e6100bfa330b7612f4",
+    "on_current_listing": true
+  },
+  {
+    "id": 6794780,
+    "club_id": 6,
+    "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-11T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-10235900",
+    "length": 41897,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-10T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-10235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "475f2547fc64fe51ac224c42189148bcf3052615568890929c667dd0bf2a8d1e",
+    "on_current_listing": true
+  },
+  {
+    "id": 6849815,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-11T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11180000",
+    "length": 41789,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-11T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "7dac7fb3cc3eee6b98055d6530a4ee9fa7206cca1d099c8716737b1f461ccc5b",
+    "on_current_listing": true
+  },
+  {
+    "id": 6849816,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-12T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11200000",
+    "length": 41758,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-11T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "19e47e1f231c7a8571da519989f1d4ba755104beed327bbdfb8c6d7a8f4e1406",
+    "on_current_listing": true
+  },
+  {
+    "id": 6849817,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-12T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11220000",
+    "length": 41805,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-11T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "89d47d3138ddc4e2be8b9ebd6cb8be383912bd50e01aa8de4ef27d4dfd35465f",
+    "on_current_listing": true
+  },
+  {
+    "id": 6849818,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-12T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11235900",
+    "length": 41745,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-11T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "ab6206ef63d6cf134a92eb76bbee6abe9419a30dbd0bcb2ad1c1a7e1944e5411",
+    "on_current_listing": true
+  },
+  {
+    "id": 6900324,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-13T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-12200000",
+    "length": 41847,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-12T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-12200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "fc67eb70fee78b5a46903c87676d245a83c89faef55cd17efd63816d6520e5b8",
+    "on_current_listing": true
+  },
+  {
+    "id": 6900325,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-13T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-12220000",
+    "length": 41746,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-12T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-12220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "5298b9d5c09a3ce73cb93c9a42c3306921025ba5146908dd020a019b1930d817",
+    "on_current_listing": true
+  },
+  {
+    "id": 6900326,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-13T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-12235900",
+    "length": 41713,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-12T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-12235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "8cff9fc88e04eb09fbebe2577cb23c8a8de65e3aad179ebc276c974900dbba93",
+    "on_current_listing": true
+  },
+  {
+    "id": 6947546,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-14T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-13200000",
+    "length": 41999,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-13T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-13200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "042c65ff737eee6d0c5c4b757230c5ed4cb8e926ca63c2f26b835e69d5f87dbb",
+    "on_current_listing": true
+  },
+  {
+    "id": 6947547,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-14T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-13220000",
+    "length": 41782,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-13T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-13220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "4685927f730e02036f6656403b4b5a31919e185a6e1b82c784dcf24bc0262867",
+    "on_current_listing": true
+  },
+  {
+    "id": 6947548,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-14T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-13235900",
+    "length": 41743,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-13T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-13235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "203f27167b9ed64c746c11db4345afdbdb8200e90ef0795d793b28fa7873a5d3",
+    "on_current_listing": true
+  },
+  {
+    "id": 6995481,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-15T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-14200000",
+    "length": 41932,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-14T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-14200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "476a722dc2469866b0c755f4c8fb03e44e5ab3c0bd7e0db4a92355162aa6ed0a",
+    "on_current_listing": true
+  },
+  {
+    "id": 6995482,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-15T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-14220000",
+    "length": 41813,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-14T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-14220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "ed744df37a6d5e097bc6e17996b5fa9b386ea0349ec6dc8f5b7ba6c45c6d1530",
+    "on_current_listing": true
+  },
+  {
+    "id": 6995483,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-15T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-14235900",
+    "length": 41748,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-14T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-14235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "be870d3c48e073db49b57049750d242f490aca8885617ed65e03cb414d26e6ca",
+    "on_current_listing": true
+  },
+  {
+    "id": 7035324,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-16T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-15220000",
+    "length": 41811,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-15T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-15220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "182796ce1b498067c82f5f9addb070353003b2525730b56984bbdce415b5d5b4",
+    "on_current_listing": true
+  },
+  {
+    "id": 7035325,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-16T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-15235900",
+    "length": 41864,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-15T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-15235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "74e1fa85f9b2b9cf932ce4422d4ab95d2ea553abefbd3a579df7efe5b55b520e",
+    "on_current_listing": true
+  },
+  {
+    "id": 7070583,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-16T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-16180000",
+    "length": 41798,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-16T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-16180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "650416da392ca715f12bc6bb2c7103f1ea37522a0d0bcc7b0e498b8806c1f0c7",
+    "on_current_listing": true
+  },
+  {
+    "id": 7070584,
+    "club_id": 6,
+    "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-17T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-16200000",
+    "length": 41848,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-16T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-16200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "9a9fcc9a4e7cd3bb32234daa9054d0183f006f2eb4f8cf32d9a695fd4195ca09",
+    "on_current_listing": true
+  },
+  {
+    "id": 7070585,
+    "club_id": 6,
+    "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-17T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-16220000",
+    "length": 41888,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-16T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-16220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "f4eff862fb3fba61577751b208f725a29f193636e2adbc1b6aa16581f09e07fc",
+    "on_current_listing": true
+  },
+  {
+    "id": 7070586,
+    "club_id": 6,
+    "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-17T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-16235900",
+    "length": 41972,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-16T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-16235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "d1ac77b15c2fe973260c7150f22f275f34489e88ac0e426e4b715b2c80a2e78a",
+    "on_current_listing": true
+  },
+  {
+    "id": 7103722,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-17T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-17180000",
+    "length": 41795,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-17T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-17180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "981ae9434373de577e2dd5bf929b7184f9358273c9f893411c071ff23c8328b4",
+    "on_current_listing": true
+  },
+  {
+    "id": 7103723,
+    "club_id": 6,
+    "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-18T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-17200000",
+    "length": 42055,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-17T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-17200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "d80179f84452a282cdfcb05baf12f13334c1a23286add5eb30e4bc3feb7ee153",
+    "on_current_listing": true
+  },
+  {
+    "id": 7103724,
+    "club_id": 6,
+    "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-18T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-17220000",
+    "length": 42027,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-17T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-17220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "0f24e602bd1b59e944ecc66fe56be49f5a3ebe9681839f1f55b632b2270a6340",
+    "on_current_listing": true
+  },
+  {
+    "id": 7103725,
+    "club_id": 6,
+    "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-18T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-17235900",
+    "length": 41897,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-17T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-17235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "4da7287e5905140ae795a2cb59ed641c09b2cea813a39c8fd52bbfb1b6ac7ad2",
+    "on_current_listing": true
+  },
+  {
+    "id": 7154699,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-18T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18180000",
+    "length": 41789,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-18T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "59ccdd3d4cedcf7a9f395d927ed04e27836ffcb79eba11a5727c56fe20641cde",
+    "on_current_listing": true
+  },
+  {
+    "id": 7154700,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-19T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18200000",
+    "length": 41758,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-18T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "b2d368131eb93a80d5e0f2f2295da7fd8d04209296867585089fe8fe54769b50",
+    "on_current_listing": true
+  },
+  {
+    "id": 7154701,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-19T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18220000",
+    "length": 41805,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-18T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "f51601b2743a9ed31c8855bab8d45efa83f5d3b1bea68801db102bb8061c51c2",
+    "on_current_listing": true
+  },
+  {
+    "id": 7154702,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-19T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18235900",
+    "length": 41763,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-18T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "29121aef073658c7cd590a1beca3343749664634f75cbe14679ea6d2ce9c414d",
+    "on_current_listing": true
+  },
+  {
+    "id": 7204081,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-20T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-19200000",
+    "length": 41865,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-19T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-19200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "39c47aaa1acf67e69b29ac7e2eeb88a03ebd285b99c51693fa0168223ea36de0",
+    "on_current_listing": true
+  },
+  {
+    "id": 7204082,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-20T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-19220000",
+    "length": 41746,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-19T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-19220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "2b1947ec621a86265a3fb663eccb2d4594b0bd9155636cfdcd3d607408cf7ce1",
+    "on_current_listing": true
+  },
+  {
+    "id": 7204083,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-20T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-19235900",
+    "length": 41713,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-19T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-19235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "e290a504767efdc507778f0238c1445fc634ecd012c4a1ff2283a350f5d64309",
+    "on_current_listing": true
+  },
+  {
+    "id": 7235818,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-21T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-20200000",
+    "length": 41999,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-20T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-20200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "77d1cf83bb49b899c197c4f2cb5d45440b43f34da60df567ec0add6f5fd45f27",
+    "on_current_listing": true
+  },
+  {
+    "id": 7235819,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-21T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-20220000",
+    "length": 41782,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-20T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-20220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "41237b24b0404e438ca2e26603f4a31baabb12f741de7d955316aafa5650e98f",
+    "on_current_listing": true
+  },
+  {
+    "id": 7235820,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-21T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-20235900",
+    "length": 41743,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-20T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-20235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "3aaf97bc5cbd8c3cc11668c33968a6bc0df95d0212a33e4eefd40669ba1293f5",
+    "on_current_listing": true
+  },
+  {
+    "id": 7283417,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-22T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-21200000",
+    "length": 41932,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-21T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-21200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "629a90a508f3c04b8950a70d5703feba40a371d66629e1669af1c14239cf1411",
+    "on_current_listing": true
+  },
+  {
+    "id": 7283418,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-22T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-21220000",
+    "length": 41813,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-21T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-21220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "14ed5533a3aa5142e02ca3c237bc0dd2490ae5cf95721447d936cfb7907eddf6",
+    "on_current_listing": true
+  },
+  {
+    "id": 7283419,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-22T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-21235900",
+    "length": 41719,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-21T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-21235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "eb16d69b02f6160f9bbec5a44532a27143d959defc9889e58a911d9922c8da3e",
+    "on_current_listing": true
+  },
+  {
+    "id": 7338025,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-23T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-22220000",
+    "length": 41811,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-22T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-22220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "1a49e77079e2c693df1335a58d41a2f280727baea87c5357c0fc645429a8b97b",
+    "on_current_listing": true
+  },
+  {
+    "id": 7338026,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-23T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-22235900",
+    "length": 41864,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-22T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-22235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "0b633ea18743847a598120d65a9c5ea2a6643edfe79bfd973dee67b3603247ef",
+    "on_current_listing": true
+  },
+  {
+    "id": 7408873,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-23T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-23180000",
+    "length": 41798,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-23T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-23180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "2df344540483393dc2f0f6de140bb0c2936f7f88bfc227b66a69a0630d15e263",
+    "on_current_listing": true
+  },
+  {
+    "id": 7408874,
+    "club_id": 6,
+    "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-24T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-23200000",
+    "length": 41848,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-23T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-23200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "5d6db414133a93ef94b67bf0988dde7b78fdee64b6971919e13a7f58ec653555",
+    "on_current_listing": true
+  },
+  {
+    "id": 7408875,
+    "club_id": 6,
+    "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-24T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-23220000",
+    "length": 41888,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-23T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-23220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "9b8dd62bddf1fc105d69ef397a48ca15b2eba8cc9f38bc352d899135fa6a28d5",
+    "on_current_listing": true
+  },
+  {
+    "id": 7408876,
+    "club_id": 6,
+    "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-24T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-23235900",
+    "length": 41972,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-23T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-23235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "64b627068d7fe16d4ec426b4b5c38bc7904f32bac698d2abdbfacd4eac662b56",
+    "on_current_listing": true
+  },
+  {
+    "id": 7433960,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-24T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-24180000",
+    "length": 41795,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-24T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-24180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "94de38d4a61dfedd1e7de35b4dfe823b1f49c84cb8fc72ba33b9547b0d232ae8",
+    "on_current_listing": true
+  },
+  {
+    "id": 7433961,
+    "club_id": 6,
+    "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-25T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-24200000",
+    "length": 42062,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-24T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-24200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "2f201b0e568dddd0e990101d5ee4c4f23676d888a63d0064e3f174bb3f323cbe",
+    "on_current_listing": true
+  },
+  {
+    "id": 7433962,
+    "club_id": 6,
+    "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-25T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-24220000",
+    "length": 42034,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Primetime Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-24T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-24220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "14819e2a5f1129fa624c24712189bc42dc57e28328b0e92d8450a109717398cb",
+    "on_current_listing": true
+  },
+  {
+    "id": 7433963,
+    "club_id": 6,
+    "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+    "date": "2026-10-25T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-24235900",
+    "length": 41897,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Primetime Comedy Show at Grisly Pear Classic",
+        "startDate": "2026-10-24T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-24235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "10f0dba20e7525eb847e9da9944b127125769ae04a6827bddf4901e5ce63b97f",
+    "on_current_listing": true
+  },
+  {
+    "id": 7507903,
+    "club_id": 6,
+    "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-25T22:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25180000",
+    "length": 41758,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "6PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-25T18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25180000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "9fc2b1fbebac91b358b9d1d956125b3f8bff4def4d654f5a510451868a30de5f",
+    "on_current_listing": true
+  },
+  {
+    "id": 7507904,
+    "club_id": 6,
+    "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-26T00:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25200000",
+    "length": 41672,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "8PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-25T20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25200000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "3ce3ad31629f2a3c3e2204cd01a5a289b426c7671cfab9138ab173cb0bf0487d",
+    "on_current_listing": true
+  },
+  {
+    "id": 7507905,
+    "club_id": 6,
+    "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-26T02:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25220000",
+    "length": 41750,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "10PM Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-25T22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25220000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "459b4f476bc46deea22c3b418f14d14b9e7654c2be90ba87b12a7accb31a9136",
+    "on_current_listing": true
+  },
+  {
+    "id": 7507906,
+    "club_id": 6,
+    "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+    "date": "2026-10-26T03:59:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25235900",
+    "length": 41763,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Midnight Comedy Show at The Grisly Pear Greenwich Village",
+        "startDate": "2026-10-25T23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25235900"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "60bbb5d5ef34ebf11cd16dad4d20e2e44a45ff7b1d9695f5f4bdc474abf90371",
+    "on_current_listing": true
+  },
+  {
+    "id": 6184137,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-09-29T23:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-09-29190000",
+    "length": 44287,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-09-29T19:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-09-29190000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "b8c07443b529760a216b3941bb8e5eabc029067db6d51ed53f6a80127427692d",
+    "on_current_listing": true
+  },
+  {
+    "id": 6184138,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-09-30T01:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-09-29210000",
+    "length": 44298,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-09-29T21:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-09-29210000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "d562e6dfc07341cc33e49301bb5ccaeab298d79f3b58ca2431a575808ecf1dd1",
+    "on_current_listing": true
+  },
+  {
+    "id": 6184139,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-09-30T02:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-09-29223000",
+    "length": 44312,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-09-29T22:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-09-29223000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "d3973f7d8d80002904131e353a6eacc30abdd2ef36897c82681c057765813f93",
+    "on_current_listing": true
+  },
+  {
+    "id": 6395740,
+    "club_id": 7,
+    "name": "7:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-02T23:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-02193000",
+    "length": 47504,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-02T19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-02-26-07-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Tanner Riley",
+      "Dj Collins",
+      "Caitlin Reese",
+      "Special Guest"
+    ],
+    "featuring_names": [
+      "Dj Collins",
+      "Tanner Riley",
+      "Caitlin Reese",
+      "Special Guest"
+    ],
+    "validated_names": [
+      "Tanner Riley",
+      "Dj Collins",
+      "Caitlin Reese"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "17e28194959d62c083ba485479296606138619ef6e990482a94c08f84833db7f",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6395741,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-03T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-02213000",
+    "error": "Failed to perform, curl: (47) Maximum (30) redirects followed. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+    "classification": "unresolved_fetch_failure",
+    "validated_names": [],
+    "on_current_listing": false
+  },
+  {
+    "id": 6429317,
+    "club_id": 7,
+    "name": "7:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-03T23:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-03193000",
+    "length": 47489,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-03T19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-03-26-07-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Candyce Cook",
+      "Dave Caggiano",
+      "Byron Austin",
+      "Patrick Holbert"
+    ],
+    "featuring_names": [
+      "Dave Caggiano",
+      "Candyce Cook",
+      "Patrick Holbert",
+      "Byron Austin"
+    ],
+    "validated_names": [
+      "Candyce Cook",
+      "Dave Caggiano",
+      "Byron Austin",
+      "Patrick Holbert"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "255493b52a16ae061f2c53fc976ac26406c0274c074581567722986b3e66afb1",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6429318,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-04T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-03213000",
+    "length": 48236,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-03T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-03-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Doug Uram",
+      "Derick Gonzalez",
+      "Adam Nate Levine",
+      "Adam Muller",
+      "Candyce Cook"
+    ],
+    "featuring_names": [
+      "Doug Uram",
+      "Adam Muller",
+      "Adam Nate Levine",
+      "Derick Gonzalez",
+      "Candyce Cook"
+    ],
+    "validated_names": [
+      "Doug Uram",
+      "Derick Gonzalez",
+      "Adam Nate Levine",
+      "Adam Muller",
+      "Candyce Cook"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "554e69955969a09574d4cd26a3855791175272bcb79162656b164f0e7b133245",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6478812,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-05T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-04213000",
+    "length": 47373,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-04T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-04-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Tanner Riley",
+      "Tyler Groce",
+      "Christy Miller",
+      "Dj Collins"
+    ],
+    "featuring_names": [
+      "Dj Collins",
+      "Tanner Riley",
+      "Tyler Groce",
+      "Christy Miller"
+    ],
+    "validated_names": [
+      "Tanner Riley",
+      "Tyler Groce",
+      "Christy Miller",
+      "Dj Collins"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "2ba178a6eb9c75633a69b1364c64e572b386ba14f4fe4bcc2b18dbb4c2d81e8a",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6585152,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-10-06T23:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06190000",
+    "length": 44290,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-10-06T19:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06190000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "3686097b33c473ab2a9005a69a4a5fe29e81505d924c932abb4ea9a100bbabbf",
+    "on_current_listing": true
+  },
+  {
+    "id": 6585153,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-10-07T01:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06210000",
+    "length": 44311,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-10-06T21:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06210000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "2eea4220715f7f48d049fc45800d2b4a69ca7e2e213de62349077a331ff53005",
+    "on_current_listing": true
+  },
+  {
+    "id": 6585154,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-10-07T02:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06223000",
+    "length": 44317,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-10-06T22:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06223000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "5b963df2eb84dd861924d8c27888511a2686aaba2895cda39c5de44607896965",
+    "on_current_listing": true
+  },
+  {
+    "id": 6331162,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-09T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-08213000",
+    "length": 46571,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-01T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-01-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "J Smitty",
+      "Alexis Bradby",
+      "Jenn Lederer"
+    ],
+    "featuring_names": [
+      "Alexis Bradby",
+      "J Smitty",
+      "Jenn Lederer"
+    ],
+    "validated_names": [
+      "J Smitty",
+      "Alexis Bradby",
+      "Jenn Lederer"
+    ],
+    "classification": "unresolved_redirect_identity_mismatch",
+    "sha256": "4d6644f3c97cc7d6dd187b8223f813377cf7f1f0063f73110702390381cf6e53",
+    "on_current_listing": false,
+    "dates_match_db": false,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6793444,
+    "club_id": 7,
+    "name": "7:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-10T23:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-10193000",
+    "length": 47373,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-10T19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-10-26-07-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Joe Russell",
+      "Julia Kastner",
+      "Dj Collins",
+      "April Boddie"
+    ],
+    "featuring_names": [
+      "Dj Collins",
+      "April Boddie",
+      "Julia Kastner",
+      "Joe Russell"
+    ],
+    "validated_names": [
+      "Joe Russell",
+      "Julia Kastner",
+      "Dj Collins",
+      "April Boddie"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "29ee3fa97e54a5ba60e5558a9527167725ececa86faf4c63224e84c8f18c472c",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6793445,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-11T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-10213000",
+    "length": 48049,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-10T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-10-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Adam Gabel",
+      "Dj Collins",
+      "Tina Zhu",
+      "Joe Russell",
+      "Nikhil Mehta"
+    ],
+    "featuring_names": [
+      "Nikhil Mehta",
+      "Dj Collins",
+      "Tina Zhu",
+      "Adam Gabel",
+      "Joe Russell"
+    ],
+    "validated_names": [
+      "Adam Gabel",
+      "Dj Collins",
+      "Tina Zhu",
+      "Joe Russell",
+      "Nikhil Mehta"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "fbf23ed78dd47f062818344e9f847d137ac5f3a4a47fbe8c65967cbec9bfa406",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6826200,
+    "club_id": 7,
+    "name": "7:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-11T23:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-11193000",
+    "length": 48152,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-11T19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-11-26-07-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Ben Callahan",
+      "Chris Hamilton",
+      "Reuben Wolf",
+      "Esther Chen",
+      "Julianna Dudley"
+    ],
+    "featuring_names": [
+      "Ben Callahan",
+      "Chris Hamilton",
+      "Reuben Wolf",
+      "Esther Chen",
+      "Julianna Dudley"
+    ],
+    "validated_names": [
+      "Ben Callahan",
+      "Chris Hamilton",
+      "Reuben Wolf",
+      "Esther Chen",
+      "Julianna Dudley"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "9e47e430381e1dec4b58a76cb2449936c4153be5fa3ce1f84750fdd18e8592fb",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6826201,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-12T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-11213000",
+    "length": 47385,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-11T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-11-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Igor Martinez",
+      "Tanner Riley",
+      "Connor Meade",
+      "Jenae Boston"
+    ],
+    "featuring_names": [
+      "Igor Martinez",
+      "Tanner Riley",
+      "Jenae Boston",
+      "Connor Meade"
+    ],
+    "validated_names": [
+      "Igor Martinez",
+      "Tanner Riley",
+      "Connor Meade",
+      "Jenae Boston"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "f322861960ebe3ce2a74332c9c9f7d6cf1bdb167989cdae35ca45bdb163db7e4",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 6930457,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-10-13T23:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13190000",
+    "length": 44291,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-10-13T19:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13190000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "283311469ef9717deb2f7407b95ab660d21a17b27db674c0b9048f100d4a2761",
+    "on_current_listing": true
+  },
+  {
+    "id": 6930458,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-10-14T01:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13210000",
+    "length": 44312,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-10-13T21:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13210000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "0d0cfbceaf3321000ee58915bf62bf9c27a120a0de2d29abd421159c9b21be92",
+    "on_current_listing": true
+  },
+  {
+    "id": 6930459,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-10-14T02:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13223000",
+    "length": 44318,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-10-13T22:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13223000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "4a68d30ee0d95f3075b4ba1b1ffaddd100a6835127634c71ecc601d558d406eb",
+    "on_current_listing": true
+  },
+  {
+    "id": 7029137,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-16T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-15213000",
+    "length": 47306,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-15T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-15-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Andy Aluise",
+      "Cab Washington",
+      "Corinne Fisher",
+      "Malorie Bryant"
+    ],
+    "featuring_names": [
+      "Corinne Fisher",
+      "Cab Washington",
+      "Andy Aluise",
+      "Malorie Bryant"
+    ],
+    "validated_names": [
+      "Andy Aluise",
+      "Cab Washington",
+      "Corinne Fisher",
+      "Malorie Bryant"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "9d4ac13b1f85e3fef8e6b8d91c125382cbeb8da31260a12d6767328a2e1a4ee9",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7108656,
+    "club_id": 7,
+    "name": "7:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-16T23:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-16193000",
+    "length": 48206,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-16T19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-16-26-07-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Zach Braviette",
+      "Ryan Thomas",
+      "Amada Caba",
+      "Caitlin Reese",
+      "Gabe Dorado"
+    ],
+    "featuring_names": [
+      "Ryan Thomas",
+      "Amada Caba",
+      "Caitlin Reese",
+      "Gabe Dorado",
+      "Zach Braviette"
+    ],
+    "validated_names": [
+      "Zach Braviette",
+      "Ryan Thomas",
+      "Amada Caba",
+      "Caitlin Reese",
+      "Gabe Dorado"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "ce2549c600a0ca4b1975fa3a70b37686fab996681d368f9f2111b699d76dbea0",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7108657,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-17T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-16213000",
+    "length": 48125,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-16T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-16-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Igor Martinez",
+      "Julia Kastner",
+      "Cooper Kim",
+      "Corinne Fisher",
+      "James Mwaura"
+    ],
+    "featuring_names": [
+      "Corinne Fisher",
+      "Igor Martinez",
+      "Cooper Kim",
+      "James Mwaura",
+      "Julia Kastner"
+    ],
+    "validated_names": [
+      "Igor Martinez",
+      "Julia Kastner",
+      "Cooper Kim",
+      "Corinne Fisher",
+      "James Mwaura"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "98bfa51f555d90ed2f28440ba931f39e7c4163be3700e3566dfaa7726b844644",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7108658,
+    "club_id": 7,
+    "name": "7:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-17T23:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-17193000",
+    "length": 47344,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-17T19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-17-26-07-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Tanner Riley",
+      "Ryan Thomas",
+      "Anna Bianco",
+      "Soo Ra"
+    ],
+    "featuring_names": [
+      "Anna Bianco",
+      "Soo Ra",
+      "Ryan Thomas",
+      "Tanner Riley"
+    ],
+    "validated_names": [
+      "Tanner Riley",
+      "Ryan Thomas",
+      "Anna Bianco",
+      "Soo Ra"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "41baf70128eee8bf29742be8981b0fed79487501e21727cc2aeb5ce53eda94a7",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7161040,
+    "club_id": 7,
+    "name": "7:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-18T23:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-18193000",
+    "length": 47534,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-18T19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-18-26-07-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Ben Callahan",
+      "Derick Gonzalez",
+      "Special Guest",
+      "Jenny Saldana"
+    ],
+    "featuring_names": [
+      "Derick Gonzalez",
+      "Ben Callahan",
+      "Special Guest",
+      "Jenny Saldana"
+    ],
+    "validated_names": [
+      "Ben Callahan",
+      "Derick Gonzalez",
+      "Jenny Saldana"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "fd81dfc778780d8e323ecb6d4c7c6a3e3b2e8679dcd0532f4d479f1ff4b0a2e0",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7161041,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-19T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-18213000",
+    "length": 45942,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-18T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-18-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Tanner Riley",
+      "Cooper Kim"
+    ],
+    "featuring_names": [
+      "Cooper Kim",
+      "Tanner Riley"
+    ],
+    "validated_names": [
+      "Tanner Riley",
+      "Cooper Kim"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "661d7bce1361b3cffb7c685bef2cacd5db4f029b82ff632ab9f947b131d382c8",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7256545,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-10-20T23:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20190000",
+    "length": 44291,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-10-20T19:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20190000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "e12895bde727f88df4e769ad6b2eac8a1f95a2b96513a6e686f12c1cde7c7751",
+    "on_current_listing": true
+  },
+  {
+    "id": 7256546,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-10-21T01:00:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20210000",
+    "length": 44312,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-10-20T21:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20210000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "c482c34d345df56e0c66e78f8d9fd91816fddb0dd3f4c94acb2deeb588929a7b",
+    "on_current_listing": true
+  },
+  {
+    "id": 7256547,
+    "club_id": 7,
+    "name": "New Joke Night at the Grisly Pear Midtown",
+    "date": "2026-10-21T02:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20223000",
+    "length": 44318,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "New Joke Night at the Grisly Pear Midtown",
+        "startDate": "2026-10-20T22:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20223000"
+      }
+    ],
+    "performer_names": [],
+    "featuring_names": [],
+    "validated_names": [],
+    "classification": "no_explicit_performers_published",
+    "sha256": "91fde9d268cfc217fd89e326e76bdbdb4bf0e566fb044052899b31a07a8b8643",
+    "on_current_listing": true
+  },
+  {
+    "id": 7352769,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-23T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-22213000",
+    "length": 48060,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-22T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-22-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Nikki MacCallum",
+      "Alexis Bradby",
+      "Shyam Subramanian",
+      "Andy Aluise",
+      "Rachel Lenihan"
+    ],
+    "featuring_names": [
+      "Rachel Lenihan",
+      "Alexis Bradby",
+      "Nikki MacCallum",
+      "Shyam Subramanian",
+      "Andy Aluise"
+    ],
+    "validated_names": [
+      "Nikki MacCallum",
+      "Alexis Bradby",
+      "Shyam Subramanian",
+      "Andy Aluise",
+      "Rachel Lenihan"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "6e8c6682495a72418451531076474d85503f42fcaf4a061e96623fc0d06f26ed",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7384464,
+    "club_id": 7,
+    "name": "7:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-23T23:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-23193000",
+    "length": 48839,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-23T19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-23-26-07-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Candyce Cook",
+      "Dj Collins",
+      "Ben Callahan",
+      "Reuben Wolf",
+      "Gibran Saleem",
+      "J Smitty"
+    ],
+    "featuring_names": [
+      "Dj Collins",
+      "Ben Callahan",
+      "Gibran Saleem",
+      "Candyce Cook",
+      "Reuben Wolf",
+      "J Smitty"
+    ],
+    "validated_names": [
+      "Candyce Cook",
+      "Dj Collins",
+      "Ben Callahan",
+      "Reuben Wolf",
+      "Gibran Saleem",
+      "J Smitty"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "ecb93b85e558e6573b6c6df3c5a2a91a5a8af39c73f39ba0e0a3e5f818a5d4e6",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7384465,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-24T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-23213000",
+    "length": 47508,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-23T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-23-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Matt Bowman",
+      "Troy Alan",
+      "Alexis Bradby",
+      "Derick Gonzalez"
+    ],
+    "featuring_names": [
+      "Troy Alan",
+      "Alexis Bradby",
+      "Matt Bowman",
+      "Derick Gonzalez"
+    ],
+    "validated_names": [
+      "Matt Bowman",
+      "Troy Alan",
+      "Alexis Bradby",
+      "Derick Gonzalez"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "01f2954c9856becf53455f40671e1bf02e2924a4692fc6ec5ad890724f98ce9b",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7453011,
+    "club_id": 7,
+    "name": "7:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-24T23:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-24193000",
+    "length": 47453,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-24T19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-24-26-07-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Nikki MacCallum",
+      "Derick Gonzalez",
+      "Esther Chen",
+      "Gabe Dorado"
+    ],
+    "featuring_names": [
+      "Nikki MacCallum",
+      "Derick Gonzalez",
+      "Gabe Dorado",
+      "Esther Chen"
+    ],
+    "validated_names": [
+      "Nikki MacCallum",
+      "Derick Gonzalez",
+      "Esther Chen",
+      "Gabe Dorado"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "c2c72cf05fc98e26cd70508e2f978722b1d42468926cf9ad79ee3ec9a142a8c3",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  },
+  {
+    "id": 7453012,
+    "club_id": 7,
+    "name": "9:30PM Comedy Show at The Grisly Pear Midtown",
+    "date": "2026-10-25T01:30:00+00:00",
+    "show_page_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-24213000",
+    "length": 48064,
+    "event_jsonld": [
+      {
+        "type": "ComedyEvent",
+        "name": "Comedy Show at The Grisly Pear Midtown",
+        "startDate": "2026-10-24T21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-24-26-09-30-pm"
+      }
+    ],
+    "performer_names": [
+      "Zach Braviette",
+      "Dj Collins",
+      "Tomas Liebel",
+      "Nikki MacCallum",
+      "Troy Alan"
+    ],
+    "featuring_names": [
+      "Troy Alan",
+      "Nikki MacCallum",
+      "Dj Collins",
+      "Tomas Liebel",
+      "Zach Braviette"
+    ],
+    "validated_names": [
+      "Zach Braviette",
+      "Dj Collins",
+      "Tomas Liebel",
+      "Nikki MacCallum",
+      "Troy Alan"
+    ],
+    "classification": "extraction_defect",
+    "sha256": "7563a7ba264ccc8706581e85ee61f3e9ca670c7337bbc5a666985c0ede29b951",
+    "on_current_listing": false,
+    "dates_match_db": true,
+    "canonical_url_on_calendar": true
+  }
+]

@@ -1,0 +1,378 @@
+{
+  "__typename": "Show",
+  "uri": "/shows/chicago/grad-revue-pre-chi",
+  "seo": {
+    "title": "Grad Revue Preview - The Second City",
+    "metaDesc": "Discover top sketch, improv, and stand-up comedy shows at the world-famous Second City!",
+    "metaRobotsNofollow": "follow",
+    "metaRobotsNoindex": "index",
+    "twitterDescription": "",
+    "canonical": "https://www.secondcity.com/shows/chicago/grad-revue-pre-chi/",
+    "twitterImage": null,
+    "breadcrumbs": [
+      {
+        "text": "Grad Revue Preview",
+        "url": "https://www.secondcity.com/shows/chicago/grad-revue-pre-chi/"
+      }
+    ],
+    "twitterTitle": "",
+    "focuskw": "",
+    "fullHead": "<!-- This site is optimized with the Yoast SEO Premium plugin v23.3 (Yoast SEO v26.3) - https://yoast.com/wordpress/plugins/seo/ -->\n<title>Grad Revue Preview - The Second City</title>\n<meta name=\"description\" content=\"Discover top sketch, improv, and stand-up comedy shows at the world-famous Second City!\" />\n<link rel=\"canonical\" href=\"https://www.secondcity.com/shows/chicago/grad-revue-pre-chi/\" />\n<meta property=\"og:locale\" content=\"en_US\" />\n<meta property=\"og:type\" content=\"article\" />\n<meta property=\"og:title\" content=\"Grad Revue Preview - The Second City\" />\n<meta property=\"og:description\" content=\"Discover top sketch, improv, and stand-up comedy shows at the world-famous Second City!\" />\n<meta property=\"og:url\" content=\"https://www.secondcity.com/shows/chicago/grad-revue-pre-chi/\" />\n<meta property=\"og:site_name\" content=\"The Second City\" />\n<meta property=\"article:modified_time\" content=\"2026-09-16T18:38:27+00:00\" />\n<meta property=\"og:image\" content=\"https://platform.secondcity.com/wp-content/uploads/2026/09/grad-revue-preview.png\" />\n\t<meta property=\"og:image:width\" content=\"498\" />\n\t<meta property=\"og:image:height\" content=\"284\" />\n\t<meta property=\"og:image:type\" content=\"image/png\" />\n<meta name=\"twitter:card\" content=\"summary_large_image\" />\n<meta name=\"twitter:label1\" content=\"Est. reading time\" />\n\t<meta name=\"twitter:data1\" content=\"1 minute\" />\n<!-- / Yoast SEO Premium plugin. -->",
+    "opengraphImage": {
+      "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2026/09/grad-revue-preview.png"
+    },
+    "opengraphTitle": "Grad Revue Preview - The Second City",
+    "opengraphDescription": "Discover top sketch, improv, and stand-up comedy shows at the world-famous Second City!"
+  },
+  "title": "Grad Revue Preview",
+  "priority": {
+    "priority": 1
+  },
+  "patronticketData": {
+    "patronticketData": "eyJ0eXBlIjoiVGlja2V0cyIsInNvcnRPcmRlciI6IjAiLCJwdXJjaGFzZVVybCI6Imh0dHBzOlwvXC91cy50aWNrZXRzLnNlY29uZGNpdHkuY29tXC9jaGVja291dFwvNmFhNDJlNGI5NmUzYmVkMDFiY2JkNDFiP3VzZUVtYmVkPXRydWUiLCJuYW1lIjoiR3JhZCBSZXZ1ZSBQcmV2aWV3IiwiaWQiOiJzYy1zaG93LWVmNzYyN2QyLTRmYzAtNGYxYi05MTBiLWNiNGM5OGZjMDA0YSIsImluc3RhbmNlcyI6W3sidmVudWVJZCI6IiIsInNvbGRPdXQiOjAsInNlYXRpbmdUeXBlIjoiR2VuZXJhbCBBZG1pc3Npb24iLCJwdXJjaGFzZVVybCI6Imh0dHBzOlwvXC91cy50aWNrZXRzLnNlY29uZGNpdHkuY29tXC9jaGVja291dFwvNmFhNDJlNGI5NmUzYmVkMDFiY2JkNDFiP3VzZUVtYmVkPXRydWUiLCJzYWxlU3RhdGUiOiJvblNhbGUiLCJvblNhbGUiOnRydWUsIm9uU2FsZUxhYmVsIjpudWxsLCJ1bmF2YWlsYWJsZVJlYXNvbiI6bnVsbCwic2FsZVN0YXR1cyI6Ik9uIFNhbGUiLCJuYW1lIjoiTW9uZGF5LCBTZXB0ZW1iZXIgMjgsIDIwMjYgYXQgNzozMCBQTSIsImlkIjoic2MtdnZ1cy1mZThkY2NkOC05MzlhLTQwMmMtODIyYy05MzgwYTg5ZmVlZDciLCJmb3JtYXR0ZWREYXRlcyI6eyJJU084NjAxIjoiMjAyNi0wOS0yOVQwMDozMDowMC4wMDBaIn0sImV2ZW50TmFtZSI6IkdyYWQgUmV2dWUgUHJldmlldyIsImV2ZW50SWQiOiJzYy1zaG93LWVmNzYyN2QyLTRmYzAtNGYxYi05MTBiLWNiNGM5OGZjMDA0YSIsImRldGFpbCI6IiIsImN1c3RvbSI6eyJOdW1iZXJfb2ZfUHVibGljX1NlYXRzX19jIjoxNTZ9LCJjb250ZW50Rm9ybWF0IjoiU3RhbmRhcmQiLCJhbGxvY2F0aW9ucyI6W3sic29ydE9yZGVyIjoiMSIsInNvbGRPdXQiOiJGYWxzZSIsIm5hbWUiOiJHZW5lcmFsIEFkbWlzc2lvbiIsImxldmVscyI6W3sicHJpY2UiOjEwLCJuYW1lIjoiR2VuZXJhbCBBZG1pc3Npb24iLCJmZWUiOiIwIiwiYWxsb2NhdGlvbklkIjoic2MtdnZ1cy1mZThkY2NkOC05MzlhLTQwMmMtODIyYy05MzgwYTg5ZmVlZDdfMCJ9XSwiaW5zdGFuY2VJZCI6InNjLXZ2dXMtZmU4ZGNjZDgtOTM5YS00MDJjLTgyMmMtOTM4MGE4OWZlZWQ3IiwiaWQiOiJzYy12dnVzLWZlOGRjY2Q4LTkzOWEtNDAyYy04MjJjLTkzODBhODlmZWVkN18wIn1dfSx7InZlbnVlSWQiOiIiLCJzb2xkT3V0IjowLCJzZWF0aW5nVHlwZSI6IkdlbmVyYWwgQWRtaXNzaW9uIiwicHVyY2hhc2VVcmwiOiJodHRwczpcL1wvdXMudGlja2V0cy5zZWNvbmRjaXR5LmNvbVwvY2hlY2tvdXRcLzZhYTQyZTRiOTZlM2JlZDAxYmNiZDQxZj91c2VFbWJlZD10cnVlIiwic2FsZVN0YXRlIjoib25TYWxlIiwib25TYWxlIjp0cnVlLCJvblNhbGVMYWJlbCI6bnVsbCwidW5hdmFpbGFibGVSZWFzb24iOm51bGwsInNhbGVTdGF0dXMiOiJPbiBTYWxlIiwibmFtZSI6Ik1vbmRheSwgT2N0b2JlciA1LCAyMDI2IGF0IDc6MzAgUE0iLCJpZCI6InNjLXZ2dXMtY2ExNWQ5NzctYTU5MC00NmM4LWE1OGMtNWRmNzVhMjFmNjU0IiwiZm9ybWF0dGVkRGF0ZXMiOnsiSVNPODYwMSI6IjIwMjYtMTAtMDZUMDA6MzA6MDAuMDAwWiJ9LCJldmVudE5hbWUiOiJHcmFkIFJldnVlIFByZXZpZXciLCJldmVudElkIjoic2Mtc2hvdy1lZjc2MjdkMi00ZmMwLTRmMWItOTEwYi1jYjRjOThmYzAwNGEiLCJkZXRhaWwiOiIiLCJjdXN0b20iOnsiTnVtYmVyX29mX1B1YmxpY19TZWF0c19fYyI6MTU2fSwiY29udGVudEZvcm1hdCI6IlN0YW5kYXJkIiwiYWxsb2NhdGlvbnMiOlt7InNvcnRPcmRlciI6IjEiLCJzb2xkT3V0IjoiRmFsc2UiLCJuYW1lIjoiR2VuZXJhbCBBZG1pc3Npb24iLCJsZXZlbHMiOlt7InByaWNlIjoxMCwibmFtZSI6IkdlbmVyYWwgQWRtaXNzaW9uIiwiZmVlIjoiMCIsImFsbG9jYXRpb25JZCI6InNjLXZ2dXMtY2ExNWQ5NzctYTU5MC00NmM4LWE1OGMtNWRmNzVhMjFmNjU0XzAifV0sImluc3RhbmNlSWQiOiJzYy12dnVzLWNhMTVkOTc3LWE1OTAtNDZjOC1hNThjLTVkZjc1YTIxZjY1NCIsImlkIjoic2MtdnZ1cy1jYTE1ZDk3Ny1hNTkwLTQ2YzgtYTU4Yy01ZGY3NWEyMWY2NTRfMCJ9XX0seyJ2ZW51ZUlkIjoiIiwic29sZE91dCI6MCwic2VhdGluZ1R5cGUiOiJHZW5lcmFsIEFkbWlzc2lvbiIsInB1cmNoYXNlVXJsIjoiaHR0cHM6XC9cL3VzLnRpY2tldHMuc2Vjb25kY2l0eS5jb21cL2NoZWNrb3V0XC82YWE0MmVkODhhZjE1NzFkZjE1YjJlYWM/dXNlRW1iZWQ9dHJ1ZSIsInNhbGVTdGF0ZSI6Im9uU2FsZSIsIm9uU2FsZSI6dHJ1ZSwib25TYWxlTGFiZWwiOm51bGwsInVuYXZhaWxhYmxlUmVhc29uIjpudWxsLCJzYWxlU3RhdHVzIjoiT24gU2FsZSIsIm5hbWUiOiJUdWVzZGF5LCBPY3RvYmVyIDEzLCAyMDI2IGF0IDc6MzAgUE0iLCJpZCI6InNjLXZ2dXMtNTk5Y2NhMjAtYTAwNy00ZjQ5LTgxYWMtYzU4ZDBjZGU5ZGVhIiwiZm9ybWF0dGVkRGF0ZXMiOnsiSVNPODYwMSI6IjIwMjYtMTAtMTRUMDA6MzA6MDAuMDAwWiJ9LCJldmVudE5hbWUiOiJHcmFkIFJldnVlIFByZXZpZXciLCJldmVudElkIjoic2Mtc2hvdy1lZjc2MjdkMi00ZmMwLTRmMWItOTEwYi1jYjRjOThmYzAwNGEiLCJkZXRhaWwiOiIiLCJjdXN0b20iOnsiTnVtYmVyX29mX1B1YmxpY19TZWF0c19fYyI6MjQ3fSwiY29udGVudEZvcm1hdCI6IlN0YW5kYXJkIiwiYWxsb2NhdGlvbnMiOlt7InNvcnRPcmRlciI6IjEiLCJzb2xkT3V0IjoiRmFsc2UiLCJuYW1lIjoiR2VuZXJhbCBBZG1pc3Npb24iLCJsZXZlbHMiOlt7InByaWNlIjoxMCwibmFtZSI6IkdlbmVyYWwgQWRtaXNzaW9uIiwiZmVlIjoiMCIsImFsbG9jYXRpb25JZCI6InNjLXZ2dXMtNTk5Y2NhMjAtYTAwNy00ZjQ5LTgxYWMtYzU4ZDBjZGU5ZGVhXzAifV0sImluc3RhbmNlSWQiOiJzYy12dnVzLTU5OWNjYTIwLWEwMDctNGY0OS04MWFjLWM1OGQwY2RlOWRlYSIsImlkIjoic2MtdnZ1cy01OTljY2EyMC1hMDA3LTRmNDktODFhYy1jNThkMGNkZTlkZWFfMCJ9XX0seyJ2ZW51ZUlkIjoiIiwic29sZE91dCI6MCwic2VhdGluZ1R5cGUiOiJHZW5lcmFsIEFkbWlzc2lvbiIsInB1cmNoYXNlVXJsIjoiaHR0cHM6XC9cL3VzLnRpY2tldHMuc2Vjb25kY2l0eS5jb21cL2NoZWNrb3V0XC82YWE0MmU0Yjk2ZTNiZWQwMWJjYmQ0Mjc/dXNlRW1iZWQ9dHJ1ZSIsInNhbGVTdGF0ZSI6Im9uU2FsZSIsIm9uU2FsZSI6dHJ1ZSwib25TYWxlTGFiZWwiOm51bGwsInVuYXZhaWxhYmxlUmVhc29uIjpudWxsLCJzYWxlU3RhdHVzIjoiT24gU2FsZSIsIm5hbWUiOiJNb25kYXksIE9jdG9iZXIgMTksIDIwMjYgYXQgNzozMCBQTSIsImlkIjoic2MtdnZ1cy0wNzg2Mzc3Ny1jMmE4LTRkYWYtOWQ3My02NmNiY2Q4YmQyNGMiLCJmb3JtYXR0ZWREYXRlcyI6eyJJU084NjAxIjoiMjAyNi0xMC0yMFQwMDozMDowMC4wMDBaIn0sImV2ZW50TmFtZSI6IkdyYWQgUmV2dWUgUHJldmlldyIsImV2ZW50SWQiOiJzYy1zaG93LWVmNzYyN2QyLTRmYzAtNGYxYi05MTBiLWNiNGM5OGZjMDA0YSIsImRldGFpbCI6IiIsImN1c3RvbSI6eyJOdW1iZXJfb2ZfUHVibGljX1NlYXRzX19jIjoxNTZ9LCJjb250ZW50Rm9ybWF0IjoiU3RhbmRhcmQiLCJhbGxvY2F0aW9ucyI6W3sic29ydE9yZGVyIjoiMSIsInNvbGRPdXQiOiJGYWxzZSIsIm5hbWUiOiJHZW5lcmFsIEFkbWlzc2lvbiIsImxldmVscyI6W3sicHJpY2UiOjEwLCJuYW1lIjoiR2VuZXJhbCBBZG1pc3Npb24iLCJmZWUiOiIwIiwiYWxsb2NhdGlvbklkIjoic2MtdnZ1cy0wNzg2Mzc3Ny1jMmE4LTRkYWYtOWQ3My02NmNiY2Q4YmQyNGNfMCJ9XSwiaW5zdGFuY2VJZCI6InNjLXZ2dXMtMDc4NjM3NzctYzJhOC00ZGFmLTlkNzMtNjZjYmNkOGJkMjRjIiwiaWQiOiJzYy12dnVzLTA3ODYzNzc3LWMyYTgtNGRhZi05ZDczLTY2Y2JjZDhiZDI0Y18wIn1dfV0sImRldGFpbCI6IiIsImRlc2NyaXB0aW9uIjoiIiwiY3VzdG9tIjpbXSwiY2F0ZWdvcnkiOiIiLCJhZGRyZXNzIjoiZS50LmMuIFRoZWF0ZXIgLSBDaGljYWdvIiwidmVudWVUZXJtIjoiZS10LWMtdGhlYXRlciIsInZhbGlkX2Zyb20iOiIyMDI2LTA5LTI5VDAwOjMwOjAwLjAwMFoifQ=="
+  },
+  "featuredImage": {
+    "node": {
+      "altText": "",
+      "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2026/09/grad-revue-preview.png",
+      "mediaDetails": {
+        "width": 498,
+        "height": 284
+      }
+    }
+  },
+  "showTags": {
+    "nodes": [
+      {
+        "id": "dGVybToxODU=",
+        "name": "Conservatory",
+        "description": null,
+        "slug": "conservatory"
+      },
+      {
+        "id": "dGVybToxODQ=",
+        "name": "Student Show",
+        "description": null,
+        "slug": "student-show"
+      }
+    ]
+  },
+  "locations": {
+    "nodes": [
+      {
+        "id": "dGVybToxMQ==",
+        "uri": "/shows/chicago/",
+        "name": "Chicago",
+        "seo": {
+          "title": "Chicago Shows - The Second City",
+          "metaDesc": "Currently playing live comedy shows at The Second City in Chicago, Toronto & New York City, 7 nights a week",
+          "metaRobotsNofollow": "follow",
+          "metaRobotsNoindex": "index",
+          "canonical": "https://platform.secondcity.com/shows/chicago/grad-revue-pre-chi/",
+          "twitterDescription": "",
+          "twitterImage": null,
+          "breadcrumbs": [
+            {
+              "text": "Chicago",
+              "url": "https://www.secondcity.com/shows/chicago/"
+            }
+          ],
+          "twitterTitle": "",
+          "focuskw": "",
+          "fullHead": "<!-- This site is optimized with the Yoast SEO Premium plugin v23.3 (Yoast SEO v26.3) - https://yoast.com/wordpress/plugins/seo/ -->\n<title>Chicago Shows - The Second City</title>\n<meta name=\"description\" content=\"Currently playing live comedy shows at The Second City in Chicago, Toronto &amp; New York City, 7 nights a week\" />\n<link rel=\"canonical\" href=\"https://platform.secondcity.com/shows/chicago/grad-revue-pre-chi/\" />\n<meta property=\"og:locale\" content=\"en_US\" />\n<meta property=\"og:type\" content=\"article\" />\n<meta property=\"og:title\" content=\"Chicago Shows - The Second City\" />\n<meta property=\"og:description\" content=\"Currently playing live comedy shows at The Second City in Chicago, Toronto &amp; New York City, 7 nights a week\" />\n<meta property=\"og:url\" content=\"https://platform.secondcity.com/shows/chicago/grad-revue-pre-chi/\" />\n<meta property=\"og:site_name\" content=\"The Second City\" />\n<meta property=\"og:image\" content=\"https://platform.secondcity.com/shows/chicago/grad-revue-pre-chi\" />\n\t<meta property=\"og:image:width\" content=\"1080\" />\n\t<meta property=\"og:image:height\" content=\"1080\" />\n\t<meta property=\"og:image:type\" content=\"image/png\" />\n<meta name=\"twitter:card\" content=\"summary_large_image\" />\n<!-- / Yoast SEO Premium plugin. -->",
+          "opengraphImage": null,
+          "opengraphTitle": "Chicago Shows - The Second City",
+          "opengraphDescription": "Currently playing live comedy shows at The Second City in Chicago, Toronto & New York City, 7 nights a week"
+        },
+        "accessibilityInfo": {
+          "infoList": [
+            {
+              "description": "<p>The Second City provides accessible parking and seating at every<br />\nperformance.</p>\n<p>Parking is available at 230 W. North Ave. in Piper\u2019s Alley Self Park.</p>\n<p>We do not validate parking.</p>\n<p>Each theater is equipped with wheelchair accessible and/or companion seats.</p>\n",
+              "icon": {
+                "altText": "",
+                "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2024/03/image-21.png",
+                "mimeType": "image/png",
+                "mediaDetails": {
+                  "height": 35,
+                  "width": 35
+                }
+              }
+            },
+            {
+              "description": "<p>Assistive listening devices are available upon request.</p>\n",
+              "icon": {
+                "altText": "",
+                "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2024/03/image-22.png",
+                "mimeType": "image/png",
+                "mediaDetails": {
+                  "height": 35,
+                  "width": 35
+                }
+              }
+            },
+            {
+              "description": "<p><strong><a href=\"https://www.secondcity.com/locations/chicago/\" target=\"_blank\" rel=\"noopener\">Chicago theaters details and locations</a></strong></p>\n<p>Need Parking?<br />\n<strong><a href=\"https://parking.com/chicago/parking-near/41.91151540/-87.63617990/230-west-north-ave/?lot_id=19663&amp;showListOnly=1&amp;view=daily&amp;sw&amp;ne&amp;facility&amp;valet&amp;general=&amp;displayFullCity=0\" target=\"_blank\" rel=\"noopener\">Find Parking</a></strong></p>\n",
+              "icon": {
+                "altText": "",
+                "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2024/03/Group-237744.png",
+                "mimeType": "image/png",
+                "mediaDetails": {
+                  "height": 35,
+                  "width": 35
+                }
+              }
+            }
+          ]
+        },
+        "showWhatsPlaying": {
+          "flexibleLayout": [
+            {
+              "__typename": "Location_Showwhatsplaying_FlexibleLayout_ShowsWhatsPlayingList",
+              "location": "chicago",
+              "headingBackgroundImage": {
+                "altText": "",
+                "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2024/02/Mask-group.png",
+                "mimeType": "image/png",
+                "mediaDetails": {
+                  "height": 140,
+                  "width": 1440
+                }
+              },
+              "heading": "What's Playing in Chicago",
+              "imageOverlay": "#cf102d",
+              "sections": [
+                {
+                  "name": "secondCity",
+                  "title": "Second City Productions",
+                  "subtitle": "<p>The Second City\u2019s original productions mix sketch and improv, delivering sharp satire, spontaneous laughs, and a unique experience every time.</p>\n",
+                  "navigationTitle": "Second City"
+                },
+                {
+                  "name": "guest",
+                  "title": "Visiting Productions",
+                  "subtitle": "<p>Hosted by The Second City, these visiting productions bring popular, acclaimed shows from guest performers to our stage.</p>\n",
+                  "navigationTitle": "Visiting Productions"
+                },
+                {
+                  "name": "student",
+                  "title": "Student Productions",
+                  "subtitle": "<p>Showcasing The Second City&#8217;s students, these performances feature the talent from our current training center programs.</p>\n",
+                  "navigationTitle": "Student Shows"
+                }
+              ]
+            },
+            {
+              "__typename": "Location_Showwhatsplaying_FlexibleLayout_ShowsWhatsPlayingFaqs",
+              "title": "FAQs",
+              "faqsItems": [
+                {
+                  "content": "<p><a href=\"https://www.secondcity.com/locations/chicago/\" target=\"_blank\" rel=\"noopener\">Chicago theaters details and locations</a></p>\n<p><a href=\"https://www.secondcity.com/locations/toronto/\" target=\"_blank\" rel=\"noopener\">Toronto theaters details and locations</a></p>\n<p><a href=\"https://www.secondcity.com/locations/new-york/\" target=\"_blank\" rel=\"noopener\">New York City theaters details and locations</a></p>\n",
+                  "headline": "HOW DO I GET THERE?"
+                },
+                {
+                  "content": "<p>The Second City does not admit children under the age of 13 unless specifically noted. Children 13-17 years old must be accompanied by an adult.</p>\n",
+                  "headline": "IS THERE AN AGE RESTRICTION?"
+                },
+                {
+                  "content": "<p>You can purchase tickets online at www.secondcity.com, over the phone at\u00a0<a href=\"tel:800-896-8120\">800-896-8120</a>, or in person at our box office. Tickets can be purchased with all major credit cards.</p>\n",
+                  "headline": "HOW CAN I PURCHASE TICKETS FOR A SECOND CITY SHOW?"
+                },
+                {
+                  "content": "<div class=\"chakra-accordion__item css-169y8i9\">\n<div class=\"chakra-collapse\">\n<div id=\"accordion-panel-:r3c:\" class=\"chakra-accordion__panel css-xelibb\" role=\"region\" aria-labelledby=\"accordion-button-:r3c:\">\n<div class=\"wysiwyg css-n5cyie\">\n<div class=\"css-zjmrpj\">\n<p>Tickets purchased online and over the phone incur a $6.95 per ticket fee, rental/student shows are $2.25 for online/phone; no in-person purchase fees.</p>\n</div>\n</div>\n</div>\n</div>\n</div>\n",
+                  "headline": "IS THERE A SERVICE FEE FOR BUYING TICKETS?"
+                },
+                {
+                  "content": "<p>All tickets are General Admission at this time. When you arrive at the theater, our House Manager will assign you a seat based on your time of arrival and how many parties are expected for that performance. All seating is based on the discretion of the House Manager.</p>\n<p>When you arrive at the theater, our House Manager will assign you a seat based on your time of arrival and how many parties are expected for that performance. All seating is based on the discretion of the House Manager.</p>\n<p>Our tables are closer together because it\u2019s a nightclub. You\u2019ll always be seated with the people you came with, but expect to make some new friends, too.</p>\n",
+                  "headline": "WHERE WILL MY SEAT BE? WHAT IS \"CABARET SEATING\"?"
+                },
+                {
+                  "content": "<p>When a couple hundred people enter a small room at once, the temperature increases anywhere from 8 to 12 degrees\u2026quickly. Even the finest HVAC systems in the world can\u2019t handle that kind of rapid transition well.</p>\n<p>It\u2019s also important to consider that the temperature *on stage* is dramatically different for the actors than it is for you, our audience. Not only are they under hot lights, but they\u2019re constantly moving around\u2026and no one bought tickets to watch a bunch of overheated actors pouring sweat.</p>\n<p>So bring a jacket!</p>\n",
+                  "headline": "WHY IS THE THEATER SO COLD?"
+                },
+                {
+                  "content": "<p>The Second City does not allow for any refunds. All sales are final. In rare cases, and based on availability, we may be able to move your ticket to a future show.</p>\n",
+                  "headline": "I CAN'T MAKE THE SHOW ANYMORE! WHAT CAN I DO?"
+                },
+                {
+                  "content": "<p>The Second City respects the individual needs of every single guest who joins us for an experience, including guests requiring accessibility accommodations. The Second City offers services, which can be found on our <a href=\"/chicago/accessibility-services\" target=\"_blank\" rel=\"noopener\">accessibility page</a> and requested in advance by contacting our Customer Service Team 7 days a week.</p>\n<p>By Phone:\u00a0<a href=\"tel:800-896-8120\">800-896-8120</a><br />\nBy Email: You can also send a request via email to\u00a0<a href=\"mailto:customerservice@secondcity.com\">customerservice@secondcity.com</a></p>\n<p>When requesting access or purchasing tickets to an accessible show, please indicate which service(s) you are in need of for us to best accommodate you. We look forward to welcoming you!</p>\n",
+                  "headline": "I HAVE OR A MEMBER OF MY PARTY HAS ACCESSIBILITY NEEDS. WHO CAN I CONTACT REGARDING SEATING?"
+                },
+                {
+                  "content": "<p>First, let\u2019s define a few terms so we\u2019re all on the same page:</p>\n<p>Sketch comedy: Scripted, well-rehearsed scenes that we never, ever call \u201cskits.\u201d (And most of us are mighty touchy about that one.)<br />\nImprov: The unscripted, spontaneous, collaborative art form Second City is famous for.<br />\nStand-Up: The classic one-comic-on-stage-with-a-mic-telling-jokes routine. Think Jerry Seinfeld against a brick wall.</p>\n<p>A classic Second City revue is made up of original sketches and songs sprinkled with a healthy dose of our world-famous improv. Second City productions are fully written and rehearsed, but no two shows are ever the same.</p>\n",
+                  "headline": "IS THE WHOLE SHOW JUST MADE UP ON THE SPOT?"
+                },
+                {
+                  "content": "<p>Our resident stages (Mainstage, e.t.c., and UP Comedy Club) feature Second City\u2019s headline performances and professional Second City talent. Revues showcase a collection of comedic scenes, characters, songs and more that have been honed and developed by our world-class ensemble. Revues at Second City are hilarious, thoughtful, smart and polished, and they often feature moments of unscripted improvisation, creating a one-of-a-kind night of live theater. These theaters are not available to rent for outside performers.</p>\n<p>Our studio theaters (Blackout Cabaret, Judy\u2019s Beat Lounge, Donny\u2019s Skybox, de Maat Studio Theater) may feature:<br />\n\u2013 Guest Performances: These non-Second City productions are original works created and produced by guest performers and ensembles. With limited runs in The Second City\u2019s Studio Theaters, these performances allow for complete creative freedom and may feature artists of any experience level.<br />\n\u2013 Training Center Student Performances: These performances feature Second City Training Center students currently enrolled in classes and showcase the skills developed through our various creative programs, including improv, acting, stand-up, music and more.<br />\n\u2013 Training Center Productions: These are ongoing weekly performance opportunities meant to give Second City Training Center students and graduates more experience on stage.</p>\n<p>These theaters are available to outside performers to rent. If you would like more information on renting a studio theater, please contact Stephanie Case at scase@secondcity.com.</p>\n",
+                  "headline": "WHAT IS THE DIFFERENCE BETWEEN RESIDENT STAGES AND STUDIO THEATERS?"
+                },
+                {
+                  "content": "<p>No way! Although we do not require any food or drink minimums, we do offer a full food and drink menu inside all of our professional stages. You are more than welcome to place an order once you\u2019ve been seated.</p>\n",
+                  "headline": "DOES SECOND CITY ENFORCE A FOOD OR DRINK MINIMUM?"
+                },
+                {
+                  "content": "<p>We are a casual establishment. You are welcome to get swanky or get comfy in a pair of jeans and a t-shirt. Whichever way you\u2019re comfortable.</p>\n",
+                  "headline": "IS THERE A DRESS CODE?"
+                },
+                {
+                  "content": "<p>Call a Customer Service Representative at\u00a0<a href=\"tel:800-896-8120\">800-896-8120</a>\u00a0during regular business hours. You can also send us a chat from 9am-10pm CST Monday through Thursday and 9am to 11pm on Fridays and Saturdays. These are real humans happy to help answer all of your questions. Just click the red chat icon located on the lower right corner of our website.</p>\n",
+                  "headline": "I HAVE A QUESTION NOT LISTED HERE! WHO CAN I ASK?"
+                }
+              ],
+              "backgroundImage": null,
+              "uid": null,
+              "removeContainer": null,
+              "keepContainerPadding": true,
+              "containerLimit": "default",
+              "containerLimitHeaderFooter": "default",
+              "footerCta": {
+                "button": {
+                  "width": "auto",
+                  "style": "solid",
+                  "size": "lg",
+                  "button": null
+                }
+              },
+              "footer": null,
+              "header": null,
+              "backgroundColorGroup": {
+                "desktop": "white",
+                "mobile": "white"
+              },
+              "textColorGroup": {
+                "desktop": "gray.900",
+                "mobile": "gray.900"
+              },
+              "margin": {
+                "desktop": {
+                  "bottom": null,
+                  "top": null
+                },
+                "mobile": {
+                  "bottom": null,
+                  "top": null
+                }
+              },
+              "padding": {
+                "mobile": {
+                  "top": 3,
+                  "bottom": 3
+                },
+                "desktop": {
+                  "bottom": 5,
+                  "top": 5
+                }
+              },
+              "hasOverlay": null,
+              "overlay": {
+                "opacity": 50,
+                "overlayColor": "black",
+                "blendMode": "normal"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "validFrom": {
+    "validFrom": "2026-09-29T00:30:00.000Z"
+  },
+  "showAttributes": {
+    "description": "<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Come on out to see our Grad Revue students at the end of their yearlong studies perform in their Grad Revue Previews! These shows will feature a variety of sketch, improv, and more!&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\"><br style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\"></p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">The casts for the shows are:&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\"><span style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\"><b>Tuesday Class&nbsp;</b></span></p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Director \u2013 Sophia Rafiqi&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Cast \u2013 Cat Aldana, Brandon Banks, Michael Bonow, Rachel Bouman, Imani Carter, Sophia Fattore, Mickey Jordan, Stefanie Kric, Priya Nagarajan, Cameron Wise, and Travis Wright&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Stage Technician \u2013 Vicky Diaz-Escobar&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Music Director \u2013 Matthew Pollack&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\"><br style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\"></p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\"><span style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; font-weight: bolder;\">Saturday Class&nbsp;</span></p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Director \u2013 Sam Super&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Cast \u2013 Benjamin Friedman, Benjamin Krause, Pablo Monsalve Velez, Amanda Near, Jeff Ostrinsky, Tim Overton, Maya Paletta, and Emory Williamson&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Stage Technician \u2013 Vicky Diaz-Escobar&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Music Director \u2013 Matthew Pollack&nbsp;</p>\n<p style=\"--tw-border-spacing-y: 0; --tw-translate-x: 0; --tw-translate-y: 0; --tw-rotate: 0; --tw-skew-x: 0; --tw-skew-y: 0; --tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / .5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ;\">Come on out to see our Writing 6 Showcases! Featuring the writing of Writing program students and starring Training Center performers, these shows are packed with new sketch material written at the end of our year-long Writing Program&nbsp;</p>\n",
+    "address": null,
+    "youMayAlsoLike": {
+      "heading": null,
+      "shows": null
+    },
+    "calendarBackgroundImage": null,
+    "aboutSection": {
+      "image": null,
+      "video": {
+        "videoType": "embed",
+        "embedUrl": null,
+        "enableAutoplay": "true",
+        "videoPlaceholderImage": null,
+        "upload": null
+      }
+    },
+    "castAndProduction": {
+      "backgroundImage": null,
+      "castMember": null,
+      "heading": null
+    },
+    "galleryImages": null,
+    "imageDesktop": {
+      "altText": "",
+      "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2026/09/grad-revue-preview.png",
+      "mimeType": "image/png",
+      "mediaDetails": {
+        "height": 284,
+        "width": 498
+      }
+    },
+    "image": {
+      "altText": "",
+      "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2026/09/grad-revue-preview.png",
+      "mimeType": "image/png",
+      "mediaDetails": {
+        "height": 284,
+        "width": 498
+      }
+    },
+    "showImageTablet": null,
+    "quickFacts": {
+      "iconRow": null,
+      "linkBoxes": null,
+      "backgroundImage": null
+    },
+    "showId": "sc-show-ef7627d2-4fc0-4f1b-910b-cb4c98fc004a",
+    "showReviews": null,
+    "showType": "student",
+    "venueAdditionalInfo": null,
+    "venue": [
+      {
+        "id": "dGVybToxMjI=",
+        "name": "e.t.c. Theater - Chicago",
+        "venueContent": {
+          "image": {
+            "altText": "",
+            "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2024/03/SC_GS_Website_Venue_e.t.c._001.png",
+            "mimeType": "image/png",
+            "mediaDetails": {
+              "height": 300,
+              "width": 639
+            }
+          },
+          "seatingMapLink": {
+            "target": "_blank",
+            "title": "Seating Map",
+            "url": "https://platform.secondcity.com/wp-content/uploads/2025/05/SC_TierMap_CHI_ETC.png"
+          }
+        }
+      },
+      {
+        "id": "dGVybToxMTc=",
+        "name": "UP Comedy Club - Chicago",
+        "venueContent": {
+          "image": {
+            "altText": "",
+            "mediaItemUrl": "https://platform.secondcity.com/wp-content/uploads/2024/03/SC_GS_Website_Venue_UP_001.png",
+            "mimeType": "image/png",
+            "mediaDetails": {
+              "height": 300,
+              "width": 639
+            }
+          },
+          "seatingMapLink": {
+            "target": "",
+            "title": "Seating Map",
+            "url": "https://platform.secondcity.com/wp-content/uploads/2024/11/Updated-SC_TierMap_CHI.png"
+          }
+        }
+      }
+    ]
+  },
+  "whatsPlayingImage": {
+    "whatsPlayingImageDesktop": null
+  }
+}

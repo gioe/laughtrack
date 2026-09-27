@@ -1,0 +1,296 @@
+{
+  "type": "Tickets",
+  "sortOrder": "0",
+  "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa41ecbade1ed30a8af57e1?useEmbed=true",
+  "name": "Clued In Presents: Travel Can Be Murder",
+  "id": "sc-show-d5eb36b5-d7be-487e-b828-dc8ca8a223d9",
+  "instances": [
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa41ecbade1ed30a8af57e1?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Thursday, October 15, 2026 at 7:30 PM",
+      "id": "sc-vvus-40585f2a-c2ec-43c8-adac-a90b4fe90662",
+      "formattedDates": {
+        "ISO8601": "2026-10-16T00:30:00.000Z"
+      },
+      "eventName": "Clued In Presents: Travel Can Be Murder",
+      "eventId": "sc-show-d5eb36b5-d7be-487e-b828-dc8ca8a223d9",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 30,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-40585f2a-c2ec-43c8-adac-a90b4fe90662_0"
+            }
+          ],
+          "instanceId": "sc-vvus-40585f2a-c2ec-43c8-adac-a90b4fe90662",
+          "id": "sc-vvus-40585f2a-c2ec-43c8-adac-a90b4fe90662_0"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa41f31f50d0f3e0db55918?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Sunday, October 18, 2026 at 4:00 PM",
+      "id": "sc-vvus-623fbf03-38e4-41e8-83d4-8ea42d6ecb99",
+      "formattedDates": {
+        "ISO8601": "2026-10-18T21:00:00.000Z"
+      },
+      "eventName": "Clued In Presents: Travel Can Be Murder",
+      "eventId": "sc-show-d5eb36b5-d7be-487e-b828-dc8ca8a223d9",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 30,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-623fbf03-38e4-41e8-83d4-8ea42d6ecb99_0"
+            }
+          ],
+          "instanceId": "sc-vvus-623fbf03-38e4-41e8-83d4-8ea42d6ecb99",
+          "id": "sc-vvus-623fbf03-38e4-41e8-83d4-8ea42d6ecb99_0"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa41ecbade1ed30a8af57e5?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Thursday, October 22, 2026 at 7:30 PM",
+      "id": "sc-vvus-a348cd4d-71fe-42f7-a241-15b75603d440",
+      "formattedDates": {
+        "ISO8601": "2026-10-23T00:30:00.000Z"
+      },
+      "eventName": "Clued In Presents: Travel Can Be Murder",
+      "eventId": "sc-show-d5eb36b5-d7be-487e-b828-dc8ca8a223d9",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 30,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-a348cd4d-71fe-42f7-a241-15b75603d440_0"
+            }
+          ],
+          "instanceId": "sc-vvus-a348cd4d-71fe-42f7-a241-15b75603d440",
+          "id": "sc-vvus-a348cd4d-71fe-42f7-a241-15b75603d440_0"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa41f31f50d0f3e0db5591c?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Sunday, October 25, 2026 at 4:00 PM",
+      "id": "sc-vvus-6d7eae6b-f05b-4d30-905c-df93f8f4965d",
+      "formattedDates": {
+        "ISO8601": "2026-10-25T21:00:00.000Z"
+      },
+      "eventName": "Clued In Presents: Travel Can Be Murder",
+      "eventId": "sc-show-d5eb36b5-d7be-487e-b828-dc8ca8a223d9",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 30,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-6d7eae6b-f05b-4d30-905c-df93f8f4965d_0"
+            }
+          ],
+          "instanceId": "sc-vvus-6d7eae6b-f05b-4d30-905c-df93f8f4965d",
+          "id": "sc-vvus-6d7eae6b-f05b-4d30-905c-df93f8f4965d_0"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa41ecbade1ed30a8af57e9?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Thursday, October 29, 2026 at 7:30 PM",
+      "id": "sc-vvus-5393c807-8e07-4d28-b73a-c7ab7219abe1",
+      "formattedDates": {
+        "ISO8601": "2026-10-30T00:30:00.000Z"
+      },
+      "eventName": "Clued In Presents: Travel Can Be Murder",
+      "eventId": "sc-show-d5eb36b5-d7be-487e-b828-dc8ca8a223d9",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 30,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-5393c807-8e07-4d28-b73a-c7ab7219abe1_0"
+            }
+          ],
+          "instanceId": "sc-vvus-5393c807-8e07-4d28-b73a-c7ab7219abe1",
+          "id": "sc-vvus-5393c807-8e07-4d28-b73a-c7ab7219abe1_0"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa41ee9884da9c6ed16093a?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Friday, October 30, 2026 at 10:00 PM",
+      "id": "sc-vvus-fd3ef0ed-e607-4de6-9052-dcb74c939a85",
+      "formattedDates": {
+        "ISO8601": "2026-10-31T03:00:00.000Z"
+      },
+      "eventName": "Clued In Presents: Travel Can Be Murder",
+      "eventId": "sc-show-d5eb36b5-d7be-487e-b828-dc8ca8a223d9",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 30,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-fd3ef0ed-e607-4de6-9052-dcb74c939a85_0"
+            }
+          ],
+          "instanceId": "sc-vvus-fd3ef0ed-e607-4de6-9052-dcb74c939a85",
+          "id": "sc-vvus-fd3ef0ed-e607-4de6-9052-dcb74c939a85_0"
+        }
+      ]
+    },
+    {
+      "venueId": "",
+      "soldOut": 0,
+      "seatingType": "General Admission",
+      "purchaseUrl": "https://us.tickets.secondcity.com/checkout/6aa41f038ce9b9cff605aa6b?useEmbed=true",
+      "saleState": "onSale",
+      "onSale": true,
+      "onSaleLabel": null,
+      "unavailableReason": null,
+      "saleStatus": "On Sale",
+      "name": "Saturday, October 31, 2026 at 4:00 PM",
+      "id": "sc-vvus-be28d4fc-2ed8-400b-bffd-f8c13515eae9",
+      "formattedDates": {
+        "ISO8601": "2026-10-31T21:00:00.000Z"
+      },
+      "eventName": "Clued In Presents: Travel Can Be Murder",
+      "eventId": "sc-show-d5eb36b5-d7be-487e-b828-dc8ca8a223d9",
+      "detail": "",
+      "custom": {
+        "Number_of_Public_Seats__c": 241
+      },
+      "contentFormat": "Standard",
+      "allocations": [
+        {
+          "sortOrder": "1",
+          "soldOut": "False",
+          "name": "General Admission",
+          "levels": [
+            {
+              "price": 30,
+              "name": "General Admission",
+              "fee": "0",
+              "allocationId": "sc-vvus-be28d4fc-2ed8-400b-bffd-f8c13515eae9_0"
+            }
+          ],
+          "instanceId": "sc-vvus-be28d4fc-2ed8-400b-bffd-f8c13515eae9",
+          "id": "sc-vvus-be28d4fc-2ed8-400b-bffd-f8c13515eae9_0"
+        }
+      ]
+    }
+  ],
+  "detail": "",
+  "description": "",
+  "custom": [],
+  "category": "",
+  "address": "UP Comedy Club - Chicago",
+  "venueTerm": "up-comedy-club",
+  "valid_from": "2026-10-16T00:30:00.000Z"
+}
