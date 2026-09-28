@@ -1,0 +1,176 @@
+{
+  "query": "Carry On 2 N Central Ave Phoenix AZ",
+  "resolved_id": "ChIJZTvexEQTK4cRhKU-6MI20DU",
+  "places": [
+    {
+      "id": "ChIJG0Jn64qNwokRGYoxmO3p3Xk",
+      "formattedAddress": "200 Petersville Rd, New Rochelle, NY 10801, USA",
+      "addressComponents": [
+        {
+          "longText": "200",
+          "shortText": "200",
+          "types": [
+            "street_number"
+          ],
+          "languageCode": "en-US"
+        },
+        {
+          "longText": "Petersville Road",
+          "shortText": "Petersville Rd",
+          "types": [
+            "route"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "New Rochelle",
+          "shortText": "New Rochelle",
+          "types": [
+            "locality",
+            "political"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "Westchester County",
+          "shortText": "Westchester County",
+          "types": [
+            "administrative_area_level_2",
+            "political"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "New York",
+          "shortText": "NY",
+          "types": [
+            "administrative_area_level_1",
+            "political"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "United States",
+          "shortText": "US",
+          "types": [
+            "country",
+            "political"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "10801",
+          "shortText": "10801",
+          "types": [
+            "postal_code"
+          ],
+          "languageCode": "en-US"
+        }
+      ],
+      "location": {
+        "latitude": 40.9229986,
+        "longitude": -73.7726003
+      },
+      "websiteUri": "https://www.marshalls.com/",
+      "displayName": {
+        "text": "Marshalls & HomeGoods",
+        "languageCode": "en"
+      },
+      "primaryType": "department_store"
+    },
+    {
+      "id": "ChIJZTvexEQTK4cRhKU-6MI20DU",
+      "formattedAddress": "2 N Central Ave #101, Phoenix, AZ 85004, USA",
+      "addressComponents": [
+        {
+          "longText": "101",
+          "shortText": "101",
+          "types": [
+            "subpremise"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "2",
+          "shortText": "2",
+          "types": [
+            "street_number"
+          ],
+          "languageCode": "en-US"
+        },
+        {
+          "longText": "North Central Avenue",
+          "shortText": "N Central Ave",
+          "types": [
+            "route"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "Central City",
+          "shortText": "Central City",
+          "types": [
+            "neighborhood",
+            "political"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "Phoenix",
+          "shortText": "Phoenix",
+          "types": [
+            "locality",
+            "political"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "Maricopa County",
+          "shortText": "Maricopa County",
+          "types": [
+            "administrative_area_level_2",
+            "political"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "Arizona",
+          "shortText": "AZ",
+          "types": [
+            "administrative_area_level_1",
+            "political"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "United States",
+          "shortText": "US",
+          "types": [
+            "country",
+            "political"
+          ],
+          "languageCode": "en"
+        },
+        {
+          "longText": "85004",
+          "shortText": "85004",
+          "types": [
+            "postal_code"
+          ],
+          "languageCode": "en-US"
+        }
+      ],
+      "location": {
+        "latitude": 33.4486014,
+        "longitude": -112.07490209999999
+      },
+      "websiteUri": "http://www.carryonphx.com/",
+      "displayName": {
+        "text": "Carry On",
+        "languageCode": "en"
+      },
+      "primaryType": "cocktail_bar"
+    }
+  ],
+  "retrieved_date": "2026-09-28"
+}

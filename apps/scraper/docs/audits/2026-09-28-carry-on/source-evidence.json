@@ -1,0 +1,287 @@
+{
+  "retrieved_date": "2026-09-28",
+  "official_url": "https://www.carryonphx.com/",
+  "official_address": "2 N CENTRAL AVE SUITE 101 PHOENIX, AZ 85004",
+  "official_excerpt": "Carry On Airlines invites you aboard a 90-minute flight from New York to Tokyo.",
+  "offer_summary": "First Class includes a welcome cocktail and snacks; Captain\u2019s Club includes craft cocktails and light bites. Check-in at Wren & Wolf. Age 21+.",
+  "venue_api": "https://services.seatengine.com/api/v1/venues/584",
+  "venue_api_identity": {
+    "id": 584,
+    "name": "Carry On",
+    "timezone": "America/Phoenix",
+    "website": "https://www.carryonphx.com"
+  },
+  "shows_api": "https://services.seatengine.com/api/v1/venues/584/shows",
+  "source_count": 66,
+  "direct_upcoming_count": 38,
+  "joined_upcoming": [
+    {
+      "show_id": 6995541,
+      "source_show_id": 387844,
+      "source_event_id": 143890,
+      "source_start": "2026-09-29T00:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995542,
+      "source_show_id": 387845,
+      "source_event_id": 143890,
+      "source_start": "2026-09-29T02:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995543,
+      "source_show_id": 387846,
+      "source_event_id": 143890,
+      "source_start": "2026-09-29T04:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995544,
+      "source_show_id": 387847,
+      "source_event_id": 143890,
+      "source_start": "2026-09-30T00:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995545,
+      "source_show_id": 387848,
+      "source_event_id": 143890,
+      "source_start": "2026-09-30T02:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995546,
+      "source_show_id": 387849,
+      "source_event_id": 143890,
+      "source_start": "2026-09-30T04:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995547,
+      "source_show_id": 387850,
+      "source_event_id": 143890,
+      "source_start": "2026-10-01T00:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995548,
+      "source_show_id": 387851,
+      "source_event_id": 143890,
+      "source_start": "2026-10-01T02:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995549,
+      "source_show_id": 387852,
+      "source_event_id": 143890,
+      "source_start": "2026-10-01T04:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995550,
+      "source_show_id": 387853,
+      "source_event_id": 143890,
+      "source_start": "2026-10-02T00:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995551,
+      "source_show_id": 387854,
+      "source_event_id": 143890,
+      "source_start": "2026-10-02T02:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 6995552,
+      "source_show_id": 387855,
+      "source_event_id": 143890,
+      "source_start": "2026-10-02T04:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283712,
+      "source_show_id": 388742,
+      "source_event_id": 144265,
+      "source_start": "2026-10-02T22:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283713,
+      "source_show_id": 388743,
+      "source_event_id": 144265,
+      "source_start": "2026-10-03T00:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283714,
+      "source_show_id": 388744,
+      "source_event_id": 144265,
+      "source_start": "2026-10-03T02:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283715,
+      "source_show_id": 388745,
+      "source_event_id": 144265,
+      "source_start": "2026-10-03T04:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283716,
+      "source_show_id": 388746,
+      "source_event_id": 144265,
+      "source_start": "2026-10-03T06:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283717,
+      "source_show_id": 388747,
+      "source_event_id": 144265,
+      "source_start": "2026-10-03T21:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283718,
+      "source_show_id": 388748,
+      "source_event_id": 144265,
+      "source_start": "2026-10-03T23:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283719,
+      "source_show_id": 388749,
+      "source_event_id": 144265,
+      "source_start": "2026-10-04T01:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283720,
+      "source_show_id": 388750,
+      "source_event_id": 144265,
+      "source_start": "2026-10-04T03:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283721,
+      "source_show_id": 388751,
+      "source_event_id": 144265,
+      "source_start": "2026-10-04T05:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283722,
+      "source_show_id": 388752,
+      "source_event_id": 144265,
+      "source_start": "2026-10-04T19:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283723,
+      "source_show_id": 388753,
+      "source_event_id": 144265,
+      "source_start": "2026-10-04T21:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283724,
+      "source_show_id": 388754,
+      "source_event_id": 144265,
+      "source_start": "2026-10-04T23:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283725,
+      "source_show_id": 388755,
+      "source_event_id": 144265,
+      "source_start": "2026-10-05T01:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283726,
+      "source_show_id": 388756,
+      "source_event_id": 144265,
+      "source_start": "2026-10-05T03:00:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283727,
+      "source_show_id": 388757,
+      "source_event_id": 144265,
+      "source_start": "2026-10-06T00:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283728,
+      "source_show_id": 388758,
+      "source_event_id": 144265,
+      "source_start": "2026-10-06T02:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283729,
+      "source_show_id": 388759,
+      "source_event_id": 144265,
+      "source_start": "2026-10-06T04:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283730,
+      "source_show_id": 388760,
+      "source_event_id": 144265,
+      "source_start": "2026-10-07T00:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283731,
+      "source_show_id": 388761,
+      "source_event_id": 144265,
+      "source_start": "2026-10-07T02:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283732,
+      "source_show_id": 388762,
+      "source_event_id": 144265,
+      "source_start": "2026-10-07T04:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283733,
+      "source_show_id": 388764,
+      "source_event_id": 144265,
+      "source_start": "2026-10-08T02:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283734,
+      "source_show_id": 388765,
+      "source_event_id": 144265,
+      "source_start": "2026-10-08T04:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283735,
+      "source_show_id": 388766,
+      "source_event_id": 144265,
+      "source_start": "2026-10-09T00:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283736,
+      "source_show_id": 388767,
+      "source_event_id": 144265,
+      "source_start": "2026-10-09T02:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    },
+    {
+      "show_id": 7283737,
+      "source_show_id": 388768,
+      "source_event_id": 144265,
+      "source_start": "2026-10-09T04:30:00Z",
+      "classification": "non_comedy_cocktail_experience"
+    }
+  ],
+  "detail_url_note": "Old carryonphx.com/shows URLs return 404. Successful current API and official ticket link establish current identity; 404 is not cancellation evidence.",
+  "raw_page_sha256": "67c6340d16f4ca47473bcfd7f26d021caa655ac39aa0c1f9ebf17558ff5e33b6"
+}
