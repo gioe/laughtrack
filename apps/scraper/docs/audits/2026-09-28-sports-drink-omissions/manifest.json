@@ -1,0 +1,22 @@
+{
+  "task_id": 4064,
+  "club_id": 653,
+  "source_id": 249,
+  "timezone": "America/Chicago",
+  "historical_cutoff_utc": "2026-09-24T15:49:37Z",
+  "snapshot_cutoff_utc": "2026-09-28T12:00:00Z",
+  "classification_counts": {
+    "canceled": 56,
+    "redirected_rescheduled": 28,
+    "unresolved_404": 1
+  },
+  "files": {
+    "stored.jsonl": "2f499217fadd6efc9c087df9a06bd17650611858f7f42d8295226a1b8f6bac4b",
+    "listing.jsonl": "d7d67604acce79ba6d25a4989f39170d31584e6053c9399a000609b14ba78de7",
+    "candidates.jsonl": "5aed9d98adfc3077d76ec90186f37637db006eae03f9f3a6b984365d56818843",
+    "listing-cards.html": "fcaa03d8c5d919438637a8789e69b44e1fed0b1cffb4e60ed768a4d05af2506e",
+    "pagination.json": "200b82c262f15c64fcfa2bc5a606e3aaa112e2592b521fe35aa6d25128641c73"
+  },
+  "collection": "Read-only production SELECT, actual scraper HttpClient/curl-cffi and PlaywrightBrowser. Collected September28,2026; row-level fetch times in candidates. Raw HTML omitted to avoid persisting form tokens; public source evidence projections retained.",
+  "historical_cohort_basis": "All85 old OpenDate rows survive, have last_scraped_date before September24 cutoff, and match the historical cap count. This reconstructs the cohort from surviving state, not an archived list of September24 candidate IDs."
+}
