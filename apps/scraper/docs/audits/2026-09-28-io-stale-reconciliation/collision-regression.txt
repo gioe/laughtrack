@@ -1,0 +1,14 @@
+Expected failure reproducing current empty-room identity collision.
+CWD: apps/scraper
+Command: PYTHONPATH=src:. .venv/bin/python3 docs/audits/2026-09-28-io-stale-reconciliation/collision_repro.py
+Exit code: 1
+
+2026-09-28 07:38:09,854 | WARNING | pid=78633 | club=- | scraper=- | Deduplicated 1 duplicate entries across 1 key(s): (182, datetime.datetime(2026, 10, 3, 2, 30), '') (kept 1)
+{"collision_groups": 1, "input_events": ["Paranormal Laughtivity", "People Being Funny"], "input_urls": ["https://www.crowdwork.com/e/paranormal-laughtivity", "https://www.crowdwork.com/e/people-being-funny"], "retained_events": ["Paranormal Laughtivity"], "timestamp": "2026-10-03T02:30:00+00:00"}
+Traceback (most recent call last):
+  File "/Users/mattgioe/.tusk/worktrees/laughtrack/TASK-4063-io-stale-reconciliation/apps/scraper/docs/audits/2026-09-28-io-stale-reconciliation/collision_repro.py", line 43, in <module>
+    main()
+  File "/Users/mattgioe/.tusk/worktrees/laughtrack/TASK-4063-io-stale-reconciliation/apps/scraper/docs/audits/2026-09-28-io-stale-reconciliation/collision_repro.py", line 39, in main
+    assert len(kept) == 2, "Distinct live Crowdwork events collapse onto one empty-room slot"
+           ^^^^^^^^^^^^^^
+AssertionError: Distinct live Crowdwork events collapse onto one empty-room slot
