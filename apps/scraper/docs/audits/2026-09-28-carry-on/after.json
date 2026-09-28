@@ -1,0 +1,430 @@
+{
+  "checked_at": "2026-09-28T15:37:14.318950+00:00",
+  "cutoff_utc": "2026-09-28T14:46:00Z",
+  "club": {
+    "id": 600,
+    "name": "Carry On",
+    "address": "2 N Central Ave #101, Phoenix, AZ 85004, USA",
+    "website": "https://www.carryonphx.com",
+    "popularity": 0.65,
+    "zip_code": "85004",
+    "phone_number": "",
+    "timezone": "America/Phoenix",
+    "visible": false,
+    "city": "Phoenix",
+    "state": "AZ",
+    "total_shows": 713,
+    "status": "active",
+    "closed_at": null,
+    "has_image": true,
+    "country": "US",
+    "chain_id": null,
+    "club_type": "non_comedy",
+    "description": "Immersive airline-themed cocktail experience in Phoenix, Arizona; not a comedy venue. Identity verified against the official website and Google Places by TASK-4066.",
+    "hours": null,
+    "latitude": 33.4486014,
+    "longitude": -112.0749021,
+    "google_place_id": "ChIJZTvexEQTK4cRhKU-6MI20DU",
+    "google_place_attribution": null,
+    "geocode_attempted_at": null,
+    "geocode_attempt_count": 0,
+    "geocode_outcome": null
+  },
+  "sources": [
+    {
+      "id": 336,
+      "club_id": 600,
+      "platform": "seatengine",
+      "scraper_key": "seatengine",
+      "source_url": "https://www.carryonphx.com",
+      "priority": 0,
+      "enabled": false,
+      "metadata": {
+        "task_4066_disposition": {
+          "reason": "verified_non_comedy_cocktail_experience",
+          "applied_at": "2026-09-28T15:36:54.710156+00:00",
+          "before_source": {
+            "id": 336,
+            "club_id": 600,
+            "enabled": true,
+            "metadata": {},
+            "platform": "seatengine",
+            "priority": 0,
+            "created_at": "2026-04-21T19:57:12.315022+00:00",
+            "source_url": "https://www.carryonphx.com",
+            "squadup_id": null,
+            "updated_at": "2026-05-06T21:52:53.876643+00:00",
+            "scraper_key": "seatengine",
+            "wix_event_id": null,
+            "eventbrite_id": null,
+            "ovationtix_id": null,
+            "seatengine_id": 584,
+            "ticketmaster_id": null,
+            "seatengine_v3_id": null,
+            "source_target_id": null
+          },
+          "before_club_fields": {
+            "city": "New Rochelle",
+            "state": "NY",
+            "address": "200 Petersville Rd, New Rochelle, NY 10801, USA",
+            "visible": true,
+            "latitude": 40.9229986,
+            "timezone": "America/New_York",
+            "zip_code": "",
+            "club_type": "club",
+            "longitude": -73.7726003,
+            "description": "Updated by TASK-3029: city/state components parsed from Google Places-backed address",
+            "google_place_id": "ChIJG0Jn64qNwokRGYoxmO3p3Xk"
+          }
+        }
+      },
+      "created_at": "2026-04-21T19:57:12.315022+00:00",
+      "updated_at": "2026-09-28T15:36:54.710156+00:00",
+      "seatengine_id": 584,
+      "eventbrite_id": null,
+      "ticketmaster_id": null,
+      "wix_event_id": null,
+      "ovationtix_id": null,
+      "squadup_id": null,
+      "seatengine_v3_id": null,
+      "source_target_id": null
+    }
+  ],
+  "references": {
+    "club_aliases.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_discovery_profiles.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_image_assets.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "comedians.home_club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "discovery_show_feature_snapshots.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "email_subscriptions.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "eventbrite_organizer_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "favorite_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "lineup_items.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "processed_emails.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "production_company_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "saved_shows.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "scraper_run_clubs.club_id": {
+      "count": 136,
+      "digest": "706b7d81f6a17d1e7b41106304b61120"
+    },
+    "scraping_sources.club_id": {
+      "count": 1,
+      "digest": "9c588a07a987d55adefc94c0461cc5ab"
+    },
+    "sent_notifications.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "shows.club_id": {
+      "count": 713,
+      "digest": "fa39750ee1bfbd3f374c858bb66379e1"
+    },
+    "tagged_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "tagged_shows.show_id": {
+      "count": 1566,
+      "digest": "e4a91eb0b78796c4d1687846f50e3335"
+    },
+    "ticket_purchase_click_events.club_id": {
+      "count": 4312,
+      "digest": "f02fa83375f173e9bce215b5003f14d3"
+    },
+    "ticket_purchase_click_events.show_id": {
+      "count": 4280,
+      "digest": "966ff1841adce6b057ba7df54c96b877"
+    },
+    "tickets.show_id": {
+      "count": 1788,
+      "digest": "af1d4c6124f2d07e8fbc305f33787689"
+    }
+  },
+  "upcoming": [
+    {
+      "id": 6995541,
+      "name": "WELCOME ABOARD",
+      "date": "2026-09-29 00:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387844"
+    },
+    {
+      "id": 6995542,
+      "name": "WELCOME ABOARD",
+      "date": "2026-09-29 02:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387845"
+    },
+    {
+      "id": 6995543,
+      "name": "WELCOME ABOARD",
+      "date": "2026-09-29 04:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387846"
+    },
+    {
+      "id": 6995544,
+      "name": "WELCOME ABOARD",
+      "date": "2026-09-30 00:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387847"
+    },
+    {
+      "id": 6995545,
+      "name": "WELCOME ABOARD",
+      "date": "2026-09-30 02:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387848"
+    },
+    {
+      "id": 6995546,
+      "name": "WELCOME ABOARD",
+      "date": "2026-09-30 04:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387849"
+    },
+    {
+      "id": 6995547,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-01 00:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387850"
+    },
+    {
+      "id": 6995548,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-01 02:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387851"
+    },
+    {
+      "id": 6995549,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-01 04:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387852"
+    },
+    {
+      "id": 6995550,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-02 00:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387853"
+    },
+    {
+      "id": 6995551,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-02 02:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387854"
+    },
+    {
+      "id": 6995552,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-02 04:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/387855"
+    },
+    {
+      "id": 7283712,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-02 22:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388742"
+    },
+    {
+      "id": 7283713,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-03 00:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388743"
+    },
+    {
+      "id": 7283714,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-03 02:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388744"
+    },
+    {
+      "id": 7283715,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-03 04:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388745"
+    },
+    {
+      "id": 7283716,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-03 06:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388746"
+    },
+    {
+      "id": 7283717,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-03 21:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388747"
+    },
+    {
+      "id": 7283718,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-03 23:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388748"
+    },
+    {
+      "id": 7283719,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-04 01:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388749"
+    },
+    {
+      "id": 7283720,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-04 03:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388750"
+    },
+    {
+      "id": 7283721,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-04 05:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388751"
+    },
+    {
+      "id": 7283722,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-04 19:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388752"
+    },
+    {
+      "id": 7283723,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-04 21:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388753"
+    },
+    {
+      "id": 7283724,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-04 23:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388754"
+    },
+    {
+      "id": 7283725,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-05 01:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388755"
+    },
+    {
+      "id": 7283726,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-05 03:00:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388756"
+    },
+    {
+      "id": 7283727,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-06 00:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388757"
+    },
+    {
+      "id": 7283728,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-06 02:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388758"
+    },
+    {
+      "id": 7283729,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-06 04:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388759"
+    },
+    {
+      "id": 7283730,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-07 00:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388760"
+    },
+    {
+      "id": 7283731,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-07 02:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388761"
+    },
+    {
+      "id": 7283732,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-07 04:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388762"
+    },
+    {
+      "id": 7283733,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-08 02:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388764"
+    },
+    {
+      "id": 7283734,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-08 04:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388765"
+    },
+    {
+      "id": 7283735,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-09 00:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388766"
+    },
+    {
+      "id": 7283736,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-09 02:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388767"
+    },
+    {
+      "id": 7283737,
+      "name": "WELCOME ABOARD",
+      "date": "2026-10-09 04:30:00+00:00",
+      "show_page_url": "https://www.carryonphx.com/shows/388768"
+    }
+  ],
+  "denials": [
+    {
+      "google_place_id": "ChIJZTvexEQTK4cRhKU-6MI20DU",
+      "name": "Carry On",
+      "reason": "Verified immersive cocktail experience, not comedy programming. Official Carry On website and Google Places identify 2 N Central Ave #101, Phoenix, AZ 85004. TASK-4066.",
+      "added_by": "TASK-4066",
+      "denied_at": "2026-09-28T15:36:54.710156+00:00",
+      "google_primary_type": "cocktail_bar",
+      "evidence": {
+        "task": "TASK-4066",
+        "club_id": 600,
+        "inventory": "Cocktail experience sessions; no comedy programming",
+        "source_id": 336,
+        "official_url": "https://www.carryonphx.com/",
+        "seatengine_id": 584,
+        "verified_date": "2026-09-28",
+        "incorrect_place_id": "ChIJG0Jn64qNwokRGYoxmO3p3Xk",
+        "incorrect_place_identity": "Marshalls & HomeGoods"
+      }
+    }
+  ]
+}

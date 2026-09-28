@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-09-28T15:36:14.636786+00:00",
+  "mode": "production-shaped transaction, always rolled back",
+  "checks": [
+    "changed_source_rejected",
+    "apply_from_non_UTC_session",
+    "idempotent_replay",
+    "real_national_upsert_preserves_identity_and_disabled_source",
+    "rollback_rejects_intervening_change",
+    "zero_public_upcoming",
+    "zero_enabled_sources",
+    "rollback_restores_club_and_source_business_fields",
+    "rollback_replay"
+  ],
+  "status": "passed",
+  "audit_timestamp_note": "scraping_sources.updated_at is trigger-maintained and refreshed on rollback; original value remains in the before snapshot."
+}
