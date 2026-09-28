@@ -1,0 +1,28 @@
+{
+  "unchanged_reference_fingerprints": true,
+  "preserved_clicks_club_id": 4308,
+  "preserved_clicks_show_id": 4276,
+  "later_transaction_national_upsert_preserves_disposition": true,
+  "migration_replay_after_trigger_timestamp_refresh": true,
+  "real_scheduled_club_query_excludes_600": true,
+  "public_club_http_status": 200,
+  "public_show_http_status": 404,
+  "club_response": {
+    "id": 600,
+    "name": "Carry On",
+    "imageUrl": "https://laughtrack.b-cdn.net/clubs/Carry%20On.png",
+    "heroImageUrl": "",
+    "website": "https://www.carryonphx.com",
+    "address": "2 N Central Ave #101, Phoenix, AZ 85004, USA",
+    "zipCode": "85004",
+    "phoneNumber": "",
+    "latitude": 33.4486014,
+    "longitude": -112.0749021,
+    "relatedVenues": []
+  },
+  "show_response": {
+    "error": "Show not found"
+  },
+  "additional_clicks_since_snapshot": 4,
+  "checked_at": "2026-09-28T15:38:09.943371+00:00"
+}
