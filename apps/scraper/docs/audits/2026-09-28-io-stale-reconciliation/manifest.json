@@ -1,0 +1,29 @@
+{
+  "task_id": 4063,
+  "base_commit": "35b681a766c18e956247df1eb4a0c235bcd5ce34",
+  "snapshot_cutoff_utc": "2026-09-28T00:44:50.541695+00:00",
+  "feed_url": "https://crowdwork.com/api/v2/iotheater/shows",
+  "club_id": 182,
+  "source_id": 45,
+  "scraper_key": "crowdwork",
+  "feed_retrieved_at": "2026-09-28T00:44:19.324719+00:00",
+  "stored_retrieved_at": "2026-09-28T00:44:16.976760+00:00",
+  "stored_query": "SELECT id,name,date,show_page_url,room,last_scraped_date,last_scraped_by FROM shows WHERE club_id=182 AND date > NOW() ORDER BY date,id",
+  "previous_feed_provenance": "Saved task4041-full-feed.json from September 24, 2026; 1494 performances matches task4041-production-scrape.log. No historical DB snapshot retained, so original 37 IDs cannot be reconstructed exactly.",
+  "counts": {
+    "series_absent_past_only_page": 19,
+    "individual_date_absent": 11,
+    "time_changed_30_minutes_earlier": 6,
+    "conflicting_future_description": 1,
+    "date_changed_two_days_later": 1,
+    "recurrence_changed_third_to_first_thursday": 4
+  },
+  "scope_notes": "Read-only source/DB inspection. No production scrape, cleanup, configuration or cap change. Public event fields only; no raw HTML, cookies, form tokens or credentials retained.",
+  "files": {
+    "stored.jsonl": "56904a89fb123d9e7b0ee1629f06150f6028996d34eaa08b7478672c903fc5c1",
+    "previous-feed.jsonl": "9e66e0c0b1668efeb37a1a382856064ed1fc577e5f5df84efa608cdae56405d1",
+    "pages.jsonl": "d9c3731212d111771ae5cfbc1bc89f2ca16a4b221e3ea144fb0d3f85e4872bcc",
+    "candidates.jsonl": "46cce870eef6c4a10475d0cd691d8a3d2f53ae2ecb7960d21f4f015b72e9ecbc",
+    "feed.jsonl": "896d6929f7cb1f2479d61296ab31e9d3ebd83a3771a9f0274be8d148636b313f"
+  }
+}
