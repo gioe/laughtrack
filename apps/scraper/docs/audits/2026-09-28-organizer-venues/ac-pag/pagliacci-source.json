@@ -1,0 +1,286 @@
+{
+  "cutoff": "2026-09-28T13:45:00Z",
+  "source_id": 5852,
+  "source_url": "https://www.eventbrite.com/o/brothers-grinn-productions-68051880803",
+  "retrieved_at": "2026-09-28T13:52:52.717478+00:00",
+  "organizer_id": "68051880803",
+  "organizer_name": "Brother's Grinn Productions",
+  "public_profile_fields": {
+    "upcomingEvents": [],
+    "upcomingEventsTotal": 0,
+    "hasMoreUpcoming": false,
+    "upcomingEventsFailed": false
+  },
+  "website": "https://pagcomclub.com/",
+  "website_redirect": "https://www.eventbrite.com/cc/pagliaccis-comedy-club-irwin-pa-3267469/",
+  "collection_retrieved_at": "2026-09-28T13:52:52.599370+00:00",
+  "collection_events": [
+    {
+      "name": "BOB GOLUB-  Pagliacci's Comedy Club @ Manor Grill",
+      "url": "https://www.eventbrite.com/e/bob-golub-pagliaccis-comedy-club-manor-grill-tickets-1873182602589",
+      "startDate": "2025-12-20T19:00:00-0500",
+      "location": {
+        "@type": "Place",
+        "name": "200 Main St",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Main Street",
+          "addressLocality": "Irwin",
+          "addressRegion": "PA",
+          "postalCode": "15642",
+          "addressCountry": "US",
+          "latitude": "40.3336114",
+          "longitude": "-79.71040049999999"
+        }
+      }
+    },
+    {
+      "name": "Dancing j's Studio COMEDY FUNDRAISER  with ROCKY WHATULE",
+      "url": "https://www.eventbrite.com/e/dancing-js-studio-comedy-fundraiser-with-rocky-whatule-tickets-1758516573409",
+      "startDate": "2025-11-21T17:30:00-0500",
+      "location": {
+        "@type": "Place",
+        "name": "Pagliacci's Comedy Club",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Main Street",
+          "addressLocality": "Irwin",
+          "addressRegion": "PA",
+          "postalCode": "15642",
+          "addressCountry": "US",
+          "latitude": "40.3336114",
+          "longitude": "-79.71040049999999"
+        }
+      }
+    },
+    {
+      "name": "KEVIN WHELAN -  Pagliacci's Comedy Club @ Manor Grill",
+      "url": "https://www.eventbrite.com/e/kevin-whelan-pagliaccis-comedy-club-manor-grill-tickets-1554437186469",
+      "startDate": "2025-10-18T19:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": "200 Main St",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Main Street",
+          "addressLocality": "Irwin",
+          "addressRegion": "PA",
+          "postalCode": "15642",
+          "addressCountry": "US",
+          "latitude": "40.3336114",
+          "longitude": "-79.71040049999999"
+        }
+      }
+    },
+    {
+      "name": "BUBBA BRADLEY -  Pagliacci's Comedy Club @ Manor Grill",
+      "url": "https://www.eventbrite.com/e/bubba-bradley-pagliaccis-comedy-club-manor-grill-tickets-1554426955869",
+      "startDate": "2025-09-19T19:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": "200 Main St",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Main Street",
+          "addressLocality": "Irwin",
+          "addressRegion": "PA",
+          "postalCode": "15642",
+          "addressCountry": "US",
+          "latitude": "40.3336114",
+          "longitude": "-79.71040049999999"
+        }
+      }
+    },
+    {
+      "name": "Rocky Whatule -  Pagliacci's Comedy Club @ Manor Grill",
+      "url": "https://www.eventbrite.com/e/rocky-whatule-pagliaccis-comedy-club-manor-grill-tickets-1429396386069",
+      "startDate": "2025-08-16T19:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": "200 Main St",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Main Street",
+          "addressLocality": "Irwin",
+          "addressRegion": "PA",
+          "postalCode": "15642",
+          "addressCountry": "US",
+          "latitude": "40.3336114",
+          "longitude": "-79.71040049999999"
+        }
+      }
+    },
+    {
+      "name": "ELIJAH TINDALL - Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/elijah-tindall-pagliaccis-comedy-club-cafe-italiano-tickets-710149284627",
+      "startDate": "2023-09-23T21:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": "Cafe Italiano",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "417 Clay Avenue",
+          "addressLocality": "Jeannette",
+          "addressRegion": "PA",
+          "postalCode": "15644",
+          "addressCountry": "US",
+          "latitude": "40.3276396",
+          "longitude": "-79.6180237"
+        }
+      }
+    },
+    {
+      "name": "ELIJAH TINDALL - Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/elijah-tindall-pagliaccis-comedy-club-cafe-italiano-tickets-694390479617",
+      "startDate": "2023-09-23T19:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": "Cafe Italiano",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "417 Clay Avenue",
+          "addressLocality": "Jeannette",
+          "addressRegion": "PA",
+          "postalCode": "15644",
+          "addressCountry": "US",
+          "latitude": "40.3276396",
+          "longitude": "-79.6180237"
+        }
+      }
+    },
+    {
+      "name": "KARL PROHASKA - Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/karl-prohaska-pagliaccis-comedy-club-cafe-italiano-tickets-710150197357",
+      "startDate": "2023-09-09T21:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": "Cafe Italiano",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "417 Clay Avenue",
+          "addressLocality": "Jeannette",
+          "addressRegion": "PA",
+          "postalCode": "15644",
+          "addressCountry": "US",
+          "latitude": "40.3276396",
+          "longitude": "-79.6180237"
+        }
+      }
+    },
+    {
+      "name": "KARL PROHASKA - Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/karl-prohaska-pagliaccis-comedy-club-cafe-italiano-tickets-694375615157",
+      "startDate": "2023-09-09T19:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": "Cafe Italiano",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "417 Clay Avenue",
+          "addressLocality": "Jeannette",
+          "addressRegion": "PA",
+          "postalCode": "15644",
+          "addressCountry": "US",
+          "latitude": "40.3276396",
+          "longitude": "-79.6180237"
+        }
+      }
+    },
+    {
+      "name": "Karl Prohaska -  Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/karl-prohaska-pagliaccis-comedy-club-cafe-italiano-tickets-700351459067",
+      "startDate": "2023-09-02T21:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": "Cafe Italiano",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "417 Clay Avenue",
+          "addressLocality": "Jeannette",
+          "addressRegion": "PA",
+          "postalCode": "15644",
+          "addressCountry": "US",
+          "latitude": "40.3276396",
+          "longitude": "-79.6180237"
+        }
+      }
+    },
+    {
+      "name": "Karl Prohaska -  Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/karl-prohaska-pagliaccis-comedy-club-cafe-italiano-tickets-700346093017",
+      "startDate": "2023-09-02T19:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": ""
+      }
+    },
+    {
+      "name": "MATT WOHLFARTH - Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/matt-wohlfarth-pagliaccis-comedy-club-cafe-italiano-tickets-684952139287",
+      "startDate": "2023-08-26T21:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": ""
+      }
+    },
+    {
+      "name": "MATT WOHLFARTH - Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/matt-wohlfarth-pagliaccis-comedy-club-cafe-italiano-tickets-684939862567",
+      "startDate": "2023-08-26T19:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": ""
+      }
+    },
+    {
+      "name": "Bubba Bradley -  Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/bubba-bradley-pagliaccis-comedy-club-cafe-italiano-tickets-684876262337",
+      "startDate": "2023-08-19T21:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": ""
+      }
+    },
+    {
+      "name": "Bubba Bradley -  Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/bubba-bradley-pagliaccis-comedy-club-cafe-italiano-tickets-671746801767",
+      "startDate": "2023-08-19T19:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": ""
+      }
+    },
+    {
+      "name": "Kevin Whelan -  Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/kevin-whelan-pagliaccis-comedy-club-cafe-italiano-tickets-684927525667",
+      "startDate": "2023-08-12T21:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": ""
+      }
+    },
+    {
+      "name": "Kevin Whelan -  Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/kevin-whelan-pagliaccis-comedy-club-cafe-italiano-tickets-684919120527",
+      "startDate": "2023-08-12T19:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": ""
+      }
+    },
+    {
+      "name": "Rocky Whatule -  Pagliacci's Comedy Club @ Cafe Italiano",
+      "url": "https://www.eventbrite.com/e/rocky-whatule-pagliaccis-comedy-club-cafe-italiano-tickets-671578538487",
+      "startDate": "2023-08-04T21:00:00-0400",
+      "location": {
+        "@type": "Place",
+        "name": ""
+      }
+    }
+  ],
+  "upcoming_database_shows": [],
+  "limitations": [
+    "Authenticated organizer API returned non-JSON; public organizer NEXT_DATA explicitly reports zero upcoming events without failure.",
+    "Historical collection evidence does not establish future Cafe Italiano performances or require changing the Manor Grill club address."
+  ]
+}

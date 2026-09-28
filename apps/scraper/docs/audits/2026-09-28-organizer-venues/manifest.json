@@ -1,0 +1,32 @@
+{
+  "task_id": 4065,
+  "cutoff_utc": "2026-09-28T13:45:00Z",
+  "files": {
+    "ac-pag/ac-wix-source.json": "75bd4468d9fb129c5545a8e14b3ba61c67f66537b8945e4d264de4ca0fd38fcb",
+    "ac-pag/pagliacci-source.json": "1f5dc6353aab92e1e3b64a335a8a71fe140d0c27dc4004c8b57258ae50c5cef4",
+    "ac-pag/per-show.json": "3a54040daff0364f2d70452c9d522221434a03b16b7c0fec19bbf0f0658905e7",
+    "assigned-shows.json": "a3fb3687947b5b0302e10c71841ba69b11468b6c550e1dffe8d5d9ca20582c97",
+    "big-pine/platform-targets.json": "074b97674fe050426b6bc26f1650b03843aa9be770b58ee62aafeec06fdd69da",
+    "big-pine/shows.json": "27b15863194d1e649565e77e9ff6c1238f67e417ae0c8186c78cfde54eac28e0",
+    "lets-shoppe/per-show.json": "d7ec4419de8bc9af3337dddfe44a0c4948b338d68edec6f16dbabb3832c2c702",
+    "lets-shoppe/public-source-projection.json": "5e286b135c61c076da4a1437a3e108c98bdd70c21bd3732e762f0bd7606f5d25",
+    "lets-shoppe/source-configuration.json": "84858137c25274788a4ead6fd91152f738c2537a2bd7244c02685aa70e5d1dc0",
+    "organizers.json": "ab7ac4809a92bd0a7cb9dbb35f5e2d887690165dc1ce2562f861692a948936c6",
+    "yardbird-alameda/per-show.json": "fdb8d0f1fedf2327cd198fbe30e21278404d96258a92b98c75fb6cdf184ae01c",
+    "yardbird-alameda/public-source-projections.json": "939607a47c5251e69b26ec6ad1ee2a84a0c76a7a2d0b5f5377f718d2110155c3"
+  },
+  "expected": {
+    "direct_rows": 95,
+    "direct_classifications": {
+      "correct": 44,
+      "confirmed_mismatch": 23,
+      "unknown": 9,
+      "non_performance": 19
+    },
+    "additional_rows": 1,
+    "additional_classifications": {
+      "correct": 1
+    }
+  },
+  "collection": "Read-only production snapshots and first-party public source retrieval using scraper HttpClient curl-cffi/browser fallback; no scraper persistence or production writes. Per-source retrieval times in projections. Full HTTP payloads and access tokens omitted."
+}

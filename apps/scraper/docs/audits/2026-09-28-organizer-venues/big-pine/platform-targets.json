@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "name": "Ticketmaster National",
+    "target_type": "platform",
+    "visible": false,
+    "enabled": true,
+    "source_id": 3126,
+    "scraper_key": "ticketmaster_national",
+    "club_id": null,
+    "source_target_id": 1
+  },
+  {
+    "id": 2,
+    "name": "Pabst Theater Group",
+    "target_type": "operator",
+    "visible": false,
+    "enabled": true,
+    "source_id": 7146,
+    "scraper_key": "pabst_theater_group",
+    "club_id": null,
+    "source_target_id": 2
+  }
+]

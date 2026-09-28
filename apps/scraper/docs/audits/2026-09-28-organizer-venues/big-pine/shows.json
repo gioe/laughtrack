@@ -1,0 +1,572 @@
+[
+  {
+    "id": 1376633,
+    "name": "EPK Review",
+    "date": "2026-09-29T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370084",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329761+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_service",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370084",
+    "retrieved_at": "2026-09-28T13:54:17.172521+00:00",
+    "html_sha256": "3406277fe9c35aa88d54d27b309c473eb5a13be35924d7f469bd9c4ad7561ada",
+    "evidence_quote": "This is not a physical product. This is a digital service.",
+    "event_location_assessment": "Digital review service; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-09-29T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 522199,
+    "name": "COMEDY ASSASSINS - NETWORKING GAME",
+    "date": "2026-10-01T15:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/337656",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329770+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "networking_game",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/337656",
+    "retrieved_at": "2026-09-28T13:54:18.435180+00:00",
+    "html_sha256": "c6ba8e9c99362aca60b8864c652f831bc41e9da676868634c2b4dc8a7c7ff821",
+    "evidence_quote": "Eligible cities/counties of eligible play: San Diego, Phoenix/Chandler, Plano",
+    "event_location_assessment": "Multi-city networking game, not a single scheduled audience performance.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-10-01T15:00:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1760217,
+    "name": "FALL CAMP",
+    "date": "2026-10-03T16:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/372674",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329775+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "workshop",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/372674",
+    "retrieved_at": "2026-09-28T13:54:19.702605+00:00",
+    "html_sha256": "4eb66970a63225dd0a36757bb541ef70726600eedd55b183278c05370d2f9d3e",
+    "evidence_quote": "Fall Comedy Camp at Mic Drop Mania",
+    "event_location_assessment": "Mic Drop Mania, Chandler, named in the event description; educational camp, not a performance.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-10-03T16:00:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1760218,
+    "name": "FALL CAMP",
+    "date": "2026-10-04T16:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/372675",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329778+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "workshop",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/372675",
+    "retrieved_at": "2026-09-28T13:54:20.951703+00:00",
+    "html_sha256": "dff2aa0283c9011f6422dc9ab2af14785a043e149a42e13a978c7255069270c5",
+    "evidence_quote": "Fall Comedy Camp at Mic Drop Mania",
+    "event_location_assessment": "Mic Drop Mania, Chandler, named in the event description; educational camp, not a performance.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-10-04T16:00:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376635,
+    "name": "Writing Techniques – Notes Version",
+    "date": "2026-10-06T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370086",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329780+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_download",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370086",
+    "retrieved_at": "2026-09-28T13:54:22.199637+00:00",
+    "html_sha256": "3c29e5073e05a287077e201683339d95640530b99dee335b7867d8e57a61950c",
+    "evidence_quote": "This is a downloadable educational product—not a live event.",
+    "event_location_assessment": "Digital product; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-10-06T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376636,
+    "name": "The Journey: A Cautionary Tale for Comics (Digital Download)",
+    "date": "2026-10-13T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370091",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329783+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_download",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370091",
+    "retrieved_at": "2026-09-28T13:54:23.396862+00:00",
+    "html_sha256": "63809bcaf3d02b8b94383d9ffb0d85f9f0983ee8fec93a1c548503c73055b638",
+    "evidence_quote": "digital download link",
+    "event_location_assessment": "Digital product; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-10-13T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376637,
+    "name": "1:1 Coaching Call with Geoff Grooms",
+    "date": "2026-10-20T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370092",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329786+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "consultation",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370092",
+    "retrieved_at": "2026-09-28T13:54:24.616852+00:00",
+    "html_sha256": "8725a034ee2439bf6486c7e3218a47f1fd9fb82d4b5af8a8729c5597a73c0912",
+    "evidence_quote": "Sign up now to schedule your 1:1 Coaching Call with Geoff.",
+    "event_location_assessment": "Individually scheduled consultation, not a public performance; Geoff call modality not established.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-10-20T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376638,
+    "name": "EPK Review",
+    "date": "2026-10-27T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370093",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329789+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_service",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370093",
+    "retrieved_at": "2026-09-28T13:54:25.829004+00:00",
+    "html_sha256": "7726853857efd67bcc0bba1118676617593035cc73f7cb06e29f5bffd2b5d704",
+    "evidence_quote": "This is not a physical product. This is a digital service.",
+    "event_location_assessment": "Digital review service; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-10-27T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376639,
+    "name": "Email Hustle – Notes Version",
+    "date": "2026-11-03T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370097",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329791+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_download",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370097",
+    "retrieved_at": "2026-09-28T13:54:27.042674+00:00",
+    "html_sha256": "0fdccb75afa0dfc9d91cb14c1bf877a02cb80d83846e80611ed256073420e86b",
+    "evidence_quote": "Purchase includes a digital download. Not a live panel.",
+    "event_location_assessment": "Digital product; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-11-03T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 3251332,
+    "name": "Winter Camp Pass",
+    "date": "2026-11-07T16:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/378010",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329793+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "workshop_pass",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/378010",
+    "retrieved_at": "2026-09-28T13:54:28.251685+00:00",
+    "html_sha256": "aae12094561f47417114ba0a5f3a5aecea428c227aae1440374c94382d165439",
+    "evidence_quote": "This all-access pass gets you entry into every single workshop and panel",
+    "event_location_assessment": "Specific physical venue unknown: generic festival JSON-LD is insufficient; workshop/panel pass.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-11-07T16:00:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 3251333,
+    "name": "Winter Camp Pass",
+    "date": "2026-11-08T16:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/378011",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329795+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "workshop_pass",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/378011",
+    "retrieved_at": "2026-09-28T13:54:29.443882+00:00",
+    "html_sha256": "da6d1fdb311048b8f89de7906d0cf5defec4fa707885de525e6d576797ebb9b3",
+    "evidence_quote": "This all-access pass gets you entry into every single workshop and panel",
+    "event_location_assessment": "Specific physical venue unknown: generic festival JSON-LD is insufficient; workshop/panel pass.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-11-08T16:00:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376640,
+    "name": "Comedian Networking Guide (Digital Download)",
+    "date": "2026-11-10T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370098",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329798+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_download",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370098",
+    "retrieved_at": "2026-09-28T13:54:30.651424+00:00",
+    "html_sha256": "c448a8cff2a9ae562aa5218c492feb4445c8e4323dc536967bba5046522fa62a",
+    "evidence_quote": "This is not a live event. This is a digital download.",
+    "event_location_assessment": "Digital product; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-11-10T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376641,
+    "name": "Social Media Review",
+    "date": "2026-11-17T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370099",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329800+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_service",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370099",
+    "retrieved_at": "2026-09-28T13:54:31.865121+00:00",
+    "html_sha256": "93cbbd7d9895ce1d5ec0890ff2ad74637b71641c3e542ff5ce8844f2952cc8a2",
+    "evidence_quote": "This is not a physical product. This is a digital service.",
+    "event_location_assessment": "Digital review service; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-11-17T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376642,
+    "name": "1:1 Coaching Call with Geoff Grooms",
+    "date": "2026-11-24T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370101",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329802+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "consultation",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370101",
+    "retrieved_at": "2026-09-28T13:54:33.120859+00:00",
+    "html_sha256": "b5b9c1018cc7a8d340a5fd52a74c80063c39f3744d1c1a3e4b5c031bd67f2ff2",
+    "evidence_quote": "Sign up now to schedule your 1:1 Coaching Call with Geoff.",
+    "event_location_assessment": "Individually scheduled consultation, not a public performance; Geoff call modality not established.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-11-24T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376643,
+    "name": "EPK Review",
+    "date": "2026-12-01T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370095",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329804+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_service",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370095",
+    "retrieved_at": "2026-09-28T13:54:34.374573+00:00",
+    "html_sha256": "23ab44ec13dc842f179267736093b54b808a864c2cfff341d6f11f33c8efe94e",
+    "evidence_quote": "This is not a physical product. This is a digital service.",
+    "event_location_assessment": "Digital review service; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-12-01T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376644,
+    "name": "Hustle (in Comedy Business) – Notes Version",
+    "date": "2026-12-08T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370103",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329807+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_download",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370103",
+    "retrieved_at": "2026-09-28T13:54:35.644923+00:00",
+    "html_sha256": "3b3642bcdb202fa1fc5bb2afd78304c7bbcaf507ced43de2ecc5577d6099c9c6",
+    "evidence_quote": "Your download link will be emailed after purchase.",
+    "event_location_assessment": "Digital product; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-12-08T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376645,
+    "name": "Comedian Education Guide & Workbook (Digital Download)",
+    "date": "2026-12-15T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370104",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329809+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_download",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370104",
+    "retrieved_at": "2026-09-28T13:54:36.836781+00:00",
+    "html_sha256": "1c54a5bb106c3a8051395800c25342468d0d753b674726416ab672a4b431b66f",
+    "evidence_quote": "a member of our team will email you a link to download your guide",
+    "event_location_assessment": "Digital product; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-12-15T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376646,
+    "name": "1 on 1 Coaching Call with Hillary Hutson",
+    "date": "2026-12-22T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370106",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329812+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "consultation",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370106",
+    "retrieved_at": "2026-09-28T13:54:38.075308+00:00",
+    "html_sha256": "b4def2abcca5eef2d02a85e958e47244431cbade43cfb56ce3e18e70595518c5",
+    "evidence_quote": "Virtual 20-minute session. Not a live event.",
+    "event_location_assessment": "Individually scheduled consultation, not a public performance; Geoff call modality not established.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-12-22T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  },
+  {
+    "id": 1376647,
+    "name": "EPK Review",
+    "date": "2026-12-29T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370096",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329814+00:00",
+    "organizer_id": 573,
+    "classification": "non_performance",
+    "subtype": "digital_service",
+    "source_url": "https://www.bigpinecomedyfestival.org/shows/370096",
+    "retrieved_at": "2026-09-28T13:54:39.330988+00:00",
+    "html_sha256": "9fc28ce17b3e762877bf00eea7e1ea588ffd9ad05520ee87a646156e84fd6e99",
+    "evidence_quote": "This is not a physical product. This is a digital service.",
+    "event_location_assessment": "Digital review service; no audience venue.",
+    "generic_jsonld_location": {
+      "name": "Big Pine Comedy Festival",
+      "address": {
+        "@type": "PostalAddress",
+        "name": "Big Pine Comedy Festival",
+        "streetAddress": "51 E. Boston St.",
+        "addressLocality": "Chandler",
+        "addressRegion": "AZ"
+      }
+    },
+    "source_start_date": "2026-12-29T06:59:00Z",
+    "disposition": "Filter the verified non-performance inventory and review dependent rows before bounded cleanup; preserve festival record573 and source360."
+  }
+]

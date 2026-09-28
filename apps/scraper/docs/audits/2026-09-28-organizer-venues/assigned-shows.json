@@ -1,0 +1,952 @@
+[
+  {
+    "id": 7295244,
+    "name": "Live Comedy at Resorts | 9/28/26 - 8PM",
+    "date": "2026-09-29T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/09-28-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470618+00:00"
+  },
+  {
+    "id": 7190383,
+    "name": "Live Comedy at Resorts | 10/1/26 - 8PM",
+    "date": "2026-10-02T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-01-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470622+00:00"
+  },
+  {
+    "id": 7349803,
+    "name": "Atlantic City Comedy at Resorts | 10/2/26 - 9PM",
+    "date": "2026-10-03T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-02-2026-9PM-comedy-at-resorts-ft-bob-levy",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470624+00:00"
+  },
+  {
+    "id": 7349804,
+    "name": "Live Comedy at Resorts | 10/3/26 - 8PM",
+    "date": "2026-10-04T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-03-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+    "room": "Resorts Casino - Directors Room",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470626+00:00"
+  },
+  {
+    "id": 7190386,
+    "name": "Atlantic City Comedy at Resorts | 10/4/26 - 8PM",
+    "date": "2026-10-05T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-04-2026-8PM-comedy-at-resorts-ft-mel-harris",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470629+00:00"
+  },
+  {
+    "id": 6537818,
+    "name": "Absecon Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 10/4/26 - 9PM",
+    "date": "2026-10-05T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-04-2026-comedy-at-hi-point-pub-8PM",
+    "room": "Hi Point Pub",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470631+00:00"
+  },
+  {
+    "id": 7190388,
+    "name": "Live Comedy at Resorts | 10/5/26 - 8PM",
+    "date": "2026-10-06T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-05-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470633+00:00"
+  },
+  {
+    "id": 7190389,
+    "name": "Live Comedy at Resorts | 10/8/26 - 8PM",
+    "date": "2026-10-09T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-08-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470635+00:00"
+  },
+  {
+    "id": 7349809,
+    "name": "Live Comedy at Resorts | 10/9/26 - 9PM",
+    "date": "2026-10-10T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-09-2026-9PM-comedy-at-resorts-ft-john-ovalles",
+    "room": "Resorts Casino - Directors Room",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470637+00:00"
+  },
+  {
+    "id": 7349810,
+    "name": "A Night of Comedy at Resorts | 10/10/26 - 8PM",
+    "date": "2026-10-11T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-10-2026-8PM-comedy-at-resorts-ft-connor-king",
+    "room": "Resorts Casino - Directors Room",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470639+00:00"
+  },
+  {
+    "id": 7190392,
+    "name": "Atlantic City Comedy at Resorts | 10/11/26 - 8PM",
+    "date": "2026-10-12T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-11-2026-8PM-comedy-at-resorts-ft-tata-sherise",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470641+00:00"
+  },
+  {
+    "id": 7190393,
+    "name": "Live Comedy at Resorts | 10/12/26 - 8PM",
+    "date": "2026-10-13T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-12-2026-8PM-comedy-at-resorts-ft-mel-harris",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470643+00:00"
+  },
+  {
+    "id": 7190394,
+    "name": "Live Comedy at Resorts | 10/15/26 - 8PM",
+    "date": "2026-10-16T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-15-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470645+00:00"
+  },
+  {
+    "id": 7349814,
+    "name": "Live Comedy at Resorts | 10/16/26 - 9PM",
+    "date": "2026-10-17T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-16-2026-9PM-comedy-at-resorts-ft-gary-g-garcia",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470647+00:00"
+  },
+  {
+    "id": 7349816,
+    "name": "Live Comedy at Resorts | 10/17/26 - 8PM",
+    "date": "2026-10-18T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-17-2026-8PM-comedy-at-resorts-ft-foster-nicholson",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470651+00:00"
+  },
+  {
+    "id": 7475796,
+    "name": "Live Laughs at The Cove | 10/17/26 - 8PM",
+    "date": "2026-10-18T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-17-2026-8PM-undefined-ft-buda-the-comedian",
+    "room": "The Cove Restaurant",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470649+00:00"
+  },
+  {
+    "id": 7190398,
+    "name": "Atlantic City Comedy at Resorts | 10/18/26 - 8PM",
+    "date": "2026-10-19T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-18-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470653+00:00"
+  },
+  {
+    "id": 7190399,
+    "name": "A Night of Comedy at Resorts | 10/19/26 - 8PM",
+    "date": "2026-10-20T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-19-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470655+00:00"
+  },
+  {
+    "id": 7190400,
+    "name": "Atlantic City Comedy at Resorts | 10/22/26 - 8PM",
+    "date": "2026-10-23T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-22-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470657+00:00"
+  },
+  {
+    "id": 7349820,
+    "name": "Atlantic City Comedy at Resorts | 10/23/26 - 9PM",
+    "date": "2026-10-24T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-23-2026-9PM-comedy-at-resorts-ft-tony-papadog",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470659+00:00"
+  },
+  {
+    "id": 7349821,
+    "name": "A Night of Comedy at Resorts | 10/24/26 - 8PM",
+    "date": "2026-10-25T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-24-2026-8PM-comedy-at-resorts-ft-adam-gabel",
+    "room": "Resorts Casino - Directors Room",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470661+00:00"
+  },
+  {
+    "id": 7190403,
+    "name": "Atlantic City Comedy at Resorts | 10/25/26 - 8PM",
+    "date": "2026-10-26T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-25-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470663+00:00"
+  },
+  {
+    "id": 7190404,
+    "name": "Atlantic City Comedy at Resorts | 10/26/26 - 8PM",
+    "date": "2026-10-27T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-26-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470665+00:00"
+  },
+  {
+    "id": 7190405,
+    "name": "Live Comedy at Resorts | 10/29/26 - 8PM",
+    "date": "2026-10-30T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-29-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470666+00:00"
+  },
+  {
+    "id": 7349825,
+    "name": "Atlantic City Comedy at Resorts | 10/30/26 - 9PM",
+    "date": "2026-10-31T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-30-2026-9PM-comedy-at-resorts-ft-greg-giraldo-jr",
+    "room": "Resorts Casino - Directors Room",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470668+00:00"
+  },
+  {
+    "id": 7349826,
+    "name": "Atlantic City Comedy at Resorts | 10/31/26 - 8PM",
+    "date": "2026-11-01T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/10-31-2026-8PM-comedy-at-resorts-ft-bob-levy",
+    "room": "Resorts Casino - Starlight Ballroom",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470670+00:00"
+  },
+  {
+    "id": 6537828,
+    "name": "Absecon Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 11/1/26 - 9PM",
+    "date": "2026-11-02T02:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/11-01-2026-comedy-at-hi-point-pub-8PM",
+    "room": "Hi Point Pub",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470672+00:00"
+  },
+  {
+    "id": 937070,
+    "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/6/26 - 9PM",
+    "date": "2026-11-07T02:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/11-06-2026-comedy-show-at-resorts-9PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470674+00:00"
+  },
+  {
+    "id": 937071,
+    "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/7/26 - 8PM",
+    "date": "2026-11-08T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/11-07-2026-comedy-show-at-resorts-8PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470676+00:00"
+  },
+  {
+    "id": 937072,
+    "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/13/26 - 9PM",
+    "date": "2026-11-14T02:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/11-13-2026-comedy-show-at-resorts-9PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470678+00:00"
+  },
+  {
+    "id": 937073,
+    "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/14/26 - 8PM",
+    "date": "2026-11-15T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/11-14-2026-comedy-show-at-resorts-8PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470680+00:00"
+  },
+  {
+    "id": 937074,
+    "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/20/26 - 9PM",
+    "date": "2026-11-21T02:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/11-20-2026-comedy-show-at-resorts-9PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470681+00:00"
+  },
+  {
+    "id": 937075,
+    "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/21/26 - 8PM",
+    "date": "2026-11-22T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/11-21-2026-comedy-show-at-resorts-8PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470683+00:00"
+  },
+  {
+    "id": 937076,
+    "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/27/26 - 9PM",
+    "date": "2026-11-28T02:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/11-27-2026-comedy-show-at-resorts-9PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470685+00:00"
+  },
+  {
+    "id": 937077,
+    "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/28/26 - 8PM",
+    "date": "2026-11-29T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/11-28-2026-comedy-show-at-resorts-8PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470687+00:00"
+  },
+  {
+    "id": 937078,
+    "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 12/4/26 - 9PM",
+    "date": "2026-12-05T02:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/12-04-2026-comedy-show-at-resorts-9PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470689+00:00"
+  },
+  {
+    "id": 937079,
+    "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/5/26 - 8PM",
+    "date": "2026-12-06T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/12-05-2026-comedy-show-at-resorts-8PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470691+00:00"
+  },
+  {
+    "id": 6537839,
+    "name": "Absecon Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 12/6/26 - 9PM",
+    "date": "2026-12-07T02:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/12-06-2026-comedy-at-hi-point-pub-8PM",
+    "room": "Hi Point Pub",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470693+00:00"
+  },
+  {
+    "id": 937081,
+    "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 12/11/26 - 9PM",
+    "date": "2026-12-12T02:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/12-11-2026-comedy-show-at-resorts-9PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470695+00:00"
+  },
+  {
+    "id": 937082,
+    "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/12/26 - 8PM",
+    "date": "2026-12-13T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/12-12-2026-comedy-show-at-resorts-8PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470697+00:00"
+  },
+  {
+    "id": 937083,
+    "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 12/18/26 - 9PM",
+    "date": "2026-12-19T02:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/12-18-2026-comedy-show-at-resorts-9PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470699+00:00"
+  },
+  {
+    "id": 937084,
+    "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/19/26 - 8PM",
+    "date": "2026-12-20T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/12-19-2026-comedy-show-at-resorts-8PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470701+00:00"
+  },
+  {
+    "id": 937085,
+    "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/26/26 - 8PM",
+    "date": "2026-12-27T01:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/12-26-2026-comedy-show-at-resorts-8PM",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470703+00:00"
+  },
+  {
+    "id": 4562202,
+    "name": "Atlantic City Comedy at Resorts | 7/17/27 - 8PM",
+    "date": "2027-07-18T00:00:00+00:00",
+    "club_id": 412,
+    "show_page_url": "https://www.acjokes.com/event-details/07-17-2027-8PM-comedy-at-resorts-ft-elijah-the-barber",
+    "room": "",
+    "last_scraped_by": "wix_events",
+    "last_scraped_date": "2026-09-28T00:19:07.470705+00:00"
+  },
+  {
+    "id": 5463281,
+    "name": "Saturday Night Comedy at the Fireside Lounge",
+    "date": "2026-10-11T03:00:00+00:00",
+    "club_id": 447,
+    "show_page_url": "http://alamedacomedy.com/shows/383814",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:46:54.187493+00:00"
+  },
+  {
+    "id": 5463282,
+    "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "date": "2026-10-15T02:00:00+00:00",
+    "club_id": 447,
+    "show_page_url": "http://alamedacomedy.com/shows/383817",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:46:54.187504+00:00"
+  },
+  {
+    "id": 5463283,
+    "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "date": "2026-10-29T02:00:00+00:00",
+    "club_id": 447,
+    "show_page_url": "http://alamedacomedy.com/shows/383818",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:46:54.187508+00:00"
+  },
+  {
+    "id": 5463284,
+    "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "date": "2026-11-12T03:00:00+00:00",
+    "club_id": 447,
+    "show_page_url": "http://alamedacomedy.com/shows/383819",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:46:54.187511+00:00"
+  },
+  {
+    "id": 5463285,
+    "name": "Saturday Night Comedy at the Fireside Lounge",
+    "date": "2026-11-15T04:00:00+00:00",
+    "club_id": 447,
+    "show_page_url": "http://alamedacomedy.com/shows/383815",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:46:54.187513+00:00"
+  },
+  {
+    "id": 5463286,
+    "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "date": "2026-11-26T03:00:00+00:00",
+    "club_id": 447,
+    "show_page_url": "http://alamedacomedy.com/shows/383820",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:46:54.187516+00:00"
+  },
+  {
+    "id": 5463287,
+    "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "date": "2026-12-10T03:00:00+00:00",
+    "club_id": 447,
+    "show_page_url": "http://alamedacomedy.com/shows/383821",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:46:54.187519+00:00"
+  },
+  {
+    "id": 5463288,
+    "name": "Saturday Night Comedy at the Fireside Lounge",
+    "date": "2026-12-13T04:00:00+00:00",
+    "club_id": 447,
+    "show_page_url": "http://alamedacomedy.com/shows/383816",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:46:54.187522+00:00"
+  },
+  {
+    "id": 5463289,
+    "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "date": "2026-12-24T03:00:00+00:00",
+    "club_id": 447,
+    "show_page_url": "http://alamedacomedy.com/shows/383822",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:46:54.187524+00:00"
+  },
+  {
+    "id": 4189224,
+    "name": "Tim McLaughlin 40th Bday Extravaganza!!!",
+    "date": "2026-09-30T00:00:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/380503",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709123+00:00"
+  },
+  {
+    "id": 3878365,
+    "name": "LEMAIRE LEE LIVE IN INDY @ WHITE RABBIT CABARET",
+    "date": "2026-10-09T00:00:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/379390",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709135+00:00"
+  },
+  {
+    "id": 1395297,
+    "name": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+    "date": "2026-10-09T23:00:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/370399",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709138+00:00"
+  },
+  {
+    "id": 6352262,
+    "name": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+    "date": "2026-10-10T01:30:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/386091",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709141+00:00"
+  },
+  {
+    "id": 2760604,
+    "name": "BRIAN POSEHN LIVE IN INDY @ FOUNTAIN SQUARE THEATRE presented by LETS COMEDY",
+    "date": "2026-10-17T23:00:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/376767",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709144+00:00"
+  },
+  {
+    "id": 7066816,
+    "name": "Saya Meads live in INDY @ white rabbit cabaret",
+    "date": "2026-11-07T00:00:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/388149",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709147+00:00"
+  },
+  {
+    "id": 3933246,
+    "name": "Jaboukie Young-White USA TOUR live in INDY @ White Rabbit Cabaret",
+    "date": "2026-11-14T00:00:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/379736",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709149+00:00"
+  },
+  {
+    "id": 7066818,
+    "name": "Emily Wilson live in INDY @ white rabbit cabaret",
+    "date": "2027-03-13T00:00:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/388150",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709152+00:00"
+  },
+  {
+    "id": 5404524,
+    "name": "EMILY CATALANO live in INDY!",
+    "date": "2027-04-08T23:00:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/383603",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709154+00:00"
+  },
+  {
+    "id": 5466096,
+    "name": "EMILY CATALANO live in INDY!",
+    "date": "2027-04-09T01:30:00+00:00",
+    "club_id": 469,
+    "show_page_url": "http://letscomedytickets.seatengine.com/shows/383771",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:47:55.709157+00:00"
+  },
+  {
+    "id": 1376633,
+    "name": "EPK Review",
+    "date": "2026-09-29T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370084",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329761+00:00"
+  },
+  {
+    "id": 522199,
+    "name": "COMEDY ASSASSINS - NETWORKING GAME",
+    "date": "2026-10-01T15:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/337656",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329770+00:00"
+  },
+  {
+    "id": 1760217,
+    "name": "FALL CAMP",
+    "date": "2026-10-03T16:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/372674",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329775+00:00"
+  },
+  {
+    "id": 1760218,
+    "name": "FALL CAMP",
+    "date": "2026-10-04T16:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/372675",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329778+00:00"
+  },
+  {
+    "id": 1376635,
+    "name": "Writing Techniques \u2013 Notes Version",
+    "date": "2026-10-06T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370086",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329780+00:00"
+  },
+  {
+    "id": 1376636,
+    "name": "The Journey: A Cautionary Tale for Comics (Digital Download)",
+    "date": "2026-10-13T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370091",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329783+00:00"
+  },
+  {
+    "id": 1376637,
+    "name": "1:1 Coaching Call with Geoff Grooms",
+    "date": "2026-10-20T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370092",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329786+00:00"
+  },
+  {
+    "id": 1376638,
+    "name": "EPK Review",
+    "date": "2026-10-27T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370093",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329789+00:00"
+  },
+  {
+    "id": 1376639,
+    "name": "Email Hustle \u2013 Notes Version",
+    "date": "2026-11-03T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370097",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329791+00:00"
+  },
+  {
+    "id": 3251332,
+    "name": "Winter Camp Pass",
+    "date": "2026-11-07T16:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/378010",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329793+00:00"
+  },
+  {
+    "id": 3251333,
+    "name": "Winter Camp Pass",
+    "date": "2026-11-08T16:00:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/378011",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329795+00:00"
+  },
+  {
+    "id": 1376640,
+    "name": "Comedian Networking Guide (Digital Download)",
+    "date": "2026-11-10T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370098",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329798+00:00"
+  },
+  {
+    "id": 1376641,
+    "name": "Social Media Review",
+    "date": "2026-11-17T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370099",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329800+00:00"
+  },
+  {
+    "id": 1376642,
+    "name": "1:1 Coaching Call with Geoff Grooms",
+    "date": "2026-11-24T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370101",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329802+00:00"
+  },
+  {
+    "id": 1376643,
+    "name": "EPK Review",
+    "date": "2026-12-01T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370095",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329804+00:00"
+  },
+  {
+    "id": 1376644,
+    "name": "Hustle (in Comedy Business) \u2013 Notes Version",
+    "date": "2026-12-08T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370103",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329807+00:00"
+  },
+  {
+    "id": 1376645,
+    "name": "Comedian Education Guide & Workbook (Digital Download)",
+    "date": "2026-12-15T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370104",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329809+00:00"
+  },
+  {
+    "id": 1376646,
+    "name": "1 on 1 Coaching Call with Hillary Hutson",
+    "date": "2026-12-22T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370106",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329812+00:00"
+  },
+  {
+    "id": 1376647,
+    "name": "EPK Review",
+    "date": "2026-12-29T06:59:00+00:00",
+    "club_id": 573,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370096",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:49:48.329814+00:00"
+  },
+  {
+    "id": 3879801,
+    "name": "Sarper Guven At Willie McBride's In Hoboken",
+    "date": "2026-10-04T22:00:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/379655",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472046+00:00"
+  },
+  {
+    "id": 3879802,
+    "name": "Sarper Guven At Willie McBride's In Hoboken",
+    "date": "2026-10-05T00:15:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/379656",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472057+00:00"
+  },
+  {
+    "id": 6039623,
+    "name": "Anthony Locascio",
+    "date": "2026-10-07T23:30:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/385281",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472061+00:00"
+  },
+  {
+    "id": 6039624,
+    "name": "Olivia Carter At Willie McBride's In Hoboken",
+    "date": "2026-10-18T22:00:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/385258",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472063+00:00"
+  },
+  {
+    "id": 7408993,
+    "name": "Joe Fenti In Hoboken",
+    "date": "2026-10-28T23:30:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/389229",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472065+00:00"
+  },
+  {
+    "id": 7408994,
+    "name": "Joe Fenti In Hoboken",
+    "date": "2026-10-29T23:30:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/389230",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472067+00:00"
+  },
+  {
+    "id": 3019125,
+    "name": "Daniela Mora At The Hoboken Biergarten",
+    "date": "2026-11-06T00:30:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/377225",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472069+00:00"
+  },
+  {
+    "id": 5955023,
+    "name": "Marcus Monroe At Willie McBride's in Hoboken",
+    "date": "2026-12-06T23:00:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/384998",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472072+00:00"
+  },
+  {
+    "id": 5955024,
+    "name": "Bo Johnson At The Hoboken Biergarten",
+    "date": "2026-12-11T00:30:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/384993",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472074+00:00"
+  },
+  {
+    "id": 5955025,
+    "name": "Bo Johnson At The Hoboken Biergarten",
+    "date": "2026-12-12T00:30:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/384994",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472076+00:00"
+  },
+  {
+    "id": 5955026,
+    "name": "Bo Johnson At The Hoboken Biergarten",
+    "date": "2026-12-12T02:30:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/384995",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472078+00:00"
+  },
+  {
+    "id": 5955027,
+    "name": "Bo Johnson At The Hoboken Biergarten",
+    "date": "2026-12-13T00:00:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/384996",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472080+00:00"
+  },
+  {
+    "id": 5955028,
+    "name": "Bo Johnson At The Hoboken Biergarten",
+    "date": "2026-12-13T02:15:00+00:00",
+    "club_id": 613,
+    "show_page_url": "https://www.yardbirdcomedy.com/shows/384997",
+    "room": "",
+    "last_scraped_by": "seatengine",
+    "last_scraped_date": "2026-09-27T23:51:35.472082+00:00"
+  }
+]

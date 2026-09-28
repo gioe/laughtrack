@@ -1,0 +1,602 @@
+[
+  {
+    "source_url": "https://alamedacomedy.com/shows/383814",
+    "retrieved_at": "2026-09-28T13:54:14.981499+00:00",
+    "event": {
+      "name": "Saturday Night Comedy at the Fireside Lounge",
+      "url": "https://www.alamedacomedy.com/shows/383814",
+      "startDate": "2026-10-11T03:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Alameda Comedy",
+        "description": "<p>Alameda Comedy produces comedy shows at various venues in the East Bay.</p>",
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Alameda Comedy",
+          "streetAddress": "",
+          "addressLocality": "Alameda",
+          "addressRegion": "CA "
+        },
+        "url": "http://www.alamedacomedy.com"
+      }
+    },
+    "venue_excerpt": "Fireside Lounge at 1453 Webster St in Alameda",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://alamedacomedy.com/shows/383817",
+    "retrieved_at": "2026-09-28T13:54:15.326812+00:00",
+    "event": {
+      "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+      "url": "https://www.alamedacomedy.com/shows/383817",
+      "startDate": "2026-10-15T02:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Alameda Comedy",
+        "description": "<p>Alameda Comedy produces comedy shows at various venues in the East Bay.</p>",
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Alameda Comedy",
+          "streetAddress": "",
+          "addressLocality": "Alameda",
+          "addressRegion": "CA "
+        },
+        "url": "http://www.alamedacomedy.com"
+      }
+    },
+    "venue_excerpt": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://alamedacomedy.com/shows/383818",
+    "retrieved_at": "2026-09-28T13:54:15.553185+00:00",
+    "event": {
+      "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+      "url": "https://www.alamedacomedy.com/shows/383818",
+      "startDate": "2026-10-29T02:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Alameda Comedy",
+        "description": "<p>Alameda Comedy produces comedy shows at various venues in the East Bay.</p>",
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Alameda Comedy",
+          "streetAddress": "",
+          "addressLocality": "Alameda",
+          "addressRegion": "CA "
+        },
+        "url": "http://www.alamedacomedy.com"
+      }
+    },
+    "venue_excerpt": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://alamedacomedy.com/shows/383819",
+    "retrieved_at": "2026-09-28T13:54:15.856152+00:00",
+    "event": {
+      "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+      "url": "https://www.alamedacomedy.com/shows/383819",
+      "startDate": "2026-11-12T03:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Alameda Comedy",
+        "description": "<p>Alameda Comedy produces comedy shows at various venues in the East Bay.</p>",
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Alameda Comedy",
+          "streetAddress": "",
+          "addressLocality": "Alameda",
+          "addressRegion": "CA "
+        },
+        "url": "http://www.alamedacomedy.com"
+      }
+    },
+    "venue_excerpt": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://alamedacomedy.com/shows/383815",
+    "retrieved_at": "2026-09-28T13:54:16.132914+00:00",
+    "event": {
+      "name": "Saturday Night Comedy at the Fireside Lounge",
+      "url": "https://www.alamedacomedy.com/shows/383815",
+      "startDate": "2026-11-15T04:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Alameda Comedy",
+        "description": "<p>Alameda Comedy produces comedy shows at various venues in the East Bay.</p>",
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Alameda Comedy",
+          "streetAddress": "",
+          "addressLocality": "Alameda",
+          "addressRegion": "CA "
+        },
+        "url": "http://www.alamedacomedy.com"
+      }
+    },
+    "venue_excerpt": "Fireside Lounge at 1453 Webster St in Alameda",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://alamedacomedy.com/shows/383820",
+    "retrieved_at": "2026-09-28T13:54:16.373965+00:00",
+    "event": {
+      "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+      "url": "https://www.alamedacomedy.com/shows/383820",
+      "startDate": "2026-11-26T03:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Alameda Comedy",
+        "description": "<p>Alameda Comedy produces comedy shows at various venues in the East Bay.</p>",
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Alameda Comedy",
+          "streetAddress": "",
+          "addressLocality": "Alameda",
+          "addressRegion": "CA "
+        },
+        "url": "http://www.alamedacomedy.com"
+      }
+    },
+    "venue_excerpt": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://alamedacomedy.com/shows/383821",
+    "retrieved_at": "2026-09-28T13:54:16.596026+00:00",
+    "event": {
+      "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+      "url": "https://www.alamedacomedy.com/shows/383821",
+      "startDate": "2026-12-10T03:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Alameda Comedy",
+        "description": "<p>Alameda Comedy produces comedy shows at various venues in the East Bay.</p>",
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Alameda Comedy",
+          "streetAddress": "",
+          "addressLocality": "Alameda",
+          "addressRegion": "CA "
+        },
+        "url": "http://www.alamedacomedy.com"
+      }
+    },
+    "venue_excerpt": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://alamedacomedy.com/shows/383816",
+    "retrieved_at": "2026-09-28T13:54:16.838540+00:00",
+    "event": {
+      "name": "Saturday Night Comedy at the Fireside Lounge",
+      "url": "https://www.alamedacomedy.com/shows/383816",
+      "startDate": "2026-12-13T04:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Alameda Comedy",
+        "description": "<p>Alameda Comedy produces comedy shows at various venues in the East Bay.</p>",
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Alameda Comedy",
+          "streetAddress": "",
+          "addressLocality": "Alameda",
+          "addressRegion": "CA "
+        },
+        "url": "http://www.alamedacomedy.com"
+      }
+    },
+    "venue_excerpt": "Fireside Lounge at 1453 Webster St in Alameda",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://alamedacomedy.com/shows/383822",
+    "retrieved_at": "2026-09-28T13:54:17.116286+00:00",
+    "event": {
+      "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+      "url": "https://www.alamedacomedy.com/shows/383822",
+      "startDate": "2026-12-24T03:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Alameda Comedy",
+        "description": "<p>Alameda Comedy produces comedy shows at various venues in the East Bay.</p>",
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Alameda Comedy",
+          "streetAddress": "",
+          "addressLocality": "Alameda",
+          "addressRegion": "CA "
+        },
+        "url": "http://www.alamedacomedy.com"
+      }
+    },
+    "venue_excerpt": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/379655",
+    "retrieved_at": "2026-09-28T13:54:17.363853+00:00",
+    "event": {
+      "name": "Sarper Guven At Willie McBride's In Hoboken",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/379655",
+      "startDate": "2026-10-04T22:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This event will be taking place at Willie McBride's | 616 Grand St, Hoboken, NJ 07030",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/379656",
+    "retrieved_at": "2026-09-28T13:54:17.627057+00:00",
+    "event": {
+      "name": "Sarper Guven At Willie McBride's In Hoboken",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/379656",
+      "startDate": "2026-10-05T00:15:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This event will be taking place at Willie McBride's | 616 Grand St, Hoboken, NJ 07030",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/385281",
+    "retrieved_at": "2026-09-28T13:54:17.837269+00:00",
+    "event": {
+      "name": "Anthony Locascio",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/385281",
+      "startDate": "2026-10-07T23:30:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": null,
+    "description_has_specific_venue": false
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/385258",
+    "retrieved_at": "2026-09-28T13:54:18.081874+00:00",
+    "event": {
+      "name": "Olivia Carter At Willie McBride's In Hoboken",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/385258",
+      "startDate": "2026-10-18T22:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This event will be taking place at Willie McBride's | 616 Grand St, Hoboken, NJ 07030",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/389229",
+    "retrieved_at": "2026-09-28T13:54:18.456303+00:00",
+    "event": {
+      "name": "Joe Fenti In Hoboken",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/389229",
+      "startDate": "2026-10-28T23:30:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": null,
+    "description_has_specific_venue": false
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/389230",
+    "retrieved_at": "2026-09-28T13:54:18.666697+00:00",
+    "event": {
+      "name": "Joe Fenti In Hoboken",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/389230",
+      "startDate": "2026-10-29T23:30:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": null,
+    "description_has_specific_venue": false
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/377225",
+    "retrieved_at": "2026-09-28T13:54:18.917563+00:00",
+    "event": {
+      "name": "Daniela Mora At The Hoboken Biergarten",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/377225",
+      "startDate": "2026-11-06T00:30:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This show is happening at The Hoboken Biergarten at 1422 Grand Street",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/384998",
+    "retrieved_at": "2026-09-28T13:54:19.156060+00:00",
+    "event": {
+      "name": "Marcus Monroe At Willie McBride's in Hoboken",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/384998",
+      "startDate": "2026-12-06T23:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This event will be taking place at Willie McBride's | 616 Grand St, Hoboken, NJ 07030",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/384993",
+    "retrieved_at": "2026-09-28T13:54:19.393912+00:00",
+    "event": {
+      "name": "Bo Johnson At The Hoboken Biergarten",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/384993",
+      "startDate": "2026-12-11T00:30:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This show is happening at The Hoboken Biergarten at 1422 Grand Street",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/384994",
+    "retrieved_at": "2026-09-28T13:54:19.620313+00:00",
+    "event": {
+      "name": "Bo Johnson At The Hoboken Biergarten",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/384994",
+      "startDate": "2026-12-12T00:30:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This show is happening at The Hoboken Biergarten at 1422 Grand Street",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/384995",
+    "retrieved_at": "2026-09-28T13:54:19.883025+00:00",
+    "event": {
+      "name": "Bo Johnson At The Hoboken Biergarten",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/384995",
+      "startDate": "2026-12-12T02:30:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This show is happening at The Hoboken Biergarten at 1422 Grand Street",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/384996",
+    "retrieved_at": "2026-09-28T13:54:20.097486+00:00",
+    "event": {
+      "name": "Bo Johnson At The Hoboken Biergarten",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/384996",
+      "startDate": "2026-12-13T00:00:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This show is happening at The Hoboken Biergarten at 1422 Grand Street",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/shows/384997",
+    "retrieved_at": "2026-09-28T13:54:20.322913+00:00",
+    "event": {
+      "name": "Bo Johnson At The Hoboken Biergarten",
+      "url": "https://yardbird-comedy.seatengine-sites.com/shows/384997",
+      "startDate": "2026-12-13T02:15:00Z",
+      "location": {
+        ":@context": "http://schema.org",
+        "@type": "Place",
+        "name": "Yardbird Comedy",
+        "description": null,
+        "address": {
+          "@type": "PostalAddress",
+          "name": "Yardbird Comedy",
+          "streetAddress": "",
+          "addressLocality": "",
+          "addressRegion": ""
+        },
+        "url": "http://yardbird-comedy.seatengine-sites.com"
+      }
+    },
+    "venue_excerpt": "This show is happening at The Hoboken Biergarten at 1422 Grand Street",
+    "description_has_specific_venue": true
+  },
+  {
+    "source_url": "https://yardbird-comedy.seatengine-sites.com/events",
+    "retrieved_at": "2026-09-28T13:54:14.020368+00:00",
+    "listing_event_urls": [
+      "https://yardbird-comedy.seatengine-sites.com/shows/379655",
+      "https://yardbird-comedy.seatengine-sites.com/shows/379656",
+      "https://yardbird-comedy.seatengine-sites.com/shows/385281",
+      "https://yardbird-comedy.seatengine-sites.com/shows/385258",
+      "https://yardbird-comedy.seatengine-sites.com/shows/389229",
+      "https://yardbird-comedy.seatengine-sites.com/shows/389230",
+      "https://yardbird-comedy.seatengine-sites.com/shows/377225",
+      "https://yardbird-comedy.seatengine-sites.com/shows/384998",
+      "https://yardbird-comedy.seatengine-sites.com/shows/384993",
+      "https://yardbird-comedy.seatengine-sites.com/shows/384994",
+      "https://yardbird-comedy.seatengine-sites.com/shows/384995",
+      "https://yardbird-comedy.seatengine-sites.com/shows/384996",
+      "https://yardbird-comedy.seatengine-sites.com/shows/384997"
+    ]
+  },
+  {
+    "source_url": "https://www.alamedacomedy.com/events",
+    "retrieved_at": "2026-09-28T13:54:14.670649+00:00",
+    "listing_event_urls": [
+      "https://www.alamedacomedy.com/shows/383814",
+      "https://www.alamedacomedy.com/shows/383817",
+      "https://www.alamedacomedy.com/shows/383818",
+      "https://www.alamedacomedy.com/shows/383819",
+      "https://www.alamedacomedy.com/shows/383815",
+      "https://www.alamedacomedy.com/shows/383820",
+      "https://www.alamedacomedy.com/shows/383821",
+      "https://www.alamedacomedy.com/shows/383816",
+      "https://www.alamedacomedy.com/shows/383822"
+    ]
+  },
+  {
+    "source_url": "https://www.alamedacinemagrill.com/",
+    "retrieved_at": "2026-09-28T14:06:28.323445+00:00",
+    "evidence_quotes": [
+      "Located within the Alameda Theatres Cineplex building",
+      "2301 Central Avenue"
+    ]
+  },
+  {
+    "source_url": "https://www.alamedatheatres.com/about",
+    "retrieved_at": "2026-09-28T14:06:29.098266+00:00",
+    "evidence_quotes": [
+      "in-theatre dining through Cinema Grill",
+      "2317 Central Ave"
+    ]
+  }
+]

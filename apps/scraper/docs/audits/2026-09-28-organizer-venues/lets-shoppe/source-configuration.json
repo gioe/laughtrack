@@ -1,0 +1,38 @@
+[
+  {
+    "id": 410,
+    "name": "Let's Comedy Venues",
+    "address": "1116 Prospect St",
+    "city": "Indianapolis",
+    "state": "IN",
+    "visible": false,
+    "source_id": 289,
+    "scraper_key": "json_ld",
+    "source_url": "https://www.letscomedyftw.com/events",
+    "seatengine_id": null
+  },
+  {
+    "id": 327,
+    "name": "The Comedy Shoppe",
+    "address": "167 Bleecker St, New York, NY 10012, USA",
+    "city": "New York",
+    "state": "NY",
+    "visible": true,
+    "source_id": 617,
+    "scraper_key": "show_slinger",
+    "source_url": "https://app.showslinger.com/promo_widget_v3/combo_widget?id=238&secure_code=REDACTED&origin_url=https://jjcomedy.com/calendar/",
+    "seatengine_id": null
+  },
+  {
+    "id": 469,
+    "name": "Let's Comedy",
+    "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+    "city": "West Nyack",
+    "state": "NY",
+    "visible": true,
+    "source_id": 547,
+    "scraper_key": "seatengine",
+    "source_url": "https://www.letscomedyftw.com/events",
+    "seatengine_id": 444
+  }
+]

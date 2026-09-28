@@ -1,0 +1,3225 @@
+{
+  "url": "https://www.acjokes.com/_api/wix-one-events-server/web/paginated-events/viewer?filter=1&byEventId=false&members=true&paidPlans=false&locale=en-us&recurringFilter=2&filterType=2&sortOrder=0&limit=50&draft=false&fetchBadges=false&compId=comp-lpdlygbr&offset=0",
+  "retrieved_at": "2026-09-28T14:06:27.046587+00:00",
+  "retrieval": "Scraper HttpClient.fetch_json with curl-cffi AsyncSession; Wix short-lived token kept only in memory and excluded.",
+  "pagination": {
+    "total": 44,
+    "hasMore": false,
+    "offset": 0,
+    "limit": 50
+  },
+  "events": [
+    {
+      "id": "0ae406f4-f67a-4ff9-a082-b397eb6db88b",
+      "title": "Live Comedy at Resorts | 9/28/26 - 8PM",
+      "slug": "09-28-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-09-29T00:00:00.000Z",
+          "endDate": "2026-09-29T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "September 28, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "September 28, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "September 28, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "4c58a745-9c2a-4601-927a-f7a7dfa7ccb4",
+      "title": "Live Comedy at Resorts | 10/1/26 - 8PM",
+      "slug": "10-01-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-02T00:00:00.000Z",
+          "endDate": "2026-10-02T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 1, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 1, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 1, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "3a285036-8254-40ca-a3c1-108972d73f87",
+      "title": "Atlantic City Comedy at Resorts | 10/2/26 - 9PM",
+      "slug": "10-02-2026-9PM-comedy-at-resorts-ft-bob-levy",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-03T01:00:00.000Z",
+          "endDate": "2026-10-03T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 2, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "October 2, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "October 2, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "2c064180-e0e5-44e6-887d-be4529f8becd",
+      "title": "Live Comedy at Resorts | 10/3/26 - 8PM",
+      "slug": "10-03-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-04T00:00:00.000Z",
+          "endDate": "2026-10-04T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 3, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 3, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 3, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Directors Room",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "e92cba00-163f-4f0e-ba60-0cb8dd165b8d",
+      "title": "Atlantic City Comedy at Resorts | 10/4/26 - 8PM",
+      "slug": "10-04-2026-8PM-comedy-at-resorts-ft-mel-harris",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-05T00:00:00.000Z",
+          "endDate": "2026-10-05T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 4, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 4, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 4, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "3d54131b-e3dd-41d8-98a4-4bd7651abb75",
+      "title": "Absecon Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 10/4/26 - 9PM",
+      "slug": "10-04-2026-comedy-at-hi-point-pub-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-05T01:00:00.000Z",
+          "endDate": "2026-10-05T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 4, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "October 4, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "October 4, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Hi Point Pub",
+        "coordinates": {
+          "lat": 39.42376,
+          "lng": -74.499147
+        },
+        "address": "5 N Shore Rd, Absecon, NJ 08201, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Absecon",
+          "postalCode": "08201-2128",
+          "streetAddress": {
+            "number": "5",
+            "name": "North Shore Road",
+            "apt": ""
+          },
+          "formattedAddress": "5 N Shore Rd, Absecon, NJ 08201, USA",
+          "geocode": {
+            "latitude": 39.42376,
+            "longitude": -74.499147
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Absecon",
+              "name": "Absecon",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "d5abfd09-c4f7-4a70-ac30-f6393cf81343",
+      "title": "Live Comedy at Resorts | 10/5/26 - 8PM",
+      "slug": "10-05-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-06T00:00:00.000Z",
+          "endDate": "2026-10-06T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 5, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 5, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 5, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "5a1a541a-1543-43be-b08b-cb551e2c6802",
+      "title": "Live Comedy at Resorts | 10/8/26 - 8PM",
+      "slug": "10-08-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-09T00:00:00.000Z",
+          "endDate": "2026-10-09T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 8, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 8, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 8, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "cf49e936-74ee-47f7-b35e-1af3c4f37a6a",
+      "title": "Live Comedy at Resorts | 10/9/26 - 9PM",
+      "slug": "10-09-2026-9PM-comedy-at-resorts-ft-john-ovalles",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-10T01:00:00.000Z",
+          "endDate": "2026-10-10T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 9, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "October 9, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "October 9, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Directors Room",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "37514379-9ebe-4b05-b289-4a419fc48b4a",
+      "title": "A Night of Comedy at Resorts | 10/10/26 - 8PM",
+      "slug": "10-10-2026-8PM-comedy-at-resorts-ft-connor-king",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-11T00:00:00.000Z",
+          "endDate": "2026-10-11T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 10, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 10, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 10, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Directors Room",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "8dd49fcc-5934-466c-9e35-2a6a3955697e",
+      "title": "Atlantic City Comedy at Resorts | 10/11/26 - 8PM",
+      "slug": "10-11-2026-8PM-comedy-at-resorts-ft-tata-sherise",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-12T00:00:00.000Z",
+          "endDate": "2026-10-12T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 11, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 11, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 11, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "f7ac2bff-472c-4be6-92a9-dc24a8e5b5e9",
+      "title": "Live Comedy at Resorts | 10/12/26 - 8PM",
+      "slug": "10-12-2026-8PM-comedy-at-resorts-ft-mel-harris",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-13T00:00:00.000Z",
+          "endDate": "2026-10-13T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 12, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 12, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 12, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "516b26bb-5d7a-4f37-9a14-b3285e4eed82",
+      "title": "Live Comedy at Resorts | 10/15/26 - 8PM",
+      "slug": "10-15-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-16T00:00:00.000Z",
+          "endDate": "2026-10-16T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 15, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 15, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 15, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "d35d1b9a-ee85-4834-aee9-4864e2471014",
+      "title": "Live Comedy at Resorts | 10/16/26 - 9PM",
+      "slug": "10-16-2026-9PM-comedy-at-resorts-ft-gary-g-garcia",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-17T01:00:00.000Z",
+          "endDate": "2026-10-17T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 16, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "October 16, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "October 16, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "1116f664-adea-41f4-9415-363b98278752",
+      "title": "Live Comedy at Resorts | 10/17/26 - 8PM",
+      "slug": "10-17-2026-8PM-comedy-at-resorts-ft-foster-nicholson",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-18T00:00:00.000Z",
+          "endDate": "2026-10-18T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 17, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 17, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 17, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "d7147741-9393-419a-a701-475d47c63473",
+      "title": "Live Laughs at The Cove | 10/17/26 - 8PM",
+      "slug": "10-17-2026-8PM-undefined-ft-buda-the-comedian",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-18T00:00:00.000Z",
+          "endDate": "2026-10-18T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 17, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 17, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 17, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "The Cove Restaurant",
+        "coordinates": {
+          "lat": 39.3944299,
+          "lng": -74.3925342
+        },
+        "address": "3700 Brigantine Blvd, Brigantine, NJ 08203, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Brigantine",
+          "postalCode": "08203-1004",
+          "streetAddress": {
+            "number": "3700",
+            "name": "Brigantine Boulevard",
+            "apt": ""
+          },
+          "formattedAddress": "3700 Brigantine Blvd, Brigantine, NJ 08203, USA",
+          "geocode": {
+            "latitude": 39.3944299,
+            "longitude": -74.3925342
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Brigantine",
+              "name": "Brigantine",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "1b130682-3a3f-45cb-8ff7-143e8c19fe55",
+      "title": "Atlantic City Comedy at Resorts | 10/18/26 - 8PM",
+      "slug": "10-18-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-19T00:00:00.000Z",
+          "endDate": "2026-10-19T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 18, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 18, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 18, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "fced8dea-622b-4a70-a912-28bf5b9da68e",
+      "title": "A Night of Comedy at Resorts | 10/19/26 - 8PM",
+      "slug": "10-19-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-20T00:00:00.000Z",
+          "endDate": "2026-10-20T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 19, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 19, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 19, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "85f9e2f2-4310-4b44-98f4-0e4844d0102a",
+      "title": "Atlantic City Comedy at Resorts | 10/22/26 - 8PM",
+      "slug": "10-22-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-23T00:00:00.000Z",
+          "endDate": "2026-10-23T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 22, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 22, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 22, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "14b42c2e-6ed2-42db-9d2f-dd3b23677828",
+      "title": "Atlantic City Comedy at Resorts | 10/23/26 - 9PM",
+      "slug": "10-23-2026-9PM-comedy-at-resorts-ft-tony-papadog",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-24T01:00:00.000Z",
+          "endDate": "2026-10-24T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 23, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "October 23, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "October 23, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "2787e727-1aa1-4cc5-8148-85ab7320d3c4",
+      "title": "A Night of Comedy at Resorts | 10/24/26 - 8PM",
+      "slug": "10-24-2026-8PM-comedy-at-resorts-ft-adam-gabel",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-25T00:00:00.000Z",
+          "endDate": "2026-10-25T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 24, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 24, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 24, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Directors Room",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "f36db08f-284f-49ac-988e-fb99d28a9a34",
+      "title": "Atlantic City Comedy at Resorts | 10/25/26 - 8PM",
+      "slug": "10-25-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-26T00:00:00.000Z",
+          "endDate": "2026-10-26T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 25, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 25, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 25, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "c343b9b9-aa5f-4fbd-a05f-2dedd42e26f8",
+      "title": "Atlantic City Comedy at Resorts | 10/26/26 - 8PM",
+      "slug": "10-26-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-27T00:00:00.000Z",
+          "endDate": "2026-10-27T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 26, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 26, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 26, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "8e1fe159-f080-4824-85df-3368613fc593",
+      "title": "Live Comedy at Resorts | 10/29/26 - 8PM",
+      "slug": "10-29-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-30T00:00:00.000Z",
+          "endDate": "2026-10-30T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 29, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 29, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 29, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "dedd4544-78e1-48c3-9971-33e2b167e968",
+      "title": "Atlantic City Comedy at Resorts | 10/30/26 - 9PM",
+      "slug": "10-30-2026-9PM-comedy-at-resorts-ft-greg-giraldo-jr",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-10-31T01:00:00.000Z",
+          "endDate": "2026-10-31T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 30, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "October 30, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "October 30, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Directors Room",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "aa04bb4e-b764-4015-a060-6698091b9a9b",
+      "title": "Atlantic City Comedy at Resorts | 10/31/26 - 8PM",
+      "slug": "10-31-2026-8PM-comedy-at-resorts-ft-bob-levy",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-01T00:00:00.000Z",
+          "endDate": "2026-11-01T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "October 31, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "October 31, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "October 31, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "62de849d-f169-4e97-b36a-1ed231ca70ce",
+      "title": "Absecon Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 11/1/26 - 9PM",
+      "slug": "11-01-2026-comedy-at-hi-point-pub-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-02T02:00:00.000Z",
+          "endDate": "2026-11-02T04:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "November 1, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "November 1, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "November 1, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Hi Point Pub",
+        "coordinates": {
+          "lat": 39.42376,
+          "lng": -74.499147
+        },
+        "address": "5 N Shore Rd, Absecon, NJ 08201, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Absecon",
+          "postalCode": "08201-2128",
+          "streetAddress": {
+            "number": "5",
+            "name": "North Shore Road",
+            "apt": ""
+          },
+          "formattedAddress": "5 N Shore Rd, Absecon, NJ 08201, USA",
+          "geocode": {
+            "latitude": 39.42376,
+            "longitude": -74.499147
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Absecon",
+              "name": "Absecon",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "63b37b0c-41f3-48b6-b95f-f65d46c72703",
+      "title": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/6/26 - 9PM",
+      "slug": "11-06-2026-comedy-show-at-resorts-9PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-07T02:00:00.000Z",
+          "endDate": "2026-11-07T04:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "November 6, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "November 6, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "November 6, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "10b3c27b-a0af-4cc9-9d19-44b8883ba657",
+      "title": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/7/26 - 8PM",
+      "slug": "11-07-2026-comedy-show-at-resorts-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-08T01:00:00.000Z",
+          "endDate": "2026-11-08T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "November 7, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "November 7, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "November 7, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "b59498bb-b01b-465c-888c-177bce42572a",
+      "title": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/13/26 - 9PM",
+      "slug": "11-13-2026-comedy-show-at-resorts-9PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-14T02:00:00.000Z",
+          "endDate": "2026-11-14T04:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "November 13, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "November 13, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "November 13, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "869547b7-850d-430e-bf7f-e722ce892a7f",
+      "title": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/14/26 - 8PM",
+      "slug": "11-14-2026-comedy-show-at-resorts-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-15T01:00:00.000Z",
+          "endDate": "2026-11-15T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "November 14, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "November 14, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "November 14, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "d22ef0d4-a46c-41fe-b993-50f7e7b029c0",
+      "title": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/20/26 - 9PM",
+      "slug": "11-20-2026-comedy-show-at-resorts-9PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-21T02:00:00.000Z",
+          "endDate": "2026-11-21T04:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "November 20, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "November 20, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "November 20, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "b02fc1fe-8bc7-4983-9ca6-4099bba3a7ef",
+      "title": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/21/26 - 8PM",
+      "slug": "11-21-2026-comedy-show-at-resorts-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-22T01:00:00.000Z",
+          "endDate": "2026-11-22T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "November 21, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "November 21, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "November 21, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "8991bfd1-4f8f-40fc-9ad4-3550576eb692",
+      "title": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/27/26 - 9PM",
+      "slug": "11-27-2026-comedy-show-at-resorts-9PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-28T02:00:00.000Z",
+          "endDate": "2026-11-28T04:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "November 27, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "November 27, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "November 27, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "785fc63a-6b4e-4112-9876-e2f3b699a787",
+      "title": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/28/26 - 8PM",
+      "slug": "11-28-2026-comedy-show-at-resorts-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-11-29T01:00:00.000Z",
+          "endDate": "2026-11-29T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "November 28, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "November 28, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "November 28, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "06361ab9-98a9-43bc-8be0-7cde2f38b044",
+      "title": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 12/4/26 - 9PM",
+      "slug": "12-04-2026-comedy-show-at-resorts-9PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-12-05T02:00:00.000Z",
+          "endDate": "2026-12-05T04:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "December 4, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "December 4, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "December 4, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "e09f52bb-bc15-4a77-a79f-16115cc9f72e",
+      "title": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/5/26 - 8PM",
+      "slug": "12-05-2026-comedy-show-at-resorts-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-12-06T01:00:00.000Z",
+          "endDate": "2026-12-06T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "December 5, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "December 5, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "December 5, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "64ec3d58-fd2e-4b93-81fc-06e4c254ba5f",
+      "title": "Absecon Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 12/6/26 - 9PM",
+      "slug": "12-06-2026-comedy-at-hi-point-pub-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-12-07T02:00:00.000Z",
+          "endDate": "2026-12-07T04:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "December 6, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "December 6, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "December 6, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Hi Point Pub",
+        "coordinates": {
+          "lat": 39.42376,
+          "lng": -74.499147
+        },
+        "address": "5 N Shore Rd, Absecon, NJ 08201, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Absecon",
+          "postalCode": "08201-2128",
+          "streetAddress": {
+            "number": "5",
+            "name": "North Shore Road",
+            "apt": ""
+          },
+          "formattedAddress": "5 N Shore Rd, Absecon, NJ 08201, USA",
+          "geocode": {
+            "latitude": 39.42376,
+            "longitude": -74.499147
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Absecon",
+              "name": "Absecon",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "eac7f6f1-7d9a-479e-a1d1-8b0e91e26ab0",
+      "title": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 12/11/26 - 9PM",
+      "slug": "12-11-2026-comedy-show-at-resorts-9PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-12-12T02:00:00.000Z",
+          "endDate": "2026-12-12T04:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "December 11, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "December 11, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "December 11, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "3c45f780-0d52-40d6-93e9-de6ad103c6b7",
+      "title": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/12/26 - 8PM",
+      "slug": "12-12-2026-comedy-show-at-resorts-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-12-13T01:00:00.000Z",
+          "endDate": "2026-12-13T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "December 12, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "December 12, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "December 12, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "97eecab1-3b23-4643-ab1c-d361134e0899",
+      "title": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 12/18/26 - 9PM",
+      "slug": "12-18-2026-comedy-show-at-resorts-9PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-12-19T02:00:00.000Z",
+          "endDate": "2026-12-19T04:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "December 18, 2026, 9:00 \u2013 11:00 PM",
+        "startDateFormatted": "December 18, 2026",
+        "startTimeFormatted": "9:00 PM",
+        "endDateFormatted": "December 18, 2026",
+        "endTimeFormatted": "11:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "395b0ab4-135f-42c1-b6b0-1a17fa971d11",
+      "title": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/19/26 - 8PM",
+      "slug": "12-19-2026-comedy-show-at-resorts-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-12-20T01:00:00.000Z",
+          "endDate": "2026-12-20T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "December 19, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "December 19, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "December 19, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "4a0d0194-bb76-4b60-b6d1-e188fe63a272",
+      "title": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/26/26 - 8PM",
+      "slug": "12-26-2026-comedy-show-at-resorts-8PM",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2026-12-27T01:00:00.000Z",
+          "endDate": "2026-12-27T03:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "December 26, 2026, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "December 26, 2026",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "December 26, 2026",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    },
+    {
+      "id": "b45b796d-9015-4c0e-a942-f07c1756a83d",
+      "title": "Atlantic City Comedy at Resorts | 7/17/27 - 8PM",
+      "slug": "07-17-2027-8PM-comedy-at-resorts-ft-elijah-the-barber",
+      "scheduling": {
+        "config": {
+          "scheduleTbd": false,
+          "startDate": "2027-07-18T00:00:00.000Z",
+          "endDate": "2027-07-18T02:00:00.000Z",
+          "timeZoneId": "America/New_York",
+          "endDateHidden": false,
+          "showTimeZone": false,
+          "recurrences": {
+            "occurrences": [],
+            "status": 0
+          }
+        },
+        "formatted": "July 17, 2027, 8:00 \u2013 10:00 PM",
+        "startDateFormatted": "July 17, 2027",
+        "startTimeFormatted": "8:00 PM",
+        "endDateFormatted": "July 17, 2027",
+        "endTimeFormatted": "10:00 PM"
+      },
+      "location": {
+        "name": "Resorts Casino - Starlight Ballroom",
+        "coordinates": {
+          "lat": 39.3588646,
+          "lng": -74.4216934
+        },
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "type": 0,
+        "fullAddress": {
+          "country": "US",
+          "subdivision": "NJ",
+          "city": "Atlantic City",
+          "postalCode": "08401-7329",
+          "streetAddress": {
+            "number": "1133",
+            "name": "Boardwalk",
+            "apt": ""
+          },
+          "formattedAddress": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+          "geocode": {
+            "latitude": 39.3588646,
+            "longitude": -74.4216934
+          },
+          "countryFullname": "United States",
+          "subdivisions": [
+            {
+              "code": "NJ",
+              "name": "New Jersey",
+              "type": 1
+            },
+            {
+              "code": "Atlantic County",
+              "name": "Atlantic County",
+              "type": 2
+            },
+            {
+              "code": "Atlantic City",
+              "name": "Atlantic City",
+              "type": 3
+            },
+            {
+              "code": "US",
+              "name": "United States",
+              "type": 6
+            }
+          ]
+        },
+        "tbd": false
+      }
+    }
+  ]
+}

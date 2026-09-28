@@ -1,0 +1,384 @@
+{
+  "cutoff_utc": "2026-09-28T13:45:00Z",
+  "classification_basis": "Physical location at showtime, not organizer brand identity",
+  "shows": [
+    {
+      "id": 1394784,
+      "name": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+      "date": "2026-10-09T23:00:00+00:00",
+      "show_page_url": "https://www.letscomedyftw.com/shows/370399",
+      "club_id": 410,
+      "last_scraped_by": "json_ld",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy Venues",
+      "address": "1116 Prospect St",
+      "city": "Indianapolis",
+      "state": "IN",
+      "classification": "correct",
+      "source_show_id": "370399",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/370399",
+        "retrieved_at": "2026-09-28T13:52:11.416771+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+        "location_description_excerpts": [
+          "OLIVIA CARTER live in INDY @ White Rabbit Cabaret",
+          "WHITE RABBIT CABARET",
+          "1116 Prospect Street INDIANAPOLIS, IN"
+        ]
+      },
+      "reason": "Stored street/city match White Rabbit; organizer-alias club remains hidden and duplicates club469 event.",
+      "street_address_evidence": "Event-specific description"
+    },
+    {
+      "id": 4189224,
+      "name": "Tim McLaughlin 40th Bday Extravaganza!!!",
+      "date": "2026-09-30T00:00:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/380503",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "380503",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/380503",
+        "retrieved_at": "2026-09-28T13:52:11.646593+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "Tim McLaughlin 40th Bday Extravaganza!!!",
+        "location_description_excerpts": [
+          "@ White Rabbit Cabaret",
+          "1116 Prospect Street",
+          "Indianapolis, IN"
+        ]
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Event-specific description"
+    },
+    {
+      "id": 3878365,
+      "name": "LEMAIRE LEE LIVE IN INDY @ WHITE RABBIT CABARET",
+      "date": "2026-10-09T00:00:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/379390",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "379390",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/379390",
+        "retrieved_at": "2026-09-28T13:52:11.912401+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "LEMAIRE LEE LIVE IN INDY @ WHITE RABBIT CABARET ",
+        "location_description_excerpts": []
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Named venue joined to White Rabbit address explicitly published on other events in the same organizer collection"
+    },
+    {
+      "id": 1395297,
+      "name": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+      "date": "2026-10-09T23:00:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/370399",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "370399",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/370399",
+        "retrieved_at": "2026-09-28T13:52:11.416771+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+        "location_description_excerpts": [
+          "OLIVIA CARTER live in INDY @ White Rabbit Cabaret",
+          "WHITE RABBIT CABARET",
+          "1116 Prospect Street INDIANAPOLIS, IN"
+        ]
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Event-specific description"
+    },
+    {
+      "id": 6352262,
+      "name": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+      "date": "2026-10-10T01:30:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/386091",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "386091",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/386091",
+        "retrieved_at": "2026-09-28T13:52:12.172085+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+        "location_description_excerpts": [
+          "OLIVIA CARTER live in INDY @ White Rabbit Cabaret",
+          "WHITE RABBIT CABARET",
+          "1116 Prospect Street INDIANAPOLIS, IN"
+        ]
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Event-specific description"
+    },
+    {
+      "id": 2760604,
+      "name": "BRIAN POSEHN LIVE IN INDY @ FOUNTAIN SQUARE THEATRE presented by LETS COMEDY",
+      "date": "2026-10-17T23:00:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/376767",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "376767",
+      "actual_location": {
+        "name": "Fountain Square Theatre",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": null
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/376767",
+        "retrieved_at": "2026-09-28T13:52:12.488735+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "BRIAN POSEHN LIVE IN INDY @ FOUNTAIN SQUARE THEATRE presented by LETS COMEDY",
+        "location_description_excerpts": [
+          "RETURNING TO INDY OCTOBER 17th",
+          "@ the historic FOUNTAIN SQUARE THEATRE"
+        ]
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Not published in captured event title/description"
+    },
+    {
+      "id": 7066816,
+      "name": "Saya Meads live in INDY @ white rabbit cabaret",
+      "date": "2026-11-07T00:00:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/388149",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "388149",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/388149",
+        "retrieved_at": "2026-09-28T13:52:12.718648+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "Saya Meads live in INDY @ white rabbit cabaret",
+        "location_description_excerpts": [
+          "Indianapolis"
+        ]
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Named venue joined to White Rabbit address explicitly published on other events in the same organizer collection"
+    },
+    {
+      "id": 3933246,
+      "name": "Jaboukie Young-White USA TOUR live in INDY @ White Rabbit Cabaret",
+      "date": "2026-11-14T00:00:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/379736",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "379736",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/379736",
+        "retrieved_at": "2026-09-28T13:52:12.934138+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "Jaboukie Young-White USA TOUR live in INDY @ White Rabbit Cabaret",
+        "location_description_excerpts": [
+          "LIVE @ White Rabbit Cabaret"
+        ]
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Named venue joined to White Rabbit address explicitly published on other events in the same organizer collection"
+    },
+    {
+      "id": 7066818,
+      "name": "Emily Wilson live in INDY @ white rabbit cabaret",
+      "date": "2027-03-13T00:00:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/388150",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "388150",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/388150",
+        "retrieved_at": "2026-09-28T13:52:13.125537+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "Emily Wilson live in INDY @ white rabbit cabaret ",
+        "location_description_excerpts": [
+          "INDIANAPOLIS",
+          "White Rabbit Cabaret",
+          "1116 Prospect Street"
+        ]
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Event-specific description"
+    },
+    {
+      "id": 5404524,
+      "name": "EMILY CATALANO live in INDY!",
+      "date": "2027-04-08T23:00:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/383603",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "383603",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/383603",
+        "retrieved_at": "2026-09-28T13:52:13.307650+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "EMILY CATALANO live in INDY!",
+        "location_description_excerpts": [
+          "Live in ~INDIANAPOLIS ~",
+          "@ WHITE RABBIT CABARET",
+          "WHITE RABBIT CABARET @",
+          "1116 prospect street, INDIANAPOLIS"
+        ]
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Event-specific description"
+    },
+    {
+      "id": 5466096,
+      "name": "EMILY CATALANO live in INDY!",
+      "date": "2027-04-09T01:30:00+00:00",
+      "show_page_url": "http://letscomedytickets.seatengine.com/shows/383771",
+      "club_id": 469,
+      "last_scraped_by": "seatengine",
+      "scraped_by_organizer_id": null,
+      "club_name": "Let's Comedy",
+      "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+      "city": "West Nyack",
+      "state": "NY",
+      "classification": "confirmed_mismatch",
+      "source_show_id": "383771",
+      "actual_location": {
+        "name": "White Rabbit Cabaret",
+        "city": "Indianapolis",
+        "state": "IN",
+        "street_address": "1116 Prospect Street"
+      },
+      "evidence": {
+        "url": "https://www.letscomedyftw.com/shows/383771",
+        "retrieved_at": "2026-09-28T13:52:13.517802+00:00",
+        "collection_url": "https://www.letscomedyftw.com/events",
+        "collection_retrieved_at": "2026-09-28T13:52:09.648995+00:00",
+        "title": "EMILY CATALANO live in INDY!",
+        "location_description_excerpts": [
+          "Live in ~INDIANAPOLIS ~",
+          "@ WHITE RABBIT CABARET",
+          "WHITE RABBIT CABARET @",
+          "1116 prospect street, INDIANAPOLIS"
+        ]
+      },
+      "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY.",
+      "street_address_evidence": "Event-specific description"
+    }
+  ]
+}

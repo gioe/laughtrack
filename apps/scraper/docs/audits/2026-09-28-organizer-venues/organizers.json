@@ -1,0 +1,233 @@
+[
+  {
+    "id": 327,
+    "name": "The Comedy Shoppe",
+    "address": "167 Bleecker St, New York, NY 10012, USA",
+    "city": "New York",
+    "state": "NY",
+    "zip_code": "",
+    "timezone": "America/New_York",
+    "visible": true,
+    "website": "http://www.jjcomedy.com",
+    "club_type": "club",
+    "sources": [
+      {
+        "id": 617,
+        "club_id": 327,
+        "platform": "showslinger",
+        "scraper_key": "show_slinger",
+        "source_url": "https://app.showslinger.com/promo_widget_v3/combo_widget?id=238&secure_code=REDACTED&origin_url=https://jjcomedy.com/calendar/",
+        "priority": 0,
+        "enabled": true,
+        "created_at": "2026-04-21T19:57:12.315022+00:00",
+        "updated_at": "2026-04-21T19:57:12.315022+00:00",
+        "seatengine_id": null,
+        "eventbrite_id": null,
+        "ticketmaster_id": null,
+        "wix_event_id": null,
+        "ovationtix_id": null,
+        "squadup_id": null,
+        "seatengine_v3_id": null,
+        "source_target_id": null
+      }
+    ]
+  },
+  {
+    "id": 412,
+    "name": "AC Jokes",
+    "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+    "city": "Atlantic City",
+    "state": "NJ",
+    "zip_code": "08401",
+    "timezone": "America/New_York",
+    "visible": true,
+    "website": "https://www.acjokes.com",
+    "club_type": "club",
+    "sources": [
+      {
+        "id": 291,
+        "club_id": 412,
+        "platform": "wix_events",
+        "scraper_key": "wix_events",
+        "source_url": "https://www.acjokes.com",
+        "priority": 0,
+        "enabled": true,
+        "created_at": "2026-04-21T19:57:12.315022+00:00",
+        "updated_at": "2026-05-06T21:52:53.876643+00:00",
+        "seatengine_id": null,
+        "eventbrite_id": null,
+        "ticketmaster_id": null,
+        "wix_event_id": "comp-lpdlygbr",
+        "ovationtix_id": null,
+        "squadup_id": null,
+        "seatengine_v3_id": null,
+        "source_target_id": null
+      }
+    ]
+  },
+  {
+    "id": 447,
+    "name": "Alameda Comedy",
+    "address": "2317 Central Ave, Alameda, CA 94501, USA",
+    "city": "Alameda",
+    "state": "CA",
+    "zip_code": "",
+    "timezone": "America/Los_Angeles",
+    "visible": true,
+    "website": "https://www.alamedacomedy.com/",
+    "club_type": "club",
+    "sources": [
+      {
+        "id": 190,
+        "club_id": 447,
+        "platform": "seatengine",
+        "scraper_key": "seatengine",
+        "source_url": "http://alamedacomedy.com",
+        "priority": 0,
+        "enabled": true,
+        "created_at": "2026-04-21T19:57:12.315022+00:00",
+        "updated_at": "2026-05-06T21:52:53.876643+00:00",
+        "seatengine_id": 422,
+        "eventbrite_id": null,
+        "ticketmaster_id": null,
+        "wix_event_id": null,
+        "ovationtix_id": null,
+        "squadup_id": null,
+        "seatengine_v3_id": null,
+        "source_target_id": null
+      }
+    ]
+  },
+  {
+    "id": 469,
+    "name": "Let's Comedy",
+    "address": "4210 Palisades Center Dr A - 401, West Nyack, NY 10994, USA",
+    "city": "West Nyack",
+    "state": "NY",
+    "zip_code": "",
+    "timezone": "America/New_York",
+    "visible": true,
+    "website": "https://www.letscomedyftw.com/",
+    "club_type": "club",
+    "sources": [
+      {
+        "id": 547,
+        "club_id": 469,
+        "platform": "seatengine",
+        "scraper_key": "seatengine",
+        "source_url": "https://www.letscomedyftw.com/events",
+        "priority": 0,
+        "enabled": true,
+        "created_at": "2026-04-21T19:57:12.315022+00:00",
+        "updated_at": "2026-07-06T16:22:56.660972+00:00",
+        "seatengine_id": 444,
+        "eventbrite_id": null,
+        "ticketmaster_id": null,
+        "wix_event_id": null,
+        "ovationtix_id": null,
+        "squadup_id": null,
+        "seatengine_v3_id": null,
+        "source_target_id": null
+      }
+    ]
+  },
+  {
+    "id": 573,
+    "name": "Big Pine Comedy Festival",
+    "address": "Festival based in Chandler, AZ",
+    "city": null,
+    "state": "AZ",
+    "zip_code": "",
+    "timezone": "America/Phoenix",
+    "visible": true,
+    "website": "https://www.bigpinecomedyfestival.org",
+    "club_type": "festival",
+    "sources": [
+      {
+        "id": 360,
+        "club_id": 573,
+        "platform": "seatengine",
+        "scraper_key": "seatengine",
+        "source_url": "https://www.bigpinecomedyfestival.org",
+        "priority": 0,
+        "enabled": true,
+        "created_at": "2026-04-21T19:57:12.315022+00:00",
+        "updated_at": "2026-05-06T21:52:53.876643+00:00",
+        "seatengine_id": 553,
+        "eventbrite_id": null,
+        "ticketmaster_id": null,
+        "wix_event_id": null,
+        "ovationtix_id": null,
+        "squadup_id": null,
+        "seatengine_v3_id": null,
+        "source_target_id": null
+      }
+    ]
+  },
+  {
+    "id": 613,
+    "name": "Yardbird Comedy",
+    "address": "616 Grand St, Hoboken, NJ 07030, USA",
+    "city": "Hoboken",
+    "state": "NJ",
+    "zip_code": "",
+    "timezone": "America/New_York",
+    "visible": true,
+    "website": "https://www.yardbirdcomedy.com/",
+    "club_type": "club",
+    "sources": [
+      {
+        "id": 259,
+        "club_id": 613,
+        "platform": "seatengine",
+        "scraper_key": "seatengine",
+        "source_url": "https://www.yardbirdcomedy.com/",
+        "priority": 0,
+        "enabled": true,
+        "created_at": "2026-04-21T19:57:12.315022+00:00",
+        "updated_at": "2026-05-06T21:52:53.876643+00:00",
+        "seatengine_id": 618,
+        "eventbrite_id": null,
+        "ticketmaster_id": null,
+        "wix_event_id": null,
+        "ovationtix_id": null,
+        "squadup_id": null,
+        "seatengine_v3_id": null,
+        "source_target_id": null
+      }
+    ]
+  },
+  {
+    "id": 8701,
+    "name": "Pagliacci's Comedy Club",
+    "address": "downstairs @ Manor Grill, 200 Main St, Irwin, PA 15642, USA",
+    "city": "Irwin",
+    "state": "PA",
+    "zip_code": null,
+    "timezone": "America/New_York",
+    "visible": true,
+    "website": "https://pagcomclub.com/",
+    "club_type": "club",
+    "sources": [
+      {
+        "id": 5852,
+        "club_id": 8701,
+        "platform": "eventbrite",
+        "scraper_key": "eventbrite",
+        "source_url": "https://www.eventbrite.com/o/brothers-grinn-productions-68051880803",
+        "priority": 0,
+        "enabled": true,
+        "created_at": "2026-06-15T19:59:40.278358+00:00",
+        "updated_at": "2026-06-15T19:59:40.278358+00:00",
+        "seatengine_id": null,
+        "eventbrite_id": "68051880803",
+        "ticketmaster_id": null,
+        "wix_event_id": null,
+        "ovationtix_id": null,
+        "squadup_id": null,
+        "seatengine_v3_id": null,
+        "source_target_id": null
+      }
+    ]
+  }
+]
