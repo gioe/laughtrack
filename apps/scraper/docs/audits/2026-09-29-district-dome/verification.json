@@ -1,0 +1,33 @@
+{
+  "all_fk_counts_and_fingerprints_unchanged": true,
+  "source_unchanged": true,
+  "only_two_reviewed_fields_changed": true,
+  "actual_national_upsert_preserves_correction_against_stale_google_postal_metadata": true,
+  "migration_replay_after_national_upsert": true,
+  "scheduled_ingestion_retains_visible_club": true,
+  "prisma_migration_applied": true,
+  "public_club": {
+    "id": 554,
+    "name": "District Dome",
+    "imageUrl": "/placeholders/club-placeholder.svg",
+    "heroImageUrl": "",
+    "website": "https://www.districtdome.com",
+    "address": "21001 N Tatum Blvd, Phoenix, AZ 85050, USA",
+    "zipCode": "85050",
+    "phoneNumber": "",
+    "latitude": 33.6763989,
+    "longitude": -111.973657,
+    "relatedVenues": []
+  },
+  "public_show_club": {
+    "id": 554,
+    "name": "District Dome",
+    "address": "21001 N Tatum Blvd, Phoenix, AZ 85050, USA",
+    "imageUrl": "/placeholders/club-placeholder.svg",
+    "timezone": "America/Phoenix"
+  },
+  "public_show_id": 522028,
+  "public_http_status": 200,
+  "ingestion_replay_rolled_back": true,
+  "checked_at": "2026-09-29T17:30:03.794095+00:00"
+}
