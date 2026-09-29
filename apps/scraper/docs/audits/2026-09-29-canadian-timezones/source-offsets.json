@@ -1,0 +1,56 @@
+[
+  {
+    "show_id": 4168931,
+    "club_id": 11709,
+    "url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-03-13",
+    "source_start_date": "2027-03-13T19:00:00-07:00",
+    "source_end_date": "2027-03-13T21:00:00-07:00",
+    "event_status": "https://schema.org/EventScheduled",
+    "location": {
+      "@type": "Place",
+      "name": "Big Beaver Brewing",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+        "addressLocality": "Okotoks",
+        "addressRegion": "AB",
+        "postalCode": "T1S 0N8",
+        "addressCountry": "CA"
+      }
+    },
+    "advertised_show_time": "7:00 p.m.",
+    "advertised_seating_time": "6:30 PM",
+    "source_page_checked_at": "2026-09-29T20:34:17.380802+00:00",
+    "intended_wall_time": "19:00 America/Edmonton",
+    "current_source_instant_local_time": "20:00 America/Edmonton",
+    "corrected_instant_if_reconciled": "2027-03-13T19:00:00-06:00",
+    "disposition": "No timestamp update in TASK-4073; guarded source and stored-data reconciliation is TASK-4119."
+  },
+  {
+    "show_id": 4944800,
+    "club_id": 12330,
+    "url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-03-12",
+    "source_start_date": "2027-03-12T19:00:00-07:00",
+    "source_end_date": "2027-03-12T21:00:00-07:00",
+    "event_status": "https://schema.org/EventScheduled",
+    "location": {
+      "@type": "Place",
+      "name": "Leduc Brewing Company",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "4901 50th Ave, Leduc, AB T9E 6W7",
+        "addressLocality": "Leduc",
+        "addressRegion": "AB",
+        "postalCode": "T9E 6W7",
+        "addressCountry": "CA"
+      }
+    },
+    "advertised_show_time": "7:00 p.m.",
+    "advertised_seating_time": "6:30 PM",
+    "source_page_checked_at": "2026-09-29T20:34:17.380802+00:00",
+    "intended_wall_time": "19:00 America/Edmonton",
+    "current_source_instant_local_time": "20:00 America/Edmonton",
+    "corrected_instant_if_reconciled": "2027-03-12T19:00:00-06:00",
+    "disposition": "No timestamp update in TASK-4073; guarded source and stored-data reconciliation is TASK-4119."
+  }
+]

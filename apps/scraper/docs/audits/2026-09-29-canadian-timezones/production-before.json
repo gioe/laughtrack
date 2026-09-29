@@ -1,0 +1,910 @@
+{
+  "captured_at": "2026-09-29T20:34:17.380802+00:00",
+  "rows": [
+    {
+      "id": 1984271,
+      "club_id": 2358,
+      "date": "2026-12-04T02:30:00+00:00",
+      "show_page_url": "https://www.tixr.com/groups/comicstripedmonton/events/mo-mandel-182578",
+      "name": "The Comic Strip West Edmonton Mall",
+      "timezone": "America/Edmonton",
+      "html": {
+        "status": 200,
+        "title": "Mo Mandel \u00b7 The Comic Strip West Edmonton Mall \u00b7 December 3rd at 8:30 pm MDT | LaughTrack",
+        "description": [
+          "Mo Mandel at The Comic Strip West Edmonton Mall on December 3rd at 8:30 pm MDT. Lineup and ticket info on LaughTrack."
+        ]
+      },
+      "api_status": 200,
+      "api_response": {
+        "data": {
+          "id": 1984271,
+          "date": "2026-12-04T02:30:00.000Z",
+          "name": "Mo Mandel",
+          "description": "<p><strong>About Mo:</strong></p><p>Straight off his appearance on <strong>Curb Your Enthusiasm</strong>, Mo is getting back on the road! Best known for his <strong>40 plus appearances on Chelsea Lately,</strong> and his hilarious <strong>hour special on Amazon.</strong></p><p> Mo has also made numerous appearances on<strong> Conan, The Late Late Show, has a half hour special on Comedy Central,</strong> and is a recurring guest on podcasts like, <strong>Adam Carolla, Bertcast, And the Fighter And The Kid.</strong> </p><p>In the past, Mo has also guest starred on such hit shows as <strong>Modern Family, Castle, Happy Endings, 2 Broke Girls, </strong>and was one of the leads of <strong>NBC\u2019S comedy Free Agents,</strong> opposite Hank Azaria and Kathryn Hahn. Mo also created and hosted a special for <strong>The Discovery Channel called Small Town Throwdown</strong>, and was the creator and executive producer of the <strong>hit series, Comedy Knockout, which aired on TruTv and HBO Max. </strong></p><p><strong>Item Requirement</strong><br />A minimum purchase of two menu items (food and/or beverage) per person is required in the showroom.</p><p><strong>Age Restrictions</strong></p><ul><li>Early Show: 16+</li><li>Late Show: 18+</li></ul><p><strong>Arrival Guidelines</strong></p><ul><li>To ensure optimal seating and timely food and beverage service, we recommend arriving early.</li><li>Doors open one hour prior to early shows and 30 minutes prior to late shows.</li><li>Third-party tickets will not be honored. Valid government-issued ID may be required, and the name on the ID must match the name on the ticket.</li></ul><p><strong>Preferred Seating</strong><br />Includes early entry, front-of-line access, and choice of available seating (excluding reserved group seating).</p><p><strong>Group Arrivals</strong><br />Groups of four (4) or more are encouraged to arrive at least 30 minutes before showtime to avoid potential seating separation.</p><p><strong>Fees</strong></p><ul><li>Applicable service fees and taxes will be added at checkout.</li><li>A 20% automatic gratuity will be applied to groups of six (6) or more in the showroom. Gratuity does not apply to ticket purchases.</li></ul><p><strong>Ticket Policies</strong></p><ul><li>All ticket sales are final and non-refundable.</li><li>Performer lineups are subject to change without notice.</li></ul>",
+          "room": "The Comic Strip - Edmonton",
+          "address": "8882 170 Street NW, Unit 1646, Edmonton, AB T5T 4M2",
+          "clubId": 2358,
+          "clubName": "The Comic Strip West Edmonton Mall",
+          "imageUrl": "https://laughtrack.b-cdn.net/clubs/The%20Comic%20Strip%20West%20Edmonton%20Mall.png",
+          "soldOut": false,
+          "lineup": [
+            {
+              "id": 25015,
+              "uuid": "a89e322f6e2a14c3509047fc0e99cadb",
+              "name": "Mo Mandel",
+              "imageUrl": "https://laughtrack.b-cdn.net/comedians/Mo%20Mandel.png",
+              "hasImage": true,
+              "showCount": 10,
+              "socialData": {
+                "id": 25015,
+                "popularity": 0.4945
+              },
+              "isFavorite": false,
+              "isAlias": false
+            }
+          ],
+          "tickets": [
+            {
+              "price": 18.5,
+              "purchaseUrl": "https://www.tixr.com/groups/comicstripedmonton/events/mo-mandel-182578",
+              "type": "General Admission",
+              "soldOut": false
+            }
+          ],
+          "distanceMiles": null,
+          "timezone": "America/Edmonton",
+          "tags": [
+            {
+              "slug": "0-20",
+              "name": "Less than $20"
+            }
+          ],
+          "showPageUrl": "https://www.tixr.com/groups/comicstripedmonton/events/mo-mandel-182578",
+          "club": {
+            "id": 2358,
+            "name": "The Comic Strip West Edmonton Mall",
+            "address": "8882 170 Street NW, Unit 1646, Edmonton, AB T5T 4M2",
+            "imageUrl": "https://laughtrack.b-cdn.net/clubs/The%20Comic%20Strip%20West%20Edmonton%20Mall.png",
+            "timezone": "America/Edmonton"
+          },
+          "cta": {
+            "url": "https://www.tixr.com/groups/comicstripedmonton/events/mo-mandel-182578",
+            "label": "Get tickets for Mo Mandel",
+            "isSoldOut": false
+          }
+        },
+        "relatedShows": [
+          {
+            "id": 5794369,
+            "date": "2026-09-30T01:30:00.000Z",
+            "name": "Triple Threat Tuesday",
+            "room": "The Comic Strip - Edmonton",
+            "address": "8882 170 Street NW, Unit 1646, Edmonton, AB T5T 4M2",
+            "clubId": 2358,
+            "clubName": "The Comic Strip West Edmonton Mall",
+            "clubCity": "Edmonton",
+            "clubState": "AB",
+            "imageUrl": "https://laughtrack.b-cdn.net/clubs/The%20Comic%20Strip%20West%20Edmonton%20Mall.png",
+            "soldOut": false,
+            "lineup": [],
+            "tickets": [
+              {
+                "price": 5,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripedmonton/events/triple-threat-tuesday-203744",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "0-20",
+                "name": "Less than $20"
+              }
+            ]
+          },
+          {
+            "id": 6202936,
+            "date": "2026-10-01T01:30:00.000Z",
+            "name": "Star of the Show",
+            "room": "The Comic Strip - Edmonton",
+            "address": "8882 170 Street NW, Unit 1646, Edmonton, AB T5T 4M2",
+            "clubId": 2358,
+            "clubName": "The Comic Strip West Edmonton Mall",
+            "clubCity": "Edmonton",
+            "clubState": "AB",
+            "imageUrl": "https://laughtrack.b-cdn.net/clubs/The%20Comic%20Strip%20West%20Edmonton%20Mall.png",
+            "soldOut": false,
+            "lineup": [],
+            "tickets": [
+              {
+                "price": 5,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripedmonton/events/star-of-the-show-205231",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "0-20",
+                "name": "Less than $20"
+              }
+            ]
+          },
+          {
+            "id": 6391301,
+            "date": "2026-10-02T01:30:00.000Z",
+            "name": "Ryan Short",
+            "room": "The Comic Strip - Edmonton",
+            "address": "8882 170 Street NW, Unit 1646, Edmonton, AB T5T 4M2",
+            "clubId": 2358,
+            "clubName": "The Comic Strip West Edmonton Mall",
+            "clubCity": "Edmonton",
+            "clubState": "AB",
+            "imageUrl": "https://laughtrack.b-cdn.net/clubs/The%20Comic%20Strip%20West%20Edmonton%20Mall.png",
+            "soldOut": false,
+            "lineup": [],
+            "tickets": [
+              {
+                "price": 18.5,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripedmonton/events/ryan-short-205641",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "0-20",
+                "name": "Less than $20"
+              }
+            ]
+          },
+          {
+            "id": 1984247,
+            "date": "2026-10-03T01:30:00.000Z",
+            "name": "Raanan Hershberg",
+            "room": "The Comic Strip - Edmonton",
+            "address": "8882 170 Street NW, Unit 1646, Edmonton, AB T5T 4M2",
+            "clubId": 2358,
+            "clubName": "The Comic Strip West Edmonton Mall",
+            "clubCity": "Edmonton",
+            "clubState": "AB",
+            "imageUrl": "https://laughtrack.b-cdn.net/comedians/Raanan%20Hershberg.png",
+            "soldOut": false,
+            "lineup": [
+              {
+                "id": 878,
+                "uuid": "117dbf5ebf82104522b158f24171262d",
+                "name": "Raanan Hershberg",
+                "imageUrl": "https://laughtrack.b-cdn.net/comedians/Raanan%20Hershberg.png",
+                "hasImage": true,
+                "showCount": 63,
+                "socialData": {
+                  "id": 878,
+                  "popularity": 0.507
+                },
+                "isFavorite": false,
+                "isAlias": false
+              }
+            ],
+            "tickets": [
+              {
+                "price": 26.5,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripedmonton/events/raanan-hershberg-189308",
+                "type": "General Admission",
+                "soldOut": false
+              },
+              {
+                "price": 35,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripedmonton/events/raanan-hershberg-189308",
+                "type": "Preferred Seating",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 3468244,
+      "club_id": 2357,
+      "date": "2026-12-04T03:30:00+00:00",
+      "show_page_url": "https://www.tixr.com/groups/comicstripbc/events/deric-cahill-special-presentation-183494",
+      "name": "House of Comedy British Columbia",
+      "timezone": "America/Vancouver",
+      "html": {
+        "status": 200,
+        "title": "Deric Cahill Special Presentation \u00b7 House of Comedy British Columbia \u00b7 December 3rd at 8:30 pm PDT | LaughTrack",
+        "description": [
+          "Deric Cahill Special Presentation at House of Comedy British Columbia on December 3rd at 8:30 pm PDT. Lineup and ticket info on LaughTrack."
+        ]
+      },
+      "api_status": 200,
+      "api_response": {
+        "data": {
+          "id": 3468244,
+          "date": "2026-12-04T03:30:00.000Z",
+          "name": "Deric Cahill Special Presentation",
+          "description": "<p><strong>Special Presentation \u2013 No Passes/Coupons/Groupons Accepted</strong></p><p><strong>About Deric:</strong></p><p>Fresh off the release of his debut comedy special, Toxic Papa, Deric Cahill is back and bolder than ever with his new tour. This time, like Ebenezer himself, he's diving deep into the chaos of his past, the unhinged present, and whatever the hell the future might have for him. With his signature sharp wit, no topic is off-limits as he talks shit about everything that's shaped him\u2014from childhood drama to everyday struggles. Get ready for a raw and hilarious ride.</p><p><strong>Menu Requirement:</strong> Minimum of 2 menu items food or beverage per person in the showroom.</p><p><strong>Age Restrictions:</strong> Early Show: 16+ | Late Show: 18+</p><p><strong>Arrival Guidelines:</strong></p><ul><li>To ensure the best seating and prompt food and beverage service, we recommend arriving early.</li><li>Doors open 1 hour before the early shows and 30 minutes before the late shows.</li></ul><p><strong>Group Arrivals:</strong></p><ul><li>For groups of 4 or more, please arrive at least 30 minutes prior to showtime to avoid potential seating separation.</li></ul><p><strong>Fees:</strong></p><ul><li>Service fees and taxes will be applied at checkout.</li><li>Groups of 6 or more will incur a 20% automatic gratuity.</li></ul><p><strong>Ticket Policies:</strong></p><ul><li>Tickets are non-refundable after purchase.</li><li>Performers may change without prior notice.</li></ul><p><strong>Important Notice:</strong></p><ul><li>Beware of third-party ticket sales from other websites. <strong>House of Comedy \u2013 The Comic Strip </strong>is only responsible for tickets purchased directly from our official website. Proof of purchase or identification may be required to release tickets.</li></ul><p>com</p>",
+          "room": "House of Comedy BC - Main Room",
+          "address": "530 Columbia Street, New Westminster, BC V3L 1B1",
+          "clubId": 2357,
+          "clubName": "House of Comedy British Columbia",
+          "imageUrl": "https://laughtrack.b-cdn.net/clubs/House%20of%20Comedy%20British%20Columbia.png",
+          "soldOut": false,
+          "lineup": [
+            {
+              "id": 246704,
+              "uuid": "32095903175665c31d50cb63f52e1ff5",
+              "name": "Deric Cahill",
+              "imageUrl": "https://laughtrack.b-cdn.net/comedian-images/246704/776e1a84-9f6c-4e7b-b8e4-f52cafae0ce2/avatar.jpg",
+              "hasImage": true,
+              "showCount": 78,
+              "socialData": {
+                "id": 246704,
+                "popularity": 0.5231
+              },
+              "isFavorite": false,
+              "isAlias": false
+            }
+          ],
+          "tickets": [
+            {
+              "price": 35,
+              "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/deric-cahill-special-presentation-183494",
+              "type": "General Admission",
+              "soldOut": false
+            },
+            {
+              "price": 45,
+              "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/deric-cahill-special-presentation-183494",
+              "type": "Preferred Seating",
+              "soldOut": false
+            },
+            {
+              "price": 45,
+              "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/deric-cahill-special-presentation-183494",
+              "type": "Preferred Seating  - Door",
+              "soldOut": false
+            }
+          ],
+          "distanceMiles": null,
+          "timezone": "America/Vancouver",
+          "tags": [
+            {
+              "slug": "20-50",
+              "name": "$20-$50"
+            }
+          ],
+          "showPageUrl": "https://www.tixr.com/groups/comicstripbc/events/deric-cahill-special-presentation-183494",
+          "club": {
+            "id": 2357,
+            "name": "House of Comedy British Columbia",
+            "address": "530 Columbia Street, New Westminster, BC V3L 1B1",
+            "imageUrl": "https://laughtrack.b-cdn.net/clubs/House%20of%20Comedy%20British%20Columbia.png",
+            "timezone": "America/Vancouver"
+          },
+          "cta": {
+            "url": "https://www.tixr.com/groups/comicstripbc/events/deric-cahill-special-presentation-183494",
+            "label": "Get tickets for Deric Cahill Special Presentation",
+            "isSoldOut": false
+          }
+        },
+        "relatedShows": [
+          {
+            "id": 6323110,
+            "date": "2026-10-01T02:30:00.000Z",
+            "name": "BC's Funniest New Female Comic Final",
+            "room": "House of Comedy BC - Upstairs",
+            "address": "530 Columbia Street, New Westminster, BC V3L 1B1",
+            "clubId": 2357,
+            "clubName": "House of Comedy British Columbia",
+            "clubCity": "New Westminster",
+            "clubState": "BC",
+            "imageUrl": "https://laughtrack.b-cdn.net/clubs/House%20of%20Comedy%20British%20Columbia.png",
+            "soldOut": false,
+            "lineup": [],
+            "tickets": [
+              {
+                "price": 25,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/bc-s-funniest-new-female-comic-final-205424",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Vancouver",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          },
+          {
+            "id": 3468226,
+            "date": "2026-10-03T02:30:00.000Z",
+            "name": "Hans Kim Special Presentation",
+            "room": "House of Comedy BC - Main Room",
+            "address": "530 Columbia Street, New Westminster, BC V3L 1B1",
+            "clubId": 2357,
+            "clubName": "House of Comedy British Columbia",
+            "clubCity": "New Westminster",
+            "clubState": "BC",
+            "imageUrl": "https://laughtrack.b-cdn.net/comedian-images/264970/bfd08d74-d42d-4238-9712-5d422aacce44/avatar.jpg",
+            "soldOut": false,
+            "lineup": [
+              {
+                "id": 264970,
+                "uuid": "a302c4f450ce16068ccad07139453953",
+                "name": "Hans Kim",
+                "imageUrl": "https://laughtrack.b-cdn.net/comedian-images/264970/bfd08d74-d42d-4238-9712-5d422aacce44/avatar.jpg",
+                "hasImage": true,
+                "showCount": 49,
+                "socialData": {
+                  "id": 264970,
+                  "popularity": 0.504
+                },
+                "isFavorite": false,
+                "isAlias": false
+              }
+            ],
+            "tickets": [
+              {
+                "price": 25.5,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/hans-kim-special-presentation-176909",
+                "type": "General Admission",
+                "soldOut": false
+              },
+              {
+                "price": 35,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/hans-kim-special-presentation-176909",
+                "type": "Preferred Seating",
+                "soldOut": false
+              },
+              {
+                "price": 35,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/hans-kim-special-presentation-176909",
+                "type": "Preferred Seating  - Door",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Vancouver",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          },
+          {
+            "id": 3468227,
+            "date": "2026-10-03T04:45:00.000Z",
+            "name": "Hans Kim Special Presentation",
+            "room": "House of Comedy BC - Main Room",
+            "address": "530 Columbia Street, New Westminster, BC V3L 1B1",
+            "clubId": 2357,
+            "clubName": "House of Comedy British Columbia",
+            "clubCity": "New Westminster",
+            "clubState": "BC",
+            "imageUrl": "https://laughtrack.b-cdn.net/comedian-images/264970/bfd08d74-d42d-4238-9712-5d422aacce44/avatar.jpg",
+            "soldOut": false,
+            "lineup": [
+              {
+                "id": 264970,
+                "uuid": "a302c4f450ce16068ccad07139453953",
+                "name": "Hans Kim",
+                "imageUrl": "https://laughtrack.b-cdn.net/comedian-images/264970/bfd08d74-d42d-4238-9712-5d422aacce44/avatar.jpg",
+                "hasImage": true,
+                "showCount": 49,
+                "socialData": {
+                  "id": 264970,
+                  "popularity": 0.504
+                },
+                "isFavorite": false,
+                "isAlias": false
+              }
+            ],
+            "tickets": [
+              {
+                "price": 25.5,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/hans-kim-special-presentation-176911",
+                "type": "General Admission",
+                "soldOut": false
+              },
+              {
+                "price": 35,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/hans-kim-special-presentation-176911",
+                "type": "Preferred Seating",
+                "soldOut": false
+              },
+              {
+                "price": 35,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/hans-kim-special-presentation-176911",
+                "type": "Preferred Seating  - Door",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Vancouver",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          },
+          {
+            "id": 3468228,
+            "date": "2026-10-04T02:00:00.000Z",
+            "name": "Hans Kim Special Presentation",
+            "room": "House of Comedy BC - Main Room",
+            "address": "530 Columbia Street, New Westminster, BC V3L 1B1",
+            "clubId": 2357,
+            "clubName": "House of Comedy British Columbia",
+            "clubCity": "New Westminster",
+            "clubState": "BC",
+            "imageUrl": "https://laughtrack.b-cdn.net/comedian-images/264970/bfd08d74-d42d-4238-9712-5d422aacce44/avatar.jpg",
+            "soldOut": false,
+            "lineup": [
+              {
+                "id": 264970,
+                "uuid": "a302c4f450ce16068ccad07139453953",
+                "name": "Hans Kim",
+                "imageUrl": "https://laughtrack.b-cdn.net/comedian-images/264970/bfd08d74-d42d-4238-9712-5d422aacce44/avatar.jpg",
+                "hasImage": true,
+                "showCount": 49,
+                "socialData": {
+                  "id": 264970,
+                  "popularity": 0.504
+                },
+                "isFavorite": false,
+                "isAlias": false
+              }
+            ],
+            "tickets": [
+              {
+                "price": 25.5,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/hans-kim-special-presentation-176912",
+                "type": "General Admission",
+                "soldOut": false
+              },
+              {
+                "price": 35,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/hans-kim-special-presentation-176912",
+                "type": "Preferred Seating",
+                "soldOut": false
+              },
+              {
+                "price": 35,
+                "purchaseUrl": "https://www.tixr.com/groups/comicstripbc/events/hans-kim-special-presentation-176912",
+                "type": "Preferred Seating  - Door",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Vancouver",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 4168931,
+      "club_id": 11709,
+      "date": "2027-03-14T02:00:00+00:00",
+      "show_page_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-03-13",
+      "name": "Big Beaver Brewing",
+      "timezone": "America/Edmonton",
+      "html": {
+        "status": 200,
+        "title": "Big Beaver Brewing \u00b7 Big Beaver Brewing \u00b7 March 13th at 7:00 pm MST | LaughTrack",
+        "description": [
+          "Big Beaver Brewing at Big Beaver Brewing on March 13th at 7:00 pm MST. Lineup and ticket info on LaughTrack."
+        ]
+      },
+      "api_status": 200,
+      "api_response": {
+        "data": {
+          "id": 4168931,
+          "date": "2027-03-14T02:00:00.000Z",
+          "name": "Big Beaver Brewing",
+          "description": "Next Stop Comedy brings the best comedians, with new lineups every time, straight to your neighborhood for an unforgettable night of laughter! Our shows feature top-tier talent from across the country, delivering high-energy performances in intimate, local venues. Whether you need an exciting date night, you're a die-hard comedy fan, or you're just looking for a fun night out, Next Stop Comedy guarantees big laughs, great vibes, and an experience you won't want to miss.",
+          "room": "",
+          "address": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+          "clubId": 11709,
+          "clubName": "Big Beaver Brewing",
+          "imageUrl": "/placeholders/club-placeholder.svg",
+          "soldOut": false,
+          "lineup": [],
+          "tickets": [
+            {
+              "price": 37,
+              "purchaseUrl": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-03-13",
+              "type": "General Admission",
+              "soldOut": false
+            }
+          ],
+          "distanceMiles": null,
+          "timezone": "America/Edmonton",
+          "tags": [
+            {
+              "slug": "20-50",
+              "name": "$20-$50"
+            }
+          ],
+          "showPageUrl": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-03-13",
+          "club": {
+            "id": 11709,
+            "name": "Big Beaver Brewing",
+            "address": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "timezone": "America/Edmonton"
+          },
+          "cta": {
+            "url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-03-13",
+            "label": "Get tickets for Big Beaver Brewing",
+            "isSoldOut": false
+          }
+        },
+        "relatedShows": [
+          {
+            "id": 3590689,
+            "date": "2026-10-25T01:00:00.000Z",
+            "name": "Big Beaver Brewing",
+            "room": "",
+            "address": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+            "clubId": 11709,
+            "clubName": "Big Beaver Brewing",
+            "clubCity": "Okotoks",
+            "clubState": null,
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "soldOut": false,
+            "lineup": [
+              {
+                "id": 1625011,
+                "uuid": "68962aaa4f491b0ef3d6e2d693e00420",
+                "name": "Conner Christmas",
+                "imageUrl": "",
+                "hasImage": false,
+                "showCount": 2,
+                "socialData": {
+                  "id": 1625011,
+                  "popularity": 0.1764
+                },
+                "isFavorite": false,
+                "isAlias": false
+              }
+            ],
+            "tickets": [
+              {
+                "price": 38,
+                "purchaseUrl": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-7pm",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          },
+          {
+            "id": 4944445,
+            "date": "2026-10-25T01:30:00.000Z",
+            "name": "Big Beaver Brewing",
+            "room": "",
+            "address": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+            "clubId": 11709,
+            "clubName": "Big Beaver Brewing",
+            "clubCity": "Okotoks",
+            "clubState": null,
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "soldOut": false,
+            "lineup": [
+              {
+                "id": 1625011,
+                "uuid": "68962aaa4f491b0ef3d6e2d693e00420",
+                "name": "Conner Christmas",
+                "imageUrl": "",
+                "hasImage": false,
+                "showCount": 2,
+                "socialData": {
+                  "id": 1625011,
+                  "popularity": 0.1764
+                },
+                "isFavorite": false,
+                "isAlias": false
+              }
+            ],
+            "tickets": [
+              {
+                "price": 38,
+                "purchaseUrl": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-730pm",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          },
+          {
+            "id": 4168927,
+            "date": "2026-11-22T02:00:00.000Z",
+            "name": "Big Beaver Brewing",
+            "room": "",
+            "address": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+            "clubId": 11709,
+            "clubName": "Big Beaver Brewing",
+            "clubCity": "Okotoks",
+            "clubState": null,
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "soldOut": false,
+            "lineup": [],
+            "tickets": [
+              {
+                "price": 37,
+                "purchaseUrl": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-11-21",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          },
+          {
+            "id": 4168928,
+            "date": "2027-01-01T03:00:00.000Z",
+            "name": "Big Beaver Brewing",
+            "room": "",
+            "address": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+            "clubId": 11709,
+            "clubName": "Big Beaver Brewing",
+            "clubCity": "Okotoks",
+            "clubState": null,
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "soldOut": false,
+            "lineup": [],
+            "tickets": [
+              {
+                "price": 47,
+                "purchaseUrl": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-12-31",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 4944800,
+      "club_id": 12330,
+      "date": "2027-03-13T02:00:00+00:00",
+      "show_page_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-03-12",
+      "name": "Leduc Brewing Company",
+      "timezone": "America/Edmonton",
+      "html": {
+        "status": 200,
+        "title": "Leduc Brewing Company \u00b7 Leduc Brewing Company \u00b7 March 12th at 8:00 pm MDT | LaughTrack",
+        "description": [
+          "Leduc Brewing Company at Leduc Brewing Company on March 12th at 8:00 pm MDT. Lineup and ticket info on LaughTrack."
+        ]
+      },
+      "api_status": 200,
+      "api_response": {
+        "data": {
+          "id": 4944800,
+          "date": "2027-03-13T02:00:00.000Z",
+          "name": "Leduc Brewing Company",
+          "description": "Next Stop Comedy brings the best comedians, with new lineups every time, straight to your neighborhood for an unforgettable night of laughter! Our shows feature top-tier talent from across the country, delivering high-energy performances in intimate, local venues. Whether you need an exciting date night, you're a die-hard comedy fan, or you're just looking for a fun night out, Next Stop Comedy guarantees big laughs, great vibes, and an experience you won't want to miss.",
+          "room": "",
+          "address": "4901 50th Ave, Leduc, AB T9E 6W7",
+          "clubId": 12330,
+          "clubName": "Leduc Brewing Company",
+          "imageUrl": "/placeholders/club-placeholder.svg",
+          "soldOut": false,
+          "lineup": [],
+          "tickets": [
+            {
+              "price": 37,
+              "purchaseUrl": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-03-12",
+              "type": "General Admission",
+              "soldOut": false
+            }
+          ],
+          "distanceMiles": null,
+          "timezone": "America/Edmonton",
+          "tags": [
+            {
+              "slug": "20-50",
+              "name": "$20-$50"
+            }
+          ],
+          "showPageUrl": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-03-12",
+          "club": {
+            "id": 12330,
+            "name": "Leduc Brewing Company",
+            "address": "4901 50th Ave, Leduc, AB T9E 6W7",
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "timezone": "America/Edmonton"
+          },
+          "cta": {
+            "url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-03-12",
+            "label": "Get tickets for Leduc Brewing Company",
+            "isSoldOut": false
+          }
+        },
+        "relatedShows": [
+          {
+            "id": 4944795,
+            "date": "2026-10-17T01:00:00.000Z",
+            "name": "Leduc Brewing Company",
+            "room": "",
+            "address": "4901 50th Ave, Leduc, AB T9E 6W7",
+            "clubId": 12330,
+            "clubName": "Leduc Brewing Company",
+            "clubCity": "Leduc",
+            "clubState": null,
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "soldOut": false,
+            "lineup": [
+              {
+                "id": 1823306,
+                "uuid": "ca1b7c530e9679a67e06ed1c782a6a0f",
+                "name": "Albert Coombes",
+                "imageUrl": "",
+                "hasImage": false,
+                "showCount": 3,
+                "socialData": {
+                  "id": 1823306,
+                  "popularity": 0.2565
+                },
+                "isFavorite": false,
+                "isAlias": false
+              }
+            ],
+            "tickets": [
+              {
+                "price": 37,
+                "purchaseUrl": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-10-16",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          },
+          {
+            "id": 4944796,
+            "date": "2026-11-21T02:00:00.000Z",
+            "name": "Leduc Brewing Company",
+            "room": "",
+            "address": "4901 50th Ave, Leduc, AB T9E 6W7",
+            "clubId": 12330,
+            "clubName": "Leduc Brewing Company",
+            "clubCity": "Leduc",
+            "clubState": null,
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "soldOut": false,
+            "lineup": [],
+            "tickets": [
+              {
+                "price": 37,
+                "purchaseUrl": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-11-20",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              }
+            ]
+          },
+          {
+            "id": 4944797,
+            "date": "2027-01-01T02:00:00.000Z",
+            "name": "Leduc Brewing Company",
+            "room": "",
+            "address": "4901 50th Ave, Leduc, AB T9E 6W7",
+            "clubId": 12330,
+            "clubName": "Leduc Brewing Company",
+            "clubCity": "Leduc",
+            "clubState": null,
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "soldOut": false,
+            "lineup": [],
+            "tickets": [
+              {
+                "price": 47,
+                "purchaseUrl": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-12-31",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "20-50",
+                "name": "$20-$50"
+              },
+              {
+                "slug": "50-100",
+                "name": "$50-$100"
+              }
+            ]
+          },
+          {
+            "id": 3591191,
+            "date": "2027-01-01T03:00:00.000Z",
+            "name": "Leduc Brewing Company",
+            "room": "",
+            "address": "4901 50th Ave, Leduc, AB T9E 6W7",
+            "clubId": 12330,
+            "clubName": "Leduc Brewing Company",
+            "clubCity": "Leduc",
+            "clubState": null,
+            "imageUrl": "/placeholders/club-placeholder.svg",
+            "soldOut": false,
+            "lineup": [],
+            "tickets": [
+              {
+                "price": 52,
+                "purchaseUrl": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-12-31",
+                "type": "General Admission",
+                "soldOut": false
+              }
+            ],
+            "timezone": "America/Edmonton",
+            "tags": [
+              {
+                "slug": "50-100",
+                "name": "$50-$100"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
