@@ -1,0 +1,288 @@
+{
+  "venue": {
+    "data": {
+      "id": 424,
+      "name": "Laugh Tonight Comedy",
+      "description": "<p>Laugh Tonight Comedy </p><p><br></p>",
+      "settings": {
+        "currency": "USD",
+        "timezone": "America/New_York",
+        "sales_tax": "0.0"
+      },
+      "organization_id": 226,
+      "website": "http://www.laughtonightcomedy.com",
+      "dashboard_status": 2,
+      "delivery_methods": [
+        {
+          "id": 497,
+          "name": "Will Call"
+        }
+      ]
+    }
+  },
+  "shows": {
+    "data": []
+  },
+  "show366585": {
+    "data": {
+      "id": 366585,
+      "event": {
+        "id": 134774,
+        "name": "Mother's Day with Tommy Davidson",
+        "status": 2,
+        "labels": [
+          {
+            "name": "MUNCIE IN",
+            "public": true,
+            "color": "rgb(112, 181, 0)"
+          },
+          {
+            "name": "CORNERSTONE CENTER FOR THE ARTS",
+            "public": true,
+            "color": "rgb(112, 181, 0)"
+          }
+        ],
+        "available": 0,
+        "venue_id": 424,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 52178,
+            "name": "Lou Santini",
+            "image": "https://files.seatengine.com/talent/headshots/photos/90512/full/data",
+            "role": "supporting_act"
+          },
+          {
+            "id": 51860,
+            "name": "Tommy Davidson",
+            "image": "https://files.seatengine.com/talent/headshots/photos/89891/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/89891/full/data",
+        "next_show": null,
+        "sold_out": false
+      },
+      "event_id": 134774,
+      "start_date_time": "2026-05-10T18:00:00-04:00",
+      "addons": [],
+      "upgrades": [],
+      "sold_out": false,
+      "end_on_sale": "2026-05-10T22:00:00Z",
+      "max_seats": 15,
+      "start_on_sale": "2026-04-02T00:26:12Z",
+      "inventories": [
+        {
+          "allocated": 500,
+          "id": 787767,
+          "name": "General Admission  Seats",
+          "title": "General Admission  Seats",
+          "child": false,
+          "available": 352,
+          "price": 2500,
+          "service_charge": 250,
+          "purchased": 148,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 32,
+          "id": 792116,
+          "name": "VIP Seats Row D & E",
+          "title": "VIP Seats Row D & E",
+          "child": false,
+          "available": 0,
+          "price": 3000,
+          "service_charge": 350,
+          "purchased": 32,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 32,
+          "id": 787768,
+          "name": "Front Two Rows",
+          "title": "Front Two Rows",
+          "child": false,
+          "available": 0,
+          "price": 3000,
+          "service_charge": 350,
+          "purchased": 32,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 52,
+          "id": 787770,
+          "name": "Balcony Front Row",
+          "title": "Balcony Front Row",
+          "child": false,
+          "available": 0,
+          "price": 3000,
+          "service_charge": 350,
+          "purchased": 52,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 100,
+          "id": 799114,
+          "name": "Door Sale",
+          "title": "Door Sale",
+          "child": false,
+          "available": 99,
+          "price": 3500,
+          "service_charge": 400,
+          "purchased": 1,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 451
+    }
+  },
+  "show370667": {
+    "data": {
+      "id": 370667,
+      "event": {
+        "id": 136528,
+        "name": "Henry Coleman @ Laugh Factory Chicago",
+        "status": 3,
+        "labels": [
+          {
+            "name": "CHICAGO IL",
+            "public": true,
+            "color": "rgb(255, 159, 26)"
+          },
+          {
+            "name": "LAUGH FACTORY CHICAGO ",
+            "public": true,
+            "color": "rgb(255, 159, 26)"
+          }
+        ],
+        "available": 0,
+        "venue_id": 424,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 52331,
+            "name": "Henry Coleman",
+            "image": "https://files.seatengine.com/talent/headshots/photos/90867/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": "2026-05-27T14:47:00Z",
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/90867/full/data",
+        "next_show": "2026-06-01T00:00:00Z",
+        "sold_out": false
+      },
+      "event_id": 136528,
+      "start_date_time": "2026-05-31T20:00:00-04:00",
+      "addons": [],
+      "upgrades": [],
+      "sold_out": false,
+      "end_on_sale": "2026-05-31T23:40:00Z",
+      "max_seats": 15,
+      "start_on_sale": "2026-05-01T00:38:47Z",
+      "inventories": [
+        {
+          "allocated": 300,
+          "id": 796196,
+          "name": "General Admission  Seats",
+          "title": "General Admission  Seats",
+          "child": false,
+          "available": 292,
+          "price": 2000,
+          "service_charge": 250,
+          "purchased": 8,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 292
+    }
+  },
+  "show380864": {
+    "data": {
+      "id": 380864,
+      "event": {
+        "id": 140834,
+        "name": "FUNNY PHAT FRIDAYS WITH DARREN BRAND",
+        "status": 2,
+        "labels": [
+          {
+            "name": "FUNNY PHAT FRIDAYS",
+            "public": true,
+            "color": "rgb(0, 121, 191)"
+          }
+        ],
+        "available": 0,
+        "venue_id": 424,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 53750,
+            "name": "Fab Monroe",
+            "image": "https://files.seatengine.com/talent/headshots/photos/93791/full/data",
+            "role": "supporting_act"
+          },
+          {
+            "id": 53752,
+            "name": "Funny Phat Fridays",
+            "image": "https://files.seatengine.com/talent/headshots/photos/93793/full/data",
+            "role": "headliner"
+          },
+          {
+            "id": 53751,
+            "name": "Darren Brand",
+            "image": "https://files.seatengine.com/talent/headshots/photos/93792/full/data",
+            "role": "supporting_act"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/93793/full/data",
+        "next_show": null,
+        "sold_out": false
+      },
+      "event_id": 140834,
+      "start_date_time": "2026-08-21T21:00:00-04:00",
+      "addons": [],
+      "upgrades": [],
+      "sold_out": false,
+      "end_on_sale": "2026-08-22T01:00:00Z",
+      "max_seats": 15,
+      "start_on_sale": "2026-07-18T00:54:37Z",
+      "inventories": [
+        {
+          "allocated": 100,
+          "id": 816850,
+          "name": "General Admission  Seats",
+          "title": "General Admission  Seats",
+          "child": false,
+          "available": 100,
+          "price": 2000,
+          "service_charge": 300,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 100
+    }
+  }
+}
