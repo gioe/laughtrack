@@ -1,0 +1,516 @@
+{
+  "checked_at": "2026-09-29T19:53:05.394252+00:00",
+  "cutoff_utc": "2026-09-29T19:35:00Z",
+  "club": {
+    "id": 551,
+    "name": "Deaf Puppy Comedy Club",
+    "address": "127 N Main St, Manteca, CA 95336, USA",
+    "website": "Http://www.deafpuppyclub.com",
+    "popularity": 0.807361891891892,
+    "zip_code": "",
+    "phone_number": "",
+    "timezone": "America/Los_Angeles",
+    "visible": true,
+    "city": "Manteca",
+    "state": "CA",
+    "total_shows": 207,
+    "status": "active",
+    "closed_at": null,
+    "has_image": true,
+    "country": "US",
+    "chain_id": null,
+    "club_type": "club",
+    "description": "Updated by TASK-3029: city/state components parsed from Google Places-backed address",
+    "hours": null,
+    "latitude": 37.7980935,
+    "longitude": -121.2168019,
+    "google_place_id": "ChIJ56C9BrpBkIARwR05O3V4F3M",
+    "google_place_attribution": null,
+    "geocode_attempted_at": null,
+    "geocode_attempt_count": 0,
+    "geocode_outcome": null
+  },
+  "sources": [
+    {
+      "id": 594,
+      "club_id": 551,
+      "platform": "seatengine",
+      "scraper_key": "seatengine",
+      "source_url": "Http://www.deafpuppyclub.com",
+      "priority": 0,
+      "enabled": true,
+      "metadata": {},
+      "created_at": "2026-04-21T19:57:12.315022+00:00",
+      "updated_at": "2026-05-06T21:52:53.876643+00:00",
+      "seatengine_id": 531,
+      "eventbrite_id": null,
+      "ticketmaster_id": null,
+      "wix_event_id": null,
+      "ovationtix_id": null,
+      "squadup_id": null,
+      "seatengine_v3_id": null,
+      "source_target_id": null
+    }
+  ],
+  "references": {
+    "club_aliases.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_discovery_profiles.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_image_assets.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "comedians.home_club_id": {
+      "count": 20,
+      "digest": "bf8b05ab9fe8796843d2575d8719e49e"
+    },
+    "discovery_show_feature_snapshots.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "email_subscriptions.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "eventbrite_organizer_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "favorite_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "lineup_items.show_id": {
+      "count": 118,
+      "digest": "94d1182b48cf3dce42ebc6e4421ad6df"
+    },
+    "processed_emails.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "production_company_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "saved_shows.show_id": {
+      "count": 1,
+      "digest": "fdd96f0c3eace3e1511769c5db286d8b"
+    },
+    "scraper_run_clubs.club_id": {
+      "count": 138,
+      "digest": "eb2a12e94f81ba0ac97b29385d12866f"
+    },
+    "scraping_sources.club_id": {
+      "count": 1,
+      "digest": "68acb475c3d318d4de38e17e27beddd6"
+    },
+    "sent_notifications.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "shows.club_id": {
+      "count": 207,
+      "digest": "556c4f1b4e2ae9177c2b223ee69de061"
+    },
+    "tagged_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "tagged_shows.show_id": {
+      "count": 282,
+      "digest": "3291266913e17b1a23f47bbc44254b78"
+    },
+    "ticket_purchase_click_events.club_id": {
+      "count": 2113,
+      "digest": "98659c16ecb41ed0ca5740de876c3341"
+    },
+    "ticket_purchase_click_events.show_id": {
+      "count": 1989,
+      "digest": "a38c3abf37c3ff77f3d5e39e8a65b087"
+    },
+    "tickets.show_id": {
+      "count": 214,
+      "digest": "c614c06999fb13b7047f8c8844a687c7"
+    }
+  },
+  "upcoming": [
+    {
+      "id": 1376356,
+      "name": "Mike E. Winfield",
+      "date": "2026-10-24 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/370261"
+    },
+    {
+      "id": 1376357,
+      "name": "Mike E. Winfield",
+      "date": "2026-10-24 04:30:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/370262"
+    },
+    {
+      "id": 1376358,
+      "name": "Mike E. Winfield",
+      "date": "2026-10-25 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/370263"
+    },
+    {
+      "id": 1376359,
+      "name": "Mike E. Winfield",
+      "date": "2026-10-25 04:30:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/370264"
+    },
+    {
+      "id": 3934219,
+      "name": "Jay Rich",
+      "date": "2026-10-03 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/379738"
+    },
+    {
+      "id": 3934220,
+      "name": "Jay Rich",
+      "date": "2026-10-04 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/379739"
+    },
+    {
+      "id": 3934221,
+      "name": "Jay Rich",
+      "date": "2026-10-04 04:30:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/379740"
+    },
+    {
+      "id": 3934222,
+      "name": "Steve Furey",
+      "date": "2026-10-17 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/379741"
+    },
+    {
+      "id": 3934223,
+      "name": "Steve Furey",
+      "date": "2026-10-18 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/379742"
+    },
+    {
+      "id": 3934224,
+      "name": "Steve Furey",
+      "date": "2026-10-18 04:30:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/379743"
+    },
+    {
+      "id": 4913806,
+      "name": "Bruce Gray",
+      "date": "2026-10-10 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/382515"
+    },
+    {
+      "id": 4913807,
+      "name": "Bruce Gray",
+      "date": "2026-10-11 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/382516"
+    },
+    {
+      "id": 4913808,
+      "name": "Bruce Gray",
+      "date": "2026-10-11 04:30:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/382517"
+    },
+    {
+      "id": 5144533,
+      "name": "I.C.F. Branch 139 Sunday Spaghetti Dinner Fundraiser",
+      "date": "2026-10-25 22:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/383171"
+    },
+    {
+      "id": 6096829,
+      "name": "Keon Polee",
+      "date": "2026-11-07 03:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/385623"
+    },
+    {
+      "id": 6096830,
+      "name": "Keon Polee",
+      "date": "2026-11-08 03:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/385624"
+    },
+    {
+      "id": 6096831,
+      "name": "Keon Polee",
+      "date": "2026-11-08 05:30:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/385625"
+    },
+    {
+      "id": 6394637,
+      "name": "Free Wednesday Open Mic",
+      "date": "2026-10-01 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386252"
+    },
+    {
+      "id": 6394638,
+      "name": "Trivia/Skills Competition w/Jacob Goss",
+      "date": "2026-10-02 01:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386259"
+    },
+    {
+      "id": 6394642,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-10-04 16:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386270"
+    },
+    {
+      "id": 6394643,
+      "name": "Monday Night Football Madness",
+      "date": "2026-10-05 19:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386291"
+    },
+    {
+      "id": 6394644,
+      "name": "Free Wednesday Open Mic",
+      "date": "2026-10-08 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386253"
+    },
+    {
+      "id": 6394645,
+      "name": "Trivia/Skills Competition w/Jacob Goss",
+      "date": "2026-10-09 01:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386260"
+    },
+    {
+      "id": 6394649,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-10-11 16:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386271"
+    },
+    {
+      "id": 6394650,
+      "name": "Monday Night Football Madness",
+      "date": "2026-10-12 19:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386292"
+    },
+    {
+      "id": 6394651,
+      "name": "Free Wednesday Open Mic",
+      "date": "2026-10-15 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386254"
+    },
+    {
+      "id": 6394652,
+      "name": "Trivia/Skills Competition w/Jacob Goss",
+      "date": "2026-10-16 01:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386261"
+    },
+    {
+      "id": 6394656,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-10-18 16:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386272"
+    },
+    {
+      "id": 6394657,
+      "name": "Monday Night Football Madness",
+      "date": "2026-10-19 19:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386293"
+    },
+    {
+      "id": 6394662,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-10-25 16:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386273"
+    },
+    {
+      "id": 6394664,
+      "name": "Monday Night Football Madness",
+      "date": "2026-10-26 19:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386294"
+    },
+    {
+      "id": 6394665,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-11-01 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386274"
+    },
+    {
+      "id": 6394666,
+      "name": "Monday Night Football Madness",
+      "date": "2026-11-02 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386295"
+    },
+    {
+      "id": 6394670,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-11-08 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386275"
+    },
+    {
+      "id": 6394671,
+      "name": "Monday Night Football Madness",
+      "date": "2026-11-09 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386296"
+    },
+    {
+      "id": 6394672,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-11-15 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386276"
+    },
+    {
+      "id": 6394673,
+      "name": "Monday Night Football Madness",
+      "date": "2026-11-16 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386297"
+    },
+    {
+      "id": 6394674,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-11-22 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386277"
+    },
+    {
+      "id": 6394675,
+      "name": "Monday Night Football Madness",
+      "date": "2026-11-23 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386298"
+    },
+    {
+      "id": 6394676,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-11-29 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386278"
+    },
+    {
+      "id": 6394677,
+      "name": "Monday Night Football Madness",
+      "date": "2026-11-30 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386299"
+    },
+    {
+      "id": 6394678,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-12-06 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386279"
+    },
+    {
+      "id": 6394679,
+      "name": "Monday Night Football Madness",
+      "date": "2026-12-07 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386300"
+    },
+    {
+      "id": 6394680,
+      "name": "Nick Guerra",
+      "date": "2026-12-12 03:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386246"
+    },
+    {
+      "id": 6394681,
+      "name": "Nick Guerra",
+      "date": "2026-12-13 03:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386247"
+    },
+    {
+      "id": 6394682,
+      "name": "Nick Guerra",
+      "date": "2026-12-13 05:30:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386248"
+    },
+    {
+      "id": 6394683,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-12-13 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386280"
+    },
+    {
+      "id": 6394684,
+      "name": "Monday Night Football Madness",
+      "date": "2026-12-14 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386301"
+    },
+    {
+      "id": 6394685,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-12-20 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386281"
+    },
+    {
+      "id": 6394686,
+      "name": "Monday Night Football Madness",
+      "date": "2026-12-21 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386302"
+    },
+    {
+      "id": 6394687,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2026-12-27 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386282"
+    },
+    {
+      "id": 6394688,
+      "name": "Monday Night Football Madness",
+      "date": "2026-12-28 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386303"
+    },
+    {
+      "id": 6394689,
+      "name": "All Ages NFL Watch Party Sundays/Niners and Raiders games shown",
+      "date": "2027-01-03 17:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386283"
+    },
+    {
+      "id": 6394690,
+      "name": "Monday Night Football Madness",
+      "date": "2027-01-04 20:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/386304"
+    },
+    {
+      "id": 6792255,
+      "name": "Adam Tiller",
+      "date": "2027-05-01 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/387363"
+    },
+    {
+      "id": 7107360,
+      "name": "Nick Larson",
+      "date": "2026-12-05 03:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/388319"
+    },
+    {
+      "id": 7107361,
+      "name": "The Shunners",
+      "date": "2026-12-06 03:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/388320"
+    },
+    {
+      "id": 7383075,
+      "name": "Halloween Sip 'n Stroll",
+      "date": "2026-10-31 01:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/389131"
+    },
+    {
+      "id": 7383076,
+      "name": "The Deaf Puppy Patio of Horror Party",
+      "date": "2026-11-01 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/389133"
+    },
+    {
+      "id": 7383088,
+      "name": "Big Jay Holingsworth",
+      "date": "2026-11-28 03:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/389128"
+    },
+    {
+      "id": 7383089,
+      "name": "Big Jay Holingsworth",
+      "date": "2026-11-29 02:00:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/389129"
+    },
+    {
+      "id": 7383090,
+      "name": "Big Jay Holingsworth",
+      "date": "2026-11-29 04:30:00+00:00",
+      "show_page_url": "Http://www.deafpuppyclub.com/shows/389130"
+    }
+  ],
+  "denials": []
+}

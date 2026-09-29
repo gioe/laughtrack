@@ -1,0 +1,76 @@
+[
+  {
+    "id": 551,
+    "zip": "95336",
+    "old_zip": "",
+    "identity": {
+      "id": 551,
+      "name": "Deaf Puppy Comedy Club",
+      "address": "127 N Main St, Manteca, CA 95336, USA",
+      "website": "Http://www.deafpuppyclub.com",
+      "city": "Manteca",
+      "state": "CA",
+      "country": "US",
+      "latitude": 37.7980935,
+      "longitude": -121.2168019,
+      "google_place_id": "ChIJ56C9BrpBkIARwR05O3V4F3M"
+    },
+    "source": {
+      "id": 594,
+      "club_id": 551,
+      "platform": "seatengine",
+      "scraper_key": "seatengine",
+      "source_url": "Http://www.deafpuppyclub.com",
+      "priority": 0,
+      "enabled": true,
+      "metadata": {},
+      "created_at": "2026-04-21T19:57:12.315022+00:00",
+      "seatengine_id": 531,
+      "eventbrite_id": null,
+      "ticketmaster_id": null,
+      "wix_event_id": null,
+      "ovationtix_id": null,
+      "squadup_id": null,
+      "seatengine_v3_id": null,
+      "source_target_id": null
+    }
+  },
+  {
+    "id": 8713,
+    "zip": "43202",
+    "old_zip": null,
+    "identity": {
+      "id": 8713,
+      "name": "The Nest Theatre",
+      "address": "2643 N High St, Columbus, OH 43202, USA",
+      "website": "https://nesttheatre.com/",
+      "city": "Columbus",
+      "state": "OH",
+      "country": "US",
+      "latitude": 40.016155999999995,
+      "longitude": -83.0122253,
+      "google_place_id": "ChIJe4VjWzaPOIgRjuXnR1D1PQA"
+    },
+    "source": {
+      "id": 5863,
+      "club_id": 8713,
+      "platform": "custom",
+      "scraper_key": "vbo_tickets",
+      "source_url": "https://plugin.vbotickets.com/plugin/loadplugin?siteid=5D584EB6-2A49-4AFD-9430-259D26127F0B&page=ListEvents",
+      "priority": 0,
+      "enabled": true,
+      "metadata": {
+        "category_filter": "Live Shows"
+      },
+      "created_at": "2026-06-16T01:16:04.338331+00:00",
+      "seatengine_id": null,
+      "eventbrite_id": null,
+      "ticketmaster_id": null,
+      "wix_event_id": null,
+      "ovationtix_id": null,
+      "squadup_id": null,
+      "seatengine_v3_id": null,
+      "source_target_id": null
+    }
+  }
+]

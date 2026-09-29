@@ -1,0 +1,21 @@
+{
+  "exact_changed_ids": [
+    551,
+    8713
+  ],
+  "only_zip_changed": true,
+  "other_clubs_preserved": 2884,
+  "populated_postal_fields_preserved": 2760,
+  "idempotent_replay": true,
+  "rollback_restores_exact_null_and_empty": true,
+  "rollback_replay_noop": true,
+  "populated_value_not_overwritten_551": true,
+  "populated_value_not_overwritten_8713": true,
+  "rejects_identity_drift": true,
+  "rejects_second_identity_drift": true,
+  "rejects_source_drift": true,
+  "rollback_refuses_new_postal_551": true,
+  "rollback_refuses_new_postal_8713": true,
+  "all_changes_rolled_back": true,
+  "checked_at": "2026-09-29T19:47:26.159765+00:00"
+}
