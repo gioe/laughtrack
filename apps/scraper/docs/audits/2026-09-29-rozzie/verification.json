@@ -1,0 +1,33 @@
+{
+  "all_fk_counts_and_fingerprints_unchanged": true,
+  "source_unchanged": true,
+  "only_four_reviewed_fields_changed": true,
+  "actual_discovery_upsert_preserves_correction_against_stale_metadata": true,
+  "migration_replay_after_discovery_upsert": true,
+  "scheduled_ingestion_retains_visible_club": true,
+  "prisma_migration_applied": true,
+  "public_club": {
+    "id": 10970,
+    "name": "The Rozzie Square Theater",
+    "imageUrl": "/placeholders/club-placeholder.svg",
+    "heroImageUrl": "",
+    "website": "http://www.rozziesquaretheater.com/",
+    "address": "18 Corinth St, Roslindale, MA 02131",
+    "zipCode": "02131",
+    "phoneNumber": "",
+    "latitude": 42.286516,
+    "longitude": -71.13004409999999,
+    "relatedVenues": []
+  },
+  "public_show_club": {
+    "id": 10970,
+    "name": "The Rozzie Square Theater",
+    "address": "18 Corinth St, Roslindale, MA 02131",
+    "imageUrl": "/placeholders/club-placeholder.svg",
+    "timezone": "America/New_York"
+  },
+  "public_show_id": 3179461,
+  "public_http_status": 200,
+  "ingestion_replay_rolled_back": true,
+  "checked_at": "2026-09-29T16:46:57.839899+00:00"
+}
