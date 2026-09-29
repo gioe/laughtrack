@@ -1,0 +1,109 @@
+{
+  "551": {
+    "references_and_sources_preserved": true,
+    "only_zip_changed": true,
+    "country": "US",
+    "nearby_response": {
+      "data": [
+        {
+          "id": 551,
+          "name": "Deaf Puppy Comedy Club",
+          "address": "127 N Main St, Manteca, CA 95336, USA",
+          "city": "Manteca",
+          "state": "CA",
+          "zipCode": "95336",
+          "imageUrl": "https://laughtrack.b-cdn.net/clubs/Deaf%20Puppy%20Comedy%20Club.png",
+          "showCount": 62,
+          "distanceMiles": 0,
+          "chainId": null,
+          "chainName": null,
+          "chainSlug": null,
+          "chainLocationCount": null,
+          "clubType": "club",
+          "programmingPrimaryShowType": null,
+          "programmingMixed": false,
+          "programmingLabel": "Comedy club"
+        }
+      ],
+      "total": 1,
+      "filters": [
+        {
+          "id": 23,
+          "name": "Nothing But Standup",
+          "slug": "standup",
+          "selected": false
+        }
+      ]
+    },
+    "public_club": {
+      "id": 551,
+      "name": "Deaf Puppy Comedy Club",
+      "imageUrl": "https://laughtrack.b-cdn.net/clubs/Deaf%20Puppy%20Comedy%20Club.png",
+      "heroImageUrl": "",
+      "website": "Http://www.deafpuppyclub.com",
+      "address": "127 N Main St, Manteca, CA 95336, USA",
+      "zipCode": "95336",
+      "phoneNumber": "",
+      "latitude": 37.7980935,
+      "longitude": -121.2168019,
+      "relatedVenues": []
+    },
+    "seatengine_upsert_retains_zip_against_bad_incoming_value": true,
+    "scheduler_retains_venue": true
+  },
+  "8713": {
+    "references_and_sources_preserved": true,
+    "only_zip_changed": true,
+    "country": "US",
+    "nearby_response": {
+      "data": [
+        {
+          "id": 8713,
+          "name": "The Nest Theatre",
+          "address": "2643 N High St, Columbus, OH 43202, USA",
+          "city": "Columbus",
+          "state": "OH",
+          "zipCode": "43202",
+          "imageUrl": "/placeholders/club-placeholder.svg",
+          "showCount": 36,
+          "distanceMiles": 0,
+          "chainId": null,
+          "chainName": null,
+          "chainSlug": null,
+          "chainLocationCount": null,
+          "clubType": "club",
+          "programmingPrimaryShowType": null,
+          "programmingMixed": false,
+          "programmingLabel": "Comedy club"
+        }
+      ],
+      "total": 1,
+      "filters": [
+        {
+          "id": 23,
+          "name": "Nothing But Standup",
+          "slug": "standup",
+          "selected": false
+        }
+      ]
+    },
+    "public_club": {
+      "id": 8713,
+      "name": "The Nest Theatre",
+      "imageUrl": "/placeholders/club-placeholder.svg",
+      "heroImageUrl": "",
+      "website": "https://nesttheatre.com/",
+      "address": "2643 N High St, Columbus, OH 43202, USA",
+      "zipCode": "43202",
+      "phoneNumber": "",
+      "latitude": 40.016156,
+      "longitude": -83.0122253,
+      "relatedVenues": []
+    },
+    "scheduler_retains_venue": true
+  },
+  "migration_ledger_verified": true,
+  "replay_noop": true,
+  "ingestion_replay_rolled_back": true,
+  "checked_at": "2026-09-29T19:53:30.470543+00:00"
+}
