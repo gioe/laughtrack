@@ -1,0 +1,271 @@
+{
+  "checked_at": "2026-09-29T17:05:38.340758+00:00",
+  "pages": [],
+  "places": [
+    {
+      "query": "District Dome 21001 N Tatum Blvd Phoenix AZ",
+      "response": {
+        "places": [
+          {
+            "id": "ChIJ_y7Ne-BwK4cR7wtdsKrbYgw",
+            "formattedAddress": "21001 N Tatum Blvd, Phoenix, AZ 85054, USA",
+            "addressComponents": [
+              {
+                "longText": "21001",
+                "shortText": "21001",
+                "types": [
+                  "street_number"
+                ],
+                "languageCode": "en-US"
+              },
+              {
+                "longText": "North Tatum Boulevard",
+                "shortText": "N Tatum Blvd",
+                "types": [
+                  "route"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Desert View Village",
+                "shortText": "Desert View Village",
+                "types": [
+                  "neighborhood",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Phoenix",
+                "shortText": "Phoenix",
+                "types": [
+                  "locality",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Maricopa County",
+                "shortText": "Maricopa County",
+                "types": [
+                  "administrative_area_level_2",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Arizona",
+                "shortText": "AZ",
+                "types": [
+                  "administrative_area_level_1",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "United States",
+                "shortText": "US",
+                "types": [
+                  "country",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "85054",
+                "shortText": "85054",
+                "types": [
+                  "postal_code"
+                ],
+                "languageCode": "en-US"
+              }
+            ],
+            "location": {
+              "latitude": 33.676398899999995,
+              "longitude": -111.97365699999999
+            },
+            "websiteUri": "http://www.districtdome.com/",
+            "displayName": {
+              "text": "The District Dome",
+              "languageCode": "en"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "query": "21001 N Tatum Blvd Phoenix AZ",
+      "response": {
+        "places": [
+          {
+            "id": "ChIJyWJrayBxK4cRuYDSIzl6lwU",
+            "formattedAddress": "21001 N Tatum Blvd, Phoenix, AZ 85054, USA",
+            "addressComponents": [
+              {
+                "longText": "21001",
+                "shortText": "21001",
+                "types": [
+                  "street_number"
+                ],
+                "languageCode": "en-US"
+              },
+              {
+                "longText": "North Tatum Boulevard",
+                "shortText": "N Tatum Blvd",
+                "types": [
+                  "route"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Desert View Village",
+                "shortText": "Desert View Village",
+                "types": [
+                  "neighborhood",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Phoenix",
+                "shortText": "Phoenix",
+                "types": [
+                  "locality",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Maricopa County",
+                "shortText": "Maricopa County",
+                "types": [
+                  "administrative_area_level_2",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Arizona",
+                "shortText": "AZ",
+                "types": [
+                  "administrative_area_level_1",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "United States",
+                "shortText": "US",
+                "types": [
+                  "country",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "85054",
+                "shortText": "85054",
+                "types": [
+                  "postal_code"
+                ],
+                "languageCode": "en-US"
+              }
+            ],
+            "location": {
+              "latitude": 33.676642799999996,
+              "longitude": -111.9746059
+            },
+            "displayName": {
+              "text": "21001 N Tatum Blvd"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "experiences": [],
+  "existing_place": {
+    "id": "ChIJ_y7Ne-BwK4cR7wtdsKrbYgw",
+    "formattedAddress": "21001 N Tatum Blvd, Phoenix, AZ 85054, USA",
+    "addressComponents": [
+      {
+        "longText": "21001",
+        "shortText": "21001",
+        "types": [
+          "street_number"
+        ],
+        "languageCode": "en-US"
+      },
+      {
+        "longText": "North Tatum Boulevard",
+        "shortText": "N Tatum Blvd",
+        "types": [
+          "route"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Desert View Village",
+        "shortText": "Desert View Village",
+        "types": [
+          "neighborhood",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Phoenix",
+        "shortText": "Phoenix",
+        "types": [
+          "locality",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Maricopa County",
+        "shortText": "Maricopa County",
+        "types": [
+          "administrative_area_level_2",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Arizona",
+        "shortText": "AZ",
+        "types": [
+          "administrative_area_level_1",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "United States",
+        "shortText": "US",
+        "types": [
+          "country",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "85054",
+        "shortText": "85054",
+        "types": [
+          "postal_code"
+        ],
+        "languageCode": "en-US"
+      }
+    ],
+    "location": {
+      "latitude": 33.676398899999995,
+      "longitude": -111.97365699999999
+    },
+    "websiteUri": "http://www.districtdome.com/",
+    "displayName": {
+      "text": "The District Dome",
+      "languageCode": "en"
+    }
+  }
+}

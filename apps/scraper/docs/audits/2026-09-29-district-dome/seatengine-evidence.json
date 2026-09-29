@@ -1,0 +1,262 @@
+{
+  "venue": {
+    "data": {
+      "id": 534,
+      "name": "District Dome",
+      "description": null,
+      "settings": {
+        "currency": "USD",
+        "timezone": "America/Phoenix",
+        "sales_tax": "0.0"
+      },
+      "organization_id": 192,
+      "website": "https://www.districtdome.com",
+      "dashboard_status": 2,
+      "delivery_methods": [
+        {
+          "id": 622,
+          "name": "Print At Home - 2"
+        },
+        {
+          "id": 618,
+          "name": "Print At Home"
+        }
+      ]
+    }
+  },
+  "shows": {
+    "data": [
+      {
+        "id": 291128,
+        "event": {
+          "id": 104497,
+          "name": "Carry On Airlines: Flight 111824",
+          "status": 0,
+          "labels": [],
+          "available": 11,
+          "venue_id": 534,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 42699,
+              "name": "Carry On Airlines",
+              "image": "https://files.seatengine.com/talent/headshots/photos/71325/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/71325/full/data",
+          "next_show": "2027-06-05T00:30:00Z",
+          "sold_out": false
+        },
+        "start_date_time": "2027-06-05T00:30:00Z",
+        "sold_out": false,
+        "end_on_sale": "2027-06-05T00:30:00Z",
+        "start_on_sale": "2024-11-17T22:34:07Z",
+        "headliner_id": 120421
+      }
+    ]
+  },
+  "show": {
+    "data": {
+      "id": 291128,
+      "event": {
+        "id": 104497,
+        "name": "Carry On Airlines: Flight 111824",
+        "status": 0,
+        "labels": [],
+        "available": 11,
+        "venue_id": 534,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 42699,
+            "name": "Carry On Airlines",
+            "image": "https://files.seatengine.com/talent/headshots/photos/71325/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/71325/full/data",
+        "next_show": "2027-06-05T00:30:00Z",
+        "sold_out": false
+      },
+      "event_id": 104497,
+      "start_date_time": "2027-06-04T17:30:00-07:00",
+      "addons": [],
+      "upgrades": [],
+      "sold_out": false,
+      "end_on_sale": "2027-06-05T00:30:00Z",
+      "max_seats": 1,
+      "start_on_sale": "2024-11-17T22:34:07Z",
+      "inventories": [
+        {
+          "allocated": 1,
+          "id": 618699,
+          "name": "ROW CC (SEATS 11 - 15)",
+          "title": "ROW CC (SEATS 11 - 15)",
+          "child": false,
+          "available": 1,
+          "price": 10000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618698,
+          "name": "ROW BB (SEATS 6 - 10)",
+          "title": "ROW BB (SEATS 6 - 10)",
+          "child": false,
+          "available": 1,
+          "price": 10000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618697,
+          "name": "ROW AA (SEATS 1 - 5)",
+          "title": "ROW AA (SEATS 1 - 5)",
+          "child": false,
+          "available": 1,
+          "price": 10000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618702,
+          "name": "ROW H (SEATS 7 - 9)",
+          "title": "ROW H (SEATS 7 - 9)",
+          "child": false,
+          "available": 1,
+          "price": 6000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618701,
+          "name": "ROW G (SEATS 4 - 6)",
+          "title": "ROW G (SEATS 4 - 6)",
+          "child": false,
+          "available": 1,
+          "price": 6000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618700,
+          "name": "ROW F (SEATS 1 - 3)",
+          "title": "ROW F (SEATS 1 - 3)",
+          "child": false,
+          "available": 1,
+          "price": 6000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618696,
+          "name": "ROW E (SEATS 9 & 10)",
+          "title": "ROW E (SEATS 9 & 10)",
+          "child": false,
+          "available": 1,
+          "price": 4000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618695,
+          "name": "ROW D (SEATS 7 & 8)",
+          "title": "ROW D (SEATS 7 & 8)",
+          "child": false,
+          "available": 1,
+          "price": 4000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618694,
+          "name": "ROW C (SEATS 5 & 6)",
+          "title": "ROW C (SEATS 5 & 6)",
+          "child": false,
+          "available": 1,
+          "price": 4000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618693,
+          "name": "ROW B (SEATS 3 & 4)",
+          "title": "ROW B (SEATS 3 & 4)",
+          "child": false,
+          "available": 1,
+          "price": 4000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        },
+        {
+          "allocated": 1,
+          "id": 618692,
+          "name": "ROW A (SEATS 1 & 2)",
+          "title": "ROW A (SEATS 1 & 2)",
+          "child": false,
+          "available": 1,
+          "price": 4000,
+          "service_charge": 1050,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 11
+    }
+  }
+}
