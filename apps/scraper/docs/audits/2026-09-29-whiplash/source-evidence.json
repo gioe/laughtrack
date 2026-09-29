@@ -1,0 +1,281 @@
+{
+  "checked_at": "2026-09-29T13:00:14.041974+00:00",
+  "official_url": "https://www.whiplashcomedy.com/",
+  "official_address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Atlanta",
+    "addressRegion": "GA",
+    "postalCode": "30080",
+    "streetAddress": "650 North Avenue  Suite S210"
+  },
+  "official_venue_id": "215ea812-f194-48f7-814c-373ab6f44107",
+  "landlord_url": "https://poncecitymarket.com/directory/whiplash-comedy/",
+  "landlord_address": "675 Ponce De Leon Ave. NE, Atlanta, GA 30308 (complex mailing address; not substituted for tenant street address)",
+  "seatengine_venue": {
+    "id": 650,
+    "name": "Whiplash Comedy",
+    "description": "<p>Atlanta already loves <strong>Ponce City Market</strong> and now there's another reason to visit PCM: live stand-up comedy 7 nights a week.  Find us at the corner of Glen Iris & North Ave, right behind Dancing Goats Coffee.</p>",
+    "settings": {
+      "currency": "USD",
+      "timezone": "America/New_York",
+      "sales_tax": "0.0"
+    },
+    "organization_id": 364,
+    "website": "https://whiplashcomedy.com/",
+    "dashboard_status": 0,
+    "delivery_methods": [
+      {
+        "id": 736,
+        "name": "Will Call"
+      }
+    ]
+  },
+  "current_api_show_count": 4,
+  "matched_upcoming": [
+    {
+      "show_id": 7436372,
+      "source_show_id": 389718,
+      "source_venue_id": 650,
+      "name": "Heavy Hitters of Atlanta Comedy: Opening Weekend",
+      "start_date_time": "2026-10-09T23:00:00Z"
+    },
+    {
+      "show_id": 7436375,
+      "source_show_id": 389719,
+      "source_venue_id": 650,
+      "name": "Heavy Hitters of Atlanta Comedy: Opening Weekend",
+      "start_date_time": "2026-10-10T23:00:00Z"
+    },
+    {
+      "show_id": 7436378,
+      "source_show_id": 389720,
+      "source_venue_id": 650,
+      "name": "Heavy Hitters of Atlanta Comedy: Opening Weekend",
+      "start_date_time": "2026-10-11T23:00:00Z"
+    },
+    {
+      "show_id": 7614186,
+      "source_show_id": 389717,
+      "source_venue_id": 650,
+      "name": "Invitation: Private Grand Opening.",
+      "start_date_time": "2026-10-08T21:30:00Z"
+    }
+  ],
+  "wrong_place": {
+    "id": "ChIJ43tYfapbwokRnkJq38aBk_M",
+    "formattedAddress": "702 Union St, Brooklyn, NY 11215, USA",
+    "location": {
+      "latitude": 40.6760744,
+      "longitude": -73.98008229999999
+    },
+    "websiteUri": "http://www.unionhallny.com/",
+    "displayName": {
+      "text": "Union Hall",
+      "languageCode": "en"
+    }
+  },
+  "whiplash_google_text_search": {},
+  "address_queries": [
+    {
+      "query": "Whiplash Comedy Atlanta",
+      "response": {}
+    },
+    {
+      "query": "650 North Avenue NE Atlanta GA 30308",
+      "response": {
+        "places": [
+          {
+            "id": "ChIJxfSSVxAE9YgRN-t7Ed2RK7o",
+            "formattedAddress": "Ponce City Market Service Building, 650 North Avenue NE, Atlanta, GA 30308, USA",
+            "addressComponents": [
+              {
+                "longText": "Ponce City Market Service Building",
+                "shortText": "Ponce City Market Service Building",
+                "types": [
+                  "premise"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "650",
+                "shortText": "650",
+                "types": [
+                  "street_number"
+                ],
+                "languageCode": "en-US"
+              },
+              {
+                "longText": "North Avenue Northeast",
+                "shortText": "North Avenue NE",
+                "types": [
+                  "route"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Old Fourth Ward",
+                "shortText": "Old Fourth Ward",
+                "types": [
+                  "neighborhood",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Atlanta",
+                "shortText": "Atlanta",
+                "types": [
+                  "locality",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Fulton County",
+                "shortText": "Fulton County",
+                "types": [
+                  "administrative_area_level_2",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Georgia",
+                "shortText": "GA",
+                "types": [
+                  "administrative_area_level_1",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "United States",
+                "shortText": "US",
+                "types": [
+                  "country",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "30308",
+                "shortText": "30308",
+                "types": [
+                  "postal_code"
+                ],
+                "languageCode": "en-US"
+              }
+            ],
+            "location": {
+              "latitude": 33.7713365,
+              "longitude": -84.3667376
+            },
+            "displayName": {
+              "text": "Ponce City Market Service Building",
+              "languageCode": "en"
+            },
+            "primaryType": "premise"
+          }
+        ]
+      }
+    },
+    {
+      "query": "650 North Avenue Suite S210 Atlanta",
+      "response": {
+        "places": [
+          {
+            "id": "Eio2NTAgTm9ydGggQXZlIHMyMTAsIEF0bGFudGEsIEdBIDMwMzU0LCBVU0EiIBoeChYKFAoSCbfAtPRj_fSIETmyzFq3CouTEgRzMjEw",
+            "formattedAddress": "650 North Ave s210, Atlanta, GA 30354, USA",
+            "addressComponents": [
+              {
+                "longText": "s210",
+                "shortText": "s210",
+                "types": [
+                  "subpremise"
+                ],
+                "languageCode": "en-US"
+              },
+              {
+                "longText": "650",
+                "shortText": "650",
+                "types": [
+                  "street_number"
+                ],
+                "languageCode": "en-US"
+              },
+              {
+                "longText": "North Avenue",
+                "shortText": "North Ave",
+                "types": [
+                  "route"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Atlanta",
+                "shortText": "Atlanta",
+                "types": [
+                  "locality",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Fulton County",
+                "shortText": "Fulton County",
+                "types": [
+                  "administrative_area_level_2",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Georgia",
+                "shortText": "GA",
+                "types": [
+                  "administrative_area_level_1",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "United States",
+                "shortText": "US",
+                "types": [
+                  "country",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "30354",
+                "shortText": "30354",
+                "types": [
+                  "postal_code"
+                ],
+                "languageCode": "en-US"
+              }
+            ],
+            "location": {
+              "latitude": 33.665078199999996,
+              "longitude": -84.4107162
+            },
+            "displayName": {
+              "text": "650 North Ave s210"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "html_sha256": [
+    {
+      "url": "https://www.whiplashcomedy.com/",
+      "sha256": "9e44ee1844b4fecd1c1bca905a6fc916b8f8bf3fa18c0ec2531e734d1b8257fb"
+    },
+    {
+      "url": "https://poncecitymarket.com/directory/whiplash-comedy/",
+      "sha256": "25836659c8a72e34a28d3cd4d7e89b3798ca96feb82f1840ef4efa44f6db6d03"
+    }
+  ]
+}
