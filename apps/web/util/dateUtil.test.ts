@@ -174,3 +174,23 @@ describe("formatShowDate — additional suffix cases", () => {
         );
     });
 });
+
+describe("Canadian permanent-time runtime regressions", () => {
+    it.each([
+        ["2026-01-15T20:00:00Z", "America/Edmonton", "1:00 pm"],
+        ["2026-01-15T20:00:00Z", "America/Vancouver", "12:00 pm"],
+        ["2026-10-31T20:00:00Z", "America/Edmonton", "2:00 pm"],
+        ["2026-10-31T20:00:00Z", "America/Vancouver", "1:00 pm"],
+        ["2026-11-01T08:00:00Z", "America/Edmonton", "2:00 am"],
+        ["2026-11-01T09:00:00Z", "America/Vancouver", "2:00 am"],
+        ["2026-12-01T20:00:00Z", "America/Edmonton", "2:00 pm"],
+        ["2026-12-01T20:00:00Z", "America/Vancouver", "1:00 pm"],
+        ["2027-03-14T02:00:00Z", "America/Edmonton", "8:00 pm"],
+        ["2027-03-13T02:00:00Z", "America/Edmonton", "8:00 pm"],
+    ])(
+        "renders stored UTC %s in %s using current runtime rules",
+        (instant, zone, wallTime) => {
+            expect(formatShowDate(instant, zone)).toContain(`at ${wallTime}`);
+        },
+    );
+});

@@ -34,7 +34,8 @@ dependencies = [
     "PyYAML>=6.0",
     "Pillow>=12.2.0",  # floor pinned to patch PSD OOB-write and FITS GZIP decompression-bomb CVEs
     # Time & location
-    "pytz>=2023.3",
+    "pytz>=2026.4",  # Alberta and BC permanent-time rules (IANA 2026c+)
+    "tzdata>=2026.4",  # ZoneInfo data; production sets PYTHONTZPATH="" to prefer this locked wheel
     "python-dateutil>=2.8.0",
     "pgeocode>=0.4.0",  # zip code -> lat/lon for notification distance filtering
     "numpy>=1.24.0",  # required by pgeocode

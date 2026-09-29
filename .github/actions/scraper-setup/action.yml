@@ -54,3 +54,13 @@ runs:
         # subsequent step in the job.
         echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
         echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
+
+    - name: Verify Canadian timezone data
+      shell: bash
+      working-directory: apps/scraper
+      env:
+        # Use the locked tzdata wheel rather than the runner OS database.
+        PYTHONTZPATH: ""
+      run: |
+        python scripts/verify_timezone_data.py
+        echo 'PYTHONTZPATH=' >> "$GITHUB_ENV"

@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "bin/dev",
-        "build": "prisma generate && next build",
+        "build": "node bin/verify-timezone-data.mjs && prisma generate && next build",
         "start": "next start",
         "lint": "eslint \"./**/*.{ts,tsx}\"",
         "lint:fix": "eslint --fix \"./**/*.{ts,tsx}\"",
@@ -19,7 +19,8 @@
         "pretype-check": "prisma generate",
         "type-check": "tsc -b",
         "prepare": "cd ../.. && node apps/web/node_modules/.bin/husky",
-        "audit-fix": "npm audit fix --legacy-peer-deps && echo 'Done. Check git diff apps/web/package-lock.json for implicit transitive version bumps in packages listed in package.json.'"
+        "audit-fix": "npm audit fix --legacy-peer-deps && echo 'Done. Check git diff apps/web/package-lock.json for implicit transitive version bumps in packages listed in package.json.'",
+        "verify:timezones": "node bin/verify-timezone-data.mjs"
     },
     "lint-staged": {
         "**/*.{ts,tsx}": [
@@ -108,5 +109,8 @@
     },
     "overrides": {
         "esbuild": "^0.28.1"
+    },
+    "engines": {
+        "node": "24.x"
     }
 }

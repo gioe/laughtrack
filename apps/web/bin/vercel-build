@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# Fail before migrations when the deployed Node ICU timezone data is stale.
+node bin/verify-timezone-data.mjs
+
 if [[ "${VERCEL_ENV:-}" == "production" ]]; then
     : "${DIRECT_URL:?DIRECT_URL must be set to the direct (non-pooled) Neon URL; prisma migrate deploy hangs on advisory locks over the pooled DATABASE_URL}"
     prisma migrate deploy

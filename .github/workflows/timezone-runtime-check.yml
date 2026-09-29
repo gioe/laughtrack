@@ -1,0 +1,33 @@
+name: Timezone runtime check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/timezone-runtime-check.yml"
+      - ".github/actions/scraper-setup/action.yml"
+      - "apps/scraper/pyproject.toml"
+      - "apps/scraper/uv.lock"
+      - "apps/scraper/scripts/verify_timezone_data.py"
+      - "apps/web/bin/verify-timezone-data.mjs"
+      - "apps/web/package.json"
+      - "apps/web/Dockerfile"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify the production scraper environment
+        uses: ./.github/actions/scraper-setup
+      - name: Set up the supported web runtime
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.21.0"
+      - name: Verify Node ICU behavior
+        run: node apps/web/bin/verify-timezone-data.mjs
