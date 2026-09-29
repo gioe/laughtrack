@@ -9,7 +9,9 @@ vi.mock("@/util/imageUtil", () => ({
     ),
 }));
 vi.mock("zipcodes", async () => {
-    const actual = await vi.importActual<typeof import("zipcodes")>("zipcodes");
+    const actual = await vi.importActual<{
+        default: typeof import("zipcodes");
+    }>("zipcodes");
     return {
         default: {
             ...actual.default,

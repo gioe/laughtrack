@@ -4,7 +4,9 @@ import type { ShowDTO } from "@/objects/class/show/show.interface";
 vi.mock("./findShowsForHome", () => ({ findShowsForHome: vi.fn() }));
 vi.mock("@/lib/db", () => ({ db: { $queryRaw: vi.fn() } }));
 vi.mock("zipcodes", async () => {
-    const actual = await vi.importActual<typeof import("zipcodes")>("zipcodes");
+    const actual = await vi.importActual<{
+        default: typeof import("zipcodes");
+    }>("zipcodes");
     return { default: { ...actual.default, radius: () => ["10801"] } };
 });
 
