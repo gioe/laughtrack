@@ -1,0 +1,153 @@
+{
+  "checked_at": "2026-09-29T17:53:28.500662+00:00",
+  "cutoff_utc": "2026-09-29T17:00:00Z",
+  "club": {
+    "id": 855,
+    "name": "Laugh Tonight Comedy",
+    "address": "Inside Dorrian's Restaurant Outside Newport Mall, 555 Washington Blvd, Jersey City, NJ 07310, USA",
+    "website": "http://www.laughtonightcomedy.com",
+    "popularity": 0.07978583333333332,
+    "zip_code": "",
+    "phone_number": "",
+    "timezone": "America/New_York",
+    "visible": true,
+    "city": "Jersey City",
+    "state": "NJ",
+    "total_shows": 3,
+    "status": "active",
+    "closed_at": null,
+    "has_image": true,
+    "country": "US",
+    "chain_id": null,
+    "club_type": "club",
+    "description": "<p>Laugh Tonight Comedy </p><p>Cornerstone Center For The Arts</p><p>520 E Main Street</p><p>Muncie IN 47305</p>\n\nUpdated by TASK-3029: city/state components parsed from Google Places-backed address",
+    "hours": null,
+    "latitude": 40.7280954,
+    "longitude": -74.034928,
+    "google_place_id": "ChIJ369ARGdXwokRVCaKcxyCCBw",
+    "google_place_attribution": null,
+    "geocode_attempted_at": null,
+    "geocode_attempt_count": 0,
+    "geocode_outcome": null
+  },
+  "sources": [
+    {
+      "id": 294,
+      "club_id": 855,
+      "platform": "seatengine",
+      "scraper_key": "seatengine",
+      "source_url": "http://www.laughtonightcomedy.com",
+      "priority": 0,
+      "enabled": true,
+      "metadata": {
+        "task_1984_canonical_pointer": {
+          "kind": "same_venue_dupe_canonical",
+          "pattern": "C",
+          "platform": "seatengine",
+          "rationale": "This row is the canonical for the same-venue duplicate-club pair resolved by TASK-1984. The duplicate club 449 ('Laugh Tonight Comedy @ Laugh Factory') was hidden and its scraping_source 279 had its seatengine typed id cleared.",
+          "dupe_club_id": 449,
+          "typed_id_kept": 424,
+          "dupe_source_id": 279
+        }
+      },
+      "created_at": "2026-04-21T19:57:12.315022+00:00",
+      "updated_at": "2026-05-06T23:21:47.875641+00:00",
+      "seatengine_id": 424,
+      "eventbrite_id": null,
+      "ticketmaster_id": null,
+      "wix_event_id": null,
+      "ovationtix_id": null,
+      "squadup_id": null,
+      "seatengine_v3_id": null,
+      "source_target_id": null
+    }
+  ],
+  "references": {
+    "club_aliases.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_discovery_profiles.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_image_assets.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "comedians.home_club_id": {
+      "count": 1,
+      "digest": "6d14e219e24633a42c7823f091a7cb1d"
+    },
+    "discovery_show_feature_snapshots.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "email_subscriptions.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "eventbrite_organizer_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "favorite_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "lineup_items.show_id": {
+      "count": 6,
+      "digest": "5df518aa48ce9faf7d12948e107badc6"
+    },
+    "processed_emails.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "production_company_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "saved_shows.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "scraper_run_clubs.club_id": {
+      "count": 138,
+      "digest": "79a729d979a7dd2f5c00ecc628f492c1"
+    },
+    "scraping_sources.club_id": {
+      "count": 1,
+      "digest": "795e3a47ed182c789661a2e6bb95e06b"
+    },
+    "sent_notifications.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "shows.club_id": {
+      "count": 3,
+      "digest": "b6abfde6d16297fbf11d111d1a90a9bd"
+    },
+    "tagged_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "tagged_shows.show_id": {
+      "count": 6,
+      "digest": "d90a36b04a6a0cda46e91fbc75da55af"
+    },
+    "ticket_purchase_click_events.club_id": {
+      "count": 25,
+      "digest": "598babc278346771acae62cc18548b41"
+    },
+    "ticket_purchase_click_events.show_id": {
+      "count": 25,
+      "digest": "598babc278346771acae62cc18548b41"
+    },
+    "tickets.show_id": {
+      "count": 8,
+      "digest": "56bc415445af1969665d702fae1e7e52"
+    }
+  },
+  "upcoming": [],
+  "denials": []
+}

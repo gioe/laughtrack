@@ -1,0 +1,15 @@
+{
+  "reviewed_fields_applied": true,
+  "unrelated_club_fields_preserved": true,
+  "source_disposition_applied": true,
+  "migration_replay_noop": true,
+  "rollback_restores_club_and_source_except_trigger_timestamp": true,
+  "rollback_replay_noop": true,
+  "rejects_identity_drift": true,
+  "rejects_source_drift": true,
+  "rejects_metadata_drift": true,
+  "rollback_refuses_later_location": true,
+  "rollback_refuses_source_reenable": true,
+  "all_changes_rolled_back": true,
+  "checked_at": "2026-09-29T17:49:10.347991+00:00"
+}
