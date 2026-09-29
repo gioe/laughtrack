@@ -1,0 +1,12 @@
+{
+  "applies_reviewed_fields": true,
+  "other_club_fields_unchanged": true,
+  "idempotent_replay": true,
+  "rollback_restores_complete_club": true,
+  "rollback_replay_noop": true,
+  "rejects_identity_drift": true,
+  "rejects_source_drift": true,
+  "rollback_refuses_later_edits": true,
+  "all_changes_rolled_back": true,
+  "checked_at": "2026-09-29T17:21:34.327380+00:00"
+}

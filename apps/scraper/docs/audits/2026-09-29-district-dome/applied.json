@@ -1,0 +1,209 @@
+{
+  "migration": "20260929180000_correct_district_dome_postal",
+  "before_checked_at": "2026-09-29T17:27:04.653327+00:00",
+  "after_checked_at": "2026-09-29T17:29:21.480568+00:00",
+  "after_club": {
+    "id": 554,
+    "name": "District Dome",
+    "address": "21001 N Tatum Blvd, Phoenix, AZ 85050, USA",
+    "website": "https://www.districtdome.com",
+    "popularity": 0,
+    "zip_code": "85050",
+    "phone_number": "",
+    "timezone": "America/Phoenix",
+    "visible": true,
+    "city": "Phoenix",
+    "state": "AZ",
+    "total_shows": 1,
+    "status": "active",
+    "closed_at": null,
+    "has_image": false,
+    "country": "US",
+    "chain_id": null,
+    "club_type": "club",
+    "description": "<h3>CHECK IN AT THE WREN & WOLF COUNTER</h3> <h3>PLEASE NOTE THAT AS WITH ANY CLASSIC FLIGHT, PEANUTS ARE A PART OF YOUR IN-FLIGHT SNACK EXPERIENCE.</h3> <h3>DUE TO THE NATURE OF OUR SERVICE, WE CANNOT GUARANTEE A PEANUT-FREE ENVIRONMENT. </h3> <h3>GUESTS WITH SEVERE PEANUT ALLERGIES ARE ADVISED TO EXERCISE CAUTION.</h3> <hr /> <p>Embark on a 90-minute journey back to the golden age of air travel at Carry On! </p> <p>Step into our meticulously designed 1970s aircraft cabin and indulge in vintage-inspired cocktails, each flight transporting you to iconic destinations, with menus that change annually to reflect the flavors and spirits of our departure and arrival points. </p> <p>Your journey begins with a welcome cocktail, accompanied by a serving of our signature in-flight snacks: peanuts and shortbread cookies, all included with your ticket. </p> <p>Additional beverages can be purchased throughout your adventure, but please note, there is no food service beyond the complimentary snack\u2026\n\nUpdated by TASK-3029: city/state components parsed from Google Places-backed address",
+    "hours": null,
+    "latitude": 33.676398899999995,
+    "longitude": -111.97365699999999,
+    "google_place_id": "ChIJ_y7Ne-BwK4cR7wtdsKrbYgw",
+    "google_place_attribution": null,
+    "geocode_attempted_at": null,
+    "geocode_attempt_count": 0,
+    "geocode_outcome": null
+  },
+  "before_references": {
+    "club_aliases.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_discovery_profiles.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_image_assets.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "comedians.home_club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "discovery_show_feature_snapshots.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "email_subscriptions.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "eventbrite_organizer_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "favorite_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "lineup_items.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "processed_emails.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "production_company_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "saved_shows.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "scraper_run_clubs.club_id": {
+      "count": 138,
+      "digest": "2a298d2a3c5910f2df3030fbd67c3a88"
+    },
+    "scraping_sources.club_id": {
+      "count": 1,
+      "digest": "70aa40936861ad5da750320d7d6e988f"
+    },
+    "sent_notifications.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "shows.club_id": {
+      "count": 1,
+      "digest": "208a91839b595d3b46c0783359b9fbc8"
+    },
+    "tagged_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "tagged_shows.show_id": {
+      "count": 3,
+      "digest": "8f00630bd6e717050e3be71a0faacadd"
+    },
+    "ticket_purchase_click_events.club_id": {
+      "count": 23,
+      "digest": "e1bb55441587d44a23acf96d11eff4a5"
+    },
+    "ticket_purchase_click_events.show_id": {
+      "count": 23,
+      "digest": "e1bb55441587d44a23acf96d11eff4a5"
+    },
+    "tickets.show_id": {
+      "count": 11,
+      "digest": "c83b4f946ec18759af34fc64e868eb03"
+    }
+  },
+  "after_references": {
+    "club_aliases.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_discovery_profiles.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_image_assets.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "comedians.home_club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "discovery_show_feature_snapshots.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "email_subscriptions.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "eventbrite_organizer_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "favorite_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "lineup_items.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "processed_emails.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "production_company_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "saved_shows.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "scraper_run_clubs.club_id": {
+      "count": 138,
+      "digest": "2a298d2a3c5910f2df3030fbd67c3a88"
+    },
+    "scraping_sources.club_id": {
+      "count": 1,
+      "digest": "70aa40936861ad5da750320d7d6e988f"
+    },
+    "sent_notifications.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "shows.club_id": {
+      "count": 1,
+      "digest": "208a91839b595d3b46c0783359b9fbc8"
+    },
+    "tagged_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "tagged_shows.show_id": {
+      "count": 3,
+      "digest": "8f00630bd6e717050e3be71a0faacadd"
+    },
+    "ticket_purchase_click_events.club_id": {
+      "count": 23,
+      "digest": "e1bb55441587d44a23acf96d11eff4a5"
+    },
+    "ticket_purchase_click_events.show_id": {
+      "count": 23,
+      "digest": "e1bb55441587d44a23acf96d11eff4a5"
+    },
+    "tickets.show_id": {
+      "count": 11,
+      "digest": "c83b4f946ec18759af34fc64e868eb03"
+    }
+  },
+  "sources_unchanged": true,
+  "upcoming_before": 1,
+  "upcoming_after": 1
+}
