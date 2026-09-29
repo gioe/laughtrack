@@ -1,0 +1,31 @@
+{
+  "all_historical_fk_counts_and_fingerprints_unchanged": true,
+  "source_count_preserved": true,
+  "only_reviewed_club_and_source_fields_changed": true,
+  "actual_national_upsert_preserves_current_source_quarantine": true,
+  "migration_replay_after_national_upsert": true,
+  "scheduler_excludes_quarantined_source": true,
+  "prisma_migration_applied": true,
+  "hypothetical_new_postal_payload_keeps_hidden_disabled_but_backfills_city_state_zip": true,
+  "public_club": {
+    "id": 855,
+    "name": "Laugh Tonight Comedy",
+    "imageUrl": "/placeholders/club-placeholder.svg",
+    "heroImageUrl": "",
+    "website": "https://www.laughtonightcomedy.com",
+    "address": "",
+    "zipCode": "",
+    "phoneNumber": "",
+    "latitude": null,
+    "longitude": null,
+    "relatedVenues": []
+  },
+  "public_show_response": {
+    "error": "Show not found"
+  },
+  "public_show_id": 4340528,
+  "public_club_http_status": 200,
+  "public_show_http_status": 404,
+  "ingestion_replay_rolled_back": true,
+  "checked_at": "2026-09-29T17:54:06.131778+00:00"
+}
