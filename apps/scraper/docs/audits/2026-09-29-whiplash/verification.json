@@ -1,0 +1,33 @@
+{
+  "all_fk_counts_and_fingerprints_unchanged": true,
+  "source_unchanged": true,
+  "only_nine_reviewed_fields_changed": true,
+  "actual_national_upsert_preserves_correction_against_stale_brooklyn_metadata": true,
+  "migration_replay_after_national_upsert": true,
+  "scheduled_ingestion_retains_visible_club": true,
+  "prisma_migration_applied": true,
+  "public_club": {
+    "id": 1347,
+    "name": "Whiplash Comedy",
+    "imageUrl": "/placeholders/club-placeholder.svg",
+    "heroImageUrl": "",
+    "website": "https://whiplashcomedy.com/",
+    "address": "650 North Avenue NE, Suite S210, Atlanta, GA 30308, USA",
+    "zipCode": "30308",
+    "phoneNumber": "",
+    "latitude": 33.7713365,
+    "longitude": -84.3667376,
+    "relatedVenues": []
+  },
+  "public_show_club": {
+    "id": 1347,
+    "name": "Whiplash Comedy",
+    "address": "650 North Avenue NE, Suite S210, Atlanta, GA 30308, USA",
+    "imageUrl": "/placeholders/club-placeholder.svg",
+    "timezone": "America/New_York"
+  },
+  "public_show_id": 7436372,
+  "public_http_status": 200,
+  "ingestion_replay_rolled_back": true,
+  "checked_at": "2026-09-29T15:39:35.617996+00:00"
+}
