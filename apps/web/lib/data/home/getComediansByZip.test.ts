@@ -32,11 +32,15 @@ vi.mock("@/lib/data/comedian/imageAssets", () => ({
         },
     ),
 }));
-vi.mock("zipcodes", () => ({
-    default: {
-        radius: vi.fn(),
-    },
-}));
+vi.mock("zipcodes", async () => {
+    const actual = await vi.importActual<typeof import("zipcodes")>("zipcodes");
+    return {
+        default: {
+            ...actual.default,
+            radius: vi.fn(),
+        },
+    };
+});
 
 import { getComediansByZip } from "./getComediansByZip";
 import { db } from "@/lib/db";

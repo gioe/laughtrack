@@ -8,11 +8,15 @@ vi.mock("@/lib/db", () => ({
         $queryRaw: vi.fn(() => Promise.resolve([])),
     },
 }));
-vi.mock("zipcodes", () => ({
-    default: {
-        radius: vi.fn(() => ["10801", "10802"]),
-    },
-}));
+vi.mock("zipcodes", async () => {
+    const actual = await vi.importActual<typeof import("zipcodes")>("zipcodes");
+    return {
+        default: {
+            ...actual.default,
+            radius: vi.fn(() => ["10801", "10802"]),
+        },
+    };
+});
 
 import {
     getShowsNearZip,

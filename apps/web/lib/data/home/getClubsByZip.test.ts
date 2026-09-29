@@ -8,11 +8,15 @@ vi.mock("@/util/imageUtil", () => ({
         (name: string) => `https://cdn.example.com/${name}.jpg`,
     ),
 }));
-vi.mock("zipcodes", () => ({
-    default: {
-        radius: vi.fn(() => ["10801", "10802"]),
-    },
-}));
+vi.mock("zipcodes", async () => {
+    const actual = await vi.importActual<typeof import("zipcodes")>("zipcodes");
+    return {
+        default: {
+            ...actual.default,
+            radius: vi.fn(() => ["10801", "10802"]),
+        },
+    };
+});
 
 import { getClubsByZip } from "./getClubsByZip";
 import { db } from "@/lib/db";

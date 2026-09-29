@@ -3,7 +3,10 @@ import type { ShowDTO } from "@/objects/class/show/show.interface";
 
 vi.mock("./findShowsForHome", () => ({ findShowsForHome: vi.fn() }));
 vi.mock("@/lib/db", () => ({ db: { $queryRaw: vi.fn() } }));
-vi.mock("zipcodes", () => ({ default: { radius: () => ["10801"] } }));
+vi.mock("zipcodes", async () => {
+    const actual = await vi.importActual<typeof import("zipcodes")>("zipcodes");
+    return { default: { ...actual.default, radius: () => ["10801"] } };
+});
 
 import { findShowsForHome } from "./findShowsForHome";
 import { db } from "@/lib/db";
