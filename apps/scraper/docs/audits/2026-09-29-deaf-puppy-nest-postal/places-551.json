@@ -1,0 +1,81 @@
+{
+  "checked_at": "2026-09-29T19:36:48.063019+00:00",
+  "pages": [],
+  "places": [],
+  "experiences": [],
+  "existing_place": {
+    "id": "ChIJ56C9BrpBkIARwR05O3V4F3M",
+    "formattedAddress": "127 N Main St, Manteca, CA 95336, USA",
+    "addressComponents": [
+      {
+        "longText": "127",
+        "shortText": "127",
+        "types": [
+          "street_number"
+        ],
+        "languageCode": "en-US"
+      },
+      {
+        "longText": "North Main Street",
+        "shortText": "N Main St",
+        "types": [
+          "route"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Manteca",
+        "shortText": "Manteca",
+        "types": [
+          "locality",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "San Joaquin County",
+        "shortText": "San Joaquin County",
+        "types": [
+          "administrative_area_level_2",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "California",
+        "shortText": "CA",
+        "types": [
+          "administrative_area_level_1",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "United States",
+        "shortText": "US",
+        "types": [
+          "country",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "95336",
+        "shortText": "95336",
+        "types": [
+          "postal_code"
+        ],
+        "languageCode": "en-US"
+      }
+    ],
+    "location": {
+      "latitude": 37.7980935,
+      "longitude": -121.2168019
+    },
+    "websiteUri": "http://deafpuppyclub.com/",
+    "displayName": {
+      "text": "Deaf Puppy Comedy Club/Bar and Grill",
+      "languageCode": "en"
+    }
+  }
+}

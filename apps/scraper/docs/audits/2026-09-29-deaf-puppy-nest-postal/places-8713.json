@@ -1,0 +1,90 @@
+{
+  "checked_at": "2026-09-29T19:36:48.063018+00:00",
+  "pages": [],
+  "places": [],
+  "experiences": [],
+  "existing_place": {
+    "id": "ChIJe4VjWzaPOIgRjuXnR1D1PQA",
+    "formattedAddress": "2643 N High St, Columbus, OH 43202, USA",
+    "addressComponents": [
+      {
+        "longText": "2643",
+        "shortText": "2643",
+        "types": [
+          "street_number"
+        ],
+        "languageCode": "en-US"
+      },
+      {
+        "longText": "North High Street",
+        "shortText": "N High St",
+        "types": [
+          "route"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Tuttle Park",
+        "shortText": "Tuttle Park",
+        "types": [
+          "neighborhood",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Columbus",
+        "shortText": "Columbus",
+        "types": [
+          "locality",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Franklin County",
+        "shortText": "Franklin County",
+        "types": [
+          "administrative_area_level_2",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Ohio",
+        "shortText": "OH",
+        "types": [
+          "administrative_area_level_1",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "United States",
+        "shortText": "US",
+        "types": [
+          "country",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "43202",
+        "shortText": "43202",
+        "types": [
+          "postal_code"
+        ],
+        "languageCode": "en-US"
+      }
+    ],
+    "location": {
+      "latitude": 40.016155999999995,
+      "longitude": -83.0122253
+    },
+    "websiteUri": "https://nesttheatre.com/",
+    "displayName": {
+      "text": "The Nest Theatre",
+      "languageCode": "en"
+    }
+  }
+}

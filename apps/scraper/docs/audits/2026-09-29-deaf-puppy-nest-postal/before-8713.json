@@ -1,0 +1,362 @@
+{
+  "checked_at": "2026-09-29T19:36:47.423810+00:00",
+  "cutoff_utc": "2026-09-29T19:35:00Z",
+  "club": {
+    "id": 8713,
+    "name": "The Nest Theatre",
+    "address": "2643 N High St, Columbus, OH 43202, USA",
+    "website": "https://nesttheatre.com/",
+    "popularity": 0.725404,
+    "zip_code": null,
+    "phone_number": "",
+    "timezone": "America/New_York",
+    "visible": true,
+    "city": "Columbus",
+    "state": "OH",
+    "total_shows": 108,
+    "status": "active",
+    "closed_at": null,
+    "has_image": false,
+    "country": "US",
+    "chain_id": null,
+    "club_type": "club",
+    "description": "TASK-3032 coordinate backfill: coordinates resolved from Google Places existing_google_place_id for place_id=ChIJe4VjWzaPOIgRjuXnR1D1PQA; accepted existing google_place_id details",
+    "hours": null,
+    "latitude": 40.016155999999995,
+    "longitude": -83.0122253,
+    "google_place_id": "ChIJe4VjWzaPOIgRjuXnR1D1PQA",
+    "google_place_attribution": null,
+    "geocode_attempted_at": null,
+    "geocode_attempt_count": 0,
+    "geocode_outcome": null
+  },
+  "sources": [
+    {
+      "id": 5863,
+      "club_id": 8713,
+      "platform": "custom",
+      "scraper_key": "vbo_tickets",
+      "source_url": "https://plugin.vbotickets.com/plugin/loadplugin?siteid=5D584EB6-2A49-4AFD-9430-259D26127F0B&page=ListEvents",
+      "priority": 0,
+      "enabled": true,
+      "metadata": {
+        "category_filter": "Live Shows"
+      },
+      "created_at": "2026-06-16T01:16:04.338331+00:00",
+      "updated_at": "2026-06-17T22:31:21.017599+00:00",
+      "seatengine_id": null,
+      "eventbrite_id": null,
+      "ticketmaster_id": null,
+      "wix_event_id": null,
+      "ovationtix_id": null,
+      "squadup_id": null,
+      "seatengine_v3_id": null,
+      "source_target_id": null
+    }
+  ],
+  "references": {
+    "club_aliases.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_discovery_profiles.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_image_assets.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "comedians.home_club_id": {
+      "count": 1,
+      "digest": "fb2a8c5536260138e7ce8d4c2ef53fc1"
+    },
+    "discovery_show_feature_snapshots.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "email_subscriptions.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "eventbrite_organizer_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "favorite_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "lineup_items.show_id": {
+      "count": 5,
+      "digest": "751736dc1be5d817ce5cb70ef95d4997"
+    },
+    "processed_emails.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "production_company_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "saved_shows.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "scraper_run_clubs.club_id": {
+      "count": 118,
+      "digest": "3c9fc0622f254f192ac9d54713885170"
+    },
+    "scraping_sources.club_id": {
+      "count": 1,
+      "digest": "7cc9d9e5f4e466706c2bbda560c2c7cc"
+    },
+    "sent_notifications.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "shows.club_id": {
+      "count": 108,
+      "digest": "57cc4f88bc0f54500bdf356c205ffe66"
+    },
+    "tagged_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "tagged_shows.show_id": {
+      "count": 303,
+      "digest": "e14e36582aad6689748df692d6c8e75a"
+    },
+    "ticket_purchase_click_events.club_id": {
+      "count": 1542,
+      "digest": "a03fea2e23aeb2a38fc4db63e7b996f6"
+    },
+    "ticket_purchase_click_events.show_id": {
+      "count": 1399,
+      "digest": "36a8e82f9f13eb7543646ad2aaf0b704"
+    },
+    "tickets.show_id": {
+      "count": 108,
+      "digest": "8c7f8fceff478fb34facf78fb52ee29f"
+    }
+  },
+  "upcoming": [
+    {
+      "id": 5803181,
+      "name": "Rec League Show!",
+      "date": "2026-09-30 23:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=197942"
+    },
+    {
+      "id": 6402965,
+      "name": "JAMplification Night",
+      "date": "2026-10-08 00:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=135523"
+    },
+    {
+      "id": 6402968,
+      "name": "HERE: the (Improvised) Musical",
+      "date": "2026-10-10 00:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=133953"
+    },
+    {
+      "id": 6642849,
+      "name": "Intro to Clowning Showcase",
+      "date": "2026-10-03 23:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=207407"
+    },
+    {
+      "id": 6932759,
+      "name": "Antiques Road Show (& Tell)",
+      "date": "2026-10-08 23:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=172515"
+    },
+    {
+      "id": 7034028,
+      "name": "JTS Brown JAM",
+      "date": "2026-09-30 00:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=208189"
+    },
+    {
+      "id": 7155038,
+      "name": "One-Time Only: J3D Improv!",
+      "date": "2026-10-03 00:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209373"
+    },
+    {
+      "id": 7155043,
+      "name": "Armando CBus! Improv with a Stand-Up Guest!",
+      "date": "2026-10-10 23:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209371"
+    },
+    {
+      "id": 7155044,
+      "name": "Improv Double Feature",
+      "date": "2026-10-15 23:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=208934"
+    },
+    {
+      "id": 7344024,
+      "name": "Cagematch Improv Contest",
+      "date": "2026-10-03 01:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=136544"
+    },
+    {
+      "id": 7344025,
+      "name": "Cagematch Improv Contest",
+      "date": "2026-10-10 01:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=136544"
+    },
+    {
+      "id": 7344026,
+      "name": "Cagematch Improv Contest",
+      "date": "2026-10-17 01:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=136544"
+    },
+    {
+      "id": 7344027,
+      "name": "Cagematch Improv Contest",
+      "date": "2026-10-31 01:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=136544"
+    },
+    {
+      "id": 7344031,
+      "name": "Roll for Revenge",
+      "date": "2026-10-01 23:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=175282"
+    },
+    {
+      "id": 7344034,
+      "name": "Shortform JAM",
+      "date": "2026-10-06 00:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=208191"
+    },
+    {
+      "id": 7344039,
+      "name": "Improv Duos",
+      "date": "2026-10-14 23:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209608"
+    },
+    {
+      "id": 7344041,
+      "name": "ANONYMOUS Improv - the Secrets show!",
+      "date": "2026-10-17 00:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=133954"
+    },
+    {
+      "id": 7344042,
+      "name": "(mostly) Improv Duos",
+      "date": "2026-10-21 23:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209612"
+    },
+    {
+      "id": 7402861,
+      "name": "JAMplification Night",
+      "date": "2026-11-05 01:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=135523"
+    },
+    {
+      "id": 7402862,
+      "name": "JAMplification Night",
+      "date": "2026-12-03 01:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=135523"
+    },
+    {
+      "id": 7402870,
+      "name": "Improv Triple Dipper",
+      "date": "2026-11-05 00:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209756"
+    },
+    {
+      "id": 7402871,
+      "name": "(mostly) Improv Duos",
+      "date": "2026-11-19 00:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209762"
+    },
+    {
+      "id": 7402872,
+      "name": "(mostly) Improv Duos",
+      "date": "2026-12-10 00:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209764"
+    },
+    {
+      "id": 7503476,
+      "name": "BattleAxe Fest: Opening Night Show 1!",
+      "date": "2026-10-22 23:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209850"
+    },
+    {
+      "id": 7503477,
+      "name": "BattleAxe Fest Show 2: 7pm 10/23 Anna Przy",
+      "date": "2026-10-23 23:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209852"
+    },
+    {
+      "id": 7503478,
+      "name": "BattleAxe Fest Show 3: 7pm 10/23 Stand-Up + Improv",
+      "date": "2026-10-23 23:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209853"
+    },
+    {
+      "id": 7503479,
+      "name": "BattleAxe Fest Show 4: 8:30pm 10/23 Stand-Up + defrancisCO!",
+      "date": "2026-10-24 00:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209854"
+    },
+    {
+      "id": 7503480,
+      "name": "BattleAxe Fest Show 5: 10:00pm 10/23 Tattoos & Tarot with Allison McBane",
+      "date": "2026-10-24 02:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209855"
+    },
+    {
+      "id": 7503481,
+      "name": "BattleAxe Fest Show 6: 1pm 10/24 Storyhour",
+      "date": "2026-10-24 17:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209873"
+    },
+    {
+      "id": 7503482,
+      "name": "BattleAxe Fest Show 7: 2:30pm 10/24 What the What?!: Perimenopause",
+      "date": "2026-10-24 18:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209874"
+    },
+    {
+      "id": 7503483,
+      "name": "BattleAxe Fest Show 8: 4pm 10/24 Drunk PowerPoint",
+      "date": "2026-10-24 20:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209879"
+    },
+    {
+      "id": 7503484,
+      "name": "BattleAxe Fest Show 9: 6:00pm 10/24 Spice Up with Tanya Vora",
+      "date": "2026-10-24 22:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209882"
+    },
+    {
+      "id": 7503485,
+      "name": "BattleAxe Fest Show 11: 7:30pm 10/24 OOPS All Stand-Ups!",
+      "date": "2026-10-24 23:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209887"
+    },
+    {
+      "id": 7503486,
+      "name": "BattleAxe Fest Show 12: 7:30pm 10/24 Stand-Up + Improv!",
+      "date": "2026-10-24 23:30:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209890"
+    },
+    {
+      "id": 7503487,
+      "name": "BattleAxe Fest Show 14: 9:00pm 10/24 Stand-Up + Improv!",
+      "date": "2026-10-25 01:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209894"
+    },
+    {
+      "id": 7534884,
+      "name": "BattleAxe Fest Show 10: 6:00pm 10/24 Stand-Up + Improv!",
+      "date": "2026-10-24 22:00:00+00:00",
+      "show_page_url": "https://plugin.vbotickets.com/v5.0/event.asp?eid=209949"
+    }
+  ],
+  "denials": []
+}
