@@ -1,0 +1,209 @@
+{
+  "migration": "20260929170000_correct_rozzie_relocation",
+  "before_checked_at": "2026-09-29T16:46:26.892867+00:00",
+  "after_checked_at": "2026-09-29T16:46:50.544139+00:00",
+  "after_club": {
+    "id": 10970,
+    "name": "The Rozzie Square Theater",
+    "address": "18 Corinth St, Roslindale, MA 02131",
+    "website": "http://www.rozziesquaretheater.com/",
+    "popularity": 0.65,
+    "zip_code": "02131",
+    "phone_number": "",
+    "timezone": "America/New_York",
+    "visible": true,
+    "city": "Boston",
+    "state": "MA",
+    "total_shows": 144,
+    "status": "active",
+    "closed_at": null,
+    "has_image": false,
+    "country": null,
+    "chain_id": null,
+    "club_type": "club",
+    "description": "Live Comedy. Improv Classes. Private events. Boston\u2019s Home for Comedy. Home to ComedySportz in New England; featuring local and national talent.",
+    "hours": null,
+    "latitude": 42.286516,
+    "longitude": -71.13004409999999,
+    "google_place_id": "ChIJRVOdn8x-44kRtXtU9mgi-jE",
+    "google_place_attribution": null,
+    "geocode_attempted_at": null,
+    "geocode_attempt_count": 0,
+    "geocode_outcome": null
+  },
+  "before_references": {
+    "club_aliases.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_discovery_profiles.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_image_assets.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "comedians.home_club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "discovery_show_feature_snapshots.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "email_subscriptions.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "eventbrite_organizer_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "favorite_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "lineup_items.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "processed_emails.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "production_company_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "saved_shows.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "scraper_run_clubs.club_id": {
+      "count": 119,
+      "digest": "813440d5c27f3e608fec03f815e97aa0"
+    },
+    "scraping_sources.club_id": {
+      "count": 1,
+      "digest": "fec2c68546caaaae53d2260f180d555b"
+    },
+    "sent_notifications.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "shows.club_id": {
+      "count": 144,
+      "digest": "146ef3bc141d3ab80d0e67a30f8f9177"
+    },
+    "tagged_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "tagged_shows.show_id": {
+      "count": 243,
+      "digest": "981a7bb0788577a0eca4352f9ba73e3e"
+    },
+    "ticket_purchase_click_events.club_id": {
+      "count": 1577,
+      "digest": "07708edc01d400a9fb411c36ac9b49e9"
+    },
+    "ticket_purchase_click_events.show_id": {
+      "count": 1577,
+      "digest": "07708edc01d400a9fb411c36ac9b49e9"
+    },
+    "tickets.show_id": {
+      "count": 144,
+      "digest": "6e2c54ad9140d60f72a222a81445b696"
+    }
+  },
+  "after_references": {
+    "club_aliases.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_discovery_profiles.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_image_assets.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "comedians.home_club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "discovery_show_feature_snapshots.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "email_subscriptions.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "eventbrite_organizer_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "favorite_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "lineup_items.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "processed_emails.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "production_company_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "saved_shows.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "scraper_run_clubs.club_id": {
+      "count": 119,
+      "digest": "813440d5c27f3e608fec03f815e97aa0"
+    },
+    "scraping_sources.club_id": {
+      "count": 1,
+      "digest": "fec2c68546caaaae53d2260f180d555b"
+    },
+    "sent_notifications.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "shows.club_id": {
+      "count": 144,
+      "digest": "146ef3bc141d3ab80d0e67a30f8f9177"
+    },
+    "tagged_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "tagged_shows.show_id": {
+      "count": 243,
+      "digest": "981a7bb0788577a0eca4352f9ba73e3e"
+    },
+    "ticket_purchase_click_events.club_id": {
+      "count": 1577,
+      "digest": "07708edc01d400a9fb411c36ac9b49e9"
+    },
+    "ticket_purchase_click_events.show_id": {
+      "count": 1577,
+      "digest": "07708edc01d400a9fb411c36ac9b49e9"
+    },
+    "tickets.show_id": {
+      "count": 144,
+      "digest": "6e2c54ad9140d60f72a222a81445b696"
+    }
+  },
+  "sources_unchanged": true,
+  "upcoming_before": 58,
+  "upcoming_after": 58
+}

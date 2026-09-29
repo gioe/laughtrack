@@ -1,0 +1,14 @@
+{
+  "before": {
+    "address": "5 Basile St, Roslindale, MA 02131",
+    "zip_code": null,
+    "latitude": 42.2869269,
+    "longitude": -71.1272674
+  },
+  "after": {
+    "address": "18 Corinth St, Roslindale, MA 02131",
+    "zip_code": "02131",
+    "latitude": 42.286516,
+    "longitude": -71.13004409999999
+  }
+}
