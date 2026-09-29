@@ -1,0 +1,494 @@
+{
+  "checked_at": "2026-09-29T16:30:31.420951+00:00",
+  "cutoff_utc": "2026-09-29T16:30:00Z",
+  "club": {
+    "id": 10970,
+    "name": "The Rozzie Square Theater",
+    "address": "5 Basile St, Roslindale, MA 02131",
+    "website": "http://www.rozziesquaretheater.com/",
+    "popularity": 0.65,
+    "zip_code": null,
+    "phone_number": "",
+    "timezone": "America/New_York",
+    "visible": true,
+    "city": "Boston",
+    "state": "MA",
+    "total_shows": 144,
+    "status": "active",
+    "closed_at": null,
+    "has_image": false,
+    "country": null,
+    "chain_id": null,
+    "club_type": "club",
+    "description": "Live Comedy. Improv Classes. Private events. Boston\u2019s Home for Comedy. Home to ComedySportz in New England; featuring local and national talent.",
+    "hours": null,
+    "latitude": 42.2869269,
+    "longitude": -71.1272674,
+    "google_place_id": "ChIJRVOdn8x-44kRtXtU9mgi-jE",
+    "google_place_attribution": null,
+    "geocode_attempted_at": null,
+    "geocode_attempt_count": 0,
+    "geocode_outcome": null
+  },
+  "sources": [
+    {
+      "id": 6820,
+      "club_id": 10970,
+      "platform": "custom",
+      "scraper_key": "anyroad",
+      "source_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater",
+      "priority": 0,
+      "enabled": true,
+      "metadata": {
+        "plugin_id": "rozziesquaretheater"
+      },
+      "created_at": "2026-06-22T17:26:04.765952+00:00",
+      "updated_at": "2026-06-22T17:26:04.765952+00:00",
+      "seatengine_id": null,
+      "eventbrite_id": null,
+      "ticketmaster_id": null,
+      "wix_event_id": null,
+      "ovationtix_id": null,
+      "squadup_id": null,
+      "seatengine_v3_id": null,
+      "source_target_id": null
+    }
+  ],
+  "references": {
+    "club_aliases.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_discovery_profiles.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "club_image_assets.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "comedians.home_club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "discovery_show_feature_snapshots.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "email_subscriptions.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "eventbrite_organizer_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "favorite_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "lineup_items.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "processed_emails.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "production_company_venues.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "saved_shows.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "scraper_run_clubs.club_id": {
+      "count": 119,
+      "digest": "813440d5c27f3e608fec03f815e97aa0"
+    },
+    "scraping_sources.club_id": {
+      "count": 1,
+      "digest": "fec2c68546caaaae53d2260f180d555b"
+    },
+    "sent_notifications.show_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "shows.club_id": {
+      "count": 144,
+      "digest": "146ef3bc141d3ab80d0e67a30f8f9177"
+    },
+    "tagged_clubs.club_id": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "tagged_shows.show_id": {
+      "count": 243,
+      "digest": "981a7bb0788577a0eca4352f9ba73e3e"
+    },
+    "ticket_purchase_click_events.club_id": {
+      "count": 1577,
+      "digest": "07708edc01d400a9fb411c36ac9b49e9"
+    },
+    "ticket_purchase_click_events.show_id": {
+      "count": 1577,
+      "digest": "07708edc01d400a9fb411c36ac9b49e9"
+    },
+    "tickets.show_id": {
+      "count": 144,
+      "digest": "6e2c54ad9140d60f72a222a81445b696"
+    }
+  },
+  "upcoming": [
+    {
+      "id": 3179461,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-10-03 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179462,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-10-10 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179463,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-10-17 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179464,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-10-24 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179465,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-10-31 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179466,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-11-07 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179467,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-11-14 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179468,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-11-21 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179469,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-11-28 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179470,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-12-05 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179471,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-12-12 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179472,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-12-19 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179473,
+      "name": "ComedySportz\u00ae",
+      "date": "2026-12-26 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179474,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-01-02 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179475,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-01-09 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179476,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-01-16 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179477,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-01-23 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179478,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-01-30 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179479,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-02-06 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179480,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-02-13 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179481,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-02-20 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179482,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-02-27 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179483,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-03-06 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179484,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-03-13 23:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179485,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-03-20 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179486,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-03-27 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179487,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-04-03 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179488,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-04-10 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179489,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-04-17 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179490,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-04-24 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179491,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-05-01 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179492,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-05-08 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179493,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-05-15 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179494,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-05-22 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179495,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-05-29 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179496,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-06-05 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179497,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-06-12 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179498,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-06-19 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3179503,
+      "name": "Uncomposed!",
+      "date": "2026-10-25 00:30:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/uncomposed-your-town-the-musical?lang=en-US"
+    },
+    {
+      "id": 3179504,
+      "name": "Uncomposed!",
+      "date": "2026-11-29 01:30:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/uncomposed-your-town-the-musical?lang=en-US"
+    },
+    {
+      "id": 3179527,
+      "name": "Riot Improv Mainstage: Stories to Scenes",
+      "date": "2026-10-18 00:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US"
+    },
+    {
+      "id": 3179528,
+      "name": "Riot Improv Mainstage: Stories to Scenes",
+      "date": "2026-11-22 01:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US"
+    },
+    {
+      "id": 3179529,
+      "name": "Riot Improv Mainstage: Stories to Scenes",
+      "date": "2026-12-20 01:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US"
+    },
+    {
+      "id": 3179539,
+      "name": "Riot Improv: Monthly Special",
+      "date": "2026-10-04 00:30:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-monthly-special?lang=en-US"
+    },
+    {
+      "id": 3179540,
+      "name": "Riot Improv: Monthly Special",
+      "date": "2026-11-08 01:30:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-monthly-special?lang=en-US"
+    },
+    {
+      "id": 3179541,
+      "name": "Riot Improv: Monthly Special",
+      "date": "2026-12-06 01:30:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-monthly-special?lang=en-US"
+    },
+    {
+      "id": 3179545,
+      "name": "Level 1B Improv Showcase",
+      "date": "2026-11-06 01:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US"
+    },
+    {
+      "id": 3179547,
+      "name": "Level 3B Improv Showcase",
+      "date": "2026-11-24 01:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-3b-improv-showcase?lang=en-US"
+    },
+    {
+      "id": 3179550,
+      "name": "Showcase show: Level 2A Improv",
+      "date": "2026-11-15 19:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-2a-improv-showcase?lang=en-US"
+    },
+    {
+      "id": 3558371,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-06-26 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3789139,
+      "name": "ComedySportz\u00ae",
+      "date": "2027-07-03 22:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+    },
+    {
+      "id": 3789152,
+      "name": "Riot Improv Mainstage: Stories to Scenes",
+      "date": "2026-10-17 13:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US"
+    },
+    {
+      "id": 3789159,
+      "name": "Uncomposed!",
+      "date": "2026-10-24 13:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/uncomposed-your-town-the-musical?lang=en-US"
+    },
+    {
+      "id": 3789162,
+      "name": "Riot Improv: Monthly Special",
+      "date": "2026-10-03 13:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-monthly-special?lang=en-US"
+    },
+    {
+      "id": 3789163,
+      "name": "Riot Improv: Monthly Special",
+      "date": "2026-11-07 14:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-monthly-special?lang=en-US"
+    },
+    {
+      "id": 3789169,
+      "name": "Level 1B Improv Showcase",
+      "date": "2026-11-05 14:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US"
+    },
+    {
+      "id": 3789171,
+      "name": "Level 3B Improv Showcase",
+      "date": "2026-11-23 14:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-3b-improv-showcase?lang=en-US"
+    },
+    {
+      "id": 3789176,
+      "name": "Showcase show: Level 2A Improv",
+      "date": "2026-11-15 14:00:00+00:00",
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-2a-improv-showcase?lang=en-US"
+    }
+  ],
+  "denials": []
+}

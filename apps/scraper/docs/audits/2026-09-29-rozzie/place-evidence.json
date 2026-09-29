@@ -1,0 +1,269 @@
+{
+  "checked_at": "2026-09-29T16:36:10.812528+00:00",
+  "existing_place": {
+    "id": "ChIJRVOdn8x-44kRtXtU9mgi-jE",
+    "formattedAddress": "18 Corinth St, Roslindale, MA 02131, USA",
+    "addressComponents": [
+      {
+        "longText": "18",
+        "shortText": "18",
+        "types": [
+          "street_number"
+        ],
+        "languageCode": "en-US"
+      },
+      {
+        "longText": "Corinth Street",
+        "shortText": "Corinth St",
+        "types": [
+          "route"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Roslindale",
+        "shortText": "Roslindale",
+        "types": [
+          "neighborhood",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Boston",
+        "shortText": "Boston",
+        "types": [
+          "locality",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Suffolk County",
+        "shortText": "Suffolk County",
+        "types": [
+          "administrative_area_level_2",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "Massachusetts",
+        "shortText": "MA",
+        "types": [
+          "administrative_area_level_1",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "United States",
+        "shortText": "US",
+        "types": [
+          "country",
+          "political"
+        ],
+        "languageCode": "en"
+      },
+      {
+        "longText": "02131",
+        "shortText": "02131",
+        "types": [
+          "postal_code"
+        ],
+        "languageCode": "en-US"
+      }
+    ],
+    "location": {
+      "latitude": 42.286516,
+      "longitude": -71.13004409999999
+    },
+    "websiteUri": "http://www.rozziesquaretheater.com/",
+    "displayName": {
+      "text": "The Rozzie Square Theater",
+      "languageCode": "en"
+    }
+  },
+  "search_results": [
+    {
+      "query": "The Rozzie Square Theater 18 Corinth Street Boston MA",
+      "response": {
+        "places": [
+          {
+            "id": "ChIJRVOdn8x-44kRtXtU9mgi-jE",
+            "formattedAddress": "18 Corinth St, Roslindale, MA 02131, USA",
+            "addressComponents": [
+              {
+                "longText": "18",
+                "shortText": "18",
+                "types": [
+                  "street_number"
+                ],
+                "languageCode": "en-US"
+              },
+              {
+                "longText": "Corinth Street",
+                "shortText": "Corinth St",
+                "types": [
+                  "route"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Roslindale",
+                "shortText": "Roslindale",
+                "types": [
+                  "neighborhood",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Boston",
+                "shortText": "Boston",
+                "types": [
+                  "locality",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Suffolk County",
+                "shortText": "Suffolk County",
+                "types": [
+                  "administrative_area_level_2",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Massachusetts",
+                "shortText": "MA",
+                "types": [
+                  "administrative_area_level_1",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "United States",
+                "shortText": "US",
+                "types": [
+                  "country",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "02131",
+                "shortText": "02131",
+                "types": [
+                  "postal_code"
+                ],
+                "languageCode": "en-US"
+              }
+            ],
+            "location": {
+              "latitude": 42.286516,
+              "longitude": -71.13004409999999
+            },
+            "websiteUri": "http://www.rozziesquaretheater.com/",
+            "displayName": {
+              "text": "The Rozzie Square Theater",
+              "languageCode": "en"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "query": "18 Corinth Street Boston MA 02131",
+      "response": {
+        "places": [
+          {
+            "id": "ChIJU1VlAs1-44kRlTqZ_13z4ig",
+            "formattedAddress": "18 Corinth St, Boston, MA 02131, USA",
+            "addressComponents": [
+              {
+                "longText": "18",
+                "shortText": "18",
+                "types": [
+                  "street_number"
+                ],
+                "languageCode": "en-US"
+              },
+              {
+                "longText": "Corinth Street",
+                "shortText": "Corinth St",
+                "types": [
+                  "route"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Metropolitan Hill / Beech Street",
+                "shortText": "Metropolitan Hill / Beech Street",
+                "types": [
+                  "neighborhood",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Boston",
+                "shortText": "Boston",
+                "types": [
+                  "locality",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Suffolk County",
+                "shortText": "Suffolk County",
+                "types": [
+                  "administrative_area_level_2",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "Massachusetts",
+                "shortText": "MA",
+                "types": [
+                  "administrative_area_level_1",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "United States",
+                "shortText": "US",
+                "types": [
+                  "country",
+                  "political"
+                ],
+                "languageCode": "en"
+              },
+              {
+                "longText": "02131",
+                "shortText": "02131",
+                "types": [
+                  "postal_code"
+                ],
+                "languageCode": "en-US"
+              }
+            ],
+            "location": {
+              "latitude": 42.286516,
+              "longitude": -71.13004409999999
+            },
+            "displayName": {
+              "text": "18 Corinth St"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
