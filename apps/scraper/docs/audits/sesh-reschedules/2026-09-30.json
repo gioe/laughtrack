@@ -1,0 +1,71 @@
+{
+  "task_id": 4078,
+  "observed_on": "2026-09-30",
+  "club_id": 16057,
+  "timezone": "America/New_York",
+  "feed_url": "https://www.seshcomedy.com/feed.php",
+  "feed_event_count": 24,
+  "source_method": "HttpClient.fetch_html with curl-cffi; direct JSON parsing and detail-page JSON-LD",
+  "cohorts": [
+    {
+      "event_id": "AKHEJ6C3WK44AY2QJQ4QQR26",
+      "detail_url": "https://seshcomedy.com/event-detail.php?id=AKHEJ6C3WK44AY2QJQ4QQR26",
+      "source_title": "10/2 Friday Night SESH Showcase - 8:30 PM",
+      "source_start": "2026-10-02T20:30:00-04:00",
+      "source_end": "2026-10-02T22:00:00-04:00",
+      "feed_start": "2026-10-02T20:30:00",
+      "feed_matches": 1,
+      "source_status": "EventScheduled",
+      "remaining_show_id": 6526463,
+      "database_date": "2026-10-03T00:30:00+00:00",
+      "absent_prior_copy_id": 6867500,
+      "database_url_cohort_count": 1,
+      "disposition": "already_matches_current_source"
+    },
+    {
+      "event_id": "NNHJP5XW24JYP5A5DZE2R3HI",
+      "detail_url": "https://seshcomedy.com/event-detail.php?id=NNHJP5XW24JYP5A5DZE2R3HI",
+      "source_title": "10/16 Friday Night SESH Showcase - 8:45 PM",
+      "source_start": "2026-10-16T20:45:00-04:00",
+      "source_end": "2026-10-16T22:15:00-04:00",
+      "feed_start": "2026-10-16T20:45:00",
+      "feed_matches": 1,
+      "source_status": "EventScheduled",
+      "remaining_show_id": 6867508,
+      "database_date": "2026-10-17T00:45:00+00:00",
+      "absent_prior_copy_id": 6526472,
+      "database_url_cohort_count": 1,
+      "disposition": "already_matches_current_source"
+    },
+    {
+      "event_id": "UIWYT4R425HHOXJFWTHQYNNH",
+      "detail_url": "https://seshcomedy.com/event-detail.php?id=UIWYT4R425HHOXJFWTHQYNNH",
+      "source_title": "10/23 Friday Night SESH Showcase - 8:45 PM",
+      "source_start": "2026-10-23T20:45:00-04:00",
+      "source_end": "2026-10-23T22:15:00-04:00",
+      "feed_start": "2026-10-23T20:45:00",
+      "feed_matches": 1,
+      "source_status": "EventScheduled",
+      "remaining_show_id": 6867511,
+      "database_date": "2026-10-24T00:45:00+00:00",
+      "absent_prior_copy_id": 6526476,
+      "database_url_cohort_count": 1,
+      "disposition": "already_matches_current_source"
+    }
+  ],
+  "shared_verified_location": "55 Chrystie Street, New York, NY 10002",
+  "database_room": "55 Chrystie - SESH Comedy",
+  "database_source": "fullcalendar_json",
+  "all_database_rows_cancelled": false,
+  "reference_counts": {
+    "tickets": 3,
+    "lineup_items": 0,
+    "tagged_shows": 6,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "ticket_purchase_click_events": 23,
+    "discovery_show_feature_snapshots": 0
+  },
+  "production_writes": 0,
+  "rollback_backup": "Not applicable: no confirmed stale copies remained and no production mutation was performed. User identifiers were not exported."
+}
