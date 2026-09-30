@@ -272,7 +272,8 @@ def test_timezone_uses_only_matching_main_event_props(changes, expected):
     assert event.start_date.isoformat() == "2026-07-09T19:00:00-04:00"
 
 
-def test_cancelled_page_without_main_props_does_not_use_nearby_timezone():
+@pytest.mark.parametrize("cancelled", [False, True])
+def test_cancelled_page_without_main_props_does_not_use_nearby_timezone(cancelled):
     flight = (
         "1:"
         + json.dumps({"nearbyShows": [{"slug": "trillium-canton-2026-07-09", "venueTimezone": "America/Los_Angeles"}]})
@@ -280,9 +281,64 @@ def test_cancelled_page_without_main_props_does_not_use_nearby_timezone():
     )
     html = _EVENT_HTML.replace(
         '"@type": "ComedyEvent",', '"@type": "ComedyEvent", "eventStatus": "https://schema.org/EventCancelled",'
-    )
+    ) if cancelled else _EVENT_HTML
     html += "<script>self.__next_f.push(" + json.dumps([1, flight]) + ")</script>"
-    assert extract_json_ld_events(html)[0].venue_timezone is None
+    if cancelled:
+        assert extract_json_ld_events(html) == []
+    else:
+        assert extract_json_ld_events(html)[0].venue_timezone is None
+
+
+@pytest.mark.parametrize(
+    "status,expected_count",
+    [
+        ("https://schema.org/EventCancelled", 0),
+        ("http://schema.org/EventCancelled", 0),
+        ("EventCancelled", 0),
+        ("https://schema.org/EventScheduled", 1),
+        ("https://schema.org/EventRescheduled", 1),
+        (None, 1),
+        ("unknown", 1),
+        ("https://untrusted.example/EventCancelled", 1),
+    ],
+)
+def test_cancelled_source_events(status, expected_count):
+    node = json.loads(_EVENT_HTML.split('<script type="application/ld+json">')[1].split("</script>")[0])
+    if status is not None:
+        node["eventStatus"] = status
+    html = '<script type="application/ld+json">' + json.dumps(node) + "</script>"
+    assert len(extract_json_ld_events(html)) == expected_count
+
+
+@pytest.mark.asyncio
+async def test_scrape_excludes_cancelled_nodes_before_venue_upsert(monkeypatch, promoter_proxy):
+    scraper = NextStopComedyScraper(promoter_proxy)
+    node = json.loads(_EVENT_HTML.split('<script type="application/ld+json">')[1].split("</script>")[0])
+    cancelled = dict(node, eventStatus="https://schema.org/EventCancelled", name="Cancelled show")
+    html = '<script type="application/ld+json">' + json.dumps({"@graph": [cancelled, node]}) + "</script>"
+    detail_url = node["url"]
+    missing_url = "https://www.nextstopcomedy.com/events/failed-detail"
+
+    async def fetch(url):
+        if url.endswith("/events"):
+            return f'<a href="{detail_url}">Show</a><a href="{missing_url}">Unavailable</a>'
+        return html if url == detail_url else None
+
+    async def api_events():
+        return []
+
+    upserts = []
+
+    def upsert(venue):
+        upserts.append(venue)
+        return _venue_club(venue)
+
+    monkeypatch.setattr(scraper, "_fetch_page", fetch)
+    monkeypatch.setattr(scraper, "_collect_api_events", api_events)
+    monkeypatch.setattr(scraper._club_handler, "upsert_discovered_venue", upsert)
+    shows = await scraper.scrape_async()
+    assert len(shows) == len(upserts) == 1
+    assert shows[0].show_page_url == detail_url
 
 
 @pytest.mark.parametrize(

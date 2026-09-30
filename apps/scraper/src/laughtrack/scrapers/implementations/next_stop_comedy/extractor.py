@@ -129,6 +129,16 @@ def _event_from_json_ld(node: dict[str, Any]) -> Optional[NextStopComedyEvent]:
     if not any(str(t).lower() in {"comedyevent", "event"} for t in types):
         return None
 
+    # Only an explicit source cancellation excludes an event. Missing/unknown
+    # status, rescheduling, and an unavailable detail page are not cancellations.
+    status = node.get("eventStatus")
+    if isinstance(status, str) and status.strip() in {
+        "https://schema.org/EventCancelled",
+        "http://schema.org/EventCancelled",
+        "EventCancelled",
+    }:
+        return None
+
     title = str(node.get("name") or "").strip()
     event_url = str(node.get("url") or "").strip()
     start_raw = str(node.get("startDate") or "").strip()
