@@ -1,0 +1,979 @@
+{
+  "passes": [
+    {
+      "iteration": 1,
+      "pages": 1,
+      "source_event_count": 43,
+      "diagnostics": {
+        "http_status": 200,
+        "fetches_ok": 0,
+        "fetches_failed": 0,
+        "bot_block_detected": false
+      },
+      "cleanup_guard_replay": {
+        "simulation_only": true,
+        "clean_gate": false,
+        "count_called": false,
+        "delete_called": false,
+        "unresolved_future_rows": 13,
+        "configured_cap": 10
+      },
+      "routed_club_counts": {
+        "29044": 43
+      },
+      "routed_events": [
+        {
+          "event_id": "1968283994412",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-02T23:00:00+00:00"
+        },
+        {
+          "event_id": "1968287117754",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-03T01:00:00+00:00"
+        },
+        {
+          "event_id": "1968288663377",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-03T23:00:00+00:00"
+        },
+        {
+          "event_id": "1983617902544",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-16T23:00:00+00:00"
+        },
+        {
+          "event_id": "1986036142565",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-10T23:00:00+00:00"
+        },
+        {
+          "event_id": "1987946101303",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-23T23:00:00+00:00"
+        },
+        {
+          "event_id": "1987946460377",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-24T23:00:00+00:00"
+        },
+        {
+          "event_id": "1988370728374",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-08T00:00:00+00:00"
+        },
+        {
+          "event_id": "1988370965082",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-08T02:30:00+00:00"
+        },
+        {
+          "event_id": "1988449141911",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-28T00:00:00+00:00"
+        },
+        {
+          "event_id": "1988449216133",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-28T02:00:00+00:00"
+        },
+        {
+          "event_id": "1988449252241",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-29T00:00:00+00:00"
+        },
+        {
+          "event_id": "1988955016997",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-17T01:00:00+00:00"
+        },
+        {
+          "event_id": "1989622831448",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-24T01:00:00+00:00"
+        },
+        {
+          "event_id": "1989623073171",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-30T00:00:00+00:00"
+        },
+        {
+          "event_id": "1991243122783",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-02T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992024956268",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-12T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992025113739",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-12T02:30:00+00:00"
+        },
+        {
+          "event_id": "1992025512933",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-13T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992025741617",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-13T02:30:00+00:00"
+        },
+        {
+          "event_id": "1992389014175",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-16T01:00:00+00:00"
+        },
+        {
+          "event_id": "1992389456498",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-25T01:00:00+00:00"
+        },
+        {
+          "event_id": "1992833194731",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-14T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992833686201",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-14T02:00:00+00:00"
+        },
+        {
+          "event_id": "1992843402262",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-20T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992947752376",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-04T01:00:00+00:00"
+        },
+        {
+          "event_id": "1993135980371",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-13T01:00:00+00:00"
+        },
+        {
+          "event_id": "1993477139788",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-14T23:00:00+00:00"
+        },
+        {
+          "event_id": "1993708816740",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-07T00:00:00+00:00"
+        },
+        {
+          "event_id": "1994865248659",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-16T00:00:00+00:00"
+        },
+        {
+          "event_id": "1994869485331",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-16T02:00:00+00:00"
+        },
+        {
+          "event_id": "1994870476295",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-17T02:00:00+00:00"
+        },
+        {
+          "event_id": "1994870569574",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-17T00:00:00+00:00"
+        },
+        {
+          "event_id": "1994870785219",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-22T23:00:00+00:00"
+        },
+        {
+          "event_id": "1994871891528",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-24T00:00:00+00:00"
+        },
+        {
+          "event_id": "1997878900573",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-21T02:00:00+00:00"
+        },
+        {
+          "event_id": "1997899246428",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-25T22:00:00+00:00"
+        },
+        {
+          "event_id": "2000037112844",
+          "venue_id": "299494520",
+          "club_id": 29044,
+          "utc_start": "2026-11-21T00:00:00+00:00"
+        },
+        {
+          "event_id": "2000187570868",
+          "venue_id": "299336455",
+          "club_id": 29044,
+          "utc_start": "2026-10-04T01:00:00+00:00"
+        },
+        {
+          "event_id": "2001068649197",
+          "venue_id": "299437514",
+          "club_id": 29044,
+          "utc_start": "2026-10-17T23:00:00+00:00"
+        },
+        {
+          "event_id": "2001069124619",
+          "venue_id": "299413137",
+          "club_id": 29044,
+          "utc_start": "2026-10-09T23:00:00+00:00"
+        },
+        {
+          "event_id": "2002339715992",
+          "venue_id": "299597399",
+          "club_id": 29044,
+          "utc_start": "2026-10-10T01:00:00+00:00"
+        },
+        {
+          "event_id": "2002457232487",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-31T02:00:00+00:00"
+        }
+      ],
+      "original_rows": [
+        {
+          "show_id": 1014089,
+          "event_id": "1984648342618",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879560,
+          "event_id": "1993477076599",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967429,
+          "event_id": "1993477076599",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879573,
+          "event_id": "1993477137782",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879561,
+          "event_id": "1993477077602",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967430,
+          "event_id": "1993477077602",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879574,
+          "event_id": "1993477138785",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3018726,
+          "event_id": "1992132017491",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879562,
+          "event_id": "1993477078605",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967431,
+          "event_id": "1993477078605",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879563,
+          "event_id": "1993477079608",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967432,
+          "event_id": "1993477079608",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879576,
+          "event_id": "1993477140791",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879564,
+          "event_id": "1993477080611",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967433,
+          "event_id": "1993477080611",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879577,
+          "event_id": "1993477141794",
+          "current_public_live_inventory": "absent_unconfirmed"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "pages": 1,
+      "source_event_count": 43,
+      "diagnostics": {
+        "http_status": 200,
+        "fetches_ok": 0,
+        "fetches_failed": 0,
+        "bot_block_detected": false
+      },
+      "cleanup_guard_replay": {
+        "simulation_only": true,
+        "clean_gate": false,
+        "count_called": false,
+        "delete_called": false,
+        "unresolved_future_rows": 13,
+        "configured_cap": 10
+      },
+      "routed_club_counts": {
+        "29044": 43
+      },
+      "routed_events": [
+        {
+          "event_id": "1968283994412",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-02T23:00:00+00:00"
+        },
+        {
+          "event_id": "1968287117754",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-03T01:00:00+00:00"
+        },
+        {
+          "event_id": "1968288663377",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-03T23:00:00+00:00"
+        },
+        {
+          "event_id": "1983617902544",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-16T23:00:00+00:00"
+        },
+        {
+          "event_id": "1986036142565",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-10T23:00:00+00:00"
+        },
+        {
+          "event_id": "1987946101303",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-23T23:00:00+00:00"
+        },
+        {
+          "event_id": "1987946460377",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-24T23:00:00+00:00"
+        },
+        {
+          "event_id": "1988370728374",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-08T00:00:00+00:00"
+        },
+        {
+          "event_id": "1988370965082",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-08T02:30:00+00:00"
+        },
+        {
+          "event_id": "1988449141911",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-28T00:00:00+00:00"
+        },
+        {
+          "event_id": "1988449216133",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-28T02:00:00+00:00"
+        },
+        {
+          "event_id": "1988449252241",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-29T00:00:00+00:00"
+        },
+        {
+          "event_id": "1988955016997",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-17T01:00:00+00:00"
+        },
+        {
+          "event_id": "1989622831448",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-24T01:00:00+00:00"
+        },
+        {
+          "event_id": "1989623073171",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-30T00:00:00+00:00"
+        },
+        {
+          "event_id": "1991243122783",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-02T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992024956268",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-12T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992025113739",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-12T02:30:00+00:00"
+        },
+        {
+          "event_id": "1992025512933",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-13T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992025741617",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-13T02:30:00+00:00"
+        },
+        {
+          "event_id": "1992389014175",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-16T01:00:00+00:00"
+        },
+        {
+          "event_id": "1992389456498",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-25T01:00:00+00:00"
+        },
+        {
+          "event_id": "1992833194731",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-14T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992833686201",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-14T02:00:00+00:00"
+        },
+        {
+          "event_id": "1992843402262",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-20T00:00:00+00:00"
+        },
+        {
+          "event_id": "1992947752376",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-12-04T01:00:00+00:00"
+        },
+        {
+          "event_id": "1993135980371",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-13T01:00:00+00:00"
+        },
+        {
+          "event_id": "1993477139788",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-14T23:00:00+00:00"
+        },
+        {
+          "event_id": "1993708816740",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-07T00:00:00+00:00"
+        },
+        {
+          "event_id": "1994865248659",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-16T00:00:00+00:00"
+        },
+        {
+          "event_id": "1994869485331",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-16T02:00:00+00:00"
+        },
+        {
+          "event_id": "1994870476295",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-17T02:00:00+00:00"
+        },
+        {
+          "event_id": "1994870569574",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-17T00:00:00+00:00"
+        },
+        {
+          "event_id": "1994870785219",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-22T23:00:00+00:00"
+        },
+        {
+          "event_id": "1994871891528",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-24T00:00:00+00:00"
+        },
+        {
+          "event_id": "1997878900573",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-11-21T02:00:00+00:00"
+        },
+        {
+          "event_id": "1997899246428",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2026-10-25T22:00:00+00:00"
+        },
+        {
+          "event_id": "2000037112844",
+          "venue_id": "299494520",
+          "club_id": 29044,
+          "utc_start": "2026-11-21T00:00:00+00:00"
+        },
+        {
+          "event_id": "2000187570868",
+          "venue_id": "299336455",
+          "club_id": 29044,
+          "utc_start": "2026-10-04T01:00:00+00:00"
+        },
+        {
+          "event_id": "2001068649197",
+          "venue_id": "299437514",
+          "club_id": 29044,
+          "utc_start": "2026-10-17T23:00:00+00:00"
+        },
+        {
+          "event_id": "2001069124619",
+          "venue_id": "299413137",
+          "club_id": 29044,
+          "utc_start": "2026-10-09T23:00:00+00:00"
+        },
+        {
+          "event_id": "2002339715992",
+          "venue_id": "299597399",
+          "club_id": 29044,
+          "utc_start": "2026-10-10T01:00:00+00:00"
+        },
+        {
+          "event_id": "2002457232487",
+          "venue_id": "298963768",
+          "club_id": 29044,
+          "utc_start": "2027-01-31T02:00:00+00:00"
+        }
+      ],
+      "original_rows": [
+        {
+          "show_id": 1014089,
+          "event_id": "1984648342618",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879560,
+          "event_id": "1993477076599",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967429,
+          "event_id": "1993477076599",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879573,
+          "event_id": "1993477137782",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879561,
+          "event_id": "1993477077602",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967430,
+          "event_id": "1993477077602",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879574,
+          "event_id": "1993477138785",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3018726,
+          "event_id": "1992132017491",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879562,
+          "event_id": "1993477078605",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967431,
+          "event_id": "1993477078605",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879563,
+          "event_id": "1993477079608",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967432,
+          "event_id": "1993477079608",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879576,
+          "event_id": "1993477140791",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879564,
+          "event_id": "1993477080611",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3967433,
+          "event_id": "1993477080611",
+          "current_public_live_inventory": "absent_unconfirmed"
+        },
+        {
+          "show_id": 3879577,
+          "event_id": "1993477141794",
+          "current_public_live_inventory": "absent_unconfirmed"
+        }
+      ]
+    }
+  ],
+  "repeated_inventory_and_routing_equal": true,
+  "production_writes": 0,
+  "show_persistence_calls": 0,
+  "distinct_venue_ids": [
+    575,
+    29044
+  ],
+  "unresolved_rows_before": [
+    {
+      "show_id": 1014089,
+      "club_id": 575,
+      "utc_start": "2026-09-25T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707271+00:00"
+    },
+    {
+      "show_id": 3018726,
+      "club_id": 575,
+      "utc_start": "2026-10-11T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707327+00:00"
+    },
+    {
+      "show_id": 3879560,
+      "club_id": 575,
+      "utc_start": "2026-09-29T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:14.766985+00:00"
+    },
+    {
+      "show_id": 3879561,
+      "club_id": 575,
+      "utc_start": "2026-10-06T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:14.766987+00:00"
+    },
+    {
+      "show_id": 3879562,
+      "club_id": 575,
+      "utc_start": "2026-10-13T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:28.000403+00:00"
+    },
+    {
+      "show_id": 3879563,
+      "club_id": 575,
+      "utc_start": "2026-10-20T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:28.000417+00:00"
+    },
+    {
+      "show_id": 3879564,
+      "club_id": 575,
+      "utc_start": "2026-10-27T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:28.000419+00:00"
+    },
+    {
+      "show_id": 3879573,
+      "club_id": 575,
+      "utc_start": "2026-09-30T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707372+00:00"
+    },
+    {
+      "show_id": 3879574,
+      "club_id": 575,
+      "utc_start": "2026-10-07T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707374+00:00"
+    },
+    {
+      "show_id": 3879576,
+      "club_id": 575,
+      "utc_start": "2026-10-21T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707378+00:00"
+    },
+    {
+      "show_id": 3879577,
+      "club_id": 575,
+      "utc_start": "2026-10-28T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707380+00:00"
+    },
+    {
+      "show_id": 3967429,
+      "club_id": 575,
+      "utc_start": "2026-09-30T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707355+00:00"
+    },
+    {
+      "show_id": 3967430,
+      "club_id": 575,
+      "utc_start": "2026-10-07T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707357+00:00"
+    },
+    {
+      "show_id": 3967431,
+      "club_id": 575,
+      "utc_start": "2026-10-14T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707359+00:00"
+    },
+    {
+      "show_id": 3967432,
+      "club_id": 575,
+      "utc_start": "2026-10-21T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707361+00:00"
+    },
+    {
+      "show_id": 3967433,
+      "club_id": 575,
+      "utc_start": "2026-10-28T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707363+00:00"
+    }
+  ],
+  "unresolved_rows_after": [
+    {
+      "show_id": 1014089,
+      "club_id": 575,
+      "utc_start": "2026-09-25T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707271+00:00"
+    },
+    {
+      "show_id": 3018726,
+      "club_id": 575,
+      "utc_start": "2026-10-11T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707327+00:00"
+    },
+    {
+      "show_id": 3879560,
+      "club_id": 575,
+      "utc_start": "2026-09-29T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:14.766985+00:00"
+    },
+    {
+      "show_id": 3879561,
+      "club_id": 575,
+      "utc_start": "2026-10-06T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:14.766987+00:00"
+    },
+    {
+      "show_id": 3879562,
+      "club_id": 575,
+      "utc_start": "2026-10-13T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:28.000403+00:00"
+    },
+    {
+      "show_id": 3879563,
+      "club_id": 575,
+      "utc_start": "2026-10-20T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:28.000417+00:00"
+    },
+    {
+      "show_id": 3879564,
+      "club_id": 575,
+      "utc_start": "2026-10-27T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-07-09T22:35:28.000419+00:00"
+    },
+    {
+      "show_id": 3879573,
+      "club_id": 575,
+      "utc_start": "2026-09-30T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707372+00:00"
+    },
+    {
+      "show_id": 3879574,
+      "club_id": 575,
+      "utc_start": "2026-10-07T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707374+00:00"
+    },
+    {
+      "show_id": 3879576,
+      "club_id": 575,
+      "utc_start": "2026-10-21T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707378+00:00"
+    },
+    {
+      "show_id": 3879577,
+      "club_id": 575,
+      "utc_start": "2026-10-28T23:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707380+00:00"
+    },
+    {
+      "show_id": 3967429,
+      "club_id": 575,
+      "utc_start": "2026-09-30T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707355+00:00"
+    },
+    {
+      "show_id": 3967430,
+      "club_id": 575,
+      "utc_start": "2026-10-07T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707357+00:00"
+    },
+    {
+      "show_id": 3967431,
+      "club_id": 575,
+      "utc_start": "2026-10-14T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707359+00:00"
+    },
+    {
+      "show_id": 3967432,
+      "club_id": 575,
+      "utc_start": "2026-10-21T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707361+00:00"
+    },
+    {
+      "show_id": 3967433,
+      "club_id": 575,
+      "utc_start": "2026-10-28T00:00:00+00:00",
+      "is_cancelled": false,
+      "last_scraped_date": "2026-08-18T21:23:07.707363+00:00"
+    }
+  ],
+  "unresolved_rows_unchanged": true,
+  "task_id": 4079,
+  "checked_at": "2026-09-30T17:50:03.096554+00:00",
+  "read_only_transaction_closed": true,
+  "scope": "Two complete live API reads through real API/domain parsers and organizer routing; venue lookups only, no show persistence.",
+  "return_policy": "Route by each current source venue; do not permanently remap Attic to Walrus. A future Oak Street venue is resolved independently.",
+  "limitations": [
+    "Public/live inventory absence does not distinguish cancellation, privacy, rescheduling or unavailability.",
+    "This proves source routing, not production persistence idempotence or a future venue-return payload.",
+    "A changed inventory between refreshes is reported, not assumed to be a routing defect."
+  ],
+  "handler_select_calls": 4
+}
