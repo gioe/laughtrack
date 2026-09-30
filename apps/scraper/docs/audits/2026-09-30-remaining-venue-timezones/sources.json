@@ -1,0 +1,1514 @@
+[
+  {
+    "url": "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm",
+    "captured_at": "2026-09-30T01:14:48.140354+00:00",
+    "html_sha256": "fedd8275bca60f8d3fc73da595cdcf2ad7832318faa6f6bfc5c0680811cd2cd6",
+    "events": [],
+    "extracted": [],
+    "error": "No event JSON-LD; not cancellation evidence"
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-12-31",
+    "captured_at": "2026-09-30T01:14:49.862163+00:00",
+    "html_sha256": "c5c81b9c5c822e6ec057b71ff3f024862e1382f0ef3fb00b7ba1cde0f00a13d1",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Franklin House",
+        "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-12-31",
+        "startDate": "2026-12-31T17:30:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Franklin House",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+            "addressLocality": "Streetsville",
+            "addressRegion": "ON",
+            "postalCode": "L5M 1L9",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-11-20",
+    "captured_at": "2026-09-30T01:14:49.728564+00:00",
+    "html_sha256": "f8c3c2094b0db53d4ad4dc5659f0ff35a52b462ebbb7d30f83650bd1bd517e4d",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Franklin House",
+        "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-11-20",
+        "startDate": "2026-11-20T19:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Franklin House",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+            "addressLocality": "Streetsville",
+            "addressRegion": "ON",
+            "postalCode": "L5M 1L9",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/goulburn-brewery-2026-07-31",
+    "captured_at": "2026-09-30T01:14:47.995472+00:00",
+    "html_sha256": "737b7fb824d3b00314a80a818213a509a3d648efc5c5a7a834d53896f529d59c",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Goulburn Brewery",
+        "url": "https://www.nextstopcomedy.com/events/goulburn-brewery-2026-07-31",
+        "startDate": "2026-07-31T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Goulburn Brewery",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "23 Bungonia Rd.",
+            "addressLocality": "Goulburn",
+            "addressRegion": "NSW",
+            "postalCode": "2580",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/yazzbar-2026-07-08",
+    "captured_at": "2026-09-30T01:14:51.079607+00:00",
+    "html_sha256": "f6659a73cd2feb4c562c1d404f879e91a86862e71511f00bbe425cb479dc2a36",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Yazzbar",
+        "url": "https://www.nextstopcomedy.com/events/yazzbar-2026-07-08",
+        "startDate": "2026-07-08T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Yazzbar",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "81-85 Comur St.",
+            "addressLocality": "Yass",
+            "addressRegion": "NSW",
+            "postalCode": "2582",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/yazzbar-2026-07-08",
+        "venue_name": "Yazzbar",
+        "venue_address": "81-85 Comur St., Yass, NSW 2582, AU",
+        "venue_zip": "2582",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/four-hands-tapas-and-pizza-restaurant-2026-08-28",
+    "captured_at": "2026-09-30T01:14:47.926575+00:00",
+    "html_sha256": "4067fc53a24fafdcaaab41dc5c5b9eb5c109c7d90cca6779a896d85e81ed1e57",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Four Hands Tapas and Pizza Restaurant",
+        "url": "https://www.nextstopcomedy.com/events/four-hands-tapas-and-pizza-restaurant-2026-08-28",
+        "startDate": "2026-08-28T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Four Hands Tapas and Pizza Restaurant",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "6/17 Church St.",
+            "addressLocality": "Terrigal",
+            "addressRegion": "NSW",
+            "postalCode": "2260",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-terrace-bar-2027-02-05-8-pm",
+    "captured_at": "2026-09-30T01:14:50.403490+00:00",
+    "html_sha256": "e2a52c65a678b49c2bd7477ebbc2142b34b2fc0cf12284e6bbf5b169d81c68a0",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Terrace Bar",
+        "url": "https://www.nextstopcomedy.com/events/the-terrace-bar-2027-02-05-8-pm",
+        "startDate": "2027-02-05T20:00:00+00:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Terrace Bar",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "1 Richmond Ave",
+            "addressLocality": "Southend-on-Sea",
+            "addressRegion": "England",
+            "postalCode": "SS1 1JE",
+            "addressCountry": "GB"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/bala-bay-inn-2026-08-20",
+    "captured_at": "2026-09-30T01:14:47.401990+00:00",
+    "html_sha256": "210b8b0293bb570122630356f4efc4124a18157210d20ed2b0904de9a8378849",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Bala Bay Inn",
+        "url": "https://www.nextstopcomedy.com/events/bala-bay-inn-2026-08-20",
+        "startDate": "2026-08-20T19:00:00-04:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Bala Bay Inn",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "3063 Muskoka District Road 169, Bala, ON P0C 1A0",
+            "addressLocality": "Bala",
+            "addressRegion": "ON",
+            "postalCode": "P0C 1A0",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/bala-bay-inn-2026-08-20",
+        "venue_name": "Bala Bay Inn",
+        "venue_address": "3063 Muskoka District Road 169, Bala, ON P0C 1A0, CA",
+        "venue_zip": "P0C 1A0",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-03-12",
+    "captured_at": "2026-09-30T01:14:50.085468+00:00",
+    "html_sha256": "b05a857a5e3d3ae8fe98d8ae137a2ee7edfa58f437d2b4142340e836c843d632",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Franklin House",
+        "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-03-12",
+        "startDate": "2027-03-12T19:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Franklin House",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+            "addressLocality": "Streetsville",
+            "addressRegion": "ON",
+            "postalCode": "L5M 1L9",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/quirky-bar-2026-08-08",
+    "captured_at": "2026-09-30T01:14:49.126876+00:00",
+    "html_sha256": "dff3fe1a3d8aeb51471edcdf42c668ba17b4febf3124f64e3d73ee0abedc0327",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Quirky Bar",
+        "url": "https://www.nextstopcomedy.com/events/quirky-bar-2026-08-08",
+        "startDate": "2026-08-08T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Quirky Bar",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "48 Bair St.",
+            "addressLocality": "Leongatha",
+            "addressRegion": "VIC",
+            "postalCode": "3953",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm",
+    "captured_at": "2026-09-30T01:14:49.093985+00:00",
+    "html_sha256": "c8034a61089968cd37c4ac65f901b24f456a35a1214bc56ca4592a0bf58aa5d2",
+    "events": [],
+    "extracted": [],
+    "error": "No event JSON-LD; not cancellation evidence"
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/ionia-theatre-2027-02-13-5-30-pm",
+    "captured_at": "2026-09-30T01:14:48.201500+00:00",
+    "html_sha256": "863ec67ee6e196fe88e9801039b29f060a10439e1c5bcd11ff2c775b175e8547",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Ionia Theatre",
+        "url": "https://www.nextstopcomedy.com/events/ionia-theatre-2027-02-13-5-30-pm",
+        "startDate": "2027-02-13T17:30:00-05:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Ionia Theatre",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "205 W. Main St., Ionia, Michigan 48846",
+            "addressLocality": "Ionia",
+            "addressRegion": "MI",
+            "postalCode": "48846",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/ionia-theatre-2027-02-13-5-30-pm",
+        "venue_name": "Ionia Theatre",
+        "venue_address": "205 W. Main St., Ionia, Michigan 48846, MI, US",
+        "venue_zip": "48846",
+        "timezone": "America/Detroit"
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/ionia-theatre-02-13-2027-8-pm",
+    "captured_at": "2026-09-30T01:14:48.140380+00:00",
+    "html_sha256": "0bd6480a4b7843cdc444b266952429554954eac85a5045be658b4e3a16cc2110",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Ionia Theatre",
+        "url": "https://www.nextstopcomedy.com/events/ionia-theatre-02-13-2027-8-pm",
+        "startDate": "2027-02-13T20:00:00-05:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Ionia Theatre",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "205 W. Main St., Ionia, Michigan 48846",
+            "addressLocality": "Ionia",
+            "addressRegion": "MI",
+            "postalCode": "48846",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/ionia-theatre-02-13-2027-8-pm",
+        "venue_name": "Ionia Theatre",
+        "venue_address": "205 W. Main St., Ionia, Michigan 48846, MI, US",
+        "venue_zip": "48846",
+        "timezone": "America/Detroit"
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/cedar-st-venue-2026-09-25-8-pm",
+    "captured_at": "2026-09-30T01:14:47.687173+00:00",
+    "html_sha256": "f00cb431531d32d0c7bc16989b2499c0350d961276d1c541631d64b517c603ba",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Cedar St Venue",
+        "url": "https://www.nextstopcomedy.com/events/cedar-st-venue-2026-09-25-8-pm",
+        "startDate": "2026-09-25T20:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Cedar St Venue",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "218 Cedar St",
+            "addressLocality": "Abilene",
+            "addressRegion": "TX",
+            "postalCode": "79601",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/everything-s-better-with-wine-2026-08-15",
+    "captured_at": "2026-09-30T01:14:47.773944+00:00",
+    "html_sha256": "4bcc169d58e117b44b173ab367ec649366b4d5916cef8d1a3a81d302ea040678",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Everything\u2019s Better with Wine",
+        "url": "https://www.nextstopcomedy.com/events/everything-s-better-with-wine-2026-08-15",
+        "startDate": "2026-08-15T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Everything\u2019s Better with Wine",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "81a Queen St.",
+            "addressLocality": "Warragul",
+            "addressRegion": "VIC",
+            "postalCode": "3820",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/everything-s-better-with-wine-2026-08-15",
+        "venue_name": "Everything\u2019s Better with Wine",
+        "venue_address": "81a Queen St., Warragul, VIC 3820, AU",
+        "venue_zip": "3820",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/mannum-hotel-2026-07-18",
+    "captured_at": "2026-09-30T01:14:48.854100+00:00",
+    "html_sha256": "df4c94787178e1f7dec1bf39e8c7f73e7e8918d9e9c4fe3db26075b73eac0972",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Mannum Hotel",
+        "url": "https://www.nextstopcomedy.com/events/mannum-hotel-2026-07-18",
+        "startDate": "2026-07-18T20:30:00+09:30",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Mannum Hotel",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "15 Randell St.",
+            "addressLocality": "Mannum",
+            "addressRegion": "SA",
+            "postalCode": "5230",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/mannum-hotel-2026-07-18",
+        "venue_name": "Mannum Hotel",
+        "venue_address": "15 Randell St., Mannum, SA 5230, AU",
+        "venue_zip": "5230",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/boone-s-falls-event-venue-2026-12-12-7-pm",
+    "captured_at": "2026-09-30T01:14:47.402103+00:00",
+    "html_sha256": "e3a176d66e739b5dd0d861e7f9721fa49a28f8cbea44d9d2be8e2618f232ca9b",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Boone\u2019s Falls Event Venue",
+        "url": "https://www.nextstopcomedy.com/events/boone-s-falls-event-venue-2026-12-12-7-pm",
+        "startDate": "2026-12-12T19:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Boone\u2019s Falls Event Venue",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "1770 Old Gray Station Rd.",
+            "addressLocality": "Johnson City",
+            "addressRegion": "TN",
+            "postalCode": " 37615",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-franklin-house-02-13-2027-8-pm",
+    "captured_at": "2026-09-30T01:14:49.543368+00:00",
+    "html_sha256": "94df86571b52d7d9e0b3f9223ea1917fa4d021bb6a2e5ce26a7bfe3a4ee09748",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Franklin House",
+        "url": "https://www.nextstopcomedy.com/events/the-franklin-house-02-13-2027-8-pm",
+        "startDate": "2027-02-13T20:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Franklin House",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+            "addressLocality": "Streetsville",
+            "addressRegion": "ON",
+            "postalCode": "L5M 1L9",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/volente-beach-resort-and-waterpark-2026-09-12",
+    "captured_at": "2026-09-30T01:14:50.798313+00:00",
+    "html_sha256": "745c4c639ede7127d20b9ae90c84cf6252b3e541aecca4420e095ad5c636b0b3",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Volente Beach Resort and Waterpark",
+        "url": "https://www.nextstopcomedy.com/events/volente-beach-resort-and-waterpark-2026-09-12",
+        "startDate": "2026-09-12T20:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Volente Beach Resort and Waterpark",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "16107 Farm to Market Rd 2769",
+            "addressLocality": " Leander",
+            "addressRegion": "TX",
+            "postalCode": "78641",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/oakbank-bar-and-grill-2026-07-25",
+    "captured_at": "2026-09-30T01:14:48.927030+00:00",
+    "html_sha256": "38e92abed712d8c09f76b73805f961532051ed3e20e124321e4bb6a791b70b4a",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Oakbank Bar and Grill",
+        "url": "https://www.nextstopcomedy.com/events/oakbank-bar-and-grill-2026-07-25",
+        "startDate": "2026-07-25T20:00:00-05:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Oakbank Bar and Grill",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "520 Main St, Oakbank, MB R0E 1J0",
+            "addressLocality": "Oakbank",
+            "addressRegion": "MB",
+            "postalCode": "R0E 1J0",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/oakbank-bar-and-grill-2026-07-25",
+        "venue_name": "Oakbank Bar and Grill",
+        "venue_address": "520 Main St, Oakbank, MB R0E 1J0, CA",
+        "venue_zip": "R0E 1J0",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/theo-s-rooftop-bar-2026-09-17-8-pm",
+    "captured_at": "2026-09-30T01:14:50.656267+00:00",
+    "html_sha256": "438aef59da4b4a9ef7a31fbdf27e9c9522c59ee21636efc3c8d4a010f0ba4642",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Theo's Rooftop Bar",
+        "url": "https://www.nextstopcomedy.com/events/theo-s-rooftop-bar-2026-09-17-8-pm",
+        "startDate": "2026-09-17T20:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Theo's Rooftop Bar",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Gweneth Elizabeth Room, Level 8, 21-25 Woodriff St.",
+            "addressLocality": "Penrith",
+            "addressRegion": "NSW",
+            "postalCode": "2750",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/theo-s-rooftop-bar-2026-09-17-8-pm",
+        "venue_name": "Theo's Rooftop Bar",
+        "venue_address": "Gweneth Elizabeth Room, Level 8, 21-25 Woodriff St., Penrith, NSW 2750, AU",
+        "venue_zip": "2750",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-tipsy-pig-2026-08-13",
+    "captured_at": "2026-09-30T01:14:50.541391+00:00",
+    "html_sha256": "38472ccff5ba79ca1ecb7e5f268ae1e719e85fb478682a57a7c889ba4bc66517",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Tipsy Pig",
+        "url": "https://www.nextstopcomedy.com/events/the-tipsy-pig-2026-08-13",
+        "startDate": "2026-08-13T19:30:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Tipsy Pig",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "1150 Sterling Ridge Dr. STE 100",
+            "addressLocality": "Omaha",
+            "addressRegion": "NE",
+            "postalCode": "68144",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/kcs-crows-nest-2026-08-29-7-pm",
+    "captured_at": "2026-09-30T01:14:48.275871+00:00",
+    "html_sha256": "03eb079146715b2527eb50229c819566dd185f8a75384d20eebca0be654fb51b",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "KCs Crows Nest",
+        "url": "https://www.nextstopcomedy.com/events/kcs-crows-nest-2026-08-29-7-pm",
+        "startDate": "2026-08-29T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "KCs Crows Nest",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "6 Burlington St.",
+            "addressLocality": "Crows Nest",
+            "addressRegion": "NSW",
+            "postalCode": "2065",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/kcs-crows-nest-2026-08-29-7-pm",
+        "venue_name": "KCs Crows Nest",
+        "venue_address": "6 Burlington St., Crows Nest, NSW 2065, AU",
+        "venue_zip": "2065",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-07-7-pm",
+    "captured_at": "2026-09-30T01:14:47.894716+00:00",
+    "html_sha256": "f4ed84a5660c9c33f6ff0eb44b2d5c4ab44158f21b4e185626c8f404b6996497",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Formosa Winery",
+        "url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+        "startDate": "2026-11-06T19:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Formosa Winery",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "3011 Formosa Gardens Blvd.",
+            "addressLocality": "Kissimmee",
+            "addressRegion": "FL",
+            "postalCode": "34747",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/toro-bar-kitchen-2026-09-04-7-pm",
+    "captured_at": "2026-09-30T01:14:50.786579+00:00",
+    "html_sha256": "7b46229f7058339b22b78127f10c9c0c8b8f9a2dc18d5b749e508d12d6d49659",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Toro Bar & Kitchen",
+        "url": "https://www.nextstopcomedy.com/events/toro-bar-kitchen-2026-09-04-7-pm",
+        "startDate": "2026-09-04T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Toro Bar & Kitchen",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "55 Plaza Parade",
+            "addressLocality": "Maroochydore",
+            "addressRegion": "QLD",
+            "postalCode": "4558",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/toro-bar-kitchen-2026-09-04-7-pm",
+        "venue_name": "Toro Bar & Kitchen",
+        "venue_address": "55 Plaza Parade, Maroochydore, QLD 4558, AU",
+        "venue_zip": "4558",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/strings-sports-brewery-2026-07-30",
+    "captured_at": "2026-09-30T01:14:49.358491+00:00",
+    "html_sha256": "cf09e1d47a14cd9192ed04b59896115f426321b3c2de9081d39ee548a5e1acb5",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Strings Sports Brewery",
+        "url": "https://www.nextstopcomedy.com/events/strings-sports-brewery-2026-07-30",
+        "startDate": "2026-07-30T20:00:00-04:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Strings Sports Brewery",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "1618 Penman Rd., Jacksonville Beach, Florida 32250",
+            "addressLocality": "Jacksonville Beach",
+            "addressRegion": "FL",
+            "postalCode": "32250",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/strings-sports-brewery-2026-07-30",
+        "venue_name": "Strings Sports Brewery",
+        "venue_address": "1618 Penman Rd., Jacksonville Beach, Florida 32250, FL, US",
+        "venue_zip": "32250",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/loft-west-end-2026-07-17",
+    "captured_at": "2026-09-30T01:14:48.681078+00:00",
+    "html_sha256": "a4d7fe0cff99fff9050a52803b3ec638aa60f4c3014e95f31499a4ec0eac196a",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Loft West End",
+        "url": "https://www.nextstopcomedy.com/events/loft-west-end-2026-07-17",
+        "startDate": "2026-07-17T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Loft West End",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "100 Boundary St.",
+            "addressLocality": "West End",
+            "addressRegion": "QLD",
+            "postalCode": "4101",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/loft-west-end-2026-07-17",
+        "venue_name": "Loft West End",
+        "venue_address": "100 Boundary St., West End, QLD 4101, AU",
+        "venue_zip": "4101",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/cork-it-gainesville-located-inside-of-main-street-market-2026-10-03",
+    "captured_at": "2026-09-30T01:14:47.726276+00:00",
+    "html_sha256": "04078025a6698f02cba4be981a9a93b30307961d745f4903ff86348527590cb2",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Cork It Gainesville (located inside of Main Street Market)",
+        "url": "https://www.nextstopcomedy.com/events/cork-it-gainesville-located-inside-of-main-street-market-2026-10-03",
+        "startDate": "2026-10-03T19:00:00-04:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Cork It Gainesville",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "118 Main St",
+            "addressLocality": "Gainesville",
+            "addressRegion": "GA",
+            "postalCode": "30506",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/cork-it-gainesville-located-inside-of-main-street-market-2026-10-03",
+        "venue_name": "Cork It Gainesville",
+        "venue_address": "118 Main St, Gainesville, GA 30506, US",
+        "venue_zip": "30506",
+        "timezone": "America/New_York"
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/ionia-theatre-2026-09-11",
+    "captured_at": "2026-09-30T01:14:48.160731+00:00",
+    "html_sha256": "cfaf5550d14ea887158006f064f29b4631c15344a0d0b74ee490ce70f38ca639",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Ionia Theatre",
+        "url": "https://www.nextstopcomedy.com/events/ionia-theatre-2026-09-11",
+        "startDate": "2026-09-11T20:00:00-04:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Ionia Theatre",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "205 W. Main St., Ionia, Michigan 48846",
+            "addressLocality": "Ionia",
+            "addressRegion": "MI",
+            "postalCode": "48846",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/ionia-theatre-2026-09-11",
+        "venue_name": "Ionia Theatre",
+        "venue_address": "205 W. Main St., Ionia, Michigan 48846, MI, US",
+        "venue_zip": "48846",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/freight-bar-and-rooftop-2026-09-11-7-pm",
+    "captured_at": "2026-09-30T01:14:47.926604+00:00",
+    "html_sha256": "a452489cb27a705d159cf5b11b4785bc5d2bf0d55e78340f6c49e2794c2727f4",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Freight Bar and Rooftop",
+        "url": "https://www.nextstopcomedy.com/events/freight-bar-and-rooftop-2026-09-11-7-pm",
+        "startDate": "2026-09-11T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Freight Bar and Rooftop",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "49 Mair St. E",
+            "addressLocality": "Ballarat Central",
+            "addressRegion": "VIC",
+            "postalCode": "3350",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/freight-bar-and-rooftop-2026-09-11-7-pm",
+        "venue_name": "Freight Bar and Rooftop",
+        "venue_address": "49 Mair St. E, Ballarat Central, VIC 3350, AU",
+        "venue_zip": "3350",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/kingsville-brewery-beer-garden-2026-09-17",
+    "captured_at": "2026-09-30T01:14:48.662022+00:00",
+    "html_sha256": "8e38dc43a459c5a3b29e5da60e5021e1664c1ba779132fbd01ea9f1c4197346a",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Kingsville Brewery 'Beer Garden'",
+        "url": "https://www.nextstopcomedy.com/events/kingsville-brewery-beer-garden-2026-09-17",
+        "startDate": "2026-09-17T19:00:00-04:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Kingsville Brewery 'Beer Garden'",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "140 Park St.",
+            "addressLocality": "Kingsville",
+            "addressRegion": "ON",
+            "postalCode": "N9Y 1N5",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/kingsville-brewery-beer-garden-2026-09-17",
+        "venue_name": "Kingsville Brewery 'Beer Garden'",
+        "venue_address": "140 Park St., Kingsville, ON N9Y 1N5, CA",
+        "venue_zip": "N9Y 1N5",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/parker-binns-vineyard-2026-10-02-7-pm",
+    "captured_at": "2026-09-30T01:14:48.947986+00:00",
+    "html_sha256": "bc30bd19242c4bb8de873286f4fcb7d7bf1523a93962862d59ea751112b0de8a",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Parker-Binns Vineyard",
+        "url": "https://www.nextstopcomedy.com/events/parker-binns-vineyard-2026-10-02-7-pm",
+        "startDate": "2026-10-02T19:00:00-04:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Parker-Binns Vineyard",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "393 Lulu Lane",
+            "addressLocality": "Mill Spring",
+            "addressRegion": "NC",
+            "postalCode": "28756",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/parker-binns-vineyard-2026-10-02-7-pm",
+        "venue_name": "Parker-Binns Vineyard",
+        "venue_address": "393 Lulu Lane, Mill Spring, NC 28756, US",
+        "venue_zip": "28756",
+        "timezone": "America/New_York"
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-pit-2026-09-12-7-30-pm",
+    "captured_at": "2026-09-30T01:14:50.242092+00:00",
+    "html_sha256": "eb99d199d1277fd57e81bb63c5912c591e2112cce97ceaab3947892a6be8316e",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Pit",
+        "url": "https://www.nextstopcomedy.com/events/the-pit-2026-09-12-7-30-pm",
+        "startDate": "2026-09-12T19:30:00-05:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "The Pit",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "919 E Douglas Ave",
+            "addressLocality": "Wichita",
+            "addressRegion": "KS",
+            "postalCode": "67202",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/the-pit-2026-09-12-7-30-pm",
+        "venue_name": "The Pit",
+        "venue_address": "919 E Douglas Ave, Wichita, KS 67202, US",
+        "venue_zip": "67202",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/torch-180-2026-10-24-7-pm",
+    "captured_at": "2026-09-30T01:14:50.678582+00:00",
+    "html_sha256": "2686f79b1a7e589e244bf392213babb4ea41322cc2a397e108b641713e57daaf",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Torch 180",
+        "url": "https://www.nextstopcomedy.com/events/torch-180-2026-10-24-7-pm",
+        "startDate": "2026-10-24T19:00:00-04:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Torch 180",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "131 Mill St.",
+            "addressLocality": "Fowlerville",
+            "addressRegion": "MI",
+            "postalCode": "48836",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/cavu-kitchen-bar-2026-07-24",
+    "captured_at": "2026-09-30T01:14:47.402154+00:00",
+    "html_sha256": "f0d2f457ffdef9ff0653834940d07ac2c4178aca137a87595a4850a8ec8bb550",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "CAVU Kitchen Bar",
+        "url": "https://www.nextstopcomedy.com/events/cavu-kitchen-bar-2026-07-24",
+        "startDate": "2026-07-24T20:00:00-07:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "CAVU Kitchen Bar",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "5911 Minoru Blvd., Unit 121, Richmond, BC V6X 4C7, Canada",
+            "addressLocality": "Richmond",
+            "addressRegion": "BC",
+            "postalCode": "V6X 4C7",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/cavu-kitchen-bar-2026-07-24",
+        "venue_name": "CAVU Kitchen Bar",
+        "venue_address": "5911 Minoru Blvd., Unit 121, Richmond, BC V6X 4C7, Canada, CA",
+        "venue_zip": "V6X 4C7",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-mule-cambridge-2026-10-15",
+    "captured_at": "2026-09-30T01:14:50.207745+00:00",
+    "html_sha256": "e8c846a047aabc8e01b14b71f4c6ada55dcc9bc310bddaaa830d4a50954010fc",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Mule Cambridge",
+        "url": "https://www.nextstopcomedy.com/events/the-mule-cambridge-2026-10-15",
+        "startDate": "2026-10-15T20:00:00-04:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Mule Cambridge",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "60 Main St Unit 101, Cambridge, ON N1R 1V4",
+            "addressLocality": "Cambridge",
+            "addressRegion": "ON",
+            "postalCode": "N1R 1V4",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-10-23",
+    "captured_at": "2026-09-30T01:14:49.682381+00:00",
+    "html_sha256": "c5ca975315bc2d4699aeb7bf808d9136cf6816e0703e7d3cb78e0236d199336f",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Franklin House",
+        "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-10-23",
+        "startDate": "2026-10-23T19:00:00-04:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Franklin House",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+            "addressLocality": "Streetsville",
+            "addressRegion": "ON",
+            "postalCode": "L5M 1L9",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/spymaker-axe-throwing-2026-11-06-7-pm",
+    "captured_at": "2026-09-30T01:14:49.300366+00:00",
+    "html_sha256": "e01c48c02c1e4e94dbfa8975eb968527f2887923c87e5112db0f48c85e6ff652",
+    "events": [],
+    "extracted": [],
+    "error": "No event JSON-LD; not cancellation evidence"
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+    "captured_at": "2026-09-30T01:14:47.879516+00:00",
+    "html_sha256": "c0c79dcf1a33d292b31fa104ce9d2e75a966cc27986fe9397e911b5413c4379b",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Formosa Winery",
+        "url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+        "startDate": "2026-11-06T19:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Formosa Winery",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "3011 Formosa Gardens Blvd.",
+            "addressLocality": "Kissimmee",
+            "addressRegion": "FL",
+            "postalCode": "34747",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/ou-la-restaurant-bar-2026-10-23-8-pm",
+    "captured_at": "2026-09-30T01:14:48.947962+00:00",
+    "html_sha256": "993c822df68e0441d5f4e8af7bd996ad56f089d385f0bd8b4f643c64c36084e5",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "OU LA Restaurant & Bar",
+        "url": "https://www.nextstopcomedy.com/events/ou-la-restaurant-bar-2026-10-23-8-pm",
+        "startDate": "2026-10-23T20:00:00-04:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "OU LA Restaurant & Bar",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "29 Washington Ave.",
+            "addressLocality": "Carteret",
+            "addressRegion": "NJ",
+            "postalCode": "07008",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-02-13",
+    "captured_at": "2026-09-30T01:14:50.030652+00:00",
+    "html_sha256": "322c9604b415913b6b3ef6c1933d7cf05a78f0d9da9c111774a4f82482ff45ac",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Franklin House",
+        "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-02-13",
+        "startDate": "2027-02-13T17:30:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Franklin House",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+            "addressLocality": "Streetsville",
+            "addressRegion": "ON",
+            "postalCode": "L5M 1L9",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/dust-temple-2026-09-05",
+    "captured_at": "2026-09-30T01:14:47.736241+00:00",
+    "html_sha256": "049a688117ef3db3621fd782c9e104307d3f04183c00bf2484ad9b0302e0d7fa",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Dust Temple",
+        "url": "https://www.nextstopcomedy.com/events/dust-temple-2026-09-05",
+        "startDate": "2026-09-05T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Dust Temple",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "54 Currumbin Creek Rd.",
+            "addressLocality": "Currumbin Waters",
+            "addressRegion": "QLD",
+            "postalCode": "4223",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/dust-temple-2026-09-05",
+        "venue_name": "Dust Temple",
+        "venue_address": "54 Currumbin Creek Rd., Currumbin Waters, QLD 4223, AU",
+        "venue_zip": "4223",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/ararat-rsl-2026-08-25",
+    "captured_at": "2026-09-30T01:14:47.401846+00:00",
+    "html_sha256": "da83b101926770b1422931d69839101e3db69f500f77358f86ebf779e90a7401",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Ararat RSL",
+        "url": "https://www.nextstopcomedy.com/events/ararat-rsl-2026-08-25",
+        "startDate": "2026-08-25T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Ararat RSL",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "74\u201376 High St.",
+            "addressLocality": "Ararat",
+            "addressRegion": "VIC",
+            "postalCode": "3377",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/pixies-at-the-billabong-presents-2026-07-25",
+    "captured_at": "2026-09-30T01:14:49.106040+00:00",
+    "html_sha256": "7a644bdc35c94fb69e27b0977d118eabdda032c7d180720609c84c27cdb8a77d",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Pixies at the Billabong Presents",
+        "url": "https://www.nextstopcomedy.com/events/pixies-at-the-billabong-presents-2026-07-25",
+        "startDate": "2026-07-25T20:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Pixies at the Billabong Presents",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "19 Main St.",
+            "addressLocality": "Eildon",
+            "addressRegion": "VIC",
+            "postalCode": "3713",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/pixies-at-the-billabong-presents-2026-07-25",
+        "venue_name": "Pixies at the Billabong Presents",
+        "venue_address": "19 Main St., Eildon, VIC 3713, AU",
+        "venue_zip": "3713",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-franklin-house-12-31-2026-8-pm",
+    "captured_at": "2026-09-30T01:14:49.607565+00:00",
+    "html_sha256": "f9389d95584bfdaa04648497daeedcae9fc47666ad2eca6be996652e95031570",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Franklin House",
+        "url": "https://www.nextstopcomedy.com/events/the-franklin-house-12-31-2026-8-pm",
+        "startDate": "2026-12-31T20:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Franklin House",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+            "addressLocality": "Streetsville",
+            "addressRegion": "ON",
+            "postalCode": "L5M 1L9",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-01-15",
+    "captured_at": "2026-09-30T01:14:49.874251+00:00",
+    "html_sha256": "8d8cbf6ff156708e0c401bd5df3b12efd12ea0efcaaadc01177399dff52d0168",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Franklin House",
+        "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-01-15",
+        "startDate": "2027-01-15T19:00:00-05:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Franklin House",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+            "addressLocality": "Streetsville",
+            "addressRegion": "ON",
+            "postalCode": "L5M 1L9",
+            "addressCountry": "CA"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/loco-s-barwon-heads-2026-08-14",
+    "captured_at": "2026-09-30T01:14:48.662051+00:00",
+    "html_sha256": "72e2fd6f582296bac85d09eb29d8f6f5fcfdedb0efcefb72331ae286a7edf1a8",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Loco\u2019s Barwon Heads",
+        "url": "https://www.nextstopcomedy.com/events/loco-s-barwon-heads-2026-08-14",
+        "startDate": "2026-08-14T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "Loco\u2019s Barwon Heads",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "44 Hitchcock Avenue, ",
+            "addressLocality": "Barwon Heads",
+            "addressRegion": "VIC",
+            "postalCode": "3227",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/spanish-peaks-campground-bar-and-grill-2026-11-06-7-pm",
+    "captured_at": "2026-09-30T01:14:49.152820+00:00",
+    "html_sha256": "f8a8175c13940cf5d512d624ac876f37f30662cfdb7189b2c8e894510bc13c47",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Spanish Peaks Campground Bar and Grill",
+        "url": "https://www.nextstopcomedy.com/events/spanish-peaks-campground-bar-and-grill-2026-11-06-7-pm",
+        "startDate": "2026-11-06T17:00:00-07:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Spanish Peaks Campground Bar and Grill",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "22590 County Road 41.6",
+            "addressLocality": "Aguilar",
+            "addressRegion": "CO",
+            "postalCode": "81020",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/spanish-peaks-campground-bar-and-grill-2026-11-06-7-pm",
+        "venue_name": "Spanish Peaks Campground Bar and Grill",
+        "venue_address": "22590 County Road 41.6, Aguilar, CO 81020, US",
+        "venue_zip": "81020",
+        "timezone": "America/Denver"
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-rock-noosa-2026-08-22",
+    "captured_at": "2026-09-30T01:14:50.320054+00:00",
+    "html_sha256": "415c86a376af514f46048b442e5f96627c3a892375efc616d783fc934845bfbf",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "The Rock Noosa",
+        "url": "https://www.nextstopcomedy.com/events/the-rock-noosa-2026-08-22",
+        "startDate": "2026-08-22T18:00:00+10:00",
+        "eventStatus": "https://schema.org/EventCancelled",
+        "location": {
+          "@type": "Place",
+          "name": "The Rock Noosa",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "18 Hastings St. , Noosa Heads QLD ",
+            "addressLocality": "Noosa Heads",
+            "addressRegion": "QLD",
+            "postalCode": "4567",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": []
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/loom-lounge-2026-08-13",
+    "captured_at": "2026-09-30T01:14:48.696384+00:00",
+    "html_sha256": "4dc5dc216786be30ed8d467b4dc449335d60ea473e98c6fdc01889e0bd6621b8",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Loom Lounge",
+        "url": "https://www.nextstopcomedy.com/events/loom-lounge-2026-08-13",
+        "startDate": "2026-08-13T19:00:00+10:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Loom Lounge",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "23 Willoughby Ln.",
+            "addressLocality": "Crows Nest",
+            "addressRegion": "NSW",
+            "postalCode": "2065",
+            "addressCountry": "AU"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/loom-lounge-2026-08-13",
+        "venue_name": "Loom Lounge",
+        "venue_address": "23 Willoughby Ln., Crows Nest, NSW 2065, AU",
+        "venue_zip": "2065",
+        "timezone": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.nextstopcomedy.com/events/black-hawk-brewery-2026-09-23-8pm",
+    "captured_at": "2026-09-30T01:14:47.402013+00:00",
+    "html_sha256": "f78e46dde2e8cf3ff127d5082eed916603312b6077ecf2250334af4dfc321703",
+    "events": [
+      {
+        "@type": "ComedyEvent",
+        "name": "Black Hawk Brewery",
+        "url": "https://www.nextstopcomedy.com/events/black-hawk-brewery-2026-09-23-8pm",
+        "startDate": "2026-09-23T20:00:00-05:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": {
+          "@type": "Place",
+          "name": "Black Hawk Brewery",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "390 W Broadway St, Prosper, Texas 75078",
+            "addressLocality": "Prosper",
+            "addressRegion": "TX",
+            "postalCode": "75078",
+            "addressCountry": "US"
+          }
+        }
+      }
+    ],
+    "extracted": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/black-hawk-brewery-2026-09-23-8pm",
+        "venue_name": "Black Hawk Brewery",
+        "venue_address": "390 W Broadway St, Prosper, Texas 75078, TX, US",
+        "venue_zip": "75078",
+        "timezone": null
+      }
+    ]
+  }
+]

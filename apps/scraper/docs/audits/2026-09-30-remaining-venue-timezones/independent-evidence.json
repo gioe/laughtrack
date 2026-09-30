@@ -1,0 +1,41 @@
+[
+  {
+    "url": "https://www.corkitgainesville.com/about",
+    "captured_at": "2026-09-30T01:18:00.900629+00:00",
+    "html_sha256": "3b20539ecda72e1628ee2c6823068a5e1db98088d865bfdd801ffe37bbacf41b",
+    "title": "About \u2014 Cork It Gainesville",
+    "assessment": "Official venue confirms Gainesville location at 118 Main St SW, GA30501. Stored/event address118 Main St and Gainesville brand match; parenthetical Main Street Market is a descriptive alias. Official30501 differs from source/stored30506; preserve postal pending separate guarded address repair. Current event supplies America/New_York."
+  },
+  {
+    "url": "https://www.pinfishentertainment.com/attractions",
+    "captured_at": "2026-09-30T01:18:01.177612+00:00",
+    "html_sha256": "6771c2151f43f3eeb60fff6ffc152810ba084dec5d4e1f3b42afb63b089b6c79",
+    "title": "General  2 \u2014 Pinfish Entertainment",
+    "assessment": "Official venue confirms Pinfish at91214 Overseas Hwy in Tavernier, Florida. Stored street matches (Highway/Hwy abbreviation). Tavernier in Florida Keys lies in eastern Florida timezone, outside western panhandle Central counties; America/New_York."
+  },
+  {
+    "url": "https://spymakers.com/frequently-asked-questions/",
+    "captured_at": "2026-09-30T01:18:01.730353+00:00",
+    "html_sha256": "c1b699a2c2a8c886e2c7df4d8f44d9da4e5416911c5fadd1afa0a03b3313ba62",
+    "title": "Frequently Asked Questions",
+    "assessment": "Official Spymaker venue confirms1235 South Center Rd in Burton MI; stored1235 S Center Rd matches. Burton is in lower-peninsula Genesee County, outside four Upper Peninsula Central counties; America/Detroit."
+  },
+  {
+    "url": "https://www.riolasvegas.com/shows/the-empire-strips-back",
+    "captured_at": "2026-09-30T01:18:04.400964+00:00",
+    "html_sha256": "adb3f8e5eb6f3ef386e0b348810019761e28a6471b63c883024065573e1a2f8e",
+    "title": "The Empire Strips Back - Rio Las Vegas",
+    "assessment": "Official Rio confirms this theater/show at3700 W Flamingo Rd, Las Vegas NV89103. Nevada Pacific IANA area excludes West Wendover and northern border exceptions, none applicable to Las Vegas; America/Los_Angeles. Existing America/Vancouver is incorrect."
+  },
+  {
+    "url": "https://www.facebook.com/61555850234550",
+    "captured_at": "2026-09-30T01:18:04.665726+00:00",
+    "html_sha256": "22da2e2383868c5fc18c77cab3d990645d5c0bfe1a47d652eaed0cf76b328f19",
+    "title": "Hudson's On Main | Olney TX",
+    "assessment": "Page title confirms Hudsons On Main in Olney TX, but fetched page exposes no street-address evidence; insufficient independent identity proof for timezone backfill."
+  },
+  {
+    "url": "https://raw.githubusercontent.com/eggert/tz/main/northamerica",
+    "assessment": "IANA tzdb source maps Georgia/eastern Florida to America/New_York, Michigan outside Dickinson/Gogebic/Iron/Menominee to America/Detroit, and Nevada Pacific locations outside specified exceptions to America/Los_Angeles. Interpret region with independently verified city, not numeric offsets or majority-state heuristics. Accessed2026-09-30 UTC."
+  }
+]

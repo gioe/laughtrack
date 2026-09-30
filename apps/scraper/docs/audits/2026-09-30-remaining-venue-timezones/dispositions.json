@@ -1,0 +1,545 @@
+[
+  {
+    "id": 12582,
+    "name": "The Franklin House",
+    "original_future_shows": 8,
+    "current_future_shows": 8,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/the-franklin-house-02-13-2027-8-pm",
+      "https://www.nextstopcomedy.com/events/the-franklin-house-12-31-2026-8-pm",
+      "https://www.nextstopcomedy.com/events/the-franklin-house-2026-10-23",
+      "https://www.nextstopcomedy.com/events/the-franklin-house-2026-11-20",
+      "https://www.nextstopcomedy.com/events/the-franklin-house-2026-12-31",
+      "https://www.nextstopcomedy.com/events/the-franklin-house-2027-01-15",
+      "https://www.nextstopcomedy.com/events/the-franklin-house-2027-02-13",
+      "https://www.nextstopcomedy.com/events/the-franklin-house-2027-03-12"
+    ]
+  },
+  {
+    "id": 47475,
+    "name": "Formosa Winery",
+    "original_future_shows": 2,
+    "current_future_shows": 2,
+    "current_active_future_shows": 1,
+    "timezone_before": null,
+    "status": "unresolved_active",
+    "reason": "Missing/redirected source or insufficient independent current venue identity. Retain metadata and shows; TASK-4121 owns source inventory resolution.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+      "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-07-7-pm"
+    ]
+  },
+  {
+    "id": 12605,
+    "name": "The Mule Cambridge",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/the-mule-cambridge-2026-10-15"
+    ]
+  },
+  {
+    "id": 22761,
+    "name": "Cork It Gainesville (located inside of Main Street Market)",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 1,
+    "timezone_before": null,
+    "status": "verified_backfill",
+    "reason": "Independent current venue identity and location resolved; see independent-evidence.json. No show instant or postal metadata change.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/cork-it-gainesville-located-inside-of-main-street-market-2026-10-03"
+    ]
+  },
+  {
+    "id": 26793,
+    "name": "Cedar St Venue",
+    "original_future_shows": 1,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/cedar-st-venue-2026-09-25-8-pm"
+    ]
+  },
+  {
+    "id": 38678,
+    "name": "Hudson\u2019s On Main",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 1,
+    "timezone_before": null,
+    "status": "unresolved_active",
+    "reason": "Missing/redirected source or insufficient independent current venue identity. Retain metadata and shows; TASK-4121 owns source inventory resolution.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm"
+    ]
+  },
+  {
+    "id": 39599,
+    "name": "Boone\u2019s Falls Event Venue",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/boone-s-falls-event-venue-2026-12-12-7-pm"
+    ]
+  },
+  {
+    "id": 43961,
+    "name": "Parker-Binns Vineyard",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 1,
+    "timezone_before": "America/New_York",
+    "status": "preserve_existing",
+    "reason": "Already non-NULL; preserve. Current bound-event IANA agrees. Parker-Binns postal29756 differs from source28756; SpanishPeaks CR is County Road abbreviation.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/parker-binns-vineyard-2026-10-02-7-pm"
+    ]
+  },
+  {
+    "id": 45259,
+    "name": "Pinfish Entertainment",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 1,
+    "timezone_before": null,
+    "status": "verified_backfill",
+    "reason": "Independent current venue identity and location resolved; see independent-evidence.json. No show instant or postal metadata change.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm"
+    ]
+  },
+  {
+    "id": 46892,
+    "name": "Torch 180",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/torch-180-2026-10-24-7-pm"
+    ]
+  },
+  {
+    "id": 56972,
+    "name": "Spymaker Axe Throwing",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 1,
+    "timezone_before": null,
+    "status": "verified_backfill",
+    "reason": "Independent current venue identity and location resolved; see independent-evidence.json. No show instant or postal metadata change.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/spymaker-axe-throwing-2026-11-06-7-pm"
+    ]
+  },
+  {
+    "id": 59360,
+    "name": "OU LA Restaurant & Bar",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/ou-la-restaurant-bar-2026-10-23-8-pm"
+    ]
+  },
+  {
+    "id": 71126,
+    "name": "Spanish Peaks Campground Bar and Grill",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 1,
+    "timezone_before": "America/Denver",
+    "status": "preserve_existing",
+    "reason": "Already non-NULL; preserve. Current bound-event IANA agrees. Parker-Binns postal29756 differs from source28756; SpanishPeaks CR is County Road abbreviation.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/spanish-peaks-campground-bar-and-grill-2026-11-06-7-pm"
+    ]
+  },
+  {
+    "id": 73872,
+    "name": "The Terrace Bar",
+    "original_future_shows": 1,
+    "current_future_shows": 1,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/the-terrace-bar-2027-02-05-8-pm"
+    ]
+  },
+  {
+    "id": 11722,
+    "name": "Black Hawk Brewery",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/black-hawk-brewery-2026-09-23-8pm"
+    ]
+  },
+  {
+    "id": 11823,
+    "name": "Dust Temple",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/dust-temple-2026-09-05"
+    ]
+  },
+  {
+    "id": 12210,
+    "name": "Freight Bar and Rooftop",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/freight-bar-and-rooftop-2026-09-11-7-pm"
+    ]
+  },
+  {
+    "id": 12298,
+    "name": "Ionia Theatre",
+    "original_future_shows": 0,
+    "current_future_shows": 2,
+    "current_active_future_shows": 2,
+    "timezone_before": "America/Detroit",
+    "status": "preserve_existing",
+    "reason": "Already non-NULL America/Detroit; current Ionia event-bound IANA agrees.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/ionia-theatre-02-13-2027-8-pm",
+      "https://www.nextstopcomedy.com/events/ionia-theatre-2026-09-11",
+      "https://www.nextstopcomedy.com/events/ionia-theatre-2027-02-13-5-30-pm"
+    ]
+  },
+  {
+    "id": 12317,
+    "name": "KCs Crows Nest",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/kcs-crows-nest-2026-08-29-7-pm"
+    ]
+  },
+  {
+    "id": 12341,
+    "name": "Loco\u2019s Barwon Heads",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/loco-s-barwon-heads-2026-08-14"
+    ]
+  },
+  {
+    "id": 12342,
+    "name": "Loft West End",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/loft-west-end-2026-07-17"
+    ]
+  },
+  {
+    "id": 12362,
+    "name": "Mannum Hotel",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/mannum-hotel-2026-07-18"
+    ]
+  },
+  {
+    "id": 12418,
+    "name": "Oakbank Bar and Grill",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/oakbank-bar-and-grill-2026-07-25"
+    ]
+  },
+  {
+    "id": 12432,
+    "name": "Pixies at the Billabong Presents",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/pixies-at-the-billabong-presents-2026-07-25"
+    ]
+  },
+  {
+    "id": 12463,
+    "name": "Quirky Bar",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/quirky-bar-2026-08-08"
+    ]
+  },
+  {
+    "id": 12551,
+    "name": "Strings Sports Brewery",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/strings-sports-brewery-2026-07-30"
+    ]
+  },
+  {
+    "id": 12628,
+    "name": "The Tipsy Pig",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/the-tipsy-pig-2026-08-13"
+    ]
+  },
+  {
+    "id": 12655,
+    "name": "Toro Bar & Kitchen",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/toro-bar-kitchen-2026-09-04-7-pm"
+    ]
+  },
+  {
+    "id": 12708,
+    "name": "Volente Beach Resort and Waterpark",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/volente-beach-resort-and-waterpark-2026-09-12"
+    ]
+  },
+  {
+    "id": 12744,
+    "name": "Yazzbar",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/yazzbar-2026-07-08"
+    ]
+  },
+  {
+    "id": 14044,
+    "name": "Goulburn Brewery",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/goulburn-brewery-2026-07-31"
+    ]
+  },
+  {
+    "id": 15344,
+    "name": "Everything\u2019s Better with Wine",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/everything-s-better-with-wine-2026-08-15"
+    ]
+  },
+  {
+    "id": 15551,
+    "name": "Loom Lounge",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/loom-lounge-2026-08-13"
+    ]
+  },
+  {
+    "id": 18231,
+    "name": "The Rock Noosa",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/the-rock-noosa-2026-08-22"
+    ]
+  },
+  {
+    "id": 18551,
+    "name": "Bala Bay Inn",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/bala-bay-inn-2026-08-20"
+    ]
+  },
+  {
+    "id": 18662,
+    "name": "CAVU Kitchen Bar",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/cavu-kitchen-bar-2026-07-24"
+    ]
+  },
+  {
+    "id": 22597,
+    "name": "Ararat RSL",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/ararat-rsl-2026-08-25"
+    ]
+  },
+  {
+    "id": 22877,
+    "name": "Four Hands Tapas and Pizza Restaurant",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_cancelled_source",
+    "reason": "Only canceled event evidence; no independent current-venue verification. Do not use nearby-event IANA or canceled inventory as timezone proof. Retain NULL; review when a verified scheduled source appears.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/four-hands-tapas-and-pizza-restaurant-2026-08-28"
+    ]
+  },
+  {
+    "id": 25995,
+    "name": "Kingsville Brewery 'Beer Garden'",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/kingsville-brewery-beer-garden-2026-09-17"
+    ]
+  },
+  {
+    "id": 27434,
+    "name": "Theo's Rooftop Bar",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/theo-s-rooftop-bar-2026-09-17-8-pm"
+    ]
+  },
+  {
+    "id": 28874,
+    "name": "The Pit",
+    "original_future_shows": 0,
+    "current_future_shows": 0,
+    "current_active_future_shows": 0,
+    "timezone_before": null,
+    "status": "unresolved_historical_source",
+    "reason": "Only historical scheduled source without bound IANA; no independent current-location verification. Retain NULL pending current verified event or venue evidence; no numeric-offset inference.",
+    "source_urls": [
+      "https://www.nextstopcomedy.com/events/the-pit-2026-09-12-7-30-pm"
+    ]
+  }
+]
