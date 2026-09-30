@@ -1,0 +1,38 @@
+[
+  {
+    "id": 22761,
+    "name": "Cork It Gainesville (located inside of Main Street Market)",
+    "address": "118 Main St",
+    "zip_code": "30506",
+    "visible": true,
+    "timezone": null,
+    "new_timezone": "America/New_York"
+  },
+  {
+    "id": 45259,
+    "name": "Pinfish Entertainment",
+    "address": "91214 Overseas Highway",
+    "zip_code": "33070",
+    "visible": true,
+    "timezone": null,
+    "new_timezone": "America/New_York"
+  },
+  {
+    "id": 56972,
+    "name": "Spymaker Axe Throwing",
+    "address": "1235 S Center Rd.",
+    "zip_code": "48509",
+    "visible": true,
+    "timezone": null,
+    "new_timezone": "America/Detroit"
+  },
+  {
+    "id": 4552,
+    "name": "The Empire Strips Back Theater",
+    "address": "3700 W Flamingo Rd, Las Vegas, NV",
+    "zip_code": "89103",
+    "visible": true,
+    "timezone": "America/Vancouver",
+    "new_timezone": "America/Los_Angeles"
+  }
+]

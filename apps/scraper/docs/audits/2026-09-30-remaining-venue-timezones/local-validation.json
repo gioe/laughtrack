@@ -1,0 +1,162 @@
+{
+  "captured_at": "2026-09-30T01:43:26.192717+00:00",
+  "mode": "local",
+  "migration_sha256": "39c4253dd1214e5f149ce1141855ac74ed5a341a1ddd4792324e3db6924bd9a6",
+  "changed_ids": [
+    4552,
+    22761,
+    45259,
+    56972
+  ],
+  "idempotence": "passed",
+  "guards": [
+    {
+      "id": 22761,
+      "field": "name",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "address",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "zip_code",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "visible",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "name",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "address",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "zip_code",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "visible",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "name",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "address",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "zip_code",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "visible",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "name",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "address",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "zip_code",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "visible",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "timezone",
+      "result": "rejected"
+    }
+  ],
+  "unrelated_club_fields": "unchanged",
+  "related": {
+    "shows": {
+      "count": 503,
+      "sha256": "0db9a35db4507d2274824974462df2839ff2adc6ca9f324a32bd7048acbb7c75"
+    }
+  },
+  "rollback": "passed"
+}

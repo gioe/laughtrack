@@ -1,0 +1,190 @@
+{
+  "captured_at": "2026-09-30T01:43:31.232840+00:00",
+  "mode": "production_rollback",
+  "migration_sha256": "39c4253dd1214e5f149ce1141855ac74ed5a341a1ddd4792324e3db6924bd9a6",
+  "changed_ids": [
+    4552,
+    22761,
+    45259,
+    56972
+  ],
+  "idempotence": "passed",
+  "guards": [
+    {
+      "id": 22761,
+      "field": "name",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "address",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "zip_code",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "visible",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 22761,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "name",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "address",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "zip_code",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "visible",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 45259,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "name",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "address",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "zip_code",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "visible",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 56972,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "name",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "address",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "zip_code",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "visible",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "timezone",
+      "result": "rejected"
+    },
+    {
+      "id": 4552,
+      "field": "timezone",
+      "result": "rejected"
+    }
+  ],
+  "unrelated_club_fields": "unchanged",
+  "related": {
+    "shows": {
+      "count": 599,
+      "sha256": "24c5840c148435f8c257c3fc95a19df6ebf6c15b70a656f130338c8ec40efde9"
+    },
+    "tickets": {
+      "count": 599,
+      "sha256": "e80dae12cb1159fe03bc38cc06a30fd29ed48e4f4bcd5358daa0da42754924d1"
+    },
+    "lineup_items": {
+      "count": 246,
+      "sha256": "fedb8b518b77a326090b0608e6778661942236fd180a66600b525848d186f8fe"
+    },
+    "tagged_shows": {
+      "count": 1214,
+      "sha256": "c0859ce18ac251fd84ea3fe5d065fdeab4f45526213af38c68cabfb5b84ce1ca"
+    },
+    "saved_shows": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sent_notifications": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ticket_purchase_click_events": {
+      "count": 3344,
+      "sha256": "41756bf01fe11ff288e53b631ec613a649809903742b8f928310b027190eb5d0"
+    },
+    "discovery_show_feature_snapshots": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "rollback": "passed"
+}
