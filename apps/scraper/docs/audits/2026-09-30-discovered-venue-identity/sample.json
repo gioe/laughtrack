@@ -1,0 +1,363 @@
+{
+  "query": "SELECT DISTINCT ON (s.club_id) s.id,s.show_page_url,s.last_scraped_by,c.id AS club_id,c.name,c.city,c.state,c.zip_code,c.address FROM shows s JOIN clubs c ON c.id=s.club_id WHERE s.last_scraped_by IN ('next_stop_comedy','ticket_tailor','pabst_theater_group') AND (c.id IN (8828,11123) OR s.last_scraped_by != 'next_stop_comedy' OR c.city IS NULL OR c.state IS NULL) ORDER BY s.club_id,s.date DESC LIMIT 20",
+  "rows": [
+    {
+      "id": 6760168,
+      "show_page_url": "https://www.tickettailor.com/events/westrivercomedyclub/2407481?date=2027-02-10",
+      "last_scraped_by": "ticket_tailor",
+      "club_id": 1059,
+      "name": "West River Comedy Club",
+      "city": "Rapid City",
+      "state": "SD",
+      "zip_code": "57701",
+      "address": "632 1/2 St Joseph St, Rapid City, SD 57701"
+    },
+    {
+      "id": 3615767,
+      "show_page_url": "https://www.pabsttheatergroup.com/events/detail/natalie-cuomo-2026",
+      "last_scraped_by": "pabst_theater_group",
+      "club_id": 4800,
+      "name": "Vivarium",
+      "city": "Milwaukee",
+      "state": "WI",
+      "zip_code": "53202",
+      "address": "1818 N. Farwell Avenue, Milwaukee, WI"
+    },
+    {
+      "id": 3089985,
+      "show_page_url": "https://www.pabsttheatergroup.com/events/detail/small-town-murder-2026",
+      "last_scraped_by": "pabst_theater_group",
+      "club_id": 5096,
+      "name": "Pabst Theater",
+      "city": "Milwaukee",
+      "state": "WI",
+      "zip_code": "53202",
+      "address": "144 E. Wells St., Milwaukee, WI"
+    },
+    {
+      "id": 7123739,
+      "show_page_url": "https://www.nextstopcomedy.com/events/the-clubhouse-2026-10-24-8-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 8828,
+      "name": "The Clubhouse",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zip_code": "90027",
+      "address": "1607 N Vermont Ave, Los Angeles, CA 90027, USA",
+      "source_events": [
+        {
+          "name": "The Clubhouse",
+          "address": "377 Denton Ave., New Hyde Park, NY 11040, US",
+          "postal": "11040",
+          "parsed_city_state": [
+            "New Hyde Park",
+            "NY"
+          ]
+        }
+      ],
+      "fetched_length": 93590
+    },
+    {
+      "id": 3092815,
+      "show_page_url": "https://www.pabsttheatergroup.com/events/detail/zarna-garg-2026",
+      "last_scraped_by": "pabst_theater_group",
+      "club_id": 9120,
+      "name": "Turner Hall Ballroom",
+      "city": "Milwaukee",
+      "state": "WI",
+      "zip_code": "53203",
+      "address": "1040 N Vel R. Phillips Ave"
+    },
+    {
+      "id": 3092881,
+      "show_page_url": "https://www.pabsttheatergroup.com/events/detail/josh-johnson-2026",
+      "last_scraped_by": "pabst_theater_group",
+      "club_id": 9123,
+      "name": "The Riverside Theater",
+      "city": "Milwaukee",
+      "state": "WI",
+      "zip_code": "53203",
+      "address": "116 W Wisconsin Ave"
+    },
+    {
+      "id": 5154711,
+      "show_page_url": "https://www.tickettailor.com/events/continentalclub/2347556",
+      "last_scraped_by": "ticket_tailor",
+      "club_id": 11123,
+      "name": "Continental Club",
+      "city": "Oakland",
+      "state": "CA",
+      "zip_code": "94607",
+      "address": "1658 12th St, Oakland, CA 94607, USA"
+    },
+    {
+      "id": 5721844,
+      "show_page_url": "https://www.nextstopcomedy.com/events/annapolis-brewing-company-2027-02-13-7-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11663,
+      "name": "Annapolis Brewing Company",
+      "city": null,
+      "state": null,
+      "zip_code": "B0S 1A0",
+      "address": "302 St George St",
+      "source_events": [
+        {
+          "name": "Annapolis Brewing Company",
+          "address": "302 St George St, Annapolis Royal, NS B0S 1A0, CA",
+          "postal": "B0S 1A0",
+          "parsed_city_state": [
+            null,
+            null
+          ]
+        }
+      ],
+      "fetched_length": 97753
+    },
+    {
+      "id": 3912279,
+      "show_page_url": "https://www.nextstopcomedy.com/events/antlers-whiskey-lounge-2027-03-13",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11665,
+      "name": "Antlers Whiskey Lounge",
+      "city": "Moncton",
+      "state": null,
+      "zip_code": "E1C 1E4",
+      "address": "706 Main St, Moncton, NB E1C 1E4",
+      "source_events": [
+        {
+          "name": "Antlers Whiskey Lounge",
+          "address": "706 Main St, Moncton, NB E1C 1E4, CA",
+          "postal": "E1C 1E4",
+          "parsed_city_state": [
+            null,
+            null
+          ]
+        }
+      ],
+      "fetched_length": 96936
+    },
+    {
+      "id": 4696232,
+      "show_page_url": "https://www.nextstopcomedy.com/events/beer-winery-2028-01-27",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11701,
+      "name": "Beer Winery",
+      "city": null,
+      "state": null,
+      "zip_code": "02446",
+      "address": "150 Longwood Avenue",
+      "source_events": [
+        {
+          "name": "Beer Winery",
+          "address": "150 Longwood Avenue, Brookline, MA 02446, US",
+          "postal": "02446",
+          "parsed_city_state": [
+            "Brookline",
+            "MA"
+          ]
+        }
+      ],
+      "fetched_length": 117399
+    },
+    {
+      "id": 4168931,
+      "show_page_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-03-13",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11709,
+      "name": "Big Beaver Brewing",
+      "city": "Okotoks",
+      "state": null,
+      "zip_code": "T1S 0N8",
+      "address": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+      "source_events": [
+        {
+          "name": "Big Beaver Brewing",
+          "address": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8, CA",
+          "postal": "T1S 0N8",
+          "parsed_city_state": [
+            null,
+            null
+          ]
+        }
+      ],
+      "fetched_length": 99340
+    },
+    {
+      "id": 3590700,
+      "show_page_url": "https://www.nextstopcomedy.com/events/black-hawk-brewery-2026-09-23-8pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11722,
+      "name": "Black Hawk Brewery",
+      "city": "Prosper",
+      "state": null,
+      "zip_code": "75078",
+      "address": "390 W Broadway St, Prosper, Texas 75078",
+      "source_events": [
+        {
+          "name": "Black Hawk Brewery",
+          "address": "390 W Broadway St, Prosper, Texas 75078, TX, US",
+          "postal": "75078",
+          "parsed_city_state": [
+            "Prosper",
+            "TX"
+          ]
+        }
+      ],
+      "fetched_length": 131281
+    },
+    {
+      "id": 5388732,
+      "show_page_url": "https://www.nextstopcomedy.com/events/cahill-park-sports-complex-2026-09-26-8-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11757,
+      "name": "CAHILL PARK SPORTS COMPLEX",
+      "city": null,
+      "state": null,
+      "zip_code": "4343",
+      "address": "64 Buaraba St.",
+      "source_events": [
+        {
+          "name": "CAHILL PARK SPORTS COMPLEX",
+          "address": "64 Buaraba St., Gatton, QLD 4343, AU",
+          "postal": "4343",
+          "parsed_city_state": [
+            null,
+            null
+          ]
+        }
+      ],
+      "fetched_length": 97374
+    },
+    {
+      "id": 3590743,
+      "show_page_url": "https://www.nextstopcomedy.com/events/cannery-brewing-2027-02-13",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11766,
+      "name": "Cannery Brewing",
+      "city": "Penticton",
+      "state": null,
+      "zip_code": "V2A 4L5",
+      "address": "198 Ellis St, Penticton, BC V2A 4L5",
+      "source_events": [
+        {
+          "name": "Cannery Brewing",
+          "address": "198 Ellis St, Penticton, BC V2A 4L5, CA",
+          "postal": "V2A 4L5",
+          "parsed_city_state": [
+            null,
+            null
+          ]
+        }
+      ],
+      "fetched_length": 99314
+    },
+    {
+      "id": 3590840,
+      "show_page_url": "https://www.nextstopcomedy.com/events/dot-s-soul-food-restaurant-2026-07-18",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11817,
+      "name": "Dot's Soul Food Restaurant",
+      "city": null,
+      "state": null,
+      "zip_code": "35643",
+      "address": "18152 AL HIGHWAY 20",
+      "source_events": [],
+      "fetched_length": 97120
+    },
+    {
+      "id": 3590846,
+      "show_page_url": "https://www.nextstopcomedy.com/events/dust-temple-2026-09-05",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11823,
+      "name": "Dust Temple",
+      "city": null,
+      "state": null,
+      "zip_code": "4223",
+      "address": "54 Currumbin Creek Rd.",
+      "source_events": [
+        {
+          "name": "Dust Temple",
+          "address": "54 Currumbin Creek Rd., Currumbin Waters, QLD 4223, AU",
+          "postal": "4223",
+          "parsed_city_state": [
+            null,
+            null
+          ]
+        }
+      ],
+      "fetched_length": 136790
+    },
+    {
+      "id": 6857265,
+      "show_page_url": "https://www.nextstopcomedy.com/events/earp-distillery-2026-10-09-7-30-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11824,
+      "name": "Earp Distillery",
+      "city": null,
+      "state": null,
+      "zip_code": "2294",
+      "address": "41 Darling St.",
+      "source_events": [
+        {
+          "name": "Earp Distillery",
+          "address": "41 Darling St., Carrington, NSW 2294, AU",
+          "postal": "2294",
+          "parsed_city_state": [
+            null,
+            null
+          ]
+        }
+      ],
+      "fetched_length": 111640
+    },
+    {
+      "id": 3590855,
+      "show_page_url": "https://www.nextstopcomedy.com/events/eighteen91-the-ponoka-golf-club-2026-10-02",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11832,
+      "name": "eighteen91 @ The Ponoka Golf Club",
+      "city": null,
+      "state": null,
+      "zip_code": "T4J 1R5",
+      "address": "3519 46th St., Ponoka, AB T4J 1R5, Canada",
+      "source_events": [],
+      "fetched_length": 98568
+    },
+    {
+      "id": 3590865,
+      "show_page_url": "https://www.nextstopcomedy.com/events/escobar-aspen-2026-07-31",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11842,
+      "name": "Escobar Aspen",
+      "city": null,
+      "state": null,
+      "zip_code": "81611",
+      "address": "426 E Hyman Ave.",
+      "source_events": [
+        {
+          "name": "Escobar Aspen",
+          "address": "426 E Hyman Ave., Aspen, CO 81611, US",
+          "postal": "81611",
+          "parsed_city_state": [
+            "Aspen",
+            "CO"
+          ]
+        }
+      ],
+      "fetched_length": 96732
+    },
+    {
+      "id": 5388826,
+      "show_page_url": "https://www.nextstopcomedy.com/events/exo-lounge-2027-02-13-8-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_id": 11847,
+      "name": "EXO Lounge",
+      "city": "Edwardsville",
+      "state": null,
+      "zip_code": "62025",
+      "address": "157th Center, Edwardsville, Illinois 62025",
+      "source_events": [],
+      "fetched_length": 101889
+    }
+  ]
+}

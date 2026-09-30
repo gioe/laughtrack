@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1059,
+    "url": "https://www.tickettailor.com/events/westrivercomedyclub/2407481?date=2027-02-10",
+    "length": 46241,
+    "jsonld": [
+      " {\"@context\":\"https:\\/\\/schema.org\",\"@type\":\"Event\",\"name\":\"David Nihill: Taking Tangents Tour\",\"description\":\"\\n\\nMUST BE 21+NO REFUNDS OR EXCHANGES, PLEASE CHECK ORDER BEFORE CONFIRMING\",\"image\":[\"https:\\/\\/uploads.tickettailorassets.com\\/c_scale,w_1920\\/v1\\/production\\/userfiles\\/p5xvvku2t9eubkqufgk1.jpg?_a=BAAHWXDQ\",\"https:\\/\\/uploads.tickettailorassets.com\\/c_scale,w_720\\/v1\\/production\\/userfiles\\/lu51orptw4ysiccgskv9.png?_a=BAAHWXDQ\"],\"organizer\":{\"@type\":\"Organization\",\"name\":\"West River Comedy Club\",\"url\":\"https:\\/\\/www.tickettailor.com\\/events\\/westrivercomedyclub\"},\"eventStatus\":\"https:\\/\\/schema.org\\/EventScheduled\",\"eventAttendanceMode\":\"https:\\/\\/schema.org\\/OfflineEventAttendanceMode\",\"location\":{\"@type\":\"Place\",\"name\":\"West River Comedy Club\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"West River Comedy Club\",\"postalCode\":\"57701\",\"addressCountry\":\"US\"}},\"startDate\":\"2027-02-10T19:30:00-07:00\",\"endDate\":\"2027-02-10T21:00:00-07:00\",\"offers\":[{\"@type\":\"Offer\",\"name\":\"Tier 1 (Table for 2)\",\"url\":\"https:\\/\\/www.tickettailor.com\\/events\\/westrivercomedyclub\\/2407481\",\"price\":70,\"availability\":\"https:\\/\\/schema.org\\/InStock\",\"priceCurrency\":\"USD\"},{\"@type\":\"Offer\",\"name\":\"Tier 2 (Table seating)\",\"url\":\"https:\\/\\/www.tickettailor.com\\/events\\/westrivercomedyclub\\/2407481\",\"price\":30,\"availability\":\"https:\\/\\/schema.org\\/InStock\",\"priceCurrency\":\"USD\"},{\"@type\":\"Offer\",\"name\":\"Tier 3 (Row seating, no table service)\",\"url\":\"https:\\/\\/www.tickettailor.com\\/events\\/westrivercomedyclub\\/2407481\",\"price\":25,\"availability\":\"https:\\/\\/schema.org\\/InStock\",\"priceCurrency\":\"USD\"}]} "
+    ],
+    "evidence": [
+      "West River Comedy Club, 57701",
+      "West River Comedy Club, 57701",
+      "West River Comedy Club, 57701",
+      "Location",
+      "West River Comedy Club, 57701"
+    ],
+    "event_venue": null
+  },
+  {
+    "id": 4800,
+    "url": "https://www.pabsttheatergroup.com/events/detail/natalie-cuomo-2026",
+    "length": 64106,
+    "jsonld": [
+      "{\n    \"@context\": \"https://schema.org\",\n    \"@type\": \"Organization\",\n    \"@id\": \"https://www.pabsttheatergroup.com/#organization\",\n    \"name\": \"The Pabst Theater Group\",\n    \"url\": \"https://www.pabsttheatergroup.com/\",\n    \"logo\": \"https://www.pabsttheatergroup.com/assets/production/a3a881a01a/images/svg/logo.svg\",\n    \"sameAs\": [\n        \"https://www.youtube.com/pabstriverside\",\n        \"https://www.instagram.com/pabsttheatergroup\",\n        \"https://www.facebook.com/pabsttheatergroup\",\n        \"https://www.twitter.com/PabstTheaterGRP\"\n    ]\n}"
+    ],
+    "evidence": [
+      "144 E Wells St                                   , Milwaukee, WI 53202",
+      "116 W Wisconsin Ave                            , Milwaukee, WI 53203",
+      "500 West Kilbourn Avenue             , Milwaukee, Wisconsin 53203",
+      "1040 Vel R. Phillips Avenue  , Milwaukee, Wisconsin 53203",
+      "1818 North Farwell Avenue         , Milwaukee, Wisconsin 53202",
+      "1119 North Marshall Street , Milwaukee, Wisconsin 53202"
+    ],
+    "event_venue": "Venue Vivarium"
+  },
+  {
+    "id": 5096,
+    "url": "https://www.pabsttheatergroup.com/events/detail/small-town-murder-2026",
+    "length": 68861,
+    "jsonld": [
+      "{\n    \"@context\": \"https://schema.org\",\n    \"@type\": \"Organization\",\n    \"@id\": \"https://www.pabsttheatergroup.com/#organization\",\n    \"name\": \"The Pabst Theater Group\",\n    \"url\": \"https://www.pabsttheatergroup.com/\",\n    \"logo\": \"https://www.pabsttheatergroup.com/assets/production/a3a881a01a/images/svg/logo.svg\",\n    \"sameAs\": [\n        \"https://www.youtube.com/pabstriverside\",\n        \"https://www.instagram.com/pabsttheatergroup\",\n        \"https://www.facebook.com/pabsttheatergroup\",\n        \"https://www.twitter.com/PabstTheaterGRP\"\n    ]\n}"
+    ],
+    "evidence": [
+      "144 E Wells St                                   , Milwaukee, WI 53202",
+      "116 W Wisconsin Ave                            , Milwaukee, WI 53203",
+      "500 West Kilbourn Avenue             , Milwaukee, Wisconsin 53203",
+      "1040 Vel R. Phillips Avenue  , Milwaukee, Wisconsin 53203",
+      "1818 North Farwell Avenue         , Milwaukee, Wisconsin 53202",
+      "1119 North Marshall Street , Milwaukee, Wisconsin 53202"
+    ],
+    "event_venue": "Venue The Pabst Theater"
+  },
+  {
+    "id": 9120,
+    "url": "https://www.pabsttheatergroup.com/events/detail/zarna-garg-2026",
+    "length": 73780,
+    "jsonld": [
+      "{\n    \"@context\": \"https://schema.org\",\n    \"@type\": \"Organization\",\n    \"@id\": \"https://www.pabsttheatergroup.com/#organization\",\n    \"name\": \"The Pabst Theater Group\",\n    \"url\": \"https://www.pabsttheatergroup.com/\",\n    \"logo\": \"https://www.pabsttheatergroup.com/assets/production/a3a881a01a/images/svg/logo.svg\",\n    \"sameAs\": [\n        \"https://www.youtube.com/pabstriverside\",\n        \"https://www.instagram.com/pabsttheatergroup\",\n        \"https://www.facebook.com/pabsttheatergroup\",\n        \"https://www.twitter.com/PabstTheaterGRP\"\n    ]\n}"
+    ],
+    "evidence": [
+      ". Zarna is deeply\u00a0saddened\u00a0that she will be unable to perform for her fans at Turner Hall this fall. However, she plans to return to Milwaukee at some point in the near future.",
+      "144 E Wells St                                   , Milwaukee, WI 53202",
+      "116 W Wisconsin Ave                            , Milwaukee, WI 53203",
+      "500 West Kilbourn Avenue             , Milwaukee, Wisconsin 53203",
+      "1040 Vel R. Phillips Avenue  , Milwaukee, Wisconsin 53203",
+      "1818 North Farwell Avenue         , Milwaukee, Wisconsin 53202",
+      "1119 North Marshall Street , Milwaukee, Wisconsin 53202"
+    ],
+    "event_venue": "Venue Turner Hall Ballroom"
+  },
+  {
+    "id": 9123,
+    "url": "https://www.pabsttheatergroup.com/events/detail/josh-johnson-2026",
+    "length": 72613,
+    "jsonld": [
+      "{\n    \"@context\": \"https://schema.org\",\n    \"@type\": \"Organization\",\n    \"@id\": \"https://www.pabsttheatergroup.com/#organization\",\n    \"name\": \"The Pabst Theater Group\",\n    \"url\": \"https://www.pabsttheatergroup.com/\",\n    \"logo\": \"https://www.pabsttheatergroup.com/assets/production/a3a881a01a/images/svg/logo.svg\",\n    \"sameAs\": [\n        \"https://www.youtube.com/pabstriverside\",\n        \"https://www.instagram.com/pabsttheatergroup\",\n        \"https://www.facebook.com/pabsttheatergroup\",\n        \"https://www.twitter.com/PabstTheaterGRP\"\n    ]\n}"
+    ],
+    "evidence": [
+      "144 E Wells St                                   , Milwaukee, WI 53202",
+      "116 W Wisconsin Ave                            , Milwaukee, WI 53203",
+      "500 West Kilbourn Avenue             , Milwaukee, Wisconsin 53203",
+      "1040 Vel R. Phillips Avenue  , Milwaukee, Wisconsin 53203",
+      "1818 North Farwell Avenue         , Milwaukee, Wisconsin 53202",
+      "1119 North Marshall Street , Milwaukee, Wisconsin 53202"
+    ],
+    "event_venue": "Venue The Riverside Theater"
+  },
+  {
+    "id": 11123,
+    "url": "https://www.tickettailor.com/events/continentalclub/2347556",
+    "length": 35332,
+    "jsonld": [
+      " {\"@context\":\"https:\\/\\/schema.org\",\"@type\":\"Event\",\"name\":\"THE DOSE: A Psychedelic Comedy Experience\",\"description\":\"\",\"image\":[\"https:\\/\\/uploads.tickettailorassets.com\\/c_scale,w_1920\\/v1\\/production\\/userfiles\\/zc2myianvv12nnm28tbv.png?_a=BAAHWXDQ\",\"https:\\/\\/uploads.tickettailorassets.com\\/c_scale,w_720\\/v1\\/production\\/userfiles\\/zc2myianvv12nnm28tbv.png?_a=BAAHWXDQ\"],\"organizer\":{\"@type\":\"Organization\",\"name\":\"Continental Club\",\"url\":\"https:\\/\\/events.oaklandcontinentalclub.com\\/events\\/continentalclub\"},\"eventStatus\":\"https:\\/\\/schema.org\\/EventScheduled\",\"eventAttendanceMode\":\"https:\\/\\/schema.org\\/OfflineEventAttendanceMode\",\"location\":{\"@type\":\"Place\",\"name\":\"Continental Club\",\"address\":{\"@type\":\"PostalAddress\",\"streetAddress\":\"Continental Club\",\"postalCode\":\"94607\",\"addressCountry\":\"US\"}},\"startDate\":\"2026-11-05T19:00:00-08:00\",\"endDate\":\"2026-11-06T02:00:00-08:00\",\"offers\":[{\"@type\":\"Offer\",\"name\":\"Early Bird\",\"url\":\"https:\\/\\/events.oaklandcontinentalclub.com\\/events\\/continentalclub\\/2347556\",\"price\":24.75,\"availability\":\"https:\\/\\/schema.org\\/InStock\",\"priceCurrency\":\"USD\"},{\"@type\":\"Offer\",\"name\":\"General Admission\",\"url\":\"https:\\/\\/events.oaklandcontinentalclub.com\\/events\\/continentalclub\\/2347556\",\"price\":28,\"availability\":\"https:\\/\\/schema.org\\/InStock\",\"priceCurrency\":\"USD\"},{\"@type\":\"Offer\",\"name\":\"VIP\",\"url\":\"https:\\/\\/events.oaklandcontinentalclub.com\\/events\\/continentalclub\\/2347556\",\"price\":38.75,\"availability\":\"https:\\/\\/schema.org\\/InStock\",\"priceCurrency\":\"USD\"}]} "
+    ],
+    "evidence": [
+      "Continental Club, 94607",
+      "Continental Club, 94607",
+      "Location",
+      "Continental Club, 94607"
+    ],
+    "event_venue": null
+  }
+]
