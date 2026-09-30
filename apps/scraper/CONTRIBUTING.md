@@ -110,6 +110,26 @@ check rather than blocking ingestion entirely.
 
 ## Testing Patterns
 
+### Nightly coordinate-enrichment artifacts
+
+The nightly finalizer retains `scraper-finalizer-<run_id>-<run_attempt>` for
+30 days, including when finalization fails. Download it from the Actions run:
+`coordinate-enrichment.json` records attempted, resolved, unresolved, failed,
+retried and skipped venue counts; `finalizer-diagnostics.json` records finalizer
+stage statuses. The upload contains only these structured files, never raw logs,
+exception messages, provider URLs or credentials.
+
+Zero counts are recorded explicitly. `reason` distinguishes no eligible candidates,
+provider backoff, an unavailable concurrency lock, and a provider block mid-batch.
+`retried` overlaps attempted; `skipped` counts attempts whose guarded database
+update lost an identity/concurrency race. It does not estimate unattempted venues.
+If geocoding throws, counts are null (unknown), status is failed, and finalization
+continues; if an earlier finalizer stage fails, geocoding is marked not_run and the
+original failure propagates. A terminated process may leave status running; do not
+interpret an incomplete report as a successful zero-result run. These diagnostics
+cover metrics publication, email processing, club totals, and coordinate enrichment;
+later workflow steps retain their own Actions logs and status.
+
 These patterns apply whenever writing or modifying test files in `apps/scraper/tests/`.
 
 ### Frozen-Clock Fixture-Rot Sweep (`make test-frozen`)

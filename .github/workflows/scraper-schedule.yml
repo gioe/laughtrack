@@ -392,6 +392,17 @@ jobs:
             apps/scraper/metrics/
           retention-days: 30
 
+      - name: Upload finalizer diagnostics and coordinate outcomes
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: scraper-finalizer-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            apps/scraper/finalizer-artifacts/coordinate-enrichment.json
+            apps/scraper/finalizer-artifacts/finalizer-diagnostics.json
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Record full pipeline run
         if: always()
         continue-on-error: true
