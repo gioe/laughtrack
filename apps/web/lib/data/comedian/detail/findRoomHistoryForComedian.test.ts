@@ -99,7 +99,7 @@ describe("findRoomHistoryForComedian", () => {
         expect(mockQueryRaw).toHaveBeenCalledTimes(1);
 
         const sql = getQueryStrings();
-        expect(sql).toMatch(/FROM "shows"/);
+        expect(sql).toContain("FROM shows WHERE is_cancelled = false");
         expect(sql).toMatch(/JOIN "clubs"/);
         expect(sql).toMatch(/JOIN "lineup_items"/);
         expect(sql).toMatch(/li\."comedian_id" IN/);

@@ -523,7 +523,8 @@ describe("getTouringScarcityRails", () => {
                     club_id INTEGER NOT NULL REFERENCES clubs(id),
                     date TIMESTAMPTZ NOT NULL,
                     name TEXT,
-                    tickets_sold_out BOOLEAN NOT NULL DEFAULT false
+                    tickets_sold_out BOOLEAN NOT NULL DEFAULT false,
+                    is_cancelled BOOLEAN NOT NULL DEFAULT FALSE
                 );
                 CREATE TABLE tickets (
                     id INTEGER PRIMARY KEY,

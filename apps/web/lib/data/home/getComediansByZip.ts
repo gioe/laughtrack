@@ -66,7 +66,7 @@ export async function getComediansByZip(
                 COUNT(DISTINCT s.id)::int AS show_count
             FROM comedians c
             JOIN lineup_items li ON li.comedian_id = c.uuid
-            JOIN shows s ON s.id = li.show_id
+            JOIN (SELECT * FROM shows WHERE is_cancelled = false) s ON s.id = li.show_id
             JOIN clubs cl ON cl.id = s.club_id
             LEFT JOIN LATERAL (
                 SELECT avatar_path

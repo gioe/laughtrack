@@ -1,0 +1,42 @@
+{
+  "mode": "rolled_back",
+  "targets": 41,
+  "cohort": 1600,
+  "preserved": {
+    "shows": {
+      "count": 1600,
+      "sha256": "a875035681c3f45e77454d9f62cd93f07a0fac9307d14fbc849df2732b8c776b"
+    },
+    "tickets": {
+      "count": 1600,
+      "sha256": "3f95d3a718fcfb70d10dfabfea4e948d6721064ea92ca0d373e2a1b90d0cbf6d"
+    },
+    "lineup_items": {
+      "count": 1389,
+      "sha256": "d9756ff1319fa881869c2f027a0c1b5c43d3af81673db132fcf66218ed264263"
+    },
+    "tagged_shows": {
+      "count": 3367,
+      "sha256": "876eedd02f2877628656b2ef7e74248854b346ae305f0158574e0c2808b4d878"
+    },
+    "discovery_show_feature_snapshots": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "saved_shows": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sent_notifications": {
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ticket_purchase_click_events": {
+      "count": 30937,
+      "sha256": "ff68e0e2fbae225c51765bda1da5f49d51348e6cd97ecc1aa64de7982be672c7"
+    }
+  },
+  "idempotence": "passed",
+  "identity_guard": "passed",
+  "rollback": "passed"
+}

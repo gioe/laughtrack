@@ -156,6 +156,7 @@ describe("GET /api/v1/saved-shows", () => {
         expect(where).toEqual({
             profileId: "profile-2",
             show: {
+                isCancelled: false,
                 date: { lt: expect.any(Date) },
                 club: { visible: true },
             },

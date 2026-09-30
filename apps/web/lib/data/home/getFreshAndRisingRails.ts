@@ -434,7 +434,7 @@ export function buildFreshAndRisingQuery({
                 s.first_discovered_at,
                 s.tickets_sold_out,
                 club.visible AS club_visible
-            FROM shows s
+            FROM (SELECT * FROM shows WHERE is_cancelled = false) s
             JOIN clubs club ON club.id = s.club_id
             WHERE club.visible = true
               AND s.date > ${now}

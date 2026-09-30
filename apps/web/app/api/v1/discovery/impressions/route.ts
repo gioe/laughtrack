@@ -238,7 +238,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
 
     const entityIds = [...new Set(parsedEvents.map((event) => event.entityId))];
     const shows = await db.show.findMany({
-        where: { id: { in: entityIds } },
+        where: { id: { in: entityIds }, isCancelled: false },
         select: { id: true },
     });
     const foundIds = new Set(shows.map((show) => show.id));

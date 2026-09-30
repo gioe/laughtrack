@@ -93,7 +93,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     }
 
     const show = await db.show.findUnique({
-        where: { id: showId },
+        where: { id: showId, isCancelled: false },
         select: {
             id: true,
             clubId: true,

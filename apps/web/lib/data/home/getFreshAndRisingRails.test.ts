@@ -318,7 +318,8 @@ describe("getFreshAndRisingRails", () => {
                     date TIMESTAMPTZ NOT NULL,
                     name TEXT,
                     first_discovered_at TIMESTAMPTZ,
-                    tickets_sold_out BOOLEAN NOT NULL
+                    tickets_sold_out BOOLEAN NOT NULL,
+                    is_cancelled BOOLEAN NOT NULL DEFAULT FALSE
                 );
                 CREATE TABLE tickets (
                     id INTEGER PRIMARY KEY,
@@ -383,6 +384,25 @@ describe("getFreshAndRisingRails", () => {
                 feature_as_of: new Date("2026-08-07T00:00:00.000Z"),
                 growth: 0.75,
             });
+
+            // The same retained row and ticket stop generating discovery
+            // candidates as soon as explicit cancellation is recorded.
+            await pg.exec(
+                "UPDATE shows SET is_cancelled = true WHERE id = 101",
+            );
+            const cancelledQuery = toPgliteQuery(
+                buildFreshAndRisingQuery({
+                    now: NOW,
+                    horizonEnd: new Date("2026-11-05T12:00:00.000Z"),
+                }),
+            );
+            expect(
+                (await pg.query(cancelledQuery.text, cancelledQuery.values))
+                    .rows,
+            ).toEqual([]);
+            expect(
+                (await pg.query("SELECT id, show_id FROM tickets")).rows,
+            ).toEqual([{ id: 1, show_id: 101 }]);
         } finally {
             await pg.close();
         }

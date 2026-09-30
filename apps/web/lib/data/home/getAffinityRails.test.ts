@@ -104,7 +104,8 @@ async function buildFixture() {
             date TIMESTAMPTZ NOT NULL,
             name TEXT,
             club_id INTEGER NOT NULL,
-            tickets_sold_out BOOLEAN NOT NULL
+            tickets_sold_out BOOLEAN NOT NULL,
+                    is_cancelled BOOLEAN NOT NULL DEFAULT FALSE
         );
         CREATE TABLE tickets (
             id INTEGER PRIMARY KEY,

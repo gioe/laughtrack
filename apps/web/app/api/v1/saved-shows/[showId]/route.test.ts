@@ -129,7 +129,7 @@ describe("/api/v1/saved-shows/[showId]", () => {
 
         expect(response.status).toBe(404);
         expect(mockFindShow).toHaveBeenCalledWith({
-            where: { id: 42, club: { visible: true } },
+            where: { id: 42, isCancelled: false, club: { visible: true } },
             select: { id: true },
         });
         expect(mockFindSavedShow).not.toHaveBeenCalled();
@@ -289,4 +289,37 @@ describe("/api/v1/saved-shows/[showId]", () => {
             );
         },
     );
+});
+
+describe("cancelled show save lifecycle", () => {
+    it("rejects a new save for a retained cancellation without changing saved records", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockFindShow.mockImplementation(
+            (query) =>
+                Promise.resolve(
+                    query?.where?.isCancelled === false
+                        ? null
+                        : { id: 42, date: new Date("2099-01-01") },
+                ) as never,
+        );
+        expect((await makeCall(POST)).status).toBe(404);
+        expect(mockUpsert).not.toHaveBeenCalled();
+        expect(mockDeleteMany).not.toHaveBeenCalled();
+    });
+
+    it("allows the owner to remove an existing save even when the show was cancelled", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockDeleteMany.mockResolvedValue({ count: 1 });
+        expect((await makeCall(DELETE)).status).toBe(200);
+        expect(mockDeleteMany).toHaveBeenCalledWith({
+            where: { profileId: "profile-1", showId: 42 },
+        });
+        expect(mockFindShow).not.toHaveBeenCalled();
+    });
 });

@@ -79,7 +79,7 @@ describe("/api/v1/tickets/out", () => {
             "https://tickets.example.com/event/99",
         );
         expect(mockShowFindUnique).toHaveBeenCalledWith({
-            where: { id: 42 },
+            where: { id: 42, isCancelled: false },
             select: {
                 id: true,
                 clubId: true,

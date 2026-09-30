@@ -80,7 +80,8 @@ candidate_shows AS (
     FROM favorite_comedian_members members
     JOIN lineup_items li ON li.comedian_id = members.member_uuid
     JOIN shows s2 ON s2.id = li.show_id
-    WHERE s2.date >= NOW()
+    WHERE s2.is_cancelled = false
+      AND s2.date >= NOW()
       AND s2.first_discovered_at IS NOT NULL
       AND s2.first_discovered_at >= NOW() - INTERVAL '%s days'
 )

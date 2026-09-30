@@ -431,7 +431,7 @@ function touringHistoryCtes(
             SELECT
                 MIN(s.date) AS history_coverage_start,
                 COUNT(DISTINCT s.id)::integer AS history_coverage_show_count
-            FROM shows s
+            FROM (SELECT * FROM shows WHERE is_cancelled = false) s
             JOIN clubs club ON club.id = s.club_id
             WHERE club.visible = true
               AND club.zip_code IN (${Prisma.join(nearbyZips)})
@@ -442,7 +442,7 @@ function touringHistoryCtes(
                 s.id AS show_id,
                 s.date AS show_date,
                 canonical.id AS canonical_comedian_id
-            FROM shows s
+            FROM (SELECT * FROM shows WHERE is_cancelled = false) s
             JOIN clubs club ON club.id = s.club_id
             JOIN lineup_items lineup ON lineup.show_id = s.id
             JOIN comedians performer ON performer.uuid = lineup.comedian_id
@@ -495,7 +495,7 @@ export function buildTouringHistoryQuery(
     return Prisma.sql`
         WITH ${touringHistoryCtes(nearbyZips, now)}
         SELECT coverage.*,
-            (SELECT MIN(s.date) FROM shows s JOIN clubs club ON club.id = s.club_id
+            (SELECT MIN(s.date) FROM (SELECT * FROM shows WHERE is_cancelled = false) s JOIN clubs club ON club.id = s.club_id
              WHERE club.visible = true
                AND club.zip_code IN (${Prisma.join(nearbyZips)})
                AND s.date >= ${now}) AS next_show_at,
@@ -546,7 +546,7 @@ export function buildTouringScarcityQuery({
                 s.name,
                 s.tickets_sold_out,
                 club.visible AS club_visible
-            FROM shows s
+            FROM (SELECT * FROM shows WHERE is_cancelled = false) s
             JOIN clubs club ON club.id = s.club_id
             WHERE club.visible = true
               AND club.zip_code IN (${Prisma.join(nearbyZips)})

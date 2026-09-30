@@ -83,6 +83,7 @@ export async function findUpcomingRunsForComedian(
     if (!identity) return [];
 
     const where: Prisma.ShowWhereInput = {
+        isCancelled: false,
         date: buildDateClause(filters),
         club: {
             visible: true,

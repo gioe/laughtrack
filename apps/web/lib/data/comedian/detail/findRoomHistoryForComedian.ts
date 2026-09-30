@@ -39,7 +39,7 @@ export async function findRoomHistoryForComedian(
             cl."has_image" AS has_image,
             COUNT(DISTINCT s.id) AS play_count,
             MAX(s.date) AS last_played_date
-        FROM "shows" s
+        FROM (SELECT * FROM shows WHERE is_cancelled = false) s
         JOIN "clubs" cl ON cl.id = s."club_id"
         JOIN "lineup_items" li ON li."show_id" = s.id
         WHERE s.date < ${now}

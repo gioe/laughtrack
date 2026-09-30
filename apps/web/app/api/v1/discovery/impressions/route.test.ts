@@ -118,7 +118,7 @@ describe("POST /api/v1/discovery/impressions", () => {
             { limit: 20, windowMs: 60_000 },
         );
         expect(mockShowFindMany).toHaveBeenCalledWith({
-            where: { id: { in: [42] } },
+            where: { id: { in: [42] }, isCancelled: false },
             select: { id: true },
         });
         expect(mockImpressionCreateMany).toHaveBeenCalledWith({

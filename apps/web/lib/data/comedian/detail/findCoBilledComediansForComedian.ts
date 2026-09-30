@@ -35,7 +35,7 @@ export async function findCoBilledComediansForComedian({
         target_shows AS (
             SELECT li."show_id"
             FROM "lineup_items" li
-            JOIN "shows" s ON s.id = li."show_id"
+            JOIN (SELECT * FROM shows WHERE is_cancelled = false) s ON s.id = li."show_id"
             JOIN "clubs" cl ON cl.id = s."club_id"
             JOIN target t ON t.uuid = li."comedian_id"
             WHERE s.date >= ${oneYearAgo}

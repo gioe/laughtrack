@@ -38,6 +38,7 @@ const { mockCount, mockFindMany, mockResolveIdentity, mockClubs } = vi.hoisted(
 );
 
 const availableShowWhere = {
+    isCancelled: false,
     AND: [
         {
             NOT: [
@@ -587,10 +588,18 @@ describe("findShowsWithCount", () => {
             const comedianSelect =
                 capturedSelect.lineupItems.select.comedian.select;
             expect(comedianSelect._count).toEqual({
-                select: { lineupItems: true },
+                select: {
+                    lineupItems: {
+                        where: { AND: [{ show: { isCancelled: false } }] },
+                    },
+                },
             });
             expect(comedianSelect.parentComedian.select._count).toEqual({
-                select: { lineupItems: true },
+                select: {
+                    lineupItems: {
+                        where: { AND: [{ show: { isCancelled: false } }] },
+                    },
+                },
             });
         });
 

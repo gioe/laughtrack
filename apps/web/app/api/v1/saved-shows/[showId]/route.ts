@@ -54,7 +54,7 @@ export const GET = withRequestMetrics(async function GET(
         }
 
         const show = await db.show.findFirst({
-            where: { id: showId, club: { visible: true } },
+            where: { id: showId, isCancelled: false, club: { visible: true } },
             select: { id: true },
         });
         if (!show) {
@@ -136,7 +136,7 @@ export const POST = withRequestMetrics(async function POST(
         }
 
         const show = await db.show.findFirst({
-            where: { id: showId, club: { visible: true } },
+            where: { id: showId, isCancelled: false, club: { visible: true } },
             select: { id: true, date: true },
         });
         if (!show) {

@@ -1,8 +1,5 @@
 import { db } from "@/lib/db";
-import {
-    buildShowSelect,
-    mapShowRowToDTO,
-} from "@/lib/data/show/showSelect";
+import { buildShowSelect, mapShowRowToDTO } from "@/lib/data/show/showSelect";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { Prisma } from "@prisma/client";
 import { ShowDetailDTO } from "./interface";
@@ -20,11 +17,13 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
         // items). Evaluated per request so the date boundary is "now".
         const baseSelect = buildShowSelect({
             includeDescription: true,
-            lineupCountWhere: { show: { date: { gt: new Date() } } },
+            lineupCountWhere: {
+                show: { isCancelled: false, date: { gt: new Date() } },
+            },
         });
 
         const row = await db.show.findUnique({
-            where: { id },
+            where: { id, isCancelled: false },
             select: {
                 ...baseSelect,
                 showPageUrl: true,

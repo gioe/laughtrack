@@ -55,7 +55,7 @@ export async function getOnboardingComedianSuggestions(
                   )
                   AND EXISTS (
                       SELECT 1 FROM "lineup_items" li
-                      JOIN "shows" s ON li."show_id" = s.id
+                      JOIN (SELECT * FROM shows WHERE is_cancelled = false) s ON li."show_id" = s.id
                       WHERE li."comedian_id" = c.uuid AND s.date > NOW()
                   )
                 ORDER BY power(random(), 1.0 / c.popularity) DESC

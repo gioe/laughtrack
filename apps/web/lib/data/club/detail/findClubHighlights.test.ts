@@ -124,6 +124,7 @@ describe("findClubHighlights", () => {
             expect.objectContaining({
                 where: {
                     clubId: 7,
+                    isCancelled: false,
                     date: {
                         gte: new Date("2026-07-29T07:00:00.000Z"),
                         lte: new Date("2026-07-30T06:59:59.999Z"),
@@ -135,6 +136,7 @@ describe("findClubHighlights", () => {
             expect.objectContaining({
                 where: {
                     clubId: 7,
+                    isCancelled: false,
                     date: { gt: new Date("2026-07-30T06:59:59.999Z") },
                 },
             }),
@@ -152,6 +154,7 @@ describe("findClubHighlights", () => {
             expect.objectContaining({
                 where: {
                     clubId: 7,
+                    isCancelled: false,
                     date: {
                         gte: new Date("2026-01-14T05:00:00.000Z"),
                         lte: new Date("2026-01-15T04:59:59.999Z"),

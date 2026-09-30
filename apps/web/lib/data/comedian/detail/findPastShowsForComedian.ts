@@ -43,6 +43,7 @@ export async function findPastShowsForComedian(
     const size = Math.max(1, options.size ?? PAST_SHOWS_PAGE_SIZE);
 
     const whereClause: Prisma.ShowWhereInput = {
+        isCancelled: false,
         date: { lt: new Date() },
         club: { visible: true },
         ...helper.getLineupItemClause(identity.memberUuids),

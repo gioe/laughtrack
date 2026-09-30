@@ -39,6 +39,7 @@ function whereFor(
         lineupItems: {
             some: {
                 show: {
+                    isCancelled: false,
                     date: { gt: now },
                     club: {
                         zipCode: { in: nearbyZips },

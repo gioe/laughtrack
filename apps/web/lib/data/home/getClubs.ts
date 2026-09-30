@@ -23,7 +23,7 @@ export async function getClubs(
     const where: Prisma.ClubWhereInput = {
         status: "active",
         ...(options.requireImage && { hasImage: true }),
-        shows: { some: { date: { gt: now } } },
+        shows: { some: { isCancelled: false, date: { gt: now } } },
     };
 
     return db.club
@@ -38,6 +38,7 @@ export async function getClubs(
                 hasImage: true,
                 shows: {
                     where: {
+                        isCancelled: false,
                         date: {
                             gte: now,
                             lte: new Date(

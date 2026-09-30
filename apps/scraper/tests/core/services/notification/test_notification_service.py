@@ -1071,6 +1071,7 @@ class TestPushCandidateSql:
         assert "parent.id = ancestors.parent_comedian_id" in sql_arg
         assert "child.parent_comedian_id = members.member_id" in sql_arg
         assert "li.comedian_id = members.member_uuid" in sql_arg
+        assert "s2.is_cancelled = false" in sql_arg
         assert "SELECT DISTINCT members.profile_id, members.root_id, li.show_id" in sql_arg
         assert sql_arg.count("first_discovered_at >= NOW() - INTERVAL '3 days'") == 1
 

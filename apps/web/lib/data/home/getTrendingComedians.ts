@@ -69,7 +69,7 @@ export function buildTrendingComediansQuery({
                 COUNT(*)::int AS show_count
             FROM lineup_items li
             JOIN comedians performer ON performer.uuid = li.comedian_id
-            JOIN shows s ON s.id = li.show_id
+            JOIN (SELECT * FROM shows WHERE is_cancelled = false) s ON s.id = li.show_id
             ${zipJoin}
             WHERE s.date > ${now}
               ${zipFilter}

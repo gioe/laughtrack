@@ -29,6 +29,7 @@ export async function findShowDensity(
               )
             : null;
         const whereClause: Prisma.ShowWhereInput = {
+            isCancelled: false,
             ...dateClause,
             club: {
                 visible: true,

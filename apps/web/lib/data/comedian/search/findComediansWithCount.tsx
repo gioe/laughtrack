@@ -64,7 +64,7 @@ export function buildUpcomingCountSelect() {
             select: {
                 lineupItems: {
                     where: {
-                        show: { date: { gt: new Date() } },
+                        show: { isCancelled: false, date: { gt: new Date() } },
                     },
                 },
             },
@@ -143,7 +143,7 @@ export async function findComediansWithCount(
         // older clients that still send includeEmpty=false. Only explicit
         // show-location/date filters require a matching appearance.
         const needsLineupItemsFilter = hasZipFilter || hasDateFilter;
-        const showFilter: Prisma.ShowWhereInput = {};
+        const showFilter: Prisma.ShowWhereInput = { isCancelled: false };
         if (hasDateFilter) {
             Object.assign(showFilter, helper.getDateClause());
         }
@@ -213,7 +213,7 @@ export async function findComediansWithCount(
                     : Prisma.sql`AND s.date > NOW()`;
             return Prisma.sql`(
                 SELECT COUNT(*) FROM "lineup_items" li
-                JOIN "shows" s ON li."show_id" = s.id
+                JOIN (SELECT * FROM shows WHERE is_cancelled = false) s ON li."show_id" = s.id
                 ${joinClause}
                 WHERE li."comedian_id" = c.uuid ${whereClause}
             )`;
@@ -376,7 +376,7 @@ export async function findComediansWithCount(
                     SELECT c.id
                     FROM "comedians" c
                     LEFT JOIN "lineup_items" li ON li."comedian_id" = c.uuid
-                    LEFT JOIN "shows" s ON s.id = li."show_id"
+                    LEFT JOIN (SELECT * FROM shows WHERE is_cancelled = false) s ON s.id = li."show_id"
                     ${zipList ? Prisma.sql`LEFT JOIN "clubs" cl ON s."club_id" = cl.id` : Prisma.sql``}
                     WHERE ${Prisma.join(whereConditions, " AND ")}
                     GROUP BY c.id, c.name

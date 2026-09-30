@@ -194,13 +194,18 @@ describe("findShowById", () => {
             type FilteredCount = {
                 select: {
                     lineupItems: {
-                        where: { show: { date: { gt: Date } } };
+                        where: {
+                            AND: [
+                                { show: { isCancelled: false } },
+                                { show: { date: { gt: Date } } },
+                            ];
+                        };
                     };
                 };
             };
             const count = comedianSelect._count as FilteredCount;
             expect(
-                count.select.lineupItems.where.show.date.gt,
+                count.select.lineupItems.where.AND[1].show.date.gt,
             ).toBeInstanceOf(Date);
             const parentCount = (
                 comedianSelect.parentComedian as {
@@ -208,7 +213,7 @@ describe("findShowById", () => {
                 }
             ).select._count;
             expect(
-                parentCount.select.lineupItems.where.show.date.gt,
+                parentCount.select.lineupItems.where.AND[1].show.date.gt,
             ).toBeInstanceOf(Date);
         });
 
@@ -458,5 +463,26 @@ describe("findShowById", () => {
 
             await expect(findShowById(1)).rejects.toBe(generic);
         });
+    });
+});
+
+describe("retained source cancellations", () => {
+    it("rejects the cancelled row while serving the active row", async () => {
+        const rows = [
+            { ...makeShowRow({ id: 41 }), isCancelled: true },
+            { ...makeShowRow({ id: 42 }), isCancelled: false },
+        ];
+        mockFindUnique.mockImplementation(
+            (query) =>
+                Promise.resolve(
+                    rows.find(
+                        (row) =>
+                            row.id === query.where.id &&
+                            row.isCancelled === query.where.isCancelled,
+                    ),
+                ) as never,
+        );
+        await expect(findShowById(41)).rejects.toBeInstanceOf(NotFoundError);
+        expect((await findShowById(42)).show.id).toBe(42);
     });
 });

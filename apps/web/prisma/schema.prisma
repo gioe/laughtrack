@@ -868,6 +868,8 @@ model SavedShow {
 }
 
 model Show {
+  // Explicit source cancellation retains the row and all historical references.
+  isCancelled               Boolean                        @default(false) @map("is_cancelled")
   id                        Int                            @id @default(autoincrement())
   name                      String?
   date                      DateTime                       @db.Timestamptz(6)

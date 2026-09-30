@@ -147,7 +147,8 @@ const TRENDING_COMEDIANS_FIXTURE_SCHEMA = `
     CREATE TABLE shows (
         id INTEGER PRIMARY KEY,
         date TIMESTAMPTZ NOT NULL,
-        club_id INTEGER NOT NULL REFERENCES clubs(id)
+        club_id INTEGER NOT NULL REFERENCES clubs(id),
+                    is_cancelled BOOLEAN NOT NULL DEFAULT FALSE
     );
 
     CREATE TABLE lineup_items (

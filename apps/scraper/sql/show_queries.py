@@ -66,6 +66,7 @@ class ShowQueries:
         WHERE club_id = %s
           AND last_scraped_by = %s
           AND date > NOW()
+          AND is_cancelled = false
           AND last_scraped_date < %s
         RETURNING id, name, date, room
     '''
@@ -83,6 +84,7 @@ class ShowQueries:
         WHERE club_id = %s
           AND last_scraped_by = %s
           AND date > NOW()
+          AND is_cancelled = false
           AND last_scraped_date < %s
     '''
 
@@ -100,6 +102,7 @@ class ShowQueries:
         WHERE club_id = %s
           AND scraped_by_organizer_id = %s
           AND date > NOW()
+          AND is_cancelled = false
           AND last_scraped_date < %s
         RETURNING id, name, date, room
     '''
@@ -110,6 +113,7 @@ class ShowQueries:
         WHERE club_id = %s
           AND scraped_by_organizer_id = %s
           AND date > NOW()
+          AND is_cancelled = false
           AND last_scraped_date < %s
     '''
 

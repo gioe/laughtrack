@@ -35,7 +35,14 @@ export function buildLineupItemComedianSelect(
 ) {
     const lineupItemsCount = {
         select: {
-            lineupItems: countWhere ? { where: countWhere } : true,
+            lineupItems: {
+                where: {
+                    AND: [
+                        { show: { isCancelled: false } },
+                        ...(countWhere ? [countWhere] : []),
+                    ],
+                },
+            },
         },
     };
     return {

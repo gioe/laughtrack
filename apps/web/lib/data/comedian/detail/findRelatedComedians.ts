@@ -34,6 +34,7 @@ export async function findRelatedComedians(
             WITH target_shows AS (
                 SELECT DISTINCT show_id
                 FROM lineup_items
+                JOIN shows target_show ON target_show.id = show_id AND target_show.is_cancelled = false
                 WHERE comedian_id = ${comedianUuid}
             )
             SELECT
@@ -54,7 +55,7 @@ export async function findRelatedComedians(
                 (
                     SELECT COUNT(*)::int
                     FROM lineup_items li2
-                    JOIN shows s ON s.id = li2.show_id
+                    JOIN (SELECT * FROM shows WHERE is_cancelled = false) s ON s.id = li2.show_id
                     WHERE li2.comedian_id = c.uuid AND s.date > ${now}
                 ) AS upcoming_show_count
             FROM lineup_items li

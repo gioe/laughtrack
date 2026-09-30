@@ -41,7 +41,7 @@ export async function generateMetadata(props: {
     const getShowMeta = unstable_cache(
         () =>
             db.show.findUnique({
-                where: { id },
+                where: { id, isCancelled: false },
                 select: {
                     name: true,
                     date: true,

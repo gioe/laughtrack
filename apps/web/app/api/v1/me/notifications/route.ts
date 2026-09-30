@@ -240,7 +240,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
 
     // Newest first so the first row seen per group carries the latest sentAt.
     const rows = await db.sentNotification.findMany({
-        where: { userId: authCtx.userId },
+        where: { userId: authCtx.userId, show: { isCancelled: false } },
         orderBy: { sentAt: "desc" },
         take: NOTIFICATIONS_FETCH_LIMIT,
         select: {

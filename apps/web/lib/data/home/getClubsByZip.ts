@@ -32,7 +32,7 @@ export async function getClubsByZip(
         status: "active",
         zipCode: { in: nearbyZips },
         ...(options.requireImage && { hasImage: true }),
-        shows: { some: { date: { gt: now } } },
+        shows: { some: { isCancelled: false, date: { gt: now } } },
     };
 
     return db.club
@@ -47,6 +47,7 @@ export async function getClubsByZip(
                 hasImage: true,
                 shows: {
                     where: {
+                        isCancelled: false,
                         date: {
                             gte: now,
                             lte: new Date(

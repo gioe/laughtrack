@@ -111,7 +111,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     }
 
     const show = await db.show.findUnique({
-        where: { id: showId },
+        where: { id: showId, isCancelled: false },
         select: { id: true, clubId: true },
     });
     if (!show) {
