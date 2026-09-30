@@ -15,7 +15,6 @@ from laughtrack.scrapers.implementations.api.fullcalendar_json.scraper import (
     FullCalendarJsonScraper,
 )
 
-
 BASE_DOMAIN = "https://www.seshcomedy.com"
 FEED_URL = f"{BASE_DOMAIN}/feed.php"
 
@@ -226,12 +225,14 @@ def persistence(request, monkeypatch):
         if query.lstrip().startswith("SELECT"):
             return [dict(row) for row in rows]
         if "UPDATE shows" in query:
-            room, row_id, club_id, date, url, old_room, destination_room = params
+            new_date, room, row_id, club_id, date, url, old_room, destination_date, destination_room = params
             target = next((r for r in rows if r["id"] == row_id), None)
             if target and not any(
-                r["club_id"] == club_id and r["date"] == date and r["room"] == room and r["id"] != row_id for r in rows
+                r["club_id"] == club_id and r["date"] == new_date and r["room"] == room and r["id"] != row_id
+                for r in rows
             ):
                 target["room"] = room
+                target["date"] = new_date
                 return [{"id": row_id}]
             return []
         raise AssertionError(query)
@@ -308,6 +309,144 @@ def _persisted_event(room, *, event_id="ONE", days=7, url=None, title="SESH Show
     show = event.to_show(_club(), enhanced=False)
     show.last_scraped_by = "fullcalendar_json"
     return show
+
+
+@time_machine.travel("2026-09-24T12:00:00Z", tick=False)
+def test_sesh_start_time_change_reconciles(persistence):
+    handler, snapshot, conn = persistence
+    original = _persisted_event("55 Chrystie - SESH Comedy")
+    handler._process_single_batch([original])
+    old_id = snapshot()[0]["id"]
+    if conn:
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO saved_show(show_id) VALUES (%s)", (old_id,))
+    changed = _persisted_event("55 Chrystie - SESH Comedy")
+    changed.date += timedelta(minutes=15)
+    handler._process_single_batch([changed])
+    handler._process_single_batch([changed])
+    actual = snapshot()
+    assert len(actual) == 1
+    assert actual[0]["id"] == old_id
+    assert actual[0]["date"] == changed.date
+    if conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT show_id FROM saved_show")
+            assert cur.fetchone()["show_id"] == old_id
+
+
+@time_machine.travel("2026-09-24T12:00:00Z", tick=False)
+@pytest.mark.parametrize("new_room", ["Room A", "Room B"])
+def test_sesh_time_correction_crosses_utc_midnight(persistence, new_room):
+    handler, snapshot, _ = persistence
+    original = _persisted_event("Room A")
+    original.date = datetime(2026, 10, 1, 23, 45, tzinfo=timezone.utc)
+    handler._process_single_batch([original])
+    old_id = snapshot()[0]["id"]
+    changed = _persisted_event(new_room)
+    changed.date = original.date + timedelta(minutes=30)
+    handler._process_single_batch([changed])
+    assert [(row["id"], row["date"], row["room"]) for row in snapshot()] == [(old_id, changed.date, new_room)]
+
+
+@time_machine.travel("2026-09-24T12:00:00Z", tick=False)
+def test_sesh_correction_does_not_cross_local_midnight(persistence):
+    handler, snapshot, _ = persistence
+    original = _persisted_event("Room A")
+    original.date = datetime(2026, 10, 2, 3, 45, tzinfo=timezone.utc)
+    handler._process_single_batch([original])
+    changed = _persisted_event("Room A")
+    changed.date = original.date + timedelta(minutes=30)
+    handler._process_single_batch([changed])
+    assert len(snapshot()) == 2
+
+
+@time_machine.travel("2026-09-24T12:00:00Z", tick=False)
+@pytest.mark.parametrize("url", [BASE_DOMAIN, "series.php?id=weekly", "https://other.example/event-detail.php?id=ONE"])
+def test_unverified_url_does_not_authorize_time_move(persistence, url):
+    handler, snapshot, _ = persistence
+    original = _persisted_event("Room A", url=url)
+    handler._process_single_batch([original])
+    changed = _persisted_event("Room A", url=url)
+    changed.date += timedelta(minutes=15)
+    handler._process_single_batch([changed])
+    assert len(snapshot()) == 2
+
+
+@time_machine.travel("2026-09-24T12:00:00Z", tick=False)
+def test_sesh_invalid_date_reaches_validation(persistence):
+    handler, snapshot, _ = persistence
+    invalid = _persisted_event("Room A")
+    invalid.date = None
+    result = handler.insert_shows([invalid])
+    assert result.validation_errors == 1
+    assert snapshot() == []
+
+
+@time_machine.travel("2026-09-24T12:00:00Z", tick=False)
+@pytest.mark.parametrize("batch_size", [1, 100])
+def test_multiple_same_day_start_times_remain_distinct(persistence, batch_size):
+    handler, snapshot, _ = persistence
+    first = _persisted_event("Room A")
+    second = _persisted_event("Room A")
+    second.date += timedelta(hours=1)
+    result = handler.insert_shows([first, second], batch_size=batch_size)
+    assert result.validation_errors == 2
+    assert {row["date"] for row in snapshot()} == {first.date, second.date}
+    old = {row["id"]: row["date"] for row in snapshot()}
+    changed = _persisted_event("Room B")
+    changed.date += timedelta(minutes=15)
+    result = handler._process_single_batch([changed])
+    assert result.validation_errors == 1
+    assert all(row["date"] == old[row["id"]] for row in snapshot() if row["id"] in old)
+
+
+@time_machine.travel("2026-09-24T12:00:00Z", tick=False)
+@pytest.mark.parametrize("existing_source", ["other_scraper", None])
+def test_sesh_time_correction_requires_existing_attribution(persistence, existing_source):
+    handler, snapshot, _ = persistence
+    original = _persisted_event("Room A")
+    original.last_scraped_by = existing_source
+    handler._process_single_batch([original])
+    before = snapshot()[0]
+    changed = _persisted_event("Room A")
+    changed.date += timedelta(minutes=15)
+    result = handler._process_single_batch([changed])
+    assert result.validation_errors == 1  # Preserve ambiguous rows through stale cleanup.
+    assert len(snapshot()) == 2
+    assert snapshot()[0] == before
+
+
+@time_machine.travel("2026-09-24T12:00:00Z", tick=False)
+def test_sesh_time_correction_does_not_overwrite_other_event(persistence):
+    handler, snapshot, _ = persistence
+    original = _persisted_event("Room A")
+    other = _persisted_event("Room A", event_id="TWO")
+    other.date += timedelta(minutes=15)
+    handler._process_single_batch([original, other])
+    before = snapshot()
+    changed = _persisted_event("Room A")
+    changed.date = other.date
+    result = handler._process_single_batch([changed])
+    assert result.validation_errors == 1
+    assert snapshot() == before
+
+
+@time_machine.travel("2026-09-24T12:00:00Z", tick=False)
+def test_sesh_time_correction_rolls_back_on_upsert_failure(persistence, monkeypatch):
+    handler, snapshot, _ = persistence
+    original = _persisted_event("Room A")
+    handler._process_single_batch([original])
+    before = snapshot()
+    changed = _persisted_event("Room B")
+    changed.date += timedelta(minutes=15)
+
+    def fail(*args, **kwargs):
+        raise ValueError("injected persistence failure")
+
+    monkeypatch.setattr(handler, "execute_batch_operation", fail)
+    with pytest.raises(ValueError, match="injected persistence failure"):
+        handler._process_single_batch([changed])
+    assert snapshot() == before
 
 
 @time_machine.travel("2026-09-24T12:00:00Z", tick=False)

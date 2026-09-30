@@ -136,26 +136,27 @@ class ShowQueries:
         WHERE id = ANY(%s)
     '''
 
-    # Serialize FullCalendar room reconciliation for a club, then lock the
-    # affected dates. Other platforms retain their existing persistence path.
+    # Serialize FullCalendar performance reconciliation for a club, then lock
+    # destination dates and every row with the verified incoming detail URLs.
+    # The handler bounds time corrections to the same New York calendar day.
     LOCK_FULLCALENDAR_CLUB = "SELECT pg_advisory_xact_lock(4048, %s)"
 
     GET_FULLCALENDAR_RECONCILIATION_ROWS = """
         SELECT id, club_id, date, room, show_page_url, last_scraped_by
         FROM shows
-        WHERE club_id = ANY(%s) AND date = ANY(%s)
+        WHERE club_id = ANY(%s) AND (date = ANY(%s) OR show_page_url = ANY(%s))
         ORDER BY id
         FOR UPDATE
     """
 
-    UPDATE_FULLCALENDAR_ROOM = """
-        UPDATE shows AS s SET room = %s
+    UPDATE_FULLCALENDAR_PERFORMANCE = """
+        UPDATE shows AS s SET date = %s, room = %s
         WHERE s.id = %s AND s.club_id = %s AND s.date = %s
           AND s.show_page_url = %s AND s.room IS NOT DISTINCT FROM %s
           AND s.last_scraped_by = 'fullcalendar_json'
           AND NOT EXISTS (
               SELECT 1 FROM shows occupied
-              WHERE occupied.club_id = s.club_id AND occupied.date = s.date
+              WHERE occupied.club_id = s.club_id AND occupied.date = %s
                 AND occupied.room = %s AND occupied.id <> s.id
           )
         RETURNING s.id

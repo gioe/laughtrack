@@ -4,6 +4,7 @@ import re
 import unicodedata
 from urllib.parse import parse_qs, urlsplit
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from typing import Dict, List, Optional, Tuple
 
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
@@ -633,8 +634,10 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         for show in shows:
             destinations.setdefault(show.to_unique_key(), []).append(show)
             if show.last_scraped_by == "fullcalendar_json":
-                identity = (show.club_id, self._normalize_cross_batch_key_date(show.date), show.show_page_url)
-                identities.setdefault(identity, set()).add(show.room or "")
+                identity = self._fullcalendar_identity(show.club_id, show.date, show.show_page_url)
+                identities.setdefault(identity, set()).add(
+                    (self._normalize_cross_batch_key_date(show.date), show.room or "")
+                )
         conflicts = {
             key
             for key, candidates in destinations.items()
@@ -668,10 +671,21 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             return None
         return url
 
+    def _fullcalendar_identity(self, club_id, date, url):
+        """Sesh detail pages identify one performance within its New York day.
+
+        Keep recurring dates distinct; this deliberately does not infer a
+        cross-day reschedule from a shared URL. Naive persisted dates are UTC.
+        """
+        normalized = self._normalize_cross_batch_key_date(date)
+        if normalized is not None and self._fullcalendar_performance_url(url) is not None:
+            normalized = normalized.replace(tzinfo=timezone.utc).astimezone(ZoneInfo("America/New_York")).date()
+        return (club_id, normalized, url)
+
     def _reconcile_fullcalendar_locations(
         self, batch: List[Show], conn, ambiguous_identities: set
     ) -> Tuple[List[Show], int]:
-        """Move one identified performance's room without changing its ID/date.
+        """Move one identified performance's room/start time without changing its ID.
 
         Called inside the same transaction as the upsert. Conflicting identities
         at the destination are skipped, never overwritten by the room-key upsert.
@@ -687,7 +701,15 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         rows = (
             self.execute_with_cursor(
                 ShowQueries.GET_FULLCALENDAR_RECONCILIATION_ROWS,
-                (club_ids, dates),
+                (
+                    club_ids,
+                    dates,
+                    [
+                        show.show_page_url
+                        for show in candidates
+                        if self._fullcalendar_performance_url(show.show_page_url)
+                    ],
+                ),
                 return_results=True,
                 conn=conn,
             )
@@ -695,7 +717,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         )
 
         def key(club_id, date, url):
-            return (club_id, self._normalize_cross_batch_key_date(date), url)
+            return self._fullcalendar_identity(club_id, date, url)
 
         incoming = {}
         for show in candidates:
@@ -708,20 +730,15 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 accepted.append(show)
                 continue
             identity = key(show.club_id, show.date, url)
-            matches = [
-                row
-                for row in rows
-                if key(row["club_id"], row["date"], row["show_page_url"]) == identity
-                and row["last_scraped_by"] == "fullcalendar_json"
-            ]
+            matches = [row for row in rows if key(row["club_id"], row["date"], row["show_page_url"]) == identity]
             occupied = [
                 row
                 for row in rows
                 if row["club_id"] == show.club_id
-                and self._normalize_cross_batch_key_date(row["date"]) == identity[1]
+                and self._normalize_cross_batch_key_date(row["date"]) == self._normalize_cross_batch_key_date(show.date)
                 and (row["room"] or "") == (show.room or "")
             ]
-            if any(row["show_page_url"] != url for row in occupied):
+            if any(row["show_page_url"] != url or row["last_scraped_by"] != "fullcalendar_json" for row in occupied):
                 Logger.warn(f"Skipping FullCalendar room collision for club {show.club_id}: {url}")
                 identity_errors += 1
                 continue
@@ -732,6 +749,11 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 Logger.warn(f"Ambiguous FullCalendar performance for club {show.club_id}: {url}")
                 accepted.append(show)
                 continue
+            if matches and matches[0]["last_scraped_by"] != "fullcalendar_json":
+                identity_errors += 1
+                Logger.warn(f"Unverified FullCalendar attribution for club {show.club_id}: {url}")
+                accepted.append(show)
+                continue
             if not matches or occupied:
                 accepted.append(show)
                 continue
@@ -740,20 +762,31 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             if any(
                 other is not show
                 and other.club_id == show.club_id
-                and self._normalize_cross_batch_key_date(other.date) == identity[1]
+                and self._normalize_cross_batch_key_date(other.date) == self._normalize_cross_batch_key_date(show.date)
                 and (other.room or "") == (show.room or "")
                 for other in batch
             ):
                 identity_errors += 1
                 continue
             moved = self.execute_with_cursor(
-                ShowQueries.UPDATE_FULLCALENDAR_ROOM,
-                (show.room or "", previous["id"], show.club_id, show.date, url, previous["room"], show.room or ""),
+                ShowQueries.UPDATE_FULLCALENDAR_PERFORMANCE,
+                (
+                    show.date,
+                    show.room or "",
+                    previous["id"],
+                    show.club_id,
+                    previous["date"],
+                    url,
+                    previous["room"],
+                    show.date,
+                    show.room or "",
+                ),
                 return_results=True,
                 conn=conn,
             )
             if moved:
                 previous["room"] = show.room or ""
+                previous["date"] = show.date
                 accepted.append(show)
             else:
                 identity_errors += 1
