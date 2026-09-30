@@ -160,12 +160,15 @@ def test_partition_metrics_defer_email_until_full_snapshot_is_finalized(tmp_path
     club_service = SimpleNamespace(
         club_handler=SimpleNamespace(refresh_club_total_shows=MagicMock())
     )
-    with patch.object(mod, "geocode_missing_clubs"):
+    from laughtrack.utilities.domain.club.coordinates import ClubGeocodingResult
+
+    with patch.object(mod, "geocode_missing_clubs", return_value=ClubGeocodingResult()):
         mod._finalize_partition_metrics(
             tmp_path,
             expected_partitions=2,
             metrics_service=metrics_service,
             club_service=club_service,
+            artifact_dir=tmp_path / "finalizer-artifacts",
         )
 
     metrics_service._process_latest_session_and_email.assert_called_once_with()

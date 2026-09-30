@@ -177,7 +177,28 @@ def test_provider_block_stops_batch_and_next_run(db):
     first = mod.geocode_missing_clubs(limit=2, resolver=resolver, sleep=lambda _: None)
     second = mod.geocode_missing_clubs(limit=2, resolver=resolver, sleep=lambda _: None)
     assert (first.attempted, first.failed, second.attempted) == (1, 1, 0)
+    assert first.reason == "provider_blocked"
+    assert second.reason == "provider_backoff"
     assert resolver.call_count == 1
+
+
+def test_empty_candidate_and_disabled_runs_are_distinguishable(db):
+    assert mod.geocode_missing_clubs().reason == "no_candidates"
+    assert mod.geocode_missing_clubs(limit=0).reason == "disabled"
+
+
+def test_concurrent_geocoder_is_explicitly_skipped(db, monkeypatch):
+    original = SQLiteCursor.execute
+
+    def execute(self, sql, params=()):
+        original(self, sql, params)
+        if "pg_try_advisory_xact_lock" in sql:
+            self.synthetic = (False,)
+
+    monkeypatch.setattr(SQLiteCursor, "execute", execute)
+    result = mod.geocode_missing_clubs()
+    assert result.reason == "lock_unavailable"
+    assert result.attempted == result.skipped == 0
 
 
 def test_rate_limit_applies_between_separate_runs(db):

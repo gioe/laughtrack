@@ -48,6 +48,7 @@ class ClubGeocodingResult:
     failed: int = 0
     retried: int = 0
     skipped: int = 0
+    reason: Optional[str] = None
 
 
 class GeocodingProviderBlocked(RuntimeError):
@@ -263,21 +264,24 @@ def geocode_missing_clubs(
 ) -> ClubGeocodingResult:
     """Fair bounded enrichment, serialized and cached across processes/runs."""
     if limit <= 0:
-        return ClubGeocodingResult()
+        return ClubGeocodingResult(reason="disabled")
     attempted = resolved = unresolved = failed = retried = skipped = 0
+    reason = None
     with get_connection(autocommit=False) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT pg_try_advisory_xact_lock(%s)", (_GEOCODE_LOCK_ID,))
             if not cur.fetchone()[0]:
-                return ClubGeocodingResult()
+                return ClubGeocodingResult(reason="lock_unavailable")
             now = datetime.now(timezone.utc)
             cur.execute("SELECT MAX(geocode_attempted_at) FROM clubs WHERE geocode_outcome = 'provider_blocked'")
             blocked_at = cur.fetchone()[0]
             if blocked_at and _as_datetime(blocked_at) > now - timedelta(days=1):
-                return ClubGeocodingResult()
+                return ClubGeocodingResult(reason="provider_backoff")
             cur.execute("SELECT MAX(geocode_attempted_at) FROM clubs")
             last_attempt = cur.fetchone()[0]
             rows = _select_candidates(cur, limit, now)
+            if not rows:
+                reason = "no_candidates"
             for club in rows:
                 if last_attempt:
                     remaining = (
@@ -347,6 +351,7 @@ def geocode_missing_clubs(
                 else:
                     skipped += 1
                 if blocked:
+                    reason = "provider_blocked"
                     break
         conn.commit()
-    return ClubGeocodingResult(attempted, resolved, unresolved, failed, retried, skipped)
+    return ClubGeocodingResult(attempted, resolved, unresolved, failed, retried, skipped, reason)

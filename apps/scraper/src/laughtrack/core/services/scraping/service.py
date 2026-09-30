@@ -660,7 +660,8 @@ class ScrapingService:
             result = geocode_missing_clubs()
             Logger.info(
                 "Club geocoding post-run: "
-                f"attempted={result.attempted}, resolved={result.resolved}, unresolved={result.unresolved}"
+                f"attempted={result.attempted}, resolved={result.resolved}, unresolved={result.unresolved}, "
+                f"failed={result.failed}, retried={result.retried}, skipped={result.skipped}, reason={result.reason}"
             )
             return result
         except Exception as e:

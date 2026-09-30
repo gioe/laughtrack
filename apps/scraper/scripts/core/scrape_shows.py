@@ -21,6 +21,7 @@ Examples:
 
 import argparse
 import datetime as dt
+import json
 import os
 import sys
 from pathlib import Path
@@ -49,15 +50,10 @@ def _club_uses_eventbrite(club) -> bool:
     active_source = getattr(club, "active_scraping_source", None)
     platform = getattr(active_source, "platform", None) or getattr(club, "scraper", None)
     scraper_key = getattr(active_source, "scraper_key", None)
-    return (
-        str(platform or "").startswith("eventbrite")
-        or str(scraper_key or "").startswith("eventbrite")
-    )
+    return str(platform or "").startswith("eventbrite") or str(scraper_key or "").startswith("eventbrite")
 
 
-def _merge_partition_snapshots(
-    metrics_root: Path, expected_partitions: int
-) -> ScrapingMetricsSnapshot:
+def _merge_partition_snapshots(metrics_root: Path, expected_partitions: int) -> ScrapingMetricsSnapshot:
     """Combine one metrics snapshot per completed partition into a full run."""
     metric_files = sorted(metrics_root.glob("**/metrics_*.json"))
     snapshots = [ScrapingMetricsSnapshot.from_file(path) for path in metric_files]
@@ -100,11 +96,7 @@ def _merge_partition_snapshots(
         execution_times=[value for snapshot in snapshots for value in snapshot.execution_times],
         per_club_stats=[stat for snapshot in snapshots for stat in snapshot.per_club_stats],
         error_details=[error for snapshot in snapshots for error in snapshot.error_details],
-        duplicate_show_details=[
-            duplicate
-            for snapshot in snapshots
-            for duplicate in snapshot.duplicate_show_details
-        ],
+        duplicate_show_details=[duplicate for snapshot in snapshots for duplicate in snapshot.duplicate_show_details],
         run_type="scraper",
     )
 
@@ -114,26 +106,82 @@ def _finalize_partition_metrics(
     expected_partitions: int,
     metrics_service: MetricsService,
     club_service: ClubService,
+    artifact_dir: Path = Path("finalizer-artifacts"),
 ) -> None:
-    """Publish the canonical full snapshot after every partition completed."""
-    snapshot = _merge_partition_snapshots(metrics_root, expected_partitions)
-    metrics_service._render_and_save_dashboard(snapshot)
-    metrics_service._persist_snapshot_json(snapshot)
-    if not metrics_service._persist_snapshot_postgres(snapshot):
-        raise RuntimeError("Failed to persist merged scraper metrics snapshot")
-    metrics_service._process_latest_session_and_email()
-    club_service.club_handler.refresh_club_total_shows()
+    """Publish the full snapshot and retain allowlisted, credential-free diagnostics."""
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    counts = ("attempted", "resolved", "unresolved", "failed", "retried", "skipped")
+    identity = {
+        "schema_version": 1,
+        "run_id": os.environ.get("GITHUB_RUN_ID"),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+        "started_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+    }
+    coordinate = {
+        **identity,
+        "status": "not_run",
+        "reason": "finalization_incomplete",
+        "counts": {key: None for key in counts},
+    }
+    diagnostics = {**identity, "status": "running", "stages": []}
+
+    def persist():
+        # No exception text, URLs, environment dumps or raw logs enter these files.
+        for name, payload in (("coordinate-enrichment", coordinate), ("finalizer-diagnostics", diagnostics)):
+            target = artifact_dir / f"{name}.json"
+            temporary = target.with_suffix(".tmp")
+            temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+            temporary.replace(target)
+
+    def stage(name, action):
+        entry = {"stage": name, "status": "running"}
+        diagnostics["stages"].append(entry)
+        persist()
+        try:
+            value = action()
+        except Exception:
+            entry["status"] = "failed"
+            raise
+        entry["status"] = "completed"
+        return value
+
+    persist()
     try:
-        result = geocode_missing_clubs()
-        Logger.info(
-            "Club geocoding post-partitions: "
-            f"attempted={result.attempted}, resolved={result.resolved}, "
-            f"unresolved={result.unresolved}"
+        snapshot = stage(
+            "merge_partition_metrics", lambda: _merge_partition_snapshots(metrics_root, expected_partitions)
         )
-    except Exception as exc:
-        Logger.warn(
-            f"Club geocoding post-partitions failed; finalization will continue: {exc}"
-        )
+        stage("render_dashboard", lambda: metrics_service._render_and_save_dashboard(snapshot))
+        stage("persist_json", lambda: metrics_service._persist_snapshot_json(snapshot))
+
+        def persist_postgres():
+            if not metrics_service._persist_snapshot_postgres(snapshot):
+                raise RuntimeError("Failed to persist merged scraper metrics snapshot")
+
+        stage("persist_postgres", persist_postgres)
+        stage("process_session_email", metrics_service._process_latest_session_and_email)
+        stage("refresh_club_totals", club_service.club_handler.refresh_club_total_shows)
+        coordinate.update(status="running", reason=None)
+        try:
+            result = stage("coordinate_enrichment", geocode_missing_clubs)
+            coordinate.update(
+                status="completed", reason=result.reason, counts={key: getattr(result, key) for key in counts}
+            )
+            Logger.info(
+                "Club geocoding post-partitions: "
+                + ", ".join(f"{key}={getattr(result, key)}" for key in counts)
+                + f", reason={result.reason}"
+            )
+        except Exception:
+            coordinate.update(status="failed", reason="geocoding_error")
+            Logger.warn("Club geocoding post-partitions failed; see finalizer diagnostics; finalization will continue")
+        diagnostics["status"] = "completed"
+    except Exception:
+        diagnostics["status"] = "failed"
+        raise
+    finally:
+        diagnostics["finished_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
+        coordinate["finished_at"] = diagnostics["finished_at"]
+        persist()
 
 
 def main():
@@ -167,7 +215,9 @@ Examples:
         help="Merge completed partition metrics under this directory into one full run",
     )
     group.add_argument("--club-id", type=int, help="ID of specific club to scrape")
-    group.add_argument("--club", type=str, help="Name of specific club to scrape (case-insensitive, partial match supported)")
+    group.add_argument(
+        "--club", type=str, help="Name of specific club to scrape (case-insensitive, partial match supported)"
+    )
     group.add_argument(
         "--scraper-type", type=str, help="Scrape all clubs using a specific scraper type (e.g., json_ld)"
     )
@@ -180,7 +230,9 @@ Examples:
         "--list-scrapers", action="store_true", help="List available scraper types and their club counts"
     )
     group.add_argument("--list-clubs", action="store_true", help="List all available clubs with their IDs and names")
-    group.add_argument("--list-clubs-json", action="store_true", help="Output all clubs as JSON (name, city, state, website)")
+    group.add_argument(
+        "--list-clubs-json", action="store_true", help="Output all clubs as JSON (name, city, state, website)"
+    )
 
     parser.add_argument("--partition-index", type=int, help="Zero-based partition to scrape")
     parser.add_argument("--partition-count", type=int, help="Total deterministic scrape partitions")
@@ -306,25 +358,33 @@ Examples:
             scrape_results = scraping_service.scrape_all_production_companies()
             performed_primary = True
         elif args.club_id:
-            scrape_results = scraping_service.scrape_single_club(club_id=args.club_id); performed_primary = True
+            scrape_results = scraping_service.scrape_single_club(club_id=args.club_id)
+            performed_primary = True
         elif args.club:
             if selected_club is None:
                 Logger.error(f"Club not found: {args.club}")
                 sys.exit(1)
-            scrape_results = scraping_service.scrape_single_club(club_id=selected_club.id); performed_primary = True
+            scrape_results = scraping_service.scrape_single_club(club_id=selected_club.id)
+            performed_primary = True
         elif args.scraper_type:
-            scrape_results = scraping_service.scrape_by_scraper_type(args.scraper_type); performed_primary = True
+            scrape_results = scraping_service.scrape_by_scraper_type(args.scraper_type)
+            performed_primary = True
         elif args.scraper_type_interactive:
-            scrape_results = scraping_service.scrape_by_scraper_type(); performed_primary = True
+            scrape_results = scraping_service.scrape_by_scraper_type()
+            performed_primary = True
         elif args.list_scrapers:
-            scraper_service.list_available_scraper_types(); performed_primary = True
+            scraper_service.list_available_scraper_types()
+            performed_primary = True
         elif args.list_clubs:
-            club_service.list_available_clubs(); performed_primary = True
+            club_service.list_available_clubs()
+            performed_primary = True
         elif args.list_clubs_json:
-            club_service.list_clubs_json(); performed_primary = True
+            club_service.list_clubs_json()
+            performed_primary = True
         elif args.open_dashboard:
             # Allow opening the dashboard without scraping anything.
-            metrics_service.open_dashboard(open_in_browser=True); performed_primary = True
+            metrics_service.open_dashboard(open_in_browser=True)
+            performed_primary = True
         if not performed_primary:
             Logger.info("Starting interactive club selection...")
             scrape_results = scraping_service.scrape_single_club()
@@ -351,9 +411,7 @@ Examples:
         if config_errored:
             for r in config_errored:
                 Logger.error(f"Config error for '{r.club_name}': {r.error}")
-            Logger.error(
-                f"{len(config_errored)} club(s) failed with unregistered scraper_key — exiting non-zero"
-            )
+            Logger.error(f"{len(config_errored)} club(s) failed with unregistered scraper_key — exiting non-zero")
             sys.exit(1)
 
 
