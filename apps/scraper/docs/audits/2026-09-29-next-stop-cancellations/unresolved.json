@@ -1,0 +1,514 @@
+[
+  {
+    "id": 3590689,
+    "club_id": 11709,
+    "date": "2026-10-25T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-7pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Big Beaver Brewing"
+  },
+  {
+    "id": 3590838,
+    "club_id": 11814,
+    "date": "2026-10-25T02:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/deerfield-ranch-winery-2026-10-24-7pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Deerfield Ranch Winery"
+  },
+  {
+    "id": 3590839,
+    "club_id": 11816,
+    "date": "2026-10-04T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/dirty-hands-tap-house-coffee-2026-10-03",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Dirty Hands Tap House & Coffee"
+  },
+  {
+    "id": 3590897,
+    "club_id": 11871,
+    "date": "2026-10-17T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/field-brewing-company-2026-10-16-8pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Field Brewing Company"
+  },
+  {
+    "id": 3591084,
+    "club_id": 12258,
+    "date": "2026-10-10T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/haak-winery-2026-10-09-7pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Haak Winery"
+  },
+  {
+    "id": 3591085,
+    "club_id": 12258,
+    "date": "2026-11-14T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/haak-winery-2026-11-13",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Haak Winery"
+  },
+  {
+    "id": 3591413,
+    "club_id": 12451,
+    "date": "2026-10-23T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/primal-brewery-huntersville-2026-10-23-7pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Primal Brewery Huntersville"
+  },
+  {
+    "id": 3591430,
+    "club_id": 12469,
+    "date": "2026-10-25T02:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/relentless-brewing-2026-10-24-7pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Relentless Brewing"
+  },
+  {
+    "id": 3593413,
+    "club_id": 12568,
+    "date": "2026-10-23T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-annex-at-side-street-cafe-2026-10-23",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Annex at Side Street Cafe"
+  },
+  {
+    "id": 3593732,
+    "club_id": 12622,
+    "date": "2026-10-18T00:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-star-spangled-taproom-2-2026-10-17-730pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Star Spangled Taproom 2"
+  },
+  {
+    "id": 3593781,
+    "club_id": 12671,
+    "date": "2026-10-25T00:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/trove-brewing-2026-10-24-730pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Trove Brewing"
+  },
+  {
+    "id": 3593799,
+    "club_id": 12686,
+    "date": "2026-11-22T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/untied-brewing-company-2026-11-21",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Untied Brewing Company"
+  },
+  {
+    "id": 3593801,
+    "club_id": 12686,
+    "date": "2027-01-17T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/untied-brewing-company-2027-01-16",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Untied Brewing Company"
+  },
+  {
+    "id": 3593803,
+    "club_id": 12686,
+    "date": "2027-03-14T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/untied-brewing-company-2027-03-13",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Untied Brewing Company"
+  },
+  {
+    "id": 3719110,
+    "club_id": 13844,
+    "date": "2026-11-15T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/breathe-cocktail-lounge-restaurant-2026-11-14",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Breathe Cocktail Lounge & Restaurant"
+  },
+  {
+    "id": 3912974,
+    "club_id": 18222,
+    "date": "2026-10-25T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-pour-market-2026-10-24",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Pour Market"
+  },
+  {
+    "id": 4317110,
+    "club_id": 22855,
+    "date": "2026-11-14T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/first-light-distillery-2026-11-13",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "First Light Distillery"
+  },
+  {
+    "id": 4480093,
+    "club_id": 24681,
+    "date": "2026-10-17T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/blue-mounds-opera-house-2026-10-16",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Blue Mounds Opera House"
+  },
+  {
+    "id": 4696208,
+    "club_id": 25635,
+    "date": "2026-10-25T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/b-lazy-bar-grill-2026-10-24",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "B-Lazy Bar & Grill"
+  },
+  {
+    "id": 4696312,
+    "club_id": 11770,
+    "date": "2026-10-24T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/capital-cellars-2026-10-24",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Capital Cellars"
+  },
+  {
+    "id": 4944776,
+    "club_id": 12316,
+    "date": "2026-11-08T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/kcr-bar-grill-2026-11-07-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "KCR Bar & Grill"
+  },
+  {
+    "id": 4944984,
+    "club_id": 12480,
+    "date": "2027-02-13T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/river-s-edge-brewing-co-2027-02-12-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "River's Edge Brewing Co."
+  },
+  {
+    "id": 4944985,
+    "club_id": 12480,
+    "date": "2027-03-13T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/river-s-edge-brewing-co-2027-03-12-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "River's Edge Brewing Co."
+  },
+  {
+    "id": 4945092,
+    "club_id": 12581,
+    "date": "2026-10-10T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-draft-zone-2026-10-09-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Draft Zone"
+  },
+  {
+    "id": 5388635,
+    "club_id": 28121,
+    "date": "2026-11-08T02:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/bar-moon-2026-11-07-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Bar Moon"
+  },
+  {
+    "id": 5389290,
+    "club_id": 28776,
+    "date": "2026-10-15T20:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/southside-restaurant-10-15-2026-4-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Southside Restaurant"
+  },
+  {
+    "id": 5389362,
+    "club_id": 28848,
+    "date": "2026-10-24T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-harrison-room-celebration-hall-2026-10-23-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Harrison Room Celebration Hall"
+  },
+  {
+    "id": 5389386,
+    "club_id": 12612,
+    "date": "2026-10-03T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-park-hills-underground-2026-10-02-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Park Hills Underground"
+  },
+  {
+    "id": 5440956,
+    "club_id": 29506,
+    "date": "2026-12-12T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/havana-new-hope-2026-12-11-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Havana New Hope"
+  },
+  {
+    "id": 5492507,
+    "club_id": 11736,
+    "date": "2027-03-13T00:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/blue-collar-brewery-2027-03-12-7-30-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Blue Collar Brewery"
+  },
+  {
+    "id": 5585129,
+    "club_id": 32072,
+    "date": "2026-10-11T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/sweet-havana-experience-2026-10-10-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Sweet Havana Experience"
+  },
+  {
+    "id": 5722554,
+    "club_id": 34270,
+    "date": "2026-10-10T03:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/sociology-coffee-bar-2026-10-09-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Sociology Coffee Bar"
+  },
+  {
+    "id": 5809305,
+    "club_id": 12568,
+    "date": "2027-01-23T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-annex-at-side-street-cafe-2027-01-22-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Annex at Side Street Cafe"
+  },
+  {
+    "id": 5809306,
+    "club_id": 12568,
+    "date": "2027-02-13T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-annex-at-side-street-cafe-2027-02-12-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Annex at Side Street Cafe"
+  },
+  {
+    "id": 5809307,
+    "club_id": 12568,
+    "date": "2027-03-19T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-annex-at-side-street-cafe-2027-03-19-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Annex at Side Street Cafe"
+  },
+  {
+    "id": 5809308,
+    "club_id": 12568,
+    "date": "2027-04-16T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-annex-at-side-street-cafe-2027-04-16-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Annex at Side Street Cafe"
+  },
+  {
+    "id": 5960094,
+    "club_id": 38678,
+    "date": "2026-11-07T02:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Hudson\u2019s On Main"
+  },
+  {
+    "id": 6010970,
+    "club_id": 12324,
+    "date": "2026-11-06T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/lake-norman-brewery-2026-11-05-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Lake Norman Brewery"
+  },
+  {
+    "id": 6010971,
+    "club_id": 12324,
+    "date": "2026-12-04T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/lake-norman-brewery-2026-12-03-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Lake Norman Brewery"
+  },
+  {
+    "id": 6010972,
+    "club_id": 12324,
+    "date": "2027-01-29T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/lake-norman-brewery-2027-01-28-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Lake Norman Brewery"
+  },
+  {
+    "id": 6010973,
+    "club_id": 12324,
+    "date": "2027-02-26T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/lake-norman-brewery-2027-02-25-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Lake Norman Brewery"
+  },
+  {
+    "id": 6010974,
+    "club_id": 12324,
+    "date": "2027-03-25T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/lake-norman-brewery-2027-03-25-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Lake Norman Brewery"
+  },
+  {
+    "id": 6011053,
+    "club_id": 17969,
+    "date": "2026-12-17T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/mudhen-brewing-company-2026-12-16-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "MudHen Brewing Company"
+  },
+  {
+    "id": 6011054,
+    "club_id": 17969,
+    "date": "2027-02-12T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/mudhen-brewing-company-2027-02-11-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "MudHen Brewing Company"
+  },
+  {
+    "id": 6061823,
+    "club_id": 40860,
+    "date": "2026-10-17T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/blanco-feed-store-2026-10-16-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Blanco Feed Store"
+  },
+  {
+    "id": 6062244,
+    "club_id": 12355,
+    "date": "2026-11-21T00:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/lost-rhino-brewing-company-2026-11-20-7-30-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Lost Rhino Brewing Company"
+  },
+  {
+    "id": 6062245,
+    "club_id": 12355,
+    "date": "2026-12-19T00:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/lost-rhino-brewing-company-2026-12-18-7-30-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Lost Rhino Brewing Company"
+  },
+  {
+    "id": 6114111,
+    "club_id": 12568,
+    "date": "2027-02-20T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-annex-at-side-street-cafe-2027-02-19-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Annex at Side Street Cafe"
+  },
+  {
+    "id": 6213884,
+    "club_id": 45259,
+    "date": "2026-10-25T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Pinfish Entertainment"
+  },
+  {
+    "id": 6261873,
+    "club_id": 45920,
+    "date": "2026-10-04T03:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/barley-and-sword-brewing-company-2026-10-03-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Barley and Sword Brewing Company"
+  },
+  {
+    "id": 6311574,
+    "club_id": 47475,
+    "date": "2026-11-08T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-07-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Formosa Winery"
+  },
+  {
+    "id": 6411875,
+    "club_id": 50525,
+    "date": "2026-11-15T03:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/shadow-grove-brewing-2026-11-14-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Shadow Grove Brewing"
+  },
+  {
+    "id": 6658901,
+    "club_id": 56972,
+    "date": "2026-11-07T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/spymaker-axe-throwing-2026-11-06-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Spymaker Axe Throwing"
+  },
+  {
+    "id": 6757361,
+    "club_id": 58751,
+    "date": "2026-10-10T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/bar-avize-2026-10-09-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Bar Avize"
+  },
+  {
+    "id": 6858049,
+    "club_id": 12661,
+    "date": "2026-11-07T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/trolley-trackside-events-2026-11-06-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Trolley Trackside Events"
+  },
+  {
+    "id": 6903698,
+    "club_id": 62931,
+    "date": "2026-11-13T04:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/good-news-bar-2026-11-12-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Good News Bar"
+  },
+  {
+    "id": 6903919,
+    "club_id": 63152,
+    "date": "2026-10-24T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/nahant-country-club-estate-2026-10-24-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Nahant Country Club Estate"
+  },
+  {
+    "id": 6999443,
+    "club_id": 12316,
+    "date": "2027-01-10T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/kcr-bar-grill-2027-01-09-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "KCR Bar & Grill"
+  },
+  {
+    "id": 6999444,
+    "club_id": 12316,
+    "date": "2027-02-07T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/kcr-bar-grill-2027-02-06-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "KCR Bar & Grill"
+  },
+  {
+    "id": 7123464,
+    "club_id": 68358,
+    "date": "2026-11-07T02:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/nocturno-lounge-2026-11-06-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Nocturno Lounge"
+  },
+  {
+    "id": 7220285,
+    "club_id": 71049,
+    "date": "2026-11-14T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/riverside-lechlade-2026-11-13-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Riverside, Lechlade"
+  },
+  {
+    "id": 7314761,
+    "club_id": 73019,
+    "date": "2026-10-17T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/blue-box-seafood-company-2026-10-16-6-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Blue Box Seafood Company"
+  },
+  {
+    "id": 7557421,
+    "club_id": 79275,
+    "date": "2026-12-05T03:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/xanadu-astoria-2026-12-04-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Xanadu Astoria"
+  },
+  {
+    "id": 7602864,
+    "club_id": 80150,
+    "date": "2026-12-05T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/roxanne-s-market-2026-12-04-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Roxanne's Market"
+  }
+]

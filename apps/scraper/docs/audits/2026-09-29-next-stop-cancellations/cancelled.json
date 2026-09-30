@@ -1,0 +1,1346 @@
+[
+  {
+    "id": 3590756,
+    "club_id": 11776,
+    "date": "2026-12-13T00:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/clover-road-brewing-company-2026-12-12-730pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Clover Road Brewing Company",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Clover Road Brewing Company",
+      "url": "https://www.nextstopcomedy.com/events/clover-road-brewing-company-2026-12-12-730pm",
+      "startDate": "2026-12-12T19:30:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Clover Road Brewing Company",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "312 Main St, Hudson, MA 01749",
+          "addressLocality": "Hudson",
+          "addressRegion": "MA",
+          "postalCode": "01749",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:09.579336+00:00",
+    "html_sha256": "e4d95d176df495858d9b2a711705f0c9223019e83e448945e6865b2fd27c3729",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3590763,
+    "club_id": 11786,
+    "date": "2026-12-27T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/clubhouse315-2026-12-26",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Clubhouse315",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Clubhouse315",
+      "url": "https://www.nextstopcomedy.com/events/clubhouse315-2026-12-26",
+      "startDate": "2026-12-26T19:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Clubhouse315",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "1492 PA-315, Wilkes-Barre, PA 18702",
+          "addressLocality": "Wilkes-Barre",
+          "addressRegion": "PA",
+          "postalCode": "18702",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:09.891518+00:00",
+    "html_sha256": "e2c36f8617aa7d0b37243fa145c417b9104ed77a104f3bcb82f556db96511e19",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3590850,
+    "club_id": 11825,
+    "date": "2026-11-07T00:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/earth-eagle-tavern-portsmouth-2026-11-07-730pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Earth Eagle Tavern - Portsmouth",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Earth Eagle Tavern - Portsmouth",
+      "url": "https://www.nextstopcomedy.com/events/earth-eagle-tavern-portsmouth-2026-11-07-730pm",
+      "startDate": "2026-11-06T19:30:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Earth Eagle Tavern - Portsmouth",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "175 High St, Portsmouth, NH 03801",
+          "addressLocality": "Portsmouth",
+          "addressRegion": "NH",
+          "postalCode": "03801",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:12.909165+00:00",
+    "html_sha256": "604d83924e2caee655d4dadba850626606b01e23df3772c0222745ee74cbfee8",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3590855,
+    "club_id": 11832,
+    "date": "2026-10-03T02:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/eighteen91-the-ponoka-golf-club-2026-10-02",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "eighteen91 @ The Ponoka Golf Club",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "eighteen91 @ The Ponoka Golf Club",
+      "url": "https://www.nextstopcomedy.com/events/eighteen91-the-ponoka-golf-club-2026-10-02",
+      "startDate": "2026-10-02T20:00:00-06:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "eighteen91 @ The Ponoka Golf Club",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "3519 46th St., Ponoka, AB T4J 1R5, Canada",
+          "addressLocality": "Ponoka",
+          "addressRegion": "AB",
+          "postalCode": "T4J 1R5",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:48.673875+00:00",
+    "html_sha256": "f1535d9e65f14ace6357cf32098a6329ae6a590a61e632c092d6ae7381ccc562",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3590871,
+    "club_id": 11847,
+    "date": "2026-10-25T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/exo-lounge-2026-10-24",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "EXO Lounge",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "EXO Lounge",
+      "url": "https://www.nextstopcomedy.com/events/exo-lounge-2026-10-24",
+      "startDate": "2026-10-24T20:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "EXO Lounge",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "157th Center, Edwardsville, Illinois 62025",
+          "addressLocality": "Edwardsville",
+          "addressRegion": "IL",
+          "postalCode": "62025",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:13.722508+00:00",
+    "html_sha256": "7b1b937bf7c58e85fe817864eb93d02162dab0ee3d858f61794bf8237fc65e99",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3590885,
+    "club_id": 11859,
+    "date": "2026-10-24T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/fat-pants-brewing-co-2026-10-23-7pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Fat Pants Brewing Co.",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Fat Pants Brewing Co.",
+      "url": "https://www.nextstopcomedy.com/events/fat-pants-brewing-co-2026-10-23-7pm",
+      "startDate": "2026-10-23T19:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Fat Pants Brewing Co.",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "8335 Crystal View Rd., Eden Prairie, MN 55344",
+          "addressLocality": "Eden Prairie",
+          "addressRegion": "MN",
+          "postalCode": "55344",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:14.200161+00:00",
+    "html_sha256": "547c48950f2ae5fe5552fb8a7284df0824ebab2b58c5adef17e5ad71e1d5f2cf",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3591063,
+    "club_id": 12239,
+    "date": "2026-10-24T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/great-awakening-brewing-2026-10-23",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Great Awakening Brewing",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Great Awakening Brewing",
+      "url": "https://www.nextstopcomedy.com/events/great-awakening-brewing-2026-10-23",
+      "startDate": "2026-10-23T20:00:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Great Awakening Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "77 Mill St Suite 150, Westfield, MA 01085",
+          "addressLocality": "Westfield",
+          "addressRegion": "MA",
+          "postalCode": "01085",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:17.963785+00:00",
+    "html_sha256": "40cb8c58ba08ebb2498f4f625d7b1fbe5e5ed051aa0b44d395a23a73bf754fc8",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3591213,
+    "club_id": 12351,
+    "date": "2026-10-11T00:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/lost-boy-cider-2026-10-10-830pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Lost Boy Cider",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Lost Boy Cider",
+      "url": "https://www.nextstopcomedy.com/events/lost-boy-cider-2026-10-10-830pm",
+      "startDate": "2026-10-10T20:30:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Lost Boy Cider",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "317 Hooffs Run Dr, Alexandria, VA 22314",
+          "addressLocality": "Alexandria",
+          "addressRegion": "VA",
+          "postalCode": "22314",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:24.911287+00:00",
+    "html_sha256": "71d5b3228d01854892ac2936f738fcacfe694d3c1c9ebc79c88bbcde8bf659dd",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593411,
+    "club_id": 12565,
+    "date": "2026-10-11T03:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/tessier-winery-2026-10-10-8pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Tessier Winery",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Tessier Winery",
+      "url": "https://www.nextstopcomedy.com/events/tessier-winery-2026-10-10-8pm",
+      "startDate": "2026-10-10T20:00:00-07:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Tessier Winery",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "1335 4th Street, Berkeley, CA 94710",
+          "addressLocality": "Berkeley",
+          "addressRegion": "CA",
+          "postalCode": "94710",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:40.502682+00:00",
+    "html_sha256": "d74851e6b25496ed7efbd91887e088da3a124a0c65fa32e041f2033f175e05a0",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593427,
+    "club_id": 12582,
+    "date": "2027-01-01T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-12-31-2026-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Franklin House",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Franklin House",
+      "url": "https://www.nextstopcomedy.com/events/the-franklin-house-12-31-2026-8-pm",
+      "startDate": "2026-12-31T20:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Franklin House",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+          "addressLocality": "Streetsville",
+          "addressRegion": "ON",
+          "postalCode": "L5M 1L9",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:42.236007+00:00",
+    "html_sha256": "1820374abee7cb0aa41e4ee1532a5d1c560cc9e4293f83e9a7d34821566eb8af",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593429,
+    "club_id": 12582,
+    "date": "2026-10-23T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-10-23",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Franklin House",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Franklin House",
+      "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-10-23",
+      "startDate": "2026-10-23T19:00:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Franklin House",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+          "addressLocality": "Streetsville",
+          "addressRegion": "ON",
+          "postalCode": "L5M 1L9",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:42.248730+00:00",
+    "html_sha256": "b240d832378fcbab05108c38f0bc1e983f356c51a0022d2fa1da07f2fb7031fa",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593430,
+    "club_id": 12582,
+    "date": "2026-11-21T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-11-20",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Franklin House",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Franklin House",
+      "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-11-20",
+      "startDate": "2026-11-20T19:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Franklin House",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+          "addressLocality": "Streetsville",
+          "addressRegion": "ON",
+          "postalCode": "L5M 1L9",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:42.257675+00:00",
+    "html_sha256": "af7a419c474a4751bfd09e46be8955f9128df36c689d3160d89cffeb6ecda106",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593431,
+    "club_id": 12582,
+    "date": "2026-12-31T22:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-12-31",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Franklin House",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Franklin House",
+      "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2026-12-31",
+      "startDate": "2026-12-31T17:30:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Franklin House",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+          "addressLocality": "Streetsville",
+          "addressRegion": "ON",
+          "postalCode": "L5M 1L9",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:42.349051+00:00",
+    "html_sha256": "b387939f27c98626ca9c1dc65b19710c80b5328d49e9a4dbdf6afe36877c2bf6",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593432,
+    "club_id": 12582,
+    "date": "2027-01-16T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-01-15",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Franklin House",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Franklin House",
+      "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-01-15",
+      "startDate": "2027-01-15T19:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Franklin House",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+          "addressLocality": "Streetsville",
+          "addressRegion": "ON",
+          "postalCode": "L5M 1L9",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:42.364430+00:00",
+    "html_sha256": "7c747a52187b7d199e5e09e1a8b75130bde5fceebc532643ce24186f0d1833f4",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593433,
+    "club_id": 12582,
+    "date": "2027-02-13T22:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-02-13",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Franklin House",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Franklin House",
+      "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-02-13",
+      "startDate": "2027-02-13T17:30:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Franklin House",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+          "addressLocality": "Streetsville",
+          "addressRegion": "ON",
+          "postalCode": "L5M 1L9",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:42.392390+00:00",
+    "html_sha256": "d5948a002a5f16e3c82407137dc4e95769f14d9d5c6680c76fae18d9b05f338d",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593434,
+    "club_id": 12582,
+    "date": "2027-03-13T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-03-12",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Franklin House",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Franklin House",
+      "url": "https://www.nextstopcomedy.com/events/the-franklin-house-2027-03-12",
+      "startDate": "2027-03-12T19:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Franklin House",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+          "addressLocality": "Streetsville",
+          "addressRegion": "ON",
+          "postalCode": "L5M 1L9",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:50.130035+00:00",
+    "html_sha256": "b7060615a1bfdc9a789c737724f1566c6a6a45f64cb28b5d2306d4d93ea33d1f",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593714,
+    "club_id": 12605,
+    "date": "2026-10-16T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-mule-cambridge-2026-10-15",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Mule Cambridge",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Mule Cambridge",
+      "url": "https://www.nextstopcomedy.com/events/the-mule-cambridge-2026-10-15",
+      "startDate": "2026-10-15T20:00:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Mule Cambridge",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "60 Main St Unit 101, Cambridge, ON N1R 1V4",
+          "addressLocality": "Cambridge",
+          "addressRegion": "ON",
+          "postalCode": "N1R 1V4",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:50.130066+00:00",
+    "html_sha256": "c47bd71a969d76ed0be7766d726d7389bb9d95b8f421c2fa7bfe67bd6896ceec",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593728,
+    "club_id": 12618,
+    "date": "2026-10-25T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-rock-tavern-2026-10-24",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Rock Tavern",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Rock Tavern",
+      "url": "https://www.nextstopcomedy.com/events/the-rock-tavern-2026-10-24",
+      "startDate": "2026-10-24T19:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Rock Tavern",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "11977 County 47, Grey Eagle, MN 56336",
+          "addressLocality": "Grey Eagle",
+          "addressRegion": "MN",
+          "postalCode": "56336",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:44.350764+00:00",
+    "html_sha256": "7b2080a5cb1388e071d3bcf0d89906559cab18d28985a8f939e635950f8d4ec1",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593730,
+    "club_id": 12621,
+    "date": "2026-10-23T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-spot-latin-fusion-cuisine-2026-10-23",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Spot: Latin Fusion Cuisine",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Spot: Latin Fusion Cuisine",
+      "url": "https://www.nextstopcomedy.com/events/the-spot-latin-fusion-cuisine-2026-10-23",
+      "startDate": "2026-10-23T19:00:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Spot: Latin Fusion Cuisine",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "118 N Jackson St., Americus, GA  31709",
+          "addressLocality": "Americus",
+          "addressRegion": "GA",
+          "postalCode": "31709",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:44.512915+00:00",
+    "html_sha256": "5e007484ec96e8730eec3c7f0f8c002d79fdb5dd7788a360b058795e92b64238",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3593743,
+    "club_id": 12634,
+    "date": "2026-10-10T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-yard-2026-10-09",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Yard",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Yard",
+      "url": "https://www.nextstopcomedy.com/events/the-yard-2026-10-09",
+      "startDate": "2026-10-09T19:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Yard",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2002 Midway Road, Menomonie, WI 54751",
+          "addressLocality": "Menomonie",
+          "addressRegion": "WI",
+          "postalCode": "54751",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:45.569567+00:00",
+    "html_sha256": "0bba0ff347f1e041975eea257cdcad44aec3a081af83891f00701c5fcf5ced23",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3719668,
+    "club_id": 12582,
+    "date": "2027-02-14T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-franklin-house-02-13-2027-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Franklin House",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Franklin House",
+      "url": "https://www.nextstopcomedy.com/events/the-franklin-house-02-13-2027-8-pm",
+      "startDate": "2027-02-13T20:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Franklin House",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "263 Queen St S, Streetsville, ON L5M 1L9",
+          "addressLocality": "Streetsville",
+          "addressRegion": "ON",
+          "postalCode": "L5M 1L9",
+          "addressCountry": "CA"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:42.235999+00:00",
+    "html_sha256": "c21ca2d9d25ca0704c20591874debbaeb29589783e1b59fd1213ae33035056e9",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 3857213,
+    "club_id": 16327,
+    "date": "2026-10-17T00:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/blowin-smoke-bbq-co-2026-10-16",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Blowin' Smoke BBQ Co.",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Blowin' Smoke BBQ Co.",
+      "url": "https://www.nextstopcomedy.com/events/blowin-smoke-bbq-co-2026-10-16",
+      "startDate": "2026-10-16T19:30:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Blowin' Smoke BBQ Co.",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "1802 Main Street, Danbury, TX 77534",
+          "addressLocality": "Danbury",
+          "addressRegion": "TX",
+          "postalCode": "77534",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:06.260588+00:00",
+    "html_sha256": "4b494c752b794f49eb4356f17711a890b3d95091ce18a8ce9e9af513ad2a2840",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 4035264,
+    "club_id": 17630,
+    "date": "2026-10-24T22:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/caf-appalachia-downtown-2026-10-24",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Caf\u00e9 Appalachia Downtown",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Caf\u00e9 Appalachia Downtown",
+      "url": "https://www.nextstopcomedy.com/events/caf-appalachia-downtown-2026-10-24",
+      "startDate": "2026-10-24T18:30:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Caf\u00e9 Appalachia Downtown",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "110 McFarland Street, Charleston, WV 25301",
+          "addressLocality": "Charleston",
+          "addressRegion": "WV",
+          "postalCode": "25301",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:08.364677+00:00",
+    "html_sha256": "a65903a0a33286bacfd3090f96b1508125087dc3d64d03116d70ac631d68129a",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 4221612,
+    "club_id": 12220,
+    "date": "2026-11-06T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/g5-brewing-student-showcase-moryd47i",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "G5 Brewing Company",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "G5 Brewing \u2014 Student Showcase",
+      "url": "https://www.nextstopcomedy.com/events/g5-brewing-student-showcase-moryd47i",
+      "startDate": "2026-11-05T19:00:00-06:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Barrel House at G5 Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "1895 Gateway Blvd, Beloit, WI 53511",
+          "addressLocality": "Beloit",
+          "addressRegion": "WI",
+          "postalCode": "53511",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:16.752686+00:00",
+    "html_sha256": "36d4840fe52bd5dffb80310707cd31818e79954d1da24e213ab9d9d9e23c66a0",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 4696203,
+    "club_id": 25630,
+    "date": "2026-10-04T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/artis-2026-10-03",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "ARTIS",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "ARTIS",
+      "url": "https://www.nextstopcomedy.com/events/artis-2026-10-03",
+      "startDate": "2026-10-03T20:00:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "ARTIS",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "17900 Detroit Ave.",
+          "addressLocality": "Lakewood",
+          "addressRegion": "OH",
+          "postalCode": "44107",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:48.673707+00:00",
+    "html_sha256": "daeab8c2514fa09000f9a56dc6a001f9c25ec10140ea0a59f74aaa57a501837f",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 4696406,
+    "club_id": 11850,
+    "date": "2026-10-21T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/farmcraft-brewery-student-showcase-mrzigdsf",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Farmcraft Brewery",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Farmcraft Brewery \u2014 Student Showcase",
+      "url": "https://www.nextstopcomedy.com/events/farmcraft-brewery-student-showcase-mrzigdsf",
+      "startDate": "2026-10-21T19:00:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Farmcraft Brewery",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "567 US-20A, Strykersville, NY 14145",
+          "addressLocality": "Strykersville",
+          "addressRegion": "NY",
+          "postalCode": "14145",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:14.151390+00:00",
+    "html_sha256": "77dd3b20b9e7c14eed722dbfbf0eb587ba13254cff512d90a8c176ced6a3f5d4",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 4944522,
+    "club_id": 26793,
+    "date": "2026-09-26T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/cedar-st-venue-2026-09-25-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Cedar St Venue",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Cedar St Venue",
+      "url": "https://www.nextstopcomedy.com/events/cedar-st-venue-2026-09-25-8-pm",
+      "startDate": "2026-09-25T20:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Cedar St Venue",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "218 Cedar St",
+          "addressLocality": "Abilene",
+          "addressRegion": "TX",
+          "postalCode": "79601",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:48.673839+00:00",
+    "html_sha256": "86f13ff60f61f79eafdb51163cb83960ead07d117de82c57213198fe5cd76329",
+    "old_extractor_emitted": true,
+    "future": false,
+    "utc_matches": true
+  },
+  {
+    "id": 5388826,
+    "club_id": 11847,
+    "date": "2027-02-14T02:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/exo-lounge-2027-02-13-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "EXO Lounge",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "EXO Lounge",
+      "url": "https://www.nextstopcomedy.com/events/exo-lounge-2027-02-13-8-pm",
+      "startDate": "2027-02-13T20:00:00-06:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "EXO Lounge",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "157th Center, Edwardsville, Illinois 62025",
+          "addressLocality": "Edwardsville",
+          "addressRegion": "IL",
+          "postalCode": "62025",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:48.673893+00:00",
+    "html_sha256": "8015454752cff66fd879d65ab02bbd3b5bbaeeee1b533c3475a3d6dd3c2a801e",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 5388907,
+    "club_id": 28391,
+    "date": "2026-11-06T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/g5-brewing-student-showcase-moryd47i",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Barrel House at G5 Brewing",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "G5 Brewing \u2014 Student Showcase",
+      "url": "https://www.nextstopcomedy.com/events/g5-brewing-student-showcase-moryd47i",
+      "startDate": "2026-11-05T19:00:00-06:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Barrel House at G5 Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "1895 Gateway Blvd, Beloit, WI 53511",
+          "addressLocality": "Beloit",
+          "addressRegion": "WI",
+          "postalCode": "53511",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:16.752686+00:00",
+    "html_sha256": "36d4840fe52bd5dffb80310707cd31818e79954d1da24e213ab9d9d9e23c66a0",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 5492890,
+    "club_id": 12358,
+    "date": "2026-11-19T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/manhatten-brewing-co-student-showcase-msry9cfr",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Manhattan Brewing Company",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Manhattan Brewing Co. \u2014 Student Showcase",
+      "url": "https://www.nextstopcomedy.com/events/manhatten-brewing-co-student-showcase-msry9cfr",
+      "startDate": "2026-11-18T19:00:00-06:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Manhattan Brewing Company",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "406 Poyntz Ave, Manhattan, KS 66502",
+          "addressLocality": "Manhattan",
+          "addressRegion": "KS",
+          "postalCode": "66502",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:26.023807+00:00",
+    "html_sha256": "94d13f76277cd913b72720d7fb18349a0d5d780eb4365bc7f98292bdf3e5baec",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 5584762,
+    "club_id": 31705,
+    "date": "2026-10-04T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/hometown-grounds-coffee-and-events-2026-10-03-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Hometown Grounds Coffee and Events",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Hometown Grounds Coffee and Events",
+      "url": "https://www.nextstopcomedy.com/events/hometown-grounds-coffee-and-events-2026-10-03-8-pm",
+      "startDate": "2026-10-03T20:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Hometown Grounds Coffee and Events",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "123 W Sale St.",
+          "addressLocality": "Tuscola",
+          "addressRegion": "IL",
+          "postalCode": "61953",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:19.477443+00:00",
+    "html_sha256": "9ac0b6704f0232fe48e841321b74413b9a5be09710d82d86aa4d7a253e5efca9",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 5585025,
+    "club_id": 31968,
+    "date": "2026-11-08T01:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/ricco-s-pizza-2026-11-07-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Ricco's Pizza",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Ricco's Pizza",
+      "url": "https://www.nextstopcomedy.com/events/ricco-s-pizza-2026-11-07-8-pm",
+      "startDate": "2026-11-07T20:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Ricco's Pizza",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "50 N Stafford Complex Ctr. STE 104",
+          "addressLocality": "Stafford",
+          "addressRegion": "VA",
+          "postalCode": "22556",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:50.104360+00:00",
+    "html_sha256": "11ad10235566b6deba31baf92a98b1e1670130ed000fea953af812bfbfc76698",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 5585052,
+    "club_id": 31995,
+    "date": "2026-10-04T03:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/sage-salt-fusions-2026-10-03-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Sage & Salt Fusions",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Sage & Salt Fusions",
+      "url": "https://www.nextstopcomedy.com/events/sage-salt-fusions-2026-10-03-8-pm",
+      "startDate": "2026-10-03T20:00:00-07:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Sage & Salt Fusions",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "521 Main St.",
+          "addressLocality": "Quincy",
+          "addressRegion": "CA",
+          "postalCode": "95971",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:35.957712+00:00",
+    "html_sha256": "8a8ba2d18413f3c02a8c1b901e4637483745424ad5731292353957777fa2333b",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 5722194,
+    "club_id": 12250,
+    "date": "2026-11-19T23:30:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/guernsey-brewhouse-student-showcase-msyok57o",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Guernsey Brewhouse",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Guernsey Brewhouse \u2014 Student Showcase",
+      "url": "https://www.nextstopcomedy.com/events/guernsey-brewhouse-student-showcase-msyok57o",
+      "startDate": "2026-11-19T18:30:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Guernsey Brewhouse",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4550 Bloomfield Road, Cambridge, OH 43725",
+          "addressLocality": "Cambridge",
+          "addressRegion": "OH",
+          "postalCode": "43725",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:18.656538+00:00",
+    "html_sha256": "5b7a27c4d445f1870f7175447c3cd71d81b768e1d8e0acf97b71b96381ab9478",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 6010609,
+    "club_id": 39599,
+    "date": "2026-12-13T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/boone-s-falls-event-venue-2026-12-12-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Boone\u2019s Falls Event Venue",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Boone\u2019s Falls Event Venue",
+      "url": "https://www.nextstopcomedy.com/events/boone-s-falls-event-venue-2026-12-12-7-pm",
+      "startDate": "2026-12-12T19:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Boone\u2019s Falls Event Venue",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "1770 Old Gray Station Rd.",
+          "addressLocality": "Johnson City",
+          "addressRegion": "TN",
+          "postalCode": " 37615",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:48.673797+00:00",
+    "html_sha256": "98db6b012d3730d6f39ff9d5b5049fdff01fc88f7310037523cfac1c85fc8b11",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 6113589,
+    "club_id": 42373,
+    "date": "2026-11-08T03:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/garden-market-2026-11-07-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Garden Market",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Garden Market",
+      "url": "https://www.nextstopcomedy.com/events/garden-market-2026-11-07-7-pm",
+      "startDate": "2026-11-07T19:00:00-08:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Garden Market",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "3811 Santa Claus Ln.",
+          "addressLocality": "Carpinteria",
+          "addressRegion": "CA",
+          "postalCode": "93013",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:50.091754+00:00",
+    "html_sha256": "8b3aab7a38fba46f076df2115d8e7b75fc197a77e472da662edb24d89b223867",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 6262845,
+    "club_id": 46892,
+    "date": "2026-10-24T23:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/torch-180-2026-10-24-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Torch 180",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Torch 180",
+      "url": "https://www.nextstopcomedy.com/events/torch-180-2026-10-24-7-pm",
+      "startDate": "2026-10-24T19:00:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Torch 180",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "131 Mill St.",
+          "addressLocality": "Fowlerville",
+          "addressRegion": "MI",
+          "postalCode": "48836",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:50.150377+00:00",
+    "html_sha256": "2ed0c6cf8fd1246274c9ee256f38a0d7db5418737478dd6bea6f8a2b145731d9",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 6707812,
+    "club_id": 11645,
+    "date": "2026-11-21T04:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/alibi-truckee-2026-11-20-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Alibi Truckee",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Alibi Truckee",
+      "url": "https://www.nextstopcomedy.com/events/alibi-truckee-2026-11-20-8-pm",
+      "startDate": "2026-11-20T20:00:00-08:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Alibi Truckee",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "10069 Bridge Street, Truckee, CA 96161",
+          "addressLocality": "Truckee",
+          "addressRegion": "CA",
+          "postalCode": "96161",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:54.744251+00:00",
+    "html_sha256": "583f99f8bb5f867620f90e839bca45751877709ea3bfd01c3b011c1969473215",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 6708139,
+    "club_id": 47475,
+    "date": "2026-11-07T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Formosa Winery",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Formosa Winery",
+      "url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+      "startDate": "2026-11-06T19:00:00-05:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Formosa Winery",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "3011 Formosa Gardens Blvd.",
+          "addressLocality": "Kissimmee",
+          "addressRegion": "FL",
+          "postalCode": "34747",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:15.784954+00:00",
+    "html_sha256": "b32896b6297d586530115d212be017a4ddefbac71db824fc45cfa53fce1a09d0",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 6757970,
+    "club_id": 59360,
+    "date": "2026-10-24T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/ou-la-restaurant-bar-2026-10-23-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "OU LA Restaurant & Bar",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "OU LA Restaurant & Bar",
+      "url": "https://www.nextstopcomedy.com/events/ou-la-restaurant-bar-2026-10-23-8-pm",
+      "startDate": "2026-10-23T20:00:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "OU LA Restaurant & Bar",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "29 Washington Ave.",
+          "addressLocality": "Carteret",
+          "addressRegion": "NJ",
+          "postalCode": "07008",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:38:30.289875+00:00",
+    "html_sha256": "855623947a7d135a24c24a3d6d7d223ea0a71d6473949c0914e0d38d558aff69",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 7047607,
+    "club_id": 66590,
+    "date": "2026-10-25T00:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/caribbean-delight-2026-10-24-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "Caribbean Delight",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "Caribbean Delight",
+      "url": "https://www.nextstopcomedy.com/events/caribbean-delight-2026-10-24-8-pm",
+      "startDate": "2026-10-24T20:00:00-04:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "Caribbean Delight",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "113 S Hwy 52",
+          "addressLocality": "Moncks Corner",
+          "addressRegion": "SC ",
+          "postalCode": "29461",
+          "addressCountry": "US"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:48.673818+00:00",
+    "html_sha256": "b5f5360bd2a1bd856e70ac477f673c5b4ee83d05d5ea786f155a8c811e086145",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  },
+  {
+    "id": 7315614,
+    "club_id": 73872,
+    "date": "2027-02-05T20:00:00+00:00",
+    "show_page_url": "https://www.nextstopcomedy.com/events/the-terrace-bar-2027-02-05-8-pm",
+    "last_scraped_by": "next_stop_comedy",
+    "club_name": "The Terrace Bar",
+    "source": {
+      "@type": "ComedyEvent",
+      "name": "The Terrace Bar",
+      "url": "https://www.nextstopcomedy.com/events/the-terrace-bar-2027-02-05-8-pm",
+      "startDate": "2027-02-05T20:00:00+00:00",
+      "eventStatus": "https://schema.org/EventCancelled",
+      "location": {
+        "@type": "Place",
+        "name": "The Terrace Bar",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "1 Richmond Ave",
+          "addressLocality": "Southend-on-Sea",
+          "addressRegion": "England",
+          "postalCode": "SS1 1JE",
+          "addressCountry": "GB"
+        }
+      }
+    },
+    "captured_at": "2026-09-29T23:37:50.141847+00:00",
+    "html_sha256": "ccd258f4f63730d9f0e5a843d0f2cc3daa57e9a58937127132b193a6441a1a6c",
+    "old_extractor_emitted": true,
+    "future": true,
+    "utc_matches": true
+  }
+]
