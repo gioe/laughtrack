@@ -765,8 +765,9 @@ class ClubHandler(BaseDatabaseHandler[Club]):
 
         Returns:
             Club: the upserted (or existing) club, or None on invalid
-            input or when the junk-venue quality filter rejects the
-            name.
+            input, a junk venue name, or a name collision without corroborating
+            city/state or postal metadata. A new name may be inserted with
+            incomplete geography; that alone does not authorize later reuse.
         """
         name = (venue.get("name") or "").strip()
         if not name:

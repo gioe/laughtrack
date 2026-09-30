@@ -65,6 +65,64 @@ ClubHandler = _club_handler_mod.ClubHandler
 _real_ticketmaster_id_match = ClubHandler._find_ticketmaster_id_match
 
 
+def test_discovered_venue_cross_city_name_collision():
+    """Execute the production upsert on isolated PostgreSQL tables."""
+    import os
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+
+    dsn = os.environ.get("TEST_DATABASE_URL")
+    if not dsn:
+        pytest.skip("TEST_DATABASE_URL required for PostgreSQL identity regression")
+    conn = psycopg2.connect(dsn, cursor_factory=RealDictCursor)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TEMP TABLE clubs (
+                    id serial PRIMARY KEY, name text UNIQUE, address text,
+                    website text, visible boolean, zip_code text, city text,
+                    state text, phone_number text, popularity integer,
+                    timezone text, club_type text
+                )
+            """)
+
+            def upsert(name="Orpheum Theatre", city="Wichita", state="KS", postal="67202"):
+                cur.execute(ClubQueries.UPSERT_DISCOVERED_VENUE, (
+                    name, "1 Main St", "", postal, city, state, "America/Chicago", "club",
+                ))
+                return cur.fetchone()
+
+            first = upsert()
+            assert first is not None
+            assert upsert(city="Minneapolis", state="MN", postal="55403") is None
+            # A matching postal code must not override contradictory geography.
+            assert upsert(city="Minneapolis", state="MN") is None
+            assert upsert(state="ME") is None
+            for missing in (None, "", "   "):
+                assert upsert(city=missing, state=missing, postal=missing) is None
+                assert upsert(city="Wichita", state=missing, postal=missing) is None
+            assert upsert(city=" wICHITA ", state=" ks ")["id"] == first["id"]
+            # ZIP-only sources can repeat a verified identity without an address.
+            assert upsert(city=None, state=None)["id"] == first["id"]
+            assert upsert(city=None, state=None, postal="55403") is None
+            for missing in (None, "", "   "):
+                name = f"Unknown venue {missing!r}"
+                shell = upsert(name, missing, missing, missing)
+                assert shell is not None
+                assert upsert(name, missing, missing, missing) is None
+                assert upsert(name) is None
+            postal_only = upsert("Postal-only venue", None, None, " B0S 1A0 ")
+            assert upsert("Postal-only venue", None, None, "b0s 1a0")["id"] == postal_only["id"]
+            assert upsert("Postal-only venue", None, None, "B0S 2B0") is None
+            cur.execute("SELECT * FROM clubs WHERE id=%s", (first["id"],))
+            original = cur.fetchone()
+            assert (original["city"], original["state"], original["zip_code"]) == ("Wichita", "KS", "67202")
+            assert original["id"] == first["id"]
+    finally:
+        conn.rollback()
+        conn.close()
+
+
 @pytest.fixture(autouse=True)
 def _new_ticketmaster_identity():
     # Legacy tests exercise the new-ID fallback; stable-ID precedence has

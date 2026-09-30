@@ -736,6 +736,11 @@ class ClubQueries:
     # side effect without committing to scrape from any specific platform.
     # Returning shape mirrors the *_VENUE upserts (clubs.* plus an empty
     # scraping_sources array) so ``Club.from_db_row`` can consume it.
+    # A name collision is not identity: require matching city/state, or a
+    # matching postal code without conflicting known city/state. The latter
+    # supports TicketTailor, which supplies postal codes but no address.
+    # Unknown/conflicting identities return no row, including concurrent
+    # insert conflicts, so callers cannot attach shows to the wrong city.
     UPSERT_DISCOVERED_VENUE = """
         INSERT INTO clubs (
             name, address, website, visible,
@@ -756,6 +761,21 @@ class ClubQueries:
                 THEN EXCLUDED.club_type
                 ELSE clubs.club_type
             END
+        WHERE (
+            NULLIF(TRIM(clubs.city), '') IS NOT NULL
+            AND NULLIF(TRIM(clubs.state), '') IS NOT NULL
+            AND LOWER(TRIM(clubs.city)) = LOWER(TRIM(EXCLUDED.city))
+            AND LOWER(TRIM(clubs.state)) = LOWER(TRIM(EXCLUDED.state))
+        ) OR (
+            NULLIF(TRIM(clubs.zip_code), '') IS NOT NULL
+            AND UPPER(TRIM(clubs.zip_code)) = UPPER(TRIM(EXCLUDED.zip_code))
+            AND (NULLIF(TRIM(clubs.city), '') IS NULL
+                 OR NULLIF(TRIM(EXCLUDED.city), '') IS NULL
+                 OR LOWER(TRIM(clubs.city)) = LOWER(TRIM(EXCLUDED.city)))
+            AND (NULLIF(TRIM(clubs.state), '') IS NULL
+                 OR NULLIF(TRIM(EXCLUDED.state), '') IS NULL
+                 OR LOWER(TRIM(clubs.state)) = LOWER(TRIM(EXCLUDED.state)))
+        )
         RETURNING *, '[]'::json AS scraping_sources
     """
 
