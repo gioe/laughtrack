@@ -1,6 +1,11 @@
 """Scraper for the Grisly Pear calendar listing."""
 
 from typing import Optional
+import asyncio
+from collections import defaultdict
+
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.scrapers.base.base_scraper import BaseScraper
@@ -38,4 +43,41 @@ class GrislyPearScraper(BaseScraper):
         if not events:
             self._warn_empty_extraction(url, html=html)
             return None
-        return GrislyPearPageData(event_list=events)
+        # Bound parallel detail reads; the existing host limiter also enforces RPS.
+        limit = asyncio.Semaphore(4)
+
+        async def enrich(event):
+            async with limit:
+                try:
+                    detail_html = await self.fetch_html(event.url)
+                    if not detail_html:
+                        raise ValueError("empty event detail")
+                    return GrislyPearExtractor.enrich_detail(event, detail_html, self.club)
+                except Exception as exc:
+                    self._record_incomplete(f"detail rejected for {event.url}: {exc}")
+                    return None
+
+        results = await asyncio.gather(*(enrich(event) for event in events))
+        groups = defaultdict(list)
+        for candidate, result in zip(events, results):
+            groups[(candidate.date, candidate.time)].append(result)
+        verified = []
+        for key, aliases in groups.items():
+            if any(event is None for event in aliases):
+                continue
+            # Two links for one venue/time cannot silently overwrite conflicting
+            # performer or price evidence. Benign legacy/current aliases merge.
+            signatures = {(tuple(sorted(name.casefold() for name in event.performers)), event.price)
+                          for event in aliases}
+            if len(signatures) != 1:
+                self._record_incomplete(f"conflicting event aliases at {key}")
+                continue
+            verified.append(aliases[0])
+        return GrislyPearPageData(event_list=verified)
+
+    def _record_incomplete(self, message: str) -> None:
+        diagnostics = current_diagnostics()
+        if diagnostics is not None:
+            diagnostics.record_fetch_failed()
+            diagnostics.record_scrape_error(message)
+        Logger.warn(f"{self._log_prefix}: {message}; blocking stale reconciliation", self.logger_context)

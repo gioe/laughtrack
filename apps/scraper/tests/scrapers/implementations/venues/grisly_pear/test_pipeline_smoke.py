@@ -1,6 +1,14 @@
 """Pipeline smoke tests for the Grisly Pear calendar scraper."""
 
 from datetime import date
+import json
+from pathlib import Path
+
+import pytest
+import time_machine
+from bs4 import BeautifulSoup
+from laughtrack.scrapers.implementations.venues.grisly_pear.data import GrislyPearEvent
+from laughtrack.foundation.infrastructure.http.diagnostics import ScrapeDiagnostics, bind_diagnostics, reset_diagnostics
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.grisly_pear.extractor import (
@@ -38,10 +46,10 @@ def _club(name: str = "The Grisly Pear Greenwich Village") -> Club:
     club = Club(
         id=6 if "Greenwich" in name else 7,
         name=name,
-        address="107 MacDougal St",
+        address="107 MacDougal St" if "Greenwich" in name else "243 W 54th St",
         website="https://www.grislypearstandup.com",
         popularity=0,
-        zip_code="10012",
+        zip_code="10012" if "Greenwich" in name else "10019",
         phone_number="",
         visible=True,
         timezone="America/New_York",
@@ -104,19 +112,160 @@ def test_to_show_uses_slug_datetime_and_fallback_ticket():
     assert show.tickets[0].price is None
 
 
-def test_scraper_transforms_listing_html_without_detail_fetch(monkeypatch):
-    scraper = GrislyPearScraper(_club())
 
-    async def fake_fetch_html(url):
-        assert url == "https://www.grislypearstandup.com/calendar"
-        return _CALENDAR_HTML
+_ROOT = next(parent for parent in Path(__file__).resolve().parents if (parent / "docs/audits").is_dir())
+_LINEUP = _ROOT / "docs/audits/2026-09-26-missing-lineups/grisly"
+_PRICES = _ROOT / "docs/audits/2026-09-27-price-extraction/parent"
 
-    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_html)
 
-    shows = scraper.scrape()
+def _candidate(show_id):
+    rows = json.loads((_PRICES / "grisly-findings.json").read_text())
+    row = next(row for row in rows if row["show_id"] == show_id)
+    day, clock = GrislyPearExtractor._parse_dated_event_url(row["url"])
+    return GrislyPearEvent("Comedy Show", row["url"], day.isoformat(), clock)
 
-    assert len(shows) == 2
-    assert [show.name for show in shows] == [
-        "8PM Comedy Show at The Grisly Pear Greenwich Village",
-        "Midnight Comedy Show at Grisly Pear Classic",
-    ]
+
+def _detail(show_id):
+    return (_PRICES / f"grisly-{show_id}.html").read_text()
+
+
+def test_current_calendar_detail_identity(monkeypatch):
+    """Real legacy/current aliases converge; a changed date or venue is rejected."""
+    calendar = (_LINEUP / "calendar-current-url-excerpt.html").read_text()
+    for club in (_club(), _club("The Grisly Pear Midtown")):
+        events = GrislyPearExtractor.extract_events(calendar, base_url=club.scraping_url,
+                                                  club_name=club.name, today=date(2026, 9, 26))
+        assert len(events) == 1
+        detail = (_LINEUP / "6039376-lineup-excerpt.html").read_text() if club.id == 6 else _detail(6395740)
+        parsed = GrislyPearExtractor.enrich_detail(events[0], detail, club)
+        assert parsed.date == events[0].date
+        assert parsed.time == events[0].time
+        assert parsed.to_show(club).lineup
+        scraper = GrislyPearScraper(club)
+        async def fake_fetch(url):
+            return calendar if url == club.scraping_url else detail
+        monkeypatch.setattr(scraper, "fetch_html", fake_fetch)
+        with time_machine.travel("2026-09-26T12:00:00Z", tick=False):
+            shows = scraper.scrape()
+        assert len(shows) == 1
+        assert shows[0].date == parsed.to_show(club).date
+        assert shows[0].club_id == club.id
+        assert shows[0].lineup
+    old = _candidate(6395740)
+    current = GrislyPearExtractor.enrich_detail(old, _detail(6395740), _club("The Grisly Pear Midtown"))
+    assert current.url.endswith("10-02-26-07-30-pm")
+    assert old.date == current.date and old.time == current.time
+    with pytest.raises(ValueError, match="start date"):
+        GrislyPearExtractor.enrich_detail(_candidate(6331162), _detail(6331162), _club("The Grisly Pear Midtown"))
+    with pytest.raises(ValueError, match="physical venue"):
+        GrislyPearExtractor.enrich_detail(old, _detail(6395740), _club())
+
+
+def test_explicit_detail_lineups():
+    candidate = _candidate(6150999)
+    detail = _detail(6150999)
+    event = GrislyPearExtractor.enrich_detail(candidate, detail, _club())
+    assert {person.name for person in event.to_show(_club()).lineup} == {"Abby Washuta", "Tina Zhu"}
+    assert len(event.performers) == 2
+    # Featuring fallback works even when the structured performer field is empty.
+    soup = BeautifulSoup(detail, "html.parser")
+    script = soup.find("script", type="application/ld+json")
+    payload = json.loads(script.string)
+    payload[0]["performer"] = []
+    script.string = json.dumps(payload)
+    event = GrislyPearExtractor.enrich_detail(candidate, str(soup), _club())
+    assert {person.name for person in event.to_show(_club()).lineup} == {"Abby Washuta", "Tina Zhu"}
+    for node in soup.select(".event-comedians-container"):
+        node.decompose()
+    event = GrislyPearExtractor.enrich_detail(candidate, str(soup), _club())
+    assert event.to_show(_club()).lineup == []  # No title or biography inference.
+
+
+@pytest.mark.parametrize("show_id,club_name,expected", [
+    (6150999, "The Grisly Pear Greenwich Village", 10.0),
+    (6395740, "The Grisly Pear Midtown", 20.0),
+    (6039378, "The Grisly Pear Greenwich Village", None),
+])
+def test_real_purchase_base_prices_and_unavailable_inventory(show_id, club_name, expected):
+    event = GrislyPearExtractor.enrich_detail(_candidate(show_id), _detail(show_id), _club(club_name))
+    assert event.to_show(_club(club_name)).tickets[0].price == expected
+    assert event.price not in {12.37, 23.24}  # Mandatory fees are not base price.
+
+
+def test_purchase_controls_fallback_never_uses_inclusive_total():
+    soup = BeautifulSoup(_detail(6395740), "html.parser")
+    for node in soup.select(".breakdown-base-original"):
+        node.decompose()
+    event = GrislyPearExtractor.enrich_detail(_candidate(6395740), str(soup), _club("The Grisly Pear Midtown"))
+    assert event.price == 20.0  # Explicit matched JSON-LD Offer base price.
+    script = soup.find("script", type="application/ld+json")
+    payload = json.loads(script.string)
+    payload[0]["offers"]["price"] = "0.00"
+    script.string = json.dumps(payload)
+    event = GrislyPearExtractor.enrich_detail(_candidate(6395740), str(soup), _club("The Grisly Pear Midtown"))
+    assert event.price is None
+
+
+@pytest.mark.asyncio
+async def test_calendar_aliases_and_detail_failure_block_cleanup(monkeypatch):
+    club = _club("The Grisly Pear Midtown")
+    scraper = GrislyPearScraper(club)
+    old = _candidate(6395740)
+    verified = GrislyPearExtractor.enrich_detail(old, _detail(6395740), club)
+    wrong = _candidate(6331162)
+    def anchor(url):
+        return f'<a aria-label="Comedy Show at The Grisly Pear Midtown" href="{url}">Comedy Show</a>'
+    calendar = anchor(old.url) + anchor(verified.url) + anchor(wrong.url)
+    fetched = []
+    async def fake_fetch(url):
+        fetched.append(url)
+        if url == club.scraping_url:
+            return calendar
+        return _detail(6331162) if url == wrong.url else _detail(6395740)
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch)
+    diagnostics = ScrapeDiagnostics()
+    token = bind_diagnostics(diagnostics)
+    try:
+        with time_machine.travel("2026-09-26T12:00:00Z", tick=False):
+            data = await scraper.get_data(club.scraping_url)
+    finally:
+        reset_diagnostics(token)
+    assert len(data.event_list) == 1
+    assert data.event_list[0].url == verified.url
+    assert diagnostics.fetches_failed == 1
+    assert len(fetched) == 4
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("failure", ["empty", "exception", "conflicting_alias"])
+async def test_incomplete_details_are_not_returned_or_reconciled(monkeypatch, failure):
+    club = _club("The Grisly Pear Midtown")
+    scraper = GrislyPearScraper(club)
+    old = _candidate(6395740)
+    current = GrislyPearExtractor.enrich_detail(old, _detail(6395740), club)
+    calendar = ''.join(f'<a aria-label="Comedy Show Midtown" href="{url}">Show</a>' for url in [old.url, current.url])
+    async def fake_fetch(url):
+        if url == club.scraping_url:
+            return calendar
+        if url == old.url:
+            return _detail(6395740)
+        if failure == "exception":
+            raise TimeoutError("detail timeout")
+        if failure == "empty":
+            return None
+        return _detail(6395740).replace('"Tanner Riley"', '"Different Person"').replace('Tanner Riley</a>', 'Different Person</a>')
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch)
+    diagnostics = ScrapeDiagnostics()
+    token = bind_diagnostics(diagnostics)
+    try:
+        with time_machine.travel("2026-09-26T12:00:00Z", tick=False):
+            data = await scraper.get_data(club.scraping_url)
+    finally:
+        reset_diagnostics(token)
+    assert data.event_list == []
+    assert diagnostics.fetches_failed > 0
+
+
+@pytest.mark.parametrize("suffix,expected", [("10-02-26-12-00-am", "000000"), ("10-02-26-12-00-pm", "120000"), ("10-02-26-07-30-pm?utm=test", "193000")])
+def test_current_url_clock_edges(suffix, expected):
+    assert GrislyPearExtractor._parse_dated_event_url("https://www.grislypearstandup.com/events/show-" + suffix) == (date(2026, 10, 2), expected)

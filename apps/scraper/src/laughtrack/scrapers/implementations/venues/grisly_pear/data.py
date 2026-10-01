@@ -1,6 +1,6 @@
 """Data model for the Grisly Pear calendar listing."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -20,6 +20,8 @@ class GrislyPearEvent(ShowConvertible):
     url: str
     date: str
     time: str
+    performers: list[str] = field(default_factory=list)
+    price: Optional[float] = None
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         try:
@@ -29,13 +31,13 @@ class GrislyPearEvent(ShowConvertible):
             return None
 
         show_url = url or self.url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(show_url)]
+        tickets = [ShowFactoryUtils.create_fallback_ticket(show_url, price=self.price)]
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.name,
             club=club,
             date=start_date,
             show_page_url=show_url,
-            lineup=[],
+            lineup=ShowFactoryUtils.create_lineup_from_performers(self.performers),
             tickets=tickets,
             room="",
             supplied_tags=["event"],
