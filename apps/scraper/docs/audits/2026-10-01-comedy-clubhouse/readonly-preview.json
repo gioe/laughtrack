@@ -1,0 +1,717 @@
+{
+  "club_id": 189,
+  "count": 59,
+  "fetches_ok": 1,
+  "fetches_failed": 0,
+  "errors": [],
+  "shows": [
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-02T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-02/19:30/t-dkgploe",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKE",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-02T21:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-02/21:30/t-mjrqzva",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLML",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-03T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-03/19:30/t-xdyrzok",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLJ",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "JOKE JOINT",
+      "date": "2026-10-03T21:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-10-03/21:30/t-mjrapep",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEHGD",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-09T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-09/19:30/t-ejqxzvp",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKF",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-09T21:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-09/21:30/t-rzjraxo",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDF",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-10T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-10/19:30/t-rzjrayn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLK",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "JOKE JOINT",
+      "date": "2026-10-10T21:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-10-10/21:30/t-ldxagmm",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEF",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-16T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-16/19:30/t-oevqzpn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKG",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-16T21:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-16/21:30/t-dkgplqz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDG",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-17T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-17/19:30/t-dkgplme",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLL",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "JOKE JOINT",
+      "date": "2026-10-17T21:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-10-17/21:30/t-mjrapkd",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEG",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-10-21T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-10-21/19:30/t-glydvem",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJE",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-23T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-23/19:30/t-qmzxyqj",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKI",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-23T21:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-23/21:30/t-ejqxzye",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDH",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-10-24T17:00:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-10-24/17:00/t-ejqrdvk",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDH",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-24T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-24/19:30/t-ejqxzmp",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLM",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "JOKE JOINT",
+      "date": "2026-10-24T21:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-10-24/21:30/t-njdzxgq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEH",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-30T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-30/19:30/t-yzgdpvz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKJ",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-30T21:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-30/21:30/t-oevqzyx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDI",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-31T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-31/19:30/t-oevqzon",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMD",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-06T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-06/19:30/t-aaydlmz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKK",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-11-06T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-11-06/21:30/t-vxjpzor",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDJ",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-07T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-07/19:30/t-vxjpzoe",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLME",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "JOKE JOINT",
+      "date": "2026-11-07T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-11-07/21:30/t-kdplamn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEJ",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-13T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-13/19:30/t-glydzmy",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKL",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-11-13T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-11-13/21:30/t-qmzxypr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDK",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-14T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-14/19:30/t-qmzxypj",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMF",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "JOKE JOINT",
+      "date": "2026-11-14T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-11-14/21:30/t-plogdxn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEK",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-11-18T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-11-18/19:30/t-jxjqamd",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJF",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-20T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-20/19:30/t-jxjqvpv",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKM",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-11-20T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-11-20/21:30/t-jxjqvyr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMEE",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-11-21T17:00:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-11-21/17:00/t-oevarpj",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDI",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-21T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-21/19:30/t-yzgdpyz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMG",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-27T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-27/19:30/t-ldxzvrz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLD",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-11-27T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-11-27/21:30/t-ldxzvgx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMEF",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-28T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-28/19:30/t-aaydlez",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMH",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-04T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-04/19:30/t-njdyveg",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLF",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-12-04T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-12-04/21:30/t-ejqpvyo",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFHMMLM",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-05T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-05/19:30/t-glydzpy",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMI",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-11T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-11/19:30/t-zoykxqq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLG",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-12-11T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-12-11/21:30/t-dkgnorr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDG",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-12T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-12/19:30/t-jxjqvdv",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMJ",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-12-16T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-12-16/19:30/t-ldxzjag",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJG",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-18T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-18/19:30/t-kdpqzxe",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLH",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-12-18T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-12-18/21:30/t-ejqpvdn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDH",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-12-19T17:00:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-12-19/17:00/t-vxjkaqx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDJ",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-19T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-19/19:30/t-ldxzvoz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMK",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-01T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-01/21:30/t-vxjrqay",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDJ",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-08T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-08/21:30/t-qmzlkel",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDK",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-15T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-15/21:30/t-yzgoklr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDL",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-01-20T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-01-20/19:30/t-mjrqlax",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJH",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-22T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-22/21:30/t-aayjknq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDM",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-01-23T17:00:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-01-23/17:00/t-yzgmlkg",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDL",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-29T21:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-29/21:30/t-ldxqmpe",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDEF",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-02-17T19:30:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-02-17/19:30/t-njdynzn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJI",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-02-20T17:00:00-06:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-02-20/17:00/t-aayogkl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDM",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-03-17T19:30:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-03-17/19:30/t-zoyknjl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJJ",
+          "price": null
+        }
+      ]
+    },
+    {
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-03-20T17:00:00-05:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-03-20/17:00/t-glyeogd",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIED",
+          "price": null
+        }
+      ]
+    }
+  ]
+}

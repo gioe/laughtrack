@@ -1,0 +1,28 @@
+[
+  {
+    "url": "https://www.ticketsource.com/thecomedyclubhouse",
+    "fetched_at": "2026-10-01T15:57:23.901015+00:00",
+    "method": "HttpClient.fetch_html",
+    "bytes": 50724,
+    "sha256": "bfac8f191951a0f6e238a42164380c109b20b97bb538f46f7fdccca6e90b3b34"
+  },
+  {
+    "url": "https://www.thecomedyclubhouse.com/",
+    "fetched_at": "2026-10-01T15:57:23.548986+00:00",
+    "method": "HttpClient.fetch_html",
+    "bytes": 644532,
+    "sha256": "4a0ad9c8a76e13e057f09d32d160ce3eb983202797bc5c8b56dd942b01ae8e10"
+  },
+  {
+    "url": "https://www.ticketsource.us/thecomedyclubhouse",
+    "fetched_at": "2026-10-01T15:57:24.729322+00:00",
+    "method": "HttpClient.fetch_html",
+    "bytes": 50724,
+    "sha256": "bfac8f191951a0f6e238a42164380c109b20b97bb538f46f7fdccca6e90b3b34"
+  },
+  {
+    "url": "https://www.ticketsource.com/ticketshop/web/v7/promoter-list-detailed.min.js",
+    "method": "HttpClient.fetch_html",
+    "sha256": "487d02dd3acbe4cf936b9d49249a37a1a4415625704b1779be96de76eaef77d2"
+  }
+]

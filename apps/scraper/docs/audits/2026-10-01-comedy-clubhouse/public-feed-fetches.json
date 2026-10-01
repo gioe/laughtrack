@@ -1,0 +1,57 @@
+[
+  {
+    "url": "https://www.ticketsource.com/ticketshop/web/promoter-list-detailed_ajax.php",
+    "method": "POST curl-cffi chrome",
+    "promoterid": "KEGG",
+    "startat": 1,
+    "retrieved_at": "2026-10-01T16:15:17.947774+00:00",
+    "status": 200,
+    "count": 12,
+    "eof": false,
+    "sha256": "8b9c6a061e76cc7e951fcfaccf989b54dcdcc57c37f4378d8008079da1e013a0"
+  },
+  {
+    "url": "https://www.ticketsource.com/ticketshop/web/promoter-list-detailed_ajax.php",
+    "method": "POST curl-cffi chrome",
+    "promoterid": "KEGG",
+    "startat": 13,
+    "retrieved_at": "2026-10-01T16:15:18.351641+00:00",
+    "status": 200,
+    "count": 12,
+    "eof": false,
+    "sha256": "925d904fd9b6b6053ca0a03635aab65f9c39ebddaee9b720f2efe411e52ee27f"
+  },
+  {
+    "url": "https://www.ticketsource.com/ticketshop/web/promoter-list-detailed_ajax.php",
+    "method": "POST curl-cffi chrome",
+    "promoterid": "KEGG",
+    "startat": 25,
+    "retrieved_at": "2026-10-01T16:15:18.719904+00:00",
+    "status": 200,
+    "count": 12,
+    "eof": false,
+    "sha256": "ac198fc4e7382c02306eacb5039d643b24936cf9d1b1c7820655026299fd30f1"
+  },
+  {
+    "url": "https://www.ticketsource.com/ticketshop/web/promoter-list-detailed_ajax.php",
+    "method": "POST curl-cffi chrome",
+    "promoterid": "KEGG",
+    "startat": 37,
+    "retrieved_at": "2026-10-01T16:15:19.398535+00:00",
+    "status": 200,
+    "count": 12,
+    "eof": false,
+    "sha256": "e7629fbf479b0508d1f466e5514aa8461beb0146b665c0ec651c084e0ba98cb9"
+  },
+  {
+    "url": "https://www.ticketsource.com/ticketshop/web/promoter-list-detailed_ajax.php",
+    "method": "POST curl-cffi chrome",
+    "promoterid": "KEGG",
+    "startat": 49,
+    "retrieved_at": "2026-10-01T16:15:19.742447+00:00",
+    "status": 200,
+    "count": 11,
+    "eof": true,
+    "sha256": "c2bdf1b77e34b011f1d01f5d81901bf1f4ba1c7d4ed94699e80ad19c91aacebd"
+  }
+]

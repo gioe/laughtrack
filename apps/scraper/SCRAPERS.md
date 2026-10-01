@@ -2718,46 +2718,47 @@ required before refreshing affected rows.
 
 | | |
 |---|---|
-| **Scraper key** | venue-specific (e.g. `comedy_clubhouse`) |
-| **DB field** | `scraping_url` |
-| **Value format** | `https://www.ticketsource.com/{venue-slug}` |
-| **Generic?** | ❌ New venue-specific scraper required |
+| **Scraper key** | venue-specific, currently comedy_clubhouse |
+| **DB field** | scraping_sources.source_url |
+| **Value format** | https://www.ticketsource.com/{organizer-slug} |
+| **Generic?** | No; verify each organizer before adapting |
 
-**Detection signals:**
-- Buy links or redirects to `ticketsource.com/{slug}` or `ticketsource.us/{slug}`
-- Page source contains CSS classes `eventRow`, `dateTime`, `event-btn`
-- Server-rendered HTML — no JS required; `WebFetch` returns full event data
+**Detection signals:** Official buy links use ticketsource.com or ticketsource.us.
+Public HTML contains eventRow, dateTime and event-btn classes. The initial page
+may contain only 12 events: inspect body data-promoterid, data-eventsperload and
+data-initialeof. Do not assume server-rendered rows are the complete calendar.
 
-**HTML structure per event card:**
-```
-div.eventRow[data-id="..."]
-  div.eventTitle > a[itemprop="url", href="/slug/event-title/e-XXXXX"]
-    span[itemprop="name"]                      ← show title
-  div.dateTime[content="2026-03-28T19:30"]     ← ISO local datetime (no timezone)
-  div.event-btn > a[href="/booking/init/XXXX"] ← ticket purchase path
-```
+**Published pagination contract:** The page's linked promoter-list-detailed script
+POSTs form data to /ticketshop/web/promoter-list-detailed_ajax.php with promoterid,
+localtimeoffset, eventrefno and startat. Comedy Clubhouse uses organizer KEGG,
+localtimeoffset=-360 as published by its page, and offsets 1, 13, 25, etc. Responses
+carry events plus a boolean eof. A terminal empty response can be exactly
+{"eof":true}. This public website contract is distinct from TicketSource's
+authenticated account API; do not invent feed URLs or assume account access.
 
-**Key implementation details:**
-- Use `div.dateTime[content]` for datetime — parse with `strptime(dt_str, "%Y-%m-%dT%H:%M")`
-  and localize with `pytz.timezone(club.timezone).localize(naive_dt)`
-- Use `urllib.parse.urljoin(TICKETSOURCE_BASE, href)` for all URL construction — TicketSource
-  hrefs are relative paths; `urljoin` handles both relative and absolute hrefs safely
-- All upcoming events appear on a single page — no pagination needed
-- **Rate-limiting:** TicketSource returns HTTP 429 on rapid successive WebFetch calls
+**Identity and time:** Each performance supplies performanceId, venueName,
+venueLocation, performanceDateTimeMeta, infoLinkTime and buttonLink. Validate the
+Chicago venue and organizer-owned paths, match the timestamp against the dated
+performance URL, and localize the explicit wall time to America/Chicago. The
+localtimeoffset request parameter does not replace the venue timezone. Unknown
+prices remain null.
 
-**Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/venues/comedy_clubhouse/`
+**Failure modes:** Cloudflare/Access denied can differ between local and scheduled
+IP addresses. Test the actual scheduled runner before claiming recovery. Require
+verified EOF, bounded pagination, unique identities and fully valid pages before
+allowing stale cleanup. Unknown empty HTML, failed or truncated pages, duplicate
+pages and ambiguous same-time shows are incomplete results. Preserve supported
+HTML extraction, but reject an HTML page with unconsumed pagination.
 
-**To onboard a new TicketSource venue:**
-1. Confirm the venue slug from the buy page URL: `ticketsource.com/{slug}`
-2. Copy the `comedy_clubhouse/` scraper directory as the reference implementation
-3. Update `SCRAPING_URL` constant, scraper `key`, and class names
-4. Add a DB migration setting `scraper` and `scraping_url`
+**Reference implementation:** apps/scraper/src/laughtrack/scrapers/implementations/venues/comedy_clubhouse/
 
-**DB setup:**
-```sql
-INSERT INTO clubs (name, scraper, scraping_url, ...)
-VALUES ('My Venue', 'my_venue', 'https://www.ticketsource.com/my-venue', ...);
-```
+**Onboarding:** A different TicketSource venue needs its own verified organizer
+identity, response fixtures, timezone and runner-access check. Store its source
+configuration in scraping_sources; club rows hold venue identity. Do not reuse
+Comedy Clubhouse's hardcoded organizer or silently route another venue into it.
+
+See [the recovery audit](docs/audits/2026-10-01-comedy-clubhouse/README.md) for source
+evidence, pagination verification and scheduled-runner results.
 
 ---
 

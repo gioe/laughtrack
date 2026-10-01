@@ -1,0 +1,69 @@
+{
+  "run_id": 36887941353,
+  "head_sha": "6d5f396c6df91e68596ae18efba9c055701f9790",
+  "url": "https://github.com/gioe/laughtrack/actions/runs/36887941353",
+  "metrics": {
+    "session": {
+      "duration_seconds": 3.618292,
+      "exported_at": "2026-10-01T15:59:37.027052"
+    },
+    "shows": {
+      "scraped": 0,
+      "saved": 0,
+      "inserted": 0,
+      "updated": 0,
+      "failed_save": 0,
+      "skipped_dedup": 0,
+      "validation_failed": 0,
+      "db_errors": 0
+    },
+    "clubs": {
+      "processed": 1,
+      "successful": 0,
+      "failed": 1
+    },
+    "errors": {
+      "total": 1
+    },
+    "success_rate": 0.0,
+    "execution_times": [
+      3.618292
+    ],
+    "per_club_stats": [
+      {
+        "club": "The Comedy Clubhouse",
+        "num_shows": 0,
+        "execution_time": 3.618292,
+        "success": false,
+        "error": "fetch failed for https://www.ticketsource.com/thecomedyclubhouse: DataError: Mandatory calendar blocked (<title>access denied</title>): https://www.ticketsource.com/thecomedyclubhouse",
+        "club_id": 189,
+        "errors": 2,
+        "success_rate": 0.0,
+        "http_status": 403,
+        "bot_block_detected": true,
+        "bot_block_signature": "_cf_chl_opt",
+        "bot_block_provider": "cloudflare",
+        "bot_block_type": "challenge",
+        "bot_block_source": "response_body",
+        "bot_block_stage": "both",
+        "playwright_fallback_used": true,
+        "items_before_filter": 0,
+        "targets_collected": 1,
+        "fetches_ok": 0,
+        "fetches_failed": 1,
+        "ticketless_shows": 0,
+        "is_synthetic": false,
+        "production_company_id": null
+      }
+    ],
+    "error_details": [
+      {
+        "club": "The Comedy Clubhouse",
+        "error": "fetch failed for https://www.ticketsource.com/thecomedyclubhouse: DataError: Mandatory calendar blocked (<title>access denied</title>): https://www.ticketsource.com/thecomedyclubhouse",
+        "execution_time": 3.618292
+      }
+    ],
+    "duplicate_show_details": [],
+    "run_type": "verify"
+  }
+}

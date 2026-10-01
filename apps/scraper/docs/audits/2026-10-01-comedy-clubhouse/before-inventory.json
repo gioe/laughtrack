@@ -1,0 +1,15 @@
+[
+  {
+    "id": 189,
+    "name": "The Comedy Clubhouse",
+    "website": "https://www.thecomedyclubhouse.com",
+    "timezone": "America/Chicago",
+    "source_id": 623,
+    "platform": "custom",
+    "scraper_key": "comedy_clubhouse",
+    "source_url": "https://www.ticketsource.com/thecomedyclubhouse",
+    "metadata": {},
+    "total_shows": 85,
+    "future_shows": 0
+  }
+]
