@@ -1,0 +1,46 @@
+{
+  "unchanged": true,
+  "sources": [
+    {
+      "city": "Milwaukee",
+      "id": 9070,
+      "metadata": {},
+      "name": "The Laughing Tap",
+      "platform": "etix",
+      "scraper_key": "etix",
+      "source_id": 5941,
+      "source_url": "https://www.etix.com/ticket/v/27614/the-laughing-tap",
+      "state": "WI",
+      "timezone": "America/Chicago",
+      "zip_code": "53202"
+    },
+    {
+      "city": "McHenry",
+      "id": 9074,
+      "metadata": {
+        "comedy_filter": true
+      },
+      "name": "The Vixen",
+      "platform": "etix",
+      "scraper_key": "etix",
+      "source_id": 5945,
+      "source_url": "https://www.etix.com/ticket/v/28278/the-vixen",
+      "state": "IL",
+      "timezone": "America/Chicago",
+      "zip_code": "60050"
+    },
+    {
+      "city": "Ann Arbor",
+      "id": 16122,
+      "metadata": {},
+      "name": "Ann Arbor Comedy Showcase",
+      "platform": "etix",
+      "scraper_key": "etix",
+      "source_id": 7682,
+      "source_url": "https://www.etix.com/ticket/v/515/ann-arbor-comedy-showcase",
+      "state": "MI",
+      "timezone": "America/Detroit",
+      "zip_code": "48104"
+    }
+  ]
+}

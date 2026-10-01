@@ -1,0 +1,44 @@
+[
+  {
+    "id": 7745421,
+    "club_id": 9074,
+    "name": "FREE STAND UP COMEDY NIGHT \ud83e\udd23 FEATURING: ZACH ALBERS",
+    "date": "2026-10-08T01:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://vixenmchenry.com/event/comedy-zach-albers",
+    "tickets": [
+      {
+        "purchase_url": "https://vixenmchenry.com/event/comedy-zach-albers/",
+        "price": 0.0
+      }
+    ]
+  },
+  {
+    "id": 7745420,
+    "club_id": 9074,
+    "name": "FREE STAND UP COMEDY NIGHT \ud83e\udd23 FEATURING: ANDY BENINGO",
+    "date": "2026-10-15T01:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://vixenmchenry.com/event/comedy-night-andy-beningo",
+    "tickets": [
+      {
+        "purchase_url": "https://vixenmchenry.com/event/comedy-night-andy-beningo/",
+        "price": 0.0
+      }
+    ]
+  },
+  {
+    "id": 7745422,
+    "club_id": 9074,
+    "name": "FREE STAND UP COMEDY NIGHT FEATURING: WYATT FEEGRADO",
+    "date": "2026-10-22T01:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://vixenmchenry.com/event/free-stand-up-comedy-night-featuring-wyatt-feegrado",
+    "tickets": [
+      {
+        "purchase_url": "https://vixenmchenry.com/event/free-stand-up-comedy-night-featuring-wyatt-feegrado/",
+        "price": 0.0
+      }
+    ]
+  }
+]
