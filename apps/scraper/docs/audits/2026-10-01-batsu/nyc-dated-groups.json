@@ -1,0 +1,2560 @@
+{
+  "source": "https://www.exploretock.com/api/consumer/calendar/full/v2",
+  "captured_date": "2026-10-01",
+  "status": 200,
+  "binary_bytes": 61100,
+  "binary_sha256": "d0ab1e8279e525dd4e7c9896dacaa0878ff322368d2c03acc9ab2b2eac4dab28",
+  "response_extension": 60686,
+  "groups": [
+    {
+      "business_day": "2026-10-01",
+      "date": "2026-10-01",
+      "time": "19:00",
+      "startTimeSecs": 1790895600,
+      "numTickets": 74,
+      "availableTickets": 4,
+      "heldTickets": 37,
+      "soldTickets": 31,
+      "lockedTickets": 2,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-01",
+      "date": "2026-10-01",
+      "time": "19:00",
+      "startTimeSecs": 1790895600,
+      "numTickets": 40,
+      "availableTickets": 6,
+      "heldTickets": 16,
+      "soldTickets": 18,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-02",
+      "date": "2026-10-02",
+      "time": "22:00",
+      "startTimeSecs": 1790992800,
+      "numTickets": 74,
+      "availableTickets": 0,
+      "heldTickets": 35,
+      "soldTickets": 39,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-02",
+      "date": "2026-10-02",
+      "time": "22:00",
+      "startTimeSecs": 1790992800,
+      "numTickets": 40,
+      "availableTickets": 0,
+      "heldTickets": 12,
+      "soldTickets": 28,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-03",
+      "date": "2026-10-03",
+      "time": "19:00",
+      "startTimeSecs": 1791068400,
+      "numTickets": 74,
+      "availableTickets": 2,
+      "heldTickets": 41,
+      "soldTickets": 31,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-03",
+      "date": "2026-10-03",
+      "time": "19:00",
+      "startTimeSecs": 1791068400,
+      "numTickets": 41,
+      "availableTickets": 0,
+      "heldTickets": 6,
+      "soldTickets": 35,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-03",
+      "date": "2026-10-03",
+      "time": "22:00",
+      "startTimeSecs": 1791079200,
+      "numTickets": 74,
+      "availableTickets": 4,
+      "heldTickets": 30,
+      "soldTickets": 40,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-03",
+      "date": "2026-10-03",
+      "time": "22:00",
+      "startTimeSecs": 1791079200,
+      "numTickets": 40,
+      "availableTickets": 8,
+      "heldTickets": 21,
+      "soldTickets": 11,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-06",
+      "date": "2026-10-06",
+      "time": "19:00",
+      "startTimeSecs": 1791327600,
+      "numTickets": 74,
+      "availableTickets": 26,
+      "heldTickets": 38,
+      "soldTickets": 10,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-06",
+      "date": "2026-10-06",
+      "time": "19:00",
+      "startTimeSecs": 1791327600,
+      "numTickets": 40,
+      "availableTickets": 16,
+      "heldTickets": 17,
+      "soldTickets": 7,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-07",
+      "date": "2026-10-07",
+      "time": "19:00",
+      "startTimeSecs": 1791414000,
+      "numTickets": 74,
+      "availableTickets": 16,
+      "heldTickets": 40,
+      "soldTickets": 18,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-07",
+      "date": "2026-10-07",
+      "time": "19:00",
+      "startTimeSecs": 1791414000,
+      "numTickets": 40,
+      "availableTickets": 20,
+      "heldTickets": 16,
+      "soldTickets": 4,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-08",
+      "date": "2026-10-08",
+      "time": "19:00",
+      "startTimeSecs": 1791500400,
+      "numTickets": 74,
+      "availableTickets": 20,
+      "heldTickets": 41,
+      "soldTickets": 13,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-08",
+      "date": "2026-10-08",
+      "time": "19:00",
+      "startTimeSecs": 1791500400,
+      "numTickets": 40,
+      "availableTickets": 22,
+      "heldTickets": 16,
+      "soldTickets": 2,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-09",
+      "date": "2026-10-09",
+      "time": "19:00",
+      "startTimeSecs": 1791586800,
+      "numTickets": 74,
+      "availableTickets": 26,
+      "heldTickets": 33,
+      "soldTickets": 15,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-09",
+      "date": "2026-10-09",
+      "time": "19:00",
+      "startTimeSecs": 1791586800,
+      "numTickets": 40,
+      "availableTickets": 16,
+      "heldTickets": 18,
+      "soldTickets": 6,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-09",
+      "date": "2026-10-09",
+      "time": "22:00",
+      "startTimeSecs": 1791597600,
+      "numTickets": 74,
+      "availableTickets": 17,
+      "heldTickets": 38,
+      "soldTickets": 19,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-09",
+      "date": "2026-10-09",
+      "time": "22:00",
+      "startTimeSecs": 1791597600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-10",
+      "date": "2026-10-10",
+      "time": "19:00",
+      "startTimeSecs": 1791673200,
+      "numTickets": 74,
+      "availableTickets": 0,
+      "heldTickets": 35,
+      "soldTickets": 39,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-10",
+      "date": "2026-10-10",
+      "time": "19:00",
+      "startTimeSecs": 1791673200,
+      "numTickets": 40,
+      "availableTickets": 7,
+      "heldTickets": 18,
+      "soldTickets": 15,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-10",
+      "date": "2026-10-10",
+      "time": "22:00",
+      "startTimeSecs": 1791684000,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-10",
+      "date": "2026-10-10",
+      "time": "22:00",
+      "startTimeSecs": 1791684000,
+      "numTickets": 40,
+      "availableTickets": 8,
+      "heldTickets": 17,
+      "soldTickets": 15,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-14",
+      "date": "2026-10-14",
+      "time": "19:00",
+      "startTimeSecs": 1792018800,
+      "numTickets": 74,
+      "availableTickets": 34,
+      "heldTickets": 38,
+      "soldTickets": 2,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-14",
+      "date": "2026-10-14",
+      "time": "19:00",
+      "startTimeSecs": 1792018800,
+      "numTickets": 40,
+      "availableTickets": 16,
+      "heldTickets": 16,
+      "soldTickets": 8,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-15",
+      "date": "2026-10-15",
+      "time": "19:00",
+      "startTimeSecs": 1792105200,
+      "numTickets": 74,
+      "availableTickets": 34,
+      "heldTickets": 38,
+      "soldTickets": 2,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-15",
+      "date": "2026-10-15",
+      "time": "19:00",
+      "startTimeSecs": 1792105200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-16",
+      "date": "2026-10-16",
+      "time": "19:00",
+      "startTimeSecs": 1792191600,
+      "numTickets": 74,
+      "availableTickets": 22,
+      "heldTickets": 42,
+      "soldTickets": 2,
+      "lockedTickets": 8,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-16",
+      "date": "2026-10-16",
+      "time": "19:00",
+      "startTimeSecs": 1792191600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-16",
+      "date": "2026-10-16",
+      "time": "22:00",
+      "startTimeSecs": 1792202400,
+      "numTickets": 74,
+      "availableTickets": 12,
+      "heldTickets": 43,
+      "soldTickets": 19,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-16",
+      "date": "2026-10-16",
+      "time": "22:00",
+      "startTimeSecs": 1792202400,
+      "numTickets": 40,
+      "availableTickets": 20,
+      "heldTickets": 17,
+      "soldTickets": 3,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-17",
+      "date": "2026-10-17",
+      "time": "19:00",
+      "startTimeSecs": 1792278000,
+      "numTickets": 74,
+      "availableTickets": 12,
+      "heldTickets": 38,
+      "soldTickets": 24,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-17",
+      "date": "2026-10-17",
+      "time": "22:00",
+      "startTimeSecs": 1792288800,
+      "numTickets": 74,
+      "availableTickets": 31,
+      "heldTickets": 38,
+      "soldTickets": 5,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-17",
+      "date": "2026-10-17",
+      "time": "22:00",
+      "startTimeSecs": 1792288800,
+      "numTickets": 40,
+      "availableTickets": 22,
+      "heldTickets": 16,
+      "soldTickets": 2,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-19",
+      "date": "2026-10-19",
+      "time": "19:00",
+      "startTimeSecs": 1792450800,
+      "numTickets": 60,
+      "availableTickets": 59,
+      "heldTickets": 0,
+      "soldTickets": 1,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 355872,
+          "priceCents": 1500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-20",
+      "date": "2026-10-20",
+      "time": "19:00",
+      "startTimeSecs": 1792537200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-20",
+      "date": "2026-10-20",
+      "time": "19:00",
+      "startTimeSecs": 1792537200,
+      "numTickets": 40,
+      "availableTickets": 6,
+      "heldTickets": 16,
+      "soldTickets": 18,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-21",
+      "date": "2026-10-21",
+      "time": "19:00",
+      "startTimeSecs": 1792623600,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-21",
+      "date": "2026-10-21",
+      "time": "19:00",
+      "startTimeSecs": 1792623600,
+      "numTickets": 40,
+      "availableTickets": 20,
+      "heldTickets": 16,
+      "soldTickets": 4,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-22",
+      "date": "2026-10-22",
+      "time": "19:00",
+      "startTimeSecs": 1792710000,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-22",
+      "date": "2026-10-22",
+      "time": "19:00",
+      "startTimeSecs": 1792710000,
+      "numTickets": 40,
+      "availableTickets": 20,
+      "heldTickets": 16,
+      "soldTickets": 4,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-23",
+      "date": "2026-10-23",
+      "time": "19:00",
+      "startTimeSecs": 1792796400,
+      "numTickets": 74,
+      "availableTickets": 16,
+      "heldTickets": 57,
+      "soldTickets": 1,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-23",
+      "date": "2026-10-23",
+      "time": "19:00",
+      "startTimeSecs": 1792796400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-23",
+      "date": "2026-10-23",
+      "time": "22:00",
+      "startTimeSecs": 1792807200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-23",
+      "date": "2026-10-23",
+      "time": "22:00",
+      "startTimeSecs": 1792807200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-24",
+      "date": "2026-10-24",
+      "time": "19:00",
+      "startTimeSecs": 1792882800,
+      "numTickets": 74,
+      "availableTickets": 10,
+      "heldTickets": 40,
+      "soldTickets": 24,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-24",
+      "date": "2026-10-24",
+      "time": "19:00",
+      "startTimeSecs": 1792882800,
+      "numTickets": 40,
+      "availableTickets": 20,
+      "heldTickets": 16,
+      "soldTickets": 4,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-24",
+      "date": "2026-10-24",
+      "time": "22:00",
+      "startTimeSecs": 1792893600,
+      "numTickets": 74,
+      "availableTickets": 11,
+      "heldTickets": 49,
+      "soldTickets": 14,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-24",
+      "date": "2026-10-24",
+      "time": "22:00",
+      "startTimeSecs": 1792893600,
+      "numTickets": 40,
+      "availableTickets": 8,
+      "heldTickets": 19,
+      "soldTickets": 13,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-27",
+      "date": "2026-10-27",
+      "time": "19:00",
+      "startTimeSecs": 1793142000,
+      "numTickets": 74,
+      "availableTickets": 38,
+      "heldTickets": 36,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-27",
+      "date": "2026-10-27",
+      "time": "19:00",
+      "startTimeSecs": 1793142000,
+      "numTickets": 40,
+      "availableTickets": 12,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 12,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-28",
+      "date": "2026-10-28",
+      "time": "19:00",
+      "startTimeSecs": 1793228400,
+      "numTickets": 74,
+      "availableTickets": 34,
+      "heldTickets": 38,
+      "soldTickets": 2,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-28",
+      "date": "2026-10-28",
+      "time": "19:00",
+      "startTimeSecs": 1793228400,
+      "numTickets": 40,
+      "availableTickets": 22,
+      "heldTickets": 16,
+      "soldTickets": 2,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-29",
+      "date": "2026-10-29",
+      "time": "19:00",
+      "startTimeSecs": 1793314800,
+      "numTickets": 74,
+      "availableTickets": 32,
+      "heldTickets": 38,
+      "soldTickets": 4,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-29",
+      "date": "2026-10-29",
+      "time": "19:00",
+      "startTimeSecs": 1793314800,
+      "numTickets": 40,
+      "availableTickets": 14,
+      "heldTickets": 16,
+      "soldTickets": 10,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-30",
+      "date": "2026-10-30",
+      "time": "19:00",
+      "startTimeSecs": 1793401200,
+      "numTickets": 74,
+      "availableTickets": 4,
+      "heldTickets": 30,
+      "soldTickets": 40,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-30",
+      "date": "2026-10-30",
+      "time": "19:00",
+      "startTimeSecs": 1793401200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-30",
+      "date": "2026-10-30",
+      "time": "22:00",
+      "startTimeSecs": 1793412000,
+      "numTickets": 74,
+      "availableTickets": 32,
+      "heldTickets": 38,
+      "soldTickets": 4,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-30",
+      "date": "2026-10-30",
+      "time": "22:00",
+      "startTimeSecs": 1793412000,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-31",
+      "date": "2026-10-31",
+      "time": "19:00",
+      "startTimeSecs": 1793487600,
+      "numTickets": 74,
+      "availableTickets": 11,
+      "heldTickets": 49,
+      "soldTickets": 14,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-31",
+      "date": "2026-10-31",
+      "time": "19:00",
+      "startTimeSecs": 1793487600,
+      "numTickets": 40,
+      "availableTickets": 3,
+      "heldTickets": 16,
+      "soldTickets": 21,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-31",
+      "date": "2026-10-31",
+      "time": "22:00",
+      "startTimeSecs": 1793498400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-10-31",
+      "date": "2026-10-31",
+      "time": "22:00",
+      "startTimeSecs": 1793498400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-03",
+      "date": "2026-11-03",
+      "time": "19:00",
+      "startTimeSecs": 1793750400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-03",
+      "date": "2026-11-03",
+      "time": "19:00",
+      "startTimeSecs": 1793750400,
+      "numTickets": 40,
+      "availableTickets": 21,
+      "heldTickets": 16,
+      "soldTickets": 3,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-04",
+      "date": "2026-11-04",
+      "time": "19:00",
+      "startTimeSecs": 1793836800,
+      "numTickets": 74,
+      "availableTickets": 33,
+      "heldTickets": 38,
+      "soldTickets": 3,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-04",
+      "date": "2026-11-04",
+      "time": "19:00",
+      "startTimeSecs": 1793836800,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-06",
+      "date": "2026-11-06",
+      "time": "19:00",
+      "startTimeSecs": 1794009600,
+      "numTickets": 74,
+      "availableTickets": 28,
+      "heldTickets": 38,
+      "soldTickets": 8,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-06",
+      "date": "2026-11-06",
+      "time": "19:00",
+      "startTimeSecs": 1794009600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-06",
+      "date": "2026-11-06",
+      "time": "22:00",
+      "startTimeSecs": 1794020400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-06",
+      "date": "2026-11-06",
+      "time": "22:00",
+      "startTimeSecs": 1794020400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-07",
+      "date": "2026-11-07",
+      "time": "19:00",
+      "startTimeSecs": 1794096000,
+      "numTickets": 74,
+      "availableTickets": 34,
+      "heldTickets": 38,
+      "soldTickets": 2,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-07",
+      "date": "2026-11-07",
+      "time": "19:00",
+      "startTimeSecs": 1794096000,
+      "numTickets": 40,
+      "availableTickets": 14,
+      "heldTickets": 17,
+      "soldTickets": 9,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-11",
+      "date": "2026-11-11",
+      "time": "19:00",
+      "startTimeSecs": 1794441600,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-11",
+      "date": "2026-11-11",
+      "time": "19:00",
+      "startTimeSecs": 1794441600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-12",
+      "date": "2026-11-12",
+      "time": "19:00",
+      "startTimeSecs": 1794528000,
+      "numTickets": 74,
+      "availableTickets": 32,
+      "heldTickets": 40,
+      "soldTickets": 2,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-12",
+      "date": "2026-11-12",
+      "time": "19:00",
+      "startTimeSecs": 1794528000,
+      "numTickets": 40,
+      "availableTickets": 2,
+      "heldTickets": 15,
+      "soldTickets": 23,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-13",
+      "date": "2026-11-13",
+      "time": "19:00",
+      "startTimeSecs": 1794614400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-13",
+      "date": "2026-11-13",
+      "time": "19:00",
+      "startTimeSecs": 1794614400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-13",
+      "date": "2026-11-13",
+      "time": "22:00",
+      "startTimeSecs": 1794625200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-13",
+      "date": "2026-11-13",
+      "time": "22:00",
+      "startTimeSecs": 1794625200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-14",
+      "date": "2026-11-14",
+      "time": "19:00",
+      "startTimeSecs": 1794700800,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-14",
+      "date": "2026-11-14",
+      "time": "19:00",
+      "startTimeSecs": 1794700800,
+      "numTickets": 40,
+      "availableTickets": 12,
+      "heldTickets": 16,
+      "soldTickets": 12,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-14",
+      "date": "2026-11-14",
+      "time": "22:00",
+      "startTimeSecs": 1794711600,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-14",
+      "date": "2026-11-14",
+      "time": "22:00",
+      "startTimeSecs": 1794711600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-18",
+      "date": "2026-11-18",
+      "time": "19:00",
+      "startTimeSecs": 1795046400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-18",
+      "date": "2026-11-18",
+      "time": "19:00",
+      "startTimeSecs": 1795046400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-19",
+      "date": "2026-11-19",
+      "time": "19:00",
+      "startTimeSecs": 1795132800,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-19",
+      "date": "2026-11-19",
+      "time": "19:00",
+      "startTimeSecs": 1795132800,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-20",
+      "date": "2026-11-20",
+      "time": "19:00",
+      "startTimeSecs": 1795219200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-20",
+      "date": "2026-11-20",
+      "time": "19:00",
+      "startTimeSecs": 1795219200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-20",
+      "date": "2026-11-20",
+      "time": "22:00",
+      "startTimeSecs": 1795230000,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-20",
+      "date": "2026-11-20",
+      "time": "22:00",
+      "startTimeSecs": 1795230000,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-21",
+      "date": "2026-11-21",
+      "time": "19:00",
+      "startTimeSecs": 1795305600,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-21",
+      "date": "2026-11-21",
+      "time": "19:00",
+      "startTimeSecs": 1795305600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-21",
+      "date": "2026-11-21",
+      "time": "22:00",
+      "startTimeSecs": 1795316400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-21",
+      "date": "2026-11-21",
+      "time": "22:00",
+      "startTimeSecs": 1795316400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-23",
+      "date": "2026-11-23",
+      "time": "19:00",
+      "startTimeSecs": 1795478400,
+      "numTickets": 60,
+      "availableTickets": 60,
+      "heldTickets": 0,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 355872,
+          "priceCents": 1500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-24",
+      "date": "2026-11-24",
+      "time": "19:00",
+      "startTimeSecs": 1795564800,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-24",
+      "date": "2026-11-24",
+      "time": "19:00",
+      "startTimeSecs": 1795564800,
+      "numTickets": 40,
+      "availableTickets": 16,
+      "heldTickets": 19,
+      "soldTickets": 5,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-25",
+      "date": "2026-11-25",
+      "time": "19:00",
+      "startTimeSecs": 1795651200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-25",
+      "date": "2026-11-25",
+      "time": "19:00",
+      "startTimeSecs": 1795651200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-27",
+      "date": "2026-11-27",
+      "time": "19:00",
+      "startTimeSecs": 1795824000,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-27",
+      "date": "2026-11-27",
+      "time": "19:00",
+      "startTimeSecs": 1795824000,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-27",
+      "date": "2026-11-27",
+      "time": "22:00",
+      "startTimeSecs": 1795834800,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-27",
+      "date": "2026-11-27",
+      "time": "22:00",
+      "startTimeSecs": 1795834800,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-28",
+      "date": "2026-11-28",
+      "time": "19:00",
+      "startTimeSecs": 1795910400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-28",
+      "date": "2026-11-28",
+      "time": "19:00",
+      "startTimeSecs": 1795910400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-28",
+      "date": "2026-11-28",
+      "time": "22:00",
+      "startTimeSecs": 1795921200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-11-28",
+      "date": "2026-11-28",
+      "time": "22:00",
+      "startTimeSecs": 1795921200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-01",
+      "date": "2026-12-01",
+      "time": "19:00",
+      "startTimeSecs": 1796169600,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-01",
+      "date": "2026-12-01",
+      "time": "19:00",
+      "startTimeSecs": 1796169600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-02",
+      "date": "2026-12-02",
+      "time": "19:00",
+      "startTimeSecs": 1796256000,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-02",
+      "date": "2026-12-02",
+      "time": "19:00",
+      "startTimeSecs": 1796256000,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-03",
+      "date": "2026-12-03",
+      "time": "19:00",
+      "startTimeSecs": 1796342400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-03",
+      "date": "2026-12-03",
+      "time": "19:00",
+      "startTimeSecs": 1796342400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-04",
+      "date": "2026-12-04",
+      "time": "19:00",
+      "startTimeSecs": 1796428800,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-04",
+      "date": "2026-12-04",
+      "time": "19:00",
+      "startTimeSecs": 1796428800,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-04",
+      "date": "2026-12-04",
+      "time": "22:00",
+      "startTimeSecs": 1796439600,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-04",
+      "date": "2026-12-04",
+      "time": "22:00",
+      "startTimeSecs": 1796439600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-05",
+      "date": "2026-12-05",
+      "time": "19:00",
+      "startTimeSecs": 1796515200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-05",
+      "date": "2026-12-05",
+      "time": "19:00",
+      "startTimeSecs": 1796515200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-05",
+      "date": "2026-12-05",
+      "time": "22:00",
+      "startTimeSecs": 1796526000,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-05",
+      "date": "2026-12-05",
+      "time": "22:00",
+      "startTimeSecs": 1796526000,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-08",
+      "date": "2026-12-08",
+      "time": "19:00",
+      "startTimeSecs": 1796774400,
+      "numTickets": 74,
+      "availableTickets": 38,
+      "heldTickets": 36,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-08",
+      "date": "2026-12-08",
+      "time": "19:00",
+      "startTimeSecs": 1796774400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-10",
+      "date": "2026-12-10",
+      "time": "19:00",
+      "startTimeSecs": 1796947200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-10",
+      "date": "2026-12-10",
+      "time": "19:00",
+      "startTimeSecs": 1796947200,
+      "numTickets": 40,
+      "availableTickets": 4,
+      "heldTickets": 16,
+      "soldTickets": 20,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-11",
+      "date": "2026-12-11",
+      "time": "19:00",
+      "startTimeSecs": 1797033600,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-11",
+      "date": "2026-12-11",
+      "time": "19:00",
+      "startTimeSecs": 1797033600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-11",
+      "date": "2026-12-11",
+      "time": "22:00",
+      "startTimeSecs": 1797044400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-11",
+      "date": "2026-12-11",
+      "time": "22:00",
+      "startTimeSecs": 1797044400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-12",
+      "date": "2026-12-12",
+      "time": "19:00",
+      "startTimeSecs": 1797120000,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-12",
+      "date": "2026-12-12",
+      "time": "22:00",
+      "startTimeSecs": 1797130800,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-12",
+      "date": "2026-12-12",
+      "time": "22:00",
+      "startTimeSecs": 1797130800,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-15",
+      "date": "2026-12-15",
+      "time": "19:00",
+      "startTimeSecs": 1797379200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-15",
+      "date": "2026-12-15",
+      "time": "19:00",
+      "startTimeSecs": 1797379200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-17",
+      "date": "2026-12-17",
+      "time": "19:00",
+      "startTimeSecs": 1797552000,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-17",
+      "date": "2026-12-17",
+      "time": "19:00",
+      "startTimeSecs": 1797552000,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-18",
+      "date": "2026-12-18",
+      "time": "19:00",
+      "startTimeSecs": 1797638400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-18",
+      "date": "2026-12-18",
+      "time": "19:00",
+      "startTimeSecs": 1797638400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-18",
+      "date": "2026-12-18",
+      "time": "22:00",
+      "startTimeSecs": 1797649200,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-18",
+      "date": "2026-12-18",
+      "time": "22:00",
+      "startTimeSecs": 1797649200,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-19",
+      "date": "2026-12-19",
+      "time": "19:00",
+      "startTimeSecs": 1797724800,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-19",
+      "date": "2026-12-19",
+      "time": "19:00",
+      "startTimeSecs": 1797724800,
+      "numTickets": 40,
+      "availableTickets": 16,
+      "heldTickets": 13,
+      "soldTickets": 11,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-19",
+      "date": "2026-12-19",
+      "time": "22:00",
+      "startTimeSecs": 1797735600,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 5500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-19",
+      "date": "2026-12-19",
+      "time": "22:00",
+      "startTimeSecs": 1797735600,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 8500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-22",
+      "date": "2026-12-22",
+      "time": "19:00",
+      "startTimeSecs": 1797984000,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-22",
+      "date": "2026-12-22",
+      "time": "19:00",
+      "startTimeSecs": 1797984000,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-23",
+      "date": "2026-12-23",
+      "time": "19:00",
+      "startTimeSecs": 1798070400,
+      "numTickets": 74,
+      "availableTickets": 36,
+      "heldTickets": 38,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322061,
+          "priceCents": 4500
+        }
+      ]
+    },
+    {
+      "business_day": "2026-12-23",
+      "date": "2026-12-23",
+      "time": "19:00",
+      "startTimeSecs": 1798070400,
+      "numTickets": 40,
+      "availableTickets": 24,
+      "heldTickets": 16,
+      "soldTickets": 0,
+      "lockedTickets": 0,
+      "prices": [
+        {
+          "ticketTypeId": 322674,
+          "priceCents": 7500
+        }
+      ]
+    }
+  ]
+}

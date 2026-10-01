@@ -1,0 +1,2408 @@
+[
+  {
+    "club_id": 11073,
+    "count": 57,
+    "fetches_ok": 1,
+    "fetches_failed": 2,
+    "errors": [
+      "Tock dated reservation snapshot is partial; missing groups are not cancellations; blocking stale reconciliation",
+      "Unverified Tock recurring/unsupported availability: PRIX_FIXE"
+    ],
+    "shows": [
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-02T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-02&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": true
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-02T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-02&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-03T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-03&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": true
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": true
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-03T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-03&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-08T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-08&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-09T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-09&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-09T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-09&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-10T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-10&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": true
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-10T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-10&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-15T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-15&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-16T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-16&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-16T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-16&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-17T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-17&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-17T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-17&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-22T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-22&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-23T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-23&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": true
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-23T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-23&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": true
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-24T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-24&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-24T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-24&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": true
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-29T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-29&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-30T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-30&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-30T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-30&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-31T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-31&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-10-31T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-10-31&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-05T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-05&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-06T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-06&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-06T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-06&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-07T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-07&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-07T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-07&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-12T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-12&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-13T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-13&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-13T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-13&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-14T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-14&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-14T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-14&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-19T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-19&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-20T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-20&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-20T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-20&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-21T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-21&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-21T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-21&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-27T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-27&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-27T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-27&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-28T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-28&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-11-28T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-11-28&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-04T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-04&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-04T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-04&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-05T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-05&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-05T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-05&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-10T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-10&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-11T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-11&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-11T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-11&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-12T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-12&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-12T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-12&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-17T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-17&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-18T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-18&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-18T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-18&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-19T19:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-19&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! Chicago",
+        "date": "2026-12-19T22:00:00-06:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsu-chicago/search?date=2026-12-19&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351809/batsu-chicago-vip-reservation",
+            "price": 70.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsu-chicago/experience/351810/batsu-chicago-standard-reservation",
+            "price": 40.0,
+            "sold_out": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "club_id": 16048,
+    "count": 77,
+    "fetches_ok": 1,
+    "fetches_failed": 2,
+    "errors": [
+      "Tock dated reservation snapshot is partial; missing groups are not cancellations; blocking stale reconciliation",
+      "Unverified Tock recurring/unsupported availability: PRIX_FIXE"
+    ],
+    "shows": [
+      {
+        "name": "Laughter Party (aka \"The NOT BATSU! Stand Up Show\")",
+        "date": "2026-10-19T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+            "price": 15.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "Laughter Party (aka \"The NOT BATSU! Stand Up Show\")",
+        "date": "2026-11-23T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/event/355872/laughter-party-aka-the-not-batsu-stand-up-show",
+            "price": 15.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-01T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-01&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-02T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-02&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": true
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": true
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-03T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-03&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": true
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-03T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-03&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-06T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-06&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-07T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-07&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-08T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-08&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-09T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-09&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-09T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-09&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-10T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-10&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": true
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-10T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-10&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-14T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-14&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-15T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-15&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-16T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-16&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-16T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-16&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-17T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-17&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-17T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-17&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-20T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-20&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-21T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-21&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-22T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-22&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-23T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-23&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-23T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-23&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-24T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-24&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-24T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-24&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-27T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-27&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-28T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-28&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-29T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-29&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-30T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-30&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-30T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-30&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-31T19:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-31&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-10-31T22:00:00-04:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-10-31&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-03T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-03&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-04T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-04&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-06T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-06&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-06T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-06&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-07T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-07&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-11T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-11&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-12T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-12&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-13T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-13&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-13T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-13&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-14T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-14&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-14T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-14&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-18T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-18&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-19T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-19&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-20T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-20&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-20T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-20&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-21T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-21&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-21T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-21&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-24T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-24&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-25T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-25&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-27T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-27&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-27T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-27&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-28T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-28&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-11-28T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-11-28&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-01T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-01&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-02T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-02&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-03T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-03&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-04T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-04&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-04T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-04&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-05T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-05&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-05T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-05&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-08T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-08&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-10T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-10&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-11T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-11&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-11T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-11&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-12T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-12&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-12T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-12&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-15T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-15&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-17T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-17&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-18T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-18&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-18T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-18&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-19T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-19&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-19T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-19&size=2&time=22%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 55.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 85.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-22T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-22&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      },
+      {
+        "name": "BATSU! NYC",
+        "date": "2026-12-23T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.exploretock.com/batsunyc/search?date=2026-12-23&size=2&time=19%3A00",
+        "tickets": [
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322061/batsu-nyc-standard-reservation",
+            "price": 45.0,
+            "sold_out": false
+          },
+          {
+            "url": "https://www.exploretock.com/batsunyc/experience/322674/batsu-nyc-vip-reservation",
+            "price": 75.0,
+            "sold_out": false
+          }
+        ]
+      }
+    ]
+  }
+]
