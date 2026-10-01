@@ -39,6 +39,8 @@ from laughtrack.scrapers.utils.comedy_filter import (
 
 from .data import EtixPageData
 from .extractor import EtixExtractor
+from .public_ticket_tailor import fetch_highlights as fetch_laughing_tap_highlights
+from .public_vixen import fetch_highlights as fetch_vixen_highlights
 from .rockhouse import extract_rockhouse_events_with_conflicts
 from .rockhouse_identity import resolve_rockhouse_conflicts
 from .tribe import extract_tribe_events
@@ -125,7 +127,12 @@ class EtixScraper(BaseScraper):
         if self._uses_funny_bone_fallback(page1_url):
             return [page1_url]
 
-        html = await self._fetch_etix_html(page1_url)
+        try:
+            html = await self._fetch_etix_html(page1_url)
+        except Exception:
+            if self._partial_public_fallback() is not None:
+                return [page1_url]
+            raise
         if not html:
             return [page1_url]
 
@@ -269,7 +276,14 @@ class EtixScraper(BaseScraper):
                 )
                 return None
 
-            html = await self._fetch_etix_html(url)
+            try:
+                html = await self._fetch_etix_html(url)
+            except Exception:
+                if self._partial_public_fallback() is None:
+                    raise
+                html = None
+            if self._partial_public_fallback() is not None and (not html or _bot_block_reason(html)):
+                return await self._get_partial_public_data(html)
             if not html:
                 Logger.warn(
                     f"{self._log_prefix}: empty response for {url}",
@@ -283,6 +297,8 @@ class EtixScraper(BaseScraper):
             self._require_source_html(html, url)
             events = EtixExtractor.extract_events(html)
             if not events:
+                if self._partial_public_fallback() is not None:
+                    return await self._get_partial_public_data(html)
                 if self._uses_zanies_nashville_fallback(url):
                     fallback_data = await self._get_zanies_nashville_fallback_data()
                     if fallback_data and fallback_data.event_list:
@@ -307,6 +323,25 @@ class EtixScraper(BaseScraper):
             if isinstance(e, DataError) and e.severity == ErrorSeverity.HIGH:
                 raise
             raise self._source_failure(f"Etix mandatory source failed: {url}: {type(e).__name__}: {e}", e) from e
+
+    async def _get_partial_public_data(self, html):
+        message = f"Etix {self.club.name} primary unavailable; official highlights are incomplete; blocking stale reconciliation"
+        Logger.warn(message, self.logger_context)
+        diagnostics = current_diagnostics()
+        if diagnostics is not None:
+            diagnostics.record_fetch_failed()
+            diagnostics.record_scrape_error(message)
+            signature = _bot_block_reason(html or "")
+            if signature:
+                diagnostics.record_bot_block(signature, source="response_body", stage="direct_fetch")
+        events = await self._partial_public_fallback()(self.fetch_html_bare, self.club)
+        if events:
+            return EtixPageData(event_list=events)
+        raise self._source_failure(message)
+
+    def _partial_public_fallback(self):
+        return {("27614", 9070): fetch_laughing_tap_highlights,
+                ("28278", 9074): fetch_vixen_highlights}.get((self._venue_id, self.club.id))
 
     def _uses_laugh_patriot_place_fallback(self, url: str) -> bool:
         return (

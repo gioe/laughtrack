@@ -1,0 +1,118 @@
+[
+  {
+    "club_id": 9070,
+    "shows": [
+      {
+        "name": "Late Night Laughs at MKE Comedy Fest!",
+        "date": "2026-10-09T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.tickettailor.com/events/milwaukeecomedy/2351156",
+        "tickets": [
+          {
+            "url": "https://www.tickettailor.com/events/milwaukeecomedy/2351156",
+            "price": null
+          }
+        ]
+      },
+      {
+        "name": "Saturday Night Laughs at MKE Comedy Fest!",
+        "date": "2026-10-10T19:30:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.tickettailor.com/events/milwaukeecomedy/2351158",
+        "tickets": [
+          {
+            "url": "https://www.tickettailor.com/events/milwaukeecomedy/2351158",
+            "price": null
+          }
+        ]
+      },
+      {
+        "name": "Night Owl Comedy at MKE Comedy Fest!",
+        "date": "2026-10-10T22:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.tickettailor.com/events/milwaukeecomedy/2351161",
+        "tickets": [
+          {
+            "url": "https://www.tickettailor.com/events/milwaukeecomedy/2351161",
+            "price": null
+          }
+        ]
+      },
+      {
+        "name": "Laugh A Lot Thursday at MKE Comedy Fest!",
+        "date": "2026-10-08T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.tickettailor.com/events/milwaukeecomedy/2388761",
+        "tickets": [
+          {
+            "url": "https://www.tickettailor.com/events/milwaukeecomedy/2388761",
+            "price": null
+          }
+        ]
+      },
+      {
+        "name": "Primetime Laughs at MKE Comedy Fest!",
+        "date": "2026-10-09T19:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://www.tickettailor.com/events/milwaukeecomedy/2388785",
+        "tickets": [
+          {
+            "url": "https://www.tickettailor.com/events/milwaukeecomedy/2388785",
+            "price": null
+          }
+        ]
+      }
+    ],
+    "count": 5,
+    "fetches_failed": 1,
+    "errors": [
+      "Etix The Laughing Tap primary unavailable; official highlights are incomplete; blocking stale reconciliation"
+    ]
+  },
+  {
+    "club_id": 9074,
+    "shows": [
+      {
+        "name": "FREE STAND UP COMEDY NIGHT \ud83e\udd23 FEATURING: ANDY BENINGO",
+        "date": "2026-10-14T20:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://vixenmchenry.com/event/comedy-night-andy-beningo",
+        "tickets": [
+          {
+            "url": "https://vixenmchenry.com/event/comedy-night-andy-beningo/",
+            "price": 0
+          }
+        ]
+      },
+      {
+        "name": "FREE STAND UP COMEDY NIGHT \ud83e\udd23 FEATURING: ZACH ALBERS",
+        "date": "2026-10-07T20:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://vixenmchenry.com/event/comedy-zach-albers",
+        "tickets": [
+          {
+            "url": "https://vixenmchenry.com/event/comedy-zach-albers/",
+            "price": 0
+          }
+        ]
+      },
+      {
+        "name": "FREE STAND UP COMEDY NIGHT FEATURING: WYATT FEEGRADO",
+        "date": "2026-10-21T20:00:00-05:00",
+        "room": "",
+        "show_page_url": "https://vixenmchenry.com/event/free-stand-up-comedy-night-featuring-wyatt-feegrado",
+        "tickets": [
+          {
+            "url": "https://vixenmchenry.com/event/free-stand-up-comedy-night-featuring-wyatt-feegrado/",
+            "price": 0
+          }
+        ]
+      }
+    ],
+    "count": 3,
+    "fetches_failed": 1,
+    "errors": [
+      "Etix The Vixen primary unavailable; official highlights are incomplete; blocking stale reconciliation"
+    ]
+  }
+]

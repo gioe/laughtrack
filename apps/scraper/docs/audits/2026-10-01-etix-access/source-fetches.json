@@ -1,0 +1,110 @@
+[
+  {
+    "url": "https://laughingtap.com/tickets/",
+    "bytes": 152790,
+    "sha256": "c009970cf9bf420f90cb9466b0c528478a7b774d501bd8d9f1736545ddc89969",
+    "captured_at": "2026-10-01T11:56:27.486668+00:00"
+  },
+  {
+    "url": "https://vixenmchenry.com/event/free-stand-up-comedy-night-featuring-wyatt-feegrado/",
+    "bytes": 269117,
+    "sha256": "fe038dc486c3c04adbbc557746ca454091560ec0cfc95701cf776bc848d2b593",
+    "captured_at": "2026-10-01T12:06:24.220821+00:00"
+  },
+  {
+    "url": "https://www.aacomedy.com/",
+    "bytes": 277157,
+    "sha256": "e8e659efbddd9716894b3b7430cbffa697a569dc6a676a0b5c6ad199bfe3d5a3",
+    "captured_at": "2026-10-01T11:56:27.653399+00:00"
+  },
+  {
+    "url": "https://vixenmchenry.com/event/comedy-zach-albers/",
+    "bytes": 265253,
+    "sha256": "0f3d98d3f3bb5649c401946498f33d8da4d03943677d0b1bcd125a70bf021de4",
+    "captured_at": "2026-10-01T12:06:19.486173+00:00"
+  },
+  {
+    "url": "https://www.tickettailor.com/events/milwaukeecomedy/2388761",
+    "bytes": 55280,
+    "sha256": "2061aa226ab1132aa2133c92b6b6561a336a089257ee3711f4b44e80220df004",
+    "captured_at": "2026-10-01T12:01:15.176285+00:00"
+  },
+  {
+    "url": "https://vixenmchenry.com/",
+    "bytes": 303003,
+    "sha256": "30c1b63a6d668c2914b624d4a2914728389e55083c703a0f9ab54e27adfe57f0",
+    "captured_at": "2026-10-01T12:01:17.087380+00:00"
+  },
+  {
+    "url": "https://vixenmchenry.com/events/list/",
+    "bytes": 300537,
+    "sha256": "7b00aaac3ee14e636694b052bb2169977544af8fef9c2d65ab0fafa3c082bebd",
+    "captured_at": "2026-10-01T12:01:19.227884+00:00"
+  },
+  {
+    "url": "https://vixenmchenry.com/all-events/",
+    "bytes": 158680,
+    "sha256": "fc52170a7326599e26eb8f30e67f716eadfcc0dd561815f4efc4278ab3adc73f",
+    "captured_at": "2026-10-01T11:56:30.303785+00:00"
+  },
+  {
+    "url": "https://www.tickettailor.com/events/milwaukeecomedy/2388786",
+    "bytes": 55350,
+    "sha256": "4e4576123314dd004feeba7196681f8123afe6d5f3496743d13eb9f57e314c63",
+    "captured_at": "2026-10-01T12:07:14.674581+00:00"
+  },
+  {
+    "url": "https://www.tickettailor.com/events/milwaukeecomedy/2388794",
+    "bytes": 55334,
+    "sha256": "1a628e09c08743a51b8397a2b55a701c3c5f7ced38527903accf7ad9cd08662e",
+    "captured_at": "2026-10-01T12:07:15.792454+00:00"
+  },
+  {
+    "url": "https://www.tickettailor.com/events/milwaukeecomedy/2388785",
+    "bytes": 54914,
+    "sha256": "158fa08126ea4f9f088107bbf83d669b9bc08ed759361500c6e44e536b68cbb9",
+    "captured_at": "2026-10-01T12:07:14.115820+00:00"
+  },
+  {
+    "url": "https://www.tickettailor.com/events/milwaukeecomedy/2351158",
+    "bytes": 55322,
+    "sha256": "61c4698feb8eae279b9f39446d005c542b892b0f8afc7ebf27555214db1b47c3",
+    "captured_at": "2026-10-01T12:07:14.957030+00:00"
+  },
+  {
+    "url": "https://vixenmchenry.com/event/pat-tomasulo-comedian/",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "captured_at": "2026-10-01T12:06:25.476218+00:00"
+  },
+  {
+    "url": "https://laughingtap.com/",
+    "bytes": 205598,
+    "sha256": "3943703bc18c877c14f74dfb294e47dbebd7e6247555498092bea926e0e3ac71",
+    "captured_at": "2026-10-01T11:56:26.314483+00:00"
+  },
+  {
+    "url": "https://www.tickettailor.com/events/milwaukeecomedy/2351156",
+    "bytes": 55362,
+    "sha256": "985889cb773c875e9026ea87c680f54dcbeef00ae924d168cecbbf6f9f6eb40f",
+    "captured_at": "2026-10-01T12:07:14.407647+00:00"
+  },
+  {
+    "url": "https://vixenmchenry.com/event/comedy-night-andy-beningo/",
+    "bytes": 264910,
+    "sha256": "9fce26c624c1a264703b46ec02ade402503a7b5cfe3967b9b416d35db916c1d7",
+    "captured_at": "2026-10-01T12:06:21.916147+00:00"
+  },
+  {
+    "url": "https://www.tickettailor.com/events/milwaukeecomedy/2351161",
+    "bytes": 55417,
+    "sha256": "bbc047f1c5ee3da3400d462369b37240c9fb18d912894c886209faa59941277d",
+    "captured_at": "2026-10-01T12:07:15.213161+00:00"
+  },
+  {
+    "url": "https://vixenmchenry.com/event/pat-tomasulo/",
+    "bytes": 266903,
+    "sha256": "c77fff91fad72c285e4d4063183645fd848a6db193493adbb55e597bb6733dff",
+    "captured_at": "2026-10-01T12:08:09.004092+00:00"
+  }
+]

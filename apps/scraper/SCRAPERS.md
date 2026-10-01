@@ -629,6 +629,27 @@ advertising free general admission.
 See [the eight-venue recovery audit](docs/audits/2026-09-25-etix/README.md)
 for verified URLs, source defects, and remaining vendor-access blockers.
 
+**Partial official fallbacks (TASK-4083):** Laughing Tap (club 9070 / Etix
+venue 27614) and Vixen (club 9074 / venue 28278) keep their Etix source rows.
+When that primary fetch fails or is blocked, bounded homepage discovery can
+recover individually verified highlights. These results always retain failed-
+fetch diagnostics and block stale reconciliation; a homepage is not treated as
+a complete calendar. Healthy Etix responses keep the normal extraction path.
+
+- Laughing Tap: the official homepage links to Ticket Tailor details under
+  `/events/milwaukeecomedy/<id>`. Visible and structured title, explicit year,
+  time, venue and ticket identity must agree, including the description's
+  explicit show-start time. Conflicting matinee descriptions are rejected.
+- Vixen: the official homepage links to `/event/<slug>/` details. The main
+  event body must state a show start separately from doors; the full visible
+  date and matching event JSON-LD establish the date. Its calendar start field
+  can mean doors opening and must never become the showtime by default.
+
+Reference implementations: `api/etix/public_ticket_tailor.py` and
+`api/etix/public_vixen.py` under `src/laughtrack/scrapers/implementations/`.
+See [the access audit](docs/audits/2026-10-01-etix-access/REPORT.md) for accepted
+performances, rejected ambiguities and the Ann Arbor/vendor-access blocker.
+
 ---
 
 ### SeatEngine — Identification Checklist

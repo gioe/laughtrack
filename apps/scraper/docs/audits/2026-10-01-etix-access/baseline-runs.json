@@ -1,0 +1,206 @@
+[
+  {
+    "run_id": 36854217008,
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36854217008",
+    "metrics": {
+      "session": {
+        "duration_seconds": 5.531399,
+        "exported_at": "2026-10-01T11:16:31.154749"
+      },
+      "shows": {
+        "scraped": 0,
+        "saved": 0,
+        "inserted": 0,
+        "updated": 0,
+        "failed_save": 0,
+        "skipped_dedup": 0,
+        "validation_failed": 0,
+        "db_errors": 0
+      },
+      "clubs": {
+        "processed": 1,
+        "successful": 0,
+        "failed": 1
+      },
+      "errors": {
+        "total": 1
+      },
+      "success_rate": 0.0,
+      "execution_times": [
+        5.531399
+      ],
+      "per_club_stats": [
+        {
+          "club": "The Laughing Tap",
+          "num_shows": 0,
+          "execution_time": 5.531399,
+          "success": false,
+          "error": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=27614&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=27614&orderBy=1&pageNumber=1",
+          "club_id": 9070,
+          "errors": 2,
+          "success_rate": 0.0,
+          "http_status": 403,
+          "bot_block_detected": true,
+          "bot_block_signature": "playwright_datadome",
+          "bot_block_provider": "datadome",
+          "bot_block_type": "interstitial",
+          "bot_block_source": "playwright_rendered_html",
+          "bot_block_stage": "playwright_fallback",
+          "playwright_fallback_used": true,
+          "items_before_filter": 0,
+          "targets_collected": 1,
+          "fetches_ok": 0,
+          "fetches_failed": 1,
+          "ticketless_shows": 0,
+          "is_synthetic": false,
+          "production_company_id": null
+        }
+      ],
+      "error_details": [
+        {
+          "club": "The Laughing Tap",
+          "error": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=27614&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=27614&orderBy=1&pageNumber=1",
+          "execution_time": 5.531399
+        }
+      ],
+      "duplicate_show_details": [],
+      "run_type": "verify"
+    }
+  },
+  {
+    "run_id": 36854219802,
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36854219802",
+    "metrics": {
+      "session": {
+        "duration_seconds": 4.899456,
+        "exported_at": "2026-10-01T11:16:15.543310"
+      },
+      "shows": {
+        "scraped": 0,
+        "saved": 0,
+        "inserted": 0,
+        "updated": 0,
+        "failed_save": 0,
+        "skipped_dedup": 0,
+        "validation_failed": 0,
+        "db_errors": 0
+      },
+      "clubs": {
+        "processed": 1,
+        "successful": 0,
+        "failed": 1
+      },
+      "errors": {
+        "total": 1
+      },
+      "success_rate": 0.0,
+      "execution_times": [
+        4.899456
+      ],
+      "per_club_stats": [
+        {
+          "club": "Ann Arbor Comedy Showcase",
+          "num_shows": 0,
+          "execution_time": 4.899456,
+          "success": false,
+          "error": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1",
+          "club_id": 16122,
+          "errors": 2,
+          "success_rate": 0.0,
+          "http_status": 403,
+          "bot_block_detected": true,
+          "bot_block_signature": "playwright_datadome",
+          "bot_block_provider": "datadome",
+          "bot_block_type": "interstitial",
+          "bot_block_source": "playwright_rendered_html",
+          "bot_block_stage": "playwright_fallback",
+          "playwright_fallback_used": true,
+          "items_before_filter": 0,
+          "targets_collected": 1,
+          "fetches_ok": 0,
+          "fetches_failed": 1,
+          "ticketless_shows": 0,
+          "is_synthetic": false,
+          "production_company_id": null
+        }
+      ],
+      "error_details": [
+        {
+          "club": "Ann Arbor Comedy Showcase",
+          "error": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1",
+          "execution_time": 4.899456
+        }
+      ],
+      "duplicate_show_details": [],
+      "run_type": "verify"
+    }
+  },
+  {
+    "run_id": 36854222836,
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36854222836",
+    "metrics": {
+      "session": {
+        "duration_seconds": 4.824613,
+        "exported_at": "2026-10-01T11:16:27.262692"
+      },
+      "shows": {
+        "scraped": 0,
+        "saved": 0,
+        "inserted": 0,
+        "updated": 0,
+        "failed_save": 0,
+        "skipped_dedup": 0,
+        "validation_failed": 0,
+        "db_errors": 0
+      },
+      "clubs": {
+        "processed": 1,
+        "successful": 0,
+        "failed": 1
+      },
+      "errors": {
+        "total": 1
+      },
+      "success_rate": 0.0,
+      "execution_times": [
+        4.824613
+      ],
+      "per_club_stats": [
+        {
+          "club": "The Vixen",
+          "num_shows": 0,
+          "execution_time": 4.824613,
+          "success": false,
+          "error": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=28278&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=28278&orderBy=1&pageNumber=1",
+          "club_id": 9074,
+          "errors": 2,
+          "success_rate": 0.0,
+          "http_status": 403,
+          "bot_block_detected": true,
+          "bot_block_signature": "playwright_datadome",
+          "bot_block_provider": "datadome",
+          "bot_block_type": "interstitial",
+          "bot_block_source": "playwright_rendered_html",
+          "bot_block_stage": "playwright_fallback",
+          "playwright_fallback_used": true,
+          "items_before_filter": 0,
+          "targets_collected": 1,
+          "fetches_ok": 0,
+          "fetches_failed": 1,
+          "ticketless_shows": 0,
+          "is_synthetic": false,
+          "production_company_id": null
+        }
+      ],
+      "error_details": [
+        {
+          "club": "The Vixen",
+          "error": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=28278&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=28278&orderBy=1&pageNumber=1",
+          "execution_time": 4.824613
+        }
+      ],
+      "duplicate_show_details": [],
+      "run_type": "verify"
+    }
+  }
+]
