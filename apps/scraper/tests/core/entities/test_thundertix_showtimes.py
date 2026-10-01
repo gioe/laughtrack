@@ -93,3 +93,45 @@ def test_absent_display_preserves_existing_offset_instant():
 def test_display_requires_known_club_timezone():
     with pytest.raises(ValueError):
         event("2026-09-25 19:00:00 -0500", "Fri - Sep 25, 2026 - 7:00pm EDT").to_show(club(None), enhanced=False)
+
+
+@pytest.mark.parametrize("enabled", [True, False, "true", None])
+def test_native_identity_requires_reviewed_source_activation(enabled):
+    from laughtrack.core.entities.club.model import ScrapingSource
+
+    venue = club("America/New_York")
+    venue.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=venue.id,
+        platform="thundertix",
+        scraper_key="thundertix",
+        metadata={"source_performance_identity": enabled},
+    )
+    show = event("2026-09-25 19:00:00 -0400", None).to_show(venue, enhanced=False)
+    expected = "thundertix:visanientertainmentinc:263214:3249140" if enabled is True else None
+    assert show.source_performance_id == expected
+
+
+@pytest.mark.parametrize("value", [None, 0, -1, True, 1.5, "1.5", ""])
+def test_missing_or_invalid_native_id_fails_closed(value):
+    with pytest.raises(ValueError):
+        ThunderTixPerformance.from_api_response(
+            {"event_id": 1, "performance_id": value, "truncated_url": "/events/1"},
+            "https://venue.thundertix.com",
+        )
+
+
+@pytest.mark.parametrize(
+    "ticket_url",
+    [
+        "https://other.thundertix.com/orders/new?event_id=263214&performance_id=3249140",
+        "https://visanientertainmentinc.thundertix.com/orders/new?event_id=99&performance_id=3249140",
+        "https://visanientertainmentinc.thundertix.com/orders/new?event_id=263214&performance_id=99",
+        "https://visanientertainmentinc.thundertix.com/orders/new?performance_id=3249140&performance_id=3249140",
+    ],
+)
+def test_ticket_identity_cannot_disagree_with_native_performance(ticket_url):
+    performance = event("2026-09-25 19:00:00 -0400", None)
+    performance.ticket_url = ticket_url
+    with pytest.raises(ValueError):
+        performance.to_show(club("America/New_York"), enhanced=False)

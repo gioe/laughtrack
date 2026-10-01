@@ -553,7 +553,7 @@ async def test_price_concurrency_timeout_includes_limiter_and_drains(monkeypatch
     active = peak = cancelled = 0
 
     async def calendar(url):
-        return [_performance_dict(event_id=i) for i in range(10)]
+        return [_performance_dict(event_id=i) for i in range(1, 11)]
 
     async def limiter(url):
         nonlocal active, peak, cancelled
@@ -652,7 +652,7 @@ async def test_queued_prices_have_request_budget_after_acquiring_slot():
     scraper._PRICE_BUDGET_SECONDS = 0.5
 
     async def calendar(url):
-        return [_performance_dict(event_id=i) for i in range(5)]
+        return [_performance_dict(event_id=i) for i in range(1, 6)]
 
     async def detail(url):
         await asyncio.sleep(0.02)

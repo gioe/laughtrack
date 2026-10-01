@@ -41,6 +41,7 @@ class Show(DatabaseEntity):
     show_type: Optional[str] = None
     first_discovered_at: Optional[datetime] = None
     id: Optional[int] = None  # Database ID
+    source_performance_id: Optional[str] = None  # Namespaced native performance identity; never a room
     operation_type: Optional[str] = None  # 'inserted' or 'updated'
 
     def __post_init__(self) -> None:
@@ -126,12 +127,13 @@ class Show(DatabaseEntity):
             scraped_by_organizer_id=row.get("scraped_by_organizer_id"),
             show_type=row.get("show_type"),
             first_discovered_at=row.get("first_discovered_at"),
+            source_performance_id=row.get("source_performance_id"),
         )
 
     @classmethod
     def key_from_db_row(cls, row: DictRow) -> tuple:
         """Create a unique key from a database row."""
-        return (row.get("club_id"), row.get("date"), row.get("room", ""))
+        return cls.identity_key(row.get("club_id"), row.get("date"), row.get("room"), row.get("source_performance_id"))
 
     def to_tuple(self) -> tuple:
         """Transform Show entity to database tuple."""
@@ -147,6 +149,7 @@ class Show(DatabaseEntity):
             self.last_scraped_by,
             self.scraped_by_organizer_id,
             self.show_type,
+            self.source_performance_id,
         )
 
     def to_unique_key(self) -> tuple:
@@ -156,7 +159,13 @@ class Show(DatabaseEntity):
         UTC-aware datetimes returned by psycopg2 from TIMESTAMPTZ columns
         compare equal in dict/set keys.
         """
-        date = self.date
+        return self.identity_key(self.club_id, self.date, self.room, self.source_performance_id)
+
+    @staticmethod
+    def identity_key(club_id, date, room, source_performance_id=None) -> tuple:
+        """One identity rule for deduplication, SQL results and refreshed shows."""
+        if source_performance_id:
+            return (club_id, "source", source_performance_id)
         if date is not None and date.tzinfo is not None:
             date = date.astimezone(timezone.utc).replace(tzinfo=None)
-        return (self.club_id, date, self.room)
+        return (club_id, date, room or "")

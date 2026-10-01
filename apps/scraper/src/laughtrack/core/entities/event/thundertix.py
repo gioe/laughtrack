@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
+from urllib.parse import parse_qs, urlsplit
 
 import pytz
 from dateutil import parser as dateutil_parser
@@ -46,9 +47,9 @@ class ThunderTixPerformance(ShowConvertible):
         """Create a ThunderTixPerformance from a raw ThunderTix API dict."""
         order_products_url = data.get("order_products_url") or ""
         truncated_url = data.get("truncated_url") or ""
-        return cls(
-            event_id=int(data.get("event_id", 0)),
-            performance_id=int(data.get("performance_id", 0)),
+        performance = cls(
+            event_id=cls._positive_id(data.get("event_id")),
+            performance_id=cls._positive_id(data.get("performance_id")),
             title=data.get("title") or "",
             start_dt=data.get("start") or "",
             ticket_url=f"{base_url}{order_products_url}",
@@ -56,6 +57,30 @@ class ThunderTixPerformance(ShowConvertible):
             is_sold_out=bool(data.get("is_sold_out", False)),
             time_with_timezone=data.get("time_with_timezone"),
         )
+
+        performance.source_identity()  # Missing native IDs must fail the calendar, not fall back to a slot.
+        return performance
+
+    @staticmethod
+    def _positive_id(value) -> int:
+        if isinstance(value, bool) or not re.fullmatch(r"[1-9][0-9]*", str(value)):
+            raise ValueError("ThunderTix requires a positive integer native ID")
+        return int(value)
+
+    def source_identity(self) -> str:
+        host = (urlsplit(self.show_page_url).hostname or "").lower()
+        match = re.fullmatch(r"([a-z0-9-]+)\.thundertix\.com", host)
+        if not match or any(type(value) is not int or value <= 0 for value in (self.event_id, self.performance_id)):
+            raise ValueError("ThunderTix performance requires merchant, event and performance IDs")
+        if self.ticket_url:
+            ticket = urlsplit(self.ticket_url)
+            if (ticket.hostname or "").lower() != host:
+                raise ValueError("ThunderTix ticket merchant disagrees with event merchant")
+            query = parse_qs(ticket.query, keep_blank_values=True)
+            for field, native in (("event_id", self.event_id), ("performance_id", self.performance_id)):
+                if field in query and query[field] != [str(native)]:
+                    raise ValueError(f"ThunderTix ticket {field} disagrees with native performance")
+        return f"thundertix:{match.group(1)}:{self.event_id}:{self.performance_id}"
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show object."""
@@ -71,7 +96,8 @@ class ThunderTixPerformance(ShowConvertible):
         ticket_url = url or self.ticket_url
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=self.price, sold_out=self.is_sold_out)]
 
-        return ShowFactoryUtils.create_enhanced_show_base(
+        identity = self.source_identity()
+        show = ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
             club=club,
             date=start_date,
@@ -80,6 +106,10 @@ class ThunderTixPerformance(ShowConvertible):
             tickets=tickets,
             enhanced=enhanced,
         )
+
+        if show is not None and club.source_metadata.get("source_performance_identity") is True:
+            show.source_performance_id = identity
+        return show
 
     def resolve_start_datetime(self, club: Club) -> Optional[datetime]:
         """Use verified venue-local display time when supplied by ThunderTix.

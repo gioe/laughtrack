@@ -7,21 +7,15 @@ every downstream ticket insert had show_id=NULL.
 """
 
 from datetime import datetime, timezone
-from unittest.mock import MagicMock
 
 import pytz
 
 from laughtrack.utilities.domain.show.utils import ShowUtils
+from laughtrack.core.entities.show.model import Show
 
 
-def _make_show(dt: datetime, club_id: int = 1, room: str = "") -> MagicMock:
-    show = MagicMock()
-    show.date = dt
-    show.club_id = club_id
-    show.room = room
-    show.id = None
-    show.operation_type = None
-    return show
+def _make_show(dt: datetime, club_id: int = 1, room: str = "") -> Show:
+    return Show(name="Example", date=dt, club_id=club_id, room=room, show_page_url="https://example.com/show")
 
 
 def _make_result(dt: datetime, db_id: int = 42, club_id: int = 1, room=None) -> dict:

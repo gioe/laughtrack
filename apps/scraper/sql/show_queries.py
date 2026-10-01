@@ -23,10 +23,10 @@ class ShowQueries:
     BATCH_INSERT_SHOWS = '''
         INSERT INTO shows (
             name, show_page_url, description, date, club_id, last_scraped_date, room,
-            production_company_id, last_scraped_by, scraped_by_organizer_id, show_type
+            production_company_id, last_scraped_by, scraped_by_organizer_id, show_type, source_performance_id
         )
         VALUES %s
-        ON CONFLICT (club_id, date, room)
+        ON CONFLICT (club_id, date, room) WHERE source_performance_id IS NULL
         DO UPDATE SET
             name = EXCLUDED.name,
             show_page_url = EXCLUDED.show_page_url,
@@ -44,12 +44,18 @@ class ShowQueries:
             scraped_by_organizer_id = EXCLUDED.scraped_by_organizer_id,
             show_type = EXCLUDED.show_type
         RETURNING
-            id, club_id, room, date,
+            id, club_id, room, date, source_performance_id,
             CASE
                 WHEN xmax::text::int > 0 THEN 'updated'
                 ELSE 'inserted'
             END AS operation_type
     '''
+
+    # Identified rows never arbitrate on a physical slot; native IDs survive rescheduling.
+    BATCH_INSERT_IDENTIFIED_SHOWS = BATCH_INSERT_SHOWS.replace(
+        "ON CONFLICT (club_id, date, room) WHERE source_performance_id IS NULL",
+        "ON CONFLICT (club_id, source_performance_id) WHERE source_performance_id IS NOT NULL",
+    )
 
     # TASK-2847: stale-future-show reconciliation. After a CLEAN scrape of a
     # club (see ScrapingResultProcessor._is_clean_for_reconciliation), delete
@@ -123,6 +129,7 @@ class ShowQueries:
         WHERE club_id = ANY(%s)
           AND date = ANY(%s)
           AND COALESCE(name, '') = ANY(%s)
+          AND source_performance_id IS NULL
         ORDER BY id
     '''
 
@@ -172,6 +179,7 @@ class ShowQueries:
         FROM shows
         WHERE club_id = ANY(%s)
           AND show_page_url LIKE '%%/instances/%%'
+          AND source_performance_id IS NULL
         ORDER BY id
     '''
 
@@ -185,6 +193,7 @@ class ShowQueries:
         FROM shows
         WHERE club_id = ANY(%s)
           AND show_page_url LIKE '%%/shows/%%'
+          AND source_performance_id IS NULL
           AND (last_scraped_by = 'seatengine_classic' OR last_scraped_by IS NULL)
         ORDER BY id
     '''

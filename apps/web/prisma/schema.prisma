@@ -882,6 +882,7 @@ model Show {
   description               String?
   showType                  String?                        @map("show_type")
   room                      String?
+  sourcePerformanceId       String?                        @map("source_performance_id")
   productionCompanyId       Int?                           @map("production_company_id")
   // The Eventbrite organizer (production company) whose /o/ feed most recently
   // produced this show, stamped at persist time for organizer-mode scrapes
@@ -912,15 +913,9 @@ model Show {
   discoveryFeatureSnapshots DiscoveryShowFeatureSnapshot[]
   savedShows                SavedShow[]
 
-  // Dual-index design (intentional):
-  // - @@unique([clubId, date, room]) enforces deduplication and is used by the
-  //   query planner when filtering on both clubId and date (e.g. upsert lookups
-  //   and show-page queries scoped to a single club).
-  // - @@index([date]) is a standalone index used for range-only date queries
-  //   (e.g. "shows between date A and date B" across all clubs). PostgreSQL will
-  //   prefer the narrower composite index when clubId is in the predicate and the
-  //   standalone index when only date is filtered.
-  @@unique([clubId, date, room])
+  // SQL-owned partial unique indexes: identified rows use (club_id, source_performance_id);
+  // unidentified rows retain (club_id, date, room). Prisma cannot model their predicates.
+  @@index([clubId, date])
   @@index([date])
   @@index([productionCompanyId])
   // Scopes the organizer-attributed stale-show reconcile DELETE/COUNT

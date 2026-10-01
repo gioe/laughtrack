@@ -223,8 +223,7 @@ class ShowUtils:
         # UTC-aware dates returned by psycopg2 from TIMESTAMPTZ columns compare equal.
         show_map = {}
         for i, show in enumerate(shows):
-            norm_date = ShowUtils._normalize_date_for_key(show.date)
-            key = (show.club_id, norm_date, show.room or "")
+            key = show.to_unique_key()
             show_map[key] = i
 
         # Update shows with database results
@@ -233,11 +232,7 @@ class ShowUtils:
         for result in db_results:
             # Key mirrors (club_id, date, room) from Show.to_unique_key(), with date
             # normalized to UTC-naive so psycopg2 TIMESTAMPTZ results match in-memory dates.
-            result_key = (
-                result.get("club_id"),
-                ShowUtils._normalize_date_for_key(result.get("date")),
-                result.get("room", "") or "",
-            )
+            result_key = Show.key_from_db_row(result)
 
             if result_key in show_map:
                 show_index = show_map[result_key]
@@ -320,7 +315,8 @@ class ShowUtils:
         # Shape generic details into DuplicateKeyDetails (ISO date, explicit club_id/date/room, and key tuple)
         duplicate_details: List[DuplicateKeyDetails] = []
         for raw_key, info in generic_details.items():
-            club_id, date_obj, room = cast(Tuple[int, datetime, str], raw_key)
+            representative = next(show for show in deduped if show.to_unique_key() == raw_key)
+            club_id, date_obj, room = representative.club_id, representative.date, representative.room
             iso_date = date_obj.isoformat()
             kept_dict = cast(Dict[str, Any], info.get("kept", {}))
             dropped_list = cast(List[Dict[str, Any]], info.get("dropped", []))

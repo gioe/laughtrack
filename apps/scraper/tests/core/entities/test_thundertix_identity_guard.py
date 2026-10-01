@@ -26,6 +26,7 @@ def _show(performance, *, club=183, hour=20, room="", producer=None):
             )
         ],
         last_scraped_by=producer,
+        source_performance_id=f"thundertix:venue:100:{performance}",
     )
 
 
@@ -36,13 +37,14 @@ def _handler():
 
 
 @pytest.mark.parametrize("batch_size", [1, 100])
-def test_distinct_performances_are_rejected_before_any_batch_write(batch_size):
+def test_distinct_performances_are_retained_across_batches(batch_size):
     handler = _handler()
     safe = _show(3, hour=21)
     result = handler.insert_shows([_show(1), safe, _show(2)], batch_size=batch_size, scraper_key="thundertix")
-    assert result.validation_errors == 2
-    assert handler._process_single_batch.call_count == 1
-    assert handler._process_single_batch.call_args.args[0] == [safe]
+    assert result.validation_errors == 0
+    retained = [show for call in handler._process_single_batch.call_args_list for show in call.args[0]]
+    assert len(retained) == 3
+    assert safe in retained
 
 
 def test_exact_repeated_performance_is_not_a_conflict():
@@ -76,7 +78,7 @@ def test_collision_blocks_stale_cleanup():
     processor.show_service = handler
     processor._reconcile_stale_future_shows = MagicMock()
     club_result = SimpleNamespace(
-        shows=[_show(1), _show(2)], is_synthetic=False, club_name="Venue", scraper_key="thundertix"
+        shows=[_show(1), _show(1, hour=21)], is_synthetic=False, club_name="Venue", scraper_key="thundertix"
     )
     result = processor.insert_club_result(club_result)
     assert result.validation_errors == 2
@@ -89,20 +91,20 @@ def test_direct_batch_rejects_before_dedup_or_database_write():
     handler._classify_missing_show_types = MagicMock()
     handler._suppress_room_matching_club_name = MagicMock()
     handler.execute_batch_operation = MagicMock()
-    result = handler._process_single_batch([_show(1, producer="thundertix"), _show(2, producer="thundertix")])
+    result = handler._process_single_batch([_show(1, producer="thundertix"), _show(1, hour=21, producer="thundertix")])
     assert result.validation_errors == 2
     handler.execute_batch_operation.assert_not_called()
 
 
-def test_annoyance_shaped_cohort_rejects_80_and_retains_200_across_batches():
+def test_annoyance_shaped_cohort_retains_all_280_across_batches():
     handler = _handler()
-    safe = [_show(i, club=1000 + i) for i in range(200)]
+    safe = [_show(i + 1, club=1000 + i) for i in range(200)]
     first = [_show(1000 + i, club=2000 + i) for i in range(40)]
     second = [_show(2000 + i, club=2000 + i) for i in range(40)]
     result = handler.insert_shows(first + safe + second, batch_size=100, scraper_key="thundertix")
-    assert result.validation_errors == 80
+    assert result.validation_errors == 0
     retained = [show for call in handler._process_single_batch.call_args_list for show in call.args[0]]
-    assert retained == safe
+    assert retained == first + safe + second
 
 
 def test_ticket_query_order_does_not_create_false_identity_conflict():
@@ -113,3 +115,38 @@ def test_ticket_query_order_does_not_create_false_identity_conflict():
     ].purchase_url = "https://venue.thundertix.com/orders/new?performance_id=1&event_id=100&utm_source=test"
     result = handler.insert_shows(shows, scraper_key="thundertix")
     assert result.validation_errors == 0
+
+
+def test_native_source_identity_keeps_simultaneous_performances():
+    first, second = _show(1), _show(2)
+    first.source_performance_id = "thundertix:venue:100:1"
+    second.source_performance_id = "thundertix:venue:100:2"
+    assert first.to_unique_key() != second.to_unique_key()
+
+
+@pytest.mark.parametrize("identity", ["", "thundertix:venue:100:0", "garbage"])
+def test_missing_or_malformed_identity_is_not_adopted_by_slot(identity):
+    handler = _handler()
+    show = _show(1)
+    show.source_performance_id = identity
+    result = handler.insert_shows([show], scraper_key="thundertix")
+    assert result.validation_errors == 1
+    handler._process_single_batch.assert_not_called()
+
+
+def test_same_identity_contradictory_times_rejected_across_batch_boundaries():
+    handler = _handler()
+    result = handler.insert_shows([_show(1), _show(2), _show(1, hour=21)], batch_size=1, scraper_key="thundertix")
+    assert result.validation_errors == 2
+    assert handler._process_single_batch.call_count == 1
+    assert handler._process_single_batch.call_args.args[0][0].source_performance_id.endswith(":2")
+
+
+def test_unactivated_thundertix_retains_legacy_collision_protection():
+    handler = _handler()
+    shows = [_show(1), _show(2), _show(3, hour=21)]
+    for show in shows:
+        show.source_performance_id = None
+    result = handler.insert_shows(shows, scraper_key="thundertix")
+    assert result.validation_errors == 2
+    assert handler._process_single_batch.call_args.args[0] == [shows[2]]

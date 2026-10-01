@@ -185,7 +185,7 @@ def persistence(request, monkeypatch):
                     description text, date timestamptz, club_id integer,
                     last_scraped_date timestamptz, room text,
                     production_company_id integer, last_scraped_by text,
-                    scraped_by_organizer_id integer, show_type text,
+                    scraped_by_organizer_id integer, show_type text, source_performance_id text,
                     UNIQUE(club_id,date,room)
                 );
                 CREATE TEMP TABLE saved_show(id serial PRIMARY KEY, show_id integer REFERENCES shows(id));

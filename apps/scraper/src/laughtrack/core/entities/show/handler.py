@@ -378,7 +378,9 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         """
         # FullCalendar detail URLs distinguish simultaneous performances whose
         # titles happen to match. Its dedicated reconciliation owns room changes.
-        batch = [show for show in batch if show.last_scraped_by != "fullcalendar_json"]
+        batch = [
+            show for show in batch if show.last_scraped_by != "fullcalendar_json" and not show.source_performance_id
+        ]
         if not batch:
             return 0
 
@@ -388,11 +390,14 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         if not club_ids or not dates or not names:
             return 0
 
-        existing_rows = self.execute_with_cursor(
-            ShowQueries.GET_SHOWS_BY_CLUB_DATE_NAME,
-            (club_ids, dates, names),
-            return_results=True,
-        ) or []
+        existing_rows = (
+            self.execute_with_cursor(
+                ShowQueries.GET_SHOWS_BY_CLUB_DATE_NAME,
+                (club_ids, dates, names),
+                return_results=True,
+            )
+            or []
+        )
         if not existing_rows:
             return 0
 
@@ -416,9 +421,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 collapsed += 1
 
         if collapsed:
-            Logger.info(
-                f"Collapsed {collapsed} cross-batch duplicate shows onto existing rows by club/date/name"
-            )
+            Logger.info(f"Collapsed {collapsed} cross-batch duplicate shows onto existing rows by club/date/name")
         return collapsed
 
     @staticmethod
@@ -608,23 +611,37 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         return (show.show_page_url or "", tuple(sorted(tickets)), show.name if not tickets else "")
 
     def _reject_thundertix_collisions(self, shows: List[Show]) -> tuple[List[Show], int]:
-        """Reject unrepresentable simultaneous performances, without inventing rooms.
-
-        The database key is club/date/room; a recurring event's URL alone does
-        not identify a performance. Keep this guard specific to ThunderTix,
-        and signal partial persistence so reconciliation preserves prior rows.
-        """
-        identities = {}
-        for show in shows:
-            if show.last_scraped_by == "thundertix":
-                identities.setdefault(show.to_unique_key(), set()).add(self._thundertix_performance_identity(show))
-        conflicts = {key for key, values in identities.items() if len(values) > 1}
+        """Fail closed on missing/contradictory native IDs before batching or dedup."""
+        invalid = set()
+        destinations = {}
+        legacy_identities = {}
+        for index, show in enumerate(shows):
+            identity = show.source_performance_id
+            if (
+                show.last_scraped_by == "thundertix"
+                and identity is not None
+                and (
+                    not isinstance(identity, str)
+                    or not re.fullmatch(r"thundertix:[a-z0-9-]+:[1-9][0-9]*:[1-9][0-9]*", identity)
+                )
+            ):
+                invalid.add(index)
+            if show.last_scraped_by == "thundertix" and identity is None:
+                legacy_identities.setdefault(show.to_unique_key(), set()).add(
+                    self._thundertix_performance_identity(show)
+                )
+            if identity:
+                destinations.setdefault(show.to_unique_key(), set()).add(
+                    (self._normalize_cross_batch_key_date(show.date), show.room or "")
+                )
+        conflicting = {key for key, values in destinations.items() if len(values) > 1}
+        conflicting |= {key for key, values in legacy_identities.items() if len(values) > 1}
         accepted = [
-            show for show in shows if not (show.last_scraped_by == "thundertix" and show.to_unique_key() in conflicts)
+            show for index, show in enumerate(shows) if index not in invalid and show.to_unique_key() not in conflicting
         ]
         rejected = len(shows) - len(accepted)
         if rejected:
-            Logger.warn(f"Rejected {rejected} ThunderTix performances with conflicting club/date/room identities")
+            Logger.warn(f"Rejected {rejected} shows with missing or contradictory source performance identities")
         return accepted, rejected
 
     def _fullcalendar_input_conflicts(self, shows: List[Show]) -> tuple[set, set]:
@@ -821,6 +838,20 @@ class ShowHandler(BaseDatabaseHandler[Show]):
 
         return inserts, updates, show_results
 
+    def _persist_show_partitions(self, batch: List[Show], conn=None):
+        results = []
+        for identified in (False, True):
+            partition = [show for show in batch if bool(show.source_performance_id) == identified]
+            if not partition:
+                continue
+            items, template = self._build_items_and_template(partition)
+            query = ShowQueries.BATCH_INSERT_IDENTIFIED_SHOWS if identified else ShowQueries.BATCH_INSERT_SHOWS
+            kwargs = {"return_results": True}
+            if conn is not None:
+                kwargs["conn"] = conn
+            results.extend(self.execute_batch_operation(query, items, template, **kwargs) or [])
+        return results
+
     def _process_single_batch(self, batch: List[Show], fullcalendar_context=None) -> DatabaseOperationResult:
         """Process a single batch of shows.
 
@@ -865,8 +896,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             if not batch:
                 return DatabaseOperationResult(validation_errors=len(validation_errors))
         batch, duplicate_details = ShowUtils.deduplicate_shows_with_details(batch)
-        self._reconcile_patronticket_instances(batch)
-        self._reconcile_seatengine_classic_show_urls(batch)
+        self._reconcile_patronticket_instances([show for show in batch if not show.source_performance_id])
+        self._reconcile_seatengine_classic_show_urls([show for show in batch if not show.source_performance_id])
         self._collapse_cross_batch_duplicates(batch)
 
         # Insert shows and get results
@@ -877,17 +908,9 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 validation_errors.extend(["Ambiguous FullCalendar identity"] * identity_errors)
                 if not batch:
                     return DatabaseOperationResult(validation_errors=len(validation_errors))
-                items, template = self._build_items_and_template(batch)
-                results = self.execute_batch_operation(
-                    ShowQueries.BATCH_INSERT_SHOWS,
-                    items,
-                    template,
-                    return_results=True,
-                    conn=conn,
-                )
+                results = self._persist_show_partitions(batch, conn=conn)
         else:
-            items, template = self._build_items_and_template(batch)
-            results = self.execute_batch_operation(ShowQueries.BATCH_INSERT_SHOWS, items, template, return_results=True)
+            results = self._persist_show_partitions(batch)
 
         if not results:
             raise ValueError("No shows were inserted or updated")

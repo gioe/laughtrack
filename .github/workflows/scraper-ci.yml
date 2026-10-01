@@ -10,6 +10,7 @@ on:
       - ".github/actions/scraper-setup/**"
       # schema.prisma drives the test Postgres for the SQL parse-time guard
       - "apps/web/prisma/schema.prisma"
+      - "apps/web/prisma/migrations/**"
   pull_request:
     branches: [main, master]
     types: [opened, synchronize, reopened]
@@ -20,6 +21,7 @@ on:
       - ".github/actions/scraper-setup/**"
       # schema.prisma drives the test Postgres for the SQL parse-time guard
       - "apps/web/prisma/schema.prisma"
+      - "apps/web/prisma/migrations/**"
 
 jobs:
   # Per-job path gating: the workflow triggers on the union of scraper sources
@@ -44,6 +46,7 @@ jobs:
               - '.github/actions/scraper-setup/**'
             schema:
               - 'apps/web/prisma/schema.prisma'
+              - 'apps/web/prisma/migrations/**'
 
   test:
     needs: changes
@@ -226,13 +229,19 @@ jobs:
           PGPASSWORD: postgres
         run: |
           psql -h localhost -U postgres -d laughtrack_test -v ON_ERROR_STOP=1 -f /tmp/schema.sql
+          # Prisma's generated schema omits SQL-owned partial unique indexes.
+          psql -h localhost -U postgres -d laughtrack_test -v ON_ERROR_STOP=1 \
+            -f ../web/prisma/migrations/20260930193000_show_source_performance_identity/migration.sql
 
-      - name: Run SQL parse-time guard
+      - name: Run SQL parse-time and source identity regressions
         env:
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/laughtrack_test
           PLAYWRIGHT_FALLBACK: "0"
         run: |
-          python -m pytest tests/sql/ -v --tb=short --disable-warnings --no-cov \
+          python -m pytest tests/sql/ \
+            tests/core/entities/show/test_source_performance_identity.py \
+            tests/scripts/core/test_repair_annoyance_identity.py \
+            -v --tb=short --disable-warnings --no-cov \
             --junitxml=sql-parse-results.xml
 
       - name: Upload SQL parse-time results
