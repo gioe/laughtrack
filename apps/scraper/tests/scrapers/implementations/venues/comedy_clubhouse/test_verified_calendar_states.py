@@ -45,6 +45,23 @@ def pages():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize('proxy', [None, 'http://approved-proxy.example:8080'])
+async def test_public_calendar_preserves_configured_proxy_routing(proxy, monkeypatch):
+    from laughtrack.scrapers.implementations.venues.comedy_clubhouse import scraper as module
+    keys = []
+    def resolve(key):
+        keys.append(key)
+        return proxy
+    monkeypatch.setattr(module.HttpClient, 'resolve_proxy_url', resolve)
+    scraper = ComedyClubhouseScraper(venue())
+    scraper.post_form = AsyncMock(side_effect=pages())
+    result = await scraper.get_data(URL)
+    assert len(result.event_list) == 59
+    assert keys == ['comedy_clubhouse']
+    assert all(call.kwargs['proxy'] == proxy for call in scraper.post_form.call_args_list)
+
+
+@pytest.mark.asyncio
 async def test_all_59_captured_performances_survive_full_pipeline():
     from types import SimpleNamespace
     from urllib.parse import parse_qs

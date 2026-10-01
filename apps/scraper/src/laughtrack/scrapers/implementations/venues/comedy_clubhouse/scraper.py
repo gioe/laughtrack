@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 
 from laughtrack.core.entities.event.comedy_clubhouse import _parse_iso_local
 from laughtrack.foundation.exceptions.scraping_errors import DataError, ErrorSeverity
-from laughtrack.foundation.infrastructure.http.client import _bot_block_reason
+from laughtrack.foundation.infrastructure.http.client import HttpClient, _bot_block_reason
 from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 
 from laughtrack.core.entities.club.model import Club
@@ -91,11 +91,14 @@ class ComedyClubhouseScraper(BaseScraper):
         if self.club.timezone != "America/Chicago":
             raise self._source_failure("TicketSource organizer timezone must be America/Chicago")
         events, identities, bookings, slots = [], set(), set(), set()
+        # post_form does not apply the HttpClient scraper-key allowlist itself.
+        proxy_url = HttpClient.resolve_proxy_url(self.key)
         for page in range(MAX_PAGES):
             offset = 1 + page * PAGE_SIZE
             body = urlencode({"promoterid": "KEGG", "localtimeoffset": "-360", "eventrefno": "", "startat": offset})
             text = await asyncio.wait_for(self.post_form(
                 ENDPOINT, body,
+                proxy=proxy_url,
                 headers={"Referer": "https://www.ticketsource.com/thecomedyclubhouse", "X-Requested-With": "XMLHttpRequest"},
             ), timeout=30)
             signature = _bot_block_reason(text or "")
