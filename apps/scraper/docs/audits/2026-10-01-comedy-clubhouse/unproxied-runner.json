@@ -1,0 +1,68 @@
+{
+  "run_id": 36892930914,
+  "head_sha": "c2f16bdf19c57a35495ea064fbd90ae80c6811fe",
+  "metrics": {
+    "session": {
+      "duration_seconds": 0.200425,
+      "exported_at": "2026-10-01T16:34:38.190355"
+    },
+    "shows": {
+      "scraped": 0,
+      "saved": 0,
+      "inserted": 0,
+      "updated": 0,
+      "failed_save": 0,
+      "skipped_dedup": 0,
+      "validation_failed": 0,
+      "db_errors": 0
+    },
+    "clubs": {
+      "processed": 1,
+      "successful": 0,
+      "failed": 1
+    },
+    "errors": {
+      "total": 1
+    },
+    "success_rate": 0.0,
+    "execution_times": [
+      0.200425
+    ],
+    "per_club_stats": [
+      {
+        "club": "The Comedy Clubhouse",
+        "num_shows": 0,
+        "execution_time": 0.200425,
+        "success": false,
+        "error": "fetch failed for https://www.ticketsource.com/thecomedyclubhouse: DataError: Mandatory calendar failed: https://www.ticketsource.com/thecomedyclubhouse: Client error (HTTP 403)",
+        "club_id": 189,
+        "errors": 2,
+        "success_rate": 0.0,
+        "http_status": null,
+        "bot_block_detected": false,
+        "bot_block_signature": null,
+        "bot_block_provider": null,
+        "bot_block_type": null,
+        "bot_block_source": null,
+        "bot_block_stage": null,
+        "playwright_fallback_used": false,
+        "items_before_filter": 0,
+        "targets_collected": 1,
+        "fetches_ok": 0,
+        "fetches_failed": 1,
+        "ticketless_shows": 0,
+        "is_synthetic": false,
+        "production_company_id": null
+      }
+    ],
+    "error_details": [
+      {
+        "club": "The Comedy Clubhouse",
+        "error": "fetch failed for https://www.ticketsource.com/thecomedyclubhouse: DataError: Mandatory calendar failed: https://www.ticketsource.com/thecomedyclubhouse: Client error (HTTP 403)",
+        "execution_time": 0.200425
+      }
+    ],
+    "duplicate_show_details": [],
+    "run_type": "verify"
+  }
+}

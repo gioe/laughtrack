@@ -1,0 +1,63 @@
+{
+  "run_id": 36896768318,
+  "url": "https://github.com/gioe/laughtrack/actions/runs/36896768318",
+  "head_sha": "c3696d550d14f13777b87d9e4304428e49baa30c",
+  "metrics": {
+    "session": {
+      "duration_seconds": 3.511494,
+      "exported_at": "2026-10-01T17:10:45.473501"
+    },
+    "shows": {
+      "scraped": 59,
+      "saved": 59,
+      "inserted": 59,
+      "updated": 0,
+      "failed_save": 0,
+      "skipped_dedup": 0,
+      "validation_failed": 0,
+      "db_errors": 0
+    },
+    "clubs": {
+      "processed": 1,
+      "successful": 1,
+      "failed": 0
+    },
+    "errors": {
+      "total": 0
+    },
+    "success_rate": 100.0,
+    "execution_times": [
+      3.511494
+    ],
+    "per_club_stats": [
+      {
+        "club": "The Comedy Clubhouse",
+        "num_shows": 59,
+        "execution_time": 3.511494,
+        "success": true,
+        "error": null,
+        "club_id": 189,
+        "errors": 0,
+        "success_rate": 100.0,
+        "http_status": null,
+        "bot_block_detected": false,
+        "bot_block_signature": null,
+        "bot_block_provider": null,
+        "bot_block_type": null,
+        "bot_block_source": null,
+        "bot_block_stage": null,
+        "playwright_fallback_used": false,
+        "items_before_filter": 59,
+        "targets_collected": 1,
+        "fetches_ok": 1,
+        "fetches_failed": 0,
+        "ticketless_shows": 0,
+        "is_synthetic": false,
+        "production_company_id": null
+      }
+    ],
+    "error_details": [],
+    "duplicate_show_details": [],
+    "run_type": "verify"
+  }
+}

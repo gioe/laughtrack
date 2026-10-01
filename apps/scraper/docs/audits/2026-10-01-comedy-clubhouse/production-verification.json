@@ -1,0 +1,2191 @@
+{
+  "club_id": 189,
+  "source_id": 623,
+  "total_shows": 144,
+  "historical_preserved_unchanged": 85,
+  "new_shows": 59,
+  "source_config_unchanged": true,
+  "matched_fields": [
+    "name",
+    "instant",
+    "room",
+    "performance_url",
+    "ticket_url",
+    "unknown_price",
+    "availability"
+  ],
+  "new_lineup_items": 0,
+  "source": {
+    "id": 189,
+    "name": "The Comedy Clubhouse",
+    "website": "https://www.thecomedyclubhouse.com",
+    "timezone": "America/Chicago",
+    "source_id": 623,
+    "platform": "custom",
+    "scraper_key": "comedy_clubhouse",
+    "source_url": "https://www.ticketsource.com/thecomedyclubhouse",
+    "metadata": {}
+  },
+  "shows": [
+    {
+      "id": 493593,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-03-29T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-pdapmv",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/FMIEDGE",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493594,
+      "name": "TRICKY MICKEY & FRIENDS",
+      "date": "2026-03-29T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/tricky-mickey-friends/e-dlzmll",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/FMIGDMF",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493595,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-04-04T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-vragvj",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDDJIEI",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493596,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-04-04T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-gryzjl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFED",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493597,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-04-05T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-lomjzx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDDJIEM",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493598,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-04-05T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-bgeqrl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFEE",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493599,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-04-11T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-dlbjzz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDDJIEJ",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493600,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-04-11T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-adjpyp",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFEF",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493601,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-04-12T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-advrpy",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDDJIFD",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493602,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-04-12T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-qgdvjo",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFEG",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493603,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-04-18T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-grelzq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDDJIEK",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 493604,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-04-18T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-mjolax",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFEH",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 560934,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-04-19T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-qgzrvq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDDJIFE",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 560935,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-04-19T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-yzkpyb",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFEI",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 871685,
+      "name": "BIG LAUGHS BUILD BOLD FUTURES",
+      "date": "2026-04-23T23:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/big-laughs-build-bold-futures/e-pdlxzl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDGEGIJ",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 871686,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-04-25T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-bgapqm",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDDJIEL",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 871687,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-04-25T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-rbgomm",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFEJ",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 871688,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-04-26T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-mjyvly",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDDJIFF",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1170756,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-04-26T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-xpzxqe",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFEK",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1170757,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-02T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-mjdxxv",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJGK",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1170758,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-02T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-zkobrq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFEL",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1170759,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-03T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-zkmgjg",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJHF",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1170760,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-03T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-kqzpvd",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFEM",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1170761,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-09T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-yzgobq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJGL",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1170762,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-09T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-ovepjb",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFFD",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1170763,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-10T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-kqdyrr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJHG",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1523790,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-10T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-jzqjvk",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFFF",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1523791,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-16T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-rbajqv",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJGM",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1523792,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-16T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-emgkzg",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFFG",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1523793,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-17T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-ovqzyj",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJHH",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1523794,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-17T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-dldzpl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFFK",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1523795,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-23T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-xpgdkx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJHD",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1523796,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-23T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-gryzvl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFFL",
+          "price": 0.0,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1523797,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-24T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-jzdmyr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJHI",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1523798,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-24T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-bgeqyl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFFM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1617248,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-30T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-pdgzro",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJHE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1617249,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-30T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-lokzpa",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFGD",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1639193,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-05-31T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-emexjd",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDELJHJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1639194,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-05-31T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-qgdvqo",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDHHFGF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1784634,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-06-06T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-dljdem",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFGE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1784635,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-06-06T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-lojkqo",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFIE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1812026,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-06-07T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-kqkzox",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFHF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1812027,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-06-07T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-xpmzld",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFFG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1975005,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-06-13T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-grlyby",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFGF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 1975006,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-06-13T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-mjvoev",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFIF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2002837,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-06-14T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-ovledx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFHG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2002838,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-06-14T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-pdmvlr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFFH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2165926,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-06-20T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-bgpeob",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFGG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2165927,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-06-20T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-yzrkkq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFIG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2246939,
+      "name": "SPICY CLAMATO'S IMPROV in the CITY",
+      "date": "2026-06-20T22:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/spicy-clamatos-improv-in-the-city/e-pmoyyz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEEFJKK",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2246940,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-06-21T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-jzpqkg",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFHH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2440425,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-06-21T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-zkpolr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFFI",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2440426,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-06-27T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-adrjkr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFGH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2558059,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-06-27T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-rbpggv",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFIH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2615290,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-06-28T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-emvgye",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFHJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2913170,
+      "name": "MAIN STAGE Stand-up Showcase",
+      "date": "2026-06-28T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-stand-up-showcase/e-kqkzbx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFFJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2913171,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-07-04T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-qgrdye",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFGI",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2913172,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-07-04T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-xpmzzx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFII",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 2913173,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-07-05T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-vrgxkl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFHK",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4104837,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-07-18T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-yzrkep",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFGL",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4104838,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-07-18T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-zkpoog",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFIK",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4104839,
+      "name": "Illinois College Improv Night",
+      "date": "2026-07-18T22:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/illinois-college-improv-night/e-glkgyp",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEHMHEL",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4104840,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-07-19T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-grlyxy",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFHM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4104841,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-07-25T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-rbpgre",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFGM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4104842,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-07-25T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-kqkzzr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFIL",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4104843,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-07-26T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-bgpevb",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GDKLFID",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850711,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-08-02T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-kkykvg",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJFL",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850712,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-08-02T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-pmzmry",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJDM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850713,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-08-08T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-ljrjly",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJEM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850714,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-08-08T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-evxvxr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIIMM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850715,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-08-09T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-olzljq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJFM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850716,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-08-09T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-vgogor",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJDD",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850717,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-08-15T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-arxryo",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJFD",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850718,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-08-15T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-glolja",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJDE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850719,
+      "name": "STU NEWS 13th ANNIVERSARY SHOW",
+      "date": "2026-08-15T22:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/stu-news-13th-anniversary-show/e-evbzel",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEJJFMJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850720,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-08-16T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-jpmpvb",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJGD",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850721,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-08-16T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-zpgpja",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJED",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4850722,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-08-22T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-qrkrjv",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJFE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4880852,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-08-22T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-bpmpxz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJDG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 4880853,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-08-23T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-vgogpx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJGE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 5169208,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-08-23T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-kkykrg",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJEE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 5169209,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-08-29T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-mvxvak",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJFF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 5228755,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-08-29T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-ljrjxz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJDH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 5228756,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-08-30T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/e-djrjpy",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJGF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 5554744,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-08-30T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/e-jpmpyb",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GEFIJEG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745423,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-03T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-02/19:30/t-dkgploe",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745424,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-03T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-02/21:30/t-mjrqzva",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLML",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745425,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-04T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-03/19:30/t-xdyrzok",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745426,
+      "name": "JOKE JOINT",
+      "date": "2026-10-04T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-10-03/21:30/t-mjrapep",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEHGD",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745427,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-10T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-09/19:30/t-ejqxzvp",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745428,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-10T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-09/21:30/t-rzjraxo",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745429,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-11T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-10/19:30/t-rzjrayn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLK",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745430,
+      "name": "JOKE JOINT",
+      "date": "2026-10-11T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-10-10/21:30/t-ldxagmm",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745431,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-17T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-16/19:30/t-oevqzpn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745432,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-17T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-16/21:30/t-dkgplqz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745433,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-18T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-17/19:30/t-dkgplme",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLL",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745434,
+      "name": "JOKE JOINT",
+      "date": "2026-10-18T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-10-17/21:30/t-mjrapkd",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745435,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-10-22T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-10-21/19:30/t-glydvem",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745436,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-24T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-23/19:30/t-qmzxyqj",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKI",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745437,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-24T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-23/21:30/t-ejqxzye",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745438,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-10-24T22:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-10-24/17:00/t-ejqrdvk",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745439,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-25T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-24/19:30/t-ejqxzmp",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745440,
+      "name": "JOKE JOINT",
+      "date": "2026-10-25T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-10-24/21:30/t-njdzxgq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745441,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-10-31T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-30/19:30/t-yzgdpvz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745442,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-10-31T02:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-10-30/21:30/t-oevqzyx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDI",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745443,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-01T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-10-31/19:30/t-oevqzon",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMD",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745444,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-07T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-06/19:30/t-aaydlmz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKK",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745445,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-11-07T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-11-06/21:30/t-vxjpzor",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745446,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-08T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-07/19:30/t-vxjpzoe",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLME",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745447,
+      "name": "JOKE JOINT",
+      "date": "2026-11-08T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-11-07/21:30/t-kdplamn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745448,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-14T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-13/19:30/t-glydzmy",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKL",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745449,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-11-14T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-11-13/21:30/t-qmzxypr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMDK",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745450,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-15T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-14/19:30/t-qmzxypj",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745451,
+      "name": "JOKE JOINT",
+      "date": "2026-11-15T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/joke-joint/2026-11-14/21:30/t-plogdxn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIEK",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745452,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-11-19T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-11-18/19:30/t-jxjqamd",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745453,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-21T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-20/19:30/t-jxjqvpv",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLKM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745454,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-11-21T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-11-20/21:30/t-jxjqvyr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMEE",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745455,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-11-21T23:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-11-21/17:00/t-oevarpj",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDI",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745456,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-22T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-21/19:30/t-yzgdpyz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745457,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-28T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-27/19:30/t-ldxzvrz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLD",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745458,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-11-28T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-11-27/21:30/t-ldxzvgx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHMEF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745459,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-11-29T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-11-28/19:30/t-aaydlez",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745460,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-05T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-04/19:30/t-njdyveg",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745461,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-12-05T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-12-04/21:30/t-ejqpvyo",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFHMMLM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745462,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-06T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-05/19:30/t-glydzpy",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMI",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745463,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-12T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-11/19:30/t-zoykxqq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745464,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-12-12T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-12-11/21:30/t-dkgnorr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745465,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-13T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-12/19:30/t-jxjqvdv",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745466,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-12-17T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-12-16/19:30/t-ldxzjag",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJG",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745467,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-19T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-18/19:30/t-kdpqzxe",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLLH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745468,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2026-12-19T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2026-12-18/21:30/t-ejqpvdn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745469,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2026-12-19T23:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2026-12-19/17:00/t-vxjkaqx",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745470,
+      "name": "MAIN STAGE Improv Showcase",
+      "date": "2026-12-20T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/main-stage-improv-showcase/2026-12-19/19:30/t-ldxzvoz",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDHLMK",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745471,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-02T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-01/21:30/t-vxjrqay",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745472,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-09T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-08/21:30/t-qmzlkel",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDK",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745473,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-16T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-15/21:30/t-yzgoklr",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDL",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745474,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-01-21T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-01-20/19:30/t-mjrqlax",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJH",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745475,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-23T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-22/21:30/t-aayjknq",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDDM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745476,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-01-23T23:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-01-23/17:00/t-yzgmlkg",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDL",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745477,
+      "name": "GROUP IMPROVISED COMEDY",
+      "date": "2027-01-30T03:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/group-improvised-comedy/2027-01-29/21:30/t-ldxqmpe",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFIDDEF",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745478,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-02-18T01:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-02-17/19:30/t-njdynzn",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJI",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745479,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-02-20T23:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-02-20/17:00/t-aayogkl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIDM",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745480,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-03-18T00:30:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-03-17/19:30/t-zoyknjl",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFDKEJJ",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    },
+    {
+      "id": 7745481,
+      "name": "IT LEFT THE GROUP CHAT",
+      "date": "2027-03-20T22:00:00+00:00",
+      "room": "",
+      "show_page_url": "https://www.ticketsource.com/thecomedyclubhouse/it-left-the-group-chat/2027-03-20/17:00/t-glyeogd",
+      "tickets": [
+        {
+          "url": "https://www.ticketsource.com/booking/init/GFEEIED",
+          "price": null,
+          "sold_out": false
+        }
+      ],
+      "lineup_count": 0
+    }
+  ]
+}

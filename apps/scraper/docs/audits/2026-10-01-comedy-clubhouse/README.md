@@ -20,4 +20,13 @@ Actual public response fixtures are retained beside test_verified_calendar_state
 
 The venue-specific scraper uses existing post_form for the published endpoint, with 30 seconds per request and a 20-page limit. Only club 189 with the known TicketSource organizer URL and America/Chicago timezone uses this path. Legacy HTML extraction remains supported but refuses a page advertising unconsumed pagination. No calendar is considered complete merely because all 12 visible HTML rows parsed.
 
-The focused suite passes 49 tests. The actual read-only scraper returned all 59 shows with fetches_ok=1, fetches_failed=0 and no scrape errors; see readonly-preview.json. Scheduled runner persistence remains to be verified before completion.
+The focused suite passes 51 tests. The actual read-only scraper returned all 59 shows with fetches_ok=1, fetches_failed=0 and no scrape errors; see readonly-preview.json.
+
+The first public-POST runner attempt, [36892930914](https://github.com/gioe/laughtrack/actions/runs/36892930914), still failed HTTP 403 and saved zero shows. Review found that post_form bypasses the existing comedy_clubhouse proxy allowlist. The venue scraper now explicitly forwards HttpClient.resolve_proxy_url to each POST, without changing the source row or proxy configuration. A bounded local request through that configured proxy returned HTTP 200 and twelve first-page performances. Regression tests cover both configured and absent proxies. The corrected scheduled run and production comparison are recorded below.
+
+
+## Scheduled recovery and production comparison
+
+[Runner 36896768318](https://github.com/gioe/laughtrack/actions/runs/36896768318) ran c3696d550 with the scheduled credentials and existing proxy allowlist. It scraped, saved and inserted all 59 performances, with zero failures, zero validation errors, zero DB errors, fetches_ok=1 and fetches_failed=0. See scheduled-runner.json. The earlier unproxied failure is retained in unproxied-runner.json.
+
+A read-only production comparison found 144 total shows: the 85 previously stored historical records remain field-for-field unchanged, and all 59 new shows match the public inventory by performance URL, title, timestamp instant, room, booking URL and unknown price. Each new ticket is available and priced null; there are zero new lineup items. No show title became a comedian identity. Club 189 and source 623 configuration are unchanged. See historical-before.json and production-verification.json; readonly-preview.json contains the independently fetched expected inventory. Chicago daylight-saving offsets are preserved by comparing timezone-aware instants, not raw timestamp strings.

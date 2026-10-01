@@ -2744,8 +2744,11 @@ localtimeoffset request parameter does not replace the venue timezone. Unknown
 prices remain null.
 
 **Failure modes:** Cloudflare/Access denied can differ between local and scheduled
-IP addresses. Test the actual scheduled runner before claiming recovery. Require
-verified EOF, bounded pagination, unique identities and fully valid pages before
+IP addresses. Test the actual scheduled runner before claiming recovery. Preserve
+the existing scraper-key proxy allowlist on public POSTs too: post_form does not
+apply HttpClient.resolve_proxy_url automatically, so Comedy Clubhouse forwards
+its resolved proxy explicitly. Do not expose proxy credentials in evidence.
+Require verified EOF, bounded pagination, unique identities and fully valid pages before
 allowing stale cleanup. Unknown empty HTML, failed or truncated pages, duplicate
 pages and ambiguous same-time shows are incomplete results. Preserve supported
 HTML extraction, but reject an HTML page with unconsumed pagination.
