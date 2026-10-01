@@ -40,6 +40,7 @@ from laughtrack.scrapers.utils.comedy_filter import (
 from .data import EtixPageData
 from .extractor import EtixExtractor
 from .rockhouse import extract_rockhouse_events_with_conflicts
+from .rockhouse_identity import resolve_rockhouse_conflicts
 from .tribe import extract_tribe_events
 from .transformer import EtixEventTransformer
 
@@ -593,8 +594,15 @@ class EtixScraper(BaseScraper):
             )
         return results
 
-    def _extract_rockhouse_with_status(self, html: str, url: str) -> List[EtixEvent]:
+    async def _extract_rockhouse_with_status(self, html: str, url: str) -> List[EtixEvent]:
         events, conflicts = extract_rockhouse_events_with_conflicts(html, date.today())
+        if conflicts:
+            resolved, conflicts = await resolve_rockhouse_conflicts(
+                html, url, self.club, conflicts, self.fetch_html_bare
+            )
+            events.extend(resolved)
+            if resolved:
+                Logger.info(f"Etix source {url}: verified {len(resolved)} conflicted identities from individual posts")
         if conflicts:
             message = (
                 f"Etix source {url} has conflicting performance IDs: {', '.join(sorted(conflicts))}; "
@@ -643,7 +651,7 @@ class EtixScraper(BaseScraper):
             return None
 
         self._require_source_html(html, shows_url)
-        events = self._extract_rockhouse_with_status(html, shows_url)
+        events = await self._extract_rockhouse_with_status(html, shows_url)
         if not events and self._verified_rockhouse_empty(html):
             return EtixPageData(event_list=[])
         if events:
@@ -686,7 +694,7 @@ class EtixScraper(BaseScraper):
                 raise self._source_failure(f"Etix Tribe source produced no verified comedy events: {shows_url}")
             return EtixPageData(event_list=events)
 
-        events = self._extract_rockhouse_with_status(html, shows_url)
+        events = await self._extract_rockhouse_with_status(html, shows_url)
         if not events and self._verified_rockhouse_empty(html):
             return EtixPageData(event_list=[])
         if events:

@@ -1,0 +1,76 @@
+{
+  "captured_at": "2026-10-01T00:50:00Z",
+  "source": "official individual WordPress Event records corroborated by visible heading and showtime",
+  "performances": [
+    {
+      "wordpress_post_id": 21912,
+      "retrieved_via": "https://www.comedycastle.com/?p=21912",
+      "canonical_url": "https://www.comedycastle.com/event/the-night-before-thanksgiving-comedy-special/mark-ridleys-comedy-castle/royal-oak/",
+      "title": "THE NIGHT BEFORE THANKSGIVING COMEDY SPECIAL",
+      "start_date": "2026-11-25T19:30:00-0500",
+      "venue": {
+        "@type": "Place",
+        "name": "Mark Ridley&#8217;s Comedy Castle",
+        "address": "310 South Troy Street, Royal Oak, "
+      },
+      "ticket_url": "https://www.etix.com/ticket/p/50537895/the-night-before-thanksgiving-comedy-special-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+      "performance_id": "50537895"
+    },
+    {
+      "wordpress_post_id": 27696,
+      "retrieved_via": "https://www.comedycastle.com/?p=27696",
+      "canonical_url": "https://www.comedycastle.com/event/comedy-rumble-3/mark-ridleys-comedy-castle/royal-oak/",
+      "title": "COMEDY RUMBLE",
+      "start_date": "2026-10-30T19:15:00-0400",
+      "venue": {
+        "@type": "Place",
+        "name": "Mark Ridley&#8217;s Comedy Castle",
+        "address": "310 South Troy Street, Royal Oak, "
+      },
+      "ticket_url": "https://www.etix.com/ticket/p/68862675/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+      "performance_id": "68862675"
+    },
+    {
+      "wordpress_post_id": 27698,
+      "retrieved_via": "https://www.comedycastle.com/?p=27698",
+      "canonical_url": "https://www.comedycastle.com/event/comedy-rumble-4/mark-ridleys-comedy-castle/royal-oak/",
+      "title": "COMEDY RUMBLE",
+      "start_date": "2026-10-30T21:45:00-0400",
+      "venue": {
+        "@type": "Place",
+        "name": "Mark Ridley&#8217;s Comedy Castle",
+        "address": "310 South Troy Street, Royal Oak, "
+      },
+      "ticket_url": "https://www.etix.com/ticket/p/82720075/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+      "performance_id": "82720075"
+    },
+    {
+      "wordpress_post_id": 34020,
+      "retrieved_via": "https://www.comedycastle.com/?p=34020",
+      "canonical_url": "https://www.comedycastle.com/event/mike-cronin/mark-ridleys-comedy-castle/royal-oak/",
+      "title": "MIKE CRONIN",
+      "start_date": "2026-10-15T19:30:00-0400",
+      "venue": {
+        "@type": "Place",
+        "name": "Mark Ridley&#8217;s Comedy Castle",
+        "address": "310 South Troy Street, Royal Oak, "
+      },
+      "ticket_url": "https://www.etix.com/ticket/p/62115951/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+      "performance_id": "62115951"
+    },
+    {
+      "wordpress_post_id": 34022,
+      "retrieved_via": "https://www.comedycastle.com/?p=34022",
+      "canonical_url": "https://www.comedycastle.com/event/mike-cronin-2/mark-ridleys-comedy-castle/royal-oak/",
+      "title": "MIKE CRONIN",
+      "start_date": "2026-10-16T19:15:00-0400",
+      "venue": {
+        "@type": "Place",
+        "name": "Mark Ridley&#8217;s Comedy Castle",
+        "address": "310 South Troy Street, Royal Oak, "
+      },
+      "ticket_url": "https://www.etix.com/ticket/p/84649375/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+      "performance_id": "84649375"
+    }
+  ]
+}

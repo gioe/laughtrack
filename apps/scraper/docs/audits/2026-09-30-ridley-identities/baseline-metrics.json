@@ -1,0 +1,58 @@
+{
+  "session": {
+    "duration_seconds": 1.236559,
+    "exported_at": "2026-10-01T00:50:18.075767"
+  },
+  "shows": {
+    "scraped": 99,
+    "saved": 99,
+    "inserted": 0,
+    "updated": 99,
+    "failed_save": 0,
+    "skipped_dedup": 0,
+    "validation_failed": 0,
+    "db_errors": 0
+  },
+  "clubs": {
+    "processed": 1,
+    "successful": 1,
+    "failed": 0
+  },
+  "errors": {
+    "total": 0
+  },
+  "success_rate": 100.0,
+  "execution_times": [
+    1.236559
+  ],
+  "per_club_stats": [
+    {
+      "club": "Mark Ridley's Comedy Castle",
+      "num_shows": 99,
+      "execution_time": 1.236559,
+      "success": true,
+      "error": null,
+      "club_id": 4756,
+      "errors": 0,
+      "success_rate": 100.0,
+      "http_status": null,
+      "bot_block_detected": false,
+      "bot_block_signature": null,
+      "bot_block_provider": null,
+      "bot_block_type": null,
+      "bot_block_source": null,
+      "bot_block_stage": null,
+      "playwright_fallback_used": false,
+      "items_before_filter": 99,
+      "targets_collected": 1,
+      "fetches_ok": 1,
+      "fetches_failed": 1,
+      "ticketless_shows": 0,
+      "is_synthetic": false,
+      "production_company_id": null
+    }
+  ],
+  "error_details": [],
+  "duplicate_show_details": [],
+  "run_type": "verify"
+}

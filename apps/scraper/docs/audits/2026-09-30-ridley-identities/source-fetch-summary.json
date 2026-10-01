@@ -1,0 +1,177 @@
+[
+  {
+    "key": "calendar",
+    "url": "https://www.comedycastle.com/events/",
+    "length": 804670,
+    "sha256": "68f915616715d3f1ab1bba509168ebba82336e3c8ff15c748c231c67ac423440",
+    "safe_count": 99,
+    "conflicts": {
+      "62115951": [
+        {
+          "title": "CAM ROWE",
+          "start_date": "2026-10-15T19:30:00",
+          "ticket_url": "https://www.etix.com/ticket/p/62115951/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/cam-rowe/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "MIKE CRONIN",
+          "start_date": "2026-10-15T19:30:00",
+          "ticket_url": "https://www.etix.com/ticket/p/62115951/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/mike-cronin/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ],
+      "84649375": [
+        {
+          "title": "CAM ROWE",
+          "start_date": "2026-10-16T19:15:00",
+          "ticket_url": "https://www.etix.com/ticket/p/84649375/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/cam-rowe/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "MIKE CRONIN",
+          "start_date": "2026-10-16T19:15:00",
+          "ticket_url": "https://www.etix.com/ticket/p/84649375/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/mike-cronin/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ],
+      "68862675": [
+        {
+          "title": "COMEDY RUMBLE COMPETITION",
+          "start_date": "2026-10-30T19:15:00",
+          "ticket_url": "https://www.etix.com/ticket/p/68862675/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/comedy-rumble-competition/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "COMEDY RUMBLE",
+          "start_date": "2026-10-30T19:15:00",
+          "ticket_url": "https://www.etix.com/ticket/p/68862675/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/comedy-rumble/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ],
+      "82720075": [
+        {
+          "title": "COMEDY RUMBLE COMPETITION",
+          "start_date": "2026-10-30T21:45:00",
+          "ticket_url": "https://www.etix.com/ticket/p/82720075/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/comedy-rumble-competition/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "COMEDY RUMBLE",
+          "start_date": "2026-10-30T21:45:00",
+          "ticket_url": "https://www.etix.com/ticket/p/82720075/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/comedy-rumble/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ],
+      "50537895": [
+        {
+          "title": "ADVANCED COMEDY CLASS SHOWCASE",
+          "start_date": "2026-11-25T19:30:00",
+          "ticket_url": "https://www.etix.com/ticket/p/50537895/the-night-before-thanksgiving-comedy-special-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/advanced-comedy-class-showcase/mark-ridleys-comedy-castle/royal-oak/"
+        },
+        {
+          "title": "THE NIGHT BEFORE THANKSGIVING SPECIAL",
+          "start_date": "2026-11-25T19:30:00",
+          "ticket_url": "https://www.etix.com/ticket/p/50537895/the-night-before-thanksgiving-comedy-special-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+          "event_url": "https://www.comedycastle.com/events/category/series/the-night-before-thanksgiving-special/mark-ridleys-comedy-castle/royal-oak/"
+        }
+      ]
+    }
+  },
+  {
+    "key": "62115951",
+    "url": "https://www.etix.com/ticket/p/62115951/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+    "length": 1553,
+    "sha256": "112aa209cfab5814f27f1f71e800cbfe37b809271f191ad2024d43c9c93babaf"
+  },
+  {
+    "key": "84649375",
+    "url": "https://www.etix.com/ticket/p/84649375/mike-cronin-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+    "length": 2017,
+    "sha256": "0315992865289bdad8492b9a1031bf32b2542a50abbccec081dc585830782c8f"
+  },
+  {
+    "key": "68862675",
+    "url": "https://www.etix.com/ticket/p/68862675/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+    "length": 2017,
+    "sha256": "803d3d92a044692efb30e32371b7512e8448c5cad2816558a5c87ef8415aa7a8"
+  },
+  {
+    "key": "82720075",
+    "url": "https://www.etix.com/ticket/p/82720075/comedy-rumble-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+    "length": 2017,
+    "sha256": "79e092befe4c2191f1d8ae8eac84772a8b0b063868ce5818f207ebce9840301c"
+  },
+  {
+    "key": "50537895",
+    "url": "https://www.etix.com/ticket/p/50537895/the-night-before-thanksgiving-comedy-special-royal-oak-mark-ridleys-comedy-castle?partner_id=100",
+    "length": 2017,
+    "sha256": "90436031b73e6df7d6b3b11d332002aab75bc8982ab433c358fa3fc95409c903"
+  },
+  {
+    "key": "0",
+    "url": "https://www.comedycastle.com/events/category/series/advanced-comedy-class-showcase/mark-ridleys-comedy-castle/royal-oak/",
+    "length": 153778,
+    "sha256": "a67528afd49881c71c94bb19ccee001cd25eaad4a6839d45711b0a29fd84ead9"
+  },
+  {
+    "key": "1",
+    "url": "https://www.comedycastle.com/events/category/series/cam-rowe/mark-ridleys-comedy-castle/royal-oak/",
+    "length": 158424,
+    "sha256": "9bb06e26ab260f2d647c82705a9e721f24a5b7b565435af5086220d249a9ccb4"
+  },
+  {
+    "key": "2",
+    "url": "https://www.comedycastle.com/events/category/series/comedy-rumble-competition/mark-ridleys-comedy-castle/royal-oak/",
+    "length": 157412,
+    "sha256": "0ba4726bf721c096732ca698aee7314588d9e9262d2e370687a7a1b5e8ecca56"
+  },
+  {
+    "key": "3",
+    "url": "https://www.comedycastle.com/events/category/series/comedy-rumble/mark-ridleys-comedy-castle/royal-oak/",
+    "length": 155419,
+    "sha256": "47369b7896714d6283587d9043e3d522577176075691a2c7b8177068a4b90eca"
+  },
+  {
+    "key": "4",
+    "url": "https://www.comedycastle.com/events/category/series/mike-cronin/mark-ridleys-comedy-castle/royal-oak/",
+    "length": 158970,
+    "sha256": "00691bb36e7e739de1876d4669bb2c19108f73c460c6f72019e94442e367931f"
+  },
+  {
+    "key": "5",
+    "url": "https://www.comedycastle.com/events/category/series/the-night-before-thanksgiving-special/mark-ridleys-comedy-castle/royal-oak/",
+    "length": 153690,
+    "sha256": "1b3c33a3dea16ccd617b851fcba53b69d5560a1dd1192a6f1d9be2658f95a1dd"
+  },
+  {
+    "key": "post-21912",
+    "url": "https://www.comedycastle.com/?p=21912",
+    "length": 158901,
+    "sha256": "1420faf448e197c42284343d1f7bbfbd62cb2403d781a6af102a1c96cd0c453c"
+  },
+  {
+    "key": "post-34020",
+    "url": "https://www.comedycastle.com/?p=34020",
+    "length": 167593,
+    "sha256": "30ae7d7c63483664085a89c3c78bedfbbbfa79d3b1b1d60ec4eb4fd01669c738"
+  },
+  {
+    "key": "post-34022",
+    "url": "https://www.comedycastle.com/?p=34022",
+    "length": 165879,
+    "sha256": "df84cd3df8917ee25616d49335595d4e79e58b6ab11a530d648867cdfa91a2b0"
+  },
+  {
+    "key": "post-27696",
+    "url": "https://www.comedycastle.com/?p=27696",
+    "length": 162281,
+    "sha256": "21d1a8d4c752559ce0a304aff80ba747ec02ac1729da94c03f68483894a6042e"
+  },
+  {
+    "key": "post-27698",
+    "url": "https://www.comedycastle.com/?p=27698",
+    "length": 162223,
+    "sha256": "29dacc41a7d86a7945a631551105b69120c06731398989d4cc9348cc9529c566"
+  }
+]
