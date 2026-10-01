@@ -1,6 +1,6 @@
 """Show-specific utility functions for the Laughtrack domain."""
 
-from typing import Any, Dict, List, Optional, Set, Tuple, cast
+from typing import Any, Dict, List, Optional, Set, cast
 from datetime import datetime, timezone
 
 from psycopg2.extras import DictRow
