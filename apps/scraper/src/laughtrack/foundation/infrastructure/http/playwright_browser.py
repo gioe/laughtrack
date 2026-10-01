@@ -46,7 +46,7 @@ import logging
 import re
 import weakref
 from datetime import date
-from typing import Optional
+from typing import Any, Awaitable, Callable, Optional, TypeVar
 from urllib.parse import urlencode, urlparse
 
 from laughtrack.foundation.infrastructure.http.protection.aws_waf_solver import (
@@ -436,6 +436,64 @@ def _atexit_close(browser_ref: "weakref.ref[PlaywrightBrowser]") -> None:
         pass
 
 
+_PageResult = TypeVar("_PageResult")
+_TOCK_CALENDAR_TIMEOUT_MS = 30_000
+_TOCK_CALENDAR_MAX_BYTES = 2 * 1024 * 1024
+_TOCK_CALENDAR_SCRIPT = r"""async ({businessId, origin, timeoutMs, maxBytes}) => {
+    const app = window.$REDUX_STATE?.app;
+    if (location.origin !== origin || String(app?.activeAuth?.businessId) !== businessId) {
+        throw new Error('Tock calendar business/origin mismatch');
+    }
+    const scope = {...app.activeAuth};
+    scope.businessId = String(scope.businessId);
+    scope.businessGroupId = String(scope.businessGroupId);
+    const headers = {
+        'Content-Type': 'application/octet-stream',
+        'Accept': 'application/octet-stream',
+        'X-Tock-Stream-Format': 'proto2',
+        'X-Tock-Scope': JSON.stringify(scope),
+        'X-Tock-Path': location.pathname,
+    };
+    if (window.__BUILD_NUMBER__ != null) headers['X-Tock-Build-Number'] = String(window.__BUILD_NUMBER__);
+    if (app.sessionToken) headers['X-Tock-Session'] = app.sessionToken;
+    if (app.csrfToken?.token) headers['X-Tock-Csrf-Token'] = app.csrfToken.token;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        // Public calendar read only: no lock, reservation, cart or purchase call.
+        const response = await fetch('/api/consumer/calendar/full/v2', {
+            method: 'POST', headers, credentials: 'same-origin', redirect: 'error',
+            signal: controller.signal, body: new Uint8Array([218, 186, 29, 0]),
+        });
+        const contentType = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+        if (response.status !== 200 || contentType !== 'application/octet-stream') {
+            throw new Error('Tock calendar invalid HTTP response');
+        }
+        if (Number(response.headers.get('content-length')) > maxBytes || !response.body) {
+            throw new Error('Tock calendar response exceeds size limit or has no body');
+        }
+        const reader = response.body.getReader();
+        const data = [];
+        try {
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                if (data.length + value.length > maxBytes) {
+                    controller.abort();
+                    throw new Error('Tock calendar response exceeds size limit');
+                }
+                for (const byte of value) data.push(byte);
+            }
+        } finally {
+            reader.releaseLock();
+        }
+        return {status: response.status, contentType, data};
+    } finally {
+        clearTimeout(timer);
+    }
+}"""
+
+
 class PlaywrightBrowser:
     """Playwright headless browser for fetching JS-rendered pages.
 
@@ -754,6 +812,7 @@ class PlaywrightBrowser:
                 website_key=website_key,
                 action=action,
                 cdata=cdata,
+                html=html,
             )
         except CloudflareSolverError as exc:
             Logger.warn(
@@ -1090,6 +1149,67 @@ class PlaywrightBrowser:
             ImportError: When playwright is not installed.
             Exception: Any Playwright navigation error.
         """
+        async def return_html(page: Any, html: str) -> str:
+            return html
+
+        return await self._fetch_with_page(url, proxy_url, return_html)
+
+    async def fetch_tock_calendar(
+        self, url: str, business_id: str, proxy_url: Optional[str] = None
+    ) -> tuple[str, bytes]:
+        """Read Tock's public binary calendar in the challenge-cleared page context.
+
+        The caller supplies an already-sticky proxy URL. Session/CSRF headers
+        stay inside the browser; the foundation layer does not decode calendars.
+        Missing identity, blocked pages and invalid/empty responses raise rather
+        than masquerading as an empty calendar.
+        """
+        expected_id = str(business_id).strip()
+        parsed = urlparse(URLUtils.normalize_url(url))
+        if not expected_id.isdigit() or parsed.scheme != "https" or parsed.hostname not in {
+            "exploretock.com", "www.exploretock.com"
+        } or parsed.username or parsed.password or parsed.port not in {None, 443}:
+            raise ValueError("Tock calendar requires an HTTPS storefront and numeric business ID")
+        origin = f"{parsed.scheme}://{parsed.netloc}"
+
+        async def read_calendar(page: Any, html: str) -> tuple[str, bytes]:
+            if (
+                any(marker in html.lower() for marker in _CLOUDFLARE_CHALLENGE_MARKERS)
+                or any(marker in html for marker in _AWS_WAF_MARKERS)
+                or DATADOME_IFRAME_HOST in html
+            ):
+                raise RuntimeError("Tock storefront remains blocked")
+            loaded_id = await asyncio.wait_for(
+                page.evaluate("() => String(window.$REDUX_STATE?.app?.activeAuth?.businessId ?? '')"),
+                timeout=_TOCK_CALENDAR_TIMEOUT_MS / 1000,
+            )
+            if loaded_id != expected_id:
+                raise ValueError("Tock storefront business ID does not match requested business")
+            result = await asyncio.wait_for(
+                page.evaluate(_TOCK_CALENDAR_SCRIPT, {
+                    "businessId": expected_id, "origin": origin,
+                    "timeoutMs": _TOCK_CALENDAR_TIMEOUT_MS, "maxBytes": _TOCK_CALENDAR_MAX_BYTES,
+                }),
+                timeout=_TOCK_CALENDAR_TIMEOUT_MS / 1000 + 5,
+            )
+            if not isinstance(result, dict) or result.get("status") != 200 or result.get("contentType") != "application/octet-stream":
+                raise RuntimeError("Tock calendar invalid HTTP response")
+            data = result.get("data")
+            if not isinstance(data, list) or not 0 < len(data) <= _TOCK_CALENDAR_MAX_BYTES:
+                raise RuntimeError("Tock calendar empty or oversized response")
+            if any(type(byte) is not int or not 0 <= byte <= 255 for byte in data):
+                raise RuntimeError("Tock calendar invalid binary response")
+            return html, bytes(data)
+
+        return await self._fetch_with_page(url, proxy_url, read_calendar)
+
+    async def _fetch_with_page(
+        self,
+        url: str,
+        proxy_url: Optional[str],
+        operation: Callable[[Any, str], Awaitable[_PageResult]],
+    ) -> _PageResult:
+        """Run an operation after normal challenge handling, before context close."""
         normalized_url = URLUtils.normalize_url(url)
         proxy_dict = _parse_proxy(proxy_url) if proxy_url else None
 
@@ -1228,7 +1348,7 @@ class PlaywrightBrowser:
                     f"[PlaywrightBrowser] Fetched {normalized_url} ({len(html)} chars)",
                     {},
                 )
-                return html
+                return await operation(page, html)
             finally:
                 if context is not None:
                     await context.close()

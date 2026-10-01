@@ -43,6 +43,8 @@ class Show(DatabaseEntity):
     id: Optional[int] = None  # Database ID
     source_performance_id: Optional[str] = None  # Namespaced native performance identity; never a room
     operation_type: Optional[str] = None  # 'inserted' or 'updated'
+    # Scrape-local authority to remove absent ticket tiers; never persisted.
+    tickets_complete: bool = True
 
     def __post_init__(self) -> None:
         """Argument-level validation and light normalization for Show instances.

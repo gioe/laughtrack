@@ -127,14 +127,11 @@ def _parse_json_from_rendered_html(rendered: str) -> Optional[Any]:
     return None
 
 
-def _with_tixr_decodo_session(proxy_url: Optional[str]) -> Optional[str]:
-    """Return a Decodo proxy URL with a fresh sticky-session username for Tixr.
+def with_decodo_session(proxy_url: Optional[str]) -> Optional[str]:
+    """Return a fresh Decodo sticky-session URL; leave other proxies unchanged.
 
-    Tixr's DataDome has been returning ``t=bv`` challenges for the plain
-    Decodo URL, which means the selected egress IP is already banned and
-    Capsolver cannot solve it. Decodo rotates residential IPs by adding a
-    ``session`` parameter to the proxy username, so Tixr gets a fresh identity
-    per fetch while other allowlisted scrapers keep their configured URL.
+    Call once per logical fetch and reuse the returned URL through navigation,
+    challenge solving and subsequent API reads to retain the same egress IP.
     """
     if not proxy_url:
         return proxy_url
@@ -159,6 +156,11 @@ def _with_tixr_decodo_session(proxy_url: Optional[str]) -> Optional[str]:
         netloc = f"{netloc}:{parsed.port}"
 
     return urlunparse(parsed._replace(netloc=netloc))
+
+
+def _with_tixr_decodo_session(proxy_url: Optional[str]) -> Optional[str]:
+    """Compatibility wrapper for Tixr's existing per-fetch proxy selection."""
+    return with_decodo_session(proxy_url)
 
 
 # ---------------------------------------------------------------------------

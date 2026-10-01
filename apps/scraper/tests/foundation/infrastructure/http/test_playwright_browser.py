@@ -1092,13 +1092,14 @@ class TestPlaywrightBrowser:
             "<html><head><title>Just a moment...</title></head>"
             "<body><script>window._cf_chl_opt={};</script></body></html>"
         )
+        fresh_challenge_html = challenge_html.replace("_cf_chl_opt={}", "_cf_chl_opt={fresh:true}")
         post_solve_html = "<html>real venue content after cloudflare solve</html>"
 
         mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
         mock_page.content = AsyncMock(
             side_effect=[
                 challenge_html,   # initial content() in fetch_html
-                challenge_html,   # post-passive-wait content() — still blocked
+                fresh_challenge_html,   # post-passive-wait content() — still blocked
                 post_solve_html,  # post-solver-reload content()
             ]
         )
@@ -1129,6 +1130,7 @@ class TestPlaywrightBrowser:
             result = await browser.fetch_html("https://example.com/show")
 
         fake_solver.solve.assert_awaited_once()
+        assert fake_solver.solve.call_args.kwargs["html"] == fresh_challenge_html
         mock_context.add_cookies.assert_awaited_once()
         added = mock_context.add_cookies.call_args[0][0]
         assert isinstance(added, list) and len(added) == 1

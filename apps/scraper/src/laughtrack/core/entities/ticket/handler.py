@@ -50,6 +50,13 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
 
         show_ids = sorted({show.id for show in shows if getattr(show, "id", None) is not None})
 
+        # A partial observation can affirm tiers, but absence cannot authorize
+        # deleting previously known tiers. Any partial entry vetoes a sweep for
+        # that show ID, even if a duplicate entry in the batch claims complete.
+        partial_ticket_show_ids = {
+            show.id for show in shows if not getattr(show, "tickets_complete", True)
+        }
+
         # Deduplicate tickets based on unique constraint (show_id, type)
         deduplicated_tickets = TicketUtils.deduplicate_tickets(all_tickets)
 
@@ -82,7 +89,7 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
                     Logger.info("insert_tickets: no tickets to insert after invalid schema.org cleanup")
                     return
 
-                # Sweep stale tickets: for each show in the incoming batch,
+                # Sweep stale tickets: for each complete show in the incoming batch,
                 # delete existing (show_id, type) rows whose type is no longer
                 # in the batch. Without this, a re-scrape that returns a
                 # smaller tier set leaves the previous tiers orphaned in the DB
@@ -94,7 +101,7 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
                 shows_with_incoming_tickets: Set[int] = set()
                 shows_with_positive_incoming_prices: Set[int] = set()
                 for ticket in deduplicated_tickets:
-                    if ticket.show_id is None:
+                    if ticket.show_id is None or ticket.show_id in partial_ticket_show_ids:
                         continue
                     sweep_keep_show_ids.append(ticket.show_id)
                     sweep_keep_types.append(ticket.type)

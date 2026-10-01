@@ -149,13 +149,16 @@ class CloudflareSolver:
         website_key: Optional[str] = None,
         action: Optional[str] = None,
         cdata: Optional[str] = None,
+        html: Optional[str] = None,
     ) -> Optional[SolvedCloudflareClearance]:
         """Submit a Cloudflare challenge and poll until ready.
 
         With *proxy_url*: uses ``AntiCloudflareTask`` to solve the full "Just
         a moment" interstitial through that proxy, returning a ``cf_clearance``
         cookie bound to the proxy IP. The caller MUST issue the follow-up
-        request through the same proxy.
+        request through the same proxy. When supplied, *html* is the fresh
+        challenge page required by some interstitials; it is forwarded only
+        to ``AntiCloudflareTask`` and is never logged.
 
         Without *proxy_url*: ``cf_clearance`` cannot be solved usefully (it
         would bind to capsolver's egress IP and be rejected), so the solver
@@ -186,6 +189,8 @@ class CloudflareSolver:
                 "userAgent": user_agent,
                 "proxy": proxy_url,
             }
+            if html:
+                task_payload["html"] = html
             if website_key is not None:
                 task_payload["websiteKey"] = website_key
             if metadata:

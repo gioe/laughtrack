@@ -93,9 +93,10 @@ TicketHandler = _ticket_handler_mod.TicketHandler
 
 class _FakeShow:
     """Minimal stand-in for Show used by insert_tickets."""
-    def __init__(self, show_id: int, tickets):
+    def __init__(self, show_id: int, tickets, *, tickets_complete: bool = True):
         self.id = show_id
         self.tickets = tickets
+        self.tickets_complete = tickets_complete
 
 
 def _make_ticket(purchase_url: str, price: float = 25.0, sold_out: bool = False) -> Ticket:
@@ -738,3 +739,67 @@ class TestInsertTicketsSingleTransaction:
         # ...but the cleanup commits via the wrapping transaction's clean exit.
         tx_conn.commit.assert_called_once()
         tx_conn.rollback.assert_not_called()
+
+
+class TestPartialTicketPreservation:
+    """Partial calendars update affirmed tiers without treating omission as removal."""
+
+    @pytest.fixture
+    def handler(self, monkeypatch):
+        @contextmanager
+        def transaction(_self):
+            yield MagicMock(name="tx_conn")
+
+        monkeypatch.setattr(TicketHandler, "transaction", transaction)
+        handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+        return handler
+
+    def test_partial_positive_price_refresh_upserts_without_stale_sweep(self, handler):
+        show = _FakeShow(101, [
+            Ticket(price=55, purchase_url="https://example.com/vip", type="VIP", sold_out=False),
+        ], tickets_complete=False)
+        handler.insert_tickets([show])
+
+        # Even a paid tier cannot authorize deletion of absent GA/premium tiers.
+        assert handler.execute_with_cursor.call_count == 1
+        assert handler.execute_with_cursor.call_args.args == (
+            TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS, ([101],),
+        )
+        assert handler.execute_batch_operation.call_args.args[1] == [
+            (101, "https://example.com/vip", 55, False, "VIP"),
+        ]
+
+    def test_mixed_batch_sweeps_only_complete_show_and_upserts_both(self, handler):
+        partial = _FakeShow(101, [
+            Ticket(price=55, purchase_url="https://example.com/partial", type="VIP", sold_out=True),
+        ], tickets_complete=False)
+        complete = _FakeShow(202, [
+            Ticket(price=25, purchase_url="https://example.com/complete", type="GA", sold_out=False),
+        ])
+        handler.insert_tickets([partial, complete])
+
+        cleanup, sweep = handler.execute_with_cursor.call_args_list
+        assert cleanup.args[1] == ([101, 202],)
+        assert sweep.args == (
+            TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS, ([202], [202], ["GA"], [202]),
+        )
+        assert handler.execute_batch_operation.call_args.args[1] == [
+            (101, "https://example.com/partial", 55, True, "VIP"),
+            (202, "https://example.com/complete", 25, False, "GA"),
+        ]
+        # Both cleanup and upsert stay inside the same transactional connection.
+        assert cleanup.kwargs["conn"] is sweep.kwargs["conn"]
+        assert sweep.kwargs["conn"] is handler.execute_batch_operation.call_args.kwargs["conn"]
+
+    def test_partial_duplicate_vetoes_sweep_for_same_show_id(self, handler):
+        partial = _FakeShow(101, [
+            Ticket(price=55, purchase_url="https://example.com/vip", type="VIP", sold_out=False),
+        ], tickets_complete=False)
+        complete = _FakeShow(101, [
+            Ticket(price=25, purchase_url="https://example.com/ga", type="GA", sold_out=False),
+        ])
+        handler.insert_tickets([partial, complete])
+        assert handler.execute_with_cursor.call_count == 1
+        assert {row[4] for row in handler.execute_batch_operation.call_args.args[1]} == {"GA", "VIP"}

@@ -29,6 +29,7 @@ def extract_tock_events(
     source_url: str,
     timezone: str,
     comedy_filter: bool = False,
+    reservation_events: list[JsonLdEvent] | None = None,
 ) -> list[JsonLdEvent]:
     """Return Tock GA events from a rendered business page."""
     state = _extract_redux_state(html)
@@ -44,6 +45,8 @@ def extract_tock_events(
     for raw in experiences:
         if not isinstance(raw, dict):
             raise ValueError("Malformed Tock experience")
+        if raw.get("type") == "PRIX_FIXE" and reservation_events is not None:
+            continue
         if raw.get("type") != "GA_EVENT":
             unsupported.add(str(raw.get("type") or "unknown experience"))
             continue
@@ -59,6 +62,9 @@ def extract_tock_events(
         events.extend(expanded)
         if incomplete:
             unsupported.add("GA recurrence rule without explicit dates")
+
+    if reservation_events is not None:
+        events.extend(reservation_events)
 
     if unsupported:
         message = "Unverified Tock recurring/unsupported availability: " + ", ".join(sorted(unsupported))

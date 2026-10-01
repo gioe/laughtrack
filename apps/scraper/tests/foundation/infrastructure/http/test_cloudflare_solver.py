@@ -279,3 +279,27 @@ class TestBuildDefaultCloudflareSolver:
 class TestConstants:
     def test_cf_clearance_cookie_name(self):
         assert CF_CLEARANCE_COOKIE_NAME == "cf_clearance"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('challenge_html', [None, '', '<html><script>window._cf_chl_opt={fresh:true};</script></html>'])
+async def test_proxy_task_forwards_only_supplied_challenge_html(challenge_html):
+    solver = _FakeSolver(responses=[{'errorId': 0}])
+    await solver.solve(website_url='https://example.com/', user_agent='ua',
+                       proxy_url='http://proxy:3128', html=challenge_html)
+    task = solver.calls[0][1]['task']
+    assert task['type'] == 'AntiCloudflareTask'
+    if challenge_html:
+        assert task['html'] == challenge_html
+    else:
+        assert 'html' not in task
+
+
+@pytest.mark.asyncio
+async def test_proxyless_turnstile_task_does_not_receive_challenge_html():
+    solver = _FakeSolver(responses=[{'errorId': 0}])
+    await solver.solve(website_url='https://example.com/', user_agent='ua', website_key='sitekey',
+                       html='<html>challenge contents</html>')
+    task = solver.calls[0][1]['task']
+    assert task['type'] == 'AntiTurnstileTaskProxyless'
+    assert 'html' not in task
