@@ -107,7 +107,7 @@ async def fetch_highlights(fetch_html, club):
     async def fetch(url):
         async with semaphore:
             try:
-                html = await asyncio.wait_for(fetch_html(url), timeout=12)
+                html = await asyncio.wait_for(fetch_html(url), timeout=30)
                 event = verify_detail(html or "", url, club)
                 if event is None:
                     Logger.warn(f"Laughing Tap partial fallback rejected unverified TicketTailor detail: {url}")

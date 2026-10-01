@@ -36,6 +36,7 @@ async def test_blocked_primary_recovers_verified_subset_and_preserves_failure():
     s = EtixScraper(club())
     s._fetch_etix_html = AsyncMock(return_value='<html>datadome</html>')
     s.fetch_html_bare = AsyncMock(side_effect=[f'<a href="{URL}">Tickets</a>', detail()])
+    s.fetch_html = s.fetch_html_bare
     with patch('laughtrack.scrapers.implementations.api.etix.scraper.current_diagnostics') as diagnostics:
         result = await s.get_data(s.club.scraping_url)
     assert [e.ticket_url for e in result.event_list] == [URL]
@@ -103,6 +104,7 @@ async def test_recovered_subset_cannot_reconcile_missing_inventory():
         s = EtixScraper(club())
         s._fetch_etix_html = AsyncMock(return_value='<html>datadome</html>')
         s.fetch_html_bare = AsyncMock(side_effect=[f'<a href="{URL}">Tickets</a>', detail()])
+        s.fetch_html = s.fetch_html_bare
         result = await s.get_data(s.club.scraping_url)
         diagnostics.record_fetch_ok()
     finally:
@@ -126,4 +128,19 @@ async def test_nonempty_unrecognized_failure_page_still_attempts_partial_recover
     s = EtixScraper(club())
     s._fetch_etix_html = AsyncMock(return_value='<html><h1>Forbidden</h1></html>')
     s.fetch_html_bare = AsyncMock(side_effect=[f'<a href="{URL}">Tickets</a>', detail()])
+    s.fetch_html = s.fetch_html_bare
     assert len((await s.get_data(s.club.scraping_url)).event_list) == 1
+
+
+@pytest.mark.asyncio
+async def test_ticket_tailor_details_use_proxy_browser_stack_but_home_stays_bare():
+    from laughtrack.scrapers.implementations.api.etix.public_ticket_tailor import HOME
+    s = EtixScraper(club())
+    s._fetch_etix_html = AsyncMock(return_value='<html>datadome</html>')
+    s.fetch_html_bare = AsyncMock(return_value=f'<a href="{URL}">Tickets</a>')
+    s.fetch_html = AsyncMock(return_value=detail())
+    result = await s.get_data(s.club.scraping_url)
+    assert len(result.event_list) == 1
+    s.fetch_html_bare.assert_awaited_once_with(HOME)
+    s.fetch_html.assert_awaited_once_with(URL, scraper_key='etix',
+                                          headers={'Referer': HOME, 'Accept-Language': 'en-US,en;q=0.9'})

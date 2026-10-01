@@ -1,0 +1,140 @@
+[
+  {
+    "run_id": 36875864960,
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36875864960",
+    "head_sha": "1a1bdc282b298f6f97b41a42bf80477c3efb198a",
+    "metrics": {
+      "session": {
+        "duration_seconds": 4.65242,
+        "exported_at": "2026-10-01T14:23:51.333415"
+      },
+      "shows": {
+        "scraped": 0,
+        "saved": 0,
+        "inserted": 0,
+        "updated": 0,
+        "failed_save": 0,
+        "skipped_dedup": 0,
+        "validation_failed": 0,
+        "db_errors": 0
+      },
+      "clubs": {
+        "processed": 1,
+        "successful": 0,
+        "failed": 1
+      },
+      "errors": {
+        "total": 1
+      },
+      "success_rate": 0.0,
+      "execution_times": [
+        4.65242
+      ],
+      "per_club_stats": [
+        {
+          "club": "The Laughing Tap",
+          "num_shows": 0,
+          "execution_time": 4.65242,
+          "success": false,
+          "error": "Etix The Laughing Tap primary unavailable; official highlights are incomplete; blocking stale reconciliation; fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=27614&orderBy=1&pageNumber=1: DataError: Etix The Laughing Tap primary unavailable; official highlights are incomplete; blocking stale reconciliation",
+          "club_id": 9070,
+          "errors": 3,
+          "success_rate": 0.0,
+          "http_status": 403,
+          "bot_block_detected": true,
+          "bot_block_signature": "playwright_datadome",
+          "bot_block_provider": "datadome",
+          "bot_block_type": "interstitial",
+          "bot_block_source": "playwright_rendered_html",
+          "bot_block_stage": "playwright_fallback",
+          "playwright_fallback_used": true,
+          "items_before_filter": 0,
+          "targets_collected": 1,
+          "fetches_ok": 0,
+          "fetches_failed": 2,
+          "ticketless_shows": 0,
+          "is_synthetic": false,
+          "production_company_id": null
+        }
+      ],
+      "error_details": [
+        {
+          "club": "The Laughing Tap",
+          "error": "Etix The Laughing Tap primary unavailable; official highlights are incomplete; blocking stale reconciliation; fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=27614&orderBy=1&pageNumber=1: DataError: Etix The Laughing Tap primary unavailable; official highlights are incomplete; blocking stale reconciliation",
+          "execution_time": 4.65242
+        }
+      ],
+      "duplicate_show_details": [],
+      "run_type": "verify"
+    }
+  },
+  {
+    "run_id": 36875874464,
+    "url": "https://github.com/gioe/laughtrack/actions/runs/36875874464",
+    "head_sha": "1a1bdc282b298f6f97b41a42bf80477c3efb198a",
+    "metrics": {
+      "session": {
+        "duration_seconds": 2.945214,
+        "exported_at": "2026-10-01T14:23:45.611162"
+      },
+      "shows": {
+        "scraped": 0,
+        "saved": 0,
+        "inserted": 0,
+        "updated": 0,
+        "failed_save": 0,
+        "skipped_dedup": 0,
+        "validation_failed": 0,
+        "db_errors": 0
+      },
+      "clubs": {
+        "processed": 1,
+        "successful": 0,
+        "failed": 1
+      },
+      "errors": {
+        "total": 1
+      },
+      "success_rate": 0.0,
+      "execution_times": [
+        2.945214
+      ],
+      "per_club_stats": [
+        {
+          "club": "Ann Arbor Comedy Showcase",
+          "num_shows": 0,
+          "execution_time": 2.945214,
+          "success": false,
+          "error": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1",
+          "club_id": 16122,
+          "errors": 2,
+          "success_rate": 0.0,
+          "http_status": 403,
+          "bot_block_detected": true,
+          "bot_block_signature": "playwright_datadome",
+          "bot_block_provider": "datadome",
+          "bot_block_type": "interstitial",
+          "bot_block_source": "playwright_rendered_html",
+          "bot_block_stage": "playwright_fallback",
+          "playwright_fallback_used": true,
+          "items_before_filter": 0,
+          "targets_collected": 1,
+          "fetches_ok": 0,
+          "fetches_failed": 1,
+          "ticketless_shows": 0,
+          "is_synthetic": false,
+          "production_company_id": null
+        }
+      ],
+      "error_details": [
+        {
+          "club": "Ann Arbor Comedy Showcase",
+          "error": "fetch failed for https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1: DataError: Etix mandatory source produced no verified events: https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=515&orderBy=1&pageNumber=1",
+          "execution_time": 2.945214
+        }
+      ],
+      "duplicate_show_details": [],
+      "run_type": "verify"
+    }
+  }
+]

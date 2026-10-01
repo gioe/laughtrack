@@ -39,7 +39,7 @@ from laughtrack.scrapers.utils.comedy_filter import (
 
 from .data import EtixPageData
 from .extractor import EtixExtractor
-from .public_ticket_tailor import fetch_highlights as fetch_laughing_tap_highlights
+from .public_ticket_tailor import fetch_highlights as fetch_laughing_tap_highlights, ticket_identity
 from .public_vixen import fetch_highlights as fetch_vixen_highlights
 from .rockhouse import extract_rockhouse_events_with_conflicts
 from .rockhouse_identity import resolve_rockhouse_conflicts
@@ -334,10 +334,21 @@ class EtixScraper(BaseScraper):
             signature = _bot_block_reason(html or "")
             if signature:
                 diagnostics.record_bot_block(signature, source="response_body", stage="direct_fetch")
-        events = await self._partial_public_fallback()(self.fetch_html_bare, self.club)
+        events = await self._partial_public_fallback()(self._fetch_partial_public_html, self.club)
         if events:
             return EtixPageData(event_list=events)
         raise self._source_failure(message)
+
+    async def _fetch_partial_public_html(self, url):
+        # TicketTailor rejects bare hosted-runner requests. Keep its verified
+        # detail URLs on the shared proxy/browser stack; official venue pages
+        # retain the successful bare curl path.
+        if ticket_identity(url) is not None:
+            return await self.fetch_html(
+                url, scraper_key="etix",
+                headers={"Referer": "https://laughingtap.com/", "Accept-Language": "en-US,en;q=0.9"},
+            )
+        return await self.fetch_html_bare(url)
 
     def _partial_public_fallback(self):
         return {("27614", 9070): fetch_laughing_tap_highlights,
