@@ -1,0 +1,99 @@
+{
+  "shows_preserved": 609,
+  "tickets_preserved": 609,
+  "refreshed": [
+    {
+      "id": 4400553,
+      "name": "Laugh for Sight",
+      "date": "2026-10-27T00:30:00+00:00",
+      "url": "https://www.showclix.com/event/laugh-for-sightrr0o2ld",
+      "lineup": [
+        {
+          "comedian_id": "08468d7a42f2b83d071ecf68a43d324c",
+          "name": "Cory Kahaney"
+        },
+        {
+          "comedian_id": "0fbf57587244a3387e21a24f97137f15",
+          "name": "Shaun Eli"
+        },
+        {
+          "comedian_id": "2328607e15f1ab499c98a68e76fbb441",
+          "name": "Aaron Berg"
+        },
+        {
+          "comedian_id": "e7b44caab5051dae1127e4189f37a5bb",
+          "name": "Mark Normand"
+        }
+      ]
+    },
+    {
+      "id": 5645376,
+      "name": "Mixtape Comedy Show (As Part of the NYCF)",
+      "date": "2026-11-16T00:00:00+00:00",
+      "url": "https://www.showclix.com/event/mixtape26ridbcyf",
+      "lineup": [
+        {
+          "comedian_id": "2bb92066083ac52c8bda0f5c2a4a8374",
+          "name": "Royale Watkins"
+        }
+      ]
+    },
+    {
+      "id": 6370626,
+      "name": "Mixtape Comedy Show",
+      "date": "2026-10-18T23:00:00+00:00",
+      "url": "https://www.showclix.com/event/mixtape262olszrg",
+      "lineup": [
+        {
+          "comedian_id": "2bb92066083ac52c8bda0f5c2a4a8374",
+          "name": "Royale Watkins"
+        }
+      ]
+    }
+  ],
+  "unmatched_unchanged": 606,
+  "named_shows": 3,
+  "lineups": 6,
+  "priced": 3,
+  "all_dates_rooms_and_tickets_unchanged": true,
+  "persistence": {
+    "inserts": 0,
+    "updates": 3,
+    "total": 3,
+    "errors": 0,
+    "validation_errors": 0,
+    "db_errors": 0,
+    "comedians_inserted": 1,
+    "lineup_items_added": 6,
+    "duplicate_details": [],
+    "error_entries": []
+  },
+  "feed_items": 433,
+  "scrape": {
+    "club_name": "Gotham Comedy Club",
+    "execution_time": 11.378697,
+    "error": null,
+    "club_id": 18,
+    "error_log_count": 0,
+    "scraper_key": "gotham",
+    "http_status": 200,
+    "bot_block_detected": false,
+    "bot_block_signature": null,
+    "bot_block_provider": null,
+    "bot_block_type": null,
+    "bot_block_source": null,
+    "bot_block_stage": null,
+    "playwright_fallback_used": false,
+    "items_before_filter": 110,
+    "targets_collected": 5,
+    "fetches_ok": 5,
+    "fetches_failed": 0,
+    "ticketless_shows": 0,
+    "config_error": false,
+    "cross_host_redirects": "set()",
+    "is_synthetic": false,
+    "production_company_id": null
+  },
+  "upcoming_shows": 110,
+  "source_sha256": "49f73d957c66bf1fad3fa108ae2a562fc85480bc3a977167bf26f429edad3576"
+}
