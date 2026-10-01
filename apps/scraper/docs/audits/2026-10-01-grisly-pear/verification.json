@@ -1,0 +1,74 @@
+{
+  "shows_preserved": 1987,
+  "tickets_preserved": 2163,
+  "refreshed": 116,
+  "unmatched_unchanged": 1871,
+  "named_shows": 104,
+  "lineups": 452,
+  "priced": 116,
+  "redirected_6331162_unchanged": true,
+  "persistence": {
+    "inserts": 0,
+    "updates": 116,
+    "total": 116,
+    "errors": 0,
+    "validation_errors": 0,
+    "db_errors": 0,
+    "comedians_inserted": 12,
+    "lineup_items_added": 452,
+    "duplicate_details": [],
+    "error_entries": []
+  },
+  "stack": "GrislyPearScraper.scrape_with_result -> BaseScraper -> HttpClient -> normal transformer/Show validation; ShowService.insert_shows for bounded existing-only refresh",
+  "execution": "Local production-configured stack, not a GitHub Actions dispatch; full dispatch intentionally avoided to keep repair limited to existing records.",
+  "venues": [
+    {
+      "club_id": 6,
+      "shows": 101,
+      "named_shows": 97,
+      "priced": 101,
+      "fetches_failed": 0,
+      "error": null,
+      "http_status": 200
+    },
+    {
+      "club_id": 7,
+      "shows": 36,
+      "named_shows": 23,
+      "priced": 35,
+      "fetches_failed": 0,
+      "error": null,
+      "http_status": 200
+    }
+  ],
+  "new_performances_not_written": 21,
+  "suppressed_source_placeholder_memberships": 43,
+  "canonical_alias": "Talent Harris Jr -> Talent Harris Jr.",
+  "source_captures": [
+    {
+      "file": "6150999.html",
+      "sha256": "6bfb9dd078dac15b011651e328532dbc9c5eecfff63ad704e9e726859219cb0d",
+      "bytes": 42361
+    },
+    {
+      "file": "6331162.html",
+      "sha256": "b068f667c510fcb5f4c823a546d77eff12ce7b73cdbede45d3106185d44dd82d",
+      "bytes": 46816
+    },
+    {
+      "file": "6357354.html",
+      "sha256": "352b34de971a69f919050ac07e35eeaa2c3bfcc8cd6ba9c9323e625f459f43b1",
+      "bytes": 45244
+    },
+    {
+      "file": "6395740.html",
+      "sha256": "cc43428977abc48958bb63a835cac92bf63e62a2aed92fa8f62102299cbe2488",
+      "bytes": 47649
+    },
+    {
+      "file": "calendar.html",
+      "sha256": "ebf901cbc04e5073ce78af5272c70b899d9b0a3004c826e212b7eff3fcafc39d",
+      "bytes": 1023664
+    }
+  ]
+}

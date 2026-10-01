@@ -1,0 +1,1525 @@
+[
+  {
+    "club_id": 6,
+    "shows": [
+      {
+        "date": "2026-10-01 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/that-thursday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-01-26-10-00-pm",
+        "performers": [
+          "Doug Uram",
+          "Connor Meade",
+          "Eric Menzel",
+          "Tyler Groce"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-01 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-01-26-11-59-pm",
+        "performers": [
+          "Adam Gabel",
+          "Michael Good",
+          "Connor Meade"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-02 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/dive-bar-comedy-at-the-grisly-pear-greenwich-village-10-02-26-06-00-pm",
+        "performers": [
+          "Eric Menzel",
+          "Alexis Bradby",
+          "Cooper Kim",
+          "Espi Rivadeneira",
+          "Chloe LaBranche"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-02 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-02-26-08-00-pm",
+        "performers": [
+          "Brandon Trusso",
+          "Lee Valentin",
+          "Ben Callahan",
+          "Noah Miller",
+          "Kimberly Dinaro",
+          "Salma Zaky"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-02 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-02-26-10-00-pm",
+        "performers": [
+          "Brandon Trusso",
+          "Julia Kastner",
+          "Dave Caggiano",
+          "Nikhil Mehta",
+          "Chris Reiter",
+          "Corinne Fisher"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-02 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-02-26-11-59-pm",
+        "performers": [
+          "Joe Russell",
+          "Derick Gonzalez",
+          "Connor Meade",
+          "Julia Kastner"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-03 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-03-26-06-00-pm",
+        "performers": [
+          "Stewie Vill",
+          "Alec Adams",
+          "Humzah Azeem",
+          "Paula J. Leon"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-03 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-03-26-08-00-pm",
+        "performers": [
+          "Lee Valentin",
+          "Joseph Rosenzweig",
+          "Chris Reiter",
+          "Corinne Fisher",
+          "Mae Planert"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-03 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-03-26-10-00-pm",
+        "performers": [
+          "Chris Reiter",
+          "Nikhil Mehta",
+          "Brandon Trusso",
+          "Rachel Williams"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-03 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-03-26-11-59-pm",
+        "performers": [
+          "Peter Guarraci",
+          "Dara Jemmott",
+          "Igor Martinez"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-04 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-04-26-06-00-pm",
+        "performers": [
+          "Jesse Townsend",
+          "Andrew Dorman",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-04 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/dive-bar-comedy-show-at-the-grisly-pear-greenwich-village-10-04-26-08-00-pm",
+        "performers": [
+          "Derick Gonzalez",
+          "Ben Frank",
+          "Jesse Townsend",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-04 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-04-26-10-00-pm",
+        "performers": [
+          "Nikhil Mehta",
+          "Connor Meade",
+          "Fiona Michaels",
+          "Rachel Williams"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-04 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-04-26-11-59-pm",
+        "performers": [
+          "Farzin Moradi",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-05 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/monday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-05-26-08-00-pm",
+        "performers": [
+          "Abby Washuta",
+          "And More!",
+          "Rosemary Cipriano",
+          "Sam Doctor"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-05 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-05-26-10-00-pm",
+        "performers": [
+          "Matt Bowman",
+          "Sashalyn Medina",
+          "Cooper Kim",
+          "Tina Zhu",
+          "Cab Washington",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-05 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-05-26-11-59-pm",
+        "performers": [
+          "Adam Gabel",
+          "Jake Silberman",
+          "Ben Frank",
+          "Sam Doctor",
+          "Josh Ri'Esgo",
+          "Nikhil Mehta"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-06 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/dive-bar-comedy-show-at-the-grisly-pear-greenwich-village-10-06-26-08-00-pm",
+        "performers": [
+          "Matt Bowman",
+          "Julia Kastner",
+          "Shyam Subramanian",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-06 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-06-26-10-00-pm",
+        "performers": [
+          "Tanner Riley",
+          "Humzah Azeem",
+          "J Smitty",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-06 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-06-26-11-59-pm",
+        "performers": [
+          "Ben Frank",
+          "Matt Vita",
+          "Monte Marshall",
+          "Luke Davis",
+          "Drew Beekler",
+          "Laura Sogar"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-07 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/wednesday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-07-26-08-00-pm",
+        "performers": [
+          "Malorie Bryant",
+          "Chris Reiter",
+          "Tomas Liebel",
+          "Marty Cunnie",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-07 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-07-26-10-00-pm",
+        "performers": [
+          "Linette Palladino",
+          "Calvin Cato",
+          "Noah Miller",
+          "Dominic Leonelli",
+          "Nikki MacCallum"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-07 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-07-26-11-59-pm",
+        "performers": [
+          "Jordan Spivey",
+          "Dominic Leonelli",
+          "Laura Sogar"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-08 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-08-26-10-00-pm",
+        "performers": [
+          "Doug Uram",
+          "Tyler Groce",
+          "Tina Zhu",
+          "Emily Wilson",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-08 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-08-26-11-59-pm",
+        "performers": [
+          "Tyler Groce",
+          "Joseph Rosenzweig",
+          "Jake Silberman",
+          "Karla Watkins",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-09 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/dive-bar-comedy-show-at-the-grisly-pear-greenwich-village-10-09-26-06-00-pm",
+        "performers": [
+          "Cooper Kim",
+          "Luke Davis",
+          "Joanna M. Briley",
+          "Brittany Cardwell",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-09 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-09-26-08-00-pm",
+        "performers": [
+          "Brandon Trusso",
+          "Rachel Paula Green",
+          "Eric Menzel",
+          "Trevor Liberty",
+          "Matt Bowman",
+          "Karla Watkins",
+          "Reggie Edwards"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-09 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-09-26-10-00-pm",
+        "performers": [
+          "Brandon Trusso",
+          "Chris Hamilton",
+          "Alec Adams",
+          "Ja-Ron Young",
+          "Emily Wilson",
+          "Antoine Nessralla",
+          "Meeti Purani"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-09 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-09-26-11-59-pm",
+        "performers": [
+          "Adam Gabel",
+          "Derick Gonzalez",
+          "Shyam Subramanian",
+          "Jenny Saldana",
+          "Reggie Edwards"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-10 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-10-26-06-00-pm",
+        "performers": [
+          "Stewie Vill",
+          "Sam Doctor",
+          "Trevor Liberty",
+          "Julia Kastner",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-10 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-10-26-08-00-pm",
+        "performers": [
+          "Brandon Trusso",
+          "Erin Depke",
+          "Stewie Vill",
+          "Chris Reiter",
+          "Malorie Bryant",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-10 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-10-26-10-00-pm",
+        "performers": [
+          "Malorie Bryant",
+          "Chris Reiter",
+          "Ben Callahan",
+          "Joseph Rosenzweig",
+          "Brandon Trusso",
+          "Dara Jemmott",
+          "Zach Braviette"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-10 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-10-26-11-59-pm",
+        "performers": [
+          "Joe Russell",
+          "Adam Gabel",
+          "Tomas Liebel",
+          "Jesse Townsend"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-11 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-11-26-06-00-pm",
+        "performers": [
+          "Erin Depke",
+          "Monte Marshall",
+          "Farooq Hussain",
+          "Aubrey Thurman"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-11 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/sunday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-11-26-08-00-pm",
+        "performers": [
+          "Jenny Saldana",
+          "Michael Freedman",
+          "Noah Miller",
+          "Erin Depke",
+          "Chris Condren"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-11 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-11-26-10-00-pm",
+        "performers": [
+          "Nikhil Mehta",
+          "Cab Washington",
+          "Jenny Saldana",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-11 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-11-26-11-59-pm",
+        "performers": [
+          "Jordan Spivey",
+          "Dominic Leonelli",
+          "Antoine Nessralla",
+          "Dara Jemmott",
+          "Reggie Edwards",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-12 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-12-26-08-00-pm",
+        "performers": [
+          "Abby Washuta",
+          "And More!",
+          "Alex Mahaney"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-12 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-12-26-10-00-pm",
+        "performers": [
+          "Jordan Spivey",
+          "Julia Kastner",
+          "Eric Menzel",
+          "Tina Zhu",
+          "Max Moacanin"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-12 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-12-26-11-59-pm",
+        "performers": [
+          "Adam Gabel",
+          "Dominic Leonelli",
+          "Antoine Nessralla",
+          "Joseph Rosenzweig",
+          "Luke Davis",
+          "Jordan Spivey",
+          "Nico Cattaneo"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-13 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-13-26-08-00-pm",
+        "performers": [
+          "Matt Bowman",
+          "J Smitty",
+          "Rosemary Cipriano",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-13 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-13-26-10-00-pm",
+        "performers": [
+          "Tanner Riley",
+          "Julia Kastner",
+          "Cooper Kim",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-13 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-13-26-11-59-pm",
+        "performers": [
+          "Jordan Spivey",
+          "Dominic Leonelli",
+          "Luke Davis",
+          "Monte Marshall",
+          "Misha Han"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-14 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-14-26-08-00-pm",
+        "performers": [
+          "Malorie Bryant",
+          "Chris Hamilton",
+          "Humzah Azeem",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-14 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-14-26-10-00-pm",
+        "performers": [
+          "Linette Palladino",
+          "Jesse Townsend",
+          "Cooper Kim",
+          "Alexis Bradby",
+          "Rachel Paula Green",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-14 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-14-26-11-59-pm",
+        "performers": [
+          "Joe Russell",
+          "Josh Ri'Esgo",
+          "Ben Frank",
+          "Monte Marshall",
+          "Talib Babb",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-15 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-15-26-10-00-pm",
+        "performers": [
+          "Doug Uram",
+          "Aubrey Thurman",
+          "Carmen Lagala",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-15 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-15-26-11-59-pm",
+        "performers": [
+          "Joe Russell",
+          "Josh Simensky",
+          "Alex Mahaney",
+          "Alex Ives",
+          "Jordan Spivey"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-16 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-16-26-06-00-pm",
+        "performers": [
+          "Chris Pattwell",
+          "Michael Good",
+          "Andrew Dorman",
+          "Fiona Michaels",
+          "Joanna M. Briley",
+          "And More!",
+          "Victor Boda"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-16 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-16-26-08-00-pm",
+        "performers": [
+          "Matt Bowman",
+          "Chris Reiter",
+          "Pete Burdette",
+          "Corinne Fisher",
+          "Victor Boda"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-16 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-16-26-11-59-pm",
+        "performers": [
+          "Tanner Riley",
+          "Josh Ri'Esgo",
+          "Alex Mahaney",
+          "Ben Frank",
+          "Dj Collins",
+          "Jake Velazquez"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-17 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-17-26-06-00-pm",
+        "performers": [
+          "Stewie Vill",
+          "Alec Adams",
+          "Alex Mahaney",
+          "Natan Badalov",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-17 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-17-26-08-00-pm",
+        "performers": [
+          "Abby Washuta",
+          "Calvin Cato",
+          "Ben Frank",
+          "Jatty Robinson",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-17 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-17-26-10-00-pm",
+        "performers": [
+          "Matt Bowman",
+          "Noah Miller",
+          "Mohtasham Yaqub",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-17 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-17-26-11-59-pm",
+        "performers": [
+          "Joe Russell",
+          "Dave Caggiano",
+          "Pete Burdette",
+          "Reggie Edwards"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-18 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-18-26-06-00-pm",
+        "performers": [
+          "Alexis Bradby",
+          "Alex Ives",
+          "Luke Davis",
+          "Jake Velazquez",
+          "Kimberly Dinaro"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-18 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-18-26-08-00-pm",
+        "performers": [
+          "Calvin Cato",
+          "Fiona Michaels",
+          "Gurvir Singh",
+          "Alexis Bradby",
+          "Troy Alan"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-18 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-18-26-10-00-pm",
+        "performers": [
+          "Nikhil Mehta",
+          "Connor Meade",
+          "Monte Marshall",
+          "Calvin Cato"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-18 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-18-26-11-59-pm",
+        "performers": [
+          "Farzin Moradi",
+          "Monte Marshall",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-19 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-19-26-08-00-pm",
+        "performers": [
+          "Abby Washuta",
+          "Adam Nate Levine",
+          "Michael Freedman",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-19 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-19-26-10-00-pm",
+        "performers": [
+          "Aditya Shankar",
+          "Julia Kastner",
+          "Fiona Michaels",
+          "Sam Doctor",
+          "Farzin Moradi",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-19 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-19-26-11-59-pm",
+        "performers": [
+          "Adam Gabel",
+          "Josh Ri'Esgo",
+          "Ben Frank",
+          "Cooper Kim",
+          "Dominic Leonelli",
+          "Karla Watkins"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-20 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-20-26-08-00-pm",
+        "performers": [
+          "Matt Bowman",
+          "Erin Depke",
+          "Eric Menzel",
+          "Amada Caba",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-20 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-20-26-10-00-pm",
+        "performers": [
+          "Tanner Riley",
+          "Cab Washington",
+          "Shyam Subramanian",
+          "Tomas Liebel",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-20 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-20-26-11-59-pm",
+        "performers": [
+          "Joe Russell",
+          "Luke Davis",
+          "Ben Frank",
+          "Nico Cattaneo",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-21 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-21-26-08-00-pm",
+        "performers": [
+          "Malorie Bryant",
+          "Troy Alan",
+          "Alex Mahaney",
+          "Joe Pontillo",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-21 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-21-26-10-00-pm",
+        "performers": [
+          "Linette Palladino",
+          "Jenny Saldana",
+          "Luke Davis",
+          "Carmen Lagala",
+          "Derick Gonzalez"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-21 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-21235900",
+        "performers": [
+          "Adam Gabel",
+          "Misha Han",
+          "Nikhil Mehta",
+          "Ben Frank",
+          "Joseph Rosenzweig",
+          "Matt Vita"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-22 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/that-thursday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-22-26-10-00-pm",
+        "performers": [
+          "Doug Uram",
+          "Abby Washuta",
+          "Talent Harris Jr"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-22 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-22-26-11-59-pm",
+        "performers": [
+          "Antoine Nessralla",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-23 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/dive-bar-comedy-show-at-the-grisly-pear-greenwich-village-10-23-26-06-00-pm",
+        "performers": [
+          "Eric Menzel",
+          "Kimberly Dinaro",
+          "Andrew Dorman",
+          "Trevor Liberty",
+          "Victor Boda",
+          "CJ Koepp"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-23 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-23-26-08-00-pm",
+        "performers": [
+          "Brandon Trusso",
+          "Ja-Ron Young",
+          "Ben Frank",
+          "Dave Caggiano",
+          "Nikhil Mehta",
+          "Nikki MacCallum",
+          "Victor Boda"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-23 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-23-26-10-00-pm",
+        "performers": [
+          "Brandon Trusso",
+          "Ryan Thomas",
+          "Antoine Nessralla",
+          "Gordon Kucher",
+          "Nikki MacCallum",
+          "Victor Boda",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-23 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-23-26-11-59-pm",
+        "performers": [
+          "Tanner Riley",
+          "Connor Meade",
+          "Aubrey Thurman",
+          "Pete Burdette",
+          "Derek Humphrey",
+          "Derick Gonzalez"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-24 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-24-26-06-00-pm",
+        "performers": [
+          "Stewie Vill",
+          "Alec Adams",
+          "Humzah Azeem",
+          "Laura Sogar"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-24 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-24-26-08-00-pm",
+        "performers": [
+          "Brandon Trusso",
+          "Dj Collins",
+          "Fiona Michaels",
+          "Noah Miller",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-24 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-24-26-10-00-pm",
+        "performers": [
+          "Jesse Townsend",
+          "Eric Menzel",
+          "Espi Rivadeneira",
+          "Brandon Trusso",
+          "Derick Gonzalez",
+          "Zach Braviette"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-24 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-24-26-11-59-pm",
+        "performers": [
+          "Joe Russell",
+          "Alexis Bradby",
+          "Pete Burdette",
+          "Connor Meade",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-25 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-25-26-06-00-pm",
+        "performers": [
+          "Jill Weiner",
+          "Luke Davis",
+          "Soo Ra",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-25 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-25-26-08-00-pm",
+        "performers": [
+          "Cab Washington",
+          "Gurvir Singh",
+          "Alexis Bradby",
+          "Jill Weiner",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-25 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-25-26-10-00-pm",
+        "performers": [
+          "Nikhil Mehta",
+          "Alexis Bradby",
+          "Dominic Leonelli",
+          "Antoine Nessralla",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-25 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-25-26-11-59-pm",
+        "performers": [
+          "Joe Russell",
+          "Dominic Leonelli",
+          "Dave Caggiano",
+          "Reggie Edwards",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-26 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-26-26-08-00-pm",
+        "performers": [
+          "Abby Washuta",
+          "Amada Caba",
+          "Rosemary Cipriano",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-26 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-26-26-10-00-pm",
+        "performers": [
+          "Andy Aluise",
+          "Alexis Bradby",
+          "Cooper Kim",
+          "Amada Caba",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-26 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-26-26-11-59-pm",
+        "performers": [
+          "Adam Gabel",
+          "Chris Pattwell",
+          "Antoine Nessralla",
+          "Ben Frank",
+          "Luke Davis",
+          "Misha Han",
+          "Talib Babb"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-27 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-27-26-08-00-pm",
+        "performers": [
+          "Matt Bowman",
+          "Ja-Ron Young",
+          "Andrew Dorman",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-27 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-27-26-10-00-pm",
+        "performers": [
+          "Tanner Riley",
+          "Andy Aluise",
+          "Alex Mahaney",
+          "Shyam Subramanian",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-27 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-27-26-11-59-pm",
+        "performers": [
+          "Nikhil Mehta",
+          "Matt Vita",
+          "Ben Frank",
+          "Luke Davis",
+          "Marito Lopez",
+          "Talib Babb"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-28 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-28-26-08-00-pm",
+        "performers": [
+          "Malorie Bryant",
+          "Ryan Thomas",
+          "Gurvir Singh",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-28 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-28-26-10-00-pm",
+        "performers": [
+          "Linette Palladino",
+          "Noah Miller",
+          "Sam Doctor",
+          "Byron Austin",
+          "And More!"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-28 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-28-26-11-59-pm",
+        "performers": [
+          "Farzin Moradi",
+          "Adam Gabel",
+          "Joseph Rosenzweig",
+          "Jordan Spivey"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-29 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-29-26-10-00-pm",
+        "performers": [
+          "Doug Uram",
+          "Ja-Ron Young",
+          "Alec Adams",
+          "Salma Zaky"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-29 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-29-26-11-59-pm",
+        "performers": [
+          "Ben Frank",
+          "Josh Ri'Esgo",
+          "Alex Mahaney",
+          "Tomas Liebel",
+          "Farzin Moradi",
+          "Talib Babb"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-30 18:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-30-26-06-00-pm",
+        "performers": [
+          "Nikki MacCallum",
+          "Santiago Angel",
+          "Andrew Dorman",
+          "Trevor Liberty",
+          "Joe Fenti",
+          "Victor Boda"
+        ],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-30 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-30-26-08-00-pm",
+        "performers": [
+          "Igor Martinez",
+          "Calvin Cato",
+          "Shyam Subramanian",
+          "Trevor Liberty",
+          "Nikki MacCallum",
+          "Tanner Riley",
+          "Victor Boda"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-30 22:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-30-26-10-00-pm",
+        "performers": [
+          "Nikki MacCallum",
+          "Chris Reiter",
+          "Adam Nate Levine",
+          "Ben Callahan",
+          "Carmen Lagala",
+          "And More!"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-30 23:59:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-30-26-11-59-pm",
+        "performers": [
+          "Tanner Riley",
+          "Eric Menzel",
+          "Pete Burdette",
+          "Jenny Saldana",
+          "Jordan Spivey"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-11-01 18:00:00-05:00",
+        "url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-11-01180000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-11-01 20:00:00-05:00",
+        "url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-11-01200000",
+        "performers": [],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-11-01 22:00:00-05:00",
+        "url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-11-01220000",
+        "performers": [],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-11-01 23:59:00-05:00",
+        "url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-11-01235900",
+        "performers": [],
+        "base_price": 20.0
+      }
+    ]
+  },
+  {
+    "club_id": 7,
+    "shows": [
+      {
+        "date": "2026-10-01 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-01-26-09-30-pm",
+        "performers": [
+          "J Smitty",
+          "Alexis Bradby",
+          "Jenn Lederer"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-02 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-02-26-07-30-pm",
+        "performers": [
+          "Tanner Riley",
+          "Dj Collins",
+          "Caitlin Reese"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-02 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-2026-10-02213000",
+        "performers": [],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-03 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-03-26-07-30-pm",
+        "performers": [
+          "Candyce Cook",
+          "Dave Caggiano",
+          "Byron Austin",
+          "Patrick Holbert"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-03 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-03-26-09-30-pm",
+        "performers": [
+          "Doug Uram",
+          "Derick Gonzalez",
+          "Adam Nate Levine",
+          "Adam Muller",
+          "Candyce Cook"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-04 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-04-26-09-30-pm",
+        "performers": [
+          "Tanner Riley",
+          "Tyler Groce",
+          "Christy Miller",
+          "Dj Collins"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-06 19:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06190000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-06 21:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06210000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-06 22:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06223000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-10 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-10-26-07-30-pm",
+        "performers": [
+          "Joe Russell",
+          "Julia Kastner",
+          "Dj Collins",
+          "April Boddie"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-10 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-10-26-09-30-pm",
+        "performers": [
+          "Adam Gabel",
+          "Dj Collins",
+          "Tina Zhu",
+          "Joe Russell",
+          "Nikhil Mehta"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-11 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-11-26-07-30-pm",
+        "performers": [
+          "Ben Callahan",
+          "Chris Hamilton",
+          "Reuben Wolf",
+          "Esther Chen",
+          "Julianna Dudley"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-11 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-11-26-09-30-pm",
+        "performers": [
+          "Igor Martinez",
+          "Tanner Riley",
+          "Connor Meade",
+          "Jenae Boston"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-13 19:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13190000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-13 21:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13210000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-13 22:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13223000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-15 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-15-26-09-30-pm",
+        "performers": [
+          "Andy Aluise",
+          "Cab Washington",
+          "Corinne Fisher",
+          "Malorie Bryant"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-16 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-16-26-07-30-pm",
+        "performers": [
+          "Zach Braviette",
+          "Ryan Thomas",
+          "Amada Caba",
+          "Caitlin Reese",
+          "Gabe Dorado"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-16 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-16-26-09-30-pm",
+        "performers": [
+          "Igor Martinez",
+          "Julia Kastner",
+          "Cooper Kim",
+          "Corinne Fisher",
+          "James Mwaura"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-17 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-17-26-07-30-pm",
+        "performers": [
+          "Tanner Riley",
+          "Ryan Thomas",
+          "Anna Bianco",
+          "Soo Ra"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-18 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-18-26-07-30-pm",
+        "performers": [
+          "Ben Callahan",
+          "Derick Gonzalez",
+          "Jenny Saldana"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-18 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-18-26-09-30-pm",
+        "performers": [
+          "Tanner Riley",
+          "Cooper Kim"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-20 19:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20190000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-20 21:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20210000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-20 22:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20223000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-22 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-22-26-09-30-pm",
+        "performers": [
+          "Nikki MacCallum",
+          "Alexis Bradby",
+          "Shyam Subramanian",
+          "Andy Aluise",
+          "Rachel Lenihan"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-23 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-23-26-07-30-pm",
+        "performers": [
+          "Candyce Cook",
+          "Dj Collins",
+          "Ben Callahan",
+          "Reuben Wolf",
+          "Gibran Saleem",
+          "J Smitty"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-23 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-23-26-09-30-pm",
+        "performers": [
+          "Matt Bowman",
+          "Troy Alan",
+          "Alexis Bradby",
+          "Derick Gonzalez"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-24 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-24-26-07-30-pm",
+        "performers": [
+          "Nikki MacCallum",
+          "Derick Gonzalez",
+          "Esther Chen",
+          "Gabe Dorado"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-24 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-24-26-09-30-pm",
+        "performers": [
+          "Zach Braviette",
+          "Dj Collins",
+          "Tomas Liebel",
+          "Nikki MacCallum",
+          "Troy Alan"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-27 21:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-27210000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-27 22:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-27223000",
+        "performers": [],
+        "base_price": 10.0
+      },
+      {
+        "date": "2026-10-29 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-29-26-09-30-pm",
+        "performers": [
+          "Jordan Spivey",
+          "J Smitty",
+          "Jake Velazquez"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-30 19:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-30-26-07-30-pm",
+        "performers": [
+          "Nikhil Mehta",
+          "Chris Reiter",
+          "Anna Bianco",
+          "Sarah Garner"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-30 21:30:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-30-26-09-30-pm",
+        "performers": [
+          "Chris Reiter",
+          "Corey Tindall",
+          "Cab Washington",
+          "Thash Mose"
+        ],
+        "base_price": 20.0
+      },
+      {
+        "date": "2026-10-31 20:00:00-04:00",
+        "url": "https://www.grislypearstandup.com/events/front-bar-gp-midtown-2026-10-31200000",
+        "performers": [],
+        "base_price": null
+      }
+    ]
+  }
+]

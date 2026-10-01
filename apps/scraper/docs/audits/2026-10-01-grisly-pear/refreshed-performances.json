@@ -1,0 +1,2549 @@
+[
+  {
+    "id": 6357354,
+    "club_id": 6,
+    "date": "2026-10-02T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-01220000",
+    "source_url": "https://www.grislypearstandup.com/events/that-thursday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-01-26-10-00-pm",
+    "source_names": [
+      "Doug Uram",
+      "Connor Meade",
+      "Eric Menzel",
+      "Tyler Groce"
+    ],
+    "stored_names": [
+      "Doug Uram",
+      "Connor Meade",
+      "Tyler Groce",
+      "Eric Menzel"
+    ],
+    "ticket_id": 7218672,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6357355,
+    "club_id": 6,
+    "date": "2026-10-02T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-01235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-01-26-11-59-pm",
+    "source_names": [
+      "Adam Gabel",
+      "Michael Good",
+      "Connor Meade"
+    ],
+    "stored_names": [
+      "Adam Gabel",
+      "Michael Good",
+      "Connor Meade"
+    ],
+    "ticket_id": 7218673,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6380599,
+    "club_id": 6,
+    "date": "2026-10-02T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-02180000",
+    "source_url": "https://www.grislypearstandup.com/events/dive-bar-comedy-at-the-grisly-pear-greenwich-village-10-02-26-06-00-pm",
+    "source_names": [
+      "Eric Menzel",
+      "Alexis Bradby",
+      "Cooper Kim",
+      "Espi Rivadeneira",
+      "Chloe LaBranche"
+    ],
+    "stored_names": [
+      "Chloe LaBranche",
+      "Espi Rivadeneira",
+      "Cooper Kim",
+      "Eric Menzel",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 7246393,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6380600,
+    "club_id": 6,
+    "date": "2026-10-03T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-02200000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-02-26-08-00-pm",
+    "source_names": [
+      "Brandon Trusso",
+      "Lee Valentin",
+      "Ben Callahan",
+      "Noah Miller",
+      "Kimberly Dinaro",
+      "Salma Zaky"
+    ],
+    "stored_names": [
+      "Lee Valentin",
+      "Kimberly Dinaro",
+      "Ben Callahan",
+      "Noah Miller",
+      "Salma Zaky",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 7246394,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6380601,
+    "club_id": 6,
+    "date": "2026-10-03T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-02220000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-02-26-10-00-pm",
+    "source_names": [
+      "Brandon Trusso",
+      "Julia Kastner",
+      "Dave Caggiano",
+      "Nikhil Mehta",
+      "Chris Reiter",
+      "Corinne Fisher"
+    ],
+    "stored_names": [
+      "Chris Reiter",
+      "Julia Kastner",
+      "Dave Caggiano",
+      "Corinne Fisher",
+      "Nikhil Mehta",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 7246395,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6380602,
+    "club_id": 6,
+    "date": "2026-10-03T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-02235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-02-26-11-59-pm",
+    "source_names": [
+      "Joe Russell",
+      "Derick Gonzalez",
+      "Connor Meade",
+      "Julia Kastner"
+    ],
+    "stored_names": [
+      "Derick Gonzalez",
+      "Julia Kastner",
+      "Connor Meade",
+      "Joe Russell"
+    ],
+    "ticket_id": 7246396,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6453434,
+    "club_id": 6,
+    "date": "2026-10-03T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-03180000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-03-26-06-00-pm",
+    "source_names": [
+      "Stewie Vill",
+      "Alec Adams",
+      "Humzah Azeem",
+      "Paula J. Leon"
+    ],
+    "stored_names": [
+      "Alec Adams",
+      "Humzah Azeem",
+      "Paula J. Leon",
+      "Stewie Vill"
+    ],
+    "ticket_id": 7329980,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6453435,
+    "club_id": 6,
+    "date": "2026-10-04T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-03200000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-03-26-08-00-pm",
+    "source_names": [
+      "Lee Valentin",
+      "Joseph Rosenzweig",
+      "Chris Reiter",
+      "Corinne Fisher",
+      "Mae Planert"
+    ],
+    "stored_names": [
+      "Joseph Rosenzweig",
+      "Lee Valentin",
+      "Chris Reiter",
+      "Corinne Fisher",
+      "Mae Planert"
+    ],
+    "ticket_id": 7329981,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6453436,
+    "club_id": 6,
+    "date": "2026-10-04T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-03220000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-03-26-10-00-pm",
+    "source_names": [
+      "Chris Reiter",
+      "Nikhil Mehta",
+      "Brandon Trusso",
+      "Rachel Williams"
+    ],
+    "stored_names": [
+      "Chris Reiter",
+      "Rachel Williams",
+      "Nikhil Mehta",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 7329982,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6453437,
+    "club_id": 6,
+    "date": "2026-10-04T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-03235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-03-26-11-59-pm",
+    "source_names": [
+      "Peter Guarraci",
+      "Dara Jemmott",
+      "Igor Martinez"
+    ],
+    "stored_names": [
+      "Igor Martinez",
+      "Peter Guarraci",
+      "Dara Jemmott"
+    ],
+    "ticket_id": 7329983,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6503210,
+    "club_id": 6,
+    "date": "2026-10-04T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04180000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-04-26-06-00-pm",
+    "source_names": [
+      "Jesse Townsend",
+      "Andrew Dorman",
+      "And More!"
+    ],
+    "stored_names": [
+      "Andrew Dorman",
+      "Jesse Townsend"
+    ],
+    "ticket_id": 7387745,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6503211,
+    "club_id": 6,
+    "date": "2026-10-05T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04200000",
+    "source_url": "https://www.grislypearstandup.com/events/dive-bar-comedy-show-at-the-grisly-pear-greenwich-village-10-04-26-08-00-pm",
+    "source_names": [
+      "Derick Gonzalez",
+      "Ben Frank",
+      "Jesse Townsend",
+      "And More!"
+    ],
+    "stored_names": [
+      "Derick Gonzalez",
+      "Ben Frank",
+      "Jesse Townsend"
+    ],
+    "ticket_id": 7387746,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6503212,
+    "club_id": 6,
+    "date": "2026-10-05T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04220000",
+    "source_url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-04-26-10-00-pm",
+    "source_names": [
+      "Nikhil Mehta",
+      "Connor Meade",
+      "Fiona Michaels",
+      "Rachel Williams"
+    ],
+    "stored_names": [
+      "Fiona Michaels",
+      "Connor Meade",
+      "Rachel Williams",
+      "Nikhil Mehta"
+    ],
+    "ticket_id": 7387747,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6503213,
+    "club_id": 6,
+    "date": "2026-10-05T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-04235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-04-26-11-59-pm",
+    "source_names": [
+      "Farzin Moradi",
+      "And More!"
+    ],
+    "stored_names": [
+      "Farzin Moradi"
+    ],
+    "ticket_id": 7387748,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6545393,
+    "club_id": 6,
+    "date": "2026-10-06T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-05200000",
+    "source_url": "https://www.grislypearstandup.com/events/monday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-05-26-08-00-pm",
+    "source_names": [
+      "Abby Washuta",
+      "And More!",
+      "Rosemary Cipriano",
+      "Sam Doctor"
+    ],
+    "stored_names": [
+      "Rosemary Cipriano",
+      "Abby Washuta",
+      "Sam Doctor"
+    ],
+    "ticket_id": 7437033,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6545394,
+    "club_id": 6,
+    "date": "2026-10-06T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-05220000",
+    "source_url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-05-26-10-00-pm",
+    "source_names": [
+      "Matt Bowman",
+      "Sashalyn Medina",
+      "Cooper Kim",
+      "Tina Zhu",
+      "Cab Washington",
+      "And More!"
+    ],
+    "stored_names": [
+      "Cooper Kim",
+      "Matt Bowman",
+      "Cab Washington",
+      "Sashalyn Medina",
+      "Tina Zhu"
+    ],
+    "ticket_id": 7437034,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6545395,
+    "club_id": 6,
+    "date": "2026-10-06T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-05235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-05-26-11-59-pm",
+    "source_names": [
+      "Adam Gabel",
+      "Jake Silberman",
+      "Ben Frank",
+      "Sam Doctor",
+      "Josh Ri'Esgo",
+      "Nikhil Mehta"
+    ],
+    "stored_names": [
+      "Adam Gabel",
+      "Ben Frank",
+      "Jake Silberman",
+      "Sam Doctor",
+      "Nikhil Mehta",
+      "Josh Ri'Esgo"
+    ],
+    "ticket_id": 7437035,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6601964,
+    "club_id": 6,
+    "date": "2026-10-07T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-06200000",
+    "source_url": "https://www.grislypearstandup.com/events/dive-bar-comedy-show-at-the-grisly-pear-greenwich-village-10-06-26-08-00-pm",
+    "source_names": [
+      "Matt Bowman",
+      "Julia Kastner",
+      "Shyam Subramanian",
+      "And More!"
+    ],
+    "stored_names": [
+      "Shyam Subramanian",
+      "Julia Kastner",
+      "Matt Bowman"
+    ],
+    "ticket_id": 7502315,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6601965,
+    "club_id": 6,
+    "date": "2026-10-07T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-06220000",
+    "source_url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-06-26-10-00-pm",
+    "source_names": [
+      "Tanner Riley",
+      "Humzah Azeem",
+      "J Smitty",
+      "And More!"
+    ],
+    "stored_names": [
+      "Humzah Azeem",
+      "J Smitty",
+      "Tanner Riley"
+    ],
+    "ticket_id": 7502316,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6601966,
+    "club_id": 6,
+    "date": "2026-10-07T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-06235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-06-26-11-59-pm",
+    "source_names": [
+      "Ben Frank",
+      "Matt Vita",
+      "Monte Marshall",
+      "Luke Davis",
+      "Drew Beekler",
+      "Laura Sogar"
+    ],
+    "stored_names": [
+      "Drew Beekler",
+      "Ben Frank",
+      "Matt Vita",
+      "Monte Marshall",
+      "Laura Sogar",
+      "Luke Davis"
+    ],
+    "ticket_id": 7502317,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6646627,
+    "club_id": 6,
+    "date": "2026-10-08T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-07200000",
+    "source_url": "https://www.grislypearstandup.com/events/wednesday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-07-26-08-00-pm",
+    "source_names": [
+      "Malorie Bryant",
+      "Chris Reiter",
+      "Tomas Liebel",
+      "Marty Cunnie",
+      "And More!"
+    ],
+    "stored_names": [
+      "Chris Reiter",
+      "Malorie Bryant",
+      "Tomas Liebel",
+      "Marty Cunnie"
+    ],
+    "ticket_id": 7554786,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6646628,
+    "club_id": 6,
+    "date": "2026-10-08T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-07220000",
+    "source_url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-07-26-10-00-pm",
+    "source_names": [
+      "Linette Palladino",
+      "Calvin Cato",
+      "Noah Miller",
+      "Dominic Leonelli",
+      "Nikki MacCallum"
+    ],
+    "stored_names": [
+      "Linette Palladino",
+      "Noah Miller",
+      "Calvin Cato",
+      "Nikki MacCallum",
+      "Dominic Leonelli"
+    ],
+    "ticket_id": 7554787,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6646629,
+    "club_id": 6,
+    "date": "2026-10-08T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-07235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-07-26-11-59-pm",
+    "source_names": [
+      "Jordan Spivey",
+      "Dominic Leonelli",
+      "Laura Sogar"
+    ],
+    "stored_names": [
+      "Jordan Spivey",
+      "Laura Sogar",
+      "Dominic Leonelli"
+    ],
+    "ticket_id": 7554788,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6690122,
+    "club_id": 6,
+    "date": "2026-10-09T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-08220000",
+    "source_url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-08-26-10-00-pm",
+    "source_names": [
+      "Doug Uram",
+      "Tyler Groce",
+      "Tina Zhu",
+      "Emily Wilson",
+      "And More!"
+    ],
+    "stored_names": [
+      "Emily Wilson",
+      "Doug Uram",
+      "Tina Zhu",
+      "Tyler Groce"
+    ],
+    "ticket_id": 7605000,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6690123,
+    "club_id": 6,
+    "date": "2026-10-09T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-08235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-08-26-11-59-pm",
+    "source_names": [
+      "Tyler Groce",
+      "Joseph Rosenzweig",
+      "Jake Silberman",
+      "Karla Watkins",
+      "And More!"
+    ],
+    "stored_names": [
+      "Joseph Rosenzweig",
+      "Karla Watkins",
+      "Jake Silberman",
+      "Tyler Groce"
+    ],
+    "ticket_id": 7605001,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6745768,
+    "club_id": 6,
+    "date": "2026-10-09T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-09180000",
+    "source_url": "https://www.grislypearstandup.com/events/dive-bar-comedy-show-at-the-grisly-pear-greenwich-village-10-09-26-06-00-pm",
+    "source_names": [
+      "Cooper Kim",
+      "Luke Davis",
+      "Joanna M. Briley",
+      "Brittany Cardwell",
+      "And More!"
+    ],
+    "stored_names": [
+      "Cooper Kim",
+      "Joanna M. Briley",
+      "Brittany Cardwell",
+      "Luke Davis"
+    ],
+    "ticket_id": 7669526,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6745769,
+    "club_id": 6,
+    "date": "2026-10-10T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-09200000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-09-26-08-00-pm",
+    "source_names": [
+      "Brandon Trusso",
+      "Rachel Paula Green",
+      "Eric Menzel",
+      "Trevor Liberty",
+      "Matt Bowman",
+      "Karla Watkins",
+      "Reggie Edwards"
+    ],
+    "stored_names": [
+      "Karla Watkins",
+      "Matt Bowman",
+      "Eric Menzel",
+      "Rachel Paula Green",
+      "Trevor Liberty",
+      "Reggie Edwards",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 7669527,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6745770,
+    "club_id": 6,
+    "date": "2026-10-10T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-09220000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-09-26-10-00-pm",
+    "source_names": [
+      "Brandon Trusso",
+      "Chris Hamilton",
+      "Alec Adams",
+      "Ja-Ron Young",
+      "Emily Wilson",
+      "Antoine Nessralla",
+      "Meeti Purani"
+    ],
+    "stored_names": [
+      "Meeti Purani",
+      "Ja-Ron Young",
+      "Alec Adams",
+      "Emily Wilson",
+      "Chris Hamilton",
+      "Antoine Nessralla",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 7669528,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6745771,
+    "club_id": 6,
+    "date": "2026-10-10T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-09235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-09-26-11-59-pm",
+    "source_names": [
+      "Adam Gabel",
+      "Derick Gonzalez",
+      "Shyam Subramanian",
+      "Jenny Saldana",
+      "Reggie Edwards"
+    ],
+    "stored_names": [
+      "Jenny Saldana",
+      "Shyam Subramanian",
+      "Adam Gabel",
+      "Derick Gonzalez",
+      "Reggie Edwards"
+    ],
+    "ticket_id": 7669529,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6794721,
+    "club_id": 6,
+    "date": "2026-10-10T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-10180000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-10-26-06-00-pm",
+    "source_names": [
+      "Stewie Vill",
+      "Sam Doctor",
+      "Trevor Liberty",
+      "Julia Kastner",
+      "And More!"
+    ],
+    "stored_names": [
+      "Julia Kastner",
+      "Sam Doctor",
+      "Stewie Vill",
+      "Trevor Liberty"
+    ],
+    "ticket_id": 7726154,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6794722,
+    "club_id": 6,
+    "date": "2026-10-11T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-10200000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-10-26-08-00-pm",
+    "source_names": [
+      "Brandon Trusso",
+      "Erin Depke",
+      "Stewie Vill",
+      "Chris Reiter",
+      "Malorie Bryant",
+      "And More!"
+    ],
+    "stored_names": [
+      "Chris Reiter",
+      "Malorie Bryant",
+      "Erin Depke",
+      "Stewie Vill",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 7726155,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6794779,
+    "club_id": 6,
+    "date": "2026-10-11T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-10220000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-10-26-10-00-pm",
+    "source_names": [
+      "Malorie Bryant",
+      "Chris Reiter",
+      "Ben Callahan",
+      "Joseph Rosenzweig",
+      "Brandon Trusso",
+      "Dara Jemmott",
+      "Zach Braviette"
+    ],
+    "stored_names": [
+      "Joseph Rosenzweig",
+      "Chris Reiter",
+      "Malorie Bryant",
+      "Ben Callahan",
+      "Zach Braviette",
+      "Dara Jemmott",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 7726212,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6794780,
+    "club_id": 6,
+    "date": "2026-10-11T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-10235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-10-26-11-59-pm",
+    "source_names": [
+      "Joe Russell",
+      "Adam Gabel",
+      "Tomas Liebel",
+      "Jesse Townsend"
+    ],
+    "stored_names": [
+      "Adam Gabel",
+      "Jesse Townsend",
+      "Joe Russell",
+      "Tomas Liebel"
+    ],
+    "ticket_id": 7726213,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6849815,
+    "club_id": 6,
+    "date": "2026-10-11T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11180000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-11-26-06-00-pm",
+    "source_names": [
+      "Erin Depke",
+      "Monte Marshall",
+      "Farooq Hussain",
+      "Aubrey Thurman"
+    ],
+    "stored_names": [
+      "Erin Depke",
+      "Monte Marshall",
+      "Farooq Hussain",
+      "Aubrey Thurman"
+    ],
+    "ticket_id": 7789478,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6849816,
+    "club_id": 6,
+    "date": "2026-10-12T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11200000",
+    "source_url": "https://www.grislypearstandup.com/events/sunday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-11-26-08-00-pm",
+    "source_names": [
+      "Jenny Saldana",
+      "Michael Freedman",
+      "Noah Miller",
+      "Erin Depke",
+      "Chris Condren"
+    ],
+    "stored_names": [
+      "Jenny Saldana",
+      "Noah Miller",
+      "Erin Depke",
+      "Michael Freedman",
+      "Chris Condren"
+    ],
+    "ticket_id": 7789479,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6849817,
+    "club_id": 6,
+    "date": "2026-10-12T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11220000",
+    "source_url": "https://www.grislypearstandup.com/events/late-night-comedy-show-at-the-grisly-pear-greenwich-village-10-11-26-10-00-pm",
+    "source_names": [
+      "Nikhil Mehta",
+      "Cab Washington",
+      "Jenny Saldana",
+      "And More!"
+    ],
+    "stored_names": [
+      "Jenny Saldana",
+      "Cab Washington",
+      "Nikhil Mehta"
+    ],
+    "ticket_id": 7789480,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6849818,
+    "club_id": 6,
+    "date": "2026-10-12T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-11235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-11-26-11-59-pm",
+    "source_names": [
+      "Jordan Spivey",
+      "Dominic Leonelli",
+      "Antoine Nessralla",
+      "Dara Jemmott",
+      "Reggie Edwards",
+      "And More!"
+    ],
+    "stored_names": [
+      "Jordan Spivey",
+      "Dara Jemmott",
+      "Dominic Leonelli",
+      "Antoine Nessralla",
+      "Reggie Edwards"
+    ],
+    "ticket_id": 7789481,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6900324,
+    "club_id": 6,
+    "date": "2026-10-13T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-12200000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-12-26-08-00-pm",
+    "source_names": [
+      "Abby Washuta",
+      "And More!",
+      "Alex Mahaney"
+    ],
+    "stored_names": [
+      "Abby Washuta",
+      "Alex Mahaney"
+    ],
+    "ticket_id": 7848707,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6900325,
+    "club_id": 6,
+    "date": "2026-10-13T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-12220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-12-26-10-00-pm",
+    "source_names": [
+      "Jordan Spivey",
+      "Julia Kastner",
+      "Eric Menzel",
+      "Tina Zhu",
+      "Max Moacanin"
+    ],
+    "stored_names": [
+      "Max Moacanin",
+      "Julia Kastner",
+      "Jordan Spivey",
+      "Tina Zhu",
+      "Eric Menzel"
+    ],
+    "ticket_id": 7848708,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6900326,
+    "club_id": 6,
+    "date": "2026-10-13T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-12235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-12-26-11-59-pm",
+    "source_names": [
+      "Adam Gabel",
+      "Dominic Leonelli",
+      "Antoine Nessralla",
+      "Joseph Rosenzweig",
+      "Luke Davis",
+      "Jordan Spivey",
+      "Nico Cattaneo"
+    ],
+    "stored_names": [
+      "Joseph Rosenzweig",
+      "Adam Gabel",
+      "Nico Cattaneo",
+      "Jordan Spivey",
+      "Dominic Leonelli",
+      "Antoine Nessralla",
+      "Luke Davis"
+    ],
+    "ticket_id": 7848709,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6947546,
+    "club_id": 6,
+    "date": "2026-10-14T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-13200000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-13-26-08-00-pm",
+    "source_names": [
+      "Matt Bowman",
+      "J Smitty",
+      "Rosemary Cipriano",
+      "And More!"
+    ],
+    "stored_names": [
+      "Rosemary Cipriano",
+      "Matt Bowman",
+      "J Smitty"
+    ],
+    "ticket_id": 7903681,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6947547,
+    "club_id": 6,
+    "date": "2026-10-14T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-13220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-13-26-10-00-pm",
+    "source_names": [
+      "Tanner Riley",
+      "Julia Kastner",
+      "Cooper Kim",
+      "And More!"
+    ],
+    "stored_names": [
+      "Cooper Kim",
+      "Julia Kastner",
+      "Tanner Riley"
+    ],
+    "ticket_id": 7903682,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6947548,
+    "club_id": 6,
+    "date": "2026-10-14T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-13235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-13-26-11-59-pm",
+    "source_names": [
+      "Jordan Spivey",
+      "Dominic Leonelli",
+      "Luke Davis",
+      "Monte Marshall",
+      "Misha Han"
+    ],
+    "stored_names": [
+      "Misha Han",
+      "Jordan Spivey",
+      "Monte Marshall",
+      "Dominic Leonelli",
+      "Luke Davis"
+    ],
+    "ticket_id": 7903683,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6995481,
+    "club_id": 6,
+    "date": "2026-10-15T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-14200000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-14-26-08-00-pm",
+    "source_names": [
+      "Malorie Bryant",
+      "Chris Hamilton",
+      "Humzah Azeem",
+      "And More!"
+    ],
+    "stored_names": [
+      "Malorie Bryant",
+      "Humzah Azeem",
+      "Chris Hamilton"
+    ],
+    "ticket_id": 7959378,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6995482,
+    "club_id": 6,
+    "date": "2026-10-15T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-14220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-14-26-10-00-pm",
+    "source_names": [
+      "Linette Palladino",
+      "Jesse Townsend",
+      "Cooper Kim",
+      "Alexis Bradby",
+      "Rachel Paula Green",
+      "And More!"
+    ],
+    "stored_names": [
+      "Linette Palladino",
+      "Cooper Kim",
+      "Jesse Townsend",
+      "Rachel Paula Green",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 7959379,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6995483,
+    "club_id": 6,
+    "date": "2026-10-15T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-14235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-14-26-11-59-pm",
+    "source_names": [
+      "Joe Russell",
+      "Josh Ri'Esgo",
+      "Ben Frank",
+      "Monte Marshall",
+      "Talib Babb",
+      "And More!"
+    ],
+    "stored_names": [
+      "Ben Frank",
+      "Talib Babb",
+      "Joe Russell",
+      "Monte Marshall",
+      "Josh Ri'Esgo"
+    ],
+    "ticket_id": 7959380,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7035324,
+    "club_id": 6,
+    "date": "2026-10-16T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-15220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-15-26-10-00-pm",
+    "source_names": [
+      "Doug Uram",
+      "Aubrey Thurman",
+      "Carmen Lagala",
+      "And More!"
+    ],
+    "stored_names": [
+      "Carmen Lagala",
+      "Doug Uram",
+      "Aubrey Thurman"
+    ],
+    "ticket_id": 8006407,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7035325,
+    "club_id": 6,
+    "date": "2026-10-16T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-15235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-15-26-11-59-pm",
+    "source_names": [
+      "Joe Russell",
+      "Josh Simensky",
+      "Alex Mahaney",
+      "Alex Ives",
+      "Jordan Spivey"
+    ],
+    "stored_names": [
+      "Joe Russell",
+      "Jordan Spivey",
+      "Josh Simensky",
+      "Alex Ives",
+      "Alex Mahaney"
+    ],
+    "ticket_id": 8006408,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7070583,
+    "club_id": 6,
+    "date": "2026-10-16T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-16180000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-16-26-06-00-pm",
+    "source_names": [
+      "Chris Pattwell",
+      "Michael Good",
+      "Andrew Dorman",
+      "Fiona Michaels",
+      "Joanna M. Briley",
+      "And More!",
+      "Victor Boda"
+    ],
+    "stored_names": [
+      "Chris Pattwell",
+      "Andrew Dorman",
+      "Michael Good",
+      "Fiona Michaels",
+      "Joanna M. Briley",
+      "Victor Boda"
+    ],
+    "ticket_id": 8048039,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7070584,
+    "club_id": 6,
+    "date": "2026-10-17T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-16200000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-16-26-08-00-pm",
+    "source_names": [
+      "Matt Bowman",
+      "Chris Reiter",
+      "Pete Burdette",
+      "Corinne Fisher",
+      "Victor Boda"
+    ],
+    "stored_names": [
+      "Chris Reiter",
+      "Matt Bowman",
+      "Corinne Fisher",
+      "Victor Boda",
+      "Pete Burdette"
+    ],
+    "ticket_id": 8048040,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7070586,
+    "club_id": 6,
+    "date": "2026-10-17T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-16235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-16-26-11-59-pm",
+    "source_names": [
+      "Tanner Riley",
+      "Josh Ri'Esgo",
+      "Alex Mahaney",
+      "Ben Frank",
+      "Dj Collins",
+      "Jake Velazquez"
+    ],
+    "stored_names": [
+      "Dj Collins",
+      "Ben Frank",
+      "Josh Ri'Esgo",
+      "Jake Velazquez",
+      "Tanner Riley",
+      "Alex Mahaney"
+    ],
+    "ticket_id": 8048042,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7103722,
+    "club_id": 6,
+    "date": "2026-10-17T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-17180000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-17-26-06-00-pm",
+    "source_names": [
+      "Stewie Vill",
+      "Alec Adams",
+      "Alex Mahaney",
+      "Natan Badalov",
+      "And More!"
+    ],
+    "stored_names": [
+      "Natan Badalov",
+      "Alec Adams",
+      "Stewie Vill",
+      "Alex Mahaney"
+    ],
+    "ticket_id": 8086649,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7103723,
+    "club_id": 6,
+    "date": "2026-10-18T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-17200000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-17-26-08-00-pm",
+    "source_names": [
+      "Abby Washuta",
+      "Calvin Cato",
+      "Ben Frank",
+      "Jatty Robinson",
+      "And More!"
+    ],
+    "stored_names": [
+      "Ben Frank",
+      "Abby Washuta",
+      "Calvin Cato",
+      "Jatty Robinson"
+    ],
+    "ticket_id": 8086650,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7103724,
+    "club_id": 6,
+    "date": "2026-10-18T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-17220000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-17-26-10-00-pm",
+    "source_names": [
+      "Matt Bowman",
+      "Noah Miller",
+      "Mohtasham Yaqub",
+      "And More!"
+    ],
+    "stored_names": [
+      "Mohtasham Yaqub",
+      "Noah Miller",
+      "Matt Bowman"
+    ],
+    "ticket_id": 8086651,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7103725,
+    "club_id": 6,
+    "date": "2026-10-18T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-17235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-17-26-11-59-pm",
+    "source_names": [
+      "Joe Russell",
+      "Dave Caggiano",
+      "Pete Burdette",
+      "Reggie Edwards"
+    ],
+    "stored_names": [
+      "Dave Caggiano",
+      "Joe Russell",
+      "Pete Burdette",
+      "Reggie Edwards"
+    ],
+    "ticket_id": 8086652,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7154699,
+    "club_id": 6,
+    "date": "2026-10-18T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18180000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-18-26-06-00-pm",
+    "source_names": [
+      "Alexis Bradby",
+      "Alex Ives",
+      "Luke Davis",
+      "Jake Velazquez",
+      "Kimberly Dinaro"
+    ],
+    "stored_names": [
+      "Kimberly Dinaro",
+      "Alex Ives",
+      "Jake Velazquez",
+      "Luke Davis",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 8146270,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7154700,
+    "club_id": 6,
+    "date": "2026-10-19T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18200000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-18-26-08-00-pm",
+    "source_names": [
+      "Calvin Cato",
+      "Fiona Michaels",
+      "Gurvir Singh",
+      "Alexis Bradby",
+      "Troy Alan"
+    ],
+    "stored_names": [
+      "Troy Alan",
+      "Fiona Michaels",
+      "Calvin Cato",
+      "Gurvir Singh",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 8146271,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7154701,
+    "club_id": 6,
+    "date": "2026-10-19T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-18-26-10-00-pm",
+    "source_names": [
+      "Nikhil Mehta",
+      "Connor Meade",
+      "Monte Marshall",
+      "Calvin Cato"
+    ],
+    "stored_names": [
+      "Calvin Cato",
+      "Connor Meade",
+      "Monte Marshall",
+      "Nikhil Mehta"
+    ],
+    "ticket_id": 8146272,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7154702,
+    "club_id": 6,
+    "date": "2026-10-19T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-18235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-18-26-11-59-pm",
+    "source_names": [
+      "Farzin Moradi",
+      "Monte Marshall",
+      "And More!"
+    ],
+    "stored_names": [
+      "Farzin Moradi",
+      "Monte Marshall"
+    ],
+    "ticket_id": 8146273,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7204081,
+    "club_id": 6,
+    "date": "2026-10-20T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-19200000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-19-26-08-00-pm",
+    "source_names": [
+      "Abby Washuta",
+      "Adam Nate Levine",
+      "Michael Freedman",
+      "And More!"
+    ],
+    "stored_names": [
+      "Abby Washuta",
+      "Michael Freedman",
+      "Adam Nate Levine"
+    ],
+    "ticket_id": 8203881,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7204082,
+    "club_id": 6,
+    "date": "2026-10-20T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-19220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-19-26-10-00-pm",
+    "source_names": [
+      "Aditya Shankar",
+      "Julia Kastner",
+      "Fiona Michaels",
+      "Sam Doctor",
+      "Farzin Moradi",
+      "And More!"
+    ],
+    "stored_names": [
+      "Farzin Moradi",
+      "Aditya Shankar",
+      "Julia Kastner",
+      "Fiona Michaels",
+      "Sam Doctor"
+    ],
+    "ticket_id": 8203882,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7204083,
+    "club_id": 6,
+    "date": "2026-10-20T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-19235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-19-26-11-59-pm",
+    "source_names": [
+      "Adam Gabel",
+      "Josh Ri'Esgo",
+      "Ben Frank",
+      "Cooper Kim",
+      "Dominic Leonelli",
+      "Karla Watkins"
+    ],
+    "stored_names": [
+      "Karla Watkins",
+      "Adam Gabel",
+      "Ben Frank",
+      "Cooper Kim",
+      "Josh Ri'Esgo",
+      "Dominic Leonelli"
+    ],
+    "ticket_id": 8203883,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7235818,
+    "club_id": 6,
+    "date": "2026-10-21T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-20200000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-20-26-08-00-pm",
+    "source_names": [
+      "Matt Bowman",
+      "Erin Depke",
+      "Eric Menzel",
+      "Amada Caba",
+      "And More!"
+    ],
+    "stored_names": [
+      "Matt Bowman",
+      "Erin Depke",
+      "Amada Caba",
+      "Eric Menzel"
+    ],
+    "ticket_id": 8241105,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7235819,
+    "club_id": 6,
+    "date": "2026-10-21T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-20220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-20-26-10-00-pm",
+    "source_names": [
+      "Tanner Riley",
+      "Cab Washington",
+      "Shyam Subramanian",
+      "Tomas Liebel",
+      "And More!"
+    ],
+    "stored_names": [
+      "Shyam Subramanian",
+      "Cab Washington",
+      "Tomas Liebel",
+      "Tanner Riley"
+    ],
+    "ticket_id": 8241106,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7235820,
+    "club_id": 6,
+    "date": "2026-10-21T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-20235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-20-26-11-59-pm",
+    "source_names": [
+      "Joe Russell",
+      "Luke Davis",
+      "Ben Frank",
+      "Nico Cattaneo",
+      "And More!"
+    ],
+    "stored_names": [
+      "Ben Frank",
+      "Nico Cattaneo",
+      "Joe Russell",
+      "Luke Davis"
+    ],
+    "ticket_id": 8241107,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7283417,
+    "club_id": 6,
+    "date": "2026-10-22T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-21200000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-21-26-08-00-pm",
+    "source_names": [
+      "Malorie Bryant",
+      "Troy Alan",
+      "Alex Mahaney",
+      "Joe Pontillo",
+      "And More!"
+    ],
+    "stored_names": [
+      "Malorie Bryant",
+      "Troy Alan",
+      "Joe Pontillo",
+      "Alex Mahaney"
+    ],
+    "ticket_id": 8296324,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7283418,
+    "club_id": 6,
+    "date": "2026-10-22T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-21220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-21-26-10-00-pm",
+    "source_names": [
+      "Linette Palladino",
+      "Jenny Saldana",
+      "Luke Davis",
+      "Carmen Lagala",
+      "Derick Gonzalez"
+    ],
+    "stored_names": [
+      "Jenny Saldana",
+      "Linette Palladino",
+      "Derick Gonzalez",
+      "Carmen Lagala",
+      "Luke Davis"
+    ],
+    "ticket_id": 8296325,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7283419,
+    "club_id": 6,
+    "date": "2026-10-22T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-21235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-21235900",
+    "source_names": [
+      "Adam Gabel",
+      "Misha Han",
+      "Nikhil Mehta",
+      "Ben Frank",
+      "Joseph Rosenzweig",
+      "Matt Vita"
+    ],
+    "stored_names": [
+      "Joseph Rosenzweig",
+      "Adam Gabel",
+      "Ben Frank",
+      "Misha Han",
+      "Matt Vita",
+      "Nikhil Mehta"
+    ],
+    "ticket_id": 8296326,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7338025,
+    "club_id": 6,
+    "date": "2026-10-23T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-22220000",
+    "source_url": "https://www.grislypearstandup.com/events/that-thursday-night-comedy-show-at-the-grisly-pear-greenwich-village-10-22-26-10-00-pm",
+    "source_names": [
+      "Doug Uram",
+      "Abby Washuta",
+      "Talent Harris Jr"
+    ],
+    "stored_names": [
+      "Abby Washuta",
+      "Doug Uram",
+      "Talent Harris Jr."
+    ],
+    "ticket_id": 8359768,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7338026,
+    "club_id": 6,
+    "date": "2026-10-23T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-22235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-22-26-11-59-pm",
+    "source_names": [
+      "Antoine Nessralla",
+      "And More!"
+    ],
+    "stored_names": [
+      "Antoine Nessralla"
+    ],
+    "ticket_id": 8359769,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7408873,
+    "club_id": 6,
+    "date": "2026-10-23T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-23180000",
+    "source_url": "https://www.grislypearstandup.com/events/dive-bar-comedy-show-at-the-grisly-pear-greenwich-village-10-23-26-06-00-pm",
+    "source_names": [
+      "Eric Menzel",
+      "Kimberly Dinaro",
+      "Andrew Dorman",
+      "Trevor Liberty",
+      "Victor Boda",
+      "CJ Koepp"
+    ],
+    "stored_names": [
+      "Kimberly Dinaro",
+      "Andrew Dorman",
+      "Victor Boda",
+      "CJ Koepp",
+      "Eric Menzel",
+      "Trevor Liberty"
+    ],
+    "ticket_id": 8441076,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7408874,
+    "club_id": 6,
+    "date": "2026-10-24T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-23200000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-23-26-08-00-pm",
+    "source_names": [
+      "Brandon Trusso",
+      "Ja-Ron Young",
+      "Ben Frank",
+      "Dave Caggiano",
+      "Nikhil Mehta",
+      "Nikki MacCallum",
+      "Victor Boda"
+    ],
+    "stored_names": [
+      "Ja-Ron Young",
+      "Ben Frank",
+      "Dave Caggiano",
+      "Nikhil Mehta",
+      "Nikki MacCallum",
+      "Victor Boda",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 8441077,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7408875,
+    "club_id": 6,
+    "date": "2026-10-24T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-23220000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-23-26-10-00-pm",
+    "source_names": [
+      "Brandon Trusso",
+      "Ryan Thomas",
+      "Antoine Nessralla",
+      "Gordon Kucher",
+      "Nikki MacCallum",
+      "Victor Boda",
+      "And More!"
+    ],
+    "stored_names": [
+      "Gordon Kucher",
+      "Nikki MacCallum",
+      "Ryan Thomas",
+      "Victor Boda",
+      "Antoine Nessralla",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 8441078,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7408876,
+    "club_id": 6,
+    "date": "2026-10-24T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-23235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-23-26-11-59-pm",
+    "source_names": [
+      "Tanner Riley",
+      "Connor Meade",
+      "Aubrey Thurman",
+      "Pete Burdette",
+      "Derek Humphrey",
+      "Derick Gonzalez"
+    ],
+    "stored_names": [
+      "Derick Gonzalez",
+      "Derek Humphrey",
+      "Connor Meade",
+      "Tanner Riley",
+      "Aubrey Thurman",
+      "Pete Burdette"
+    ],
+    "ticket_id": 8441079,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7433960,
+    "club_id": 6,
+    "date": "2026-10-24T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-24180000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-24-26-06-00-pm",
+    "source_names": [
+      "Stewie Vill",
+      "Alec Adams",
+      "Humzah Azeem",
+      "Laura Sogar"
+    ],
+    "stored_names": [
+      "Alec Adams",
+      "Humzah Azeem",
+      "Stewie Vill",
+      "Laura Sogar"
+    ],
+    "ticket_id": 8471381,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7433961,
+    "club_id": 6,
+    "date": "2026-10-25T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-24200000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-24-26-08-00-pm",
+    "source_names": [
+      "Brandon Trusso",
+      "Dj Collins",
+      "Fiona Michaels",
+      "Noah Miller",
+      "And More!"
+    ],
+    "stored_names": [
+      "Dj Collins",
+      "Noah Miller",
+      "Fiona Michaels",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 8471382,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7433962,
+    "club_id": 6,
+    "date": "2026-10-25T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-primetime-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-24220000",
+    "source_url": "https://www.grislypearstandup.com/events/primetime-comedy-show-at-the-grisly-pear-greenwich-village-10-24-26-10-00-pm",
+    "source_names": [
+      "Jesse Townsend",
+      "Eric Menzel",
+      "Espi Rivadeneira",
+      "Brandon Trusso",
+      "Derick Gonzalez",
+      "Zach Braviette"
+    ],
+    "stored_names": [
+      "Derick Gonzalez",
+      "Espi Rivadeneira",
+      "Jesse Townsend",
+      "Zach Braviette",
+      "Eric Menzel",
+      "Brandon Trusso"
+    ],
+    "ticket_id": 8471383,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7433963,
+    "club_id": 6,
+    "date": "2026-10-25T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-2026-10-24235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-primetime-comedy-show-at-grisly-pear-classic-10-24-26-11-59-pm",
+    "source_names": [
+      "Joe Russell",
+      "Alexis Bradby",
+      "Pete Burdette",
+      "Connor Meade",
+      "And More!"
+    ],
+    "stored_names": [
+      "Connor Meade",
+      "Joe Russell",
+      "Pete Burdette",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 8471384,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7507903,
+    "club_id": 6,
+    "date": "2026-10-25T22:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/6pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25180000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-25-26-06-00-pm",
+    "source_names": [
+      "Jill Weiner",
+      "Luke Davis",
+      "Soo Ra",
+      "And More!"
+    ],
+    "stored_names": [
+      "Soo Ra",
+      "Jill Weiner",
+      "Luke Davis"
+    ],
+    "ticket_id": 8556094,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7507904,
+    "club_id": 6,
+    "date": "2026-10-26T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25200000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-25-26-08-00-pm",
+    "source_names": [
+      "Cab Washington",
+      "Gurvir Singh",
+      "Alexis Bradby",
+      "Jill Weiner",
+      "And More!"
+    ],
+    "stored_names": [
+      "Jill Weiner",
+      "Cab Washington",
+      "Gurvir Singh",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 8556095,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7507905,
+    "club_id": 6,
+    "date": "2026-10-26T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-25-26-10-00-pm",
+    "source_names": [
+      "Nikhil Mehta",
+      "Alexis Bradby",
+      "Dominic Leonelli",
+      "Antoine Nessralla",
+      "And More!"
+    ],
+    "stored_names": [
+      "Nikhil Mehta",
+      "Dominic Leonelli",
+      "Antoine Nessralla",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 8556096,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7507906,
+    "club_id": 6,
+    "date": "2026-10-26T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-25235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-the-grisly-pear-greenwich-village-10-25-26-11-59-pm",
+    "source_names": [
+      "Joe Russell",
+      "Dominic Leonelli",
+      "Dave Caggiano",
+      "Reggie Edwards",
+      "And More!"
+    ],
+    "stored_names": [
+      "Dave Caggiano",
+      "Joe Russell",
+      "Dominic Leonelli",
+      "Reggie Edwards"
+    ],
+    "ticket_id": 8556097,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7553143,
+    "club_id": 6,
+    "date": "2026-10-27T00:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/8pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-26200000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-26-26-08-00-pm",
+    "source_names": [
+      "Abby Washuta",
+      "Amada Caba",
+      "Rosemary Cipriano",
+      "And More!"
+    ],
+    "stored_names": [
+      "Rosemary Cipriano",
+      "Abby Washuta",
+      "Amada Caba"
+    ],
+    "ticket_id": 8608917,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7553144,
+    "club_id": 6,
+    "date": "2026-10-27T02:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/10pm-comedy-show-at-the-grisly-pear-greenwich-village-2026-10-26220000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-greenwich-village-10-26-26-10-00-pm",
+    "source_names": [
+      "Andy Aluise",
+      "Alexis Bradby",
+      "Cooper Kim",
+      "Amada Caba",
+      "And More!"
+    ],
+    "stored_names": [
+      "Cooper Kim",
+      "Andy Aluise",
+      "Amada Caba",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 8608918,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7553145,
+    "club_id": 6,
+    "date": "2026-10-27T03:59:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-2026-10-26235900",
+    "source_url": "https://www.grislypearstandup.com/events/midnight-comedy-show-at-grisly-pear-classic-10-26-26-11-59-pm",
+    "source_names": [
+      "Adam Gabel",
+      "Chris Pattwell",
+      "Antoine Nessralla",
+      "Ben Frank",
+      "Luke Davis",
+      "Misha Han",
+      "Talib Babb"
+    ],
+    "stored_names": [
+      "Chris Pattwell",
+      "Adam Gabel",
+      "Ben Frank",
+      "Talib Babb",
+      "Misha Han",
+      "Antoine Nessralla",
+      "Luke Davis"
+    ],
+    "ticket_id": 8608919,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6395740,
+    "club_id": 7,
+    "date": "2026-10-02T23:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-02193000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-02-26-07-30-pm",
+    "source_names": [
+      "Tanner Riley",
+      "Dj Collins",
+      "Caitlin Reese"
+    ],
+    "stored_names": [
+      "Dj Collins",
+      "Caitlin Reese",
+      "Tanner Riley"
+    ],
+    "ticket_id": 7264368,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6395741,
+    "club_id": 7,
+    "date": "2026-10-03T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-2026-10-02213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-2026-10-02213000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 7264369,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6429317,
+    "club_id": 7,
+    "date": "2026-10-03T23:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-03193000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-03-26-07-30-pm",
+    "source_names": [
+      "Candyce Cook",
+      "Dave Caggiano",
+      "Byron Austin",
+      "Patrick Holbert"
+    ],
+    "stored_names": [
+      "Byron Austin",
+      "Patrick Holbert",
+      "Candyce Cook",
+      "Dave Caggiano"
+    ],
+    "ticket_id": 7302925,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6429318,
+    "club_id": 7,
+    "date": "2026-10-04T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-03213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-03-26-09-30-pm",
+    "source_names": [
+      "Doug Uram",
+      "Derick Gonzalez",
+      "Adam Nate Levine",
+      "Adam Muller",
+      "Candyce Cook"
+    ],
+    "stored_names": [
+      "Derick Gonzalez",
+      "Doug Uram",
+      "Candyce Cook",
+      "Adam Muller",
+      "Adam Nate Levine"
+    ],
+    "ticket_id": 7302926,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6478812,
+    "club_id": 7,
+    "date": "2026-10-05T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-04213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-04-26-09-30-pm",
+    "source_names": [
+      "Tanner Riley",
+      "Tyler Groce",
+      "Christy Miller",
+      "Dj Collins"
+    ],
+    "stored_names": [
+      "Dj Collins",
+      "Tanner Riley",
+      "Tyler Groce",
+      "Christy Miller"
+    ],
+    "ticket_id": 7360204,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6585152,
+    "club_id": 7,
+    "date": "2026-10-06T23:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06190000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06190000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 7483545,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6585153,
+    "club_id": 7,
+    "date": "2026-10-07T01:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06210000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06210000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 7483546,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6585154,
+    "club_id": 7,
+    "date": "2026-10-07T02:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06223000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-06223000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 7483547,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6793444,
+    "club_id": 7,
+    "date": "2026-10-10T23:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-10193000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-10-26-07-30-pm",
+    "source_names": [
+      "Joe Russell",
+      "Julia Kastner",
+      "Dj Collins",
+      "April Boddie"
+    ],
+    "stored_names": [
+      "Dj Collins",
+      "Julia Kastner",
+      "April Boddie",
+      "Joe Russell"
+    ],
+    "ticket_id": 7724546,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6793445,
+    "club_id": 7,
+    "date": "2026-10-11T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-10213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-10-26-09-30-pm",
+    "source_names": [
+      "Adam Gabel",
+      "Dj Collins",
+      "Tina Zhu",
+      "Joe Russell",
+      "Nikhil Mehta"
+    ],
+    "stored_names": [
+      "Dj Collins",
+      "Adam Gabel",
+      "Joe Russell",
+      "Nikhil Mehta",
+      "Tina Zhu"
+    ],
+    "ticket_id": 7724547,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6826200,
+    "club_id": 7,
+    "date": "2026-10-11T23:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-11193000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-11-26-07-30-pm",
+    "source_names": [
+      "Ben Callahan",
+      "Chris Hamilton",
+      "Reuben Wolf",
+      "Esther Chen",
+      "Julianna Dudley"
+    ],
+    "stored_names": [
+      "Julianna Dudley",
+      "Reuben Wolf",
+      "Ben Callahan",
+      "Esther Chen",
+      "Chris Hamilton"
+    ],
+    "ticket_id": 7763112,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6826201,
+    "club_id": 7,
+    "date": "2026-10-12T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-11213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-11-26-09-30-pm",
+    "source_names": [
+      "Igor Martinez",
+      "Tanner Riley",
+      "Connor Meade",
+      "Jenae Boston"
+    ],
+    "stored_names": [
+      "Jenae Boston",
+      "Igor Martinez",
+      "Connor Meade",
+      "Tanner Riley"
+    ],
+    "ticket_id": 7763113,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 6930457,
+    "club_id": 7,
+    "date": "2026-10-13T23:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13190000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13190000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 7884387,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6930458,
+    "club_id": 7,
+    "date": "2026-10-14T01:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13210000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13210000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 7884388,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 6930459,
+    "club_id": 7,
+    "date": "2026-10-14T02:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13223000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-13223000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 7884389,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7029137,
+    "club_id": 7,
+    "date": "2026-10-16T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-15213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-15-26-09-30-pm",
+    "source_names": [
+      "Andy Aluise",
+      "Cab Washington",
+      "Corinne Fisher",
+      "Malorie Bryant"
+    ],
+    "stored_names": [
+      "Malorie Bryant",
+      "Andy Aluise",
+      "Cab Washington",
+      "Corinne Fisher"
+    ],
+    "ticket_id": 7998614,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7108656,
+    "club_id": 7,
+    "date": "2026-10-16T23:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-16193000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-16-26-07-30-pm",
+    "source_names": [
+      "Zach Braviette",
+      "Ryan Thomas",
+      "Amada Caba",
+      "Caitlin Reese",
+      "Gabe Dorado"
+    ],
+    "stored_names": [
+      "Zach Braviette",
+      "Gabe Dorado",
+      "Caitlin Reese",
+      "Amada Caba",
+      "Ryan Thomas"
+    ],
+    "ticket_id": 8093355,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7108657,
+    "club_id": 7,
+    "date": "2026-10-17T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-16213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-16-26-09-30-pm",
+    "source_names": [
+      "Igor Martinez",
+      "Julia Kastner",
+      "Cooper Kim",
+      "Corinne Fisher",
+      "James Mwaura"
+    ],
+    "stored_names": [
+      "Cooper Kim",
+      "Julia Kastner",
+      "Igor Martinez",
+      "James Mwaura",
+      "Corinne Fisher"
+    ],
+    "ticket_id": 8093356,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7108658,
+    "club_id": 7,
+    "date": "2026-10-17T23:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-17193000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-17-26-07-30-pm",
+    "source_names": [
+      "Tanner Riley",
+      "Ryan Thomas",
+      "Anna Bianco",
+      "Soo Ra"
+    ],
+    "stored_names": [
+      "Soo Ra",
+      "Tanner Riley",
+      "Ryan Thomas",
+      "Anna Bianco"
+    ],
+    "ticket_id": 8093357,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7161040,
+    "club_id": 7,
+    "date": "2026-10-18T23:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-18193000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-18-26-07-30-pm",
+    "source_names": [
+      "Ben Callahan",
+      "Derick Gonzalez",
+      "Jenny Saldana"
+    ],
+    "stored_names": [
+      "Jenny Saldana",
+      "Derick Gonzalez",
+      "Ben Callahan"
+    ],
+    "ticket_id": 8154392,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7161041,
+    "club_id": 7,
+    "date": "2026-10-19T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-18213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-18-26-09-30-pm",
+    "source_names": [
+      "Tanner Riley",
+      "Cooper Kim"
+    ],
+    "stored_names": [
+      "Cooper Kim",
+      "Tanner Riley"
+    ],
+    "ticket_id": 8154393,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7256545,
+    "club_id": 7,
+    "date": "2026-10-20T23:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20190000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20190000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 8265419,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7256546,
+    "club_id": 7,
+    "date": "2026-10-21T01:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20210000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20210000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 8265420,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7256547,
+    "club_id": 7,
+    "date": "2026-10-21T02:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20223000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-20223000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 8265421,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7352769,
+    "club_id": 7,
+    "date": "2026-10-23T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-22213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-22-26-09-30-pm",
+    "source_names": [
+      "Nikki MacCallum",
+      "Alexis Bradby",
+      "Shyam Subramanian",
+      "Andy Aluise",
+      "Rachel Lenihan"
+    ],
+    "stored_names": [
+      "Shyam Subramanian",
+      "Andy Aluise",
+      "Rachel Lenihan",
+      "Nikki MacCallum",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 8377105,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7384464,
+    "club_id": 7,
+    "date": "2026-10-23T23:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-23193000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-23-26-07-30-pm",
+    "source_names": [
+      "Candyce Cook",
+      "Dj Collins",
+      "Ben Callahan",
+      "Reuben Wolf",
+      "Gibran Saleem",
+      "J Smitty"
+    ],
+    "stored_names": [
+      "Dj Collins",
+      "Reuben Wolf",
+      "Ben Callahan",
+      "Candyce Cook",
+      "J Smitty",
+      "Gibran Saleem"
+    ],
+    "ticket_id": 8412943,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7384465,
+    "club_id": 7,
+    "date": "2026-10-24T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-23213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-23-26-09-30-pm",
+    "source_names": [
+      "Matt Bowman",
+      "Troy Alan",
+      "Alexis Bradby",
+      "Derick Gonzalez"
+    ],
+    "stored_names": [
+      "Derick Gonzalez",
+      "Troy Alan",
+      "Matt Bowman",
+      "Alexis Bradby"
+    ],
+    "ticket_id": 8412944,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7453011,
+    "club_id": 7,
+    "date": "2026-10-24T23:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/7-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-24193000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-24-26-07-30-pm",
+    "source_names": [
+      "Nikki MacCallum",
+      "Derick Gonzalez",
+      "Esther Chen",
+      "Gabe Dorado"
+    ],
+    "stored_names": [
+      "Derick Gonzalez",
+      "Esther Chen",
+      "Gabe Dorado",
+      "Nikki MacCallum"
+    ],
+    "ticket_id": 8493243,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7453012,
+    "club_id": 7,
+    "date": "2026-10-25T01:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/9-30pm-comedy-show-at-the-grisly-pear-midtown-2026-10-24213000",
+    "source_url": "https://www.grislypearstandup.com/events/comedy-show-at-the-grisly-pear-midtown-10-24-26-09-30-pm",
+    "source_names": [
+      "Zach Braviette",
+      "Dj Collins",
+      "Tomas Liebel",
+      "Nikki MacCallum",
+      "Troy Alan"
+    ],
+    "stored_names": [
+      "Dj Collins",
+      "Troy Alan",
+      "Zach Braviette",
+      "Tomas Liebel",
+      "Nikki MacCallum"
+    ],
+    "ticket_id": 8493244,
+    "old_price": null,
+    "base_price": 20.0
+  },
+  {
+    "id": 7591845,
+    "club_id": 7,
+    "date": "2026-10-28T01:00:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-27210000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-27210000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 8655400,
+    "old_price": null,
+    "base_price": 10.0
+  },
+  {
+    "id": 7591846,
+    "club_id": 7,
+    "date": "2026-10-28T02:30:00+00:00",
+    "old_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-27223000",
+    "source_url": "https://www.grislypearstandup.com/events/new-joke-night-at-the-grisly-pear-midtown-2026-10-27223000",
+    "source_names": [],
+    "stored_names": [],
+    "ticket_id": 8655401,
+    "old_price": null,
+    "base_price": 10.0
+  }
+]
