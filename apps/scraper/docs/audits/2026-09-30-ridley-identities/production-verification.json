@@ -1,0 +1,44 @@
+{
+  "verified_at": "2026-10-01T01:47:45.842253+00:00",
+  "original_show_count": 105,
+  "original_ids_and_core_fields_preserved": 105,
+  "after_show_count": 110,
+  "restored_count": 5,
+  "performances": [
+    {
+      "performance_id": "50537895",
+      "show_id": 7745419,
+      "name": "THE NIGHT BEFORE THANKSGIVING COMEDY SPECIAL",
+      "date": "2026-11-26T00:30:00+00:00",
+      "show_page_url": "https://www.comedycastle.com/event/the-night-before-thanksgiving-comedy-special/mark-ridleys-comedy-castle/royal-oak"
+    },
+    {
+      "performance_id": "68862675",
+      "show_id": 7745417,
+      "name": "COMEDY RUMBLE",
+      "date": "2026-10-30T23:15:00+00:00",
+      "show_page_url": "https://www.comedycastle.com/event/comedy-rumble-3/mark-ridleys-comedy-castle/royal-oak"
+    },
+    {
+      "performance_id": "82720075",
+      "show_id": 7745418,
+      "name": "COMEDY RUMBLE",
+      "date": "2026-10-31T01:45:00+00:00",
+      "show_page_url": "https://www.comedycastle.com/event/comedy-rumble-4/mark-ridleys-comedy-castle/royal-oak"
+    },
+    {
+      "performance_id": "62115951",
+      "show_id": 7745415,
+      "name": "MIKE CRONIN",
+      "date": "2026-10-15T23:30:00+00:00",
+      "show_page_url": "https://www.comedycastle.com/event/mike-cronin/mark-ridleys-comedy-castle/royal-oak"
+    },
+    {
+      "performance_id": "84649375",
+      "show_id": 7745416,
+      "name": "MIKE CRONIN",
+      "date": "2026-10-16T23:15:00+00:00",
+      "show_page_url": "https://www.comedycastle.com/event/mike-cronin-2/mark-ridleys-comedy-castle/royal-oak"
+    }
+  ]
+}
