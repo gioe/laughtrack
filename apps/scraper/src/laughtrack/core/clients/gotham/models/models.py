@@ -31,6 +31,9 @@ carry distinct ``event-id`` values), so no flattening step is needed.
 """
 
 import dataclasses
+import re
+
+from bs4 import BeautifulSoup
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -47,6 +50,47 @@ from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 # (e.g. "2026-06-20T20:00:00-04:00"); this is only the fallback for the
 # unexpected case of a naive timestamp.
 _GOTHAM_TIMEZONE = "America/New_York"
+
+
+def _explicit_billed_names(description: str) -> List[str]:
+    """Read current Gotham billing without mining prose for possible people."""
+    soup = BeautifulSoup(description, "html.parser")
+    names: List[str] = []
+    seen = set()
+
+    def add_name(text: str) -> bool:
+        # Only standalone person-shaped entries; sentences, times and prices
+        # terminate a Featuring block. The shared factory performs suppression.
+        text = " ".join(text.split())
+        if not re.fullmatch(r"[^\W\d_][\w’'.-]*(?: [^\W\d_][\w’'.-]*){1,4}", text):
+            return False
+        words = text.split()
+        if any(not word[0].isupper() and word not in {"de", "del", "van", "von"} for word in words):
+            return False
+        key = text.casefold()
+        if key not in seen:
+            names.append(text)
+            seen.add(key)
+        return True
+
+    def host_name(text: str) -> Optional[str]:
+        match = re.match(r"^Hosted by\s+(?:comedy vet\s+)?(.+?)(?:,|$)", text, re.I)
+        return match.group(1).strip() if match else None
+
+    for block in soup.find_all(["p", "div", "li"]):
+        text = block.get_text(" ", strip=True)
+        host = host_name(text)
+        if host:
+            add_name(host)
+        if text.casefold().strip() != "featuring:":
+            continue
+        for sibling in block.find_next_siblings():
+            if sibling.name not in {"p", "div", "li"}:
+                break
+            billing = sibling.get_text(" ", strip=True)
+            if not add_name(host_name(billing) or billing):
+                break
+    return names
 
 
 @dataclass
@@ -163,14 +207,16 @@ class GothamFeedEvent(ShowConvertible):
                 )
             ]
 
-            description = f"Comedy show: {self.name}"
+            raw_description = ((self._raw_data or {}).get("fieldData") or {}).get("event-description")
+            description = raw_description if isinstance(raw_description, str) else ""
+            performers = _explicit_billed_names(description)
 
             return ShowFactoryUtils.create_enhanced_show_base(
                 name=self.name,
                 club=club,
                 date=date,
                 show_page_url=show_page_url,
-                lineup=[],  # No comedian lineup info in the feed
+                lineup=ShowFactoryUtils.create_lineup_from_performers(performers),
                 tickets=tickets,
                 description=description,
                 room=room,

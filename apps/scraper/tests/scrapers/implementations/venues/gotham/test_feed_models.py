@@ -223,3 +223,73 @@ def test_from_dict_tolerates_malformed_individual_items():
     feed = GothamFeedResponse.from_dict(data)
     assert len(feed.events) == 1
     assert feed.events[0].name == "The Gotham All-Stars"
+
+
+
+def _captured_description_items():
+    root = next(parent for parent in pathlib.Path(__file__).resolve().parents if (parent / "docs/audits").is_dir())
+    return json.loads((root / "docs/audits/2026-09-26-missing-lineups/gotham/matched-feed-items.json").read_text())
+
+
+def _gotham_club():
+    from laughtrack.core.entities.club.model import Club
+    return Club(id=18, name="Gotham Comedy Club", address="208 W 23rd St", website="https://www.gothamcomedyclub.com",
+                popularity=0, zip_code="10011", phone_number="", visible=True, timezone="America/New_York")
+
+
+def test_explicit_billed_description_lineup():
+    expected = {
+        "Laugh for Sight": {"Mark Normand", "Aaron Berg", "Cory Kahaney", "Shaun Eli"},
+        "Mixtape Comedy Show": {"Royale Watkins"},
+        "Mixtape Comedy Show (As Part of the NYCF)": {"Royale Watkins"},
+    }
+    matched = set()
+    for item in _captured_description_items():
+        title = item["fieldData"]["event-title"]
+        if title not in expected:
+            continue
+        event = GothamFeedEvent.from_feed_item(item)
+        enriched = event.enrich_with_showclix_data(_showclix_data())
+        show = enriched.to_show(_gotham_club())
+        assert {person.name for person in show.lineup} == expected[title]
+        assert len(show.lineup) == len(expected[title])
+        assert show.date == event.start_datetime
+        assert show.show_page_url == event.show_page_url
+        assert show.tickets[0].price == 32.0
+        assert show.tickets[0].sold_out is False
+        assert show.description == " ".join(item["fieldData"]["event-description"].split())
+        matched.add(title)
+    assert matched == set(expected)
+
+
+def test_unannounced_description_remains_empty():
+    # Real descriptions include biography/TV credits, alumni and music guests.
+    for item in _captured_description_items():
+        if item["fieldData"]["event-title"] in {"Laugh for Sight", "Mixtape Comedy Show", "Mixtape Comedy Show (As Part of the NYCF)"}:
+            continue
+        event = GothamFeedEvent.from_feed_item(item)
+        show = event.to_show(_gotham_club())
+        assert show.lineup == []
+        assert show.date == event.start_datetime
+        assert show.show_page_url == event.show_page_url
+        assert show.tickets[0].price is None
+    item = _feed_item(**{"event-title": "Mark Normand", "event-description": "<p>Lineup to be announced.</p>"})
+    assert GothamFeedEvent.from_feed_item(item).to_show(_gotham_club()).lineup == []
+
+
+def test_billing_boundaries_deduplicate_and_suppress_placeholders():
+    description = """<div>Featuring:</div><div>Mark Normand</div><div>Mark Normand</div>
+    <div>Special Guest</div><div>Hosted by Shaun Eli</div><div> </div>
+    <div>Jerry Seinfeld</div><p>Musical guest: Doug E Fresh</p>
+    <p>Previous shows have featured Amy Schumer.</p><p>Biography credits include Aaron Berg.</p>"""
+    event = GothamFeedEvent.from_feed_item(_feed_item(**{"event-description": description}))
+    show = event.to_show(_gotham_club())
+    assert [person.name for person in show.lineup] == ["Mark Normand", "Shaun Eli"]
+    assert show.room == "Main Room"
+
+
+@pytest.mark.parametrize("description", [None, 123, "", "<p>A showcase featuring comics from Netflix and HBO.</p>",
+    "<p>Has featured: Jerry Seinfeld, Amy Schumer</p>", "<p>Musical guests: Doug E Fresh</p>"])
+def test_ambiguous_or_absent_billing_does_not_create_people(description):
+    event = GothamFeedEvent.from_feed_item(_feed_item(**{"event-description": description}))
+    assert event.to_show(_gotham_club()).lineup == []
