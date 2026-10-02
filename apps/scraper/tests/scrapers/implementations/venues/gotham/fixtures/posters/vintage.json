@@ -1,0 +1,26 @@
+{
+  "sha256": "ea20eaee29a4e9c2c1adefedeb906bf665332b1d48e36b159fbba5992be39f9d",
+  "tsv": [
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t969\t606\t-1\t\n2\t1\t1\t0\t0\t0\t90\t50\t793\t502\t-1\t\n3\t1\t1\t1\t0\t0\t90\t50\t793\t502\t-1\t\n4\t1\t1\t1\t1\t0\t336\t50\t300\t136\t-1\t\n5\t1\t1\t1\t1\t1\t336\t50\t300\t136\t95.991302\tTHE\n4\t1\t1\t1\t2\t0\t90\t224\t793\t148\t-1\t\n5\t1\t1\t1\t2\t1\t90\t224\t793\t148\t95.809090\tVINTAGE\n4\t1\t1\t1\t3\t0\t139\t404\t703\t148\t-1\t\n5\t1\t1\t1\t3\t1\t139\t404\t703\t148\t96.325951\tLOUNGE\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t1119\t873\t-1\t\n2\t1\t1\t0\t0\t0\t338\t354\t618\t251\t-1\t\n3\t1\t1\t1\t0\t0\t338\t354\t618\t251\t-1\t\n4\t1\t1\t1\t1\t0\t338\t354\t618\t110\t-1\t\n5\t1\t1\t1\t1\t1\t338\t354\t256\t107\t95.870773\tSAT\n5\t1\t1\t1\t1\t2\t658\t355\t298\t109\t95.916916\t9/26\n4\t1\t1\t1\t2\t0\t414\t487\t460\t118\t-1\t\n5\t1\t1\t1\t2\t1\t414\t487\t115\t118\t93.300117\t@\n5\t1\t1\t1\t2\t2\t595\t488\t279\t107\t96.440361\t7PM\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t837\t219\t-1\t\n2\t1\t1\t0\t0\t0\t116\t26\t696\t167\t-1\t\n3\t1\t1\t1\t0\t0\t30\t26\t782\t167\t-1\t\n4\t1\t1\t1\t1\t0\t116\t26\t696\t167\t-1\t\n5\t1\t1\t1\t1\t1\t116\t30\t317\t67\t96.242249\tCOMEDY\n5\t1\t1\t1\t1\t2\t461\t49\t211\t48\t96.242249\tCLUB\n5\t1\t1\t1\t1\t3\t732\t26\t80\t167\t30.448494\tZi\n4\t1\t1\t1\t2\t0\t237\t113\t314\t24\t-1\t\n5\t1\t1\t1\t2\t1\t237\t114\t87\t23\t46.586311\tNEW\n5\t1\t1\t1\t2\t2\t341\t113\t103\t24\t95.758942\tYORK\n5\t1\t1\t1\t2\t3\t461\t113\t90\t24\t95.134567\tCITY\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t1131\t384\t-1\t\n2\t1\t1\t0\t0\t0\t264\t41\t622\t241\t-1\t\n3\t1\t1\t1\t0\t0\t264\t41\t622\t241\t-1\t\n4\t1\t1\t1\t1\t0\t367\t41\t420\t103\t-1\t\n5\t1\t1\t1\t1\t1\t367\t41\t420\t103\t96.053612\tPETER\n4\t1\t1\t1\t2\t0\t264\t174\t622\t108\t-1\t\n5\t1\t1\t1\t2\t1\t264\t174\t622\t108\t90.781082\tREVELLO\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t903\t384\t-1\t\n2\t1\t1\t0\t0\t0\t131\t45\t585\t243\t-1\t\n3\t1\t1\t1\t0\t0\t131\t45\t585\t243\t-1\t\n4\t1\t1\t1\t1\t0\t131\t45\t585\t105\t-1\t\n5\t1\t1\t1\t1\t1\t131\t45\t585\t105\t96.410156\tLECLERC\n4\t1\t1\t1\t2\t0\t177\t178\t482\t110\t-1\t\n5\t1\t1\t1\t2\t1\t177\t178\t482\t110\t96.588867\tANDRE\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t1131\t384\t-1\t\n2\t1\t1\t0\t0\t0\t201\t39\t671\t243\t-1\t\n3\t1\t1\t1\t0\t0\t201\t39\t671\t243\t-1\t\n4\t1\t1\t1\t1\t0\t385\t39\t310\t108\t-1\t\n5\t1\t1\t1\t1\t1\t385\t39\t310\t108\t96.268578\tERIN\n4\t1\t1\t1\t2\t0\t201\t172\t671\t110\t-1\t\n5\t1\t1\t1\t2\t1\t201\t172\t671\t110\t96.068153\tJACKSON\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t969\t345\t-1\t\n2\t1\t1\t0\t0\t0\t81\t30\t747\t261\t-1\t\n3\t1\t1\t1\t0\t0\t81\t30\t747\t261\t-1\t\n4\t1\t1\t1\t1\t0\t264\t30\t376\t126\t-1\t\n5\t1\t1\t1\t1\t1\t264\t30\t376\t126\t95.955246\tVLAD\n4\t1\t1\t1\t2\t0\t81\t181\t747\t110\t-1\t\n5\t1\t1\t1\t2\t1\t81\t181\t747\t110\t91.353958\tCAAMANO\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t1032\t345\t-1\t\n2\t1\t1\t0\t0\t0\t48\t30\t885\t261\t-1\t\n3\t1\t1\t1\t0\t0\t48\t30\t885\t261\t-1\t\n4\t1\t1\t1\t1\t0\t126\t30\t664\t125\t-1\t\n5\t1\t1\t1\t1\t1\t126\t30\t664\t125\t30.515652\tTERESSA\n4\t1\t1\t1\t2\t0\t48\t181\t885\t110\t-1\t\n5\t1\t1\t1\t2\t1\t48\t181\t885\t110\t90.587372\tDEGAETANO\n"
+  ],
+  "expected": {
+    "layout": "square",
+    "date": "SAT 9/26 @ 7PM",
+    "brand": "COMEDY CLUB Zi NEW YORK CITY",
+    "room": "THE VINTAGE LOUNGE",
+    "captions": [
+      "PETER REVELLO",
+      "LECLERC ANDRE",
+      "ERIN JACKSON",
+      "VLAD CAAMANO",
+      "TERESSA DEGAETANO"
+    ]
+  }
+}

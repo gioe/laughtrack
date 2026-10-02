@@ -142,3 +142,46 @@ class GothamComedyClubScraper(BaseScraper):
             no upcoming events
         """
         return await self.extractor.extract_events(target)
+
+
+    async def _fetch_all_raw_data(self, targets):
+        # Enrich only after every page has arrived: asset reuse or conflicting
+        # room associations on later pages must invalidate earlier candidates.
+        results = await super()._fetch_all_raw_data(targets)
+        from .poster import PosterReader
+
+        events = [event for page, _ in results if page is not None for event in page.event_list]
+        reader = PosterReader(self.get_session)
+        try:
+            await reader.enrich(events, self._corroborate_poster_names)
+        except Exception as exc:
+            Logger.warn(f"{self._log_prefix}: poster enrichment unavailable ({type(exc).__name__})")
+        return results
+
+    @staticmethod
+    def _corroborate_poster_names(names):
+        """Poster OCR cannot create identities; require unique exact DB names."""
+        from laughtrack.core.entities.lineup.handler import LineupHandler
+        from sql.comedian_queries import ComedianQueries
+        from .poster import normalize_caption
+
+        handler = LineupHandler()
+        matches = handler.get_comedians_from_show_names([(name,) for name in names])
+        result = {}
+        for caption in names:
+            candidates = {c.uuid: c for c in matches.get(caption, []) if c.uuid}
+            if len(candidates) != 1:
+                continue
+            comedian = next(iter(candidates.values()))
+            if (comedian.parent_comedian_id is None
+                    and normalize_caption(comedian.name) == normalize_caption(caption)):
+                result[caption] = comedian.name
+        # Unlike normal ingestion's best-effort suppression, optional OCR fails
+        # closed if either corroboration or deny-list lookup is unavailable.
+        normalized = list({" ".join(name.casefold().split()) for name in result.values()})
+        denied = handler.execute_with_cursor(
+            ComedianQueries.GET_DENIED_NAMES, (normalized,), return_results=True
+        ) or []
+        denied_names = {" ".join(row["name"].casefold().split()) for row in denied}
+        return {caption: name for caption, name in result.items()
+                if " ".join(name.casefold().split()) not in denied_names}

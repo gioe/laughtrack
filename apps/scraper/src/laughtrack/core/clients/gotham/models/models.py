@@ -122,6 +122,11 @@ class GothamFeedEvent(ShowConvertible):
     # Raw feed item for reference
     _raw_data: Optional[Dict[str, Any]] = None
 
+    # Transient OCR billing is bound to the exact feed identity and asset.
+    _poster_billing: Optional[tuple[str, str, str, str, tuple[str, ...]]] = field(
+        default=None, init=False, repr=False, compare=False
+    )
+
     @classmethod
     def from_feed_item(cls, item: Dict[str, Any]) -> Optional["GothamFeedEvent"]:
         """Build a GothamFeedEvent from a raw feed item dict.
@@ -210,6 +215,12 @@ class GothamFeedEvent(ShowConvertible):
             raw_description = ((self._raw_data or {}).get("fieldData") or {}).get("event-description")
             description = raw_description if isinstance(raw_description, str) else ""
             performers = _explicit_billed_names(description)
+            billing = self._poster_billing
+            raw_asset = ((self._raw_data or {}).get("fieldData") or {}).get("event-image-url", "")
+            asset = "https:" + raw_asset if isinstance(raw_asset, str) and raw_asset.startswith("//") else raw_asset
+            if (not performers and billing and len(billing) == 5
+                    and billing[:4] == (self.id, self.start, self.name, asset)):
+                performers = list(billing[4])
 
             return ShowFactoryUtils.create_enhanced_show_base(
                 name=self.name,

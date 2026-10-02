@@ -293,3 +293,48 @@ def test_billing_boundaries_deduplicate_and_suppress_placeholders():
 def test_ambiguous_or_absent_billing_does_not_create_people(description):
     event = GothamFeedEvent.from_feed_item(_feed_item(**{"event-description": description}))
     assert event.to_show(_gotham_club()).lineup == []
+
+
+@pytest.mark.asyncio
+async def test_verified_poster_lineup(monkeypatch):
+    """Captured Tesseract TSV goes through layout, identity, DB and Show conversion."""
+    from .test_poster import captured_poster, poster_event
+    from laughtrack.scrapers.implementations.venues.gotham.poster import PosterReader
+    from unittest.mock import AsyncMock
+
+    for key in ("main", "spotlight", "vintage"):
+        evidence = captured_poster(monkeypatch, key)
+        event = poster_event(key)
+        reader = PosterReader(AsyncMock())
+        monkeypatch.setattr(reader, "fetch", AsyncMock(return_value=(key, b"image")))
+        monkeypatch.setattr(reader, "read", AsyncMock(return_value=evidence))
+        # Represents the exact canonical-name lookup; actual handler gate has
+        # separate ambiguity/deny-list tests in test_poster.py.
+        confirmed = {name: name.title() for name in evidence.captions}
+        await reader.enrich([event], lambda names: confirmed)
+        show = event.to_show(_gotham_club())
+        assert {person.name for person in show.lineup} == set(confirmed.values())
+        assert show.date == event.start_datetime
+        assert show.show_page_url == event.show_page_url
+        assert show.tickets[0].price == 25.0
+
+
+@pytest.mark.asyncio
+async def test_unverified_poster_lineup_rejected(monkeypatch):
+    from .test_poster import captured_poster, poster_event
+    from laughtrack.scrapers.implementations.venues.gotham.poster import PosterReader
+    from unittest.mock import AsyncMock
+    import dataclasses
+
+    event = poster_event("main")
+    reader = PosterReader(AsyncMock())
+    evidence = captured_poster(monkeypatch, "main")
+    monkeypatch.setattr(reader, "fetch", AsyncMock(return_value=("hash", b"image")))
+    monkeypatch.setattr(reader, "read", AsyncMock(return_value=evidence))
+    await reader.enrich([event], lambda names: {})
+    assert event.to_show(_gotham_club()).lineup == []
+    await reader.enrich([event], lambda names: {n: n.title() for n in names})
+    # Proof from one performance cannot be carried to another performance.
+    for overrides in ({"start": "2026-10-02T20:00:00-04:00"}, {"name": "The Vintage Lounge"}, {"id": "different"}):
+        copied = dataclasses.replace(event, **overrides)
+        assert copied.to_show(_gotham_club()).lineup == []

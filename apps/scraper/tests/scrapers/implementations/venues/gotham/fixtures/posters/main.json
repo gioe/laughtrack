@@ -1,0 +1,29 @@
+{
+  "sha256": "85b4eb04159ff739496b8061a73f3546bcb4a3cc68284297121551718c6a64f9",
+  "tsv": [
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t969\t606\t-1\t\n2\t1\t1\t0\t0\t0\t30\t63\t909\t430\t-1\t\n3\t1\t1\t1\t0\t0\t30\t63\t909\t362\t-1\t\n4\t1\t1\t1\t1\t0\t30\t63\t908\t182\t-1\t\n5\t1\t1\t1\t1\t1\t30\t63\t376\t182\t71.012177\t-OT\n5\t1\t1\t1\t1\t2\t637\t63\t301\t75\t14.763231\t~~\n4\t1\t1\t1\t2\t0\t30\t119\t909\t219\t-1\t\n5\t1\t1\t1\t2\t1\t30\t140\t227\t156\t38.498917\t50\n5\t1\t1\t1\t2\t2\t352\t119\t219\t219\t13.321342\tBe\n5\t1\t1\t1\t2\t3\t609\t135\t330\t180\t39.744377\tAlm\n4\t1\t1\t1\t3\t0\t45\t355\t823\t70\t-1\t\n5\t1\t1\t1\t3\t1\t45\t355\t468\t70\t95.453339\tCOMEDY\n5\t1\t1\t1\t3\t2\t556\t355\t312\t70\t96.331650\tCLUB\n3\t1\t1\t2\t0\t0\t225\t451\t714\t42\t-1\t\n4\t1\t1\t2\t1\t0\t225\t451\t714\t42\t-1\t\n5\t1\t1\t2\t1\t1\t225\t451\t127\t34\t96.035027\tNEW\n5\t1\t1\t2\t1\t2\t379\t451\t152\t34\t95.851974\tYORK\n5\t1\t1\t2\t1\t3\t557\t451\t130\t33\t96.095192\tCITY\n5\t1\t1\t2\t1\t4\t930\t467\t9\t26\t7.869129\tj\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t1119\t873\t-1\t\n2\t1\t1\t0\t0\t0\t191\t283\t829\t256\t-1\t\n3\t1\t1\t1\t0\t0\t191\t283\t829\t256\t-1\t\n4\t1\t1\t1\t1\t0\t191\t283\t743\t105\t-1\t\n5\t1\t1\t1\t1\t1\t191\t283\t433\t104\t96.378021\tTHURS\n5\t1\t1\t1\t1\t2\t684\t285\t250\t103\t96.713081\t10/1\n4\t1\t1\t1\t2\t0\t345\t411\t675\t128\t-1\t\n5\t1\t1\t1\t2\t1\t345\t411\t111\t111\t92.799118\t@\n5\t1\t1\t1\t2\t2\t517\t411\t266\t102\t50.977245\t8PM\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t1131\t255\t-1\t\n2\t1\t1\t0\t0\t0\t26\t30\t1075\t195\t-1\t\n3\t1\t1\t1\t0\t0\t30\t30\t1071\t195\t-1\t\n4\t1\t1\t1\t1\t0\t30\t30\t1071\t195\t-1\t\n5\t1\t1\t1\t1\t1\t30\t30\t97\t195\t91.827644\t\\\n5\t1\t1\t1\t1\t2\t174\t30\t468\t101\t96.070061\tCOMEDY\n5\t1\t1\t1\t1\t3\t685\t61\t312\t70\t95.529755\tCLUB\n5\t1\t1\t1\t1\t4\t1044\t95\t57\t130\t60.035034\ty\n4\t1\t1\t1\t2\t0\t26\t142\t791\t58\t-1\t\n5\t1\t1\t1\t2\t1\t26\t142\t41\t58\t48.335144\tbe\n5\t1\t1\t1\t2\t2\t354\t157\t127\t34\t94.881744\tNEW\n5\t1\t1\t1\t2\t3\t508\t157\t152\t34\t95.958771\tYORK\n5\t1\t1\t1\t2\t4\t686\t156\t131\t35\t96.669624\tCITY\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t1131\t384\t-1\t\n2\t1\t1\t0\t0\t0\t121\t58\t910\t257\t-1\t\n3\t1\t1\t1\t0\t0\t121\t58\t910\t257\t-1\t\n4\t1\t1\t1\t1\t0\t267\t58\t618\t116\t-1\t\n5\t1\t1\t1\t1\t1\t267\t58\t618\t116\t96.397041\tNATHAN\n4\t1\t1\t1\t2\t0\t121\t200\t910\t115\t-1\t\n5\t1\t1\t1\t2\t1\t121\t200\t910\t115\t96.455841\tMACINTOSH\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t903\t384\t-1\t\n2\t1\t1\t0\t0\t0\t72\t30\t764\t285\t-1\t\n3\t1\t1\t1\t0\t0\t72\t30\t764\t285\t-1\t\n4\t1\t1\t1\t1\t0\t183\t30\t653\t144\t-1\t\n5\t1\t1\t1\t1\t1\t183\t30\t653\t144\t84.731682\tDEAN\n5\t1\t1\t1\t1\t2\t731\t25\t104\t207\t54.812050\t_\n4\t1\t1\t1\t2\t0\t72\t199\t738\t116\t-1\t\n5\t1\t1\t1\t2\t1\t72\t199\t738\t116\t95.895439\tEDWARDS\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t1131\t384\t-1\t\n2\t1\t1\t0\t0\t0\t61\t30\t965\t285\t-1\t\n3\t1\t1\t1\t0\t0\t61\t30\t965\t285\t-1\t\n4\t1\t1\t1\t1\t0\t392\t30\t308\t144\t-1\t\n5\t1\t1\t1\t1\t1\t392\t30\t308\t144\t96.503754\tDAN\n4\t1\t1\t1\t2\t0\t61\t200\t965\t115\t-1\t\n5\t1\t1\t1\t2\t1\t61\t202\t205\t111\t94.151138\tST.\n5\t1\t1\t1\t2\t2\t341\t200\t685\t115\t95.503769\tGERMAIN\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t999\t348\t-1\t\n2\t1\t1\t0\t0\t0\t183\t37\t544\t256\t-1\t\n3\t1\t1\t1\t0\t0\t183\t37\t544\t256\t-1\t\n4\t1\t1\t1\t1\t0\t211\t37\t494\t116\t-1\t\n5\t1\t1\t1\t1\t1\t211\t37\t494\t116\t96.703629\tKUNAL\n4\t1\t1\t1\t2\t0\t183\t178\t544\t115\t-1\t\n5\t1\t1\t1\t2\t1\t183\t178\t544\t115\t96.753281\tARORA\n"
+  ],
+  "expected": {
+    "layout": "square",
+    "date": "THURS 10/1 @ 8PM",
+    "brand": "\\ COMEDY CLUB y be NEW YORK CITY",
+    "room": "-OT 50 Alm COMEDY CLUB NEW YORK CITY",
+    "captions": [
+      "NATHAN MACINTOSH",
+      "DEAN EDWARDS",
+      "DAN ST. GERMAIN",
+      "KUNAL ARORA"
+    ]
+  },
+  "source_url": "https://sc-events.s3.amazonaws.com/30025/10463444/eb423309ad67631112eee65d259475a756ef382f55923721a0b71570f403ba13/7d91be9f-52cf-4a5b-bc99-af32158bbb27.png",
+  "source_event_times": [
+    "2026-10-01T20:00:00-04:00"
+  ],
+  "retrieved_date": "2026-10-01"
+}

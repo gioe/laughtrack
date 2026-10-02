@@ -1,0 +1,26 @@
+{
+  "sha256": "75f6b8728eb94ca6b084b7c83a709a773770e5a062359e7c5208460d5b4925eb",
+  "tsv": [
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t2535\t339\t-1\t\n2\t1\t1\t0\t0\t0\t137\t37\t2249\t249\t-1\t\n3\t1\t1\t1\t0\t0\t137\t37\t2249\t249\t-1\t\n4\t1\t1\t1\t1\t0\t137\t37\t2249\t249\t-1\t\n5\t1\t1\t1\t1\t1\t137\t57\t782\t228\t96.769310\tTUESDAY\n5\t1\t1\t1\t1\t2\t977\t57\t330\t228\t96.701324\tOCT\n5\t1\t1\t1\t1\t3\t1364\t37\t244\t248\t93.778786\t6\"\n5\t1\t1\t1\t1\t4\t1670\t57\t716\t229\t94.285706\t7:30PM\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t990\t138\t-1\t\n2\t1\t1\t0\t0\t0\t0\t0\t985\t120\t-1\t\n3\t1\t1\t1\t0\t0\t0\t0\t985\t120\t-1\t\n4\t1\t1\t1\t1\t0\t0\t0\t985\t120\t-1\t\n5\t1\t1\t1\t1\t1\t0\t0\t110\t117\t39.324738\tW\n5\t1\t1\t1\t1\t2\t172\t0\t346\t120\t92.788406\tCOMEDY\n5\t1\t1\t1\t1\t3\t575\t19\t229\t100\t84.674988\tCLuB\n5\t1\t1\t1\t1\t4\t855\t0\t130\t117\t17.223721\tff\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t666\t348\t-1\t\n2\t1\t1\t0\t0\t0\t185\t75\t316\t220\t-1\t\n3\t1\t1\t1\t0\t0\t185\t75\t316\t220\t-1\t\n4\t1\t1\t1\t1\t0\t254\t75\t177\t106\t-1\t\n5\t1\t1\t1\t1\t1\t254\t75\t177\t106\t95.051743\tRAFI\n4\t1\t1\t1\t2\t0\t185\t189\t316\t106\t-1\t\n5\t1\t1\t1\t2\t1\t185\t189\t316\t106\t91.001534\tBASTOS\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t579\t348\t-1\t\n2\t1\t1\t0\t0\t0\t144\t71\t280\t219\t-1\t\n3\t1\t1\t1\t0\t0\t144\t71\t280\t219\t-1\t\n4\t1\t1\t1\t1\t0\t204\t71\t156\t105\t-1\t\n5\t1\t1\t1\t1\t1\t204\t71\t156\t105\t84.926727\tTIM\n4\t1\t1\t1\t2\t0\t144\t183\t280\t107\t-1\t\n5\t1\t1\t1\t2\t1\t144\t183\t280\t107\t95.168640\tDILLON\n",
+    "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n1\t1\t0\t0\t0\t0\t0\t0\t576\t348\t-1\t\n2\t1\t1\t0\t0\t0\t120\t80\t230\t220\t-1\t\n3\t1\t1\t1\t0\t0\t120\t80\t230\t220\t-1\t\n4\t1\t1\t1\t1\t0\t120\t80\t230\t107\t-1\t\n5\t1\t1\t1\t1\t1\t120\t80\t230\t107\t96.871170\tLOUIS\n4\t1\t1\t1\t2\t0\t134\t194\t200\t106\t-1\t\n5\t1\t1\t1\t2\t1\t134\t194\t200\t106\t95.279655\tKATZ\n"
+  ],
+  "expected": {
+    "layout": "spotlight",
+    "date": "TUESDAY OCT 6\" 7:30PM",
+    "brand": "W COMEDY CLuB",
+    "room": "",
+    "captions": [
+      "RAFI BASTOS",
+      "TIM DILLON",
+      "LOUIS KATZ"
+    ]
+  },
+  "source_url": "https://sc-events.s3.amazonaws.com/30025/10461446/46eb85b11586ff82da4b291a8bd82772a2bc481ff0d09f5c9fb0748d440d535c/aafa5991-7c6e-4608-86ad-4e8b031ebf60.png",
+  "source_event_times": [
+    "2026-10-06T19:30:00-04:00"
+  ],
+  "retrieved_date": "2026-10-01"
+}
