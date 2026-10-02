@@ -1,0 +1,54 @@
+{
+  "matches": {
+    "NATHAN MACINTOSH": [
+      {
+        "name": "Nathan Macintosh",
+        "uuid": "7eac16f529ae416e6a44c1005e41848a",
+        "parent_comedian_id": null
+      }
+    ],
+    "DEAN EDWARDS": [
+      {
+        "name": "Dean Edwards",
+        "uuid": "e23b1bcb2d8a5cbf354662b688b99ee4",
+        "parent_comedian_id": null
+      }
+    ],
+    "DAN ST. GERMAIN": [
+      {
+        "name": "Dan St. Germain",
+        "uuid": "1b8e64ce757539b3ff43873bbf0d904f",
+        "parent_comedian_id": null
+      }
+    ],
+    "KUNAL ARORA": [
+      {
+        "name": "Kunal Arora",
+        "uuid": "f80dfb9242ba25db0b85f7e629051d5b",
+        "parent_comedian_id": null
+      }
+    ],
+    "RAFI BASTOS": [
+      {
+        "name": "Rafi Bastos",
+        "uuid": "e6e7b40016240dd57f2c19ddf9b839f8",
+        "parent_comedian_id": null
+      }
+    ],
+    "TIM DILLON": [
+      {
+        "name": "Tim Dillon",
+        "uuid": "6a8ad064e3f3f03fa15cbdc868e3a075",
+        "parent_comedian_id": null
+      }
+    ],
+    "LOUIS KATZ": [
+      {
+        "name": "Louis Katz",
+        "uuid": "f20c55f439617761bfec473bf1f76bea",
+        "parent_comedian_id": null
+      }
+    ]
+  },
+  "denied": []
+}

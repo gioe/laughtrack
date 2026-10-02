@@ -1,0 +1,47 @@
+{
+  "added_memberships": 6,
+  "show_ids": [
+    6673899,
+    6972715
+  ],
+  "memberships": [
+    {
+      "show_id": 6673899,
+      "comedian_uuid": "6a8ad064e3f3f03fa15cbdc868e3a075",
+      "name": "Tim Dillon"
+    },
+    {
+      "show_id": 6673899,
+      "comedian_uuid": "e6e7b40016240dd57f2c19ddf9b839f8",
+      "name": "Rafi Bastos"
+    },
+    {
+      "show_id": 6673899,
+      "comedian_uuid": "f20c55f439617761bfec473bf1f76bea",
+      "name": "Louis Katz"
+    },
+    {
+      "show_id": 6972715,
+      "comedian_uuid": "1b8e64ce757539b3ff43873bbf0d904f",
+      "name": "Dan St. Germain"
+    },
+    {
+      "show_id": 6972715,
+      "comedian_uuid": "7eac16f529ae416e6a44c1005e41848a",
+      "name": "Nathan Macintosh"
+    },
+    {
+      "show_id": 6972715,
+      "comedian_uuid": "e23b1bcb2d8a5cbf354662b688b99ee4",
+      "name": "Dean Edwards"
+    },
+    {
+      "show_id": 6972715,
+      "comedian_uuid": "f80dfb9242ba25db0b85f7e629051d5b",
+      "name": "Kunal Arora"
+    }
+  ],
+  "new_comedian_records": 0,
+  "ticket_updates": 0,
+  "show_updates": 0
+}

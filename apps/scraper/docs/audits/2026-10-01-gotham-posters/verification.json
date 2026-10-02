@@ -1,0 +1,417 @@
+{
+  "original_show_ids_preserved": 609,
+  "current_show_count": 613,
+  "new_concurrent_show_ids": [
+    7763726,
+    7763727,
+    7763728,
+    7763729
+  ],
+  "original_ticket_ids_preserved": 609,
+  "verified_poster_memberships": 7,
+  "new_memberships_inserted_by_repair": 6,
+  "new_comedian_records": 0,
+  "own_show_updates": 0,
+  "own_ticket_updates": 0,
+  "concurrent_change_notice": "Normal production ingestion ran between baseline and repair; one verified membership already existed. Do not attribute unrelated updates or newly added shows to this repair.",
+  "changed_original_rows": {
+    "2797669": [
+      "last_scraped_date"
+    ],
+    "4400553": [
+      "last_scraped_date",
+      "lineup"
+    ],
+    "5509332": [
+      "last_scraped_date"
+    ],
+    "5509333": [
+      "last_scraped_date"
+    ],
+    "5509334": [
+      "last_scraped_date"
+    ],
+    "5509335": [
+      "last_scraped_date"
+    ],
+    "5509336": [
+      "last_scraped_date"
+    ],
+    "5509337": [
+      "last_scraped_date"
+    ],
+    "5509338": [
+      "last_scraped_date"
+    ],
+    "5509339": [
+      "last_scraped_date"
+    ],
+    "5509340": [
+      "last_scraped_date"
+    ],
+    "5509341": [
+      "last_scraped_date"
+    ],
+    "5509342": [
+      "last_scraped_date"
+    ],
+    "5509358": [
+      "last_scraped_date"
+    ],
+    "5509359": [
+      "last_scraped_date"
+    ],
+    "5509360": [
+      "last_scraped_date"
+    ],
+    "5509361": [
+      "last_scraped_date"
+    ],
+    "5509362": [
+      "last_scraped_date"
+    ],
+    "5509363": [
+      "last_scraped_date"
+    ],
+    "5509364": [
+      "last_scraped_date"
+    ],
+    "5509365": [
+      "last_scraped_date"
+    ],
+    "5509366": [
+      "last_scraped_date"
+    ],
+    "5509367": [
+      "last_scraped_date"
+    ],
+    "5509368": [
+      "last_scraped_date"
+    ],
+    "5509369": [
+      "last_scraped_date"
+    ],
+    "5509370": [
+      "last_scraped_date"
+    ],
+    "5509371": [
+      "last_scraped_date"
+    ],
+    "5509372": [
+      "last_scraped_date"
+    ],
+    "5645376": [
+      "last_scraped_date"
+    ],
+    "5645377": [
+      "last_scraped_date"
+    ],
+    "5645378": [
+      "last_scraped_date"
+    ],
+    "6282216": [
+      "last_scraped_date"
+    ],
+    "6282217": [
+      "last_scraped_date"
+    ],
+    "6282218": [
+      "last_scraped_date"
+    ],
+    "6282219": [
+      "last_scraped_date"
+    ],
+    "6282220": [
+      "last_scraped_date"
+    ],
+    "6282221": [
+      "last_scraped_date"
+    ],
+    "6282222": [
+      "last_scraped_date"
+    ],
+    "6282223": [
+      "last_scraped_date"
+    ],
+    "6282224": [
+      "last_scraped_date"
+    ],
+    "6337172": [
+      "last_scraped_date"
+    ],
+    "6337173": [
+      "last_scraped_date"
+    ],
+    "6337174": [
+      "last_scraped_date"
+    ],
+    "6337175": [
+      "last_scraped_date"
+    ],
+    "6370626": [
+      "last_scraped_date"
+    ],
+    "6673897": [
+      "last_scraped_date"
+    ],
+    "6673898": [
+      "last_scraped_date"
+    ],
+    "6673899": [
+      "name",
+      "last_scraped_date",
+      "tickets",
+      "lineup"
+    ],
+    "6729151": [
+      "last_scraped_date"
+    ],
+    "6729152": [
+      "last_scraped_date"
+    ],
+    "6729153": [
+      "last_scraped_date"
+    ],
+    "6972715": [
+      "lineup"
+    ],
+    "7060046": [
+      "last_scraped_date"
+    ],
+    "7060047": [
+      "last_scraped_date"
+    ],
+    "7060049": [
+      "last_scraped_date"
+    ],
+    "7088524": [
+      "last_scraped_date"
+    ],
+    "7327535": [
+      "last_scraped_date"
+    ],
+    "7327536": [
+      "last_scraped_date"
+    ],
+    "7327537": [
+      "last_scraped_date"
+    ],
+    "7327538": [
+      "last_scraped_date"
+    ],
+    "7327539": [
+      "last_scraped_date"
+    ],
+    "7327540": [
+      "last_scraped_date"
+    ],
+    "7327541": [
+      "last_scraped_date"
+    ],
+    "7327542": [
+      "last_scraped_date"
+    ],
+    "7327543": [
+      "last_scraped_date"
+    ],
+    "7327544": [
+      "last_scraped_date"
+    ],
+    "7327545": [
+      "last_scraped_date"
+    ],
+    "7327546": [
+      "last_scraped_date"
+    ],
+    "7327547": [
+      "last_scraped_date"
+    ],
+    "7327548": [
+      "last_scraped_date"
+    ],
+    "7327549": [
+      "last_scraped_date"
+    ],
+    "7327550": [
+      "last_scraped_date"
+    ],
+    "7327551": [
+      "last_scraped_date"
+    ],
+    "7327552": [
+      "last_scraped_date"
+    ],
+    "7327553": [
+      "last_scraped_date"
+    ],
+    "7327554": [
+      "last_scraped_date"
+    ],
+    "7327555": [
+      "last_scraped_date"
+    ],
+    "7327556": [
+      "last_scraped_date"
+    ],
+    "7327557": [
+      "last_scraped_date"
+    ],
+    "7327558": [
+      "last_scraped_date"
+    ],
+    "7327559": [
+      "last_scraped_date"
+    ],
+    "7327560": [
+      "last_scraped_date"
+    ],
+    "7327561": [
+      "last_scraped_date"
+    ],
+    "7327562": [
+      "last_scraped_date"
+    ],
+    "7327563": [
+      "last_scraped_date"
+    ],
+    "7327564": [
+      "last_scraped_date"
+    ],
+    "7327565": [
+      "last_scraped_date"
+    ],
+    "7327566": [
+      "last_scraped_date"
+    ],
+    "7327567": [
+      "last_scraped_date"
+    ],
+    "7327568": [
+      "last_scraped_date"
+    ],
+    "7327569": [
+      "last_scraped_date"
+    ],
+    "7327570": [
+      "last_scraped_date"
+    ],
+    "7327571": [
+      "last_scraped_date"
+    ],
+    "7327572": [
+      "last_scraped_date"
+    ],
+    "7327573": [
+      "last_scraped_date"
+    ],
+    "7327574": [
+      "last_scraped_date"
+    ],
+    "7327575": [
+      "last_scraped_date"
+    ],
+    "7327576": [
+      "last_scraped_date"
+    ],
+    "7327577": [
+      "last_scraped_date"
+    ],
+    "7327578": [
+      "last_scraped_date"
+    ],
+    "7327579": [
+      "last_scraped_date"
+    ],
+    "7327580": [
+      "last_scraped_date"
+    ],
+    "7327581": [
+      "last_scraped_date"
+    ],
+    "7327582": [
+      "last_scraped_date"
+    ],
+    "7327583": [
+      "last_scraped_date"
+    ],
+    "7327584": [
+      "last_scraped_date"
+    ],
+    "7327585": [
+      "last_scraped_date"
+    ],
+    "7327586": [
+      "last_scraped_date"
+    ]
+  },
+  "repaired_shows": [
+    {
+      "id": 6673899,
+      "club_id": 18,
+      "name": "Comedy Spotlight with Tim Dillon and More!",
+      "date": "2026-10-06T23:30:00+00:00",
+      "room": "Main Room",
+      "show_page_url": "https://www.showclix.com/event/comedy-spotlightmay11dmvnnxy",
+      "last_scraped_date": "2026-10-02T00:36:52.513885+00:00",
+      "tickets": [
+        {
+          "id": 7586357,
+          "url": "https://www.showclix.com/event/comedy-spotlightmay11dmvnnxy",
+          "price": 35.0,
+          "sold_out": false,
+          "type": "General Admission"
+        }
+      ],
+      "lineup": [
+        {
+          "comedian_id": "6a8ad064e3f3f03fa15cbdc868e3a075",
+          "name": "Tim Dillon"
+        },
+        {
+          "comedian_id": "e6e7b40016240dd57f2c19ddf9b839f8",
+          "name": "Rafi Bastos"
+        },
+        {
+          "comedian_id": "f20c55f439617761bfec473bf1f76bea",
+          "name": "Louis Katz"
+        }
+      ]
+    },
+    {
+      "id": 6972715,
+      "club_id": 18,
+      "name": "The Gotham All-Stars",
+      "date": "2026-10-02T00:00:00+00:00",
+      "room": "Main Room",
+      "show_page_url": "https://www.showclix.com/event/the-gotham-all-stars2526c8h1swk",
+      "last_scraped_date": "2026-09-30T15:13:53.704148+00:00",
+      "tickets": [
+        {
+          "id": 7933247,
+          "url": "https://www.showclix.com/event/the-gotham-all-stars2526c8h1swk",
+          "price": 20.0,
+          "sold_out": false,
+          "type": "General Admission"
+        }
+      ],
+      "lineup": [
+        {
+          "comedian_id": "1b8e64ce757539b3ff43873bbf0d904f",
+          "name": "Dan St. Germain"
+        },
+        {
+          "comedian_id": "7eac16f529ae416e6a44c1005e41848a",
+          "name": "Nathan Macintosh"
+        },
+        {
+          "comedian_id": "e23b1bcb2d8a5cbf354662b688b99ee4",
+          "name": "Dean Edwards"
+        },
+        {
+          "comedian_id": "f80dfb9242ba25db0b85f7e629051d5b",
+          "name": "Kunal Arora"
+        }
+      ]
+    }
+  ]
+}
