@@ -1,0 +1,48 @@
+{
+  "applied_at": "2026-10-03T12:40:36.588867+00:00",
+  "updates": [
+    {
+      "ticket_id": 5571688,
+      "old_price": null,
+      "new_price": "0.00"
+    },
+    {
+      "ticket_id": 5571694,
+      "old_price": null,
+      "new_price": "0.00"
+    },
+    {
+      "ticket_id": 5571705,
+      "old_price": null,
+      "new_price": "0.00"
+    },
+    {
+      "ticket_id": 5571713,
+      "old_price": null,
+      "new_price": "0.00"
+    }
+  ],
+  "post_commit_readback": [
+    {
+      "ticket_id": 5571688,
+      "price": "0.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 5571694,
+      "price": "0.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 5571705,
+      "price": "0.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 5571713,
+      "price": "0.00",
+      "sold_out": false
+    }
+  ],
+  "scope": "Only ticket.price, four future exact-identity records, guarded prior unknown price and availability"
+}
