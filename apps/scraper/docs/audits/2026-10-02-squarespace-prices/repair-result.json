@@ -1,0 +1,268 @@
+{
+  "applied_at": "2026-10-03T03:42:41.751906+00:00",
+  "updated": [
+    {
+      "ticket_id": 8369175,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 8369176,
+      "old_price": null,
+      "new_price": "10.00"
+    },
+    {
+      "ticket_id": 8369177,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 8369178,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 8369179,
+      "old_price": null,
+      "new_price": "10.00"
+    },
+    {
+      "ticket_id": 8369180,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 8369181,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 8369182,
+      "old_price": null,
+      "new_price": "10.00"
+    },
+    {
+      "ticket_id": 8369183,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 8369184,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 8369185,
+      "old_price": null,
+      "new_price": "10.00"
+    },
+    {
+      "ticket_id": 8369186,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 8369187,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 7473799,
+      "old_price": null,
+      "new_price": "20.00"
+    },
+    {
+      "ticket_id": 7473800,
+      "old_price": null,
+      "new_price": "5.00"
+    },
+    {
+      "ticket_id": 7647736,
+      "old_price": null,
+      "new_price": "5.00"
+    },
+    {
+      "ticket_id": 7473801,
+      "old_price": null,
+      "new_price": "20.00"
+    },
+    {
+      "ticket_id": 7473802,
+      "old_price": null,
+      "new_price": "5.00"
+    },
+    {
+      "ticket_id": 7647740,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 7473803,
+      "old_price": null,
+      "new_price": "20.00"
+    },
+    {
+      "ticket_id": 7473804,
+      "old_price": null,
+      "new_price": "5.00"
+    },
+    {
+      "ticket_id": 8733318,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 8733319,
+      "old_price": null,
+      "new_price": "12.00"
+    },
+    {
+      "ticket_id": 7473805,
+      "old_price": null,
+      "new_price": "20.00"
+    },
+    {
+      "ticket_id": 7473806,
+      "old_price": null,
+      "new_price": "5.00"
+    },
+    {
+      "ticket_id": 8733323,
+      "old_price": null,
+      "new_price": "15.00"
+    }
+  ],
+  "verified": [
+    {
+      "ticket_id": 7473799,
+      "price": "20.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 7473800,
+      "price": "5.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 7473801,
+      "price": "20.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 7473802,
+      "price": "5.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 7473803,
+      "price": "20.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 7473804,
+      "price": "5.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 7473805,
+      "price": "20.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 7473806,
+      "price": "5.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 7647736,
+      "price": "5.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 7647740,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369175,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369176,
+      "price": "10.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369177,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369178,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369179,
+      "price": "10.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369180,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369181,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369182,
+      "price": "10.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369183,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369184,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369185,
+      "price": "10.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369186,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8369187,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8733318,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8733319,
+      "price": "12.00",
+      "sold_out": false
+    },
+    {
+      "ticket_id": 8733323,
+      "price": "15.00",
+      "sold_out": false
+    }
+  ],
+  "scope": "26 future exact-identity General Admission tickets; only null price updated; no other columns or tables changed"
+}
