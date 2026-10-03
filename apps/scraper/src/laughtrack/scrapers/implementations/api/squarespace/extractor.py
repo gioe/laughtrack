@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from laughtrack.core.entities.event.squarespace import SquarespaceEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from .pricing import product_price
 
 
 def _title_allowed(
@@ -141,6 +142,7 @@ class SquarespaceExtractor:
             return None
 
         start_date_ms = int(start_dt.astimezone(timezone.utc).timestamp() * 1000)
+        price, sold_out = product_price(raw)
         return SquarespaceEvent(
             id=str(product_id),
             title=title,
@@ -148,6 +150,8 @@ class SquarespaceExtractor:
             full_url=full_url,
             base_domain=base_domain,
             excerpt=excerpt,
+            price=price,
+            sold_out=sold_out,
         )
 
     @staticmethod

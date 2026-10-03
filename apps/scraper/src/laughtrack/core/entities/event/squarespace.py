@@ -42,6 +42,8 @@ class SquarespaceEvent(ShowConvertible):
     base_domain: str       # e.g. "https://thedentheatre.com"
     excerpt: str = ""
     ticketing_url: str = ""  # Direct ticket URL from per-event detail page, if fetched
+    price: Optional[float] = None  # Verified USD single-admission product price
+    sold_out: bool = False
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a SquarespaceEvent to a Show domain object."""
@@ -58,7 +60,9 @@ class SquarespaceEvent(ShowConvertible):
         description = HtmlUtils.strip_tags(self.excerpt) or None
 
         ticket_purchase_url = self.ticketing_url or show_page_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_purchase_url)]
+        tickets = [ShowFactoryUtils.create_fallback_ticket(
+            ticket_purchase_url, price=self.price, sold_out=self.sold_out
+        )]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title or "Comedy Show",

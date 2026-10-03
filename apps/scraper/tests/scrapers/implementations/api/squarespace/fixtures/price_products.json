@@ -1,0 +1,460 @@
+[
+  {
+    "club_id": 9075,
+    "source": "2026-09-27 audit products9075.txt",
+    "product": {
+      "id": "6aa2c6689fa91f6b376ec500",
+      "title": "October 1: Thursday Night Storytelling @7:30pm",
+      "fullUrl": "/tickets/p/october-1-2026",
+      "excerpt": "<p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>Storytellers this month are: </strong>Sayard Bass, Chris Rooney, Alina Serban, Eric Bodwell, Danny Bowery, Theresa Puskar</p>",
+      "structuredContent": {
+        "_type": "StoreItem",
+        "priceCents": 0,
+        "salePriceCents": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "productType": 1,
+        "additionalFieldsFormId": "66f2c05173bab060506aa8bb",
+        "customAddButtonText": "Add To Cart",
+        "useCustomAddButtonText": false,
+        "additionalFieldsForm": {
+          "id": "66f2c05173bab060506aa8bb",
+          "type": 2,
+          "name": "Storytelling",
+          "fields": [
+            "{\"type\":\"section\",\"id\":\"section-yui_3_17_2_1_1727184602577_15271\",\"locked\":false,\"title\":\"Show starts at 7:30pm\",\"description\":\"Doors open at 7pm.\\nWe do have a bar and you are welcome to hang out in the bar area or in theatre prior to the show starting.\",\"underline\":true,\"section\":true}",
+            "{\"type\":\"section\",\"id\":\"section-yui_3_17_2_1_1727184602577_16335\",\"locked\":false,\"title\":\"Seating for this show is General Admission.\",\"description\":\"Seats are not reserved. If you have a large group, we recommend you come early (doors open at 7pm) and grab some seats. We look forward to seeing you!\\nThank you!\",\"underline\":true,\"section\":true}"
+          ],
+          "parsedFields": [],
+          "submitButtonText": "Submit",
+          "submissionMessage": "{\"html\":\"Thank you!\"}",
+          "disclaimerMessage": "null",
+          "successRedirect": "",
+          "captchaEnabled": false,
+          "captchaTheme": 1,
+          "captchaAlignment": 1
+        },
+        "variants": [
+          {
+            "attributes": {},
+            "optionValues": [],
+            "id": "4b6cb246-abd7-4302-9427-d14458d9e6af",
+            "sku": "SQ8213078",
+            "price": 800,
+            "salePrice": 0,
+            "priceMoney": {
+              "currency": "USD",
+              "value": "8.00"
+            },
+            "salePriceMoney": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false,
+            "unlimited": false,
+            "qtyInStock": 65,
+            "width": 0.0,
+            "height": 0.0,
+            "weight": 0.0,
+            "imageIds": [],
+            "images": [],
+            "len": 0.0
+          }
+        ],
+        "variantOptionOrdering": [],
+        "isSubscribable": false,
+        "fulfilledExternally": false,
+        "productAddOnsConfiguration": {
+          "productAddOns": []
+        },
+        "mightHavePaymentPlan": false
+      },
+      "variants": [
+        {
+          "attributes": {},
+          "optionValues": [],
+          "id": "4b6cb246-abd7-4302-9427-d14458d9e6af",
+          "sku": "SQ8213078",
+          "price": 800,
+          "salePrice": 0,
+          "priceMoney": {
+            "currency": "USD",
+            "value": "8.00"
+          },
+          "salePriceMoney": {
+            "currency": "USD",
+            "value": "0.00"
+          },
+          "onSale": false,
+          "unlimited": false,
+          "qtyInStock": 65,
+          "width": 0.0,
+          "height": 0.0,
+          "weight": 0.0,
+          "imageIds": [],
+          "images": [],
+          "len": 0.0
+        }
+      ]
+    }
+  },
+  {
+    "club_id": 16060,
+    "source": "2026-09-27 audit products16060.txt",
+    "product": {
+      "id": "6a9d943669f223072eb38364",
+      "title": "Fri Oct 2nd Suffern Soccer Fundraiser 7pm",
+      "fullUrl": "/tickets/p/fri-oct-2nd-suffern-soccer-fundraiser-7pm",
+      "excerpt": "<p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>Suffern Soccer Fundraiser</strong></p><h4 style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><span>Get ready for a night of big laughs in support of the Suffern High School boys soccer team! Join us at Rhino Comedy in Suffern for an awesome standup comedy fundraiser headlined by the hilarious Laz Vic. Tickets are $35 and include pizza, water and the show, with additional food and drinks to order at Rhino\u2019s Hardware Bar.  Post-show Open Mic for brave souls!  </span></h4><h4 style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><span>Come out to back the team, enjoy top-tier comedy, and have a fantastic night out with the Suffern soccer team\u2014grab your tickets now before seats fill up!</span></h4><h4 style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><span>Doors open at 7pm  ~ Seating is a free for all ~ Hardware Bar menu </span><a rel=\"noopener\" href=\"/menu\"><span>HERE</span></a></h4><h4 style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">If you\u2019d like to make an additional donation - just click <a rel=\"noopener\" href=\"/new-page-2\">HERE</a></h4><ul data-rte-list=\"default\"><li><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Your name will be on our box office list, no need to print the email confirmation. The confirmation is sent to the email you provided at checkout and often appears in the \u201cspam\u201d folder.  </p></li></ul>",
+      "structuredContent": {
+        "_type": "StoreItem",
+        "priceCents": 0,
+        "salePriceCents": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "productType": 3,
+        "customAddButtonText": "Add To Cart",
+        "useCustomAddButtonText": false,
+        "variants": [
+          {
+            "attributes": {},
+            "optionValues": [],
+            "id": "7be6c01a-b87f-4081-a535-a9d7e9206300",
+            "sku": "SQ6589923",
+            "price": 3500,
+            "salePrice": 0,
+            "priceMoney": {
+              "currency": "USD",
+              "value": "35.00"
+            },
+            "salePriceMoney": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false,
+            "unlimited": false,
+            "qtyInStock": 12,
+            "width": 0.0,
+            "height": 0.0,
+            "weight": 0.0,
+            "imageIds": [],
+            "images": [],
+            "len": 0.0
+          }
+        ],
+        "variantOptionOrdering": [],
+        "isSubscribable": false,
+        "fulfilledExternally": false,
+        "productAddOnsConfiguration": {
+          "productAddOns": []
+        },
+        "mightHavePaymentPlan": false
+      },
+      "variants": [
+        {
+          "attributes": {},
+          "optionValues": [],
+          "id": "7be6c01a-b87f-4081-a535-a9d7e9206300",
+          "sku": "SQ6589923",
+          "price": 3500,
+          "salePrice": 0,
+          "priceMoney": {
+            "currency": "USD",
+            "value": "35.00"
+          },
+          "salePriceMoney": {
+            "currency": "USD",
+            "value": "0.00"
+          },
+          "onSale": false,
+          "unlimited": false,
+          "qtyInStock": 12,
+          "width": 0.0,
+          "height": 0.0,
+          "weight": 0.0,
+          "imageIds": [],
+          "images": [],
+          "len": 0.0
+        }
+      ]
+    }
+  },
+  {
+    "club_id": 16060,
+    "source": "2026-09-27 audit products16060.txt",
+    "product": {
+      "id": "6a9d7a9e884c02093c0e8c5b",
+      "title": "Sat Oct 3rd Rhino Room Stand Up 8pm",
+      "fullUrl": "/tickets/p/sat-oct-3rd-rhino-room-8pm",
+      "excerpt": "<p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>Rhino Room Stand Up</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Incredible night out featuring a hilarious line up of the best comedians anywhere. Table seating with 2 Item Minimum per person. Doors open at 7:30.</p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>Hosted by Jackie Byrne</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>Featuring Hannah Boone (<em>Rhino Comedy Favorite</em>), James King (<em>Broadway Comedy Club, Amazon Prime</em>) and Headliner Nick Tilleli (<em>Carolines Comedy Club</em>)</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Table seating with 2 item minimum per person. Doors open at 7:30.</p><ul data-rte-list=\"default\"><li><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">If purchasing separately please indicate the number in your party by writing to RhinoComedy@gmail.</p></li></ul><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Hardware Bar menu <a rel=\"noopener\" href=\"/menu\"><strong><em><u><span>here</span></u></em></strong></a></p><ul data-rte-list=\"default\"><li><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Your name will be on our box office list, no need to print the email confirmation. The confirmation is sent to the email you provided at checkout and often appears in the \u201cspam\u201d folder.  </p></li></ul>",
+      "structuredContent": {
+        "_type": "StoreItem",
+        "priceCents": 0,
+        "salePriceCents": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "productType": 3,
+        "customAddButtonText": "Add To Cart",
+        "useCustomAddButtonText": false,
+        "variants": [
+          {
+            "attributes": {},
+            "optionValues": [],
+            "id": "4ee2049c-c485-44f0-a5a3-3f34e3675317",
+            "sku": "SQ9383367",
+            "price": 2000,
+            "salePrice": 0,
+            "priceMoney": {
+              "currency": "USD",
+              "value": "20.00"
+            },
+            "salePriceMoney": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false,
+            "unlimited": false,
+            "qtyInStock": 40,
+            "width": 0.0,
+            "height": 0.0,
+            "weight": 0.0,
+            "imageIds": [],
+            "images": [],
+            "len": 0.0
+          }
+        ],
+        "variantOptionOrdering": [],
+        "isSubscribable": false,
+        "fulfilledExternally": false,
+        "productAddOnsConfiguration": {
+          "productAddOns": []
+        },
+        "mightHavePaymentPlan": false
+      },
+      "variants": [
+        {
+          "attributes": {},
+          "optionValues": [],
+          "id": "4ee2049c-c485-44f0-a5a3-3f34e3675317",
+          "sku": "SQ9383367",
+          "price": 2000,
+          "salePrice": 0,
+          "priceMoney": {
+            "currency": "USD",
+            "value": "20.00"
+          },
+          "salePriceMoney": {
+            "currency": "USD",
+            "value": "0.00"
+          },
+          "onSale": false,
+          "unlimited": false,
+          "qtyInStock": 40,
+          "width": 0.0,
+          "height": 0.0,
+          "weight": 0.0,
+          "imageIds": [],
+          "images": [],
+          "len": 0.0
+        }
+      ]
+    }
+  },
+  {
+    "club_id": 16060,
+    "source": "2026-09-27 audit products16060.txt",
+    "product": {
+      "id": "6aa179155e7636290fa829c7",
+      "title": "Fri Oct 9th Improv Jam 8pm",
+      "fullUrl": "/tickets/p/fri-oct-9th-improv-jam-8pm",
+      "excerpt": "<p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>Rhino Comedy Improv Jam</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Improvisors! (and Improv-curious people) come play along with Rhino\u2019s Friday Night Improv Jam.</p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">We\u2019ll play improv games and work on those improv skills while creating instant comedy scenes. All levels welcome to play. You can just come watch too.</p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Hardware Bar open with Wine, Beer and delicious small plate available.  Check out our menu <a href=\"/menu\" rel=\"noopener\"><strong><u><span>here.</span></u></strong></a></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">$5 to watch or play.</p>",
+      "structuredContent": {
+        "_type": "StoreItem",
+        "priceCents": 0,
+        "salePriceCents": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "productType": 3,
+        "customAddButtonText": "Add To Cart",
+        "useCustomAddButtonText": false,
+        "variants": [
+          {
+            "attributes": {},
+            "optionValues": [],
+            "id": "961aa6b0-31a7-49f8-9573-fc41f5a47d30",
+            "sku": "SQ2970767",
+            "price": 500,
+            "salePrice": 0,
+            "priceMoney": {
+              "currency": "USD",
+              "value": "5.00"
+            },
+            "salePriceMoney": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false,
+            "unlimited": false,
+            "qtyInStock": 40,
+            "width": 0.0,
+            "height": 0.0,
+            "weight": 0.0,
+            "imageIds": [],
+            "images": [],
+            "len": 0.0
+          }
+        ],
+        "variantOptionOrdering": [],
+        "isSubscribable": false,
+        "fulfilledExternally": false,
+        "productAddOnsConfiguration": {
+          "productAddOns": []
+        },
+        "mightHavePaymentPlan": false
+      },
+      "variants": [
+        {
+          "attributes": {},
+          "optionValues": [],
+          "id": "961aa6b0-31a7-49f8-9573-fc41f5a47d30",
+          "sku": "SQ2970767",
+          "price": 500,
+          "salePrice": 0,
+          "priceMoney": {
+            "currency": "USD",
+            "value": "5.00"
+          },
+          "salePriceMoney": {
+            "currency": "USD",
+            "value": "0.00"
+          },
+          "onSale": false,
+          "unlimited": false,
+          "qtyInStock": 40,
+          "width": 0.0,
+          "height": 0.0,
+          "weight": 0.0,
+          "imageIds": [],
+          "images": [],
+          "len": 0.0
+        }
+      ]
+    }
+  },
+  {
+    "club_id": 16060,
+    "source": "2026-09-27 audit products16060.txt",
+    "product": {
+      "id": "6aa2a7c36099b129b01b8503",
+      "title": "Sat Oct 31st Halloween Costume Party (Suffern Bar Crawl)",
+      "fullUrl": "/tickets/p/sat-oct-31st-halloween-costume-party-suffern-bar-crawl",
+      "excerpt": "<p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>Rhino Comedy welcomes all Suffern Bar Crawlers to our Halloween Costume Party!  We\u2019ll be showing some scary stuff on our big screen and awarding the title of Funniest Costume!</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">For Bar Crawlers registered with the Suffern Chamber of Commerce - the specials are:</p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>$6 PREMIUM Mixed Drinks</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>$5 Hard Seltzers</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>$5 House Wine</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>$3.50 Domestics</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>$3 Halloween Shots of the Bars Choice</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>For everyone else - you pay the menu price!  </strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>If you\u2019d like to register for the Bar Crawl and support the Suffern Chamber you can do so soon on their website: </strong><a target=\"_blank\" rel=\"noopener\" href=\"https://www.suffernchamber.org/\"><strong><u>HE</u></strong></a><strong><u>RE</u></strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\"><strong>Rhino will award the winner of Funniest Costume a prize and bragging rights!</strong></p><p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">(Our regular menu also available for delicious small plates check it out here at the <a rel=\"noopener\" href=\"/menu\"><strong>HARDWARE BAR</strong></a>)</p>",
+      "structuredContent": {
+        "_type": "StoreItem",
+        "priceCents": 0,
+        "salePriceCents": 0,
+        "priceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "salePriceMoney": {
+          "currency": "USD",
+          "value": "0.00"
+        },
+        "onSale": false,
+        "productType": 3,
+        "customAddButtonText": "Add To Cart",
+        "useCustomAddButtonText": false,
+        "variants": [
+          {
+            "attributes": {},
+            "optionValues": [],
+            "id": "c408ddec-1d57-40dc-b0a0-95ee83f20471",
+            "sku": "SQ0972778",
+            "price": 0,
+            "salePrice": 0,
+            "priceMoney": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "salePriceMoney": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false,
+            "unlimited": false,
+            "qtyInStock": 40,
+            "width": 0.0,
+            "height": 0.0,
+            "weight": 0.0,
+            "imageIds": [],
+            "images": [],
+            "len": 0.0
+          }
+        ],
+        "variantOptionOrdering": [],
+        "isSubscribable": false,
+        "fulfilledExternally": false,
+        "productAddOnsConfiguration": {
+          "productAddOns": []
+        },
+        "mightHavePaymentPlan": false
+      },
+      "variants": [
+        {
+          "attributes": {},
+          "optionValues": [],
+          "id": "c408ddec-1d57-40dc-b0a0-95ee83f20471",
+          "sku": "SQ0972778",
+          "price": 0,
+          "salePrice": 0,
+          "priceMoney": {
+            "currency": "USD",
+            "value": "0.00"
+          },
+          "salePriceMoney": {
+            "currency": "USD",
+            "value": "0.00"
+          },
+          "onSale": false,
+          "unlimited": false,
+          "qtyInStock": 40,
+          "width": 0.0,
+          "height": 0.0,
+          "weight": 0.0,
+          "imageIds": [],
+          "images": [],
+          "len": 0.0
+        }
+      ]
+    }
+  }
+]
