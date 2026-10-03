@@ -31,6 +31,7 @@ from laughtrack.core.entities.event.squarespace import SquarespaceEvent
 
 from .data import SquarespacePageData
 from .extractor import SquarespaceExtractor
+from .pricing import explicit_free_admission
 from .transformer import SquarespaceEventTransformer
 
 
@@ -321,6 +322,8 @@ class SquarespaceScraper(BaseScraper):
                     detail = await self.fetch_json(detail_url)
                     if not isinstance(detail, dict):
                         return
+                    if explicit_free_admission(event, detail):
+                        event.price = 0.0
                     ticketing_url = (
                         detail.get("ticketingUrl")
                         or detail.get("item", {}).get("ticketingUrl")

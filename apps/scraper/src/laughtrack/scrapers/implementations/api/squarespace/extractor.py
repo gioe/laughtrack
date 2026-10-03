@@ -2,9 +2,11 @@
 
 import re
 import time
+import math
 from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional, Pattern, Sequence
 from zoneinfo import ZoneInfo
+from urllib.parse import urlsplit
 
 from laughtrack.core.entities.event.squarespace import SquarespaceEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -335,6 +337,23 @@ class SquarespaceExtractor:
     def _parse_event(raw: Dict[str, Any], base_domain: str) -> SquarespaceEvent | None:
         """Parse a single raw event dict, returning None to skip invalid entries."""
         event_id = raw.get("id") or ""
+        start_date_ms = raw.get("startDate")
+        # Current monthly calendar payloads expose dates under structuredContent
+        # and omit id. systemDataId identifies reused artwork, not performances.
+        if not event_id and raw.get("recordType") == 12:
+            path = raw.get("fullUrl")
+            if not isinstance(path, str) or not path.startswith("/") or path.startswith("//"):
+                return None
+            if "\\" in path or any(char.isspace() for char in path):
+                return None
+            parsed = urlsplit(path)
+            if parsed.query or parsed.fragment or parsed.path == "/":
+                return None
+            structured = raw.get("structuredContent")
+            if not isinstance(structured, dict):
+                return None
+            event_id = "url:" + path
+            start_date_ms = structured.get("startDate")
         if not event_id:
             return None
 
@@ -342,8 +361,7 @@ class SquarespaceExtractor:
         if not title:
             return None
 
-        start_date_ms = raw.get("startDate")
-        if not isinstance(start_date_ms, (int, float)):
+        if type(start_date_ms) not in (int, float) or not math.isfinite(start_date_ms):
             return None
 
         full_url = raw.get("fullUrl") or ""
