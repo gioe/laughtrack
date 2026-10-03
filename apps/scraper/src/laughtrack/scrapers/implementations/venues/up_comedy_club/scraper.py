@@ -45,6 +45,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import UPComedyClubPageData
 from .transformer import UPComedyClubTransformer
+from .pricing import currency_for, sale_state, ticket_tiers
 
 _GRAPHQL_URL = "https://platform.secondcity.com/graphql"
 _ENTITY_RESOLVER_BASE = "https://www.secondcity.com/api/entityResolver"
@@ -216,6 +217,12 @@ class UPComedyClubScraper(BaseScraper):
             return None
 
         instances = ticket_data.get("instances") or []
+        # Resolver room metadata is stronger than a show-level GraphQL match.
+        # A show may run in multiple rooms; never borrow another room's tiers.
+        room = ticket_data.get("address")
+        room_matches = isinstance(room, str) and any(
+            name.casefold() in room.casefold() for name in self._venue_name_filters()
+        )
         if not instances:
             Logger.info(
                 f"{self._log_prefix}: no instances in patronticketData for {url}",
@@ -232,7 +239,9 @@ class UPComedyClubScraper(BaseScraper):
             date_label = inst.get("name", "")
             ticket_url = inst.get("purchaseUrl", "")
             title = inst.get("eventName", "") or ticket_data.get("name", "")
-            sold_out = bool(inst.get("soldOut", 0))
+            state = sale_state(inst)
+            sold_out = state == "sold_out"
+            currency = currency_for(inst, ticket_data)
 
             if not date_utc or not ticket_url or not title:
                 continue
@@ -251,6 +260,9 @@ class UPComedyClubScraper(BaseScraper):
                     ticket_url=ticket_url,
                     sold_out=sold_out,
                     date_label=date_label,
+                    currency=currency,
+                    sale_state=state,
+                    ticket_tiers=ticket_tiers(inst, currency, state) if room_matches else [],
                 )
             )
 

@@ -19,12 +19,13 @@ patronticketData instance shape (after base64-decode + JSON-parse):
   }
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.patron_ticket import PatronTicketTier
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
@@ -38,6 +39,9 @@ class UPComedyClubEvent(ShowConvertible):
     ticket_url: str   # Salesforce ticket URL for the specific instance
     sold_out: bool    # True when instance.soldOut != 0
     date_label: str = ""  # Human label, e.g. "Thursday, May 28, 2026, at 7:00 PM"
+    ticket_tiers: list[PatronTicketTier] = field(default_factory=list)
+    currency: Optional[str] = None
+    sale_state: str = "unknown"
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -60,6 +64,18 @@ class UPComedyClubEvent(ShowConvertible):
 
         ticket_url = url or self.ticket_url
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.sold_out)]
+        # Existing local-label corrections can disagree with the resolver instant.
+        # Never carry a priced allocation onto that different performance time.
+        if self.ticket_tiers and start_dt == dt_utc and ticket_url == self.ticket_url:
+            tickets = [
+                ShowFactoryUtils.create_fallback_ticket(
+                    ticket_url,
+                    price=tier.price if self.currency == "USD" else None,
+                    ticket_type=tier.ticket_type,
+                    sold_out=self.sold_out or tier.sold_out,
+                )
+                for tier in self.ticket_tiers
+            ]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
