@@ -34,9 +34,7 @@ def extract_events(productions: Iterable[dict[str, Any]], base_url: str) -> List
             if not isinstance(performance, dict):
                 continue
             title = _performance_title(production, performance)
-            start_date = _clean(
-                performance.get("performanceDate") or performance.get("iso8601DateString")
-            )
+            start_date = _clean(performance.get("performanceDate") or performance.get("iso8601DateString"))
             action_url = _clean(performance.get("actionUrl") or production.get("actionUrl"))
             if not title or not start_date or not action_url:
                 continue
@@ -48,6 +46,8 @@ def extract_events(productions: Iterable[dict[str, Any]], base_url: str) -> List
                     show_page_url=urljoin(base_url, action_url),
                     is_visible=bool(performance.get("isPerformanceVisible", True)),
                     is_on_sale=performance.get("isOnSale"),
+                    production_id=_clean(production.get("productionSeasonId")),
+                    performance_id=_clean(performance.get("id")),
                 )
             )
     return events

@@ -6,6 +6,7 @@ cookies and a hidden request-verification token, then POSTs a form-encoded date
 window to the production-seasons endpoint.
 """
 
+import asyncio
 import json
 import re
 from dataclasses import dataclass
@@ -24,6 +25,7 @@ from laughtrack.shared.types import ScrapingTarget
 
 from .data import TessituraTNEWPageData
 from .extractor import extract_events
+from .pricing import best_available_url, extract_admissions, performance_identity
 from .transformer import TessituraTNEWEventTransformer
 
 _API_PATH = "/api/products/productionseasons"
@@ -134,11 +136,58 @@ class TessituraTNEWScraper(BaseScraper):
             )
             return None
 
+        await self._attach_admissions(events, events_url)
         Logger.info(
             f"{self._log_prefix}: extracted {len(events)} TNEW performance(s)",
             self.logger_context,
         )
         return TessituraTNEWPageData(event_list=events)
+
+    async def _attach_admissions(self, events, events_url: str) -> None:
+        """Optional price enrichment: four workers, 8s requests, 30s total.
+
+        A missing price must never discard a listing performance. The budget
+        includes rate-limit waits and both detail/standard-selector requests.
+        """
+        semaphore = asyncio.Semaphore(4)
+        host = urlparse(events_url).hostname
+
+        async def fetch(url):
+            await self.rate_limiter.await_if_needed(url)
+            return await self.fetch_html(url, skip_js_fallback=True)
+
+        async def enrich(event):
+            ident = performance_identity(event.show_page_url)
+            if not ident or ident[0] != host or not event.is_visible or event.is_on_sale is False:
+                return
+            async with semaphore:
+                try:
+                    html = await asyncio.wait_for(fetch(event.show_page_url), timeout=8)
+                    if not html:
+                        return
+                    offers = extract_admissions(html, event, self.club.timezone or "America/New_York")
+                    alternate = best_available_url(html, event) if not offers else None
+                    if alternate and alternate != event.show_page_url:
+                        html = await asyncio.wait_for(fetch(alternate), timeout=8)
+                        offers = (
+                            extract_admissions(html, event, self.club.timezone or "America/New_York") if html else []
+                        )
+                    event.admissions = offers
+                except Exception as exc:
+                    Logger.warn(
+                        f"{self._log_prefix}: optional TNEW prices unavailable for {event.show_page_url}: {exc}"
+                    )
+
+        tasks = [asyncio.create_task(enrich(event)) for event in events]
+        if not tasks:
+            return
+        try:
+            await asyncio.wait(tasks, timeout=30)
+        finally:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     def _parse_listing_state(self, html: str) -> Optional[TNEWListingState]:
         soup = BeautifulSoup(html or "", "html.parser")
@@ -156,9 +205,7 @@ class TessituraTNEWScraper(BaseScraper):
         return TNEWListingState(request_token=token, start_date=start_dt, end_date=end_dt)
 
     @staticmethod
-    def _parse_listing_date(
-        raw: Optional[str], timezone_name: str, *, end: bool
-    ) -> Optional[datetime]:
+    def _parse_listing_date(raw: Optional[str], timezone_name: str, *, end: bool) -> Optional[datetime]:
         if not raw:
             return None
         try:
@@ -174,9 +221,7 @@ class TessituraTNEWScraper(BaseScraper):
         local_naive = datetime.combine(parsed.date(), local_time)
         return tz.localize(local_naive)
 
-    async def _fetch_productions(
-        self, api_url: str, events_url: str, state: TNEWListingState
-    ) -> list[dict[str, Any]]:
+    async def _fetch_productions(self, api_url: str, events_url: str, state: TNEWListingState) -> list[dict[str, Any]]:
         body = urlencode(
             {
                 "keywordIds": self._keyword_ids(),

@@ -142,7 +142,8 @@ async def test_scraper_posts_browser_equivalent_form(monkeypatch):
     calls = {}
 
     async def fake_fetch_html(url, **kwargs):
-        calls["fetch_url"] = url
+        if url == EVENTS_URL:
+            calls["fetch_url"] = url
         return LISTING_HTML
 
     async def fake_post_form(url, data, **kwargs):

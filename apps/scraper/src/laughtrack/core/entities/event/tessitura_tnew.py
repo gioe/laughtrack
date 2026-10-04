@@ -5,7 +5,7 @@ Tessitura's newer TNEW storefronts render event listings from
 ``performances`` array; each performance becomes one LaughTrack show.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -40,6 +40,15 @@ def _parse_tnew_datetime(value: str, timezone_name: str) -> Optional[datetime]:
         return pytz.timezone("America/New_York").localize(parsed)
 
 
+@dataclass(frozen=True)
+class TNEWAdmission:
+    name: str
+    price: float
+    base_price: Optional[float] = None
+    fees: Optional[float] = None
+    currency: str = "USD"
+
+
 @dataclass
 class TessituraTNEWEvent(ShowConvertible):
     """A single performance from a Tessitura TNEW production-season payload."""
@@ -50,6 +59,9 @@ class TessituraTNEWEvent(ShowConvertible):
     production_title: Optional[str] = None
     is_visible: bool = True
     is_on_sale: Optional[bool] = None
+    production_id: str = ""
+    performance_id: str = ""
+    admissions: list[TNEWAdmission] = field(default_factory=list)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show, dropping incomplete, hidden, or past performances."""
@@ -58,14 +70,27 @@ class TessituraTNEWEvent(ShowConvertible):
         if not self.is_visible or not self.title or not self.start_date_str or not self.show_page_url:
             return None
 
-        start_dt = _parse_tnew_datetime(
-            self.start_date_str, club.timezone or "America/New_York"
-        )
+        start_dt = _parse_tnew_datetime(self.start_date_str, club.timezone or "America/New_York")
         if start_dt is None or start_dt < datetime.now(timezone.utc):
             return None
 
         show_page_url = url or self.show_page_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(show_page_url)]
+        tickets = []
+        for offer in self.admissions:
+            if offer.currency != "USD" or offer.price <= 0 or self.is_on_sale is False:
+                continue
+            fees = (
+                f"USD {offer.base_price:.2f} ticket + {offer.fees:.2f} fees"
+                if offer.base_price is not None and offer.fees is not None
+                else "USD; fees unspecified"
+            )
+            tickets.append(
+                ShowFactoryUtils.create_fallback_ticket(
+                    show_page_url, price=offer.price, ticket_type=f"{offer.name} ({fees})"
+                )
+            )
+        if not tickets:
+            tickets = [ShowFactoryUtils.create_fallback_ticket(show_page_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
