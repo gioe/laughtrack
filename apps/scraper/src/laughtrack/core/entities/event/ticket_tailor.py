@@ -7,14 +7,43 @@ the scraper resolves into a per-venue club; this event converts to a Show on
 that venue club. The buy URL is the event detail page.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
+from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
+
+
+@dataclass(frozen=True)
+class TicketTailorOffer:
+    """Source evidence; package amounts are never per-person prices."""
+
+    name: str
+    amount: Optional[Decimal]
+    currency: str
+    availability: str
+    url: str
+    package: bool = False
+
+    def to_ticket(self) -> Ticket:
+        available = self.availability == "InStock"
+        numeric = self.amount if available and self.currency == "USD" and not self.package else None
+        label = self.name
+        if numeric is None and self.amount is not None:
+            label += f" ({self.currency or 'currency unspecified'} {self.amount})"
+        if self.availability != "InStock":
+            label += f" [{self.availability or 'availability unknown'}]"
+        return Ticket(
+            price=float(numeric) if numeric is not None else None,
+            purchase_url=self.url,
+            type=label,
+            sold_out=self.availability in {"SoldOut", "OutOfStock", "Discontinued"},
+        )
 
 
 @dataclass
@@ -30,6 +59,7 @@ class TicketTailorEvent(ShowConvertible):
     # IANA timezone inferred from the listing's timezone abbreviation; falls
     # back to the resolved venue club's timezone.
     timezone: Optional[str] = None
+    offers: list[TicketTailorOffer] = field(default_factory=list)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         start_date = ShowFactoryUtils.parse_datetime_with_timezone_fallback(
@@ -38,7 +68,7 @@ class TicketTailorEvent(ShowConvertible):
         )
 
         source_url = url or self.event_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(source_url)]
+        tickets = [offer.to_ticket() for offer in self.offers] or [ShowFactoryUtils.create_fallback_ticket(source_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title or club.name,

@@ -31,14 +31,16 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.shared.types import ScrapingTarget
 
 from .extractor import (
-    extract_account_slug,
     extract_events,
     listing_url_for_account,
 )
+from .pricing import extract_offers
 
 _FETCH_TIMEOUT = 30
 _DEFAULT_REFERER = "https://www.tickettailor.com/"
 _IMPERSONATION_TARGETS = ("chrome124", "chrome120", "safari17_0")
+_DETAIL_TIMEOUT = 10
+_DETAIL_BUDGET = 30
 
 
 class TicketTailorScraper(BaseScraper):
@@ -76,8 +78,7 @@ class TicketTailorScraper(BaseScraper):
                     response = await session.get(url, headers=headers)
                     response.raise_for_status()
                     Logger.info(
-                        f"{self._log_prefix}: Ticket Tailor fetch succeeded with "
-                        f"{impersonation_target}",
+                        f"{self._log_prefix}: Ticket Tailor fetch succeeded with " f"{impersonation_target}",
                         self.logger_context,
                     )
                     return response.text
@@ -123,13 +124,37 @@ class TicketTailorScraper(BaseScraper):
         events = self._filter_events(events)
         if not events:
             return []
+        await self._enrich_offers(events)
         if self._single_venue_mode():
             return self._events_to_current_club(events)
         return await self._route_events_to_venues(events)
 
-    def _filter_events(
-        self, events: List[TicketTailorEvent]
-    ) -> List[TicketTailorEvent]:
+    async def _enrich_offers(self, events: List[TicketTailorEvent]) -> None:
+        """Optional bounded detail requests, deduplicated per box-office URL."""
+        groups = defaultdict(list)
+        for event in events:
+            groups[event.event_url].append(event)
+        semaphore = asyncio.Semaphore(4)
+
+        async def enrich(url, group):
+            async with semaphore:
+                try:
+                    html = await asyncio.wait_for(self._fetch_listing(url), _DETAIL_TIMEOUT)
+                    if html:
+                        for event in group:
+                            event.offers = extract_offers(html, event)
+                except Exception as exc:
+                    Logger.warn(f"{self._log_prefix}: optional Ticket Tailor offers failed for {url}: {exc}")
+
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*(enrich(url, group) for url, group in groups.items())),
+                _DETAIL_BUDGET,
+            )
+        except asyncio.TimeoutError:
+            Logger.warn(f"{self._log_prefix}: Ticket Tailor offer budget exhausted; retaining listing shows")
+
+    def _filter_events(self, events: List[TicketTailorEvent]) -> List[TicketTailorEvent]:
         """Apply the opt-in title allow/block filter to parsed events.
 
         Mixed-use Ticket Tailor venues (event halls that host raves, DJ nights,
@@ -165,8 +190,7 @@ class TicketTailorScraper(BaseScraper):
         dropped = len(events) - len(kept)
         if dropped:
             Logger.info(
-                f"{self._log_prefix}: title filter dropped {dropped} of "
-                f"{len(events)} event(s); {len(kept)} kept",
+                f"{self._log_prefix}: title filter dropped {dropped} of " f"{len(events)} event(s); {len(kept)} kept",
                 self.logger_context,
             )
         return kept
@@ -233,8 +257,7 @@ class TicketTailorScraper(BaseScraper):
                     show = event.to_show(venue_club)
                 except Exception as e:
                     Logger.error(
-                        f"{self._log_prefix}: to_show failed for '{event.title}' "
-                        f"at '{sample.venue_name}': {e}",
+                        f"{self._log_prefix}: to_show failed for '{event.title}' " f"at '{sample.venue_name}': {e}",
                         self.logger_context,
                     )
                     continue
