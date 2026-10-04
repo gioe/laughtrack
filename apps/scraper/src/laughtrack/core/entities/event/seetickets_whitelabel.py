@@ -25,6 +25,9 @@ class SeeTicketsWhitelabelEvent(ShowConvertible):
     # detail-page enrichment failed or found no timed startDate; to_show then
     # refuses the unverified performance rather than fabricating midnight.
     start_datetime: str = ""
+    price: float | None = None
+    price_text: str = ""
+    sold_out: bool = False
 
     def to_show(self, club: Club, enhanced: bool = True, url: str | None = None):
         from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
@@ -41,7 +44,15 @@ class SeeTicketsWhitelabelEvent(ShowConvertible):
         if show_date is None:
             return None
 
-        tickets = [ShowFactoryUtils.create_fallback_ticket(self.ticket_url)]
+        price = self.price if self.price is not None and self.price > 0 and not self.sold_out else None
+        label = (
+            f"Admission (advertised {self.price_text}; fees unspecified)" if price is not None else "General Admission"
+        )
+        tickets = [
+            ShowFactoryUtils.create_fallback_ticket(
+                self.ticket_url, price=price, ticket_type=label, sold_out=self.sold_out
+            )
+        ]
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.name,
             club=club,
