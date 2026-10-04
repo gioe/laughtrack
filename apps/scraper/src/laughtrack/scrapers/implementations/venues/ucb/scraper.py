@@ -7,6 +7,7 @@ string. Fetching ``/shows/?_filter_locations=<slug>`` keeps the scraper on the
 normal HTML path while still using the WPGB datasource.
 """
 
+import asyncio
 from typing import List, Optional
 from urllib.parse import urlparse
 
@@ -19,6 +20,7 @@ from laughtrack.shared.types import ScrapingTarget
 from .data import UCBPageData
 from .extractor import UCBExtractor
 from .transformer import UCBEventTransformer
+from .pricing import extract_admissions
 
 _DEFAULT_SOURCE_URL = "https://ucbcomedy.com/shows/"
 _DEFAULT_LOCATION_BY_CLUB_ID = {
@@ -79,6 +81,19 @@ class UCBScraper(BaseScraper):
         if not events:
             self._warn_empty_extraction(str(target), html=html)
             return None
+
+        # Each club runs on its own loop; keep the fan-out limiter local.
+        semaphore = asyncio.Semaphore(4)
+
+        async def enrich(event):
+            async with semaphore:
+                try:
+                    detail = await self.fetch_html(event.show_page_url, scraper_key=self.key, skip_js_fallback=True)
+                    event.admissions = extract_admissions(detail, event, self.club)
+                except Exception as exc:
+                    Logger.debug(f"{self._log_prefix}: price detail unavailable for {event.show_page_url}: {exc}")
+
+        await asyncio.gather(*(enrich(event) for event in events))
 
         Logger.info(
             f"{self._log_prefix}: Extracted {len(events)} UCB event(s) for location {location_slug}",
