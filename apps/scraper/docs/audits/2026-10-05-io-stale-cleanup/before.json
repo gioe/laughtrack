@@ -1,0 +1,2375 @@
+{
+  "retrieved_at": "2026-10-05T17:39:27.328404+00:00",
+  "dependents": {
+    "tickets": {
+      "480145": 1,
+      "480209": 1,
+      "480210": 1,
+      "480646": 1,
+      "480692": 1,
+      "480761": 1,
+      "480804": 1,
+      "480928": 1,
+      "481128": 1,
+      "1863553": 1,
+      "1863554": 1,
+      "1863555": 1,
+      "1863556": 1,
+      "1863557": 1,
+      "1863558": 1,
+      "1863559": 1,
+      "1863560": 1,
+      "1863561": 1,
+      "1863562": 1,
+      "1863563": 1,
+      "1863564": 1,
+      "1863565": 1,
+      "1863566": 1,
+      "1863567": 1,
+      "1863568": 1,
+      "1973098": 1,
+      "2084643": 1,
+      "2163978": 1,
+      "2438504": 1,
+      "2699859": 1,
+      "3013099": 1,
+      "3736581": 1,
+      "3736582": 1,
+      "3736583": 1,
+      "3736584": 1,
+      "3736585": 1,
+      "3767701": 1,
+      "4282370": 1,
+      "4880163": 1,
+      "5600935": 1,
+      "6034303": 1,
+      "6034306": 1
+    },
+    "lineup_items": {
+      "480692": 13,
+      "480761": 1,
+      "480804": 6,
+      "481128": 1,
+      "1863553": 7,
+      "1863554": 7,
+      "1863555": 7,
+      "1863556": 7,
+      "1863557": 7,
+      "1863558": 7,
+      "1863559": 7,
+      "1863560": 7,
+      "1863561": 7,
+      "1863562": 7,
+      "1863563": 7,
+      "1863564": 7,
+      "1863565": 7,
+      "1863566": 7,
+      "1863567": 7,
+      "1863568": 7,
+      "1973098": 7,
+      "2163978": 7,
+      "2438504": 7,
+      "3736581": 2,
+      "3736582": 2,
+      "3736583": 2,
+      "3736584": 2,
+      "3736585": 2,
+      "3767701": 2,
+      "4880163": 2
+    },
+    "tagged_shows": {
+      "480145": 2,
+      "480209": 3,
+      "480210": 3,
+      "480646": 5,
+      "480692": 3,
+      "480761": 4,
+      "480804": 3,
+      "480928": 4,
+      "481128": 7,
+      "1863553": 2,
+      "1863554": 2,
+      "1863555": 2,
+      "1863556": 2,
+      "1863557": 2,
+      "1863558": 2,
+      "1863559": 2,
+      "1863560": 2,
+      "1863561": 2,
+      "1863562": 2,
+      "1863563": 2,
+      "1863564": 2,
+      "1863565": 2,
+      "1863566": 2,
+      "1863567": 2,
+      "1863568": 2,
+      "1973098": 2,
+      "2084643": 2,
+      "2163978": 2,
+      "2438504": 2,
+      "2699859": 3,
+      "3013099": 2,
+      "3736581": 2,
+      "3736582": 2,
+      "3736583": 2,
+      "3736584": 3,
+      "3736585": 3,
+      "3767701": 3,
+      "4282370": 2,
+      "4880163": 3,
+      "5600935": 2,
+      "6034303": 2,
+      "6034306": 2
+    },
+    "sent_notifications": {},
+    "ticket_purchase_click_events": {
+      "480646": 21,
+      "480692": 13,
+      "480761": 4,
+      "480804": 2,
+      "480928": 32,
+      "1863553": 35,
+      "1863554": 17,
+      "1863555": 11,
+      "1863556": 13,
+      "1863557": 10,
+      "1863558": 6,
+      "1863565": 2,
+      "1863566": 3,
+      "1863567": 2,
+      "1863568": 2,
+      "1973098": 2,
+      "2084643": 2,
+      "2163978": 5,
+      "2438504": 2,
+      "2699859": 10,
+      "3013099": 2,
+      "3736581": 31,
+      "3736582": 20,
+      "3736583": 18,
+      "3736584": 7,
+      "3736585": 5,
+      "3767701": 6,
+      "5600935": 3
+    },
+    "discovery_show_feature_snapshots": {},
+    "saved_shows": {}
+  },
+  "shows": [
+    {
+      "id": 480145,
+      "name": "ComedySportz",
+      "date": "2026-11-01 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/comedysportz-chicago",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-09-20 23:24:28.488846+00:00",
+      "description": "<div>Chicago's longest running short-form improv show (founded in 1987) and the only comedy show in Chicago EVERYONE is welcome at - from age 8 to 80, our inclusive 'everyone is welcome' approach to comedy makes us perfect for patrons of all ages. Whether you're bringing your family, your co-workers, or a date - you are welcome, and you will laugh.</div><div><br></div><div>ComedySportz is two teams of all-star improv comedians going head to head in comedy games, scenes and songs. YOU will vote on which team you liked the best and the teams will score points based on your applause. One of our world-famous referees will guide you through the whole show and may even ask for your help on stage. Every show ends in our incredible 6 THINGS game that is known throughout the world as 'the hardest game in all of improv'. </div><div><br></div><div><strong>It's fast. It's hilarious. It's appropriate for all ages. </strong></div><div><strong>It's ComedySportz.</strong></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 480209,
+      "name": "Harolds After Dark",
+      "date": "2026-11-01 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/harolds-after-dark",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-09-25 00:08:05.076507+00:00",
+      "description": "<div>Come watch new teams perform iO's signature form, The Harold! </div><div><br></div><div>Tonight at 11pm!</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": "9.74",
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 480210,
+      "name": "Harolds After Dark",
+      "date": "2026-11-08 05:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/harolds-after-dark",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-09-25 00:08:05.076508+00:00",
+      "description": "<div>Come watch new teams perform iO's signature form, The Harold! </div><div><br></div><div>Tonight at 11pm!</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": "9.74",
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 480646,
+      "name": "Cage Match",
+      "date": "2026-10-01 03:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/cage-match-6",
+      "club_id": 182,
+      "popularity": 0.18684067901618961,
+      "last_scraped_date": "2026-09-07 23:21:33.839048+00:00",
+      "description": "<div class=\"trix-content\"> <div>Two teams enter. One team survives (not literally, to be clear). Cagematch returns at long last to Chicago\u2019s iO Arena! Each week, two of the finest improv teams in the city face off against each other in a fierce battle celebrating art's truest meaning: competition. Which team will bring the heartiest laughs? The most grounded base realities? The dumbest bits? Only YOU decide who moves on to compete the following week. Starting September 9th. Be there.<br>_____________________<br><br></div><div>Additional option to include our monthly cocktail,<strong> \"Raspberry Gimlet\"</strong>, with your ticket. It features a pour of raspberry gin shaken with fresh lime juice and simple syrup, striking a balance of tart, sweet, and floral notes. Strained over ice in a rocks glass and garnished with a lime. Best part? Gratuity is included.<br><br></div><div>Got a Drink Add-on? Follow these steps:<br><br></div><ol><li>Show your ticket to the host and mention the drink add-on.</li><li>Grab your token and place it on your table.</li><li>Enjoy your drink as a server will bring it by shortly.</li></ol><div><strong>Note:</strong> Valid ID is required for all alcohol service. No ID, no drink, no refunds.</div> </div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "class_workshop",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 480692,
+      "name": "Flex Improv",
+      "date": "2026-11-06 01:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/flex-improv",
+      "club_id": 182,
+      "popularity": 0.35755290535491946,
+      "last_scraped_date": "2026-09-10 23:02:27.656116+00:00",
+      "description": "<div>Flex Improv is back for a limited time run at our new home, iO on 09/10, 10/08, 11/05 at 7:30pm with new openers and of course, us!</div><div><br></div><div>Flex Improv is made up of some of the best and wildest BIPOC performers in Chicago. From heart felt laughs, physical comedy, monologues, and singing, you never know what to expect from Flex.<br><br><strong>Featuring</strong><br>Asra Khan</div><div>Ana Silva</div><div>Aram Rayzian</div><div>Chloe Mikala</div><div>Edgar Nevarez</div><div>Elias Rios</div><div>Harrison Hapin</div><div>Juliana Zepeda</div><div>Kelton Neals</div><div>Luis Cortes</div><div>Maria Sharps</div><div>Sarah Marie Leone</div><div>Xaiver Dean</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": "18.15",
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "class_workshop",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 480761,
+      "name": "Sketch Playlist",
+      "date": "2026-11-06 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/sketch-playlist",
+      "club_id": 182,
+      "popularity": 0.36412090535491953,
+      "last_scraped_date": "2026-09-08 23:27:02.777515+00:00",
+      "description": "<div>Sketch Playlist is a weekly sketch show that will feature all-new sketches every single week\u2026 the ultimate sketch playlist. Come see these writers and performers at the legendary iO Theater on Thursdays at 9:30pm before Saturday Night Live casts them. To learn more and stay up to date, follow us on Instagram <a href=\"http://www.instagram.com/sketchplaylist\">@sketchplaylist</a> and <a href=\"https://www.instagram.com/fulproof_productions\">@fulproof_productions</a>.</div><div><br></div><div><strong>IDIOT WAGON</strong>: Ashlyn Quintus, Chloe Grogean, Daniel Frasco, Erin Ryan, Franny Rodriguez, Izzy Thomases, Keiter Liriano, Lexi Putter, Max Reichek, Mitch Shepperd, Tom Phelan, and Ty Sato <em>(directed by Joseph Belangia and assistant directed by Max Reichek)</em>.</div><div><br></div><div><strong>MIST CONNECTIONS</strong>:<strong> </strong>Andy Fialko, Carlos Alvidrez, Fran Bixby, Harper Leander, Holly Kuldell, James Alcock, Jonah Gordon, Jonas Benz, Madeline Farr, Marck Kiselevach, Markley Bortz, and Tara Heilwagen <em>(co-directed by JJ Rodriguez & Morgan O\u2019Dell and assistant directed by Jonah Gordon)</em>.</div><div><br></div><div><strong>FREE FROLIC</strong>:<strong> </strong>Angelique Boyd, Brian DeHeer, Cannon Cook, Carson Shofner, Hope Valls, Joseph Belangia, Matt Spanier, Matthew Stiuso, Maya Arroyo, Meg Flood, Sasha Flores, and Syd Hanna <em>(directed by Keiter Liriano)</em>.</div><div><br></div><div><strong>PROPER GANDER</strong>:<strong> </strong>Brody Gibas, Caroline Storey, Cassi Seifert, Emilio Barajas, Emma Knott, Ethan Evans, Gregory Wagner, Hayley O\u2019Toole, Nudia Hernandez, Rachel Wade, Taylor Meredith, and Willem Jewell<strong> </strong><em>(directed by Ronee Goldman)</em>.</div><div><br></div><div><strong>RECESS</strong>: Ace Quirk, Aidhan Henri, Aodhan Bard, Daniel Seward, Hugo Hentoff, Liam Ryan, Lindsey Schultz, Megan Mikaelian, Morgan Leopold, Olivia Retkittke, Rocco Meo, and Shekinah Kurapaty <em>(directed by Molly Olson)</em>.</div><div><br><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 480804,
+      "name": "Blueprint",
+      "date": "2026-11-06 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/blueprint",
+      "club_id": 182,
+      "popularity": 0.30412090535491954,
+      "last_scraped_date": "2026-09-25 00:09:05.378536+00:00",
+      "description": "<div><em>Blueprint</em> is the kind of improv that keeps audiences AND players on their toes. Each week, a different cast member designs a bold new improv format that their fellow performers will learn about at the same time as the crowd. Expect the unexpected as we build something completely original, live, right before your eyes.</div><div><br></div><div><em>Past forms have included: </em></div><div><em>Improvised Severance</em> - Guided by two internal \"staff members,\" three performers are physically out of the room, while three others perform as their innies, and every 5 minutes, the two swapped. Can they make sense of their outies? and versa?</div><div><br></div><div><em>Understudies</em> - In a longform narrative, each player on stage knows that they will eventually understudy another player in the show. The lights change and they have to embody a different player, and each time the lights change, they can select another player to embody.</div><div><br></div><div><em>Overachiever</em> - Three 2-person monoscenes happen on stage, utilizing the same physical space, but taking place in categorically different spaces. They must navigate space atop of and around one another while keeping connection to their partner.</div><div><br></div><div><em>Improvised Heist</em> - Ocean's Eleven, eat your heart out! Our players hit the major plot points of a heist and improvise their way through - initial idea, building the team, planning the heist, executing, and the aftermath</div><div><br></div><div><em>Blueprint is joined each week by a lab cast opening for the show with their own unique, original form.</em></div><div><br></div><div>Directed by James Dugan</div><div><br></div><div><em>Cast:</em></div><div>James Dugan</div><div>Avery Ford</div><div>Molly Jones</div><div>Allen Lucas</div><div>Janelle Soulliere</div><div>Ryan Bowman</div><div><br><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 480928,
+      "name": "Improvised Romantasy",
+      "date": "2026-11-07 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/improvised-romantasy",
+      "club_id": 182,
+      "popularity": 0.2491209053549195,
+      "last_scraped_date": "2026-09-25 00:10:03.547078+00:00",
+      "description": "<div>Ancient blood curses, wicked bargains, hilarious chaos, and sexual tension capable of raising both the dead and the stakes. This October, Improvised Romantasy descends on iO Theater for a special gothic Halloween edition where the monsters don't just haunt the dark: they rule it by \"Yes, and...\"-ing your deepest, darkest, and most ridiculous desires.</div><div>Expect morally gray shadow daddies, laugh-out-loud monster lovers, gothic angst, and the explosive enemies-to-lovers heat usually reserved for the restricted sections of your favorite paperbacks.<br><br></div><div>No script. No safety net. You hand our comedy ensemble your spiciest tropes and darkest fantasy prompts, and we bring an unscripted, wildly funny gothic romance to life right before your eyes.<br><br></div><div>Will they break the curse or succumb to the bite? You hold the quill this Halloween.</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 481128,
+      "name": "The Tension is Laughable",
+      "date": "2026-11-08 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-tension-is-laughable",
+      "club_id": 182,
+      "popularity": 0.25928090535491943,
+      "last_scraped_date": "2026-09-25 23:55:02.901564+00:00",
+      "description": "<div>Adulthood in 2026: social rules, bad decisions, existential dread, and absolutely no idea if you'll ever pay off your student loans. Also the world is on fire but hey, come laugh with us at iO every Saturday in November!</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863553,
+      "name": "The Orbit",
+      "date": "2026-10-01 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2880906790161896,
+      "last_scraped_date": "2026-06-09 07:49:46.772618+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863554,
+      "name": "The Orbit",
+      "date": "2026-10-08 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.3841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772621+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863555,
+      "name": "The Orbit",
+      "date": "2026-10-15 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.3841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772623+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863556,
+      "name": "The Orbit",
+      "date": "2026-10-22 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.3841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772626+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863557,
+      "name": "The Orbit",
+      "date": "2026-10-29 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.3841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772629+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863558,
+      "name": "The Orbit",
+      "date": "2026-11-05 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.3841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772632+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863559,
+      "name": "The Orbit",
+      "date": "2026-11-12 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772635+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863560,
+      "name": "The Orbit",
+      "date": "2026-11-19 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772637+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863561,
+      "name": "The Orbit",
+      "date": "2026-11-26 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772640+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863562,
+      "name": "The Orbit",
+      "date": "2026-12-03 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772643+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863563,
+      "name": "The Orbit",
+      "date": "2026-12-10 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772646+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863564,
+      "name": "The Orbit",
+      "date": "2026-12-17 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772649+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863565,
+      "name": "The Orbit",
+      "date": "2026-12-24 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772652+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863566,
+      "name": "The Orbit",
+      "date": "2026-12-31 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772655+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863567,
+      "name": "The Orbit",
+      "date": "2027-01-07 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772657+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1863568,
+      "name": "The Orbit",
+      "date": "2027-01-14 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772660+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 1973098,
+      "name": "The Orbit",
+      "date": "2027-01-21 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772663+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 2084643,
+      "name": "Battleprov",
+      "date": "2027-01-22 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-10-04 23:54:41.988214+00:00",
+      "description": "<div>Battleprov is ComedySportz Chicago's longform-meets-shortform improv showdown: our house team goes head-to-head against a guest ensemble in a fast-paced, high-energy battle for the crowd. </div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": null,
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 2163978,
+      "name": "The Orbit",
+      "date": "2027-01-28 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772666+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-05-30 07:30:36.968224+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 2438504,
+      "name": "The Orbit",
+      "date": "2027-02-04 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-06-09 07:49:46.772669+00:00",
+      "description": "<div>The Orbit is Chicago\u2019s only improv show performed in the round. This 45-minute avant-garde experience takes the audience on a full-circle journey, showcasing a bold new form designed for 360-degree play. Rooted in classic iO techniques yet pushing toward the future, The Orbit offers a fresh perspective\u2014inviting audiences to see improv from entirely new angles.\"</div><div><br></div><div>Cast:</div><div>Zach Reynolds </div><div>Annie Scott</div><div>Ella Nagle</div><div>Louie Cordon</div><div>Jessica Benson</div><div>Mike Jimerson</div><div>Erin Washington<br><br></div><div>Directed by: Liz Allen</div><div>Stage Managed by: Dan Wilcop</div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-06-06 12:27:11.531302+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": null,
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 2699859,
+      "name": "This Year in Music",
+      "date": "2026-12-10 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/this-year-in-music",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-07-08 21:48:09.904861+00:00",
+      "description": "<div><a href=\"https://www.instagram.com/thisyearinmusicshow\">This Year in Music</a> is back, and this time we are celebrating all the groovy hits of <strong>1971</strong>! We\u2019re welcoming performers from all over the city to celebrate one iconic year through singing, dancing, and radical sketch comedy. Grab your bell-bottoms and your flower crowns, and come celebrate one iconic, star-studded year with us!</div><div><br><br>------------------------------------------------------------------------------------------------------ </div><div>Additional option to include our monthly cocktail,<strong> \"Summertime Spritz\"</strong>, with your ticket. It includes a blend of Lillet Blanc and strawberry pur\u00e9e, lifted with a splash of soda water and topped off with a Prosecco split. Served over ice and garnished with a lemon wedge. Best part? Gratuity is included.</div><div><br>Got a Drink Add-on? Follow these steps:<br><br></div><ol><li>Show your ticket to the host and mention the drink add-on.</li><li>Grab your token and place it on your table.</li><li>Enjoy your drink as a server will bring it by shortly.</li></ol><div><strong><br>Note:</strong> Valid ID is required for all alcohol service. No ID, no drink, no refunds.<br><br></div><div><br><br></div><div><br><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-06-10 08:06:21.295465+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 3013099,
+      "name": "Battleprov",
+      "date": "2027-02-19 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-10-04 23:54:41.988223+00:00",
+      "description": "<div>Battleprov is ComedySportz Chicago's longform-meets-shortform improv showdown: our house team goes head-to-head against a guest ensemble in a fast-paced, high-energy battle for the crowd. </div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-06-21 01:01:46.812333+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 3736581,
+      "name": "People Being Funny",
+      "date": "2026-10-03 03:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "club_id": 182,
+      "popularity": 0.2880906790161896,
+      "last_scraped_date": "2026-08-03 21:33:48.063796+00:00",
+      "description": "<div>Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and Tyler Malec.</div><div><br>Instagram: @peoplebeingfunnychicago</div><div><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-07-04 22:17:21.432489+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 3736582,
+      "name": "People Being Funny",
+      "date": "2026-11-07 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "club_id": 182,
+      "popularity": 0.3841209053549195,
+      "last_scraped_date": "2026-08-03 21:33:48.063798+00:00",
+      "description": "<div>Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and Tyler Malec.</div><div><br>Instagram: @peoplebeingfunnychicago</div><div><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-07-04 22:17:21.432489+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 3736583,
+      "name": "People Being Funny",
+      "date": "2026-12-05 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "club_id": 182,
+      "popularity": 0.3841209053549195,
+      "last_scraped_date": "2026-08-03 21:33:48.063800+00:00",
+      "description": "<div>Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and Tyler Malec.</div><div><br>Instagram: @peoplebeingfunnychicago</div><div><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-07-04 22:17:21.432489+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 3736584,
+      "name": "People Being Funny",
+      "date": "2027-01-02 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "club_id": 182,
+      "popularity": 0.32412090535491955,
+      "last_scraped_date": "2026-08-03 21:33:48.063802+00:00",
+      "description": "<div>Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and Tyler Malec.</div><div><br>Instagram: @peoplebeingfunnychicago</div><div><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-07-04 22:17:21.432489+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 3736585,
+      "name": "People Being Funny",
+      "date": "2027-02-06 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "club_id": 182,
+      "popularity": 0.3441209053549195,
+      "last_scraped_date": "2026-08-03 21:33:48.063803+00:00",
+      "description": "<div>Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and Tyler Malec.</div><div><br>Instagram: @peoplebeingfunnychicago</div><div><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-07-04 22:17:21.432489+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 3767701,
+      "name": "People Being Funny",
+      "date": "2027-03-06 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-08-03 21:33:48.063805+00:00",
+      "description": "<div>Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and Tyler Malec.</div><div><br>Instagram: @peoplebeingfunnychicago</div><div><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-07-05 21:42:56.033884+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 4282370,
+      "name": "Battleprov",
+      "date": "2027-03-19 00:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-10-04 23:54:43.907100+00:00",
+      "description": "<div>Battleprov is ComedySportz Chicago's longform-meets-shortform improv showdown: our house team goes head-to-head against a guest ensemble in a fast-paced, high-energy battle for the crowd. </div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-07-17 21:37:17.936921+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 4880163,
+      "name": "People Being Funny",
+      "date": "2027-04-03 03:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "club_id": 182,
+      "popularity": 0.2841209053549195,
+      "last_scraped_date": "2026-08-03 21:33:48.063807+00:00",
+      "description": "<div>Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and Tyler Malec.</div><div><br>Instagram: @peoplebeingfunnychicago</div><div><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-08-02 22:15:56.155377+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 5600935,
+      "name": "Battleprov",
+      "date": "2027-04-16 00:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-10-04 23:54:43.907129+00:00",
+      "description": "<div>Battleprov is ComedySportz Chicago's longform-meets-shortform improv showdown: our house team goes head-to-head against a guest ensemble in a fast-paced, high-energy battle for the crowd. </div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-08-16 21:20:25.492752+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 6034303,
+      "name": "iO House Team Night",
+      "date": "2026-11-07 00:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/io-house-team-night",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-09-25 00:09:17.335218+00:00",
+      "description": "<div>Calling all early birds! Come check out a double-header each week of the iO Theater\u2019s incredibly talented House Teams! Each team takes a single word or suggestion from the audience and creates a fully improvised piece \u2013 weaving hilarious characters, themes, locations, and games into funny, beautiful, and personal shows!<br><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-08-26 22:31:11.510763+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    },
+    {
+      "id": 6034306,
+      "name": "iO House Team Night",
+      "date": "2026-11-28 00:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/io-house-team-night",
+      "club_id": 182,
+      "popularity": 0.14912090535491948,
+      "last_scraped_date": "2026-08-29 21:12:43.084539+00:00",
+      "description": "<div>Calling all early birds! Come check out a double-header each week of the iO Theater\u2019s incredibly talented House Teams! Each team takes a single word or suggestion from the audience and creates a fully improvised piece \u2013 weaving hilarious characters, themes, locations, and games into funny, beautiful, and personal shows!<br><br></div>",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "crowdwork",
+      "min_price": null,
+      "first_discovered_at": "2026-08-26 22:31:11.510763+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "improv",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    }
+  ],
+  "tickets": [
+    {
+      "id": 412205,
+      "purchase_url": "https://www.crowdwork.com/e/comedysportz-chicago",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 480145,
+      "type": "General Admission"
+    },
+    {
+      "id": 412269,
+      "purchase_url": "https://www.crowdwork.com/e/harolds-after-dark",
+      "price": "9.74",
+      "sold_out": false,
+      "show_id": 480209,
+      "type": "General Admission"
+    },
+    {
+      "id": 412270,
+      "purchase_url": "https://www.crowdwork.com/e/harolds-after-dark",
+      "price": "9.74",
+      "sold_out": false,
+      "show_id": 480210,
+      "type": "General Admission"
+    },
+    {
+      "id": 412706,
+      "purchase_url": "https://www.crowdwork.com/e/cage-match-6",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 480646,
+      "type": "General Admission"
+    },
+    {
+      "id": 412752,
+      "purchase_url": "https://www.crowdwork.com/e/flex-improv",
+      "price": "18.15",
+      "sold_out": false,
+      "show_id": 480692,
+      "type": "General Admission"
+    },
+    {
+      "id": 412821,
+      "purchase_url": "https://www.crowdwork.com/e/sketch-playlist",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 480761,
+      "type": "General Admission"
+    },
+    {
+      "id": 412864,
+      "purchase_url": "https://www.crowdwork.com/e/blueprint",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 480804,
+      "type": "General Admission"
+    },
+    {
+      "id": 412988,
+      "purchase_url": "https://www.crowdwork.com/e/improvised-romantasy",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 480928,
+      "type": "General Admission"
+    },
+    {
+      "id": 413188,
+      "purchase_url": "https://www.crowdwork.com/e/the-tension-is-laughable",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 481128,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894631,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863553,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894632,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863554,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894633,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863555,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894634,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863556,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894635,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863557,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894636,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863558,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894637,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863559,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894638,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863560,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894639,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863561,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894640,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863562,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894641,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863563,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894642,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863564,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894643,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863565,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894644,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863566,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894645,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863567,
+      "type": "General Admission"
+    },
+    {
+      "id": 1894646,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1863568,
+      "type": "General Admission"
+    },
+    {
+      "id": 2029241,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 1973098,
+      "type": "General Admission"
+    },
+    {
+      "id": 2164942,
+      "purchase_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 2084643,
+      "type": "General Admission"
+    },
+    {
+      "id": 2261731,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 2163978,
+      "type": "General Admission"
+    },
+    {
+      "id": 2592595,
+      "purchase_url": "https://www.crowdwork.com/e/the-orbit",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 2438504,
+      "type": "General Admission"
+    },
+    {
+      "id": 2906900,
+      "purchase_url": "https://www.crowdwork.com/e/this-year-in-music",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 2699859,
+      "type": "General Admission"
+    },
+    {
+      "id": 3277436,
+      "purchase_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 3013099,
+      "type": "General Admission"
+    },
+    {
+      "id": 4186336,
+      "purchase_url": "https://www.crowdwork.com/e/people-being-funny",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 3736581,
+      "type": "General Admission"
+    },
+    {
+      "id": 4186337,
+      "purchase_url": "https://www.crowdwork.com/e/people-being-funny",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 3736582,
+      "type": "General Admission"
+    },
+    {
+      "id": 4186338,
+      "purchase_url": "https://www.crowdwork.com/e/people-being-funny",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 3736583,
+      "type": "General Admission"
+    },
+    {
+      "id": 4186339,
+      "purchase_url": "https://www.crowdwork.com/e/people-being-funny",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 3736584,
+      "type": "General Admission"
+    },
+    {
+      "id": 4186340,
+      "purchase_url": "https://www.crowdwork.com/e/people-being-funny",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 3736585,
+      "type": "General Admission"
+    },
+    {
+      "id": 4223394,
+      "purchase_url": "https://www.crowdwork.com/e/people-being-funny",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 3767701,
+      "type": "General Admission"
+    },
+    {
+      "id": 4815373,
+      "purchase_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 4282370,
+      "type": "General Admission"
+    },
+    {
+      "id": 5512597,
+      "purchase_url": "https://www.crowdwork.com/e/people-being-funny",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 4880163,
+      "type": "General Admission"
+    },
+    {
+      "id": 6343951,
+      "purchase_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 5600935,
+      "type": "General Admission"
+    },
+    {
+      "id": 6844895,
+      "purchase_url": "https://www.crowdwork.com/e/io-house-team-night",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 6034303,
+      "type": "General Admission"
+    },
+    {
+      "id": 6844898,
+      "purchase_url": "https://www.crowdwork.com/e/io-house-team-night",
+      "price": "0.00",
+      "sold_out": false,
+      "show_id": 6034306,
+      "type": "General Admission"
+    }
+  ],
+  "tagged_shows": [
+    {
+      "id": 855603,
+      "show_id": 480145,
+      "tag_id": 9
+    },
+    {
+      "id": 855503,
+      "show_id": 480145,
+      "tag_id": 16
+    },
+    {
+      "id": 14942402,
+      "show_id": 480209,
+      "tag_id": 9
+    },
+    {
+      "id": 855806,
+      "show_id": 480209,
+      "tag_id": 11
+    },
+    {
+      "id": 855667,
+      "show_id": 480209,
+      "tag_id": 16
+    },
+    {
+      "id": 14942403,
+      "show_id": 480210,
+      "tag_id": 9
+    },
+    {
+      "id": 855807,
+      "show_id": 480210,
+      "tag_id": 11
+    },
+    {
+      "id": 855668,
+      "show_id": 480210,
+      "tag_id": 16
+    },
+    {
+      "id": 11669610,
+      "show_id": 480646,
+      "tag_id": 9
+    },
+    {
+      "id": 857120,
+      "show_id": 480646,
+      "tag_id": 11
+    },
+    {
+      "id": 856884,
+      "show_id": 480646,
+      "tag_id": 16
+    },
+    {
+      "id": 8701424,
+      "show_id": 480646,
+      "tag_id": 1043
+    },
+    {
+      "id": 8701365,
+      "show_id": 480646,
+      "tag_id": 1194
+    },
+    {
+      "id": 905258,
+      "show_id": 480692,
+      "tag_id": 9
+    },
+    {
+      "id": 857347,
+      "show_id": 480692,
+      "tag_id": 11
+    },
+    {
+      "id": 857166,
+      "show_id": 480692,
+      "tag_id": 16
+    },
+    {
+      "id": 8102516,
+      "show_id": 480761,
+      "tag_id": 9
+    },
+    {
+      "id": 857416,
+      "show_id": 480761,
+      "tag_id": 12
+    },
+    {
+      "id": 4138084,
+      "show_id": 480761,
+      "tag_id": 15
+    },
+    {
+      "id": 857235,
+      "show_id": 480761,
+      "tag_id": 16
+    },
+    {
+      "id": 11569658,
+      "show_id": 480804,
+      "tag_id": 9
+    },
+    {
+      "id": 857559,
+      "show_id": 480804,
+      "tag_id": 11
+    },
+    {
+      "id": 857459,
+      "show_id": 480804,
+      "tag_id": 16
+    },
+    {
+      "id": 3837351,
+      "show_id": 480928,
+      "tag_id": 9
+    },
+    {
+      "id": 857825,
+      "show_id": 480928,
+      "tag_id": 11
+    },
+    {
+      "id": 857683,
+      "show_id": 480928,
+      "tag_id": 16
+    },
+    {
+      "id": 858377,
+      "show_id": 480928,
+      "tag_id": 1121
+    },
+    {
+      "id": 2336554,
+      "show_id": 481128,
+      "tag_id": 9
+    },
+    {
+      "id": 858250,
+      "show_id": 481128,
+      "tag_id": 11
+    },
+    {
+      "id": 858152,
+      "show_id": 481128,
+      "tag_id": 16
+    },
+    {
+      "id": 15199633,
+      "show_id": 481128,
+      "tag_id": 1043
+    },
+    {
+      "id": 15199622,
+      "show_id": 481128,
+      "tag_id": 1217
+    },
+    {
+      "id": 15199568,
+      "show_id": 481128,
+      "tag_id": 1273
+    },
+    {
+      "id": 15199651,
+      "show_id": 481128,
+      "tag_id": 21780
+    },
+    {
+      "id": 3893946,
+      "show_id": 1863553,
+      "tag_id": 9
+    },
+    {
+      "id": 3893748,
+      "show_id": 1863553,
+      "tag_id": 16
+    },
+    {
+      "id": 3893947,
+      "show_id": 1863554,
+      "tag_id": 9
+    },
+    {
+      "id": 3893749,
+      "show_id": 1863554,
+      "tag_id": 16
+    },
+    {
+      "id": 3893948,
+      "show_id": 1863555,
+      "tag_id": 9
+    },
+    {
+      "id": 3893750,
+      "show_id": 1863555,
+      "tag_id": 16
+    },
+    {
+      "id": 3893949,
+      "show_id": 1863556,
+      "tag_id": 9
+    },
+    {
+      "id": 3893751,
+      "show_id": 1863556,
+      "tag_id": 16
+    },
+    {
+      "id": 3893950,
+      "show_id": 1863557,
+      "tag_id": 9
+    },
+    {
+      "id": 3893752,
+      "show_id": 1863557,
+      "tag_id": 16
+    },
+    {
+      "id": 3893951,
+      "show_id": 1863558,
+      "tag_id": 9
+    },
+    {
+      "id": 3893753,
+      "show_id": 1863558,
+      "tag_id": 16
+    },
+    {
+      "id": 3893952,
+      "show_id": 1863559,
+      "tag_id": 9
+    },
+    {
+      "id": 3893754,
+      "show_id": 1863559,
+      "tag_id": 16
+    },
+    {
+      "id": 3893953,
+      "show_id": 1863560,
+      "tag_id": 9
+    },
+    {
+      "id": 3893755,
+      "show_id": 1863560,
+      "tag_id": 16
+    },
+    {
+      "id": 3893954,
+      "show_id": 1863561,
+      "tag_id": 9
+    },
+    {
+      "id": 3893756,
+      "show_id": 1863561,
+      "tag_id": 16
+    },
+    {
+      "id": 3893955,
+      "show_id": 1863562,
+      "tag_id": 9
+    },
+    {
+      "id": 3893757,
+      "show_id": 1863562,
+      "tag_id": 16
+    },
+    {
+      "id": 3893956,
+      "show_id": 1863563,
+      "tag_id": 9
+    },
+    {
+      "id": 3893758,
+      "show_id": 1863563,
+      "tag_id": 16
+    },
+    {
+      "id": 3893957,
+      "show_id": 1863564,
+      "tag_id": 9
+    },
+    {
+      "id": 3893759,
+      "show_id": 1863564,
+      "tag_id": 16
+    },
+    {
+      "id": 3893958,
+      "show_id": 1863565,
+      "tag_id": 9
+    },
+    {
+      "id": 3893760,
+      "show_id": 1863565,
+      "tag_id": 16
+    },
+    {
+      "id": 3893959,
+      "show_id": 1863566,
+      "tag_id": 9
+    },
+    {
+      "id": 3893761,
+      "show_id": 1863566,
+      "tag_id": 16
+    },
+    {
+      "id": 3893960,
+      "show_id": 1863567,
+      "tag_id": 9
+    },
+    {
+      "id": 3893762,
+      "show_id": 1863567,
+      "tag_id": 16
+    },
+    {
+      "id": 3893961,
+      "show_id": 1863568,
+      "tag_id": 9
+    },
+    {
+      "id": 3893763,
+      "show_id": 1863568,
+      "tag_id": 16
+    },
+    {
+      "id": 4137901,
+      "show_id": 1973098,
+      "tag_id": 9
+    },
+    {
+      "id": 4137710,
+      "show_id": 1973098,
+      "tag_id": 16
+    },
+    {
+      "id": 4371867,
+      "show_id": 2084643,
+      "tag_id": 9
+    },
+    {
+      "id": 4371707,
+      "show_id": 2084643,
+      "tag_id": 16
+    },
+    {
+      "id": 4535062,
+      "show_id": 2163978,
+      "tag_id": 9
+    },
+    {
+      "id": 4534862,
+      "show_id": 2163978,
+      "tag_id": 16
+    },
+    {
+      "id": 5138328,
+      "show_id": 2438504,
+      "tag_id": 9
+    },
+    {
+      "id": 5138150,
+      "show_id": 2438504,
+      "tag_id": 16
+    },
+    {
+      "id": 5709698,
+      "show_id": 2699859,
+      "tag_id": 9
+    },
+    {
+      "id": 5709680,
+      "show_id": 2699859,
+      "tag_id": 16
+    },
+    {
+      "id": 5709685,
+      "show_id": 2699859,
+      "tag_id": 1149
+    },
+    {
+      "id": 6423224,
+      "show_id": 3013099,
+      "tag_id": 9
+    },
+    {
+      "id": 6423037,
+      "show_id": 3013099,
+      "tag_id": 16
+    },
+    {
+      "id": 8232068,
+      "show_id": 3736581,
+      "tag_id": 9
+    },
+    {
+      "id": 8231961,
+      "show_id": 3736581,
+      "tag_id": 16
+    },
+    {
+      "id": 8232069,
+      "show_id": 3736582,
+      "tag_id": 9
+    },
+    {
+      "id": 8231962,
+      "show_id": 3736582,
+      "tag_id": 16
+    },
+    {
+      "id": 8232070,
+      "show_id": 3736583,
+      "tag_id": 9
+    },
+    {
+      "id": 8231963,
+      "show_id": 3736583,
+      "tag_id": 16
+    },
+    {
+      "id": 8232071,
+      "show_id": 3736584,
+      "tag_id": 9
+    },
+    {
+      "id": 8231964,
+      "show_id": 3736584,
+      "tag_id": 16
+    },
+    {
+      "id": 8429784,
+      "show_id": 3736584,
+      "tag_id": 1121
+    },
+    {
+      "id": 8232072,
+      "show_id": 3736585,
+      "tag_id": 9
+    },
+    {
+      "id": 8231965,
+      "show_id": 3736585,
+      "tag_id": 16
+    },
+    {
+      "id": 8231995,
+      "show_id": 3736585,
+      "tag_id": 1121
+    },
+    {
+      "id": 8301509,
+      "show_id": 3767701,
+      "tag_id": 9
+    },
+    {
+      "id": 8301401,
+      "show_id": 3767701,
+      "tag_id": 16
+    },
+    {
+      "id": 8301414,
+      "show_id": 3767701,
+      "tag_id": 1121
+    },
+    {
+      "id": 9556012,
+      "show_id": 4282370,
+      "tag_id": 9
+    },
+    {
+      "id": 9555878,
+      "show_id": 4282370,
+      "tag_id": 16
+    },
+    {
+      "id": 10963219,
+      "show_id": 4880163,
+      "tag_id": 9
+    },
+    {
+      "id": 10963063,
+      "show_id": 4880163,
+      "tag_id": 16
+    },
+    {
+      "id": 10963099,
+      "show_id": 4880163,
+      "tag_id": 1121
+    },
+    {
+      "id": 12763351,
+      "show_id": 5600935,
+      "tag_id": 9
+    },
+    {
+      "id": 12763244,
+      "show_id": 5600935,
+      "tag_id": 16
+    },
+    {
+      "id": 13847731,
+      "show_id": 6034303,
+      "tag_id": 9
+    },
+    {
+      "id": 13847611,
+      "show_id": 6034303,
+      "tag_id": 16
+    },
+    {
+      "id": 13847734,
+      "show_id": 6034306,
+      "tag_id": 9
+    },
+    {
+      "id": 13847614,
+      "show_id": 6034306,
+      "tag_id": 16
+    }
+  ],
+  "club_shows": [
+    {
+      "id": 480145,
+      "name": "ComedySportz",
+      "date": "2026-11-01 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/comedysportz-chicago",
+      "room": "",
+      "last_scraped_date": "2026-09-20 23:24:28.488846+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 480209,
+      "name": "Harolds After Dark",
+      "date": "2026-11-01 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/harolds-after-dark",
+      "room": "",
+      "last_scraped_date": "2026-09-25 00:08:05.076507+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 480210,
+      "name": "Harolds After Dark",
+      "date": "2026-11-08 05:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/harolds-after-dark",
+      "room": "",
+      "last_scraped_date": "2026-09-25 00:08:05.076508+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 480646,
+      "name": "Cage Match",
+      "date": "2026-10-01 03:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/cage-match-6",
+      "room": "",
+      "last_scraped_date": "2026-09-07 23:21:33.839048+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 480692,
+      "name": "Flex Improv",
+      "date": "2026-11-06 01:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/flex-improv",
+      "room": "",
+      "last_scraped_date": "2026-09-10 23:02:27.656116+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 480761,
+      "name": "Sketch Playlist",
+      "date": "2026-11-06 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/sketch-playlist",
+      "room": "",
+      "last_scraped_date": "2026-09-08 23:27:02.777515+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 480804,
+      "name": "Blueprint",
+      "date": "2026-11-06 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/blueprint",
+      "room": "",
+      "last_scraped_date": "2026-09-25 00:09:05.378536+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 480923,
+      "name": "Paranormal Laughtivity",
+      "date": "2026-10-03 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/paranormal-laughtivity",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:32.773844+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 480928,
+      "name": "Improvised Romantasy",
+      "date": "2026-11-07 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/improvised-romantasy",
+      "room": "",
+      "last_scraped_date": "2026-09-25 00:10:03.547078+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 481128,
+      "name": "The Tension is Laughable",
+      "date": "2026-11-08 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-tension-is-laughable",
+      "room": "",
+      "last_scraped_date": "2026-09-25 23:55:02.901564+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 908485,
+      "name": "Kohl's Cash: TGIF (That's Good Improv Fridays)",
+      "date": "2026-12-05 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/kohl-s-cash-tgif-that-s-good-improv-fridays",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:32.773883+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1044696,
+      "name": "This Year in Music",
+      "date": "2026-12-12 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/this-year-in-music",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:40.592920+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1455150,
+      "name": "Kohl's Cash: TGIF (That's Good Improv Fridays)",
+      "date": "2027-01-02 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/kohl-s-cash-tgif-that-s-good-improv-fridays",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:32.773892+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863553,
+      "name": "The Orbit",
+      "date": "2026-10-01 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772618+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863554,
+      "name": "The Orbit",
+      "date": "2026-10-08 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772621+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863555,
+      "name": "The Orbit",
+      "date": "2026-10-15 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772623+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863556,
+      "name": "The Orbit",
+      "date": "2026-10-22 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772626+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863557,
+      "name": "The Orbit",
+      "date": "2026-10-29 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772629+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863558,
+      "name": "The Orbit",
+      "date": "2026-11-05 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772632+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863559,
+      "name": "The Orbit",
+      "date": "2026-11-12 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772635+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863560,
+      "name": "The Orbit",
+      "date": "2026-11-19 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772637+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863561,
+      "name": "The Orbit",
+      "date": "2026-11-26 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772640+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863562,
+      "name": "The Orbit",
+      "date": "2026-12-03 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772643+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863563,
+      "name": "The Orbit",
+      "date": "2026-12-10 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772646+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863564,
+      "name": "The Orbit",
+      "date": "2026-12-17 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772649+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863565,
+      "name": "The Orbit",
+      "date": "2026-12-24 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772652+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863566,
+      "name": "The Orbit",
+      "date": "2026-12-31 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772655+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863567,
+      "name": "The Orbit",
+      "date": "2027-01-07 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772657+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1863568,
+      "name": "The Orbit",
+      "date": "2027-01-14 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772660+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 1973098,
+      "name": "The Orbit",
+      "date": "2027-01-21 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772663+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 2084642,
+      "name": "Battleprov",
+      "date": "2027-01-08 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:41.988210+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 2084643,
+      "name": "Battleprov",
+      "date": "2027-01-22 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:41.988214+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 2163978,
+      "name": "The Orbit",
+      "date": "2027-01-28 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772666+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 2438504,
+      "name": "The Orbit",
+      "date": "2027-02-04 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/the-orbit",
+      "room": "",
+      "last_scraped_date": "2026-06-09 07:49:46.772669+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 2555834,
+      "name": "Battleprov",
+      "date": "2027-02-05 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:41.988219+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 2642047,
+      "name": "Kohl's Cash: TGIF (That's Good Improv Fridays)",
+      "date": "2027-02-06 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/kohl-s-cash-tgif-that-s-good-improv-fridays",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:32.773903+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 2699859,
+      "name": "This Year in Music",
+      "date": "2026-12-10 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/this-year-in-music",
+      "room": "",
+      "last_scraped_date": "2026-07-08 21:48:09.904861+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 3013099,
+      "name": "Battleprov",
+      "date": "2027-02-19 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:41.988223+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 3736176,
+      "name": "Battleprov",
+      "date": "2027-03-05 01:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:41.988228+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 3736581,
+      "name": "People Being Funny",
+      "date": "2026-10-03 03:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "room": "",
+      "last_scraped_date": "2026-08-03 21:33:48.063796+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 3736582,
+      "name": "People Being Funny",
+      "date": "2026-11-07 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "room": "",
+      "last_scraped_date": "2026-08-03 21:33:48.063798+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 3736583,
+      "name": "People Being Funny",
+      "date": "2026-12-05 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "room": "",
+      "last_scraped_date": "2026-08-03 21:33:48.063800+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 3736584,
+      "name": "People Being Funny",
+      "date": "2027-01-02 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "room": "",
+      "last_scraped_date": "2026-08-03 21:33:48.063802+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 3736585,
+      "name": "People Being Funny",
+      "date": "2027-02-06 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "room": "",
+      "last_scraped_date": "2026-08-03 21:33:48.063803+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 3767701,
+      "name": "People Being Funny",
+      "date": "2027-03-06 04:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "room": "",
+      "last_scraped_date": "2026-08-03 21:33:48.063805+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 3767950,
+      "name": "Kohl's Cash: TGIF (That's Good Improv Fridays)",
+      "date": "2027-03-06 03:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/kohl-s-cash-tgif-that-s-good-improv-fridays",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:32.773913+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 4282370,
+      "name": "Battleprov",
+      "date": "2027-03-19 00:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:43.907100+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 4819607,
+      "name": "Battleprov",
+      "date": "2027-04-02 00:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:43.907119+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 4879588,
+      "name": "Kohl's Cash: TGIF (That's Good Improv Fridays)",
+      "date": "2027-04-03 02:30:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/kohl-s-cash-tgif-that-s-good-improv-fridays",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:32.773922+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 4880163,
+      "name": "People Being Funny",
+      "date": "2027-04-03 03:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/people-being-funny",
+      "room": "",
+      "last_scraped_date": "2026-08-03 21:33:48.063807+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 5600935,
+      "name": "Battleprov",
+      "date": "2027-04-16 00:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/battleprov-ef364a9f-f133-4d5b-8043-5a75159e46ea",
+      "room": "",
+      "last_scraped_date": "2026-10-04 23:54:43.907129+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 6034303,
+      "name": "iO House Team Night",
+      "date": "2026-11-07 00:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/io-house-team-night",
+      "room": "",
+      "last_scraped_date": "2026-09-25 00:09:17.335218+00:00",
+      "last_scraped_by": "crowdwork"
+    },
+    {
+      "id": 6034306,
+      "name": "iO House Team Night",
+      "date": "2026-11-28 00:00:00+00:00",
+      "show_page_url": "https://www.crowdwork.com/e/io-house-team-night",
+      "room": "",
+      "last_scraped_date": "2026-08-29 21:12:43.084539+00:00",
+      "last_scraped_by": "crowdwork"
+    }
+  ],
+  "foreign_keys": [
+    [
+      "tickets",
+      "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    ],
+    [
+      "lineup_items",
+      "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    ],
+    [
+      "tagged_shows",
+      "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    ],
+    [
+      "sent_notifications",
+      "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    ],
+    [
+      "ticket_purchase_click_events",
+      "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    ],
+    [
+      "discovery_show_feature_snapshots",
+      "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    ],
+    [
+      "saved_shows",
+      "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    ]
+  ],
+  "club_show_count": 1863
+}

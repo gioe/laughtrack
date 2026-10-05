@@ -1,0 +1,20 @@
+{
+  "task_id": 4105,
+  "club_id": 182,
+  "source_id": 45,
+  "cutoff": "2026-10-05T17:39:27.328404+00:00",
+  "feed_url": "https://crowdwork.com/api/v2/iotheater/shows",
+  "feed_raw_sha256": "a2c33ee96f7ddb0d04d5f1c3e8b26d8167f04e9994ecb1314f4f5d8d098ac3eb",
+  "counts": {
+    "original_candidates": 42,
+    "delete": 29,
+    "hold": 13,
+    "feed_listings": 80
+  },
+  "files": {
+    "decisions.json": "0f3fe7e567f9b84e911944318ac34640f13593eba85a04c1f4b95ef02e7e5cf3",
+    "pages.json": "7a8e3567990efe0d643f5c3cdccda71cf698eaacaab552d1986114192b1ee10d",
+    "feed.json": "5b9898821947bf68737572f07bc52285c4b56664936afc80c96b54b655b46b98",
+    "before.json": "851f6942a16a742de6a2d22147b3c27d01222ee499941b099c98b5f6941ad8c2"
+  }
+}
