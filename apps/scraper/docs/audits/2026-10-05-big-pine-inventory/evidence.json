@@ -1,0 +1,195 @@
+[
+  {
+    "show_id": 1376633,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370084",
+    "final_url": "https://www.bigpinecomedyfestival.org/events",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:11.777502+00:00",
+    "sha256": "c72db1f811d575199f5e8f38d2fbca8f31fd7f723ca6b45ce7de9190ad5dc92b",
+    "prior_quote_present": true,
+    "quote": "This is not a physical product. This is a digital service."
+  },
+  {
+    "show_id": 522199,
+    "url": "https://www.bigpinecomedyfestival.org/shows/337656",
+    "final_url": "https://www.bigpinecomedyfestival.org/events",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:11.966869+00:00",
+    "sha256": "fe1c671b43f6ebcad4bee81e4332db745999c64d2d5d437dde09c47f4e1efa5f",
+    "prior_quote_present": false,
+    "quote": null,
+    "verification": "Fresh exact native ID/title/time match; game addon describes player elimination/revival, or native inventory explicitly grants workshop/panel entry. Current page redirects to calendar; redirect is not cancellation evidence."
+  },
+  {
+    "show_id": 1760217,
+    "url": "https://www.bigpinecomedyfestival.org/shows/372674",
+    "final_url": "https://www.bigpinecomedyfestival.org/events",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:12.330975+00:00",
+    "sha256": "9bbbae9134af99e5b28969f20f2cbefeeb069538fe15f39552cd5e212fdc3995",
+    "prior_quote_present": false,
+    "quote": null,
+    "verification": "Fresh exact native ID/title/time match; game addon describes player elimination/revival, or native inventory explicitly grants workshop/panel entry. Current page redirects to calendar; redirect is not cancellation evidence."
+  },
+  {
+    "show_id": 1760218,
+    "url": "https://www.bigpinecomedyfestival.org/shows/372675",
+    "final_url": "https://www.bigpinecomedyfestival.org/events",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:12.621850+00:00",
+    "sha256": "bdbd6dd120c170bf22c425ff94f3482ac50a255e46265f90dadc7ed698c4c67d",
+    "prior_quote_present": false,
+    "quote": null,
+    "verification": "Fresh exact native ID/title/time match; game addon describes player elimination/revival, or native inventory explicitly grants workshop/panel entry. Current page redirects to calendar; redirect is not cancellation evidence."
+  },
+  {
+    "show_id": 1376635,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370086",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370086",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:12.891002+00:00",
+    "sha256": "3128c848b8363ee12f70ef658db832eb8548ac30d6f8031bf792c29f93bcf89a",
+    "prior_quote_present": true,
+    "quote": "This is a downloadable educational product\u2014not a live event."
+  },
+  {
+    "show_id": 1376636,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370091",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370091",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:13.129575+00:00",
+    "sha256": "08a2398a590156126a14b7867cb124b0c830feea3dd131ac0c052466bf93ca28",
+    "prior_quote_present": true,
+    "quote": "digital download link"
+  },
+  {
+    "show_id": 1376637,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370092",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370092",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:13.351073+00:00",
+    "sha256": "8141c6c0233725950bc02ff70c8e7d192a46fe26bf748047075cb357d9700372",
+    "prior_quote_present": true,
+    "quote": "Sign up now to schedule your 1:1 Coaching Call with Geoff."
+  },
+  {
+    "show_id": 1376638,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370093",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370093",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:13.663652+00:00",
+    "sha256": "1a0545e0e4c6332ee8a31edca3ec62c30aa758dd992a2147f4d0f16e103d6839",
+    "prior_quote_present": true,
+    "quote": "This is not a physical product. This is a digital service."
+  },
+  {
+    "show_id": 1376639,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370097",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370097",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:13.934770+00:00",
+    "sha256": "36b160dcc92fe441ba05e48f38ce9edbc8a359956f4bf4f91c7b00109ca2ef5a",
+    "prior_quote_present": true,
+    "quote": "Purchase includes a digital download. Not a live panel."
+  },
+  {
+    "show_id": 3251332,
+    "url": "https://www.bigpinecomedyfestival.org/shows/378010",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/378010",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:14.201430+00:00",
+    "sha256": "107fe1401cc084f26ea50e4b7bd4326963956d82e9d9ef7c424d9b4a7ec012f2",
+    "prior_quote_present": true,
+    "quote": "This all-access pass gets you entry into every single workshop and panel"
+  },
+  {
+    "show_id": 3251333,
+    "url": "https://www.bigpinecomedyfestival.org/shows/378011",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/378011",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:14.465686+00:00",
+    "sha256": "d6241e56c2dfcdf9690c92fce98b70aa68227dbf3b44ac1b16b589cce6c183b3",
+    "prior_quote_present": true,
+    "quote": "This all-access pass gets you entry into every single workshop and panel"
+  },
+  {
+    "show_id": 1376640,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370098",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370098",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:14.734722+00:00",
+    "sha256": "f3d1b174e8c0ff601a04f4eb6fffae35f5b41903074eb02046695fda18218664",
+    "prior_quote_present": true,
+    "quote": "This is not a live event. This is a digital download."
+  },
+  {
+    "show_id": 1376641,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370099",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370099",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:14.978372+00:00",
+    "sha256": "367614182dd7a8451a8d0261e2cc6cc7f98d8e472e2f7a1b12d4e0c955d991df",
+    "prior_quote_present": true,
+    "quote": "This is not a physical product. This is a digital service."
+  },
+  {
+    "show_id": 1376642,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370101",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370101",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:15.276022+00:00",
+    "sha256": "456d3398afa3d40b4eb306cda8736a6c9cc08e0d03271d92300434d87f679678",
+    "prior_quote_present": true,
+    "quote": "Sign up now to schedule your 1:1 Coaching Call with Geoff."
+  },
+  {
+    "show_id": 1376643,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370095",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370095",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:15.513345+00:00",
+    "sha256": "9a63fb0e5e93e5818ebd27a4cc46519f192a88c6a94edf6c0452cc81e57574ac",
+    "prior_quote_present": true,
+    "quote": "This is not a physical product. This is a digital service."
+  },
+  {
+    "show_id": 1376644,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370103",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370103",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:15.816562+00:00",
+    "sha256": "18549e4173e99d11f7c1f72301c16000cd647f52ebcc62d7a50b78252a7be43b",
+    "prior_quote_present": true,
+    "quote": "Your download link will be emailed after purchase."
+  },
+  {
+    "show_id": 1376645,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370104",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370104",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:16.086444+00:00",
+    "sha256": "9b5eec07cdff437f30126088fe9df3c38de3a2f02f144993b68178bebfd388dd",
+    "prior_quote_present": true,
+    "quote": "a member of our team will email you a link to download your guide"
+  },
+  {
+    "show_id": 1376646,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370106",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370106",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:16.422770+00:00",
+    "sha256": "947a1a15067b8b01b01a764d48b99a74e423ca3836c40fbc11773b21a769b15e",
+    "prior_quote_present": true,
+    "quote": "Virtual 20-minute session. Not a live event."
+  },
+  {
+    "show_id": 1376647,
+    "url": "https://www.bigpinecomedyfestival.org/shows/370096",
+    "final_url": "https://www.bigpinecomedyfestival.org/shows/370096",
+    "http_status": 200,
+    "retrieved_at": "2026-10-05T23:27:16.694708+00:00",
+    "sha256": "279f717975d41ef3c0ced22ad69af9caee3fed3e28671b1eb0fab764bb1f8830",
+    "prior_quote_present": true,
+    "quote": "This is not a physical product. This is a digital service."
+  }
+]

@@ -1,0 +1,2165 @@
+{
+  "retrieved_at": "2026-10-05T23:25:35.733791+00:00",
+  "events": [
+    {
+      "id": 370086,
+      "event": {
+        "id": 136284,
+        "name": "Writing Techniques \u2013 Notes Version",
+        "status": 0,
+        "labels": [
+          {
+            "name": "DIGITAL DOWNLOAD",
+            "public": true,
+            "color": "rgb(255, 0, 230)"
+          }
+        ],
+        "available": 996,
+        "venue_id": 553,
+        "purchased": 3,
+        "talents": [
+          {
+            "id": 46438,
+            "name": "Writing Techniques \u2013 Notes Version",
+            "image": "https://files.seatengine.com/talent/headshots/photos/78880/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/78880/full/data",
+        "next_show": "2026-10-06T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-10-05T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-10-06T06:59:00Z",
+      "start_on_sale": "2026-04-28T19:56:33Z",
+      "headliner_id": 155714,
+      "event_id": 136284,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 999,
+          "id": 794895,
+          "name": "Digital Download",
+          "title": "Digital Download",
+          "child": false,
+          "available": 996,
+          "price": 500,
+          "service_charge": 0,
+          "purchased": 3,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 996
+    },
+    {
+      "id": 370091,
+      "event": {
+        "id": 136286,
+        "name": "The Journey: A Cautionary Tale for Comics (Digital Download)",
+        "status": 0,
+        "labels": [
+          {
+            "name": "DIGITAL DOWNLOAD",
+            "public": true,
+            "color": "rgb(255, 0, 230)"
+          }
+        ],
+        "available": 998,
+        "venue_id": 553,
+        "purchased": 1,
+        "talents": [
+          {
+            "id": 46493,
+            "name": "The Journey: A Cautionary Tale",
+            "image": "https://files.seatengine.com/talent/headshots/photos/79012/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/79012/full/data",
+        "next_show": "2026-10-13T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-10-12T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-10-13T06:59:00Z",
+      "start_on_sale": "2026-04-28T19:58:08Z",
+      "headliner_id": 155716,
+      "event_id": 136286,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 999,
+          "id": 794900,
+          "name": "Digital Download",
+          "title": "Digital Download",
+          "child": false,
+          "available": 998,
+          "price": 1500,
+          "service_charge": 0,
+          "purchased": 1,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 998
+    },
+    {
+      "id": 370092,
+      "event": {
+        "id": 136287,
+        "name": "1:1 Coaching Call with Geoff Grooms",
+        "status": 0,
+        "labels": [
+          {
+            "name": "CONSULTATION",
+            "public": true,
+            "color": "rgb(242, 251, 70)"
+          }
+        ],
+        "available": 10,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46373,
+            "name": "Private Consultation: Geoff Grooms",
+            "image": "https://files.seatengine.com/talent/headshots/photos/78753/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/78753/full/data",
+        "next_show": "2026-10-20T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-10-19T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-10-20T06:59:00Z",
+      "start_on_sale": "2026-04-28T19:59:18Z",
+      "headliner_id": 155717,
+      "event_id": 136287,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 10,
+          "id": 794901,
+          "name": "Virtual Consultation",
+          "title": "Virtual Consultation",
+          "child": false,
+          "available": 10,
+          "price": 6500,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 10
+    },
+    {
+      "id": 370093,
+      "event": {
+        "id": 136288,
+        "name": "EPK Review",
+        "status": 0,
+        "labels": [
+          {
+            "name": "CONSULTATION",
+            "public": true,
+            "color": "rgb(242, 251, 70)"
+          }
+        ],
+        "available": 10,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46494,
+            "name": "EPK Review (Digital Service)",
+            "image": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+        "next_show": "2026-10-27T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-10-26T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-10-27T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:00:03Z",
+      "headliner_id": 155718,
+      "event_id": 136288,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 10,
+          "id": 794902,
+          "name": "Virtual Consultation",
+          "title": "Virtual Consultation",
+          "child": false,
+          "available": 10,
+          "price": 4000,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 10
+    },
+    {
+      "id": 390223,
+      "event": {
+        "id": 144970,
+        "name": "Big Pine Comedy Festival Submission 2027",
+        "status": 0,
+        "labels": [
+          {
+            "name": "CHANDLER, AZ",
+            "public": true,
+            "color": "rgb(2, 187, 76)"
+          }
+        ],
+        "available": 181,
+        "venue_id": 553,
+        "purchased": 19,
+        "talents": [
+          {
+            "id": 25051,
+            "name": "Big Pine Comedy Festival",
+            "image": "https://files.seatengine.com/talent/headshots/photos/78677/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/78677/full/data",
+        "next_show": "2026-11-01T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-10-31T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-11-01T06:59:00Z",
+      "start_on_sale": "2026-10-01T13:47:12Z",
+      "headliner_id": 165403,
+      "event_id": 144970,
+      "addons": [
+        {
+          "id": 98485,
+          "name": "Submission Review",
+          "description": "<p>Receive a written review of your video and bio by a member of the Mic Drop booking team.</p>",
+          "available": 993,
+          "price": 2000,
+          "ticket_upgrade": false,
+          "image_url": null
+        }
+      ],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 200,
+          "id": 835515,
+          "name": "Digital Submission",
+          "title": "Digital Submission",
+          "child": false,
+          "available": 181,
+          "price": 2200,
+          "service_charge": 500,
+          "purchased": 19,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 181
+    },
+    {
+      "id": 370097,
+      "event": {
+        "id": 136292,
+        "name": " Email Hustle \u2013 Notes Version",
+        "status": 0,
+        "labels": [
+          {
+            "name": "DIGITAL DOWNLOAD",
+            "public": true,
+            "color": "rgb(255, 0, 230)"
+          }
+        ],
+        "available": 998,
+        "venue_id": 553,
+        "purchased": 1,
+        "talents": [
+          {
+            "id": 46431,
+            "name": "Email Hustle - Notes Version",
+            "image": "https://files.seatengine.com/talent/headshots/photos/78873/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/78873/full/data",
+        "next_show": "2026-11-03T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-11-02T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-11-03T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:09:00Z",
+      "headliner_id": 155722,
+      "event_id": 136292,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 999,
+          "id": 794906,
+          "name": "Digital Download",
+          "title": "Digital Download",
+          "child": false,
+          "available": 998,
+          "price": 500,
+          "service_charge": 0,
+          "purchased": 1,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 998
+    },
+    {
+      "id": 378010,
+      "event": {
+        "id": 139559,
+        "name": "Winter Camp Pass",
+        "status": 0,
+        "labels": [
+          {
+            "name": "SAN DIEGO, CA",
+            "public": true,
+            "color": "rgb(164, 72, 225)"
+          }
+        ],
+        "available": 122,
+        "venue_id": 553,
+        "purchased": 3,
+        "talents": [
+          {
+            "id": 53350,
+            "name": "Winter Camp Pass",
+            "image": "https://files.seatengine.com/talent/headshots/photos/92984/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/92984/full/data",
+        "next_show": "2026-11-07T16:00:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-11-07T09:00:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-11-07T16:00:00Z",
+      "start_on_sale": "2026-06-23T19:14:16Z",
+      "headliner_id": 159350,
+      "event_id": 139559,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 125,
+          "id": 811623,
+          "name": "WINTER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+          "title": "WINTER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+          "child": false,
+          "available": 122,
+          "price": 15500,
+          "service_charge": 0,
+          "purchased": 3,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 122
+    },
+    {
+      "id": 378011,
+      "event": {
+        "id": 139560,
+        "name": "Winter Camp Pass",
+        "status": 0,
+        "labels": [
+          {
+            "name": "SAN DIEGO, CA",
+            "public": true,
+            "color": "rgb(164, 72, 225)"
+          }
+        ],
+        "available": 125,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 53350,
+            "name": "Winter Camp Pass",
+            "image": "https://files.seatengine.com/talent/headshots/photos/92984/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/92984/full/data",
+        "next_show": "2026-11-08T16:00:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-11-08T09:00:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-11-08T16:00:00Z",
+      "start_on_sale": "2026-06-23T19:15:29Z",
+      "headliner_id": 159351,
+      "event_id": 139560,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 125,
+          "id": 811624,
+          "name": "WINTER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+          "title": "WINTER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+          "child": false,
+          "available": 125,
+          "price": 15500,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 125
+    },
+    {
+      "id": 370098,
+      "event": {
+        "id": 136293,
+        "name": "Comedian Networking Guide (Digital Download)",
+        "status": 0,
+        "labels": [
+          {
+            "name": "DIGITAL DOWNLOAD",
+            "public": true,
+            "color": "rgb(255, 0, 230)"
+          }
+        ],
+        "available": 997,
+        "venue_id": 553,
+        "purchased": 2,
+        "talents": [
+          {
+            "id": 46489,
+            "name": "Comedian Networking Guide",
+            "image": "https://files.seatengine.com/talent/headshots/photos/79008/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/79008/full/data",
+        "next_show": "2026-11-10T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-11-09T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-11-10T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:10:45Z",
+      "headliner_id": 155723,
+      "event_id": 136293,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 999,
+          "id": 794907,
+          "name": "Digital Download",
+          "title": "Digital Download",
+          "child": false,
+          "available": 997,
+          "price": 1100,
+          "service_charge": 0,
+          "purchased": 2,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 997
+    },
+    {
+      "id": 370099,
+      "event": {
+        "id": 136294,
+        "name": " Social Media Review",
+        "status": 0,
+        "labels": [
+          {
+            "name": "CONSULTATION",
+            "public": true,
+            "color": "rgb(242, 251, 70)"
+          }
+        ],
+        "available": 10,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46500,
+            "name": "Social Media Review (Digital Service)",
+            "image": "https://files.seatengine.com/talent/headshots/photos/79020/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/79020/full/data",
+        "next_show": "2026-11-17T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-11-16T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-11-17T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:13:09Z",
+      "headliner_id": 155724,
+      "event_id": 136294,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 10,
+          "id": 794908,
+          "name": "Social Media Review",
+          "title": "Social Media Review",
+          "child": false,
+          "available": 10,
+          "price": 4500,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 10
+    },
+    {
+      "id": 370101,
+      "event": {
+        "id": 136296,
+        "name": "1:1 Coaching Call with Geoff Grooms",
+        "status": 0,
+        "labels": [
+          {
+            "name": "CONSULTATION",
+            "public": true,
+            "color": "rgb(242, 251, 70)"
+          }
+        ],
+        "available": 10,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46373,
+            "name": "Private Consultation: Geoff Grooms",
+            "image": "https://files.seatengine.com/talent/headshots/photos/78753/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/78753/full/data",
+        "next_show": "2026-11-24T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-11-23T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-11-24T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:15:19Z",
+      "headliner_id": 155726,
+      "event_id": 136296,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 10,
+          "id": 794910,
+          "name": "Virtual Consultation",
+          "title": "Virtual Consultation",
+          "child": false,
+          "available": 10,
+          "price": 6500,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 10
+    },
+    {
+      "id": 370095,
+      "event": {
+        "id": 136290,
+        "name": "EPK Review",
+        "status": 0,
+        "labels": [
+          {
+            "name": "CONSULTATION",
+            "public": true,
+            "color": "rgb(242, 251, 70)"
+          }
+        ],
+        "available": 10,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46494,
+            "name": "EPK Review (Digital Service)",
+            "image": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+        "next_show": "2026-12-01T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-11-30T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-12-01T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:05:44Z",
+      "headliner_id": 155720,
+      "event_id": 136290,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 10,
+          "id": 794904,
+          "name": "EPK Review",
+          "title": "EPK Review",
+          "child": false,
+          "available": 10,
+          "price": 4000,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 10
+    },
+    {
+      "id": 370094,
+      "event": {
+        "id": 136289,
+        "name": " EPK Review",
+        "status": 0,
+        "labels": [
+          {
+            "name": "CONSULTATION",
+            "public": true,
+            "color": "rgb(242, 251, 70)"
+          }
+        ],
+        "available": 10,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46494,
+            "name": "EPK Review (Digital Service)",
+            "image": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+        "next_show": "2026-12-01T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-11-30T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-12-01T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:00:52Z",
+      "headliner_id": 155719,
+      "event_id": 136289,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 10,
+          "id": 794903,
+          "name": "EPK Review",
+          "title": "EPK Review",
+          "child": false,
+          "available": 10,
+          "price": 4000,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 10
+    },
+    {
+      "id": 370103,
+      "event": {
+        "id": 136298,
+        "name": "Hustle (in Comedy Business) \u2013 Notes Version",
+        "status": 0,
+        "labels": [
+          {
+            "name": "DIGITAL DOWNLOAD",
+            "public": true,
+            "color": "rgb(255, 0, 230)"
+          }
+        ],
+        "available": 999,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46432,
+            "name": "Hustle (In Comedy Business) - Notes Version",
+            "image": "https://files.seatengine.com/talent/headshots/photos/78874/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/78874/full/data",
+        "next_show": "2026-12-08T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-12-07T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-12-08T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:16:51Z",
+      "headliner_id": 155728,
+      "event_id": 136298,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 999,
+          "id": 794915,
+          "name": "Digital Download",
+          "title": "Digital Download",
+          "child": false,
+          "available": 999,
+          "price": 500,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 999
+    },
+    {
+      "id": 370104,
+      "event": {
+        "id": 136299,
+        "name": "Comedian Education Guide & Workbook (Digital Download)",
+        "status": 0,
+        "labels": [
+          {
+            "name": "DIGITAL DOWNLOAD",
+            "public": true,
+            "color": "rgb(255, 0, 230)"
+          }
+        ],
+        "available": 999,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46486,
+            "name": "Comedian Education: Guide & Workbook",
+            "image": "https://files.seatengine.com/talent/headshots/photos/79005/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/79005/full/data",
+        "next_show": "2026-12-15T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-12-14T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-12-15T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:18:48Z",
+      "headliner_id": 155729,
+      "event_id": 136299,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 999,
+          "id": 794916,
+          "name": "Digital Download",
+          "title": "Digital Download",
+          "child": false,
+          "available": 999,
+          "price": 2100,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 999
+    },
+    {
+      "id": 370106,
+      "event": {
+        "id": 136301,
+        "name": "1 on 1 Coaching Call with Hillary Hutson",
+        "status": 0,
+        "labels": [
+          {
+            "name": "CONSULTATION",
+            "public": true,
+            "color": "rgb(242, 251, 70)"
+          }
+        ],
+        "available": 10,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46371,
+            "name": "Private Consultation: Hillary Hutson ",
+            "image": "https://files.seatengine.com/talent/headshots/photos/78751/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/78751/full/data",
+        "next_show": "2026-12-22T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-12-21T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-12-22T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:19:57Z",
+      "headliner_id": 155731,
+      "event_id": 136301,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 10,
+          "id": 794918,
+          "name": "Virtual Consultation",
+          "title": "Virtual Consultation",
+          "child": false,
+          "available": 10,
+          "price": 9500,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 10
+    },
+    {
+      "id": 370096,
+      "event": {
+        "id": 136291,
+        "name": "EPK Review",
+        "status": 0,
+        "labels": [
+          {
+            "name": "CONSULTATION",
+            "public": true,
+            "color": "rgb(242, 251, 70)"
+          }
+        ],
+        "available": 10,
+        "venue_id": 553,
+        "purchased": 0,
+        "talents": [
+          {
+            "id": 46494,
+            "name": "EPK Review (Digital Service)",
+            "image": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+            "role": "headliner"
+          }
+        ],
+        "cancelled_at": null,
+        "image_url": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+        "next_show": "2026-12-29T06:59:00Z",
+        "sold_out": false
+      },
+      "start_date_time": "2026-12-28T23:59:00-07:00",
+      "sold_out": false,
+      "end_on_sale": "2026-12-29T06:59:00Z",
+      "start_on_sale": "2026-04-28T20:06:36Z",
+      "headliner_id": 155721,
+      "event_id": 136291,
+      "addons": [],
+      "upgrades": [],
+      "max_seats": 15,
+      "inventories": [
+        {
+          "allocated": 10,
+          "id": 794905,
+          "name": "EPK Review",
+          "title": "EPK Review",
+          "child": false,
+          "available": 10,
+          "price": 4000,
+          "service_charge": 0,
+          "purchased": 0,
+          "in_cart": 0,
+          "assigned": false,
+          "children_purchased": 0,
+          "customer_assigned": false
+        }
+      ],
+      "total_available": 10
+    }
+  ],
+  "details": [
+    {
+      "show_id": 1376633,
+      "native_id": "370084",
+      "retrieved_at": "2026-10-05T23:25:34.586948+00:00",
+      "data": {
+        "id": 370084,
+        "event": {
+          "id": 136282,
+          "name": "EPK Review",
+          "status": 2,
+          "labels": [
+            {
+              "name": "CONSULTATION",
+              "public": true,
+              "color": "rgb(242, 251, 70)"
+            }
+          ],
+          "available": 0,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46494,
+              "name": "EPK Review (Digital Service)",
+              "image": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+          "next_show": null,
+          "sold_out": false
+        },
+        "event_id": 136282,
+        "start_date_time": "2026-09-28T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-09-29T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T19:54:05Z",
+        "inventories": [
+          {
+            "allocated": 10,
+            "id": 794890,
+            "name": "EPK Review",
+            "title": "EPK Review",
+            "child": false,
+            "available": 10,
+            "price": 4000,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 10
+      }
+    },
+    {
+      "show_id": 522199,
+      "native_id": "337656",
+      "retrieved_at": "2026-10-05T23:25:34.731079+00:00",
+      "data": {
+        "id": 337656,
+        "event": {
+          "id": 122721,
+          "name": "COMEDY ASSASSINS - NETWORKING GAME",
+          "status": 3,
+          "labels": [
+            {
+              "name": "CHANDLER, AZ",
+              "public": true,
+              "color": "rgb(2, 187, 76)"
+            },
+            {
+              "name": "SAN DIEGO, CA",
+              "public": true,
+              "color": "rgb(164, 72, 225)"
+            },
+            {
+              "name": "PLANO, TX",
+              "public": true,
+              "color": "rgb(236, 75, 212)"
+            }
+          ],
+          "available": 0,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 47690,
+              "name": "Comedy Assassins - Networking Game",
+              "image": "https://files.seatengine.com/talent/headshots/photos/81247/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": "2026-10-01T13:41:15Z",
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/81247/full/data",
+          "next_show": "2026-10-01T15:00:00Z",
+          "sold_out": false
+        },
+        "event_id": 122721,
+        "start_date_time": "2026-10-01T08:00:00-07:00",
+        "addons": [
+          {
+            "id": 71604,
+            "name": "Extra Life - Revival Life",
+            "description": "<p>Don\u2019t let elimination take you out of the game just yet! With the Revival Life, you can re-enter the game after being \u201ctagged\u201d or eliminated. For just $5, you\u2019ll get one Revival Life, which allows you to come back into the competition with a fresh start, but your points will reset to zero when you use it. One Revival Life per player ensures that you have a second chance to fight for the top spot and continue your journey in Comedy Assassins.</p><p>Extra Lives are Limited. </p><p>Don\u2019t miss out\u2014revive your game and keep going strong!</p>",
+            "available": 50,
+            "price": 1000,
+            "ticket_upgrade": false,
+            "image_url": "https://files.seatengine.com/venue/addons/images/991/full/data?1754866041"
+          }
+        ],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-10-01T15:00:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2025-10-01T00:14:09Z",
+        "inventories": [
+          {
+            "allocated": 125,
+            "id": 727514,
+            "name": "General Admission ($20 + $5.50 Service Fee)",
+            "title": "General Admission ($20 + $5.50 Service Fee)",
+            "child": false,
+            "available": 125,
+            "price": 500,
+            "service_charge": 350,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 125
+      }
+    },
+    {
+      "show_id": 1760217,
+      "native_id": "372674",
+      "retrieved_at": "2026-10-05T23:25:34.780818+00:00",
+      "data": {
+        "id": 372674,
+        "event": {
+          "id": 137318,
+          "name": "FALL CAMP ",
+          "status": 2,
+          "labels": [
+            {
+              "name": "CHANDLER, AZ",
+              "public": true,
+              "color": "rgb(2, 187, 76)"
+            }
+          ],
+          "available": 0,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 44717,
+              "name": "Fall Comedy Camp",
+              "image": "https://files.seatengine.com/talent/headshots/photos/87183/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/87183/full/data",
+          "next_show": null,
+          "sold_out": false
+        },
+        "event_id": 137318,
+        "start_date_time": "2026-10-03T09:00:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-10-03T16:00:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-05-14T20:20:22Z",
+        "inventories": [
+          {
+            "allocated": 125,
+            "id": 800741,
+            "name": "FALL CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+            "title": "FALL CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+            "child": false,
+            "available": 108,
+            "price": 15500,
+            "service_charge": 0,
+            "purchased": 17,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 108
+      }
+    },
+    {
+      "show_id": 1760218,
+      "native_id": "372675",
+      "retrieved_at": "2026-10-05T23:25:34.834614+00:00",
+      "data": {
+        "id": 372675,
+        "event": {
+          "id": 137319,
+          "name": "FALL CAMP",
+          "status": 2,
+          "labels": [
+            {
+              "name": "CHANDLER, AZ",
+              "public": true,
+              "color": "rgb(2, 187, 76)"
+            }
+          ],
+          "available": 0,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 44717,
+              "name": "Fall Comedy Camp",
+              "image": "https://files.seatengine.com/talent/headshots/photos/87183/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/87183/full/data",
+          "next_show": null,
+          "sold_out": false
+        },
+        "event_id": 137319,
+        "start_date_time": "2026-10-04T09:00:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-10-04T16:00:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-05-14T20:23:41Z",
+        "inventories": [
+          {
+            "allocated": 125,
+            "id": 800743,
+            "name": "FALL CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+            "title": "FALL CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+            "child": false,
+            "available": 124,
+            "price": 15500,
+            "service_charge": 0,
+            "purchased": 1,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 124
+      }
+    },
+    {
+      "show_id": 1376635,
+      "native_id": "370086",
+      "retrieved_at": "2026-10-05T23:25:34.879411+00:00",
+      "data": {
+        "id": 370086,
+        "event": {
+          "id": 136284,
+          "name": "Writing Techniques \u2013 Notes Version",
+          "status": 0,
+          "labels": [
+            {
+              "name": "DIGITAL DOWNLOAD",
+              "public": true,
+              "color": "rgb(255, 0, 230)"
+            }
+          ],
+          "available": 996,
+          "venue_id": 553,
+          "purchased": 3,
+          "talents": [
+            {
+              "id": 46438,
+              "name": "Writing Techniques \u2013 Notes Version",
+              "image": "https://files.seatengine.com/talent/headshots/photos/78880/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/78880/full/data",
+          "next_show": "2026-10-06T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136284,
+        "start_date_time": "2026-10-05T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-10-06T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T19:56:33Z",
+        "inventories": [
+          {
+            "allocated": 999,
+            "id": 794895,
+            "name": "Digital Download",
+            "title": "Digital Download",
+            "child": false,
+            "available": 996,
+            "price": 500,
+            "service_charge": 0,
+            "purchased": 3,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 996
+      }
+    },
+    {
+      "show_id": 1376636,
+      "native_id": "370091",
+      "retrieved_at": "2026-10-05T23:25:34.923845+00:00",
+      "data": {
+        "id": 370091,
+        "event": {
+          "id": 136286,
+          "name": "The Journey: A Cautionary Tale for Comics (Digital Download)",
+          "status": 0,
+          "labels": [
+            {
+              "name": "DIGITAL DOWNLOAD",
+              "public": true,
+              "color": "rgb(255, 0, 230)"
+            }
+          ],
+          "available": 998,
+          "venue_id": 553,
+          "purchased": 1,
+          "talents": [
+            {
+              "id": 46493,
+              "name": "The Journey: A Cautionary Tale",
+              "image": "https://files.seatengine.com/talent/headshots/photos/79012/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/79012/full/data",
+          "next_show": "2026-10-13T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136286,
+        "start_date_time": "2026-10-12T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-10-13T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T19:58:08Z",
+        "inventories": [
+          {
+            "allocated": 999,
+            "id": 794900,
+            "name": "Digital Download",
+            "title": "Digital Download",
+            "child": false,
+            "available": 998,
+            "price": 1500,
+            "service_charge": 0,
+            "purchased": 1,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 998
+      }
+    },
+    {
+      "show_id": 1376637,
+      "native_id": "370092",
+      "retrieved_at": "2026-10-05T23:25:34.979604+00:00",
+      "data": {
+        "id": 370092,
+        "event": {
+          "id": 136287,
+          "name": "1:1 Coaching Call with Geoff Grooms",
+          "status": 0,
+          "labels": [
+            {
+              "name": "CONSULTATION",
+              "public": true,
+              "color": "rgb(242, 251, 70)"
+            }
+          ],
+          "available": 10,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46373,
+              "name": "Private Consultation: Geoff Grooms",
+              "image": "https://files.seatengine.com/talent/headshots/photos/78753/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/78753/full/data",
+          "next_show": "2026-10-20T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136287,
+        "start_date_time": "2026-10-19T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-10-20T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T19:59:18Z",
+        "inventories": [
+          {
+            "allocated": 10,
+            "id": 794901,
+            "name": "Virtual Consultation",
+            "title": "Virtual Consultation",
+            "child": false,
+            "available": 10,
+            "price": 6500,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 10
+      }
+    },
+    {
+      "show_id": 1376638,
+      "native_id": "370093",
+      "retrieved_at": "2026-10-05T23:25:35.023408+00:00",
+      "data": {
+        "id": 370093,
+        "event": {
+          "id": 136288,
+          "name": "EPK Review",
+          "status": 0,
+          "labels": [
+            {
+              "name": "CONSULTATION",
+              "public": true,
+              "color": "rgb(242, 251, 70)"
+            }
+          ],
+          "available": 10,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46494,
+              "name": "EPK Review (Digital Service)",
+              "image": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+          "next_show": "2026-10-27T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136288,
+        "start_date_time": "2026-10-26T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-10-27T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:00:03Z",
+        "inventories": [
+          {
+            "allocated": 10,
+            "id": 794902,
+            "name": "Virtual Consultation",
+            "title": "Virtual Consultation",
+            "child": false,
+            "available": 10,
+            "price": 4000,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 10
+      }
+    },
+    {
+      "show_id": 1376639,
+      "native_id": "370097",
+      "retrieved_at": "2026-10-05T23:25:35.068926+00:00",
+      "data": {
+        "id": 370097,
+        "event": {
+          "id": 136292,
+          "name": " Email Hustle \u2013 Notes Version",
+          "status": 0,
+          "labels": [
+            {
+              "name": "DIGITAL DOWNLOAD",
+              "public": true,
+              "color": "rgb(255, 0, 230)"
+            }
+          ],
+          "available": 998,
+          "venue_id": 553,
+          "purchased": 1,
+          "talents": [
+            {
+              "id": 46431,
+              "name": "Email Hustle - Notes Version",
+              "image": "https://files.seatengine.com/talent/headshots/photos/78873/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/78873/full/data",
+          "next_show": "2026-11-03T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136292,
+        "start_date_time": "2026-11-02T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-11-03T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:09:00Z",
+        "inventories": [
+          {
+            "allocated": 999,
+            "id": 794906,
+            "name": "Digital Download",
+            "title": "Digital Download",
+            "child": false,
+            "available": 998,
+            "price": 500,
+            "service_charge": 0,
+            "purchased": 1,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 998
+      }
+    },
+    {
+      "show_id": 3251332,
+      "native_id": "378010",
+      "retrieved_at": "2026-10-05T23:25:35.212883+00:00",
+      "data": {
+        "id": 378010,
+        "event": {
+          "id": 139559,
+          "name": "Winter Camp Pass",
+          "status": 0,
+          "labels": [
+            {
+              "name": "SAN DIEGO, CA",
+              "public": true,
+              "color": "rgb(164, 72, 225)"
+            }
+          ],
+          "available": 122,
+          "venue_id": 553,
+          "purchased": 3,
+          "talents": [
+            {
+              "id": 53350,
+              "name": "Winter Camp Pass",
+              "image": "https://files.seatengine.com/talent/headshots/photos/92984/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/92984/full/data",
+          "next_show": "2026-11-07T16:00:00Z",
+          "sold_out": false
+        },
+        "event_id": 139559,
+        "start_date_time": "2026-11-07T09:00:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-11-07T16:00:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-06-23T19:14:16Z",
+        "inventories": [
+          {
+            "allocated": 125,
+            "id": 811623,
+            "name": "WINTER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+            "title": "WINTER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+            "child": false,
+            "available": 122,
+            "price": 15500,
+            "service_charge": 0,
+            "purchased": 3,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 122
+      }
+    },
+    {
+      "show_id": 3251333,
+      "native_id": "378011",
+      "retrieved_at": "2026-10-05T23:25:35.260941+00:00",
+      "data": {
+        "id": 378011,
+        "event": {
+          "id": 139560,
+          "name": "Winter Camp Pass",
+          "status": 0,
+          "labels": [
+            {
+              "name": "SAN DIEGO, CA",
+              "public": true,
+              "color": "rgb(164, 72, 225)"
+            }
+          ],
+          "available": 125,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 53350,
+              "name": "Winter Camp Pass",
+              "image": "https://files.seatengine.com/talent/headshots/photos/92984/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/92984/full/data",
+          "next_show": "2026-11-08T16:00:00Z",
+          "sold_out": false
+        },
+        "event_id": 139560,
+        "start_date_time": "2026-11-08T09:00:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-11-08T16:00:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-06-23T19:15:29Z",
+        "inventories": [
+          {
+            "allocated": 125,
+            "id": 811624,
+            "name": "WINTER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+            "title": "WINTER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+            "child": false,
+            "available": 125,
+            "price": 15500,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 125
+      }
+    },
+    {
+      "show_id": 1376640,
+      "native_id": "370098",
+      "retrieved_at": "2026-10-05T23:25:35.308675+00:00",
+      "data": {
+        "id": 370098,
+        "event": {
+          "id": 136293,
+          "name": "Comedian Networking Guide (Digital Download)",
+          "status": 0,
+          "labels": [
+            {
+              "name": "DIGITAL DOWNLOAD",
+              "public": true,
+              "color": "rgb(255, 0, 230)"
+            }
+          ],
+          "available": 997,
+          "venue_id": 553,
+          "purchased": 2,
+          "talents": [
+            {
+              "id": 46489,
+              "name": "Comedian Networking Guide",
+              "image": "https://files.seatengine.com/talent/headshots/photos/79008/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/79008/full/data",
+          "next_show": "2026-11-10T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136293,
+        "start_date_time": "2026-11-09T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-11-10T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:10:45Z",
+        "inventories": [
+          {
+            "allocated": 999,
+            "id": 794907,
+            "name": "Digital Download",
+            "title": "Digital Download",
+            "child": false,
+            "available": 997,
+            "price": 1100,
+            "service_charge": 0,
+            "purchased": 2,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 997
+      }
+    },
+    {
+      "show_id": 1376641,
+      "native_id": "370099",
+      "retrieved_at": "2026-10-05T23:25:35.359568+00:00",
+      "data": {
+        "id": 370099,
+        "event": {
+          "id": 136294,
+          "name": " Social Media Review",
+          "status": 0,
+          "labels": [
+            {
+              "name": "CONSULTATION",
+              "public": true,
+              "color": "rgb(242, 251, 70)"
+            }
+          ],
+          "available": 10,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46500,
+              "name": "Social Media Review (Digital Service)",
+              "image": "https://files.seatengine.com/talent/headshots/photos/79020/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/79020/full/data",
+          "next_show": "2026-11-17T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136294,
+        "start_date_time": "2026-11-16T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-11-17T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:13:09Z",
+        "inventories": [
+          {
+            "allocated": 10,
+            "id": 794908,
+            "name": "Social Media Review",
+            "title": "Social Media Review",
+            "child": false,
+            "available": 10,
+            "price": 4500,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 10
+      }
+    },
+    {
+      "show_id": 1376642,
+      "native_id": "370101",
+      "retrieved_at": "2026-10-05T23:25:35.413548+00:00",
+      "data": {
+        "id": 370101,
+        "event": {
+          "id": 136296,
+          "name": "1:1 Coaching Call with Geoff Grooms",
+          "status": 0,
+          "labels": [
+            {
+              "name": "CONSULTATION",
+              "public": true,
+              "color": "rgb(242, 251, 70)"
+            }
+          ],
+          "available": 10,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46373,
+              "name": "Private Consultation: Geoff Grooms",
+              "image": "https://files.seatengine.com/talent/headshots/photos/78753/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/78753/full/data",
+          "next_show": "2026-11-24T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136296,
+        "start_date_time": "2026-11-23T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-11-24T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:15:19Z",
+        "inventories": [
+          {
+            "allocated": 10,
+            "id": 794910,
+            "name": "Virtual Consultation",
+            "title": "Virtual Consultation",
+            "child": false,
+            "available": 10,
+            "price": 6500,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 10
+      }
+    },
+    {
+      "show_id": 1376643,
+      "native_id": "370095",
+      "retrieved_at": "2026-10-05T23:25:35.461384+00:00",
+      "data": {
+        "id": 370095,
+        "event": {
+          "id": 136290,
+          "name": "EPK Review",
+          "status": 0,
+          "labels": [
+            {
+              "name": "CONSULTATION",
+              "public": true,
+              "color": "rgb(242, 251, 70)"
+            }
+          ],
+          "available": 10,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46494,
+              "name": "EPK Review (Digital Service)",
+              "image": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+          "next_show": "2026-12-01T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136290,
+        "start_date_time": "2026-11-30T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-12-01T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:05:44Z",
+        "inventories": [
+          {
+            "allocated": 10,
+            "id": 794904,
+            "name": "EPK Review",
+            "title": "EPK Review",
+            "child": false,
+            "available": 10,
+            "price": 4000,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 10
+      }
+    },
+    {
+      "show_id": 1376644,
+      "native_id": "370103",
+      "retrieved_at": "2026-10-05T23:25:35.510876+00:00",
+      "data": {
+        "id": 370103,
+        "event": {
+          "id": 136298,
+          "name": "Hustle (in Comedy Business) \u2013 Notes Version",
+          "status": 0,
+          "labels": [
+            {
+              "name": "DIGITAL DOWNLOAD",
+              "public": true,
+              "color": "rgb(255, 0, 230)"
+            }
+          ],
+          "available": 999,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46432,
+              "name": "Hustle (In Comedy Business) - Notes Version",
+              "image": "https://files.seatengine.com/talent/headshots/photos/78874/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/78874/full/data",
+          "next_show": "2026-12-08T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136298,
+        "start_date_time": "2026-12-07T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-12-08T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:16:51Z",
+        "inventories": [
+          {
+            "allocated": 999,
+            "id": 794915,
+            "name": "Digital Download",
+            "title": "Digital Download",
+            "child": false,
+            "available": 999,
+            "price": 500,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 999
+      }
+    },
+    {
+      "show_id": 1376645,
+      "native_id": "370104",
+      "retrieved_at": "2026-10-05T23:25:35.562101+00:00",
+      "data": {
+        "id": 370104,
+        "event": {
+          "id": 136299,
+          "name": "Comedian Education Guide & Workbook (Digital Download)",
+          "status": 0,
+          "labels": [
+            {
+              "name": "DIGITAL DOWNLOAD",
+              "public": true,
+              "color": "rgb(255, 0, 230)"
+            }
+          ],
+          "available": 999,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46486,
+              "name": "Comedian Education: Guide & Workbook",
+              "image": "https://files.seatengine.com/talent/headshots/photos/79005/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/79005/full/data",
+          "next_show": "2026-12-15T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136299,
+        "start_date_time": "2026-12-14T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-12-15T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:18:48Z",
+        "inventories": [
+          {
+            "allocated": 999,
+            "id": 794916,
+            "name": "Digital Download",
+            "title": "Digital Download",
+            "child": false,
+            "available": 999,
+            "price": 2100,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 999
+      }
+    },
+    {
+      "show_id": 1376646,
+      "native_id": "370106",
+      "retrieved_at": "2026-10-05T23:25:35.612056+00:00",
+      "data": {
+        "id": 370106,
+        "event": {
+          "id": 136301,
+          "name": "1 on 1 Coaching Call with Hillary Hutson",
+          "status": 0,
+          "labels": [
+            {
+              "name": "CONSULTATION",
+              "public": true,
+              "color": "rgb(242, 251, 70)"
+            }
+          ],
+          "available": 10,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46371,
+              "name": "Private Consultation: Hillary Hutson ",
+              "image": "https://files.seatengine.com/talent/headshots/photos/78751/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/78751/full/data",
+          "next_show": "2026-12-22T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136301,
+        "start_date_time": "2026-12-21T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-12-22T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:19:57Z",
+        "inventories": [
+          {
+            "allocated": 10,
+            "id": 794918,
+            "name": "Virtual Consultation",
+            "title": "Virtual Consultation",
+            "child": false,
+            "available": 10,
+            "price": 9500,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 10
+      }
+    },
+    {
+      "show_id": 1376647,
+      "native_id": "370096",
+      "retrieved_at": "2026-10-05T23:25:35.733777+00:00",
+      "data": {
+        "id": 370096,
+        "event": {
+          "id": 136291,
+          "name": "EPK Review",
+          "status": 0,
+          "labels": [
+            {
+              "name": "CONSULTATION",
+              "public": true,
+              "color": "rgb(242, 251, 70)"
+            }
+          ],
+          "available": 10,
+          "venue_id": 553,
+          "purchased": 0,
+          "talents": [
+            {
+              "id": 46494,
+              "name": "EPK Review (Digital Service)",
+              "image": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+              "role": "headliner"
+            }
+          ],
+          "cancelled_at": null,
+          "image_url": "https://files.seatengine.com/talent/headshots/photos/79019/full/data",
+          "next_show": "2026-12-29T06:59:00Z",
+          "sold_out": false
+        },
+        "event_id": 136291,
+        "start_date_time": "2026-12-28T23:59:00-07:00",
+        "addons": [],
+        "upgrades": [],
+        "sold_out": false,
+        "end_on_sale": "2026-12-29T06:59:00Z",
+        "max_seats": 15,
+        "start_on_sale": "2026-04-28T20:06:36Z",
+        "inventories": [
+          {
+            "allocated": 10,
+            "id": 794905,
+            "name": "EPK Review",
+            "title": "EPK Review",
+            "child": false,
+            "available": 10,
+            "price": 4000,
+            "service_charge": 0,
+            "purchased": 0,
+            "in_cart": 0,
+            "assigned": false,
+            "children_purchased": 0,
+            "customer_assigned": false
+          }
+        ],
+        "total_available": 10
+      }
+    }
+  ]
+}
