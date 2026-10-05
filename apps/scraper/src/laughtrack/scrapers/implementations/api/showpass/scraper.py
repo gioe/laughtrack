@@ -18,7 +18,9 @@ Pipeline:
   3. transformation_pipeline    -> ShowpassEvent.to_show() -> Show objects
 """
 
+import asyncio
 import re
+from collections import defaultdict
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -31,9 +33,12 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import ShowpassPageData
 from .transformer import ShowpassEventTransformer
+from .pricing import extract_offers
 
 _MONTHS_AHEAD = 3
 _SLUG_RE = re.compile(r"/venues/([^/]+)/calendar/?")
+_DETAIL_TIMEOUT = 10
+_DETAIL_BUDGET = 30
 
 
 class ShowpassScraper(BaseScraper):
@@ -100,9 +105,7 @@ class ShowpassScraper(BaseScraper):
         base = f"https://www.showpass.com/api/public/venues/{self._venue_slug}/calendar/"
         urls = []
         for i in range(_MONTHS_AHEAD):
-            month_start = (now + relativedelta(months=i)).replace(
-                day=1, hour=0, minute=0, second=0, microsecond=0
-            )
+            month_start = (now + relativedelta(months=i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             month_end = month_start + relativedelta(months=1)
             url = (
                 f"{base}"
@@ -156,6 +159,7 @@ class ShowpassScraper(BaseScraper):
                 )
                 return None
 
+            await self._enrich_offers(events)
             Logger.info(
                 f"{self._log_prefix}: extracted {len(events)} event(s) from {url}",
                 self.logger_context,
@@ -165,3 +169,32 @@ class ShowpassScraper(BaseScraper):
         except Exception as e:
             Logger.error(f"{self._log_prefix}: get_data failed for {url}: {e}", self.logger_context)
             return None
+
+    async def _enrich_offers(self, events: List[ShowpassEvent]) -> None:
+        """Bound optional detail work; failed enrichment never drops calendar shows."""
+        groups = defaultdict(list)
+        for event in events:
+            if event.event_id > 0:
+                groups[event.event_id].append(event)
+        semaphore = asyncio.Semaphore(4)
+
+        async def enrich(event_id, group):
+            async with semaphore:
+                try:
+                    detail = await asyncio.wait_for(
+                        self.fetch_json(
+                            f"https://www.showpass.com/api/public/events/{event_id}/", skip_js_fallback=True
+                        ),
+                        _DETAIL_TIMEOUT,
+                    )
+                    for event in group:
+                        event.offers = extract_offers(detail, event)
+                except Exception as exc:
+                    Logger.warn(f"{self._log_prefix}: optional Showpass detail failed for event {event_id}: {exc}")
+
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*(enrich(key, group) for key, group in groups.items())), _DETAIL_BUDGET
+            )
+        except asyncio.TimeoutError:
+            Logger.warn(f"{self._log_prefix}: Showpass detail budget exhausted; retaining calendar shows")
