@@ -33,3 +33,43 @@ Offline evidence verification (from apps/scraper):
 ```sh
 PYTHONPATH=src:. .venv/bin/python3 docs/audits/2026-10-05-io-stale-cleanup/replay.py
 ```
+
+## Transaction and recovery
+
+`cleanup.py` is a one-shot audited repair, not an automatic migration. Its default
+mode rolls the transaction back. It refuses expired evidence (24 hours), missing
+or changed IDs, refreshed rows, newly past performances, changed ticket/tag rows,
+a missing/moved replacement, or saved/notification/discovery references. It locks
+venue rows and their dependents before exporting and deleting. A second application
+refuses because the exact 29-row cohort no longer exists.
+
+The rollback validation removed exactly 29 rows inside the transaction, then
+rolled back. It checked all retained show and dependent rows byte-for-value,
+including the held IDs and replacement 1044696. The 29 tickets, 136 lineup links,
+and 71 tags belong only to the stale cohort and cascade with it. All 143 click
+records survive with attribution unchanged except their nullable show_id link.
+The club count is refreshed in the same transaction. Runtime cap remains 10.
+
+From apps/scraper (use a new absolute export filename for each invocation):
+
+```sh
+PYTHONPATH=src:. .venv/bin/python3 docs/audits/2026-10-05-io-stale-cleanup/cleanup.py \
+  --export /private/tmp/task4105-rollback-dry.json
+# Add --apply only for the reviewed cohort, while the source evidence is fresh.
+```
+
+Recovery exports are created exclusively with mode 0600, flushed to disk before
+DELETE, and never committed: they include complete show, ticket, lineup and tag
+rows plus original click linkage, which can contain user identifiers. The apply
+export is `/private/tmp/task4105-rollback-applied.json`. Retain it for recovery.
+To restore, first inspect current IDs/venue-date-room collisions, then within one
+transaction insert exported shows, tickets, lineup_items and tagged_shows in that
+order using their original IDs; restore exported clicks' show_id only where it
+is still NULL and the remaining attribution fields match the export. Never
+upsert over newly created or changed rows. Refresh club 182 total_shows and
+verify every restored/dependent ID before committing. Abort on any collision
+and reconcile it explicitly. Rollback-only exports need no restoration.
+
+Validation: the evidence replay and all 22 focused reconciliation/Crowdwork tests
+pass. The full suite cannot collect because tzdata is missing in the shared
+virtualenv; three unchanged-baseline prechecks reproduced it with no divergence.
