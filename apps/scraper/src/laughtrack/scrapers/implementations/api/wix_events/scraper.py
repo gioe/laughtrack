@@ -10,9 +10,11 @@ Venues served:
 - RED ROOM Comedy Club (comp-j9ny0yyr)
 """
 
+import asyncio
 from typing import Dict, List, Optional
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
+from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -21,6 +23,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import WixEventsPageData
 from .extractor import WixEventsExtractor
+from .routing import WixVenueRouter
 from .transformer import WixEventsEventTransformer
 
 # Wix client-binding GUID used for session authentication (same across all Wix sites).
@@ -40,10 +43,9 @@ class WixEventsScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
-        self.transformation_pipeline.register_transformer(WixEventsEventTransformer(club))
-        self.domain = URLUtils.get_base_domain_with_protocol(
-            URLUtils.normalize_url(club.scraping_url)
-        )
+        self.venue_router = WixVenueRouter(club)
+        self.transformation_pipeline.register_transformer(WixEventsEventTransformer(club, self.venue_router))
+        self.domain = URLUtils.get_base_domain_with_protocol(URLUtils.normalize_url(club.scraping_url))
         self._access_token: Optional[str] = None
 
     async def collect_scraping_targets(self) -> List[str]:
@@ -86,6 +88,12 @@ class WixEventsScraper(BaseScraper):
     async def get_data(self, url: str) -> Optional[WixEventsPageData]:
         """Fetch all events from the Wix Events API, following hasMore pagination."""
         try:
+            if self.venue_router.enabled:
+                ids = self.venue_router.destination_ids()
+                clubs = await asyncio.to_thread(ClubHandler().get_physical_clubs_by_ids, ids) if ids else []
+                self.venue_router.destinations = {club.id: club for club in clubs}
+                if set(ids) != set(self.venue_router.destinations):
+                    raise ValueError("reviewed physical destinations missing")
             headers = self._build_auth_headers()
             all_events = []
             current_url = url
@@ -98,11 +106,21 @@ class WixEventsScraper(BaseScraper):
             for page in range(self._MAX_PAGES):
                 response = await self.fetch_json(current_url, headers=headers)
                 if response is None:
+                    if self.venue_router.enabled:
+                        self.venue_router.hold("Wix page failed before complete pagination")
                     break
 
-                all_events.extend(
-                    WixEventsExtractor.extract_events(response, comedy_filter=comedy_filter)
-                )
+                if self.venue_router.enabled and (
+                    not isinstance(response, dict)
+                    or not isinstance(response.get("events"), list)
+                    or not isinstance(response.get("hasMore"), bool)
+                ):
+                    raise ValueError("incomplete Wix page shape")
+
+                extracted = WixEventsExtractor.extract_events(response, comedy_filter=comedy_filter)
+                if self.venue_router.enabled and len(extracted) != len(response["events"]):
+                    self.venue_router.hold("Wix page contains unconverted or filtered records")
+                all_events.extend(extracted)
 
                 if not response.get("hasMore", False):
                     break
@@ -113,6 +131,8 @@ class WixEventsScraper(BaseScraper):
                 params["offset"] = [str(current_offset + limit)]
                 current_url = urlunparse(parsed._replace(query=urlencode({k: v[0] for k, v in params.items()})))
             else:
+                if self.venue_router.enabled:
+                    self.venue_router.hold("Wix pagination reached MAX_PAGES before completion")
                 Logger.warn(
                     f"{self._log_prefix}: reached MAX_PAGES ({self._MAX_PAGES}) — pagination stopped early",
                     self.logger_context,
@@ -126,8 +146,18 @@ class WixEventsScraper(BaseScraper):
             return WixEventsPageData(event_list=all_events)
 
         except Exception as e:
+            if self.venue_router.enabled:
+                self.venue_router.hold(f"Wix fetch/location preparation failed: {e}")
             Logger.error(f"{self._log_prefix}: error fetching events: {e}", self.logger_context)
             return None
+
+    def scrape_with_result(self):
+        self.venue_router.errors.clear()
+        result = super().scrape_with_result()
+        if self.venue_router.errors:
+            message = f"Wix venue routing incomplete: {len(self.venue_router.errors)} held/error item(s)"
+            result.error = f"{result.error}; {message}" if result.error else message
+        return result
 
     async def _ensure_authenticated(self) -> None:
         """Fetch a short-lived Wix access token (intId=24) if not already obtained."""

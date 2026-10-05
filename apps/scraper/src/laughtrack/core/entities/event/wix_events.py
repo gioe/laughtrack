@@ -4,13 +4,13 @@ Used by the generic Wix Events platform scraper for all Wix-backed venues.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.protocols.show_convertible import ShowConvertible
-from laughtrack.utilities.domain.show.headliner import extract_explicit_headliner_from_title
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
+from laughtrack.utilities.domain.show.headliner import extract_explicit_headliner_from_title
 
 
 @dataclass
@@ -30,8 +30,14 @@ class WixEventsEvent(ShowConvertible):
     registration: Dict[str, Any]
     location: Dict[str, Any] = field(default_factory=dict)
 
-    def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
+    def to_show(
+        self, club: Club, enhanced: bool = True, url: Optional[str] = None, venue_club: Optional[Club] = None
+    ) -> Optional[Show]:
         """Convert a WixEventsEvent to a Show."""
+        if "wix_venue_routes" in club.source_metadata and venue_club is None:
+            # Routed sources must resolve their event location first. The
+            # original club remains responsible for source/ticket URLs below.
+            return None
         scheduling_config = self.scheduling.get("config", {})
         date_str = scheduling_config.get("startDate")
         timezone = scheduling_config.get("timeZoneId") or club.timezone or "UTC"
@@ -61,7 +67,9 @@ class WixEventsEvent(ShowConvertible):
             if amount:
                 try:
                     price = float(amount)
-                    tickets.append(ShowFactoryUtils.create_fallback_ticket(show_page_url, price=price, sold_out=is_sold_out))
+                    tickets.append(
+                        ShowFactoryUtils.create_fallback_ticket(show_page_url, price=price, sold_out=is_sold_out)
+                    )
                 except (ValueError, TypeError):
                     pass
 
@@ -75,7 +83,7 @@ class WixEventsEvent(ShowConvertible):
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=name,
-            club=club,
+            club=venue_club or club,
             date=start_date,
             show_page_url=show_page_url,
             lineup=lineup,
