@@ -1,6 +1,7 @@
 """HTML extraction for the Sports Drink OpenDate listing page."""
 
 from typing import List, Optional
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
@@ -59,6 +60,19 @@ class SportsDrinkExtractor:
         title = strong.get_text(strip=True) if strong else link.get_text(strip=True)
         if not title:
             Logger.debug("SportsDrinkExtractor: skipping card — empty title")
+            return None
+
+        # OpenDate lists this administrative purchase confirmation alongside shows.
+        # Match its verified identity and title, never a date or broad substring:
+        # unrelated invalid dates must still reach the shared show validator.
+        normalized_title = " ".join(title.casefold().split()).rstrip("!").strip()
+        parsed_url = urlparse(event_url)
+        if (
+            normalized_title == "thank you for your purchase"
+            and parsed_url.hostname == "app.opendate.io"
+            and parsed_url.path == "/e/thank-you-for-your-purchase-december-31-2099-579525"
+        ):
+            Logger.info(f"SportsDrinkExtractor: excluding purchase confirmation '{title}' ({event_url})")
             return None
 
         # Collect the blue info paragraphs (not text-dark, not text-truncate)
