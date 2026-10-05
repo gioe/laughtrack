@@ -1,0 +1,55 @@
+{
+  "dependents": {
+    "tickets": 1,
+    "lineup_items": 0,
+    "tagged_shows": 1,
+    "sent_notifications": 0,
+    "ticket_purchase_click_events": 25,
+    "discovery_show_feature_snapshots": 0,
+    "saved_shows": 0
+  },
+  "shows": [
+    {
+      "id": 3434154,
+      "name": "Summer Season Pass",
+      "date": "2026-09-30 19:00:00+00:00",
+      "show_page_url": "https://www.standingroomonlytickets.com/WebOffice/EventList/536",
+      "club_id": 11473,
+      "popularity": 0.19544258898305084,
+      "last_scraped_date": "2026-09-30 14:49:15.184374+00:00",
+      "description": "",
+      "room": "",
+      "production_company_id": null,
+      "last_scraped_by": "standing_room_only",
+      "min_price": null,
+      "first_discovered_at": "2026-06-28 02:23:01.785147+00:00",
+      "scraped_by_organizer_id": null,
+      "show_type": "unknown",
+      "tickets_sold_out": false,
+      "is_cancelled": false,
+      "source_performance_id": null
+    }
+  ],
+  "tickets": [
+    {
+      "id": 3773351,
+      "purchase_url": "https://www.standingroomonlytickets.com/WebOffice/EventList/536",
+      "price": null,
+      "sold_out": false,
+      "show_id": 3434154,
+      "type": "General Admission"
+    }
+  ],
+  "tagged_shows": [
+    {
+      "id": 7429935,
+      "show_id": 3434154,
+      "tag_id": 1083
+    }
+  ],
+  "club_shows": 94,
+  "other_tickets": [
+    93,
+    93
+  ]
+}
