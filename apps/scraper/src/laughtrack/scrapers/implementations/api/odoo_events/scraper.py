@@ -14,6 +14,10 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.event import JsonLdEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
+from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.url import URLUtils
+
+from .pricing import RegistrationOffers, extract_registration_offers
 
 _DEFAULT_DETAIL_FETCH: dict[str, Any] = {
     "url_path_prefix": "/event/",
@@ -39,6 +43,7 @@ class OdooEventsScraper(JsonLdScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self._detail_url_by_fetch_url: dict[str, str] = {}
+        self._registration_offers: dict[str, RegistrationOffers] = {}
 
     async def scrape_async(self) -> list[Show]:
         shows = await super().scrape_async()
@@ -49,14 +54,33 @@ class OdooEventsScraper(JsonLdScraper):
         return sorted(shows, key=lambda show: (show.date, show.name))
 
     async def get_data(self, url: str):
-        data = await super().get_data(url)
+        key = URLUtils.normalize_url(url)
+        try:
+            data = await super().get_data(url)
+        finally:
+            registration = self._registration_offers.pop(key, None)
         if data is None:
             return None
 
         detail_url = self._detail_url_by_fetch_url.get(url, url)
         for event in data.event_list:
+            if registration and not event.offers and registration.matches(event):
+                event.offers = registration.offers
             self._normalize_event(event, detail_url)
         return data
+
+    async def _fetch_configured_html(self, url: str):
+        key = URLUtils.normalize_url(url)
+        self._registration_offers.pop(key, None)
+        html = await super()._fetch_configured_html(url)
+        if html:
+            try:
+                registration = extract_registration_offers(html, key)
+                if registration:
+                    self._registration_offers[key] = registration
+            except Exception as exc:
+                Logger.warn(f"{self._log_prefix}: optional Odoo registration parsing failed for {url}: {exc}")
+        return html
 
     def _detail_fetch_config(self) -> dict[str, Any]:
         configured = super()._detail_fetch_config() or {}
@@ -93,14 +117,16 @@ class OdooEventsScraper(JsonLdScraper):
                 continue
             if not parsed.path.rstrip("/").startswith(f"{listing_path}/page/"):
                 continue
-            normalized = urlunparse((
-                parsed.scheme or "https",
-                parsed.netloc,
-                parsed.path,
-                "",
-                parsed.query,
-                "",
-            ))
+            normalized = urlunparse(
+                (
+                    parsed.scheme or "https",
+                    parsed.netloc,
+                    parsed.path,
+                    "",
+                    parsed.query,
+                    "",
+                )
+            )
             if normalized in seen:
                 continue
             seen.add(normalized)
@@ -121,10 +147,8 @@ class OdooEventsScraper(JsonLdScraper):
                 offer.url = detail_url
 
         if event.start_date.tzinfo is None:
-            event.start_date = (
-                event.start_date
-                .replace(tzinfo=timezone.utc)
-                .astimezone(ZoneInfo(self.club.timezone or "America/Chicago"))
+            event.start_date = event.start_date.replace(tzinfo=timezone.utc).astimezone(
+                ZoneInfo(self.club.timezone or "America/Chicago")
             )
 
     def _is_future_show(self, show: Show) -> bool:
