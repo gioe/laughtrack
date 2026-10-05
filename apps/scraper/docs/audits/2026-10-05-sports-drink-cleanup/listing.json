@@ -1,0 +1,597 @@
+[
+  {
+    "date": "2026-10-07T18:30:00-05:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13529/tickets"
+  },
+  {
+    "date": "2026-10-07T19:30:00-05:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13530/tickets"
+  },
+  {
+    "date": "2026-10-07T20:30:00-05:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13531/tickets"
+  },
+  {
+    "date": "2026-10-08T19:00:00-05:00",
+    "title": "MORAL PANIC: A Comedy Showcase at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13584/tickets"
+  },
+  {
+    "date": "2026-10-08T21:00:00-05:00",
+    "title": "Dave Ross at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13585/tickets"
+  },
+  {
+    "date": "2026-10-09T19:00:00-05:00",
+    "title": "Peyton Ruddy at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13622/tickets"
+  },
+  {
+    "date": "2026-10-09T21:00:00-05:00",
+    "title": "Peyton Ruddy at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13623/tickets"
+  },
+  {
+    "date": "2026-10-10T19:00:00-05:00",
+    "title": "Peyton Ruddy at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13660/tickets"
+  },
+  {
+    "date": "2026-10-10T21:00:00-05:00",
+    "title": "Peyton Ruddy at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13661/tickets"
+  },
+  {
+    "date": "2026-10-14T18:30:00-05:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13532/tickets"
+  },
+  {
+    "date": "2026-10-14T19:30:00-05:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13533/tickets"
+  },
+  {
+    "date": "2026-10-14T20:30:00-05:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13534/tickets"
+  },
+  {
+    "date": "2026-10-15T19:00:00-05:00",
+    "title": "Bing-Oh at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13586/tickets"
+  },
+  {
+    "date": "2026-10-15T21:00:00-05:00",
+    "title": "Tanael Joachim at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13587/tickets"
+  },
+  {
+    "date": "2026-10-16T19:00:00-05:00",
+    "title": "Mohanad Elshieky: Green Books at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13624/tickets"
+  },
+  {
+    "date": "2026-10-16T21:00:00-05:00",
+    "title": "Mohanad Elshieky: Green Books at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13625/tickets"
+  },
+  {
+    "date": "2026-10-17T19:00:00-05:00",
+    "title": "Mohanad Elshieky: Green Books at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13662/tickets"
+  },
+  {
+    "date": "2026-10-17T21:00:00-05:00",
+    "title": "Mohanad Elshieky: Green Books at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13663/tickets"
+  },
+  {
+    "date": "2026-10-21T18:30:00-05:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13535/tickets"
+  },
+  {
+    "date": "2026-10-21T19:30:00-05:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13536/tickets"
+  },
+  {
+    "date": "2026-10-21T20:30:00-05:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13537/tickets"
+  },
+  {
+    "date": "2026-10-22T19:00:00-05:00",
+    "title": "film_pod_live at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13588/tickets"
+  },
+  {
+    "date": "2026-10-22T21:00:00-05:00",
+    "title": "Abby Govindan at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13589/tickets"
+  },
+  {
+    "date": "2026-10-23T19:00:00-05:00",
+    "title": "Eagle Witt at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13626/tickets"
+  },
+  {
+    "date": "2026-10-23T21:00:00-05:00",
+    "title": "Eagle Witt at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13627/tickets"
+  },
+  {
+    "date": "2026-10-24T19:00:00-05:00",
+    "title": "Eagle Witt at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13664/tickets"
+  },
+  {
+    "date": "2026-10-24T21:00:00-05:00",
+    "title": "Eagle Witt at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13665/tickets"
+  },
+  {
+    "date": "2026-10-25T15:00:00-05:00",
+    "title": "Track Limits at SPORTS DRINK (Sunday, 3:00p)",
+    "url": "https://event.tixologi.com/event/14859/tickets"
+  },
+  {
+    "date": "2026-10-28T18:30:00-05:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13538/tickets"
+  },
+  {
+    "date": "2026-10-28T19:30:00-05:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13539/tickets"
+  },
+  {
+    "date": "2026-10-28T20:30:00-05:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13540/tickets"
+  },
+  {
+    "date": "2026-10-29T19:00:00-05:00",
+    "title": "Max Castillo & Aaron Monte at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13590/tickets"
+  },
+  {
+    "date": "2026-10-29T21:00:00-05:00",
+    "title": "Max Castillo & Aaron Monte at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13591/tickets"
+  },
+  {
+    "date": "2026-10-30T19:00:00-05:00",
+    "title": "Zak Toscani at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13628/tickets"
+  },
+  {
+    "date": "2026-10-30T21:00:00-05:00",
+    "title": "Zak Toscani at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13629/tickets"
+  },
+  {
+    "date": "2026-11-01T14:00:00-06:00",
+    "title": "Track Limits at SPORTS DRINK (Sunday, 2:00p)",
+    "url": "https://event.tixologi.com/event/13733/tickets"
+  },
+  {
+    "date": "2026-11-01T19:00:00-06:00",
+    "title": "Chris Overalls at SPORTS DRINK (Sunday, 7:00p)",
+    "url": "https://event.tixologi.com/event/14860/tickets"
+  },
+  {
+    "date": "2026-11-04T18:30:00-06:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13541/tickets"
+  },
+  {
+    "date": "2026-11-04T19:30:00-06:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13542/tickets"
+  },
+  {
+    "date": "2026-11-04T20:30:00-06:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13543/tickets"
+  },
+  {
+    "date": "2026-11-05T19:00:00-06:00",
+    "title": "New Orleans Spelling Bee at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13592/tickets"
+  },
+  {
+    "date": "2026-11-05T21:00:00-06:00",
+    "title": "Skyler Higley at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13593/tickets"
+  },
+  {
+    "date": "2026-11-06T19:00:00-06:00",
+    "title": "Chris Redd at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13630/tickets"
+  },
+  {
+    "date": "2026-11-06T21:00:00-06:00",
+    "title": "Chris Redd at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13631/tickets"
+  },
+  {
+    "date": "2026-11-07T19:00:00-06:00",
+    "title": "Chris Redd at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13668/tickets"
+  },
+  {
+    "date": "2026-11-07T21:00:00-06:00",
+    "title": "Chris Redd at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13669/tickets"
+  },
+  {
+    "date": "2026-11-08T11:00:00-06:00",
+    "title": "Track Limits at SPORTS DRINK (Sunday, 11:00a)",
+    "url": "https://event.tixologi.com/event/13734/tickets"
+  },
+  {
+    "date": "2026-11-08T18:00:00-06:00",
+    "title": "Salty Mom Comedy Tour at SPORTS DRINK (Sunday, 6:00p)",
+    "url": "https://event.tixologi.com/event/13745/tickets"
+  },
+  {
+    "date": "2026-11-08T20:00:00-06:00",
+    "title": "Salty Mom Comedy Tour at SPORTS DRINK (Sunday, 8:00p)",
+    "url": "https://event.tixologi.com/event/13746/tickets"
+  },
+  {
+    "date": "2026-11-11T18:30:00-06:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13544/tickets"
+  },
+  {
+    "date": "2026-11-11T19:30:00-06:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13545/tickets"
+  },
+  {
+    "date": "2026-11-11T20:30:00-06:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13546/tickets"
+  },
+  {
+    "date": "2026-11-12T19:00:00-06:00",
+    "title": "MORAL PANIC: A Comedy Showcase at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13594/tickets"
+  },
+  {
+    "date": "2026-11-12T21:00:00-06:00",
+    "title": "BK Sharad at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13595/tickets"
+  },
+  {
+    "date": "2026-11-13T19:00:00-06:00",
+    "title": "Stef Dag at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13632/tickets"
+  },
+  {
+    "date": "2026-11-13T21:00:00-06:00",
+    "title": "Stef Dag at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13633/tickets"
+  },
+  {
+    "date": "2026-11-14T19:00:00-06:00",
+    "title": "Stef Dag at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13670/tickets"
+  },
+  {
+    "date": "2026-11-14T21:00:00-06:00",
+    "title": "Stef Dag at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13671/tickets"
+  },
+  {
+    "date": "2026-11-15T19:00:00-06:00",
+    "title": "Jack Grady at SPORTS DRINK (Sunday, 7:00p)",
+    "url": "https://event.tixologi.com/event/14861/tickets"
+  },
+  {
+    "date": "2026-11-16T20:00:00-06:00",
+    "title": "Burn This Records Comedy Show at SPORTS DRINK (Monday, 8:00p)",
+    "url": "https://event.tixologi.com/event/13747/tickets"
+  },
+  {
+    "date": "2026-11-18T18:30:00-06:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13547/tickets"
+  },
+  {
+    "date": "2026-11-18T19:30:00-06:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13548/tickets"
+  },
+  {
+    "date": "2026-11-18T20:30:00-06:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13549/tickets"
+  },
+  {
+    "date": "2026-11-19T19:00:00-06:00",
+    "title": "Bing-Oh at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13596/tickets"
+  },
+  {
+    "date": "2026-11-19T21:00:00-06:00",
+    "title": "Jay Badlani at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13597/tickets"
+  },
+  {
+    "date": "2026-11-20T19:00:00-06:00",
+    "title": "Eddie Pepitone at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13634/tickets"
+  },
+  {
+    "date": "2026-11-20T21:00:00-06:00",
+    "title": "Eddie Pepitone at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13635/tickets"
+  },
+  {
+    "date": "2026-11-21T19:00:00-06:00",
+    "title": "Eddie Pepitone at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13672/tickets"
+  },
+  {
+    "date": "2026-11-21T21:00:00-06:00",
+    "title": "Eddie Pepitone at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13673/tickets"
+  },
+  {
+    "date": "2026-11-22T17:00:00-06:00",
+    "title": "Jaboukie Young-White at SPORTS DRINK (Sunday, 5:00p)",
+    "url": "https://event.tixologi.com/event/13750/tickets"
+  },
+  {
+    "date": "2026-11-22T19:00:00-06:00",
+    "title": "Jaboukie Young-White at SPORTS DRINK (Sunday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13751/tickets"
+  },
+  {
+    "date": "2026-11-22T21:00:00-06:00",
+    "title": "Jaboukie Young-White at SPORTS DRINK (Sunday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13752/tickets"
+  },
+  {
+    "date": "2026-11-28T19:00:00-06:00",
+    "title": "Tim Smith at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13636/tickets"
+  },
+  {
+    "date": "2026-11-28T21:00:00-06:00",
+    "title": "Tim Smith at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13637/tickets"
+  },
+  {
+    "date": "2026-11-29T10:00:00-06:00",
+    "title": "Track Limits at SPORTS DRINK (Sunday, 10:00a)",
+    "url": "https://event.tixologi.com/event/13735/tickets"
+  },
+  {
+    "date": "2026-12-02T18:30:00-06:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13553/tickets"
+  },
+  {
+    "date": "2026-12-02T19:30:00-06:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13554/tickets"
+  },
+  {
+    "date": "2026-12-02T20:30:00-06:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13555/tickets"
+  },
+  {
+    "date": "2026-12-03T19:00:00-06:00",
+    "title": "New Orleans Spelling Bee at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13600/tickets"
+  },
+  {
+    "date": "2026-12-03T21:00:00-06:00",
+    "title": "Luke Null & Friends at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13601/tickets"
+  },
+  {
+    "date": "2026-12-04T19:00:00-06:00",
+    "title": "Liza Treyger at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13638/tickets"
+  },
+  {
+    "date": "2026-12-04T21:00:00-06:00",
+    "title": "Liza Treyger at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13639/tickets"
+  },
+  {
+    "date": "2026-12-05T19:00:00-06:00",
+    "title": "Liza Treyger at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13676/tickets"
+  },
+  {
+    "date": "2026-12-05T21:00:00-06:00",
+    "title": "Liza Treyger at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13677/tickets"
+  },
+  {
+    "date": "2026-12-06T19:00:00-06:00",
+    "title": "Liza Treyger at SPORTS DRINK (Sunday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13753/tickets"
+  },
+  {
+    "date": "2026-12-06T21:00:00-06:00",
+    "title": "Liza Treyger at SPORTS DRINK (Sunday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13754/tickets"
+  },
+  {
+    "date": "2026-12-09T18:30:00-06:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13556/tickets"
+  },
+  {
+    "date": "2026-12-09T19:30:00-06:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13557/tickets"
+  },
+  {
+    "date": "2026-12-09T20:30:00-06:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13558/tickets"
+  },
+  {
+    "date": "2026-12-10T19:00:00-06:00",
+    "title": "MORAL PANIC: A Comedy Showcase at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13602/tickets"
+  },
+  {
+    "date": "2026-12-10T21:00:00-06:00",
+    "title": "John F. O'Donnell at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13603/tickets"
+  },
+  {
+    "date": "2026-12-11T19:00:00-06:00",
+    "title": "Olivia Carter at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13640/tickets"
+  },
+  {
+    "date": "2026-12-11T21:00:00-06:00",
+    "title": "Olivia Carter at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13641/tickets"
+  },
+  {
+    "date": "2026-12-12T19:00:00-06:00",
+    "title": "Olivia Carter at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13678/tickets"
+  },
+  {
+    "date": "2026-12-12T21:00:00-06:00",
+    "title": "Olivia Carter at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13679/tickets"
+  },
+  {
+    "date": "2026-12-13T19:00:00-06:00",
+    "title": "Harry Settel at SPORTS DRINK (Sunday, 7:00p)",
+    "url": "https://event.tixologi.com/event/14862/tickets"
+  },
+  {
+    "date": "2026-12-13T21:00:00-06:00",
+    "title": "Harry Settel at SPORTS DRINK (Sunday, 9:00p)",
+    "url": "https://event.tixologi.com/event/14863/tickets"
+  },
+  {
+    "date": "2026-12-14T19:00:00-06:00",
+    "title": "Harry Settel at SPORTS DRINK (Monday, 7:00p)",
+    "url": "https://event.tixologi.com/event/14864/tickets"
+  },
+  {
+    "date": "2026-12-14T21:00:00-06:00",
+    "title": "Harry Settel at SPORTS DRINK (Monday, 9:00p)",
+    "url": "https://event.tixologi.com/event/14865/tickets"
+  },
+  {
+    "date": "2026-12-16T18:30:00-06:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13559/tickets"
+  },
+  {
+    "date": "2026-12-16T19:30:00-06:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13560/tickets"
+  },
+  {
+    "date": "2026-12-16T20:30:00-06:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13561/tickets"
+  },
+  {
+    "date": "2026-12-17T19:00:00-06:00",
+    "title": "Bing-Oh at SPORTS DRINK (Thursday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13604/tickets"
+  },
+  {
+    "date": "2026-12-17T21:00:00-06:00",
+    "title": "Trust Me I'm A Professional: A PowerPoint Comedy Show at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13605/tickets"
+  },
+  {
+    "date": "2026-12-18T19:00:00-06:00",
+    "title": "Emma Willmann at SPORTS DRINK (Friday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13642/tickets"
+  },
+  {
+    "date": "2026-12-18T21:00:00-06:00",
+    "title": "Emma Willmann at SPORTS DRINK (Friday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13643/tickets"
+  },
+  {
+    "date": "2026-12-19T19:00:00-06:00",
+    "title": "Emma Willmann at SPORTS DRINK (Saturday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13680/tickets"
+  },
+  {
+    "date": "2026-12-19T21:00:00-06:00",
+    "title": "Emma Willmann at SPORTS DRINK (Saturday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13681/tickets"
+  },
+  {
+    "date": "2026-12-20T19:00:00-06:00",
+    "title": "King Bo at SPORTS DRINK (Sunday, 7:00p)",
+    "url": "https://event.tixologi.com/event/13748/tickets"
+  },
+  {
+    "date": "2026-12-20T21:00:00-06:00",
+    "title": "King Bo at SPORTS DRINK (Sunday, 9:00p)",
+    "url": "https://event.tixologi.com/event/14866/tickets"
+  },
+  {
+    "date": "2026-12-23T18:30:00-06:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13562/tickets"
+  },
+  {
+    "date": "2026-12-23T19:30:00-06:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13563/tickets"
+  },
+  {
+    "date": "2026-12-23T20:30:00-06:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13564/tickets"
+  },
+  {
+    "date": "2026-12-26T20:00:00-06:00",
+    "title": "Christmas Comedy Show at SPORTS DRINK (Friday, 8:00p)",
+    "url": "https://event.tixologi.com/event/13682/tickets"
+  },
+  {
+    "date": "2026-12-30T18:30:00-06:00",
+    "title": "Community Night at SPORTS DRINK (Wednesday, 6:30p)",
+    "url": "https://event.tixologi.com/event/13565/tickets"
+  },
+  {
+    "date": "2026-12-30T19:30:00-06:00",
+    "title": "Tropical Trivia with Sean Bahama at SPORTS DRINK (Wednesday, 7:30p)",
+    "url": "https://event.tixologi.com/event/13566/tickets"
+  },
+  {
+    "date": "2026-12-30T20:30:00-06:00",
+    "title": "OPEN GYM: Comedy Open Mic at SPORTS DRINK (Wednesday, 8:30p)",
+    "url": "https://event.tixologi.com/event/13567/tickets"
+  },
+  {
+    "date": "2027-01-21T21:00:00-06:00",
+    "title": "Maggie Winters at SPORTS DRINK (Thursday, 9:00p)",
+    "url": "https://event.tixologi.com/event/13749/tickets"
+  },
+  {
+    "date": "2099-12-31T12:00:00-06:00",
+    "title": "Thank You For Your Purchase!!!",
+    "url": "https://app.opendate.io/e/thank-you-for-your-purchase-december-31-2099-579525?default_theme=true"
+  }
+]

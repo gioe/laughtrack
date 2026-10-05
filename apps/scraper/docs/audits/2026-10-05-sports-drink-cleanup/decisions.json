@@ -1,0 +1,1163 @@
+[
+  {
+    "classification": "canceled",
+    "decision": "hold",
+    "id": 506911,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "Historical occurrence; outside future cleanup",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-september-27-2026-653043"
+  },
+  {
+    "classification": "canceled",
+    "decision": "hold",
+    "id": 506912,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "Historical occurrence; outside future cleanup",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-september-28-2026-652470"
+  },
+  {
+    "classification": "canceled",
+    "decision": "hold",
+    "id": 506913,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "Historical occurrence; outside future cleanup",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-september-28-2026-652750"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "hold",
+    "id": 506914,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "Historical occurrence; outside future cleanup",
+    "replacement_ids": [
+      1094615
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-september-29-2026-652821"
+  },
+  {
+    "classification": "canceled",
+    "decision": "hold",
+    "id": 506915,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "Historical occurrence; outside future cleanup",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-september-29-2026-652991"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "hold",
+    "id": 506916,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "Historical occurrence; outside future cleanup",
+    "replacement_ids": [
+      1094616
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-september-30-2026-652921"
+  },
+  {
+    "classification": "unresolved_404",
+    "decision": "hold",
+    "id": 506917,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "Explicit unresolved 404 hold",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-wednesday-8-30p-september-30-2026-653096"
+  },
+  {
+    "classification": "canceled",
+    "decision": "hold",
+    "id": 506920,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "Historical occurrence; outside future cleanup",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-october-04-2026-653045"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506921,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-october-05-2026-652471"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506922,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-october-05-2026-652752"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506923,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094621
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-october-06-2026-652822"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506924,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-october-06-2026-652992"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506925,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094622
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-october-07-2026-652924"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506929,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-october-11-2026-653046"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506930,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-october-12-2026-652472"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506931,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-october-12-2026-652753"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506932,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094627
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-october-13-2026-652824"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506933,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-october-13-2026-652993"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506934,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094628
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-october-14-2026-652925"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506938,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-october-18-2026-653047"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506939,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-october-19-2026-652473"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506940,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-october-19-2026-652754"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506941,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      6691109
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-wednesday-6-30p-october-20-2026-652826"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506942,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-october-20-2026-652994"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506943,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094634
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-october-21-2026-652926"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 2445150,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      5932609
+    ],
+    "source_url": "https://app.opendate.io/e/maggie-winters-at-sports-drink-wednesday-9-00p-october-21-2026-715933"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506947,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-october-25-2026-653048"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506948,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-october-26-2026-652474"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506949,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-october-26-2026-652755"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506950,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094639
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-october-27-2026-652828"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506951,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-october-27-2026-652995"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506952,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094640
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-october-28-2026-652927"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506954,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-november-01-2026-653049"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506955,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-november-02-2026-652475"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506956,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-november-02-2026-652756"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506957,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094643
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-november-03-2026-652829"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506958,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-november-03-2026-652996"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506959,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094644
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-november-04-2026-652928"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506963,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-november-08-2026-653050"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506964,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-november-09-2026-652476"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506965,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-november-09-2026-652757"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506966,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094649
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-november-10-2026-652830"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506967,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-november-10-2026-652998"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506968,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094650
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-november-11-2026-652929"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 2445180,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      2676542
+    ],
+    "source_url": "https://app.opendate.io/e/burn-this-records-comedy-show-at-sports-drink-monday-8-00p-november-12-2026-715990"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506972,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-november-15-2026-653051"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506973,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-november-16-2026-652477"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506974,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-november-16-2026-652759"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506975,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094655
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-november-17-2026-652836"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506976,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-november-17-2026-652999"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506977,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094656
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-november-18-2026-652931"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506981,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-november-22-2026-653052"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506982,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-november-23-2026-652478"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506983,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-november-23-2026-652760"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506984,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-november-24-2026-652837"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506985,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-november-24-2026-653000"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 1094661,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-wednesday-6-30p-november-25-2026-652837"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506986,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-november-29-2026-653053"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506987,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-november-30-2026-652479"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506988,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-november-30-2026-652762"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506989,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094663
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-december-01-2026-652838"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506990,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-december-01-2026-653001"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506991,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094664
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-december-02-2026-652932"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506995,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-december-06-2026-653054"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506996,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-december-07-2026-652480"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506997,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-december-07-2026-652763"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 506998,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094669
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-december-08-2026-652842"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 506999,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-december-08-2026-653002"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 507000,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094670
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-december-09-2026-652933"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507004,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-december-13-2026-653056"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507006,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-december-14-2026-652764"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 507007,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1031665
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-december-15-2026-652843"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507008,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-december-15-2026-653004"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 507009,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094676
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-december-16-2026-652934"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507013,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-sunday-8-30p-december-20-2026-653057"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507014,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-december-21-2026-652482"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507015,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-december-21-2026-652765"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 507016,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1031671
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-december-22-2026-652844"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507017,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-december-22-2026-653005"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 507018,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094682
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-december-23-2026-652935"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507020,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/badtv-reality-tv-watch-party-at-sports-drink-monday-7-00p-december-28-2026-652483"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507021,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/bing-oh-sexy-bingo-at-sports-drink-monday-8-30p-december-28-2026-652766"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 507022,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1031674
+    ],
+    "source_url": "https://app.opendate.io/e/community-night-at-sports-drink-tuesday-7-00p-december-29-2026-652846"
+  },
+  {
+    "classification": "canceled",
+    "decision": "retire",
+    "id": 507023,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "canceled",
+    "replacement_ids": [],
+    "source_url": "https://app.opendate.io/e/open-gym-comedy-open-mic-at-sports-drink-tuesday-8-30p-december-29-2026-653006"
+  },
+  {
+    "classification": "redirected_rescheduled",
+    "decision": "retire",
+    "id": 507024,
+    "protected_counts": {
+      "discovery_show_feature_snapshots": 0,
+      "saved_shows": 0,
+      "sent_notifications": 0
+    },
+    "reason": "redirected_rescheduled",
+    "replacement_ids": [
+      1094685
+    ],
+    "source_url": "https://app.opendate.io/e/tropical-trivia-with-sean-bahama-at-sports-drink-wednesday-7-00p-december-30-2026-652936"
+  }
+]
