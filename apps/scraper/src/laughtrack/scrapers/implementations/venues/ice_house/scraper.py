@@ -152,6 +152,18 @@ class IceHouseScraper(DetailPagePriceMixin, BaseScraper):
                 self._warn_empty_extraction(url, payload=last_response)
                 return None
 
+            # Apply source-specific product exclusions only after pagination: an
+            # all-promotional page must still advance to later performances.
+            exclusions = self.compile_title_patterns("exclude_title_patterns")
+            if exclusions:
+                kept = []
+                for event in all_events:
+                    if any(pattern.search(event.title) for pattern in exclusions):
+                        Logger.info(f"{self._log_prefix}: excluding configured non-show product {event.title!r}")
+                    else:
+                        kept.append(event)
+                all_events = kept
+
             await self._attach_detail_page_prices(all_events, self._ticket_price_url)
 
             Logger.info(
