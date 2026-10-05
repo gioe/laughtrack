@@ -1,0 +1,9 @@
+2026-10-05 15:45:50,321 | INFO | pid=45456 | club=Sports Drink | scraper=sports_drink | SportsDrinkScraper [Sports Drink]: extracted 119 events from https://app.opendate.io/v/sports-drink-1939?per_page=500
+2026-10-05 15:45:50,362 | INFO | pid=45456 | club=Sports Drink | scraper=sports_drink | SportsDrinkScraper [Sports Drink]: Scraped 119 total shows
+2026-10-05 15:45:50,371 | INFO | pid=45456 | club=- | scraper=- | Shows validation: All 100 shows are valid
+2026-10-05 15:46:02,366 | INFO | pid=45456 | club=- | scraper=- | Show batch results: 100 total (0 inserts, 100 updates)
+2026-10-05 15:46:02,373 | WARNING | pid=45456 | club=- | scraper=- | Invalid show: Thank You For Your Purchase!!! - Show date cannot be more than 18 months in the future
+2026-10-05 15:46:02,373 | WARNING | pid=45456 | club=- | scraper=- | Shows validation: 18/19 valid (1 failed)
+2026-10-05 15:46:07,652 | INFO | pid=45456 | club=- | scraper=- | Show batch results: 18 total (0 inserts, 18 updates)
+2026-10-05 15:46:07,653 | WARNING | pid=45456 | club=- | scraper=- | Skipping stale-show cleanup for 'Sports Drink': persistence reported errors or ambiguous event identities
+2026-10-05 15:46:08,559 | INFO | pid=45456 | club=- | scraper=- | Scraped 119 shows for Sports Drink

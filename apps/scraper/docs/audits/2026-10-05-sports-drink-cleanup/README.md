@@ -65,3 +65,23 @@ result processor, stale reconciliation handler). TASK-4108 separately owns the
 2099 purchase-confirmation card: the subsequent live scrape must report its
 validation error honestly and retain the generic validation-error cleanup guard.
 No cap override or validation bypass is part of this cleanup.
+
+The apply completed at 19:43 UTC on October 5. `applied.json` records the exact
+transaction result, and `post-apply.json` records an independent committed-state
+read confirming 77 absent targets, eight retained holds, all 28 replacements and
+136 intact click records. The actual recovery export is
+`/private/tmp/task4107-applied-backup.json` (private, mode 0600).
+
+The full scraper test gate is blocked during collection by missing `tzdata` in
+the shared local virtualenv. Three clean-HEAD precheck runs reproduced the same
+failure with no upstream divergence. The focused tests and evidence replay ran.
+
+The subsequent live command was `PYTHONPATH=src:. make scrape-club CLUB='Sports Drink'`
+on October 5 at 19:43–19:46 UTC (exit 0). It extracted119 records, updated118,
+inserted0 and reported0 database errors. The one validation failure was the2099
+Thank You For Your Purchase placeholder. Reconciliation correctly skipped cleanup
+because persistence reported a validation error; the effective cap remained10.
+`live-metrics.json` and sanitized `live-scrape.txt` preserve these results. A second
+independent database check in `post-scrape.json` confirms537 stored rows,77 retired
+IDs absent, all8 holds and28 replacement IDs intact, and136 click records preserved.
+TASK-4108 owns the remaining placeholder filter; no guard was bypassed here.
