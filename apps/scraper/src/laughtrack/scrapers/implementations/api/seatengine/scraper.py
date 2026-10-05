@@ -2,6 +2,8 @@ import asyncio
 from typing import List, Optional
 
 from laughtrack.core.clients.seatengine.client import SeatEngineClient
+from laughtrack.core.clients.seatengine.routing import ROUTES_KEY, RoutingHold, destination_ids
+from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.lineup.handler import LineupHandler
@@ -76,6 +78,16 @@ class SeatEngineScraper(BaseScraper):
             NetworkError: Propagated from the client on non-200 responses.
               ErrorHandler retries with exponential backoff.
         """
+        if ROUTES_KEY in self.club.source_metadata:
+            try:
+                ids = destination_ids(self.club)
+                clubs = await asyncio.to_thread(ClubHandler().get_clubs_by_ids, ids) if ids else []
+                self.seatengine_client.routing_clubs = {club.id: club for club in clubs}
+                if set(self.seatengine_client.routing_clubs) != set(ids):
+                    raise RoutingHold("reviewed destinations are missing")
+            except Exception as exc:
+                self.seatengine_client.record_routing_hold(f"source {self.club.scraping_source.id}: {exc}")
+                return SeatEngineExtractor.to_page_data([])
         events_data = await self.seatengine_client.fetch_events(self.venue_id)
         if not events_data:
             Logger.warn(
@@ -149,6 +161,17 @@ class SeatEngineScraper(BaseScraper):
 
     def transform_data(self, raw_data: EventListContainer, source_url: str) -> List[Show]:
         return super().transform_data(raw_data, source_url)
+
+    def scrape_with_result(self):
+        # Base diagnostics surface ordinary transform errors only when every
+        # show failed. A partly reviewed organizer calendar is also incomplete:
+        # successful siblings must never authorize deleting held performances.
+        self.seatengine_client.routing_errors.clear()
+        result = super().scrape_with_result()
+        if self.seatengine_client.routing_errors:
+            message = f"SeatEngine venue routing incomplete: {len(self.seatengine_client.routing_errors)} held occurrence(s)"
+            result.error = f"{result.error}; {message}" if result.error else message
+        return result
 
     async def discover_urls(self) -> List[str]:
         # Kept for backward compatibility; pipeline uses collect_scraping_targets

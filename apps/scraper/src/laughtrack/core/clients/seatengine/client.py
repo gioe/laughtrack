@@ -14,6 +14,7 @@ from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
 from laughtrack.core.clients.seatengine.price import coerce_inventory_price_cents
+from laughtrack.core.clients.seatengine.routing import RoutingHold, record_hold, resolve
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.infrastructure.config.config_manager import ConfigManager
@@ -38,6 +39,12 @@ class SeatEngineClient(BaseApiClient):
         self.venue_id = club.seatengine_id
         # Populated by fetch_events from GET /api/v1/venues/{id} — used for public show URLs
         self.venue_website: Optional[str] = None
+        self.routing_clubs: dict[int, Club] = {}
+        self.routing_errors: List[str] = []
+
+    def record_routing_hold(self, message: str) -> None:
+        self.routing_errors.append(message)
+        record_hold(message)
 
     async def fetch_events(self, venue_id: str) -> List[JSONDict]:
         """Fetch events from SeatEngine API.
@@ -169,8 +176,23 @@ class SeatEngineClient(BaseApiClient):
 
     def create_show(self, show_dict: JSONDict) -> Optional[Show]:
         """Create a Show object from the SeatEngine response data."""
-        show_info = self._extract_basic_show_info(show_dict)
+        try:
+            venue_club, producer_id = resolve(self.club, show_dict, self.routing_clubs)
+        except RoutingHold as exc:
+            self.record_routing_hold(str(exc))
+            return None
+        if producer_id is not None and (
+            show_dict.get("cancelled_at") or (show_dict.get("event") or {}).get("cancelled_at")
+        ):
+            # Show's persistence contract cannot express cancellation. Retain
+            # historical cancelled rows for the guarded repair, never recreate
+            # this source occurrence as an apparently active show.
+            self.record_routing_hold(f"show {show_dict.get('id')} is cancelled")
+            return None
+        show_info = self._extract_basic_show_info(show_dict, venue_club)
         if not show_info.get("tickets"):
+            if producer_id is not None:
+                self.record_routing_hold(f"show {show_dict.get('id')} lacks usable ticket inventory")
             self.log_warning(
                 f"Dropped SeatEngine show {show_dict.get('id')}: no real-priced inventory survived"
             )
@@ -189,9 +211,14 @@ class SeatEngineClient(BaseApiClient):
 
         room = self._check_room(event_data)
 
-        return Show.create(**show_info, lineup=lineup, timezone=self.club.timezone, club_id=self.club.id, room=room)
+        show = Show.create(**show_info, lineup=lineup, timezone=venue_club.timezone, club_id=venue_club.id, room=room)
+        if producer_id is not None:
+            show.production_company_id = producer_id
+            show.scraped_by_organizer_id = producer_id
+            show.last_scraped_by = "seatengine"
+        return show
 
-    def _extract_basic_show_info(self, show_dict: JSONDict) -> JSONDict:
+    def _extract_basic_show_info(self, show_dict: JSONDict, venue_club: Optional[Club] = None) -> JSONDict:
         # SeatEngine has a nested structure where event details are in the 'event' object
         event_data = show_dict.get("event", {})
 
@@ -200,7 +227,7 @@ class SeatEngineClient(BaseApiClient):
         parsed_date = None
         if date_str:
             try:
-                parsed_date = DateTimeUtils.parse_datetime_with_timezone(date_str, self.club.timezone)
+                parsed_date = DateTimeUtils.parse_datetime_with_timezone(date_str, (venue_club or self.club).timezone)
                 parsed_date = DateTimeUtils.format_utc_iso_date(parsed_date)
             except Exception as e:
                 self.log_error(f"Failed to parse date '{date_str}': {e}")
