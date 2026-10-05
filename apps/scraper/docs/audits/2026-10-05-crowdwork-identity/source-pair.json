@@ -1,0 +1,181 @@
+{
+  "data": [
+    {
+      "badges": {
+        "cost": "Multiple prices",
+        "spots": null
+      },
+      "cost": {
+        "formatted": "Multiple prices"
+      },
+      "cost_tiers": [
+        {
+          "cost": 3000,
+          "cost_after_fees": 3390,
+          "id": 31216,
+          "name": "General Admission + Featured Cocktail",
+          "quantity": 150
+        },
+        {
+          "cost": 1500,
+          "cost_after_fees": 1815,
+          "id": 22112,
+          "name": "General Admission",
+          "quantity": 150
+        }
+      ],
+      "date_overrides": {
+        "2026-08-21T21:30:00.000-05:00": {
+          "description": "<div class=\"trix-content\">\n  <div>THEY'RE BACK FOR MORE!</div><div><br></div><div>The freaks in That Thing You Pull When You Want To Stop are back with even more IMPROVISED FOUND FOOTAGE HORROR like you've NEVER SEEN BEFORE! They're amping up the horror, bringing up the laughs, and silencing the screams! This time they mean business, NO CHRISTMAS ALL HORROR! Come laugh with us late night Saturday Nights!<br><br><br>_____________________<br><br></div><div><br>Additional option to include our monthly cocktail,<strong> \"Summertime Spritz\"</strong>, with your ticket. It includes a blend of Lillet Blanc and strawberry pur\u00e9e, lifted with a splash of soda water and topped off with a Prosecco split. Served over ice and garnished with a lemon wedge. Best part? Gratuity is included.<br><br></div><div><br>Got a Drink Add-on? Follow these steps:<br><br></div><ol><li>Show your ticket to the host and mention the drink add-on.</li><li>Grab your token and place it on your table.</li><li>Enjoy your drink as a server will bring it by shortly.<br><br></li></ol><div><strong><br>Note:</strong> Valid ID is required for all alcohol service. No ID, no drink, no refunds.<br><br></div><div><br><br></div>\n</div>\n"
+        },
+        "2026-10-02T21:30:00.000-05:00": {
+          "description": "<div class=\"trix-content\">\n  <div>THEY'RE BACK FOR MORE!</div><div><br></div><div>The freaks in That Thing You Pull When You Want To Stop are back with even more IMPROVISED FOUND FOOTAGE HORROR like you've NEVER SEEN BEFORE! They're amping up the horror, bringing up the laughs, and silencing the screams! This time they mean business, NO CHRISTMAS ALL HORROR! Come laugh with us late night Friday Nights!<br><br>_____________________<br><br></div><div><br>Additional option to include our spooky October cocktail,<strong> \"</strong>\ud83d\ude08<strong>Rosemary\u2019s Bay Breeze</strong>\ud83d\ude08<strong>\"</strong>, with your ticket. It features a pour of Crown Apple mixed with crisp apple cider and cranberry juice, striking a balance of sweet, tart, and orchard fruit notes. Served over ice and garnished with a sprig of rosemary. Best part? Gratuity is included.<br><br></div><div><br>Got a Drink Add-on? Follow these steps:<br><br></div><ol><li>Show your ticket to the host and mention the drink add-on.</li><li>Grab your token and place it on your table.</li><li>Enjoy your drink as a server will bring it by shortly.<br><br></li></ol><div><strong><br>Note:</strong> Valid ID is required for all alcohol service. No ID, no drink, no refunds.<br><br></div><div><br><br></div>\n</div>\n"
+        },
+        "2026-10-09T21:30:00.000-05:00": {
+          "description": "<div class=\"trix-content\">\n  <div>THEY'RE BACK FOR MORE!</div><div><br></div><div>The freaks in That Thing You Pull When You Want To Stop are back with even more IMPROVISED FOUND FOOTAGE HORROR like you've NEVER SEEN BEFORE! They're amping up the horror, bringing up the laughs, and silencing the screams! This time they mean business, NO CHRISTMAS ALL HORROR! Come laugh with us late night Friday Nights!<br><br>_____________________<br><br></div><div><br>Additional option to include our spooky October cocktail,<strong> \"</strong>\ud83d\ude08<strong>Rosemary\u2019s Bay Breeze</strong>\ud83d\ude08<strong>\"</strong>, with your ticket. It features a pour of Crown Apple mixed with crisp apple cider and cranberry juice, striking a balance of sweet, tart, and orchard fruit notes. Served over ice and garnished with a sprig of rosemary. Best part? Gratuity is included.<br><br></div><div><br>Got a Drink Add-on? Follow these steps:<br><br></div><ol><li>Show your ticket to the host and mention the drink add-on.</li><li>Grab your token and place it on your table.</li><li>Enjoy your drink as a server will bring it by shortly.<br><br></li></ol><div><strong><br>Note:</strong> Valid ID is required for all alcohol service. No ID, no drink, no refunds.<br><br></div><div><br><br></div>\n</div>\n"
+        }
+      },
+      "dates": [
+        "2026-08-21T21:30:00.000-05:00",
+        "2026-10-02T21:30:00.000-05:00",
+        "2026-10-09T21:30:00.000-05:00"
+      ],
+      "description": {
+        "body": "<div>THEY'RE BACK FOR MORE!</div><div><br></div><div>The freaks in That Thing You Pull When You Want To Stop are back with even more IMPROVISED FOUND FOOTAGE HORROR like you've NEVER SEEN BEFORE! They're amping up the horror, bringing up the laughs, and silencing the screams! This time they mean business, NO CHRISTMAS ALL HORROR! Come laugh with us late night Friday Nights!</div>",
+        "created_at": "2026-03-24T01:47:18.420Z",
+        "id": 30381,
+        "name": "description",
+        "record_id": 13849,
+        "record_type": "Event",
+        "updated_at": "2026-07-26T00:19:37.679Z"
+      },
+      "description_short": "THEY'RE BACK FOR MORE!\n\nThe freaks in That Thing You Pull When You Want To Stop are back with even more IMPROVISED FOUND FOOTAGE HORROR like you've NEVER SEEN BEFORE! They're amping up the horror, bringing up the laughs, and silencing the screams!...",
+      "display_until": "2026-10-10T02:30:00.000Z",
+      "grouped_dates": {
+        "first_date": "2026-04-04T21:30:00.000-05:00",
+        "grouped": false,
+        "message": null
+      },
+      "id": 13849,
+      "img": {
+        "large": "https://cdn.fourthwalltickets.com/uploads/event/imgs/13849/large_1000013855.jpg",
+        "medium": "https://cdn.fourthwalltickets.com/uploads/event/imgs/13849/medium_1000013855.jpg",
+        "thumb": "https://cdn.fourthwalltickets.com/uploads/event/imgs/13849/thumb_1000013855.jpg",
+        "url": "https://cdn.fourthwalltickets.com/uploads/event/imgs/13849/1000013855.jpg"
+      },
+      "imgs": [
+        "https://cdn.fourthwalltickets.com/uploads/event/imgs/13849/1000013855.jpg"
+      ],
+      "name": "Paranormal Laughtivity",
+      "next_date": "2026-10-09T21:30:00.000-05:00",
+      "recurring": "Multiple dates",
+      "status": "active",
+      "tags": {
+        "public": [
+          "Improv"
+        ]
+      },
+      "theatre": {
+        "id": 33450,
+        "name": "iO Theater"
+      },
+      "timezone": "Central Time (US & Canada)",
+      "url": "https://www.crowdwork.com/e/paranormal-laughtivity",
+      "venue": "iO Theater"
+    },
+    {
+      "badges": {
+        "cost": "Multiple prices",
+        "spots": null
+      },
+      "cost": {
+        "formatted": "Multiple prices"
+      },
+      "cost_tiers": [
+        {
+          "cost": 3000,
+          "cost_after_fees": 3391,
+          "id": 25500,
+          "name": "General Admission + Featured Cocktail",
+          "quantity": 75
+        },
+        {
+          "cost": 1500,
+          "cost_after_fees": 1815,
+          "id": 20829,
+          "name": "General Admission",
+          "quantity": 75
+        }
+      ],
+      "date_overrides": {
+        "2026-09-04T21:30:00.000-05:00": {
+          "description": "<div class=\"trix-content\">\n  <div>Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and Tyler Malec.</div><div><br>Instagram: @peoplebeingfunnychicago</div><div>_____________________<br><br></div><div>Additional option to include our monthly cocktail,<strong> \"Raspberry Gimlet\"</strong>, with your ticket. It features a pour of raspberry gin shaken with fresh lime juice and simple syrup, striking a balance of tart, sweet, and floral notes. Strained over ice in a rocks glass and garnished with a lime. Best part? Gratuity is included.<br><br></div><div>Got a Drink Add-on? Follow these steps:<br><br></div><ol><li>Show your ticket to the host and mention the drink add-on.</li><li>Grab your token and place it on your table.</li><li>Enjoy your drink as a server will bring it by shortly.</li></ol><div><strong>Note:</strong> Valid ID is required for all alcohol service. No ID, no drink, no refunds.</div>\n</div>\n"
+        },
+        "2026-10-02T21:30:00.000-05:00": {
+          "img": {
+            "large": "https://cdn.fourthwalltickets.com/uploads/event_date_override/imgs/1671/PBF_Updated.png",
+            "medium": "https://cdn.fourthwalltickets.com/uploads/event_date_override/imgs/1671/PBF_Updated.png",
+            "thumb": "https://cdn.fourthwalltickets.com/uploads/event_date_override/imgs/1671/PBF_Updated.png",
+            "url": "https://cdn.fourthwalltickets.com/uploads/event_date_override/imgs/1671/PBF_Updated.png"
+          }
+        }
+      },
+      "dates": [
+        "2026-09-04T21:30:00.000-05:00",
+        "2026-10-02T21:30:00.000-05:00",
+        "2026-12-04T21:30:00.000-06:00",
+        "2027-01-01T21:30:00.000-06:00",
+        "2027-02-05T21:30:00.000-06:00",
+        "2027-03-05T21:30:00.000-06:00",
+        "2027-04-02T21:30:00.000-05:00",
+        "2027-05-07T21:30:00.000-05:00"
+      ],
+      "description": {
+        "body": "<div>Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and Tyler Malec.</div><div><br>Instagram: @peoplebeingfunnychicago</div><div><br></div>",
+        "created_at": "2026-02-27T22:39:34.805Z",
+        "id": 29101,
+        "name": "description",
+        "record_id": 13224,
+        "record_type": "Event",
+        "updated_at": "2026-05-17T21:42:23.493Z"
+      },
+      "description_short": "Once a month, we showcase six of Chicago's most hilarious local stand-up comedians and solo performers. There's no catch or twist \u2014 it's just people being funny! Join us for a drink and find your new hometown favorite. Hosted by Lauren Frost and T...",
+      "display_until": "2027-10-02T02:30:00.000Z",
+      "grouped_dates": {
+        "first_date": "2026-03-06T21:30:00.000-06:00",
+        "grouped": false,
+        "message": null
+      },
+      "id": 13224,
+      "img": {
+        "large": "https://cdn.fourthwalltickets.com/uploads/event/imgs/13224/large_PBF_General.png",
+        "medium": "https://cdn.fourthwalltickets.com/uploads/event/imgs/13224/medium_PBF_General.png",
+        "thumb": "https://cdn.fourthwalltickets.com/uploads/event/imgs/13224/thumb_PBF_General.png",
+        "url": "https://cdn.fourthwalltickets.com/uploads/event/imgs/13224/PBF_General.png"
+      },
+      "imgs": [
+        "https://cdn.fourthwalltickets.com/uploads/event/imgs/13224/PBF_General.png"
+      ],
+      "name": "People Being Funny",
+      "next_date": "2026-12-04T21:30:00.000-06:00",
+      "recurring": "Multiple dates",
+      "status": "active",
+      "tags": {
+        "public": [
+          "Stand-Up",
+          "All Featured Shows"
+        ]
+      },
+      "theatre": {
+        "id": 33450,
+        "name": "iO Theater"
+      },
+      "timezone": "Central Time (US & Canada)",
+      "url": "https://www.crowdwork.com/e/people-being-funny",
+      "venue": "iO Theater"
+    }
+  ],
+  "message": "Shows fetched successfully",
+  "status": 200,
+  "type": "success"
+}
