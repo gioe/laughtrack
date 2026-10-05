@@ -180,6 +180,17 @@ class ClubQueries:
         ORDER BY c.id
     """
 
+    # Physical destinations need no scraping source of their own. Keep this
+    # separate from the normal scrape-target selectors above.
+    GET_PHYSICAL_CLUBS_BY_IDS = """
+        SELECT c.*, '[]'::json AS scraping_sources
+        FROM clubs c
+        WHERE c.id = ANY(%s::int[])
+          AND c.status = 'active'
+          AND c.visible = TRUE
+        ORDER BY c.id
+    """
+
     GET_CLUB_BY_EVENTBRITE_VENUE_ID = f"""
         { _BASE_CLUB_SELECT }
         JOIN scraping_sources matched_source

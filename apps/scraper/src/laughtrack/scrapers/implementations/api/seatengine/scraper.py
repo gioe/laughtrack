@@ -81,7 +81,7 @@ class SeatEngineScraper(BaseScraper):
         if ROUTES_KEY in self.club.source_metadata:
             try:
                 ids = destination_ids(self.club)
-                clubs = await asyncio.to_thread(ClubHandler().get_clubs_by_ids, ids) if ids else []
+                clubs = await asyncio.to_thread(ClubHandler().get_physical_clubs_by_ids, ids) if ids else []
                 self.seatengine_client.routing_clubs = {club.id: club for club in clubs}
                 if set(self.seatengine_client.routing_clubs) != set(ids):
                     raise RoutingHold("reviewed destinations are missing")

@@ -233,7 +233,7 @@ async def test_pipeline_loads_destinations_once_and_disabled_account_never_fetch
 
     calls = []
     monkeypatch.setattr(
-        ClubHandler, "get_clubs_by_ids", lambda self, ids: calls.append(ids) or [venue(9001), venue(613)]
+        ClubHandler, "get_physical_clubs_by_ids", lambda self, ids: calls.append(ids) or [venue(9001), venue(613)]
     )
     scraper = SeatEngineScraper(source_club())
     scraper.seatengine_client.fetch_events = AsyncMock(return_value=[event(), event(102)])

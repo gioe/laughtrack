@@ -59,6 +59,14 @@ New performances require reviewed routing entries; this change intentionally
 makes no address guesses from artist biographies or organizer-level metadata.
 The deletion cap remains10 and generic validation/reconciliation are unchanged.
 
+Destination lookup uses `ClubHandler.get_physical_clubs_by_ids`, which reads
+visible active clubs without requiring a scraping source. Ordinary scrape-target
+selection still requires its configured source. The first live verification
+exposed that distinction: all three accounts held safely because the original
+lookup excluded source-less destination clubs. A real PostgreSQL pipeline test
+reproduced the failure before the dedicated lookup fixed it; separate cases
+verify that hidden/inactive destinations remain excluded.
+
 National SeatEngine discovery also preserves cleared city/state/ZIP when an
 existing source is disabled with disposition metadata. This closes the future
 postal-payload gap recorded in TASK-4070 without re-enabling that account.
@@ -100,8 +108,26 @@ and visibility remain unchanged, and affected club totals match stored rows.
 Recovery files are `/private/tmp/task4109-recovery.json` and its `.after.json`
 companion (private, mode0600; not committed).
 
-Validation:100 SeatEngine/client/reconciliation tests pass;16 actual PostgreSQL
-repair/quarantine tests pass using isolated local temporary tables. Related club
+Validation:100 SeatEngine/client/reconciliation tests pass;19 actual PostgreSQL
+repair/quarantine/destination tests pass using isolated local temporary tables. Related club
 coverage passed216 tests with1 existing skip. The full gate cannot collect due
 to missing local `tzdata`; three clean-HEAD prechecks reproduced it with no
 flakiness or upstream divergence, so the documented scoped-commit fallback applies.
+
+## Subsequent live verification
+
+The corrected scraper ran against all three accounts on October 5 at
+22:25–22:26 UTC: Yardbird updated 8 existing shows, Alameda updated 3, and
+Let's Comedy updated 9. Each batch reported zero inserts. The two Joe Fenti
+and six Cinema Grill occurrences were explicitly held; incomplete results
+remain ineligible for stale reconciliation. Source 294 was not scraped.
+
+The independent post-live query at 22:27 UTC verified fresh scrape timestamps
+and `last_scraped_by = seatengine` on all 20 upcoming approved performances,
+alongside the exact destination, original URL, UTC instant, room, and both
+producer fields. Historical approved assignments also remain correct. All
+original dependent-row IDs survive except the explicitly reviewed duplicate
+coalescences; all 756 click rows remain byte-for-byte unchanged. The retired
+Olivia duplicate remains absent, sources 289/294 remain disabled, organizer
+visibility/geography remains unchanged, and club totals match stored shows.
+`post-live.json` records the refreshed show IDs and verification outcome.

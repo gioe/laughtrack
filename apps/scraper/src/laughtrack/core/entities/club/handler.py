@@ -193,6 +193,20 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error fetching clubs {club_ids}: {str(e)}")
             raise
 
+    def get_physical_clubs_by_ids(self, club_ids: List[int]) -> List[Club]:
+        """Read visible active event destinations, including source-less venues.
+
+        Routing already owns the producer's scraping source. Destination clubs
+        contribute physical identity/timezone only, never source configuration.
+        Missing, hidden, and inactive IDs are omitted for the caller to hold.
+        """
+        if not club_ids:
+            return []
+        rows = self.execute_with_cursor(
+            ClubQueries.GET_PHYSICAL_CLUBS_BY_IDS, (club_ids,), return_results=True
+        ) or []
+        return [Club.from_db_row(row) for row in rows]
+
     def get_club_by_id(self, club_id: int) -> Optional[Club]:
         """
         Fetch a single club by its ID.

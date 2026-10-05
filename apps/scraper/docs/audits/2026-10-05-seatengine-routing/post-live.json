@@ -1,0 +1,41 @@
+{
+  "verified_at": "2026-10-05T22:27:10.070665+00:00",
+  "routed_or_stamped": 24,
+  "confirmed_mismatches_corrected": 19,
+  "original_unknown_dispositions": 9,
+  "held_existing": 10,
+  "held_absent": 1,
+  "duplicate_show_retired": 1394784,
+  "canonical_show": 1395297,
+  "click_records_unchanged": 756,
+  "sources_disabled": [
+    289,
+    294
+  ],
+  "producer_club_identity_preserved": true,
+  "club_counts_verified": true,
+  "duplicate_identity_check": "passed",
+  "mode": "after_live",
+  "live_refreshed_show_ids": [
+    1395297,
+    2760604,
+    3019125,
+    3878365,
+    3933246,
+    5404524,
+    5463281,
+    5463285,
+    5463288,
+    5466096,
+    5955023,
+    5955024,
+    5955025,
+    5955026,
+    5955027,
+    5955028,
+    6039624,
+    6352262,
+    7066816,
+    7066818
+  ]
+}
