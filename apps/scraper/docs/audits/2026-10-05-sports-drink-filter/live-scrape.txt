@@ -1,0 +1,6 @@
+2026-10-05 16:10:16,844 | INFO | pid=55135 | club=Sports Drink | scraper=sports_drink | SportsDrinkExtractor: excluding purchase confirmation 'Thank You For Your Purchase!!!' (https://app.opendate.io/e/thank-you-for-your-purchase-december-31-2099-579525?default_theme=true)
+2026-10-05 16:12:14,113 | INFO | pid=55135 | club=Sports Drink | scraper=sports_drink | SportsDrinkScraper [Sports Drink]: extracted 118 events from https://app.opendate.io/v/sports-drink-1939?per_page=500
+2026-10-05 16:12:14,236 | INFO | pid=55135 | club=- | scraper=- | Persisting 118 shows for 'Sports Drink'...
+2026-10-05 16:12:24,732 | INFO | pid=55135 | club=- | scraper=- | Show batch results: 100 total (0 inserts, 100 updates)
+2026-10-05 16:12:30,475 | INFO | pid=55135 | club=- | scraper=- | Show batch results: 18 total (0 inserts, 18 updates)
+2026-10-05 16:12:31,591 | INFO | pid=55135 | club=- | scraper=- | Scraped 118 shows for Sports Drink
