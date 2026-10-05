@@ -8,6 +8,7 @@ the .NET ``Start`` epoch (``/Date(ms)/``, UTC) and dropping past showtimes.
 
 import re
 import time
+from html import unescape
 from typing import Any, List, Optional
 
 from laughtrack.core.entities.event.standing_room_only import StandingRoomOnlyEvent
@@ -15,6 +16,15 @@ from laughtrack.core.entities.event.standing_room_only import StandingRoomOnlyEv
 # .NET serializes DateTime as "/Date(1783639800000)/" (UTC epoch milliseconds,
 # optionally with a trailing timezone offset like "/Date(1783639800000-0400)/").
 _DOTNET_DATE_RE = re.compile(r"/Date\((-?\d+)")
+
+# Match product labels, not incidental mentions of passes in comedian bios or
+# ticket instructions. A dated child does not make a season product a show.
+_PASS_PRODUCT_TITLE_RE = re.compile(
+    r"(?:\d{4}\s+)?(?:(?:spring|summer|fall|autumn|winter)\s+)?"
+    r"(?:season\s+pass|(?:(?:annual|monthly|yearly|vip|club)\s+)?membership(?:\s+pass)?)"
+    r"(?:\s+\d{4})?",
+    re.IGNORECASE,
+)
 
 
 class StandingRoomOnlyExtractor:
@@ -52,6 +62,9 @@ class StandingRoomOnlyExtractor:
             except (TypeError, ValueError):
                 continue
             if not title:
+                continue
+            product_title = " ".join(unescape(title).replace("-", " ").split())
+            if _PASS_PRODUCT_TITLE_RE.fullmatch(product_title):
                 continue
             shows = raw.get("Shows")
             if not isinstance(shows, list):
