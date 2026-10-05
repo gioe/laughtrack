@@ -1,0 +1,1195 @@
+{
+  "task_id": 4109,
+  "clubs": {
+    "white-rabbit": {
+      "fields": {
+        "name": "White Rabbit Cabaret",
+        "address": "1116 Prospect St",
+        "city": "Indianapolis",
+        "state": "IN",
+        "zip_code": "46203",
+        "timezone": "America/Indiana/Indianapolis",
+        "website": "https://www.whiterabbitcabaret.com/",
+        "visible": true
+      }
+    },
+    "fountain-square": {
+      "fields": {
+        "name": "Fountain Square Theatre",
+        "address": "1111 Prospect St",
+        "city": "Indianapolis",
+        "state": "IN",
+        "zip_code": "46203",
+        "timezone": "America/Indiana/Indianapolis",
+        "website": "https://fountainsquaretheatre.com/",
+        "visible": true
+      }
+    },
+    "hoboken-biergarten": {
+      "fields": {
+        "name": "Hoboken Biergarten",
+        "address": "1422 Grand Street",
+        "city": "Hoboken",
+        "state": "NJ",
+        "zip_code": "07030",
+        "timezone": "America/New_York",
+        "website": "https://www.thehobokenbiergarten.com/",
+        "visible": true
+      }
+    },
+    "fireside-lounge": {
+      "fields": {
+        "name": "Fireside Lounge",
+        "address": "1453 Webster Street",
+        "city": "Alameda",
+        "state": "CA",
+        "zip_code": "94501",
+        "timezone": "America/Los_Angeles",
+        "website": "https://www.thefiresidelounge.com/",
+        "visible": true
+      }
+    },
+    "cornerstone": {
+      "fields": {
+        "name": "Cornerstone Center for the Arts",
+        "address": "520 E. Main Street",
+        "city": "Muncie",
+        "state": "IN",
+        "zip_code": "47305",
+        "timezone": "America/Indiana/Indianapolis",
+        "website": "https://www.cornerstonearts.org/",
+        "visible": true
+      }
+    },
+    "willie-mcbrides": {
+      "id": 613,
+      "fields": {
+        "name": "Yardbird Comedy",
+        "address": "616 Grand St, Hoboken, NJ 07030, USA",
+        "website": "https://www.yardbirdcomedy.com/",
+        "city": "Hoboken",
+        "state": "NJ",
+        "zip_code": "",
+        "timezone": "America/New_York",
+        "visible": true
+      }
+    }
+  },
+  "producers": {
+    "yardbird": {
+      "fields": {
+        "name": "Yardbird Comedy",
+        "slug": "yardbird",
+        "website": "https://www.yardbirdcomedy.com/",
+        "visible": true
+      }
+    },
+    "alameda": {
+      "fields": {
+        "name": "Alameda Comedy",
+        "slug": "alameda",
+        "website": "https://alamedacomedy.com/",
+        "visible": true
+      }
+    },
+    "lets-comedy": {
+      "fields": {
+        "name": "Let's Comedy",
+        "slug": "lets-comedy",
+        "website": "https://www.letscomedyftw.com/",
+        "visible": true
+      }
+    },
+    "laugh-tonight": {
+      "fields": {
+        "name": "Laugh Tonight Comedy",
+        "slug": "laugh-tonight",
+        "website": "https://www.laughtonightcomedy.com/",
+        "visible": true
+      }
+    }
+  },
+  "shows": [
+    {
+      "id": 5463281,
+      "before": {
+        "club_id": 447,
+        "date": "2026-10-11T03:00:00+00:00",
+        "show_page_url": "http://alamedacomedy.com/shows/383814",
+        "room": "",
+        "name": "Saturday Night Comedy at the Fireside Lounge",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "fireside-lounge",
+      "producer": "alameda"
+    },
+    {
+      "id": 5463285,
+      "before": {
+        "club_id": 447,
+        "date": "2026-11-15T04:00:00+00:00",
+        "show_page_url": "http://alamedacomedy.com/shows/383815",
+        "room": "",
+        "name": "Saturday Night Comedy at the Fireside Lounge",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "fireside-lounge",
+      "producer": "alameda"
+    },
+    {
+      "id": 5463288,
+      "before": {
+        "club_id": 447,
+        "date": "2026-12-13T04:00:00+00:00",
+        "show_page_url": "http://alamedacomedy.com/shows/383816",
+        "room": "",
+        "name": "Saturday Night Comedy at the Fireside Lounge",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "fireside-lounge",
+      "producer": "alameda"
+    },
+    {
+      "id": 3879801,
+      "before": {
+        "club_id": 613,
+        "date": "2026-10-04T22:00:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/379655",
+        "room": "",
+        "name": "Sarper Guven At Willie McBride's In Hoboken",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "willie-mcbrides",
+      "producer": "yardbird"
+    },
+    {
+      "id": 3879802,
+      "before": {
+        "club_id": 613,
+        "date": "2026-10-05T00:15:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/379656",
+        "room": "",
+        "name": "Sarper Guven At Willie McBride's In Hoboken",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "willie-mcbrides",
+      "producer": "yardbird"
+    },
+    {
+      "id": 6039624,
+      "before": {
+        "club_id": 613,
+        "date": "2026-10-18T22:00:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/385258",
+        "room": "",
+        "name": "Olivia Carter At Willie McBride's In Hoboken",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "willie-mcbrides",
+      "producer": "yardbird"
+    },
+    {
+      "id": 3019125,
+      "before": {
+        "club_id": 613,
+        "date": "2026-11-06T00:30:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/377225",
+        "room": "",
+        "name": "Daniela Mora At The Hoboken Biergarten",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "hoboken-biergarten",
+      "producer": "yardbird"
+    },
+    {
+      "id": 5955023,
+      "before": {
+        "club_id": 613,
+        "date": "2026-12-06T23:00:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/384998",
+        "room": "",
+        "name": "Marcus Monroe At Willie McBride's in Hoboken",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "willie-mcbrides",
+      "producer": "yardbird"
+    },
+    {
+      "id": 5955024,
+      "before": {
+        "club_id": 613,
+        "date": "2026-12-11T00:30:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/384993",
+        "room": "",
+        "name": "Bo Johnson At The Hoboken Biergarten",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "hoboken-biergarten",
+      "producer": "yardbird"
+    },
+    {
+      "id": 5955025,
+      "before": {
+        "club_id": 613,
+        "date": "2026-12-12T00:30:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/384994",
+        "room": "",
+        "name": "Bo Johnson At The Hoboken Biergarten",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "hoboken-biergarten",
+      "producer": "yardbird"
+    },
+    {
+      "id": 5955026,
+      "before": {
+        "club_id": 613,
+        "date": "2026-12-12T02:30:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/384995",
+        "room": "",
+        "name": "Bo Johnson At The Hoboken Biergarten",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "hoboken-biergarten",
+      "producer": "yardbird"
+    },
+    {
+      "id": 5955027,
+      "before": {
+        "club_id": 613,
+        "date": "2026-12-13T00:00:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/384996",
+        "room": "",
+        "name": "Bo Johnson At The Hoboken Biergarten",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "hoboken-biergarten",
+      "producer": "yardbird"
+    },
+    {
+      "id": 5955028,
+      "before": {
+        "club_id": 613,
+        "date": "2026-12-13T02:15:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/384997",
+        "room": "",
+        "name": "Bo Johnson At The Hoboken Biergarten",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "hoboken-biergarten",
+      "producer": "yardbird"
+    },
+    {
+      "id": 4189224,
+      "before": {
+        "club_id": 469,
+        "date": "2026-09-30T00:00:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/380503",
+        "room": "",
+        "name": "Tim McLaughlin 40th Bday Extravaganza!!!",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "white-rabbit",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 3878365,
+      "before": {
+        "club_id": 469,
+        "date": "2026-10-09T00:00:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/379390",
+        "room": "",
+        "name": "LEMAIRE LEE LIVE IN INDY @ WHITE RABBIT CABARET",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "white-rabbit",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 1395297,
+      "before": {
+        "club_id": 469,
+        "date": "2026-10-09T23:00:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/370399",
+        "room": "",
+        "name": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "white-rabbit",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 6352262,
+      "before": {
+        "club_id": 469,
+        "date": "2026-10-10T01:30:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/386091",
+        "room": "",
+        "name": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "white-rabbit",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 2760604,
+      "before": {
+        "club_id": 469,
+        "date": "2026-10-17T23:00:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/376767",
+        "room": "",
+        "name": "BRIAN POSEHN LIVE IN INDY @ FOUNTAIN SQUARE THEATRE presented by LETS COMEDY",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "fountain-square",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 7066816,
+      "before": {
+        "club_id": 469,
+        "date": "2026-11-07T00:00:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/388149",
+        "room": "",
+        "name": "Saya Meads live in INDY @ white rabbit cabaret",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "white-rabbit",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 3933246,
+      "before": {
+        "club_id": 469,
+        "date": "2026-11-14T00:00:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/379736",
+        "room": "",
+        "name": "Jaboukie Young-White USA TOUR live in INDY @ White Rabbit Cabaret",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "white-rabbit",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 7066818,
+      "before": {
+        "club_id": 469,
+        "date": "2027-03-13T00:00:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/388150",
+        "room": "",
+        "name": "Emily Wilson live in INDY @ white rabbit cabaret",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "white-rabbit",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 5404524,
+      "before": {
+        "club_id": 469,
+        "date": "2027-04-08T23:00:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/383603",
+        "room": "",
+        "name": "EMILY CATALANO live in INDY!",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "white-rabbit",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 5466096,
+      "before": {
+        "club_id": 469,
+        "date": "2027-04-09T01:30:00+00:00",
+        "show_page_url": "http://letscomedytickets.seatengine.com/shows/383771",
+        "room": "",
+        "name": "EMILY CATALANO live in INDY!",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "white-rabbit",
+      "producer": "lets-comedy"
+    },
+    {
+      "id": 835461,
+      "before": {
+        "club_id": 855,
+        "date": "2026-05-10T22:00:00+00:00",
+        "show_page_url": "http://www.laughtonightcomedy.com/shows/366585",
+        "room": "",
+        "name": "Mother's Day with Tommy Davidson",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "club": "cornerstone",
+      "producer": "laugh-tonight"
+    }
+  ],
+  "holds": [
+    {
+      "id": 5463282,
+      "before": {
+        "club_id": 447,
+        "date": "2026-10-15T02:00:00+00:00",
+        "show_page_url": "http://alamedacomedy.com/shows/383817",
+        "room": "",
+        "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      }
+    },
+    {
+      "id": 5463283,
+      "before": {
+        "club_id": 447,
+        "date": "2026-10-29T02:00:00+00:00",
+        "show_page_url": "http://alamedacomedy.com/shows/383818",
+        "room": "",
+        "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      }
+    },
+    {
+      "id": 5463284,
+      "before": {
+        "club_id": 447,
+        "date": "2026-11-12T03:00:00+00:00",
+        "show_page_url": "http://alamedacomedy.com/shows/383819",
+        "room": "",
+        "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      }
+    },
+    {
+      "id": 5463286,
+      "before": {
+        "club_id": 447,
+        "date": "2026-11-26T03:00:00+00:00",
+        "show_page_url": "http://alamedacomedy.com/shows/383820",
+        "room": "",
+        "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      }
+    },
+    {
+      "id": 5463287,
+      "before": {
+        "club_id": 447,
+        "date": "2026-12-10T03:00:00+00:00",
+        "show_page_url": "http://alamedacomedy.com/shows/383821",
+        "room": "",
+        "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      }
+    },
+    {
+      "id": 5463289,
+      "before": {
+        "club_id": 447,
+        "date": "2026-12-24T03:00:00+00:00",
+        "show_page_url": "http://alamedacomedy.com/shows/383822",
+        "room": "",
+        "name": "Live Comedy at the Alameda Theatre Cinema Grill",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      }
+    },
+    {
+      "id": 6039623,
+      "absent": true
+    },
+    {
+      "id": 7408993,
+      "before": {
+        "club_id": 613,
+        "date": "2026-10-28T23:30:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/389229",
+        "room": "",
+        "name": "Joe Fenti In Hoboken",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      }
+    },
+    {
+      "id": 7408994,
+      "before": {
+        "club_id": 613,
+        "date": "2026-10-29T23:30:00+00:00",
+        "show_page_url": "https://www.yardbirdcomedy.com/shows/389230",
+        "room": "",
+        "name": "Joe Fenti In Hoboken",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      }
+    },
+    {
+      "id": 1441452,
+      "before": {
+        "club_id": 855,
+        "date": "2026-06-01T00:00:00+00:00",
+        "show_page_url": "http://www.laughtonightcomedy.com/shows/370667",
+        "room": "",
+        "name": "Henry Coleman @ Laugh Factory Chicago",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      },
+      "patch": {
+        "is_cancelled": true
+      }
+    },
+    {
+      "id": 4340528,
+      "before": {
+        "club_id": 855,
+        "date": "2026-08-22T01:00:00+00:00",
+        "show_page_url": "http://www.laughtonightcomedy.com/shows/380864",
+        "room": "",
+        "name": "FUNNY PHAT FRIDAYS WITH DARREN BRAND",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "seatengine"
+      }
+    }
+  ],
+  "merges": [
+    {
+      "from": 1394784,
+      "to": 1395297,
+      "before": {
+        "club_id": 410,
+        "date": "2026-10-09T23:00:00+00:00",
+        "show_page_url": "https://www.letscomedyftw.com/shows/370399",
+        "room": "",
+        "name": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "json_ld"
+      },
+      "before_to": {
+        "description": ""
+      },
+      "patch": {
+        "description": "<p>Let\u2019s Comedy is proud to present </p><p>OLIVIA CARTER live in INDY @ White Rabbit Cabaret </p><p>FRIDAY, OCTOBER 9th</p><p>Fresh off Kevin Hart\u2019s FUNNY AF live finals on Netflix - Olivia is stopping in for one night only!</p><p>doors open @ 6pm</p><p>showtime @ 7pm</p><p>must be 21+ / no refunds unless total cancellation <br /></p><p>free parking in back OR on street</p><p>No purchase minimum but we strongly encourage supporting our venue and tipping our wonderful staff @ </p><p>WHITE RABBIT CABARET</p><p>1116 Prospect Street INDIANAPOLIS, IN</p><p><br />FRIDAY OCT 9th *7pm *doors open at 6pm </p><p>Must be 21+ / VALID ID to enter </p>"
+      },
+      "coalesce": [
+        {
+          "table": "tickets",
+          "from_id": 1586905,
+          "to_id": 1343789,
+          "before_from": {
+            "id": 1586905,
+            "type": "General Admission",
+            "price": null,
+            "show_id": 1394784,
+            "sold_out": false,
+            "purchase_url": "https://www.letscomedyftw.com/shows/370399"
+          },
+          "before_to": {
+            "id": 1343789,
+            "type": "General Admission",
+            "price": 20.0,
+            "show_id": 1395297,
+            "sold_out": false,
+            "purchase_url": "http://letscomedytickets.seatengine.com/shows/370399"
+          },
+          "reason": "Duplicate unpriced General Admission listing of account444/show370399 at the same verified time; priced native GA is canonical. Alias URL and original ID retained in source provenance and private backup."
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": 259,
+      "before": {
+        "club_id": 613,
+        "enabled": true,
+        "platform": "seatengine",
+        "scraper_key": "seatengine",
+        "seatengine_id": 618,
+        "source_url": "https://www.yardbirdcomedy.com/",
+        "metadata": {}
+      },
+      "patch": {
+        "metadata": {
+          "seatengine_venue_routes": {
+            "account_id": "618",
+            "producer_id": {
+              "$producer": "yardbird"
+            },
+            "routes": {
+              "379655": {
+                "start_date_time": "2026-10-04T18:00:00-04:00",
+                "club_id": {
+                  "$club": "willie-mcbrides"
+                },
+                "disposition": "route",
+                "reason": "Exact physical address matches assigned club; club display name remains organizer name."
+              },
+              "379656": {
+                "start_date_time": "2026-10-04T20:15:00-04:00",
+                "club_id": {
+                  "$club": "willie-mcbrides"
+                },
+                "disposition": "route",
+                "reason": "Exact physical address matches assigned club; club display name remains organizer name."
+              },
+              "385281": {
+                "disposition": "hold",
+                "reason": "Already absent at revalidation; API now names Biergarten and records cancellation 2026-10-02. Do not recreate."
+              },
+              "385258": {
+                "start_date_time": "2026-10-18T18:00:00-04:00",
+                "club_id": {
+                  "$club": "willie-mcbrides"
+                },
+                "disposition": "route",
+                "reason": "Exact physical address matches assigned club; club display name remains organizer name."
+              },
+              "389229": {
+                "disposition": "hold",
+                "reason": "Event title/description is artist biography only; JSON-LD location is organizer with blank street/locality/region. No specific venue evidence."
+              },
+              "389230": {
+                "disposition": "hold",
+                "reason": "Event title/description is artist biography only; JSON-LD location is organizer with blank street/locality/region. No specific venue evidence."
+              },
+              "377225": {
+                "start_date_time": "2026-11-05T19:30:00-05:00",
+                "club_id": {
+                  "$club": "hoboken-biergarten"
+                },
+                "disposition": "route",
+                "reason": "Event explicitly names and addresses another physical venue."
+              },
+              "384998": {
+                "start_date_time": "2026-12-06T18:00:00-05:00",
+                "club_id": {
+                  "$club": "willie-mcbrides"
+                },
+                "disposition": "route",
+                "reason": "Exact physical address matches assigned club; club display name remains organizer name."
+              },
+              "384993": {
+                "start_date_time": "2026-12-10T19:30:00-05:00",
+                "club_id": {
+                  "$club": "hoboken-biergarten"
+                },
+                "disposition": "route",
+                "reason": "Event explicitly names and addresses another physical venue."
+              },
+              "384994": {
+                "start_date_time": "2026-12-11T19:30:00-05:00",
+                "club_id": {
+                  "$club": "hoboken-biergarten"
+                },
+                "disposition": "route",
+                "reason": "Event explicitly names and addresses another physical venue."
+              },
+              "384995": {
+                "start_date_time": "2026-12-11T21:30:00-05:00",
+                "club_id": {
+                  "$club": "hoboken-biergarten"
+                },
+                "disposition": "route",
+                "reason": "Event explicitly names and addresses another physical venue."
+              },
+              "384996": {
+                "start_date_time": "2026-12-12T19:00:00-05:00",
+                "club_id": {
+                  "$club": "hoboken-biergarten"
+                },
+                "disposition": "route",
+                "reason": "Event explicitly names and addresses another physical venue."
+              },
+              "384997": {
+                "start_date_time": "2026-12-12T21:15:00-05:00",
+                "club_id": {
+                  "$club": "hoboken-biergarten"
+                },
+                "disposition": "route",
+                "reason": "Event explicitly names and addresses another physical venue."
+              }
+            }
+          },
+          "task_4109_routing": {
+            "audit": "2026-10-05-seatengine-routing",
+            "policy": "Reviewed exact native account/show/time routes; unmatched or changed occurrences held; no inferred promoter address."
+          }
+        }
+      }
+    },
+    {
+      "id": 190,
+      "before": {
+        "club_id": 447,
+        "enabled": true,
+        "platform": "seatengine",
+        "scraper_key": "seatengine",
+        "seatengine_id": 422,
+        "source_url": "http://alamedacomedy.com",
+        "metadata": {}
+      },
+      "patch": {
+        "metadata": {
+          "seatengine_venue_routes": {
+            "account_id": "422",
+            "producer_id": {
+              "$producer": "alameda"
+            },
+            "routes": {
+              "383814": {
+                "start_date_time": "2026-10-10T20:00:00-07:00",
+                "club_id": {
+                  "$club": "fireside-lounge"
+                },
+                "disposition": "route",
+                "reason": "Event description explicitly addresses another physical venue."
+              },
+              "383817": {
+                "disposition": "hold",
+                "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+              },
+              "383818": {
+                "disposition": "hold",
+                "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+              },
+              "383819": {
+                "disposition": "hold",
+                "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+              },
+              "383815": {
+                "start_date_time": "2026-11-14T20:00:00-08:00",
+                "club_id": {
+                  "$club": "fireside-lounge"
+                },
+                "disposition": "route",
+                "reason": "Event description explicitly addresses another physical venue."
+              },
+              "383820": {
+                "disposition": "hold",
+                "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+              },
+              "383821": {
+                "disposition": "hold",
+                "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+              },
+              "383816": {
+                "start_date_time": "2026-12-12T20:00:00-08:00",
+                "club_id": {
+                  "$club": "fireside-lounge"
+                },
+                "disposition": "route",
+                "reason": "Event description explicitly addresses another physical venue."
+              },
+              "383822": {
+                "disposition": "hold",
+                "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+              }
+            }
+          },
+          "task_4109_routing": {
+            "audit": "2026-10-05-seatengine-routing",
+            "policy": "Reviewed exact native account/show/time routes; unmatched or changed occurrences held; no inferred promoter address."
+          }
+        }
+      }
+    },
+    {
+      "id": 547,
+      "before": {
+        "club_id": 469,
+        "enabled": true,
+        "platform": "seatengine",
+        "scraper_key": "seatengine",
+        "seatengine_id": 444,
+        "source_url": "https://www.letscomedyftw.com/events",
+        "metadata": {
+          "public_show_base_url": "https://www.letscomedyftw.com/events",
+          "source_url_replaced_reason": "replace_ticketing_host_with_first_party_events_url",
+          "source_url_replaced_by_task": "TASK-3591"
+        }
+      },
+      "patch": {
+        "metadata": {
+          "public_show_base_url": "https://www.letscomedyftw.com/events",
+          "source_url_replaced_reason": "replace_ticketing_host_with_first_party_events_url",
+          "source_url_replaced_by_task": "TASK-3591",
+          "seatengine_venue_routes": {
+            "account_id": "444",
+            "producer_id": {
+              "$producer": "lets-comedy"
+            },
+            "routes": {
+              "380503": {
+                "start_date_time": "2026-09-29T20:00:00-04:00",
+                "club_id": {
+                  "$club": "white-rabbit"
+                },
+                "disposition": "route",
+                "reason": "Historical identity/time revalidated by direct API; event-level White Rabbit address retained in September28 capture; current detail URL redirects to calendar."
+              },
+              "379390": {
+                "start_date_time": "2026-10-08T20:00:00-04:00",
+                "club_id": {
+                  "$club": "white-rabbit"
+                },
+                "disposition": "route",
+                "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+              },
+              "370399": {
+                "start_date_time": "2026-10-09T19:00:00-04:00",
+                "club_id": {
+                  "$club": "white-rabbit"
+                },
+                "disposition": "route",
+                "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+              },
+              "386091": {
+                "start_date_time": "2026-10-09T21:30:00-04:00",
+                "club_id": {
+                  "$club": "white-rabbit"
+                },
+                "disposition": "route",
+                "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+              },
+              "376767": {
+                "start_date_time": "2026-10-17T19:00:00-04:00",
+                "club_id": {
+                  "$club": "fountain-square"
+                },
+                "disposition": "route",
+                "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+              },
+              "388149": {
+                "start_date_time": "2026-11-06T19:00:00-05:00",
+                "club_id": {
+                  "$club": "white-rabbit"
+                },
+                "disposition": "route",
+                "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+              },
+              "379736": {
+                "start_date_time": "2026-11-13T19:00:00-05:00",
+                "club_id": {
+                  "$club": "white-rabbit"
+                },
+                "disposition": "route",
+                "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+              },
+              "388150": {
+                "start_date_time": "2027-03-12T19:00:00-05:00",
+                "club_id": {
+                  "$club": "white-rabbit"
+                },
+                "disposition": "route",
+                "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+              },
+              "383603": {
+                "start_date_time": "2027-04-08T19:00:00-04:00",
+                "club_id": {
+                  "$club": "white-rabbit"
+                },
+                "disposition": "route",
+                "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+              },
+              "383771": {
+                "start_date_time": "2027-04-08T21:30:00-04:00",
+                "club_id": {
+                  "$club": "white-rabbit"
+                },
+                "disposition": "route",
+                "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+              }
+            }
+          },
+          "task_4109_routing": {
+            "audit": "2026-10-05-seatengine-routing",
+            "policy": "Reviewed exact native account/show/time routes; unmatched or changed occurrences held; no inferred promoter address.",
+            "merged_alias": {
+              "show_id": 1394784,
+              "canonical_show_id": 1395297,
+              "ticket_id": 1586905,
+              "canonical_ticket_id": 1343789,
+              "purchase_url": "https://www.letscomedyftw.com/shows/370399",
+              "reason": "Unpriced duplicate GA offer consolidated into priced GA; distinct Tier 1 offer retained."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 294,
+      "before": {
+        "club_id": 855,
+        "enabled": false,
+        "platform": "seatengine",
+        "scraper_key": "seatengine",
+        "seatengine_id": 424,
+        "source_url": "http://www.laughtonightcomedy.com",
+        "metadata": {
+          "task_4070_disposition": {
+            "reason": "multi_location_promoter_wrong_physical_identity",
+            "routing_task": "TASK-4109",
+            "before_source": {
+              "id": 294,
+              "club_id": 855,
+              "enabled": true,
+              "metadata": {
+                "task_1984_canonical_pointer": {
+                  "kind": "same_venue_dupe_canonical",
+                  "pattern": "C",
+                  "platform": "seatengine",
+                  "rationale": "This row is the canonical for the same-venue duplicate-club pair resolved by TASK-1984. The duplicate club 449 ('Laugh Tonight Comedy @ Laugh Factory') was hidden and its scraping_source 279 had its seatengine typed id cleared.",
+                  "dupe_club_id": 449,
+                  "typed_id_kept": 424,
+                  "dupe_source_id": 279
+                }
+              },
+              "platform": "seatengine",
+              "priority": 0,
+              "created_at": "2026-04-21T19:57:12.315022+00:00",
+              "source_url": "http://www.laughtonightcomedy.com",
+              "squadup_id": null,
+              "updated_at": "2026-05-06T23:21:47.875641+00:00",
+              "scraper_key": "seatengine",
+              "wix_event_id": null,
+              "eventbrite_id": null,
+              "ovationtix_id": null,
+              "seatengine_id": 424,
+              "ticketmaster_id": null,
+              "seatengine_v3_id": null,
+              "source_target_id": null
+            },
+            "before_club_fields": {
+              "city": "Jersey City",
+              "state": "NJ",
+              "address": "Inside Dorrian's Restaurant Outside Newport Mall, 555 Washington Blvd, Jersey City, NJ 07310, USA",
+              "visible": true,
+              "website": "http://www.laughtonightcomedy.com",
+              "latitude": 40.7280954,
+              "club_type": "club",
+              "has_image": true,
+              "longitude": -74.034928,
+              "description": "<p>Laugh Tonight Comedy </p><p>Cornerstone Center For The Arts</p><p>520 E Main Street</p><p>Muncie IN 47305</p>\n\nUpdated by TASK-3029: city/state components parsed from Google Places-backed address",
+              "google_place_id": "ChIJ369ARGdXwokRVCaKcxyCCBw"
+            }
+          },
+          "task_1984_canonical_pointer": {
+            "kind": "same_venue_dupe_canonical",
+            "pattern": "C",
+            "platform": "seatengine",
+            "rationale": "This row is the canonical for the same-venue duplicate-club pair resolved by TASK-1984. The duplicate club 449 ('Laugh Tonight Comedy @ Laugh Factory') was hidden and its scraping_source 279 had its seatengine typed id cleared.",
+            "dupe_club_id": 449,
+            "typed_id_kept": 424,
+            "dupe_source_id": 279
+          }
+        }
+      },
+      "patch": {
+        "metadata": {
+          "task_4070_disposition": {
+            "reason": "multi_location_promoter_wrong_physical_identity",
+            "routing_task": "TASK-4109",
+            "before_source": {
+              "id": 294,
+              "club_id": 855,
+              "enabled": true,
+              "metadata": {
+                "task_1984_canonical_pointer": {
+                  "kind": "same_venue_dupe_canonical",
+                  "pattern": "C",
+                  "platform": "seatengine",
+                  "rationale": "This row is the canonical for the same-venue duplicate-club pair resolved by TASK-1984. The duplicate club 449 ('Laugh Tonight Comedy @ Laugh Factory') was hidden and its scraping_source 279 had its seatengine typed id cleared.",
+                  "dupe_club_id": 449,
+                  "typed_id_kept": 424,
+                  "dupe_source_id": 279
+                }
+              },
+              "platform": "seatengine",
+              "priority": 0,
+              "created_at": "2026-04-21T19:57:12.315022+00:00",
+              "source_url": "http://www.laughtonightcomedy.com",
+              "squadup_id": null,
+              "updated_at": "2026-05-06T23:21:47.875641+00:00",
+              "scraper_key": "seatengine",
+              "wix_event_id": null,
+              "eventbrite_id": null,
+              "ovationtix_id": null,
+              "seatengine_id": 424,
+              "ticketmaster_id": null,
+              "seatengine_v3_id": null,
+              "source_target_id": null
+            },
+            "before_club_fields": {
+              "city": "Jersey City",
+              "state": "NJ",
+              "address": "Inside Dorrian's Restaurant Outside Newport Mall, 555 Washington Blvd, Jersey City, NJ 07310, USA",
+              "visible": true,
+              "website": "http://www.laughtonightcomedy.com",
+              "latitude": 40.7280954,
+              "club_type": "club",
+              "has_image": true,
+              "longitude": -74.034928,
+              "description": "<p>Laugh Tonight Comedy </p><p>Cornerstone Center For The Arts</p><p>520 E Main Street</p><p>Muncie IN 47305</p>\n\nUpdated by TASK-3029: city/state components parsed from Google Places-backed address",
+              "google_place_id": "ChIJ369ARGdXwokRVCaKcxyCCBw"
+            }
+          },
+          "task_1984_canonical_pointer": {
+            "kind": "same_venue_dupe_canonical",
+            "pattern": "C",
+            "platform": "seatengine",
+            "rationale": "This row is the canonical for the same-venue duplicate-club pair resolved by TASK-1984. The duplicate club 449 ('Laugh Tonight Comedy @ Laugh Factory') was hidden and its scraping_source 279 had its seatengine typed id cleared.",
+            "dupe_club_id": 449,
+            "typed_id_kept": 424,
+            "dupe_source_id": 279
+          },
+          "seatengine_venue_routes": {
+            "account_id": "424",
+            "producer_id": {
+              "$producer": "laugh-tonight"
+            },
+            "routes": {
+              "366585": {
+                "start_date_time": "2026-05-10T18:00:00-04:00",
+                "club_id": {
+                  "$club": "cornerstone"
+                },
+                "disposition": "route",
+                "reason": "API labels Muncie and Cornerstone; explicit -04 offset matches Muncie and stored instant. Historical repair only; source remains disabled."
+              },
+              "370667": {
+                "disposition": "hold",
+                "reason": "Cancelled Chicago event: source offset -04 differs from Chicago -05; retain original date and quarantined club, record cancellation without guessing wall time."
+              },
+              "380864": {
+                "disposition": "hold",
+                "reason": "Current API omits physical location; historical indexed Elite Rentals lead unconfirmed. Keep quarantined."
+              }
+            }
+          },
+          "task_4109_routing": {
+            "audit": "2026-10-05-seatengine-routing",
+            "policy": "Reviewed exact native account/show/time routes; unmatched or changed occurrences held; no inferred promoter address."
+          }
+        }
+      }
+    },
+    {
+      "id": 289,
+      "before": {
+        "club_id": 410,
+        "enabled": true,
+        "platform": "custom",
+        "scraper_key": "json_ld",
+        "seatengine_id": null,
+        "source_url": "https://www.letscomedyftw.com/events",
+        "metadata": {}
+      },
+      "patch": {
+        "enabled": false,
+        "metadata": {
+          "task_4109_disposition": {
+            "reason": "Duplicate organizer JSON-LD stamps fixed club410; authoritative account444 now routes reviewed performances",
+            "canonical_source_id": 547,
+            "merged_show_id": 1394784,
+            "canonical_show_id": 1395297
+          }
+        }
+      }
+    }
+  ]
+}

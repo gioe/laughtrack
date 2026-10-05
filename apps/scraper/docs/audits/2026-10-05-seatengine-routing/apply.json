@@ -1,0 +1,46 @@
+{
+  "mode": "apply",
+  "already_applied": false,
+  "before": {
+    "clubs": 5,
+    "production_companies": 0,
+    "scraping_sources": 5,
+    "shows": 35,
+    "production_company_venues": 0,
+    "tickets": 60,
+    "lineup_items": 32,
+    "tagged_shows": 69,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 756
+  },
+  "after": {
+    "clubs": 10,
+    "production_companies": 4,
+    "scraping_sources": 5,
+    "shows": 34,
+    "production_company_venues": 6,
+    "tickets": 59,
+    "lineup_items": 31,
+    "tagged_shows": 66,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 756
+  },
+  "clubs": {
+    "willie-mcbrides": 613,
+    "white-rabbit": 90815,
+    "fountain-square": 90816,
+    "hoboken-biergarten": 90817,
+    "fireside-lounge": 90818,
+    "cornerstone": 90819
+  },
+  "producers": {
+    "yardbird": 41,
+    "alameda": 42,
+    "lets-comedy": 43,
+    "laugh-tonight": 44
+  }
+}

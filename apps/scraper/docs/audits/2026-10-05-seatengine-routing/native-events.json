@@ -1,0 +1,415 @@
+[
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 385258,
+    "start_date_time": "2026-10-18T18:00:00-04:00",
+    "title": "Olivia Carter At Willie McBride's In Hoboken",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 389229,
+    "start_date_time": "2026-10-28T19:30:00-04:00",
+    "title": "Joe Fenti In Hoboken",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 389230,
+    "start_date_time": "2026-10-29T19:30:00-04:00",
+    "title": "Joe Fenti In Hoboken",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 377225,
+    "start_date_time": "2026-11-05T19:30:00-05:00",
+    "title": "Daniela Mora At The Hoboken Biergarten",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 384998,
+    "start_date_time": "2026-12-06T18:00:00-05:00",
+    "title": "Marcus Monroe At Willie McBride's in Hoboken",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 384993,
+    "start_date_time": "2026-12-10T19:30:00-05:00",
+    "title": "Bo Johnson At The Hoboken Biergarten",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 384994,
+    "start_date_time": "2026-12-11T19:30:00-05:00",
+    "title": "Bo Johnson At The Hoboken Biergarten",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 384995,
+    "start_date_time": "2026-12-11T21:30:00-05:00",
+    "title": "Bo Johnson At The Hoboken Biergarten",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 384996,
+    "start_date_time": "2026-12-12T19:00:00-05:00",
+    "title": "Bo Johnson At The Hoboken Biergarten",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 384997,
+    "start_date_time": "2026-12-12T21:15:00-05:00",
+    "title": "Bo Johnson At The Hoboken Biergarten",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 385281,
+    "start_date_time": "2026-10-07T19:30:00-04:00",
+    "title": "Anthony Locascio At The Hoboken Biergarten",
+    "labels": [],
+    "cancelled_at": "2026-10-02T16:08:45Z",
+    "in_current_feed": false
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 379656,
+    "start_date_time": "2026-10-04T20:15:00-04:00",
+    "title": "Sarper Guven At Willie McBride's In Hoboken",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": false
+  },
+  {
+    "club_id": 613,
+    "account_id": "618",
+    "retrieved_at": "2026-10-05T20:24:49.780677+00:00",
+    "native_show_id": 379655,
+    "start_date_time": "2026-10-04T18:00:00-04:00",
+    "title": "Sarper Guven At Willie McBride's In Hoboken",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": false
+  },
+  {
+    "club_id": 447,
+    "account_id": "422",
+    "retrieved_at": "2026-10-05T20:24:47.252850+00:00",
+    "native_show_id": 383814,
+    "start_date_time": "2026-10-10T20:00:00-07:00",
+    "title": "Saturday Night Comedy at the Fireside Lounge",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 447,
+    "account_id": "422",
+    "retrieved_at": "2026-10-05T20:24:47.252850+00:00",
+    "native_show_id": 383817,
+    "start_date_time": "2026-10-14T19:00:00-07:00",
+    "title": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 447,
+    "account_id": "422",
+    "retrieved_at": "2026-10-05T20:24:47.252850+00:00",
+    "native_show_id": 383818,
+    "start_date_time": "2026-10-28T19:00:00-07:00",
+    "title": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 447,
+    "account_id": "422",
+    "retrieved_at": "2026-10-05T20:24:47.252850+00:00",
+    "native_show_id": 383819,
+    "start_date_time": "2026-11-11T19:00:00-08:00",
+    "title": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 447,
+    "account_id": "422",
+    "retrieved_at": "2026-10-05T20:24:47.252850+00:00",
+    "native_show_id": 383815,
+    "start_date_time": "2026-11-14T20:00:00-08:00",
+    "title": "Saturday Night Comedy at the Fireside Lounge",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 447,
+    "account_id": "422",
+    "retrieved_at": "2026-10-05T20:24:47.252850+00:00",
+    "native_show_id": 383820,
+    "start_date_time": "2026-11-25T19:00:00-08:00",
+    "title": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 447,
+    "account_id": "422",
+    "retrieved_at": "2026-10-05T20:24:47.252850+00:00",
+    "native_show_id": 383821,
+    "start_date_time": "2026-12-09T19:00:00-08:00",
+    "title": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 447,
+    "account_id": "422",
+    "retrieved_at": "2026-10-05T20:24:47.252850+00:00",
+    "native_show_id": 383816,
+    "start_date_time": "2026-12-12T20:00:00-08:00",
+    "title": "Saturday Night Comedy at the Fireside Lounge",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 447,
+    "account_id": "422",
+    "retrieved_at": "2026-10-05T20:24:47.252850+00:00",
+    "native_show_id": 383822,
+    "start_date_time": "2026-12-23T19:00:00-08:00",
+    "title": "Live Comedy at the Alameda Theatre Cinema Grill",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 379390,
+    "start_date_time": "2026-10-08T20:00:00-04:00",
+    "title": "LEMAIRE LEE LIVE IN INDY @ WHITE RABBIT CABARET ",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 370399,
+    "start_date_time": "2026-10-09T19:00:00-04:00",
+    "title": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 386091,
+    "start_date_time": "2026-10-09T21:30:00-04:00",
+    "title": "OLIVIA CARTER live in INDY at WHITE RABBIT CABARET",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 376767,
+    "start_date_time": "2026-10-17T19:00:00-04:00",
+    "title": "BRIAN POSEHN LIVE IN INDY @ FOUNTAIN SQUARE THEATRE presented by LETS COMEDY",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 388149,
+    "start_date_time": "2026-11-06T19:00:00-05:00",
+    "title": "Saya Meads live in INDY @ white rabbit cabaret",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 379736,
+    "start_date_time": "2026-11-13T19:00:00-05:00",
+    "title": "Jaboukie Young-White USA TOUR live in INDY @ White Rabbit Cabaret",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 388150,
+    "start_date_time": "2027-03-12T19:00:00-05:00",
+    "title": "Emily Wilson live in INDY @ white rabbit cabaret ",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 383603,
+    "start_date_time": "2027-04-08T19:00:00-04:00",
+    "title": "EMILY CATALANO live in INDY!",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 383771,
+    "start_date_time": "2027-04-08T21:30:00-04:00",
+    "title": "EMILY CATALANO live in INDY!",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": true
+  },
+  {
+    "club_id": 469,
+    "account_id": "444",
+    "retrieved_at": "2026-10-05T20:24:48.465548+00:00",
+    "native_show_id": 380503,
+    "start_date_time": "2026-09-29T20:00:00-04:00",
+    "title": "Tim McLaughlin 40th Bday Extravaganza!!!",
+    "labels": [],
+    "cancelled_at": null,
+    "in_current_feed": false
+  },
+  {
+    "club_id": 855,
+    "account_id": 424,
+    "retrieved_at": "2026-10-05T20:34:45.037722+00:00",
+    "native_show_id": 366585,
+    "start_date_time": "2026-05-10T18:00:00-04:00",
+    "title": "Mother's Day with Tommy Davidson",
+    "labels": [
+      {
+        "name": "MUNCIE IN",
+        "public": true,
+        "color": "rgb(112, 181, 0)"
+      },
+      {
+        "name": "CORNERSTONE CENTER FOR THE ARTS",
+        "public": true,
+        "color": "rgb(112, 181, 0)"
+      }
+    ],
+    "cancelled_at": null,
+    "in_current_feed": false
+  },
+  {
+    "club_id": 855,
+    "account_id": 424,
+    "retrieved_at": "2026-10-05T20:34:45.037722+00:00",
+    "native_show_id": 370667,
+    "start_date_time": "2026-05-31T20:00:00-04:00",
+    "title": "Henry Coleman @ Laugh Factory Chicago",
+    "labels": [
+      {
+        "name": "CHICAGO IL",
+        "public": true,
+        "color": "rgb(255, 159, 26)"
+      },
+      {
+        "name": "LAUGH FACTORY CHICAGO ",
+        "public": true,
+        "color": "rgb(255, 159, 26)"
+      }
+    ],
+    "cancelled_at": "2026-05-27T14:47:00Z",
+    "in_current_feed": false
+  },
+  {
+    "club_id": 855,
+    "account_id": 424,
+    "retrieved_at": "2026-10-05T20:34:45.037722+00:00",
+    "native_show_id": 380864,
+    "start_date_time": "2026-08-21T21:00:00-04:00",
+    "title": "FUNNY PHAT FRIDAYS WITH DARREN BRAND",
+    "labels": [
+      {
+        "name": "FUNNY PHAT FRIDAYS",
+        "public": true,
+        "color": "rgb(0, 121, 191)"
+      }
+    ],
+    "cancelled_at": null,
+    "in_current_feed": false
+  }
+]

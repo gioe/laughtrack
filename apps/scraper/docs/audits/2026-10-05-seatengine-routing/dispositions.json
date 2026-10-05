@@ -1,0 +1,236 @@
+[
+  {
+    "id": 5463281,
+    "source_id": "383814",
+    "disposition": "move",
+    "destination": "fireside-lounge",
+    "reason": "Event description explicitly addresses another physical venue."
+  },
+  {
+    "id": 5463282,
+    "source_id": "383817",
+    "disposition": "hold",
+    "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+  },
+  {
+    "id": 5463283,
+    "source_id": "383818",
+    "disposition": "hold",
+    "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+  },
+  {
+    "id": 5463284,
+    "source_id": "383819",
+    "disposition": "hold",
+    "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+  },
+  {
+    "id": 5463285,
+    "source_id": "383815",
+    "disposition": "move",
+    "destination": "fireside-lounge",
+    "reason": "Event description explicitly addresses another physical venue."
+  },
+  {
+    "id": 5463286,
+    "source_id": "383820",
+    "disposition": "hold",
+    "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+  },
+  {
+    "id": 5463287,
+    "source_id": "383821",
+    "disposition": "hold",
+    "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+  },
+  {
+    "id": 5463288,
+    "source_id": "383816",
+    "disposition": "move",
+    "destination": "fireside-lounge",
+    "reason": "Event description explicitly addresses another physical venue."
+  },
+  {
+    "id": 5463289,
+    "source_id": "383822",
+    "disposition": "hold",
+    "reason": "same_complex_address_difference: event names Cinema Grill without event-level street address; restaurant and parent theater publish different entrance addresses. Needs venue resolution, not counted as confirmed misrouting."
+  },
+  {
+    "id": 3879801,
+    "source_id": "379655",
+    "disposition": "preserve_same_venue",
+    "destination": "willie-mcbrides",
+    "reason": "Exact physical address matches assigned club; club display name remains organizer name."
+  },
+  {
+    "id": 3879802,
+    "source_id": "379656",
+    "disposition": "preserve_same_venue",
+    "destination": "willie-mcbrides",
+    "reason": "Exact physical address matches assigned club; club display name remains organizer name."
+  },
+  {
+    "id": 6039623,
+    "source_id": "385281",
+    "disposition": "hold",
+    "reason": "Already absent at revalidation; API now names Biergarten and records cancellation 2026-10-02. Do not recreate."
+  },
+  {
+    "id": 6039624,
+    "source_id": "385258",
+    "disposition": "preserve_same_venue",
+    "destination": "willie-mcbrides",
+    "reason": "Exact physical address matches assigned club; club display name remains organizer name."
+  },
+  {
+    "id": 7408993,
+    "source_id": "389229",
+    "disposition": "hold",
+    "reason": "Event title/description is artist biography only; JSON-LD location is organizer with blank street/locality/region. No specific venue evidence."
+  },
+  {
+    "id": 7408994,
+    "source_id": "389230",
+    "disposition": "hold",
+    "reason": "Event title/description is artist biography only; JSON-LD location is organizer with blank street/locality/region. No specific venue evidence."
+  },
+  {
+    "id": 3019125,
+    "source_id": "377225",
+    "disposition": "move",
+    "destination": "hoboken-biergarten",
+    "reason": "Event explicitly names and addresses another physical venue."
+  },
+  {
+    "id": 5955023,
+    "source_id": "384998",
+    "disposition": "preserve_same_venue",
+    "destination": "willie-mcbrides",
+    "reason": "Exact physical address matches assigned club; club display name remains organizer name."
+  },
+  {
+    "id": 5955024,
+    "source_id": "384993",
+    "disposition": "move",
+    "destination": "hoboken-biergarten",
+    "reason": "Event explicitly names and addresses another physical venue."
+  },
+  {
+    "id": 5955025,
+    "source_id": "384994",
+    "disposition": "move",
+    "destination": "hoboken-biergarten",
+    "reason": "Event explicitly names and addresses another physical venue."
+  },
+  {
+    "id": 5955026,
+    "source_id": "384995",
+    "disposition": "move",
+    "destination": "hoboken-biergarten",
+    "reason": "Event explicitly names and addresses another physical venue."
+  },
+  {
+    "id": 5955027,
+    "source_id": "384996",
+    "disposition": "move",
+    "destination": "hoboken-biergarten",
+    "reason": "Event explicitly names and addresses another physical venue."
+  },
+  {
+    "id": 5955028,
+    "source_id": "384997",
+    "disposition": "move",
+    "destination": "hoboken-biergarten",
+    "reason": "Event explicitly names and addresses another physical venue."
+  },
+  {
+    "id": 4189224,
+    "source_id": "380503",
+    "disposition": "move",
+    "destination": "white-rabbit",
+    "reason": "Historical identity/time revalidated by direct API; event-level White Rabbit address retained in September28 capture; current detail URL redirects to calendar."
+  },
+  {
+    "id": 3878365,
+    "source_id": "379390",
+    "disposition": "move",
+    "destination": "white-rabbit",
+    "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+  },
+  {
+    "id": 1395297,
+    "source_id": "370399",
+    "disposition": "move",
+    "destination": "white-rabbit",
+    "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+  },
+  {
+    "id": 6352262,
+    "source_id": "386091",
+    "disposition": "move",
+    "destination": "white-rabbit",
+    "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+  },
+  {
+    "id": 2760604,
+    "source_id": "376767",
+    "disposition": "move",
+    "destination": "fountain-square",
+    "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+  },
+  {
+    "id": 7066816,
+    "source_id": "388149",
+    "disposition": "move",
+    "destination": "white-rabbit",
+    "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+  },
+  {
+    "id": 3933246,
+    "source_id": "379736",
+    "disposition": "move",
+    "destination": "white-rabbit",
+    "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+  },
+  {
+    "id": 7066818,
+    "source_id": "388150",
+    "disposition": "move",
+    "destination": "white-rabbit",
+    "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+  },
+  {
+    "id": 5404524,
+    "source_id": "383603",
+    "disposition": "move",
+    "destination": "white-rabbit",
+    "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+  },
+  {
+    "id": 5466096,
+    "source_id": "383771",
+    "disposition": "move",
+    "destination": "white-rabbit",
+    "reason": "Public event title/description puts this event in Indianapolis, IN; stored club469 is West Nyack, NY."
+  },
+  {
+    "id": 1441452,
+    "source_id": "370667",
+    "disposition": "hold",
+    "reason": "Cancelled Chicago event: source offset -04 differs from Chicago -05; retain original date and quarantined club, record cancellation without guessing wall time."
+  },
+  {
+    "id": 4340528,
+    "source_id": "380864",
+    "disposition": "hold",
+    "reason": "Current API omits physical location; historical indexed Elite Rentals lead unconfirmed. Keep quarantined."
+  },
+  {
+    "id": 835461,
+    "source_id": "366585",
+    "disposition": "move",
+    "destination": "cornerstone",
+    "reason": "Direct API Muncie/Cornerstone labels, native and stored UTC instant agree."
+  }
+]

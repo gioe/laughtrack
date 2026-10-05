@@ -375,12 +375,35 @@ class ClubQueries:
     # See UPSERT_CLUB_BY_EVENTBRITE_VENUE comment above for why the final
     # SELECT projects from the CTE rather than JOINing the clubs table.
     UPSERT_CLUB_BY_SEATENGINE_VENUE = """
-        WITH upserted_club AS (
+        WITH input_venue (name, address, website, zip_code, city, state) AS (
+            VALUES (%s::text, %s::text, %s::text, %s::text, %s::text, %s::text)
+        ),
+        quarantined_clubs AS (
+            -- A disabled, dispositioned account can represent a promoter rather
+            -- than a physical venue. Do not refill deliberately cleared postal
+            -- identity from national account metadata (TASK-4109).
+            SELECT DISTINCT c.name
+            FROM clubs c
+            JOIN scraping_sources ss ON ss.club_id = c.id
+            WHERE ss.platform = 'seatengine' AND ss.enabled = FALSE
+              AND EXISTS (
+                  SELECT 1
+                  FROM jsonb_object_keys(COALESCE(ss.metadata, '{}'::jsonb)) k
+                  WHERE k LIKE 'task_%%_disposition'
+              )
+        ),
+        upserted_club AS (
             INSERT INTO clubs (
                 name, address, website, visible,
                 zip_code, city, state, phone_number, popularity, timezone
             )
-            VALUES (%s, %s, %s, TRUE, %s, %s, %s, '', 0, NULL)
+            SELECT iv.name, iv.address, iv.website, TRUE,
+                CASE WHEN qc.name IS NULL THEN iv.zip_code ELSE NULL END,
+                CASE WHEN qc.name IS NULL THEN iv.city ELSE NULL END,
+                CASE WHEN qc.name IS NULL THEN iv.state ELSE NULL END,
+                '', 0, NULL
+            FROM input_venue iv
+            LEFT JOIN quarantined_clubs qc ON qc.name = iv.name
             ON CONFLICT (name) DO UPDATE SET
                 -- Fill missing postal metadata without replacing a known ZIP.
                 zip_code = CASE WHEN NULLIF(TRIM(clubs.zip_code), '') IS NULL

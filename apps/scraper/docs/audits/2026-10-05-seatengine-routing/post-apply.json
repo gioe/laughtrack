@@ -1,0 +1,19 @@
+{
+  "verified_at": "2026-10-05T21:34:37.899664+00:00",
+  "routed_or_stamped": 24,
+  "confirmed_mismatches_corrected": 19,
+  "original_unknown_dispositions": 9,
+  "held_existing": 10,
+  "held_absent": 1,
+  "duplicate_show_retired": 1394784,
+  "canonical_show": 1395297,
+  "click_records_unchanged": 756,
+  "sources_disabled": [
+    289,
+    294
+  ],
+  "producer_club_identity_preserved": true,
+  "club_counts_verified": true,
+  "duplicate_identity_check": "passed",
+  "mode": "post_apply"
+}
