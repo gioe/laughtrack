@@ -17,7 +17,6 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
-
 # Parse "Thursday, April 09 at 7:00 PM" → (weekday, month, day, time, ampm)
 _DATETIME_RE = re.compile(
     r"(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+"
@@ -52,9 +51,11 @@ def _parse_performance(datetime_str: str) -> Optional[tuple]:
 class McCurdysEvent(ShowConvertible):
     """A single performance scraped from McCurdy's Comedy Theatre (Sarasota, FL)."""
 
-    title: str       # e.g. "Jamie Lissow"
-    date_str: str    # e.g. "Thursday, April 09 at 7:00 PM"
+    title: str  # e.g. "Jamie Lissow"
+    date_str: str  # e.g. "Thursday, April 09 at 7:00 PM"
     ticket_url: str  # e.g. "https://www.etix.com/ticket/p/80809268"
+    ticket_price: Optional[float] = None
+    price_text: str = ""
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -65,16 +66,11 @@ class McCurdysEvent(ShowConvertible):
 
         result = _parse_performance(self.date_str)
         if result is None:
-            Logger.debug(
-                f"McCurdysEvent: unparseable date/time {self.date_str!r} "
-                f"for '{self.title}' — skipping"
-            )
+            Logger.debug(f"McCurdysEvent: unparseable date/time {self.date_str!r} " f"for '{self.title}' — skipping")
             return None
 
         event_date, show_time = result
-        datetime_str = (
-            f"{event_date.year}-{event_date.month:02d}-{event_date.day:02d} {show_time}"
-        )
+        datetime_str = f"{event_date.year}-{event_date.month:02d}-{event_date.day:02d} {show_time}"
         start_dt = ShowFactoryUtils.safe_parse_datetime_string(
             datetime_str, "%Y-%m-%d %I:%M %p", club.timezone or "America/New_York"
         )
@@ -82,7 +78,9 @@ class McCurdysEvent(ShowConvertible):
             return None
 
         ticket_url = url or self.ticket_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        price = self.ticket_price if self.ticket_price is not None and 0 < self.ticket_price <= 1000000 else None
+        label = f"Admission — {self.price_text} (venue advertised)" if self.price_text else "General Admission"
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=price, ticket_type=label)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
