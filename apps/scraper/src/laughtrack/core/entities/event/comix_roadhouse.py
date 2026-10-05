@@ -1,10 +1,11 @@
 """Comix Roadhouse event model."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
+from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
@@ -18,6 +19,8 @@ class ComixRoadhouseEvent(ShowConvertible):
     show_page_url: str
     ticket_url: str = ""
     description: str = ""
+    tickets: list[Ticket] = field(default_factory=list)
+    checkout_policies: list[str] = field(default_factory=list)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         try:
@@ -29,7 +32,8 @@ class ComixRoadhouseEvent(ShowConvertible):
 
         page_url = url or self.show_page_url
         ticket_url = self.ticket_url or page_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)] if ticket_url else []
+        tickets = self.tickets or ([ShowFactoryUtils.create_fallback_ticket(ticket_url)] if ticket_url else [])
+        description = "\n\n".join(filter(None, [self.description, *self.checkout_policies]))
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.name,
@@ -39,6 +43,6 @@ class ComixRoadhouseEvent(ShowConvertible):
             lineup=[],
             tickets=tickets,
             supplied_tags=["event"],
-            description=self.description or None,
+            description=description or None,
             enhanced=enhanced,
         )

@@ -116,9 +116,7 @@ def test_extract_detail_events_with_ticket_urls():
         "https://events.leapevents.com/event/preacher-lawson-092626k7ajclx",
         "https://events.leapevents.com/event/preacher-lawson-092626ung7tzy",
     ]
-    assert {event.show_page_url for event in events} == {
-        "https://www.comixroadhouse.com/comics/preacher-lawson-092626"
-    }
+    assert {event.show_page_url for event in events} == {"https://www.comixroadhouse.com/comics/preacher-lawson-092626"}
 
 
 @pytest.mark.asyncio
@@ -157,7 +155,10 @@ async def test_get_data_fetches_listing_pages_and_detail_pages(monkeypatch):
         "https://www.comixroadhouse.com/calendar/in-the-comedy-club?032cf745_page=2",
         "https://www.comixroadhouse.com/comics/preacher-lawson-092626",
         "https://www.comixroadhouse.com/comics/another-comic-100326",
+        "https://events.leapevents.com/event/preacher-lawson-092626k7ajclx",
+        "https://events.leapevents.com/event/preacher-lawson-092626ung7tzy",
     ]
+    assert all(not event.tickets for event in result.event_list)
 
 
 def test_scraper_class_has_correct_key():
