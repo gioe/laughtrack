@@ -102,7 +102,7 @@ async def test_get_data_returns_page_data_with_shows(monkeypatch):
     """get_data() returns DenverComedyLoungePageData with the extracted shows."""
     scraper = DenverComedyLoungeScraper(_club())
 
-    async def _fake_fetch_html(url):
+    async def _fake_fetch_html(url, **kwargs):
         return FIXTURE_HTML
 
     monkeypatch.setattr(scraper, "fetch_html", _fake_fetch_html)
@@ -182,8 +182,8 @@ _DETAIL_HTML = """
 
 
 def test_extract_offer_price_returns_lowest_positive_offer():
-    """The lowest positive Offer price is the representative ticket price."""
-    assert DenverComedyLoungeExtractor.extract_offer_price(_DETAIL_HTML) == 21.0
+    """Unidentified offers must not become admission prices."""
+    assert DenverComedyLoungeExtractor.extract_offer_price(_DETAIL_HTML) is None
 
 
 def test_extract_offer_price_none_without_offers():
@@ -193,13 +193,13 @@ def test_extract_offer_price_none_without_offers():
 
 
 def test_extract_offer_price_zero_only_offers_is_free():
-    """Offers that all parse to 0 mean an explicitly free show (0.0, not None)."""
+    """Zero offers without identified admission remain unknown."""
     free_html = """
     <html><head><script type="application/ld+json">
     {"@type":"Event","offers":[{"@type":"Offer","price":0,"priceCurrency":"USD"}]}
     </script></head><body></body></html>
     """
-    assert DenverComedyLoungeExtractor.extract_offer_price(free_html) == 0.0
+    assert DenverComedyLoungeExtractor.extract_offer_price(free_html) is None
 
 
 @pytest.mark.asyncio
@@ -207,9 +207,19 @@ async def test_get_data_hydrates_price_from_detail_pages(monkeypatch):
     """get_data() fetches each detail page and attaches its Offer price."""
     scraper = DenverComedyLoungeScraper(_club())
 
-    async def _dispatch_fetch_html(url):
+    async def _dispatch_fetch_html(url, **kwargs):
         # Listing URL → ItemList page; per-show detail URLs → Event w/ offers.
-        return FIXTURE_HTML if url == SHOWS_URL else _DETAIL_HTML
+        if url == SHOWS_URL:
+            return FIXTURE_HTML
+        import json
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        show = next(s for s in DenverComedyLoungeExtractor.extract_shows(FIXTURE_HTML) if s.show_page_url == url)
+        event = {"@type": "Event", "url": url, "eventStatus": "https://schema.org/EventScheduled",
+                 "startDate": datetime.strptime(show.datetime_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=ZoneInfo("America/Denver")).isoformat(),
+                 "offers": [{"@type": "Offer", "name": "General Admission", "url": url, "price": 21,
+                             "priceCurrency": "USD", "availability": "https://schema.org/InStock"}]}
+        return '<script type="application/ld+json">' + json.dumps(event) + '</script>' 
 
     monkeypatch.setattr(scraper, "fetch_html", _dispatch_fetch_html)
 
@@ -229,7 +239,7 @@ async def test_get_data_leaves_price_none_when_detail_fetch_fails(monkeypatch):
     """A failing detail fetch leaves price None without dropping the show."""
     scraper = DenverComedyLoungeScraper(_club())
 
-    async def _failing_detail_fetch(url):
+    async def _failing_detail_fetch(url, **kwargs):
         if url == SHOWS_URL:
             return FIXTURE_HTML
         raise RuntimeError("boom")

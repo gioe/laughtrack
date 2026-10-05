@@ -14,6 +14,8 @@ Pipeline:
   3. transformation_pipeline    -> DenverComedyLoungeShow.to_show() -> Show objects
 """
 
+import asyncio
+
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -77,18 +79,20 @@ class DenverComedyLoungeScraper(BaseScraper):
         page, or one without offers, simply leaves ``price`` as None rather than
         dropping the show.
         """
-        for show in shows:
-            try:
-                detail_html = await self.fetch_html(show.show_page_url)
-            except Exception as e:
-                Logger.warn(
-                    f"{self._log_prefix}: price fetch failed for "
-                    f"{show.show_page_url}: {e}",
-                    self.logger_context,
-                )
-                continue
-            if not detail_html:
-                continue
-            price = DenverComedyLoungeExtractor.extract_offer_price(detail_html)
-            if price is not None:
-                show.price = price
+        semaphore = asyncio.Semaphore(4)
+
+        async def hydrate(show):
+            async with semaphore:
+                try:
+                    detail_html = await asyncio.wait_for(
+                        self.fetch_html(show.show_page_url, skip_js_fallback=True), 10)
+                    price = DenverComedyLoungeExtractor.extract_offer_price(detail_html, show)
+                    if price is not None:
+                        show.price = price
+                except Exception as exc:
+                    Logger.warn(f"{self._log_prefix}: price fetch failed for {show.show_page_url}: {exc}")
+
+        try:
+            await asyncio.wait_for(asyncio.gather(*(hydrate(show) for show in shows)), 30)
+        except asyncio.TimeoutError:
+            Logger.warn(f"{self._log_prefix}: price enrichment exceeded 30 seconds")

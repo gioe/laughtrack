@@ -1,6 +1,11 @@
 """Extractor for Denver Comedy Lounge's /shows ItemList page."""
 
 import re
+import json
+from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
+from zoneinfo import ZoneInfo
+from laughtrack.core.clients.rsc.extractor import extract_push_payloads, extract_balanced
 from typing import Any, List, Optional
 from urllib.parse import urlparse
 
@@ -110,57 +115,101 @@ class DenverComedyLoungeExtractor:
         return hour
 
     @staticmethod
-    def extract_offer_price(html_content: str) -> Optional[float]:
-        """Return the lowest schema.org Offer price from a /shows/<slug> detail page.
+    def extract_offer_price(html_content: str, show: Optional[DenverComedyLoungeShow] = None,
+                            *, now: Optional[datetime] = None) -> Optional[float]:
+        """Read matched, currently available USD General Admission; never VIP packages.
 
-        The /shows ItemList page carries only name + URL, but each per-show
-        detail page server-renders an ``Event`` JSON-LD block with an
-        ``offers`` array (``{"@type":"Offer","price":21,"priceCurrency":"USD"}``).
-        Return the lowest positive offer price as the representative ticket
-        price, ``0.0`` only when every offer is explicitly free, and ``None``
-        when no parseable offer price is present.
+        Streamed text chunks can split objects, so decode and concatenate the flight
+        before balanced extraction. Only top-level Event objects are candidates.
         """
-        if not html_content:
+        if not html_content or show is None:
             return None
-
-        script_contents = HtmlScraper.get_json_ld_script_contents(html_content)
-        if not script_contents:
-            return None
-
-        json_objects = JSONUtils.parse_json_ld_contents(script_contents)
-        prices: List[float] = []
-        for obj in json_objects:
-            if not isinstance(obj, dict):
-                continue
-            offers = obj.get("offers")
-            if offers is None:
-                continue
-            offer_list = offers if isinstance(offers, list) else [offers]
-            for offer in offer_list:
-                if not isinstance(offer, dict):
-                    continue
-                price = DenverComedyLoungeExtractor._coerce_price(offer.get("price"))
-                if price is not None:
-                    prices.append(price)
-
-        if not prices:
-            return None
-        positive = [p for p in prices if p > 0]
-        if positive:
-            return min(positive)
-        # Every offer parsed to 0 — the show is genuinely free.
-        return 0.0
-
-    @staticmethod
-    def _coerce_price(value: Any) -> Optional[float]:
-        """Coerce a JSON-LD Offer price to a non-negative float, else None."""
-        if value is None or isinstance(value, bool):
-            return None
+        now = now or datetime.now(timezone.utc)
         try:
-            price = float(value)
-        except (TypeError, ValueError):
+            expected = datetime.strptime(show.datetime_str, "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=ZoneInfo("America/Denver"))
+        except ValueError:
             return None
-        return price if price >= 0 else None
+        if expected <= now:
+            return None
+
+        def identity(url):
+            if not isinstance(url, str):
+                return None
+            parsed = urlparse(url)
+            if parsed.scheme != "https" or parsed.netloc not in (
+                    "denvercomedylounge.com", "www.denvercomedylounge.com"):
+                return None
+            path = parsed.path.rstrip("/")
+            return path if path.startswith("/shows/") else None
+
+        target = identity(show.show_page_url)
+        if not target:
+            return None
+        objects = JSONUtils.parse_json_ld_contents(
+            HtmlScraper.get_json_ld_script_contents(html_content))
+        flight = "".join(extract_push_payloads(html_content))
+        # Walk complete outer objects, avoiding nested related-show props.
+        cursor = 0
+        while (start := flight.find("{", cursor)) >= 0:
+            block = extract_balanced(flight, start, "{", "}")
+            if not block:
+                break
+            cursor = start + len(block)
+            try:
+                objects.append(json.loads(block))
+            except ValueError:
+                continue
+        matched = []
+        for obj in objects:
+            if not isinstance(obj, dict) or obj.get("@type") != "Event":
+                continue
+            if identity(obj.get("url")) != target:
+                continue
+            try:
+                start = datetime.fromisoformat(obj.get("startDate", "").replace("Z", "+00:00"))
+            except (ValueError, TypeError, AttributeError):
+                continue
+            if start.tzinfo is None or start != expected:
+                continue
+            matched.append(obj)
+        prices = set()
+        for event in matched:
+            if event.get("eventStatus") != "https://schema.org/EventScheduled":
+                return None
+            offers = event.get("offers")
+            if not isinstance(offers, list):
+                offers = [offers]
+            admission = []
+            for offer in offers:
+                if not isinstance(offer, dict) or offer.get("name") != "General Admission":
+                    continue
+                if (offer.get("@type") != "Offer" or offer.get("priceCurrency") != "USD"
+                        or offer.get("availability") != "https://schema.org/InStock"
+                        or identity(offer.get("url")) != target
+                        or offer.get("eligibleQuantity") or offer.get("description")):
+                    return None
+                for key, lower in (("validFrom", True), ("validThrough", False),
+                                   ("availabilityStarts", True), ("availabilityEnds", False)):
+                    if key not in offer:
+                        continue
+                    try:
+                        boundary = datetime.fromisoformat(offer[key].replace("Z", "+00:00"))
+                        if boundary.tzinfo is None or (now < boundary if lower else now >= boundary):
+                            return None
+                    except (ValueError, TypeError, AttributeError):
+                        return None
+                try:
+                    price = Decimal(str(offer.get("price")))
+                except InvalidOperation:
+                    return None
+                if not price.is_finite() or not 0 < price < 1000000:
+                    return None
+                admission.append(float(price))
+            if len(admission) != 1:
+                return None
+            prices.add(admission[0])
+        return prices.pop() if len(prices) == 1 else None
 
 
 __all__ = ["DenverComedyLoungeExtractor"]
