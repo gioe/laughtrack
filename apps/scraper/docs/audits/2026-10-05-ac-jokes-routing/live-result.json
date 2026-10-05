@@ -1,0 +1,65 @@
+{
+  "session": {
+    "duration_seconds": 3.769652,
+    "exported_at": "2026-10-05T19:04:22.258621"
+  },
+  "shows": {
+    "scraped": 49,
+    "saved": 49,
+    "inserted": 0,
+    "updated": 49,
+    "failed_save": 0,
+    "skipped_dedup": 0,
+    "validation_failed": 0,
+    "db_errors": 0
+  },
+  "clubs": {
+    "processed": 1,
+    "successful": 0,
+    "failed": 1
+  },
+  "errors": {
+    "total": 1
+  },
+  "success_rate": 100.0,
+  "execution_times": [
+    3.769652
+  ],
+  "per_club_stats": [
+    {
+      "club": "AC Jokes",
+      "num_shows": 49,
+      "execution_time": 3.769652,
+      "success": false,
+      "error": "Wix venue routing incomplete: 3 held/error item(s)",
+      "club_id": 412,
+      "errors": 0,
+      "success_rate": 0.0,
+      "http_status": null,
+      "bot_block_detected": false,
+      "bot_block_signature": null,
+      "bot_block_provider": null,
+      "bot_block_type": null,
+      "bot_block_source": null,
+      "bot_block_stage": null,
+      "playwright_fallback_used": false,
+      "items_before_filter": 52,
+      "targets_collected": 1,
+      "fetches_ok": 1,
+      "fetches_failed": 0,
+      "ticketless_shows": 0,
+      "is_synthetic": false,
+      "production_company_id": null
+    }
+  ],
+  "error_details": [
+    {
+      "club": "AC Jokes",
+      "error": "Wix venue routing incomplete: 3 held/error item(s)",
+      "execution_time": 3.769652
+    }
+  ],
+  "duplicate_show_details": [],
+  "run_type": "verify",
+  "verification_note": "The incomplete result is intentional: three unreviewed Royce occurrences are held, disabling stale reconciliation while 49 reviewed existing shows update."
+}

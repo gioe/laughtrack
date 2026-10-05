@@ -100,3 +100,25 @@ upstream divergence or flakiness. This limitation is unrelated to these changes.
 Production apply, immediate idempotence, and subsequent live-scrape outcomes are
 recorded in the adjacent sanitized result and verification files. Live validation
 uses the normal scraper command, `make scrape-club-id ID=412`.
+
+Applied destination IDs are Hi Point **90822**, Cove **90823**, and AC Jokes
+production company **46**. Independent post-apply comparison found exactly the
+three approved fields changed on exactly the three reviewed show IDs. The
+immediate repeat returned `already_applied: true` without further mutation.
+
+The live run updated **49 existing shows, inserted zero**, and held Royce shows
+7898492, 7898494, and 7898497. All 192 show IDs, dates, URLs, room labels, and
+cancellation states remain stable; all seven dependent tables compare exactly
+equal to the original snapshot. The 46 Resorts events and three offsite events
+carry producer 46. Normal scraping refreshed timestamps/popularity and one
+Resorts title/description. The three held Royce rows are wholly unchanged.
+`live-result.json` intentionally reports an incomplete scrape because of the
+three holds, preventing stale-show reconciliation; it has zero database errors.
+
+When using a shared virtual environment from a sibling worktree, explicitly set
+`PYTHONPATH` to the worktree's absolute `apps/scraper/src:apps/scraper` paths
+before invoking make. The first launch without this selected stale modules in
+the primary checkout and failed the show upsert (column/value mismatch). Its
+cleanup safety cap prevented deletion. The corrected run loaded the worktree
+modules and produced the verified 49 updates above; the post-run database
+comparison also confirms that the failed launch did not lose dependent data.

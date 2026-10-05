@@ -1,0 +1,336 @@
+{
+  "stage": "live",
+  "verified_at": "2026-10-05T23:05:27.170013+00:00",
+  "show_count": 192,
+  "dependent_counts": {
+    "tickets": 192,
+    "lineup_items": 12,
+    "tagged_shows": 989,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 2792
+  },
+  "changed_show_fields": {
+    "7190388": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190389": [
+      "name",
+      "description",
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7349809": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7349810": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190392": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190393": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190394": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7349814": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7475796": [
+      "club_id",
+      "popularity",
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7349816": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190398": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190399": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190400": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7349820": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7349821": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190403": [
+      "popularity",
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190404": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7190405": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7349825": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7349826": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851605": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "6537828": [
+      "club_id",
+      "popularity",
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851607": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937070": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937071": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851611": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851612": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937072": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937073": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851616": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851617": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937074": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937075": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851621": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851622": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7898523": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937076": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937077": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851625": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7851626": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937078": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937079": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "6537839": [
+      "club_id",
+      "popularity",
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937081": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937082": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937083": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937084": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "937085": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "4562202": [
+      "last_scraped_date",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ]
+  },
+  "absent_show_6537818_still_absent": true,
+  "source_ownership_preserved": true,
+  "clubs": {
+    "cove": 90823,
+    "hi-point": 90822,
+    "resorts": 412
+  },
+  "producers": {
+    "ac-jokes": 46
+  },
+  "routed_existing_show_ids": [
+    7190388,
+    7190389,
+    7349809,
+    7349810,
+    7190392,
+    7190393,
+    7190394,
+    7349814,
+    7349816,
+    7475796,
+    7190398,
+    7190399,
+    7190400,
+    7349820,
+    7349821,
+    7190403,
+    7190404,
+    7190405,
+    7349825,
+    7349826,
+    7851605,
+    6537828,
+    7851607,
+    937070,
+    937071,
+    7851611,
+    7851612,
+    937072,
+    937073,
+    7851616,
+    7851617,
+    937074,
+    937075,
+    7851621,
+    7851622,
+    7898523,
+    937076,
+    937077,
+    7851625,
+    7851626,
+    937078,
+    937079,
+    6537839,
+    937081,
+    937082,
+    937083,
+    937084,
+    937085,
+    4562202
+  ],
+  "held_existing_show_ids": [
+    7898492,
+    7898494,
+    7898497
+  ]
+}
