@@ -1,0 +1,41 @@
+{
+  "mode": "apply",
+  "already_applied": false,
+  "before": {
+    "shows": 192,
+    "clubs": 1,
+    "production_companies": 0,
+    "production_company_venues": 0,
+    "scraping_sources": 1,
+    "tickets": 192,
+    "lineup_items": 12,
+    "tagged_shows": 989,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 2792
+  },
+  "after": {
+    "shows": 192,
+    "clubs": 3,
+    "production_companies": 1,
+    "production_company_venues": 3,
+    "scraping_sources": 1,
+    "tickets": 192,
+    "lineup_items": 12,
+    "tagged_shows": 989,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 2792
+  },
+  "clubs": {
+    "resorts": 412,
+    "hi-point": 90822,
+    "cove": 90823
+  },
+  "producers": {
+    "ac-jokes": 46
+  },
+  "completion": "COMMITTED: verified AC Jokes venue repair"
+}

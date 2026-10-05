@@ -1,0 +1,120 @@
+{
+  "original_counts": {
+    "total": 44,
+    "correct": 40,
+    "confirmed_mismatch": 4,
+    "unknown": 0
+  },
+  "preserved_resorts_ids": [
+    7295244,
+    7190383,
+    7349803,
+    7349804,
+    7190386,
+    7190388,
+    7190389,
+    7349809,
+    7349810,
+    7190392,
+    7190393,
+    7190394,
+    7349814,
+    7349816,
+    7190398,
+    7190399,
+    7190400,
+    7349820,
+    7349821,
+    7190403,
+    7190404,
+    7190405,
+    7349825,
+    7349826,
+    937070,
+    937071,
+    937072,
+    937073,
+    937074,
+    937075,
+    937076,
+    937077,
+    937078,
+    937079,
+    937081,
+    937082,
+    937083,
+    937084,
+    937085,
+    4562202
+  ],
+  "current_source_show_count": 192,
+  "dispositions": [
+    {
+      "show_id": 6537828,
+      "native_id": "62de849d-f169-4e97-b36a-1ed231ca70ce",
+      "disposition": "move",
+      "destination": "hi-point",
+      "date": "2026-11-02T02:00:00+00:00",
+      "url": "https://www.acjokes.com/event-details/11-01-2026-comedy-at-hi-point-pub-8PM",
+      "room": "Hi Point Pub",
+      "evidence": "Current complete Wix API exact native ID, slug and UTC instant; event structured address agrees with official physical venue website."
+    },
+    {
+      "show_id": 6537839,
+      "native_id": "64ec3d58-fd2e-4b93-81fc-06e4c254ba5f",
+      "disposition": "move",
+      "destination": "hi-point",
+      "date": "2026-12-07T02:00:00+00:00",
+      "url": "https://www.acjokes.com/event-details/12-06-2026-comedy-at-hi-point-pub-8PM",
+      "room": "Hi Point Pub",
+      "evidence": "Current complete Wix API exact native ID, slug and UTC instant; event structured address agrees with official physical venue website."
+    },
+    {
+      "show_id": 7475796,
+      "native_id": "d7147741-9393-419a-a701-475d47c63473",
+      "disposition": "move",
+      "destination": "cove",
+      "date": "2026-10-18T00:00:00+00:00",
+      "url": "https://www.acjokes.com/event-details/10-17-2026-8PM-comedy-at-the-cove-ft-buda-the-comedian",
+      "room": "The Cove Restaurant",
+      "evidence": "Current complete Wix API exact native ID, slug and UTC instant; event structured address agrees with official physical venue website."
+    },
+    {
+      "show_id": 6537818,
+      "native_id": "3d54131b-e3dd-41d8-98a4-4bd7651abb75",
+      "disposition": "retain_absence",
+      "date": "2026-10-05T01:00:00+00:00",
+      "reason": "Expired October4 performance absent from current database and complete upcoming API. No cancellation inferred; no show or references recreated from stale evidence."
+    },
+    {
+      "show_id": 7898492,
+      "native_id": "3a929c46-de3e-443e-a4ea-a9efcb19cac2",
+      "disposition": "hold_outside_repair_cohort",
+      "url": "https://www.acjokes.com/event-details/10-16-2026-8PM-Tropicana-ft-stoner-rob",
+      "stored_date": "2026-10-17T00:30:00+00:00",
+      "source_date": "2026-10-17T00:30:00.000Z",
+      "location": "2801 Pacific Ave Suite 308, Atlantic City, NJ 08401, USA",
+      "reason": "New location not in the four reviewed TASK4110 repair IDs. Hold source occurrence and preserve existing row; separate venue/time reconciliation required."
+    },
+    {
+      "show_id": 7898494,
+      "native_id": "54f73481-a918-4f0c-8a45-b42a6995f47e",
+      "disposition": "hold_outside_repair_cohort",
+      "url": "https://www.acjokes.com/event-details/10-17-2026-7PM-Tropicana-ft-aaron-berg",
+      "stored_date": "2026-10-17T23:00:00+00:00",
+      "source_date": "2026-10-17T23:00:00.000Z",
+      "location": "2801 Pacific Ave Suite 308, Atlantic City, NJ 08401, USA",
+      "reason": "New location not in the four reviewed TASK4110 repair IDs. Hold source occurrence and preserve existing row; separate venue/time reconciliation required."
+    },
+    {
+      "show_id": 7898497,
+      "native_id": "2634bee1-2f29-42bf-b9a8-d23e175021ea",
+      "disposition": "hold_outside_repair_cohort",
+      "url": "https://www.acjokes.com/event-details/10-17-2026-9PM-Tropicana-ft-aaron-berg",
+      "stored_date": "2026-10-18T01:00:00+00:00",
+      "source_date": "2026-10-18T01:00:00.000Z",
+      "location": "2801 Pacific Ave Suite 308, Atlantic City, NJ 08401, USA",
+      "reason": "New location not in the four reviewed TASK4110 repair IDs. Hold source occurrence and preserve existing row; separate venue/time reconciliation required."
+    }
+  ]
+}

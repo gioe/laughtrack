@@ -1,0 +1,38 @@
+[
+  {
+    "key": "hi-point",
+    "name": "Hi Point Pub",
+    "source_url": "https://reddogs-hipointpub.com/",
+    "website": "https://reddogs-hipointpub.com/",
+    "address": "5 N Shore Rd",
+    "city": "Absecon",
+    "state": "NJ",
+    "zip_code": "08201",
+    "timezone": "America/New_York",
+    "timezone_basis": "Eastern time from verified New Jersey city",
+    "retrieved_at": "2026-10-05T22:40:59.297644+00:00",
+    "http_status": 200,
+    "final_url": "https://reddogs-hipointpub.com/",
+    "fallback": false,
+    "sha256": "e61f8898fdf49372cdb3e415ef6007b4c7e88701ec521d18507ed267f853a747",
+    "address_quote": "5 N Shore Rd What areas do you serve? We serve the following areas: Absecon , Conovertown "
+  },
+  {
+    "key": "cove",
+    "name": "The Cove Restaurant",
+    "source_url": "https://www.thecovebrig.com/location/the-cove/",
+    "website": "https://www.thecovebrig.com/",
+    "address": "3700 Brigantine Blvd",
+    "city": "Brigantine",
+    "state": "NJ",
+    "zip_code": "08203",
+    "timezone": "America/New_York",
+    "timezone_basis": "Eastern time from verified New Jersey city",
+    "retrieved_at": "2026-10-05T22:40:59.748489+00:00",
+    "http_status": 200,
+    "final_url": "https://www.thecovebrig.com/location/the-cove/",
+    "fallback": false,
+    "sha256": "b4b4f5b7b06884c70857bdbbe29a61bbf5f1ff66eaca83660688a48008408d77",
+    "address_quote": "3700 Brigantine Blvd, Brigantine, NJ 08203 609-264-5740 Hours & Location Menus Happy Hour "
+  }
+]

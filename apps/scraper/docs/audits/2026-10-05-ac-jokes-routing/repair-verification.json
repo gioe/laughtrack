@@ -1,0 +1,41 @@
+{
+  "stage": "repair",
+  "verified_at": "2026-10-05T23:02:56.121943+00:00",
+  "show_count": 192,
+  "dependent_counts": {
+    "tickets": 192,
+    "lineup_items": 12,
+    "tagged_shows": 989,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 2792
+  },
+  "changed_show_fields": {
+    "7475796": [
+      "club_id",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "6537828": [
+      "club_id",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "6537839": [
+      "club_id",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ]
+  },
+  "absent_show_6537818_still_absent": true,
+  "source_ownership_preserved": true,
+  "clubs": {
+    "cove": 90823,
+    "hi-point": 90822,
+    "resorts": 412
+  },
+  "producers": {
+    "ac-jokes": 46
+  }
+}

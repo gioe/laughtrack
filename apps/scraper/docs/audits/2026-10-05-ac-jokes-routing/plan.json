@@ -1,0 +1,3044 @@
+{
+  "task_id": 4110,
+  "clubs": {
+    "resorts": {
+      "id": 412,
+      "fields": {
+        "name": "AC Jokes",
+        "address": "1133 Boardwalk, Atlantic City, NJ 08401, USA",
+        "website": "https://www.acjokes.com",
+        "city": "Atlantic City",
+        "state": "NJ",
+        "zip_code": "08401",
+        "timezone": "America/New_York",
+        "visible": true
+      }
+    },
+    "hi-point": {
+      "fields": {
+        "name": "Hi Point Pub",
+        "address": "5 N Shore Rd",
+        "website": "https://reddogs-hipointpub.com/",
+        "city": "Absecon",
+        "state": "NJ",
+        "zip_code": "08201",
+        "timezone": "America/New_York",
+        "visible": true
+      }
+    },
+    "cove": {
+      "fields": {
+        "name": "The Cove Restaurant",
+        "address": "3700 Brigantine Blvd",
+        "website": "https://www.thecovebrig.com/",
+        "city": "Brigantine",
+        "state": "NJ",
+        "zip_code": "08203",
+        "timezone": "America/New_York",
+        "visible": true
+      }
+    }
+  },
+  "producers": {
+    "ac-jokes": {
+      "fields": {
+        "name": "AC Jokes",
+        "slug": "ac-jokes",
+        "website": "https://www.acjokes.com",
+        "visible": true
+      }
+    }
+  },
+  "shows": [
+    {
+      "id": 6537828,
+      "before": {
+        "id": 6537828,
+        "club_id": 412,
+        "name": "Absecon Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 11/1/26 - 9PM",
+        "date": "2026-11-02T02:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-01-2026-comedy-at-hi-point-pub-8PM",
+        "room": "Hi Point Pub",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      },
+      "club": "hi-point",
+      "producer": "ac-jokes"
+    },
+    {
+      "id": 6537839,
+      "before": {
+        "id": 6537839,
+        "club_id": 412,
+        "name": "Absecon Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 12/6/26 - 9PM",
+        "date": "2026-12-07T02:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/12-06-2026-comedy-at-hi-point-pub-8PM",
+        "room": "Hi Point Pub",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      },
+      "club": "hi-point",
+      "producer": "ac-jokes"
+    },
+    {
+      "id": 7475796,
+      "before": {
+        "id": 7475796,
+        "club_id": 412,
+        "name": "A Night of Comedy at The Cove | 10/17/26 - 8PM",
+        "date": "2026-10-18T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-17-2026-8PM-comedy-at-the-cove-ft-buda-the-comedian",
+        "room": "The Cove Restaurant",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      },
+      "club": "cove",
+      "producer": "ac-jokes"
+    }
+  ],
+  "holds": [
+    {
+      "id": 936979,
+      "before": {
+        "id": 936979,
+        "club_id": 412,
+        "name": "Justin Lamar & Special Guests | 4/10/26 - 9PM",
+        "date": "2026-04-11T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-10-2026-9PM-comedy-at-resorts-ft-justin-lamar",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936980,
+      "before": {
+        "id": 936980,
+        "club_id": 412,
+        "name": "Gary G Garcia & Special Guests | 4/11/26 - 8PM",
+        "date": "2026-04-12T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-11-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936981,
+      "before": {
+        "id": 936981,
+        "club_id": 412,
+        "name": "Elijah The Barber & Special Guests | 4/12/26 - 8PM",
+        "date": "2026-04-13T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-12-2026-8PM-comedy-at-resorts-ft-elijah-the-barber",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936982,
+      "before": {
+        "id": 936982,
+        "club_id": 412,
+        "name": "Gary G Garcia & Special Guests | 4/13/26 - 8PM",
+        "date": "2026-04-14T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-13-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936983,
+      "before": {
+        "id": 936983,
+        "club_id": 412,
+        "name": "Brian Isley & Special Guests | 4/17/26 - 8PM",
+        "date": "2026-04-18T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-17-2026-8PM-comedy-at-the-cove-ft-brian-isley",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936984,
+      "before": {
+        "id": 936984,
+        "club_id": 412,
+        "name": "Matthew Moyer & Special Guests | 4/17/26 - 9PM",
+        "date": "2026-04-18T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-17-2026-9PM-comedy-at-resorts-ft-matthew-moyer",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936985,
+      "before": {
+        "id": 936985,
+        "club_id": 412,
+        "name": "Connor King & Special Guests | 4/18/26 - 8PM",
+        "date": "2026-04-19T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-18-2026-8PM-comedy-at-resorts-ft-connor-king",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936986,
+      "before": {
+        "id": 936986,
+        "club_id": 412,
+        "name": "Gary G Garcia & Special Guests | 4/19/26 - 8PM",
+        "date": "2026-04-20T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-19-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936987,
+      "before": {
+        "id": 936987,
+        "club_id": 412,
+        "name": "Mel Harris & Special Guests | 4/20/26 - 8PM",
+        "date": "2026-04-21T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-20-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936988,
+      "before": {
+        "id": 936988,
+        "club_id": 412,
+        "name": "Josh Adam Meyers at The Hook Theater",
+        "date": "2026-04-24T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/josh-adam-meyers-at-the-hook-theater",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936989,
+      "before": {
+        "id": 936989,
+        "club_id": 412,
+        "name": "Gary G Garcia & Special Guests | 4/24/26 - 9PM",
+        "date": "2026-04-25T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-24-2026-9PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936990,
+      "before": {
+        "id": 936990,
+        "club_id": 412,
+        "name": "Christine Carolyn & Special Guests | 4/25/26 - 8PM",
+        "date": "2026-04-26T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-25-2026-8PM-comedy-at-resorts-ft-christine-carolyn",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936991,
+      "before": {
+        "id": 936991,
+        "club_id": 412,
+        "name": "Gary G Garcia & Special Guests | 4/26/26 - 8PM",
+        "date": "2026-04-27T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-26-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936992,
+      "before": {
+        "id": 936992,
+        "club_id": 412,
+        "name": "Buda The Comedian & Special Guests | 4/27/26 - 8PM",
+        "date": "2026-04-28T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/04-27-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936993,
+      "before": {
+        "id": 936993,
+        "club_id": 412,
+        "name": "Buda The Comedian & Special Guests | 5/1/26 - 9PM",
+        "date": "2026-05-02T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-01-2026-9PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 1256178,
+      "before": {
+        "id": 1256178,
+        "club_id": 412,
+        "name": "Mel Harris & Special Guests | 5/2/26 - 7PM",
+        "date": "2026-05-02T23:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-03-2026-7PM-comedy-at-hi-point-pub-ft-mel-harris",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936994,
+      "before": {
+        "id": 936994,
+        "club_id": 412,
+        "name": "Gary G Garcia & Special Guests | 5/2/26 - 8PM",
+        "date": "2026-05-03T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-02-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 949595,
+      "before": {
+        "id": 949595,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 5/3/26 - 7PM",
+        "date": "2026-05-03T23:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-03-2026-comedy-at-hi-point-pub-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936995,
+      "before": {
+        "id": 936995,
+        "club_id": 412,
+        "name": "Gary G Garcia & Special Guests | 5/3/26 - 8PM",
+        "date": "2026-05-04T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-03-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936996,
+      "before": {
+        "id": 936996,
+        "club_id": 412,
+        "name": "Buda The Comedian & Special Guests | 5/4/26 - 8PM",
+        "date": "2026-05-05T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-04-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936997,
+      "before": {
+        "id": 936997,
+        "club_id": 412,
+        "name": "Gary G Garcia & Special Guests | 5/8/26 - 9PM",
+        "date": "2026-05-09T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-08-2026-9PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": null
+      }
+    },
+    {
+      "id": 936998,
+      "before": {
+        "id": 936998,
+        "club_id": 412,
+        "name": "Irma Ruiz & Special Guests | 5/9/26 - 8PM",
+        "date": "2026-05-10T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-09-2026-8PM-comedy-at-resorts-ft-irma-ruiz",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 936999,
+      "before": {
+        "id": 936999,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Sunday Night Stand-Up at Resorts | 5/10/26 - 8PM",
+        "date": "2026-05-11T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-10-2026-comedy-at-resorts-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937000,
+      "before": {
+        "id": 937000,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 5/11/26 - 8PM",
+        "date": "2026-05-12T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-11-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937001,
+      "before": {
+        "id": 937001,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 5/15/26 - 9PM",
+        "date": "2026-05-16T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-15-2026-9PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937002,
+      "before": {
+        "id": 937002,
+        "club_id": 412,
+        "name": "Live Laughs at The Cove | 5/16/26 - 8PM",
+        "date": "2026-05-17T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-16-2026-8PM-comedy-at-the-cove-ft-connor-king",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937003,
+      "before": {
+        "id": 937003,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 5/17/26 - 8PM",
+        "date": "2026-05-18T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-17-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937004,
+      "before": {
+        "id": 937004,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 5/18/26 - 8PM",
+        "date": "2026-05-19T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-18-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937005,
+      "before": {
+        "id": 937005,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 5/22/26 - 9PM",
+        "date": "2026-05-23T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-22-2026-9PM-comedy-at-resorts-ft-matthew-moyer",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937006,
+      "before": {
+        "id": 937006,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 5/23/26 - 8PM",
+        "date": "2026-05-24T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-23-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937007,
+      "before": {
+        "id": 937007,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 5/24/26 - 8PM",
+        "date": "2026-05-25T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-24-2026-8PM-comedy-at-resorts-ft-tommy-too-smoov",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937008,
+      "before": {
+        "id": 937008,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 5/25/26 - 8PM",
+        "date": "2026-05-26T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-25-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937009,
+      "before": {
+        "id": 937009,
+        "club_id": 412,
+        "name": "Elijah The Barber & Special Guests | 5/29/26 - 9PM",
+        "date": "2026-05-30T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-29-2026-9PM-comedy-at-resorts-ft-elijah-the-barber",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937010,
+      "before": {
+        "id": 937010,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 5/30/26 - 8PM",
+        "date": "2026-05-31T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-30-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937011,
+      "before": {
+        "id": 937011,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 5/31/26 - 8PM",
+        "date": "2026-06-01T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/05-31-2026-8PM-comedy-at-resorts-ft-bob-levy",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937012,
+      "before": {
+        "id": 937012,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 6/1/26 - 8PM",
+        "date": "2026-06-02T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-01-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937013,
+      "before": {
+        "id": 937013,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 6/5/26 - 9PM",
+        "date": "2026-06-06T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-05-2026-9PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 1256199,
+      "before": {
+        "id": 1256199,
+        "club_id": 412,
+        "name": "Laughs at Hi Point Pub | 6/6/26 - 7PM",
+        "date": "2026-06-06T23:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-06-2026-7PM-comedy-at-hi-point-pub-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937014,
+      "before": {
+        "id": 937014,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 6/6/26 - 8PM",
+        "date": "2026-06-07T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-06-2026-8PM-comedy-at-resorts-ft-jay-yoder",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 949616,
+      "before": {
+        "id": 949616,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Sunday Night Stand-Up at Hi Point Pub | 6/7/26 - 7PM",
+        "date": "2026-06-07T23:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-07-2026-comedy-at-hi-point-pub-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937015,
+      "before": {
+        "id": 937015,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 6/7/26 - 8PM",
+        "date": "2026-06-08T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-07-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937016,
+      "before": {
+        "id": 937016,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 6/8/26 - 8PM",
+        "date": "2026-06-09T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-08-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937017,
+      "before": {
+        "id": 937017,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 6/12/26 - 9PM",
+        "date": "2026-06-13T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-12-2026-9PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937018,
+      "before": {
+        "id": 937018,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 6/13/26 - 8PM",
+        "date": "2026-06-14T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-13-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937019,
+      "before": {
+        "id": 937019,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 6/14/26 - 8PM",
+        "date": "2026-06-15T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-14-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937020,
+      "before": {
+        "id": 937020,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 6/15/26 - 8PM",
+        "date": "2026-06-16T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-15-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 2114709,
+      "before": {
+        "id": 2114709,
+        "club_id": 412,
+        "name": "Live Stand-Up at Memories in Margate | 6/18/26 - 8PM",
+        "date": "2026-06-19T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-18-2026-8PM-comedy-at-memories-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937021,
+      "before": {
+        "id": 937021,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 6/19/26 - 9PM",
+        "date": "2026-06-20T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-19-2026-9PM-comedy-at-resorts-ft-matthew-moyer",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937022,
+      "before": {
+        "id": 937022,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 6/20/26 - 8PM",
+        "date": "2026-06-21T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-20-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937023,
+      "before": {
+        "id": 937023,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 6/21/26 - 8PM",
+        "date": "2026-06-22T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-21-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937024,
+      "before": {
+        "id": 937024,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 6/22/26 - 8PM",
+        "date": "2026-06-23T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-22-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937025,
+      "before": {
+        "id": 937025,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 6/26/26 - 9PM",
+        "date": "2026-06-27T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-26-2026-9PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937026,
+      "before": {
+        "id": 937026,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 6/27/26 - 8PM",
+        "date": "2026-06-28T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-27-2026-8PM-comedy-at-resorts-ft-bob-levy",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937027,
+      "before": {
+        "id": 937027,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 6/28/26 - 8PM",
+        "date": "2026-06-29T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-28-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937028,
+      "before": {
+        "id": 937028,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 6/29/26 - 8PM",
+        "date": "2026-06-30T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/06-29-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421424,
+      "before": {
+        "id": 3421424,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 7/2/26 - 8PM",
+        "date": "2026-07-03T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-02-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937029,
+      "before": {
+        "id": 937029,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/3/26 - 9PM",
+        "date": "2026-07-04T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-03-2026-9PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937030,
+      "before": {
+        "id": 937030,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/4/26 - 8PM",
+        "date": "2026-07-05T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-04-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937031,
+      "before": {
+        "id": 937031,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/5/26 - 8PM",
+        "date": "2026-07-06T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-05-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 1948272,
+      "before": {
+        "id": 1948272,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/6/26 - 8PM",
+        "date": "2026-07-07T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-06-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421429,
+      "before": {
+        "id": 3421429,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/8/26 - 8PM",
+        "date": "2026-07-09T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-08-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421430,
+      "before": {
+        "id": 3421430,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 7/9/26 - 8PM",
+        "date": "2026-07-10T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-09-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937032,
+      "before": {
+        "id": 937032,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 7/10/26 - 9PM",
+        "date": "2026-07-11T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-10-2026-9PM-comedy-at-resorts-ft-stoner-rob",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937033,
+      "before": {
+        "id": 937033,
+        "club_id": 412,
+        "name": "A Night of Comedy at Brigantine Country Club | 7/11/26 - 8PM",
+        "date": "2026-07-12T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-11-2026-8PM-comedy-at-brigantine-golf-club-ft-lance-weiss",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 1948275,
+      "before": {
+        "id": 1948275,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/12/26 - 8PM",
+        "date": "2026-07-13T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-12-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 1948276,
+      "before": {
+        "id": 1948276,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 7/13/26 - 8PM",
+        "date": "2026-07-14T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-13-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421435,
+      "before": {
+        "id": 3421435,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 7/15/26 - 8PM",
+        "date": "2026-07-16T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-15-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421436,
+      "before": {
+        "id": 3421436,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 7/16/26 - 8PM",
+        "date": "2026-07-17T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-16-2026-8PM-comedy-at-resorts-ft-matthew-moyer",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421437,
+      "before": {
+        "id": 3421437,
+        "club_id": 412,
+        "name": "Absecon Comedy - AC Jokes Friday Night Stand-Up at Hi Point Pub | 7/17/26 - 7PM",
+        "date": "2026-07-17T23:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-17-2026-comedy-at-hi-point-pub-7PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937034,
+      "before": {
+        "id": 937034,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/17/26 - 9PM",
+        "date": "2026-07-18T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-17-2026-9PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 1256220,
+      "before": {
+        "id": 1256220,
+        "club_id": 412,
+        "name": "Absecon Comedy - AC Jokes Saturday Night Stand-Up at Hi Point Pub | 7/18/26 - 7PM",
+        "date": "2026-07-18T23:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-05-2026-comedy-at-hi-point-pub-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937035,
+      "before": {
+        "id": 937035,
+        "club_id": 412,
+        "name": "Comedy at Brigantine Country Club | 7/18/26 - 8PM",
+        "date": "2026-07-19T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-18-2026-8PM-comedy-at-brigantine-golf-club-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 1948280,
+      "before": {
+        "id": 1948280,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 7/19/26 - 8PM",
+        "date": "2026-07-20T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-19-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 1948281,
+      "before": {
+        "id": 1948281,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 7/20/26 - 8PM",
+        "date": "2026-07-21T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-20-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421443,
+      "before": {
+        "id": 3421443,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/22/26 - 8PM",
+        "date": "2026-07-23T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-22-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421444,
+      "before": {
+        "id": 3421444,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 7/23/26 - 8PM",
+        "date": "2026-07-24T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-23-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937036,
+      "before": {
+        "id": 937036,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 7/24/26 - 9PM",
+        "date": "2026-07-25T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-24-2026-9PM-comedy-at-resorts-ft-tata-sherise",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937037,
+      "before": {
+        "id": 937037,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 7/25/26 - 8PM",
+        "date": "2026-07-26T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-25-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 1948284,
+      "before": {
+        "id": 1948284,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 7/26/26 - 8PM",
+        "date": "2026-07-27T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-26-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 1948285,
+      "before": {
+        "id": 1948285,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/27/26 - 8PM",
+        "date": "2026-07-28T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-27-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421449,
+      "before": {
+        "id": 3421449,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 7/29/26 - 8PM",
+        "date": "2026-07-30T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-29-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421450,
+      "before": {
+        "id": 3421450,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/30/26 - 8PM",
+        "date": "2026-07-31T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-30-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937038,
+      "before": {
+        "id": 937038,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 7/31/26 - 9PM",
+        "date": "2026-08-01T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-31-2026-9PM-comedy-at-resorts-ft-christine-carolyn",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937039,
+      "before": {
+        "id": 937039,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/1/26 - 8PM",
+        "date": "2026-08-02T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-01-2026-8PM-comedy-at-resorts-ft-bob-levy",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421454,
+      "before": {
+        "id": 3421454,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/2/26 - 8PM",
+        "date": "2026-08-03T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-02-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421455,
+      "before": {
+        "id": 3421455,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/3/26 - 8PM",
+        "date": "2026-08-04T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-03-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421456,
+      "before": {
+        "id": 3421456,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 8/4/26 - 8PM",
+        "date": "2026-08-05T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-04-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421457,
+      "before": {
+        "id": 3421457,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 8/5/26 - 8PM",
+        "date": "2026-08-06T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-05-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421458,
+      "before": {
+        "id": 3421458,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/6/26 - 8PM",
+        "date": "2026-08-07T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-06-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937041,
+      "before": {
+        "id": 937041,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/7/26 - 9PM",
+        "date": "2026-08-08T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-07-2026-9PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937042,
+      "before": {
+        "id": 937042,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/8/26 - 8PM",
+        "date": "2026-08-09T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-08-2026-8PM-comedy-at-resorts-ft-kenny-warren",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421461,
+      "before": {
+        "id": 3421461,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/9/26 - 8PM",
+        "date": "2026-08-10T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-09-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 4912586,
+      "before": {
+        "id": 4912586,
+        "club_id": 412,
+        "name": "Laughs at Hi Point Pub | 8/9/26 - 9PM",
+        "date": "2026-08-10T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-09-2026-9PM-comedy-at-hi-point-pub-ft-mel-harris",
+        "room": "Hi Point Pub",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421462,
+      "before": {
+        "id": 3421462,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/10/26 - 8PM",
+        "date": "2026-08-11T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-10-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 4852338,
+      "before": {
+        "id": 4852338,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/11/26 - 8PM",
+        "date": "2026-08-12T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-11-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421464,
+      "before": {
+        "id": 3421464,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/12/26 - 8PM",
+        "date": "2026-08-13T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-12-2026-8PM-comedy-at-resorts-ft-matthew-moyer",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5402509,
+      "before": {
+        "id": 5402509,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/13/26 - 8PM",
+        "date": "2026-08-14T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-13-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5402510,
+      "before": {
+        "id": 5402510,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/14/26 - 9PM",
+        "date": "2026-08-15T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-14-2026-9PM-comedy-at-resorts-ft-kenny-warren",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937044,
+      "before": {
+        "id": 937044,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/15/26 - 8PM",
+        "date": "2026-08-16T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-15-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 4852343,
+      "before": {
+        "id": 4852343,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/16/26 - 8PM",
+        "date": "2026-08-17T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-16-2026-8PM-comedy-at-resorts-ft-ag-white",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5463169,
+      "before": {
+        "id": 5463169,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/17/26 - 8PM",
+        "date": "2026-08-18T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-17-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 4852345,
+      "before": {
+        "id": 4852345,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/18/26 - 8PM",
+        "date": "2026-08-19T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-18-2026-8PM-comedy-at-resorts-ft-christine-carolyn",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421471,
+      "before": {
+        "id": 3421471,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/19/26 - 8PM",
+        "date": "2026-08-20T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-19-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421472,
+      "before": {
+        "id": 3421472,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 8/20/26 - 8PM",
+        "date": "2026-08-21T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-20-2026-8PM-comedy-at-resorts-ft-tony-papadog",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937045,
+      "before": {
+        "id": 937045,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/21/26 - 9PM",
+        "date": "2026-08-22T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-21-2026-9PM-comedy-at-resorts-ft-kenny-warren",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937046,
+      "before": {
+        "id": 937046,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/22/26 - 8PM",
+        "date": "2026-08-23T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-22-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 4852350,
+      "before": {
+        "id": 4852350,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/23/26 - 8PM",
+        "date": "2026-08-24T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-23-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421476,
+      "before": {
+        "id": 3421476,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/24/26 - 8PM",
+        "date": "2026-08-25T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-24-2026-8PM-comedy-at-resorts-ft-rich-shultis",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 4852352,
+      "before": {
+        "id": 4852352,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/25/26 - 8PM",
+        "date": "2026-08-26T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-25-2026-8PM-comedy-at-resorts-ft-lana-siebel",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5735661,
+      "before": {
+        "id": 5735661,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/26/26 - 8PM",
+        "date": "2026-08-27T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-26-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5735662,
+      "before": {
+        "id": 5735662,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/27/26 - 8PM",
+        "date": "2026-08-28T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-27-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5735663,
+      "before": {
+        "id": 5735663,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/28/26 - 9PM",
+        "date": "2026-08-29T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-28-2026-9PM-comedy-at-resorts-ft-christy-miller",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5735664,
+      "before": {
+        "id": 5735664,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/29/26 - 8PM",
+        "date": "2026-08-30T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-29-2026-8PM-comedy-at-resorts-ft-chris-covert",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5230366,
+      "before": {
+        "id": 5230366,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 8/30/26 - 8PM",
+        "date": "2026-08-31T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-30-2026-8PM-comedy-at-resorts-ft-kenny-warren",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 3421483,
+      "before": {
+        "id": 3421483,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 8/31/26 - 8PM",
+        "date": "2026-09-01T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/08-31-2026-8PM-comedy-at-resorts-ft-bob-levy",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5230368,
+      "before": {
+        "id": 5230368,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 9/3/26 - 8PM",
+        "date": "2026-09-04T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-03-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6231877,
+      "before": {
+        "id": 6231877,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 9/4/26 - 9PM",
+        "date": "2026-09-05T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-04-2026-9PM-comedy-at-resorts-ft-mel-harris",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6231878,
+      "before": {
+        "id": 6231878,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 9/5/26 - 8PM",
+        "date": "2026-09-06T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-05-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "Resorts Casino - Directors Room",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6231880,
+      "before": {
+        "id": 6231880,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 9/6/26 - 8PM",
+        "date": "2026-09-07T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-06-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6231881,
+      "before": {
+        "id": 6231881,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 9/7/26 - 8PM",
+        "date": "2026-09-08T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-07-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5230374,
+      "before": {
+        "id": 5230374,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 9/10/26 - 8PM",
+        "date": "2026-09-11T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-10-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6423378,
+      "before": {
+        "id": 6423378,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 9/11/26 - 9PM",
+        "date": "2026-09-12T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-11-2026-9PM-comedy-at-resorts-ft-kenny-warren",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6730654,
+      "before": {
+        "id": 6730654,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 9/12/26 - 8PM",
+        "date": "2026-09-13T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-12-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6730655,
+      "before": {
+        "id": 6730655,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 9/13/26 - 8PM",
+        "date": "2026-09-14T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-13-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6921725,
+      "before": {
+        "id": 6921725,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 9/14/26 - 8PM",
+        "date": "2026-09-15T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-14-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Horizon Room",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5230379,
+      "before": {
+        "id": 5230379,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 9/17/26 - 8PM",
+        "date": "2026-09-18T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-17-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6730658,
+      "before": {
+        "id": 6730658,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 9/18/26 - 9PM",
+        "date": "2026-09-19T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-18-2026-9PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7099320,
+      "before": {
+        "id": 7099320,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 9/19/26 - 8PM",
+        "date": "2026-09-20T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-19-2026-8PM-comedy-at-resorts-ft-foster-nicholson",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5175349,
+      "before": {
+        "id": 5175349,
+        "club_id": 412,
+        "name": "Comedy at Brigantine Country Club | 9/19/26 - 8PM",
+        "date": "2026-09-20T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-19-2026-8PM-undefined-ft-john-ovalles",
+        "room": "Brigantine Country Club",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7099321,
+      "before": {
+        "id": 7099321,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 9/20/26 - 8PM",
+        "date": "2026-09-21T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-20-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7099322,
+      "before": {
+        "id": 7099322,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 9/21/26 - 8PM",
+        "date": "2026-09-22T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-21-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 5230385,
+      "before": {
+        "id": 5230385,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 9/24/26 - 8PM",
+        "date": "2026-09-25T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-24-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6423389,
+      "before": {
+        "id": 6423389,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 9/25/26 - 9PM",
+        "date": "2026-09-26T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-25-2026-9PM-comedy-at-resorts-ft-elijah-the-barber",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7149794,
+      "before": {
+        "id": 7149794,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 9/26/26 - 8PM",
+        "date": "2026-09-27T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-26-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7295243,
+      "before": {
+        "id": 7295243,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 9/27/26 - 8PM",
+        "date": "2026-09-28T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-27-2026-8PM-comedy-at-resorts-ft-rich-shultis",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7295244,
+      "before": {
+        "id": 7295244,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 9/28/26 - 8PM",
+        "date": "2026-09-29T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/09-28-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190383,
+      "before": {
+        "id": 7190383,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 10/1/26 - 8PM",
+        "date": "2026-10-02T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-01-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349803,
+      "before": {
+        "id": 7349803,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 10/2/26 - 9PM",
+        "date": "2026-10-03T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-02-2026-9PM-comedy-at-resorts-ft-bob-levy",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349804,
+      "before": {
+        "id": 7349804,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 10/3/26 - 8PM",
+        "date": "2026-10-04T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-03-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Directors Room",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190386,
+      "before": {
+        "id": 7190386,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/4/26 - 8PM",
+        "date": "2026-10-05T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-04-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190388,
+      "before": {
+        "id": 7190388,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 10/5/26 - 8PM",
+        "date": "2026-10-06T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-05-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190389,
+      "before": {
+        "id": 7190389,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 10/8/26 - 8PM",
+        "date": "2026-10-09T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-08-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349809,
+      "before": {
+        "id": 7349809,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 10/9/26 - 9PM",
+        "date": "2026-10-10T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-09-2026-9PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "Resorts Casino - Directors Room",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349810,
+      "before": {
+        "id": 7349810,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 10/10/26 - 8PM",
+        "date": "2026-10-11T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-10-2026-8PM-comedy-at-resorts-ft-connor-king",
+        "room": "Resorts Casino - Directors Room",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190392,
+      "before": {
+        "id": 7190392,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/11/26 - 8PM",
+        "date": "2026-10-12T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-11-2026-8PM-comedy-at-resorts-ft-tata-sherise",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190393,
+      "before": {
+        "id": 7190393,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 10/12/26 - 8PM",
+        "date": "2026-10-13T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-12-2026-8PM-comedy-at-resorts-ft-mel-harris",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190394,
+      "before": {
+        "id": 7190394,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 10/15/26 - 8PM",
+        "date": "2026-10-16T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-15-2026-8PM-comedy-at-resorts-ft-stoner-rob",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7898492,
+      "before": {
+        "id": 7898492,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Tropicana | 10/16/26 - 8PM",
+        "date": "2026-10-17T00:30:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-16-2026-8PM-Tropicana-ft-stoner-rob",
+        "room": "The Royce Social Hall",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349814,
+      "before": {
+        "id": 7349814,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 10/16/26 - 9PM",
+        "date": "2026-10-17T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-16-2026-9PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7898494,
+      "before": {
+        "id": 7898494,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Tropicana | 10/17/26 - 7PM",
+        "date": "2026-10-17T23:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-17-2026-7PM-Tropicana-ft-aaron-berg",
+        "room": "The Royce Social Hall",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349816,
+      "before": {
+        "id": 7349816,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/17/26 - 8PM",
+        "date": "2026-10-18T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-17-2026-8PM-comedy-at-resorts-ft-foster-nicholson",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7898497,
+      "before": {
+        "id": 7898497,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Tropicana | 10/17/26 - 9PM",
+        "date": "2026-10-18T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-17-2026-9PM-Tropicana-ft-aaron-berg",
+        "room": "The Royce Social Hall",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190398,
+      "before": {
+        "id": 7190398,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/18/26 - 8PM",
+        "date": "2026-10-19T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-18-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190399,
+      "before": {
+        "id": 7190399,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 10/19/26 - 8PM",
+        "date": "2026-10-20T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-19-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190400,
+      "before": {
+        "id": 7190400,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/22/26 - 8PM",
+        "date": "2026-10-23T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-22-2026-8PM-comedy-at-resorts-ft-john-ovalles",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349820,
+      "before": {
+        "id": 7349820,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/23/26 - 9PM",
+        "date": "2026-10-24T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-23-2026-9PM-comedy-at-resorts-ft-tony-papadog",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349821,
+      "before": {
+        "id": 7349821,
+        "club_id": 412,
+        "name": "A Night of Comedy at Resorts | 10/24/26 - 8PM",
+        "date": "2026-10-25T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-24-2026-8PM-comedy-at-resorts-ft-adam-gabel",
+        "room": "Resorts Casino - Directors Room",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190403,
+      "before": {
+        "id": 7190403,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/25/26 - 8PM",
+        "date": "2026-10-26T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-25-2026-8PM-comedy-at-resorts-ft-buda-the-comedian",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190404,
+      "before": {
+        "id": 7190404,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/26/26 - 8PM",
+        "date": "2026-10-27T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-26-2026-8PM-comedy-at-resorts-ft-ray-vazquez",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7190405,
+      "before": {
+        "id": 7190405,
+        "club_id": 412,
+        "name": "Live Comedy at Resorts | 10/29/26 - 8PM",
+        "date": "2026-10-30T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-29-2026-8PM-comedy-at-resorts-ft-gary-g-garcia",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349825,
+      "before": {
+        "id": 7349825,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/30/26 - 9PM",
+        "date": "2026-10-31T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-30-2026-9PM-comedy-at-resorts-ft-greg-giraldo-jr",
+        "room": "Resorts Casino - Directors Room",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7349826,
+      "before": {
+        "id": 7349826,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 10/31/26 - 8PM",
+        "date": "2026-11-01T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/10-31-2026-8PM-comedy-at-resorts-ft-bob-levy",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851605,
+      "before": {
+        "id": 7851605,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Sunday Night Stand-Up at Resorts | 11/1/26 - 8PM",
+        "date": "2026-11-02T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-01-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851607,
+      "before": {
+        "id": 7851607,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Monday Night Stand-Up at Resorts | 11/2/26 - 8PM",
+        "date": "2026-11-03T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-02-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937070,
+      "before": {
+        "id": 937070,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/6/26 - 9PM",
+        "date": "2026-11-07T02:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-06-2026-comedy-show-at-resorts-9PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937071,
+      "before": {
+        "id": 937071,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/7/26 - 8PM",
+        "date": "2026-11-08T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-07-2026-comedy-show-at-resorts-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851611,
+      "before": {
+        "id": 7851611,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Sunday Night Stand-Up at Resorts | 11/8/26 - 8PM",
+        "date": "2026-11-09T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-08-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851612,
+      "before": {
+        "id": 7851612,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Monday Night Stand-Up at Resorts | 11/9/26 - 8PM",
+        "date": "2026-11-10T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-09-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937072,
+      "before": {
+        "id": 937072,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/13/26 - 9PM",
+        "date": "2026-11-14T02:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-13-2026-comedy-show-at-resorts-9PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937073,
+      "before": {
+        "id": 937073,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/14/26 - 8PM",
+        "date": "2026-11-15T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-14-2026-comedy-show-at-resorts-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851616,
+      "before": {
+        "id": 7851616,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Sunday Night Stand-Up at Resorts | 11/15/26 - 8PM",
+        "date": "2026-11-16T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-15-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851617,
+      "before": {
+        "id": 7851617,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Monday Night Stand-Up at Resorts | 11/16/26 - 8PM",
+        "date": "2026-11-17T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-16-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937074,
+      "before": {
+        "id": 937074,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/20/26 - 9PM",
+        "date": "2026-11-21T02:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-20-2026-comedy-show-at-resorts-9PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937075,
+      "before": {
+        "id": 937075,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/21/26 - 8PM",
+        "date": "2026-11-22T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-21-2026-comedy-show-at-resorts-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851621,
+      "before": {
+        "id": 7851621,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Sunday Night Stand-Up at Resorts | 11/22/26 - 8PM",
+        "date": "2026-11-23T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-22-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851622,
+      "before": {
+        "id": 7851622,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Monday Night Stand-Up at Resorts | 11/23/26 - 8PM",
+        "date": "2026-11-24T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-23-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7898523,
+      "before": {
+        "id": 7898523,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Wednesday Night Stand-Up at Resorts | 11/25/26 - 8PM",
+        "date": "2026-11-26T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-25-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937076,
+      "before": {
+        "id": 937076,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 11/27/26 - 9PM",
+        "date": "2026-11-28T02:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-27-2026-comedy-show-at-resorts-9PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937077,
+      "before": {
+        "id": 937077,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 11/28/26 - 8PM",
+        "date": "2026-11-29T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-28-2026-comedy-show-at-resorts-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851625,
+      "before": {
+        "id": 7851625,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Sunday Night Stand-Up at Resorts | 11/29/26 - 8PM",
+        "date": "2026-11-30T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-29-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 7851626,
+      "before": {
+        "id": 7851626,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Monday Night Stand-Up at Resorts | 11/30/26 - 8PM",
+        "date": "2026-12-01T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/11-30-2026-comedy-at-resorts-8PM",
+        "room": "Resorts Casino - Starlight Ballroom",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937078,
+      "before": {
+        "id": 937078,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 12/4/26 - 9PM",
+        "date": "2026-12-05T02:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/12-04-2026-comedy-show-at-resorts-9PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937079,
+      "before": {
+        "id": 937079,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/5/26 - 8PM",
+        "date": "2026-12-06T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/12-05-2026-comedy-show-at-resorts-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937081,
+      "before": {
+        "id": 937081,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 12/11/26 - 9PM",
+        "date": "2026-12-12T02:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/12-11-2026-comedy-show-at-resorts-9PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937082,
+      "before": {
+        "id": 937082,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/12/26 - 8PM",
+        "date": "2026-12-13T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/12-12-2026-comedy-show-at-resorts-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937083,
+      "before": {
+        "id": 937083,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Friday Night Stand-Up at Resorts | 12/18/26 - 9PM",
+        "date": "2026-12-19T02:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/12-18-2026-comedy-show-at-resorts-9PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937084,
+      "before": {
+        "id": 937084,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/19/26 - 8PM",
+        "date": "2026-12-20T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/12-19-2026-comedy-show-at-resorts-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 937085,
+      "before": {
+        "id": 937085,
+        "club_id": 412,
+        "name": "Atlantic City Comedy - AC Jokes Saturday Night Stand-Up at Resorts | 12/26/26 - 8PM",
+        "date": "2026-12-27T01:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/12-26-2026-comedy-show-at-resorts-8PM",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 4562202,
+      "before": {
+        "id": 4562202,
+        "club_id": 412,
+        "name": "Atlantic City Comedy at Resorts | 7/17/27 - 8PM",
+        "date": "2027-07-18T00:00:00+00:00",
+        "show_page_url": "https://www.acjokes.com/event-details/07-17-2027-8PM-comedy-at-resorts-ft-elijah-the-barber",
+        "room": "",
+        "is_cancelled": false,
+        "production_company_id": null,
+        "scraped_by_organizer_id": null,
+        "last_scraped_by": "wix_events"
+      }
+    },
+    {
+      "id": 6537818,
+      "absent": true
+    }
+  ],
+  "sources": [
+    {
+      "id": 291,
+      "before": {
+        "id": 291,
+        "club_id": 412,
+        "platform": "wix_events",
+        "scraper_key": "wix_events",
+        "wix_event_id": "comp-lpdlygbr",
+        "source_url": "https://www.acjokes.com",
+        "enabled": true,
+        "metadata": {}
+      },
+      "patch": {
+        "metadata": {
+          "wix_venue_routes": {
+            "source_id": 291,
+            "component_id": "comp-lpdlygbr",
+            "producer_id": {
+              "$producer": "ac-jokes"
+            },
+            "routes": [
+              {
+                "club_id": {
+                  "$club": "resorts"
+                },
+                "location": {
+                  "name": "Resorts Casino - Starlight Ballroom",
+                  "country": "US",
+                  "state": "NJ",
+                  "city": "Atlantic City",
+                  "street_number": "1133",
+                  "street_name": "Boardwalk",
+                  "street_apt": "",
+                  "postal_code": "08401"
+                }
+              },
+              {
+                "club_id": {
+                  "$club": "resorts"
+                },
+                "location": {
+                  "name": "Resorts Casino - Directors Room",
+                  "country": "US",
+                  "state": "NJ",
+                  "city": "Atlantic City",
+                  "street_number": "1133",
+                  "street_name": "Boardwalk",
+                  "street_apt": "",
+                  "postal_code": "08401"
+                }
+              },
+              {
+                "club_id": {
+                  "$club": "cove"
+                },
+                "location": {
+                  "name": "The Cove Restaurant",
+                  "country": "US",
+                  "state": "NJ",
+                  "city": "Brigantine",
+                  "street_number": "3700",
+                  "street_name": "Brigantine Boulevard",
+                  "street_apt": "",
+                  "postal_code": "08203"
+                }
+              },
+              {
+                "club_id": {
+                  "$club": "hi-point"
+                },
+                "location": {
+                  "name": "Hi Point Pub",
+                  "country": "US",
+                  "state": "NJ",
+                  "city": "Absecon",
+                  "street_number": "5",
+                  "street_name": "North Shore Road",
+                  "street_apt": "",
+                  "postal_code": "08201"
+                }
+              }
+            ]
+          },
+          "task_4110_routing": {
+            "audit": "2026-10-05-ac-jokes-routing",
+            "policy": "Exact reviewed location name plus structured address; unknown or incomplete locations held without stale cleanup.",
+            "reviewed_original_show_ids": [
+              6537818,
+              6537828,
+              6537839,
+              7475796
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
