@@ -8,6 +8,7 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.core.entities.show.model import Show
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.scrapers.base.base_scraper import BaseScraper
@@ -118,6 +119,11 @@ class SeatEngineScraper(BaseScraper):
 
         dropped = len(events) - len(kept)
         if dropped:
+            # BaseScraper counts the retained events. Include discarded products
+            # so an all-filtered feed cannot authorize empty-calendar deletion.
+            diagnostics = current_diagnostics()
+            if diagnostics is not None:
+                diagnostics.add_items_before_filter(dropped)
             Logger.info(
                 f"{self._log_prefix}: title filter dropped {dropped} of "
                 f"{len(events)} event(s); {len(kept)} kept",
