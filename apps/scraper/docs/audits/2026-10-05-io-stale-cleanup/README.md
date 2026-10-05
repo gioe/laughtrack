@@ -73,3 +73,13 @@ and reconcile it explicitly. Rollback-only exports need no restoration.
 Validation: the evidence replay and all 22 focused reconciliation/Crowdwork tests
 pass. The full suite cannot collect because tzdata is missing in the shared
 virtualenv; three unchanged-baseline prechecks reproduced it with no divergence.
+
+## Applied result
+
+Applied October 5 at 18:55 UTC. `result.json` records the exact 29 deleted IDs,
+13 held IDs, dependency counts and preservation assertions. Club inventory
+changed from 1,863 to 1,834 shows. All retained shows and their dependent rows
+were unchanged within the transaction, including replacement 1044696. All 143
+clicks survived with original attribution and NULL show_id. A separate read-only
+post-commit connection confirmed the deleted IDs are absent, all 13 holds remain,
+the club count matches, and the exported click attribution still matches.
