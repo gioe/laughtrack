@@ -90,6 +90,8 @@ class ZaniesEvent(ShowConvertible):
     time_str: str    # e.g. "Doors: 9 pm Show: 9:30 pm"
     ticket_url: str  # e.g. "https://www.etix.com/ticket/p/52372512/..."
     event_url: Optional[str] = None  # public Zanies detail/series page
+    ticket_price: Optional[float] = None
+    price_text: Optional[str] = None
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -123,7 +125,17 @@ class ZaniesEvent(ShowConvertible):
 
         ticket_url = self.ticket_url
         show_page_url = url or self.event_url or self.ticket_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        price = self.ticket_price if self.ticket_price and 0 < self.ticket_price < 1_000_000 else None
+        tickets = [
+            ShowFactoryUtils.create_fallback_ticket(
+                ticket_url,
+                price=price,
+                ticket_type=(
+                    f"Admission — {self.price_text} (venue advertised)"
+                    if price is not None and self.price_text else "General Admission"
+                ),
+            )
+        ]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,

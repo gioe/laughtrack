@@ -12,10 +12,14 @@ Two page types are handled:
 
 import re
 from typing import List, Optional
+from urllib.parse import urlparse
+
+from bs4 import BeautifulSoup
 
 from laughtrack.core.entities.event.zanies import ZaniesEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.html.utils import HtmlUtils
+from laughtrack.foundation.utilities.number import parse_price_text
 
 
 # ---------------------------------------------------------------------------
@@ -149,15 +153,62 @@ class ZaniesExtractor:
         if not title or not date_str or not ticket_url:
             return []
 
-        return [
-            ZaniesEvent(
-                title=title,
-                date_str=date_str,
-                time_str=time_str,
-                ticket_url=ticket_url,
-                event_url=event_url,
-            )
-        ]
+        event = ZaniesEvent(
+            title=title,
+            date_str=date_str,
+            time_str=time_str,
+            ticket_url=ticket_url,
+            event_url=event_url,
+        )
+        ZaniesExtractor._attach_single_price(html, event)
+        return [event]
+
+    @staticmethod
+    def _attach_single_price(html: str, event: ZaniesEvent) -> None:
+        """Accept only an unambiguous admission in the matching performance box.
+
+        The RHP JSON-LD zero is a placeholder. Series/header prices and
+        description amounts (including item minimums) are not admission proof.
+        """
+        soup = BeautifulSoup(html, "html.parser")
+        boxes = soup.select(".singleEventDetails")
+        if len(boxes) != 1 or soup.select(".rhp-event-series-individual"):
+            return
+        box = boxes[0]
+        def texts(selector: str) -> set[str]:
+            return {x.get_text(" ", strip=True) for x in box.select(selector)}
+
+        if texts("h1") != {event.title} or texts(".eventStDate") != {event.date_str}:
+            return
+        times = {
+            match.group(0).strip()
+            for x in box.select(".eventDoorStartDate")
+            if (match := _SINGLE_TIME_RE.search(str(x)))
+        }
+        if times != {event.time_str}:
+            return
+
+        def ticket_id(url: str) -> Optional[str]:
+            parsed = urlparse(url)
+            match = re.fullmatch(r"/ticket/p/(\d+)(?:/.*)?", parsed.path)
+            return match.group(1) if parsed.hostname == "www.etix.com" and match else None
+
+        expected_id = ticket_id(event.ticket_url)
+        ids = {ticket_id(a.get("href", "")) for a in box.select('a[href*="etix.com"]')}
+        if not expected_id or ids != {expected_id}:
+            return
+        prices = texts(".eventCost")
+        if len(prices) != 1:
+            return
+        text = prices.pop()
+        # Strict single-dollar amount: do not reduce ranges, packages, minimums,
+        # foreign currency or fee breakdowns to a misleading numeric admission.
+        if not re.fullmatch(r"(?:USD\s*)?\$\s*\d+(?:,\d{3})*(?:\.\d{2})?", text):
+            return
+        price = parse_price_text(text, detect_free=False, dollar_only=True)
+        if price is not None and 0 < price < 1_000_000:
+            event.ticket_price = price
+            event.price_text = text
 
     @staticmethod
     def _parse_series_block(
