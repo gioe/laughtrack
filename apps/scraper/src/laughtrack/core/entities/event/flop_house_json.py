@@ -20,6 +20,8 @@ class FlopHouseJsonEvent(ShowConvertible):
     show_page_url: str
     description: str = ""
     venue_name: str = ""
+    admission_price: Optional[float] = None
+    admission_label: Optional[str] = None
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a Flop House JSON event to a Show domain object."""
@@ -32,7 +34,12 @@ class FlopHouseJsonEvent(ShowConvertible):
         page_url = url or self.show_page_url
         tickets = []
         if page_url:
-            tickets.append(ShowFactoryUtils.create_fallback_ticket(page_url))
+            price = self.admission_price
+            price = price if price is not None and 0 < price < 1_000_000 else None
+            tickets.append(ShowFactoryUtils.create_fallback_ticket(
+                page_url, price=price,
+                ticket_type=self.admission_label if price is not None and self.admission_label else "General Admission",
+            ))
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title or "Comedy Show",

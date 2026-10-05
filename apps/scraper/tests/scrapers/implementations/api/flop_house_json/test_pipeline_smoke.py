@@ -148,7 +148,11 @@ async def test_get_data_fetches_event_groups(monkeypatch):
     async def fake_fetch_json(url: str, **kwargs):
         return _event_groups()
 
+    async def fake_fetch_html(url: str, **kwargs):
+        return ""
+
     monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_html)
 
     result = await scraper.get_data(f"{BASE_URL}/venues/williamsburg_events.json")
 

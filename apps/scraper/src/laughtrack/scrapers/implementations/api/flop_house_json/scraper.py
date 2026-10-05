@@ -1,5 +1,7 @@
 """Scraper for Flop House static venue/event JSON feeds."""
 
+import asyncio
+from collections import defaultdict
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
@@ -16,6 +18,11 @@ from laughtrack.scrapers.implementations.api.flop_house_json.extractor import (
 from laughtrack.scrapers.implementations.api.flop_house_json.transformer import (
     FlopHouseJsonEventTransformer,
 )
+from .pricing import eventbrite_id, extract_admission
+
+_DETAIL_TIMEOUT = 10
+_DETAIL_BUDGET = 30
+_DETAIL_CONCURRENCY = 4
 
 
 class FlopHouseJsonScraper(BaseScraper):
@@ -71,7 +78,38 @@ class FlopHouseJsonScraper(BaseScraper):
             f"{self._log_prefix}: extracted {len(events)} Flop House JSON event(s)",
             self.logger_context,
         )
+        await self._enrich_admissions(events)
         return FlopHouseJsonPageData(event_list=events)
+
+    async def _enrich_admissions(self, events) -> None:
+        groups = defaultdict(list)
+        for event in events:
+            identity = eventbrite_id(event.show_page_url)
+            if identity:
+                groups[identity].append(event)
+        # Per invocation, so no asyncio primitive crosses the per-club loops.
+        semaphore = asyncio.Semaphore(_DETAIL_CONCURRENCY)
+
+        async def enrich(identity, group):
+            async with semaphore:
+                try:
+                    url = f"https://www.eventbrite.com/e/tickets-{identity}"
+                    html = await asyncio.wait_for(
+                        self.fetch_html(url, skip_js_fallback=True), _DETAIL_TIMEOUT
+                    )
+                    for event in group:
+                        admission = extract_admission(html, event)
+                        if admission is not None:
+                            event.admission_price, event.admission_label = admission
+                except Exception as exc:
+                    Logger.warn(f"{self._log_prefix}: optional Eventbrite price fetch failed for {identity}: {exc}")
+
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*(enrich(identity, group) for identity, group in groups.items())), _DETAIL_BUDGET
+            )
+        except asyncio.TimeoutError:
+            Logger.warn(f"{self._log_prefix}: Eventbrite price budget exhausted; retaining feed performances")
 
     @staticmethod
     def _base_domain(url: str) -> str:
