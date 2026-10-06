@@ -1,0 +1,191 @@
+{
+  "task_id": 4117,
+  "before": {
+    "club_id": 554,
+    "visible": true,
+    "enabled": true,
+    "shows": 1,
+    "references": {
+      "public.club_aliases.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.club_discovery_profiles.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.club_image_assets.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.comedians.home_club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.discovery_show_feature_snapshots.show_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.email_subscriptions.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.eventbrite_organizer_venues.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.favorite_clubs.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.lineup_items.show_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.processed_emails.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.production_company_venues.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.saved_shows.show_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.scraper_run_clubs.club_id": {
+        "count": 154,
+        "sha256": "1689cc6a9b097dd40038817443adcd0e9dc8ba09cc8fcc5553c623f27cf7cf9f"
+      },
+      "public.sent_notifications.show_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.tagged_clubs.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.tagged_shows.show_id": {
+        "count": 3,
+        "sha256": "3b8d50e6516ea80e1cebbc0ec260ed0b64ed0b636c42a9b256b9293d89d00b5f"
+      },
+      "public.ticket_purchase_click_events.club_id": {
+        "count": 28,
+        "sha256": "ca62a5760df9d3e86c3796f8ce4bdaef59206c6f5b338e38ab1c5eb9516d812e"
+      },
+      "public.ticket_purchase_click_events.show_id": {
+        "count": 28,
+        "sha256": "ca62a5760df9d3e86c3796f8ce4bdaef59206c6f5b338e38ab1c5eb9516d812e"
+      },
+      "public.tickets.show_id": {
+        "count": 11,
+        "sha256": "3caba09bb900f12e03408f1dd1a4b3baa582f9331e38ae7872174b03262ffc99"
+      }
+    }
+  },
+  "after": {
+    "club_id": 554,
+    "visible": false,
+    "enabled": false,
+    "shows": 1,
+    "references": {
+      "public.club_aliases.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.club_discovery_profiles.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.club_image_assets.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.comedians.home_club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.discovery_show_feature_snapshots.show_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.email_subscriptions.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.eventbrite_organizer_venues.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.favorite_clubs.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.lineup_items.show_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.processed_emails.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.production_company_venues.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.saved_shows.show_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.scraper_run_clubs.club_id": {
+        "count": 154,
+        "sha256": "1689cc6a9b097dd40038817443adcd0e9dc8ba09cc8fcc5553c623f27cf7cf9f"
+      },
+      "public.sent_notifications.show_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.tagged_clubs.club_id": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.tagged_shows.show_id": {
+        "count": 3,
+        "sha256": "3b8d50e6516ea80e1cebbc0ec260ed0b64ed0b636c42a9b256b9293d89d00b5f"
+      },
+      "public.ticket_purchase_click_events.club_id": {
+        "count": 28,
+        "sha256": "ca62a5760df9d3e86c3796f8ce4bdaef59206c6f5b338e38ab1c5eb9516d812e"
+      },
+      "public.ticket_purchase_click_events.show_id": {
+        "count": 28,
+        "sha256": "ca62a5760df9d3e86c3796f8ce4bdaef59206c6f5b338e38ab1c5eb9516d812e"
+      },
+      "public.tickets.show_id": {
+        "count": 11,
+        "sha256": "3caba09bb900f12e03408f1dd1a4b3baa582f9331e38ae7872174b03262ffc99"
+      }
+    }
+  },
+  "show_sha256_before": "16d42e5db450251eec4f4b8bd2e33045607a0292d73058f68087cce6536413a4",
+  "show_sha256_after": "16d42e5db450251eec4f4b8bd2e33045607a0292d73058f68087cce6536413a4",
+  "discovery_replays": [
+    {
+      "zip": "85050",
+      "club_id": 554,
+      "preserved": true
+    },
+    {
+      "zip": "85054",
+      "club_id": 554,
+      "preserved": true
+    }
+  ],
+  "scheduled_scrape_excludes_554": true,
+  "separate_carry_on_unchanged": true,
+  "postal_code": "85050",
+  "source_id": 87,
+  "source_seatengine_id": 534,
+  "replay_transaction": "rolled back"
+}
