@@ -12,3 +12,10 @@ class AnyRoadPageData(EventListContainer[JsonLdEvent]):
     """Container for events extracted from the AnyRoad plugin experiences API."""
 
     event_list: List[JsonLdEvent]
+
+
+@dataclass
+class AnyRoadEvent(JsonLdEvent):
+    """Retain native experience identity through recurring slot expansion."""
+
+    experience_id: str = ""

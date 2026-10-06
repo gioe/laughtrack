@@ -3790,7 +3790,9 @@ VALUES (
   the **real** per-occurrence times and the **full** availability calendar.
 - One show is fanned per (date, time) from the detail availability; if a detail
   fetch/parse fails for an experience, it falls back to that experience's list
-  `schedule` (placeholder time) rather than being dropped (TASK-3171).
+  `schedule` (placeholder time) for legacy sources (TASK-3171). Sources opting
+  into reviewed venue routing hold that experience instead. An explicitly empty
+  detail calendar means no occurrences, not permission to use placeholder times.
 
 **Key extraction notes:**
 - `nameTranslation` → name, `descriptionTranslation` → description,
@@ -3811,8 +3813,31 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'anyroad',
        'https://app.anyroad.com/i/plugin/{plugin_id}',
        0, TRUE, '{"plugin_id": "{plugin_id}"}'::jsonb
   FROM clubs c
- WHERE c.name = '<Venue Name>';
+WHERE c.name = '<Venue Name>';
 ```
+
+**Reviewed offsite routing (TASK-4116):**
+- Keep the source on the real organizer theater. Opt in through
+  `metadata.anyroad_venue_routes`, containing `source_id`, `plugin_id`, a real
+  `producer_id`, and `routes`. Each route pins `location_info`, `club_id`,
+  `name`, `address`, `city`, `state`, `postal_code`, and `timezone`. Location
+  matching normalizes case and whitespace only; alternate strings need separate
+  reviewed entries. Include the home theater as well as offsite destinations.
+- Resolve existing active, visible physical clubs independently of their own
+  scraping sources. Validate all physical pins; never create a club or derive an
+  address from free text. The exact plugin booking URL, native experience ID,
+  detail About place and Glance timezone must agree with the list and route.
+- Convert each occurrence using its destination timezone and club, retaining
+  native room text, booking URL, UTC instant, and existing show identity. Stamp
+  producer ownership so reconciliation fans out across physical destinations
+  without changing source ownership or hiding the real theater.
+- Blank locations retain the legacy home assignment with an incomplete-evidence
+  warning. Unknown explicit locations, conflicting details, unavailable calendars,
+  or incomplete pagination hold affected events and prevent stale deletion.
+- Review historical moves separately: a recurring experience's current place
+  does not establish every past occurrence. See
+  `docs/audits/2026-10-06-anyroad-offsite/README.md` for the reviewed Rozzie and
+  Substation decisions and the uncertain historical occurrence left unchanged.
 
 **Failure modes / gotchas:**
 - A venue's resident companies can share one AnyRoad feed: Rozzie Square Theater's

@@ -36,6 +36,7 @@ from laughtrack.core.entities.event.event import (
     PostalAddress,
 )
 from laughtrack.utilities.domain.show.factory import is_comedy_event
+from .data import AnyRoadEvent
 
 # Accepted slot time formats, tried in order (after upper-casing). The detail
 # page reports lower-case " 6:00pm"; the list placeholder reports "9:00 AM"; we
@@ -75,6 +76,34 @@ def extract_tour_availability(detail_html: Optional[str]) -> Optional[dict]:
         return None
     dates = parsed.get("dates")
     return dates if isinstance(dates, dict) else None
+
+
+def validate_tour_availability(dates: dict) -> None:
+    """Reject uncertain calendar entries before routed occurrence expansion.
+
+    Legacy extraction remains permissive. A reviewed routed calendar must not
+    silently lose malformed dates or turn an invalid time into midnight.
+    """
+    if not isinstance(dates, dict):
+        raise ValueError("detail calendar is not a dates object")
+    for day, slots in dates.items():
+        if not isinstance(day, str):
+            raise ValueError("detail calendar date is not a string")
+        parsed_day = datetime.strptime(day, "%Y-%m-%d")
+        if parsed_day.strftime("%Y-%m-%d") != day or not isinstance(slots, dict):
+            raise ValueError("detail calendar date or slots are malformed")
+        for time, count in slots.items():
+            normalized_time = _string_value(time).upper()
+            for fmt in _TIME_FORMATS:
+                try:
+                    datetime.strptime(normalized_time, fmt)
+                    break
+                except ValueError:
+                    continue
+            else:
+                raise ValueError("detail calendar time is malformed")
+            if isinstance(count, bool) or not str(count).isdigit():
+                raise ValueError("detail calendar availability is not a nonnegative count")
 
 
 def _find_balanced_object_end(text: str, object_start: int) -> Optional[int]:
@@ -133,11 +162,11 @@ def extract_anyroad_events(
             continue
         exp_id = _experience_id(record, attrs)
         dates = availability_by_id.get(exp_id) if exp_id else None
-        if not isinstance(dates, dict) or not dates:
+        if exp_id not in availability_by_id:
             dates = attrs.get("schedule")  # placeholder-time fallback
         events.extend(
             _events_from_experience(
-                attrs, dates, timezone=timezone, comedy_filter=comedy_filter
+                attrs, dates, timezone=timezone, comedy_filter=comedy_filter, experience_id=exp_id or ""
             )
         )
     return events
@@ -154,6 +183,7 @@ def _events_from_experience(
     *,
     timezone: str,
     comedy_filter: bool,
+    experience_id: str = "",
 ) -> list[JsonLdEvent]:
     name = _string_value(attrs.get("nameTranslation"))
     url = _string_value(attrs.get("url"))
@@ -181,7 +211,8 @@ def _events_from_experience(
                 continue
             available = _is_available(count)
             events.append(
-                JsonLdEvent(
+                AnyRoadEvent(
+                    experience_id=experience_id,
                     name=name,
                     start_date=start_date,
                     location=location,
@@ -217,9 +248,7 @@ def _parse_datetime(date_str: Any, time_str: Any, tzinfo: ZoneInfo) -> datetime 
     if parsed_time is None:
         # No usable time signal — keep the (accurate) date at midnight local.
         return day.replace(tzinfo=tzinfo)
-    return day.replace(
-        hour=parsed_time.hour, minute=parsed_time.minute, tzinfo=tzinfo
-    )
+    return day.replace(hour=parsed_time.hour, minute=parsed_time.minute, tzinfo=tzinfo)
 
 
 def _is_available(count: Any) -> bool:
