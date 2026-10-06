@@ -1,0 +1,53 @@
+[
+  {
+    "id": 3179545,
+    "date": "2026-11-06T01:00:00.000Z",
+    "room": "18b Corinth Street, Boston, MA",
+    "address": "18 Corinth St, Roslindale, MA 02131",
+    "clubId": 10970,
+    "clubName": "The Rozzie Square Theater",
+    "tickets": [
+      {
+        "price": 11,
+        "purchaseUrl": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US",
+        "type": "General Admission",
+        "soldOut": false
+      }
+    ],
+    "timezone": "America/New_York"
+  },
+  {
+    "id": 3179506,
+    "date": "2026-07-02T00:00:00.000Z",
+    "room": "The Substation, 4228 Washington Street, Roslindale, MA",
+    "address": "4228 Washington Street, Boston, MA",
+    "clubId": 61212,
+    "clubName": "The Substation",
+    "tickets": [
+      {
+        "price": 10,
+        "purchaseUrl": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1-improv-showcase?lang=en-US",
+        "type": "General Admission",
+        "soldOut": false
+      }
+    ],
+    "timezone": "America/New_York"
+  },
+  {
+    "id": 3179544,
+    "date": "2026-08-21T00:00:00.000Z",
+    "room": "The Substation, 4228 Washington Street, Roslindale, MA",
+    "address": "18 Corinth St, Roslindale, MA 02131",
+    "clubId": 10970,
+    "clubName": "The Rozzie Square Theater",
+    "tickets": [
+      {
+        "price": 11,
+        "purchaseUrl": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US",
+        "type": "General Admission",
+        "soldOut": false
+      }
+    ],
+    "timezone": "America/New_York"
+  }
+]

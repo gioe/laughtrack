@@ -1,0 +1,280 @@
+{
+  "changes": [
+    {
+      "id": 3179506,
+      "patch": {
+        "club_id": 61212
+      }
+    },
+    {
+      "id": 3558318,
+      "patch": {
+        "club_id": 61212
+      }
+    },
+    {
+      "id": 3179545,
+      "patch": {
+        "room": "18b Corinth Street, Boston, MA"
+      }
+    }
+  ],
+  "clubs": {
+    "10970": {
+      "fields": {
+        "address": "18 Corinth St, Roslindale, MA 02131",
+        "city": "Boston",
+        "name": "The Rozzie Square Theater",
+        "state": "MA",
+        "timezone": "America/New_York",
+        "visible": true,
+        "zip_code": "02131"
+      },
+      "id": 10970
+    },
+    "61212": {
+      "fields": {
+        "address": "4228 Washington Street, Boston, MA",
+        "city": "Boston",
+        "name": "The Substation",
+        "state": "MA",
+        "timezone": "America/New_York",
+        "visible": true,
+        "zip_code": "02131"
+      },
+      "id": 61212
+    }
+  },
+  "expected_show_hashes": {
+    "3179448": "888d70697309bd186b705809c6f8e3ab437ac003f37131e97951ce383b7b355d",
+    "3179449": "d90b9794d225c175bb86612c7a03840525319a72dbf584b27da5f68c4090e100",
+    "3179450": "b66e89fc71fffc75c2916d1b2254fe119f5c6a6da79794925503fc3abeb0ed53",
+    "3179451": "abfb78a7f8a5ad7293e882a732f212e9b847a3895ad97953bd99ea91515b082b",
+    "3179452": "22a5d9950668d85e203f779c119c16615b33cb0c8b5414f002f9672f98ac967a",
+    "3179453": "c24684700ccf19236be6c9dae413d0195147bbddeb27b1c8824927879c4a52f0",
+    "3179454": "119ae56a13d007229b01c3180789b6be7d2fb749c2179cc58dad5fdd7d586c72",
+    "3179455": "6798846ade79b00378d99bcd773d6fa63e83e7a02aead25f66262443f41ab554",
+    "3179456": "c49d10e0401473f8a0575766cd8d88ced71c60a745f6cdda891596e5b5745c64",
+    "3179457": "9deadb1953ff443b99bdc345d758718f3057505a096b761a7ad20b1f585cdb22",
+    "3179458": "bfc3ed233e4baddb04056e43ac9225a9024d2d9f36cc5469c1615987f0b41367",
+    "3179459": "aa4c8cb281863e6b0a7d7133d24b983366422dd43a86d74e3a6f933cee834a56",
+    "3179460": "905f6393dc0c2069c9403362372141158492571aaf09ade14a43d4c08bed620a",
+    "3179461": "2eb666799e13d2f9daff82600c722e2770f805a0aec669620706deedb075ced6",
+    "3179462": "4ca5861bdece0849724de1c573923e3583eb1c78b154494f3a6f10fd991eae15",
+    "3179463": "c68d8a60eceed40f03e2aee5c0dd46f24c2965f83218115261b105dc9d3ef812",
+    "3179464": "d03c3294da926f3ca8ead7b70cfc2a3c6575b9e1cd571281ba391af48624dfc4",
+    "3179465": "df5699c607d300bbd2bfaa0c0b69ed477b5209784aa4328941a325aabdd949b7",
+    "3179466": "0295cfe6c64336fb50dc1bce5bbad084d7a424b393174777ee04219a4ce657cd",
+    "3179467": "d7419a6f5b899ebf423695d07f4b3cd76e4cda4554d34f4d82344ed0b321d3cd",
+    "3179468": "1e178303047993c44d9b48b406c4022cf69b3dde9b269ab13d362a4e9d04736f",
+    "3179469": "5ae88c9d1427ebc6d9350d770befd4f0b2db07e4c0a54c148f3fd2df38826049",
+    "3179470": "05ec94053d2cb2038a6d20769acc604283ee57d5a7a8042a266bdf5e265a3f56",
+    "3179471": "b45b84c3354ca836d5349a99c13a640c69667d73144bc12fadaf14bbcf2f4ff4",
+    "3179472": "55569b2dce201fdf65931ef81f3f3ecf7307e2f4dfa5b7df287caf94f2ee9dd6",
+    "3179473": "cde83dff533abf8390c6ad6ddf8935bc5ff543cb8b2662270bfc6eaa256f10ca",
+    "3179474": "cfe81abae8a1c4d1f0c28a25bb847805bedfdb1075c4012effeab546651f835b",
+    "3179475": "466eb4e50104d5ab375d5c42e550e4744a97c473d57e81fca7a3bb65d7a84b16",
+    "3179476": "67babb17695a258ad7e8afdd87e8f7571b29802e6379b7a4d1717a6f70c2d24e",
+    "3179477": "2fa6d6416d861f790b52224a6cb3c660e931ac475c202e74255b66a7ab0029ff",
+    "3179478": "22eef7618a202373dabacd6ff55ef2f0e2217e312e654a73f29f0771ba5cee96",
+    "3179479": "d8e79299f1dd7ba4f026ffce990e736c4c141dbc94f222ca8ccdc835ffe9c36c",
+    "3179480": "97bc39a13ad68f7073264b1b17fbe9ea19d058181871073c541989a77b63fb58",
+    "3179481": "723ad711c63bad438fb462b04892bda879d49e98584806348ac352f4b42af282",
+    "3179482": "400180f79c0f24748b26f0fd3cb5a35a08d6de442874071ac97141a4aba4001f",
+    "3179483": "45edae9c2689aa8d60f11111d5866faaab5b6628eaf5ac348f599a4b3c1fe35a",
+    "3179484": "d1132c46869f9aee4fe2dbacd630766a415931f3e97855a2fb9b9aa100dd549e",
+    "3179485": "18b7400a3b490492146051eda252fd2b942068cc907b8bdb802edacc3c3a077c",
+    "3179486": "b391a6000c17284349e8ab5afe0ce4b863f1fae4d5c028f5c2a3b6c1ab4d48ee",
+    "3179487": "d3d41101f82f2352ab39074fe1b357fc5d78eb27c15ec2d214fc7825134d5bce",
+    "3179488": "0754f07a1adff5f372da501cada24e427f90077363668e452e11d6b3496cd86c",
+    "3179489": "148d565ebe72fce09c031f2bc4405a6c8d54e35fc104c1e4ace1f2cdf3b0ea99",
+    "3179490": "92d83bc835263ee5bec5da153f2f954b089523d9ef87d8de895f9c5b82771aef",
+    "3179491": "ddd48b968f0b8f2c1fef0ae40aecd185320cba1e0421b420728c8c2bdd9633f6",
+    "3179492": "88b2d4a4a34af8676c6e09a3fcd2da28e35be34a61c586218fed081475743cc4",
+    "3179493": "a693e31faf1d15058d030ef2bdb1c10b7b08e5eef6cc8d211a9132f2b8ccb7fa",
+    "3179494": "88826fe6906475b6f31a4ae1a7197b0f9820f6bd878a8f4d66ea61ba4042ba32",
+    "3179495": "040d9afb52c2c86f03c3e275baa7f69f1456262c0d29f840a1928e105d5c1a6f",
+    "3179496": "69ee0dbfa81ae8d8e2952aa29d71891ccf038b5569862eaaa86530a64f50ca90",
+    "3179497": "02b8b5ac4f120943ade2eee591da42e284aa8b8e8ea3a107540a6b6624acb871",
+    "3179498": "d5fc71c3dd2ee19b2423ae69f93b16d48aba35abb88a72ecd0c409a3b6ebc5d6",
+    "3179499": "529ae121a7a6b57dbd173acfccc824348c17f435d38f16e0c7ea3dfb1260867a",
+    "3179500": "da19853739285703b96b9d0ab494bd1dfd2da54e49c8250a414befc8c424ec40",
+    "3179501": "8b2448bd803c790dd018e62110e0f69da55cb2256444a0d86bd45917b25d0b56",
+    "3179502": "f888250a54b633c803daa25ec2f8fa5ffb6355da4c8a54b586ef429558ed6df1",
+    "3179503": "2e42187c174b9f1181d98b13a26a6220c36b926dd014594b4d4decc9fae5fa21",
+    "3179504": "d3044fa3de99d26d100d250a0ad3cda8f147aae55ec58d76cb4fcd51c8b15419",
+    "3179505": "529808dc502eb2bc50a405fb8b704cf958e09b83132c59cb6e2c632424e42774",
+    "3179506": "ed1bdc42b751e354d7bd1975d421eb27d0416b62057e98db5c44c4b327c9b9fd",
+    "3179507": "630fba2ddc21a672581785cee5a5e5ffa128e845ed6356fda062a9c3a2a07ee4",
+    "3179508": "37ab7970710b3f9778f731722aaa793e015b9e62c3b095dcf770579a2ced29db",
+    "3179509": "f0b9337cc03078dc76bc5da6f4a1d6f78f8c02d297766a71e111cd63ce2eb92e",
+    "3179510": "98617bae9bea34295453f634e37c057c51f7b25e24577992d37e8708cf9fe25e",
+    "3179511": "3d13a281432dae4fb5e91dfd4eb2681ab39beee0950debcf43a455d5ac2a44c1",
+    "3179512": "14e55c5f2357cd2a6426483d158c3733b3d570a299c284ecd4c7b797b53c1079",
+    "3179513": "f5323c3837a638649a57e3fb61cc9a183a8e30206b0cd2aa76d7968b3ae40fec",
+    "3179514": "3e00726e90410de1b7b0b91c5aab9ac35759b7d3c6f71c224038af1af2bc910b",
+    "3179515": "2ff711d315c7b6a6109590ab92e3545dfb07be01e0e422e8059b82d7c2418c92",
+    "3179516": "653cc8b753d711d772a04bc071ff7b842786b3a617fb9660a633a175cd285e09",
+    "3179517": "9e7770c8a85c8c18b9a0fec2076ab055e10a5c83dfd3a70d2640c2a7da3be06f",
+    "3179518": "84561bea055ea7bbbfe3072997d5a1c727fe4eb785f201e8a5f4022b01feecec",
+    "3179519": "02b9469dd8afa4700c5956c790d6c0caca17bbb051936d4047e1d8ebe65c8131",
+    "3179520": "065b3d8d428e3514275505cb1fed4739ba1d7f594257ab90d39f3cb1d8d9fb96",
+    "3179521": "197743510d7483a4ff2d10f4e47a090d09b324d7d6007895a172d0f5c55b1ba5",
+    "3179522": "7259936e2a85f4b6071108997c966f4742dec7b836366a5e3ecd7f870d115f48",
+    "3179523": "d06582908ddd0e9109d951cc79dea3a5472bad1caa1aa54dc6042f45e2356afd",
+    "3179524": "5dc3bcdb191877d815d09196e5bf52677ac17c8817e54d8aa22fbaef0064f515",
+    "3179525": "dcbc8ab969ead71c3ed8011ca68a533eea9ef8b79bb587e164755f3bd10b0e33",
+    "3179526": "d20d6eccbce497fc05c1bc71ba5250f418fa9f556562461cb04f1e57dc30aed8",
+    "3179527": "fb4bb5fa746e709d9438f8cf4ea3119748b8bf30c9c00a1c041d3e2c814158c5",
+    "3179528": "6a437e716cd01ad83a600f5c1f73316ef70eb014ea699d843859948610764efc",
+    "3179529": "c7c0cdd3e4d7f3aeb4070ece5bc5fad6c7bebe19fcde9ffe50c90c7a0d6b2b74",
+    "3179530": "a82c2d2e86d19b0acf0b0f756d28ab471e4a55f5f1d1f274a016b89c94b893d6",
+    "3179531": "ac08acb45b1c4155f6e869395aa1991d909f0edee6dbc56185470d6f93aba6b6",
+    "3179532": "865b8f140dffee73853685796137a000bbf549dc7e2f5c784a9b47d5608fff86",
+    "3179533": "b990714bb42eaa715dd8885f301093fb7ed374485689ed7cb97b2455a2b87f0b",
+    "3179534": "3acead8a29e03376d51e98f5d1d93fe8e0bd18bdba8abe268efd001c0e02a9b2",
+    "3179535": "15329ff89226e89f75e92b3123f4dd726d4eedda32c8dd2ca0514d5fe1c3ac62",
+    "3179536": "2d0e04992cc397fbe464500ceb35508f57de1a3abbff087483c20adc6e4f692e",
+    "3179537": "962e9be1350edbb4a30b42e40b4a9dc8cae1b9e2a4a493db8313261e708e342a",
+    "3179538": "c86ae8aa641b65a506590ab30631b5f67b4b71461710b3a65a78201c66b0965d",
+    "3179539": "130ef900e7eb8bcfafba54378fd9ed8aad75eba3d0b45043fa28ba88816debfa",
+    "3179540": "95e1a8ef9418d825472ada86eb8029b8ca4c593d1c8d79d430a230f01f156270",
+    "3179541": "4a7b7dfdbe98cfcedc5c44e9116196ac475e72f72263c037c476d0446feec17e",
+    "3179542": "30a27d6b1f4434fbc30bcf9ae85d1ed93ab3774bb7b9b2b340e4657cfa7129bc",
+    "3179543": "7e9d0dadb42ddc14aced0d3c6a15515e1d33ae6a40b2d4bf4753d394cdf26928",
+    "3179544": "dc20eed8dc4f969107d720c42d23b6a9f233980f571e0367837f774a1cd236b3",
+    "3179545": "a102fc706a037c3994d3c372ec9fe849aafc7dcd2b658d31e3eeccef64a338c5",
+    "3179546": "0a5b5df4255f520c1467f0a20df3220a0de4c53c092b5191d05b8fdc57c58867",
+    "3179547": "9a43d3b148ce0a8614417d849e04c031f077fa804907e74cfce2da452b0578f4",
+    "3179548": "c0293b6d40c39a4e45d1e0e36b9bbe2531bc8d98986f6c249d36892f4496ded7",
+    "3179549": "7e52ea0cc2df97a1a2cf188d0f7627faa4327ba45dd034153048e910bbfbc3f6",
+    "3179550": "1f0e5c6900d51889060a963720f0b145d1847d70473b963726ec4b86f37c0a38",
+    "3558318": "0f0ccae9a3cd80bb48781fe0bdf697deb103441e5d6098919336ce58bb41bdfe",
+    "3558371": "ea171c2de82db45ff7eba84263d44a55274c8b26517fbd1d9c1bcb8829e1f107",
+    "3558397": "0c6f02bd6c35615fa3a26390c64004445a32e6b8ea7cb94295e5e3c3b544884e",
+    "3789139": "2043e28009ac9caf0b791bdd7487069f2b941db4bf588735f39057ac65bcaf60",
+    "3789140": "fbf595977f3b48a1a2f3bba8552636efc66f266c4df648f1564a51d03ba184b6",
+    "3789141": "1bc28c53ee49f37e4d2972940696312eabfa0eca323a62ae77c31c3664115e4e",
+    "3789142": "eafd17eae77327c9cadc8b7d992a1074c6fb0f08cbf9fc62613fbac9752e5d35",
+    "3789143": "a04b72b7b530286128b635dd373c17faf6768bc6134fc93816b06b4424aafa5e",
+    "3789144": "9b2c100a54b6ea6a2388b019723566b27541cd78df288ca92a5ee2a35370c144",
+    "3789145": "eeb069b23f0f5a15c97ccf975e1296972b7e5bdcdf9412c288a5f120cb64a32a",
+    "3789146": "8dda4bb068d11f348adec50fc2b74de511be879c35e0c0b9a7f838315c009e07",
+    "3789147": "60e29f6878616a1ef42fe92d90c164f79b95d2e5ba7b73d120a062064d01af24",
+    "3789148": "9908922e2317a063c40843b779be17d1a66d36a576a84b2734d83961f083fa83",
+    "3789149": "5e8ed24dcb507333e898b50df60029ff0db93becb5cde90791983c4c56ec05c4",
+    "3789150": "ea19ea497ec8ab3a0a362e465834e89246f8d62f34c64821671643568a412c31",
+    "3789151": "e3eab4b3089fab7cd402fe36d03b29fd86111b446805150387555b5af03f948b",
+    "3789152": "0034c793ef8096f03216ea92f4c5755112f42691e55d60b5135a9317eaa47b23",
+    "3789153": "9fd5e5d147c3f715b5013cebbe910de022596de5427fbf7ae8869ae62dd8dad9",
+    "3789154": "35e4eb189c02d21da18bb9e0ebc3e8a6ef9e37f840cf887e0648113465219dc4",
+    "3789155": "d617bad656c7acd7e258504e4f344fd3c1d35881a4945c3c2f77682e8cbbdbc3",
+    "3789156": "f94edc0b6e2f71d0462ef403343702276e2fd3be211429c118f8f661cc416d0c",
+    "3789157": "dc01c432d31754c0543193139d1fa0afbab52a5c0d800c8e9d803e2730066bf9",
+    "3789158": "ff36a63ce728900566041dbadfe9a8ab1b23de7a7e9c8b11e2d480f546175117",
+    "3789159": "1f1e9bb956e6a7ef10fde59bfb8288b62ad90c6e3785688e931eab6bc1414e2a",
+    "3789160": "1b879bb1be55ddf71cc021df80d03987b00832221ee7906c209f519912e138f6",
+    "3789161": "885196ebe7f9dac36e16bc7bc1c63a774b7cf03607898de6349a3c34af404ff0",
+    "3789162": "1f822f8539692e41d1270518b1e7864288dbc80cfc7e974ab928198b3a03709e",
+    "3789163": "f2a2aab667e153c40a3a3289596cdb0744fbc847cdca29f40409a94c121add0c",
+    "3789164": "6a9e5d6c28f80ff5969a5dfdeb5d7a2aefc6bb2a6c7dab33116972c6a5473dfd",
+    "3789165": "819c3d1a27220769f3f05c188c5f801b10cd3d67e9a23402a924fb756644537a",
+    "3789166": "496a3a269180d3d60d5556c54b0fc4365c453bc2405bc67c0317b77ed50533bf",
+    "3789167": "56b8f012c50178338b56dbdcbf90f0e15f39afd5366099b25bd21d8696faf021",
+    "3789168": "e9940d80a08d282b45b2cefa45094afb58f5fc9b7f790c01f8643a8bdec4efd9",
+    "3789169": "320b6ddef42e550810c184057f0396f7317a58c5da318ffb823c26de9484381b",
+    "3789170": "e56400c2a4a624c8a5809d12b24027d11731fd2aae660ed41e491283138839bd",
+    "3789171": "8292797777a371e6eff364b940d31174be259997703be8cd8f489f0af3512095",
+    "3789172": "517cf5b25d7987885c8f4ce47a465146c2fa8ec8bdff842ec0e38d79e3246823",
+    "3789173": "f734fae9d22186032bdbc06ad782b5c84581f384f7d51c0f50274198213d6a29",
+    "3789174": "76f126ea95fe1a7cf8838ffd6a8d41bead09f22cc47b3127c6e5f6edfa762ede",
+    "3789175": "43999160243424140b611bdb68a39ed3397340730354cd9ac23953e64422e7b2",
+    "3789176": "8853a88cb4cdb6051a2ec1d5fe68886e1033cd3a18d8aae31804004aea9d5df4",
+    "6856909": "3003900e6998acb7ccf1c3521b3cf50c6f9f7fdec4b83f76903a079cdff79d3b",
+    "7981168": "1644c7c5317e0bc7a147eea0ddbab262615ffea515f0f0b01ea1449d3914ab2f"
+  },
+  "producer": {
+    "fields": {
+      "name": "The Rozzie Square Theater",
+      "slug": "rozzie-square-theater",
+      "website": "https://www.rozziesquaretheater.com/"
+    }
+  },
+  "source": {
+    "before_hash": "a8597ee0c68ea7f59833836a751300d406027bcb79477a34a05b49c24a1861b3",
+    "id": 6820,
+    "metadata": {
+      "anyroad_venue_routes": {
+        "plugin_id": "rozziesquaretheater",
+        "producer_id": {
+          "$producer": "rozzie"
+        },
+        "routes": [
+          {
+            "address": "18 Corinth St, Roslindale, MA 02131",
+            "city": "Boston",
+            "club_id": 10970,
+            "location_info": "18b Corinth Street, Boston, MA",
+            "name": "The Rozzie Square Theater",
+            "postal_code": "02131",
+            "state": "MA",
+            "timezone": "America/New_York"
+          },
+          {
+            "address": "18 Corinth St, Roslindale, MA 02131",
+            "city": "Boston",
+            "club_id": 10970,
+            "location_info": "18 Corinth Street, Boston, MA",
+            "name": "The Rozzie Square Theater",
+            "postal_code": "02131",
+            "state": "MA",
+            "timezone": "America/New_York"
+          },
+          {
+            "address": "18 Corinth St, Roslindale, MA 02131",
+            "city": "Boston",
+            "club_id": 10970,
+            "location_info": "The Rozzie Square Theater, Corinth Street, Roslindale, MA",
+            "name": "The Rozzie Square Theater",
+            "postal_code": "02131",
+            "state": "MA",
+            "timezone": "America/New_York"
+          },
+          {
+            "address": "18 Corinth St, Roslindale, MA 02131",
+            "city": "Boston",
+            "club_id": 10970,
+            "location_info": "18 Corinth St, Boston, MA 02131",
+            "name": "The Rozzie Square Theater",
+            "postal_code": "02131",
+            "state": "MA",
+            "timezone": "America/New_York"
+          },
+          {
+            "address": "4228 Washington Street, Boston, MA",
+            "city": "Boston",
+            "club_id": 61212,
+            "location_info": "The Substation, 4228 Washington Street, Roslindale, MA",
+            "name": "The Substation",
+            "postal_code": "02131",
+            "state": "MA",
+            "timezone": "America/New_York"
+          },
+          {
+            "address": "4228 Washington Street, Boston, MA",
+            "city": "Boston",
+            "club_id": 61212,
+            "location_info": "The Substation, Washington Street, Roslindale, MA",
+            "name": "The Substation",
+            "postal_code": "02131",
+            "state": "MA",
+            "timezone": "America/New_York"
+          }
+        ],
+        "source_id": 6820
+      },
+      "plugin_id": "rozziesquaretheater"
+    }
+  },
+  "task_id": 4116
+}

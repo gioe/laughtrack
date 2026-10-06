@@ -1,0 +1,43 @@
+{
+  "bot_block_detected": false,
+  "clean_for_reconciliation": true,
+  "distinct_experience_ids": 37,
+  "error_log_count": 0,
+  "experience_records": 37,
+  "fetches_failed": 0,
+  "fetches_ok": 1,
+  "is_synthetic_result": true,
+  "november5_level1b_candidates": [
+    {
+      "club_id": 10970,
+      "date_local": "2026-11-05T20:00:00-05:00",
+      "date_utc": "2026-11-06T01:00:00+00:00",
+      "last_scraped_by": "anyroad",
+      "name": "Level 1B Improv Showcase",
+      "production_company_id": 50,
+      "room": "18b Corinth Street, Boston, MA",
+      "scraped_by_organizer_id": 50,
+      "source_performance_id": null,
+      "tickets": [
+        {
+          "price": 11.0,
+          "purchase_url_matches_show_url": true,
+          "sold_out": false,
+          "type": "General Admission"
+        }
+      ]
+    }
+  ],
+  "production_company_id": 50,
+  "read_only": true,
+  "result_has_error": false,
+  "retrieved_at": "2026-10-06T16:15:09.132490+00:00",
+  "routing_error_count": 0,
+  "show_count": 130,
+  "shows_by_club": {
+    "10970": 130
+  },
+  "source_club_id": 10970,
+  "source_id": 6820,
+  "target_existing_show_id": 3179545
+}
