@@ -1,0 +1,980 @@
+{
+  "task_id": 4115,
+  "checked_at": "2026-10-06T13:05:43.785390+00:00",
+  "association_count": 40,
+  "decisions": {
+    "518570": "retain already-hidden record and prior block metadata; detach its one season/test-event lineup",
+    "2353268": "hide record and detach its one event-label lineup",
+    "2447993": "hide record and detach all 38 showcase/tour-label lineups; preserve all actual co-performers"
+  },
+  "associations": [
+    {
+      "comedian_id": 518570,
+      "uuid": "2e49d77248f05d5b9c0fa6467dc50fea",
+      "comedian_name": "Summer 2026",
+      "show_id": 1013088,
+      "show_name": "Test Event: Summer Showcase",
+      "date": "2026-05-10T04:15:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/367622",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "890a40dee97af7f93953e1d6f8a70b1e1a9e54b60294a1ba01f2c34835924e3c",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/367622",
+      "source_event_id": 135248,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 52035,
+          "name": "Summer 2026"
+        }
+      ],
+      "classification": "season/test-event label"
+    },
+    {
+      "comedian_id": 2353268,
+      "uuid": "6e80add9cc5764dea961293da97a9a6e",
+      "comedian_name": "Grand Opening",
+      "show_id": 7614186,
+      "show_name": "Invitation: Private Grand Opening.",
+      "date": "2026-10-08T21:30:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/389717",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "4756dc3d0def7920cf5008f895acc8e4c0cce38bf83ce79630c22dd846589c50",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/389717",
+      "source_event_id": 144150,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54954,
+          "name": "Grand Opening"
+        }
+      ],
+      "classification": "opening-event label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666045,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-12T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390492",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "4af9dd8ce85b6347fbd8ef7cc51faeed99a926328063169d03e8b95c98950b94",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390492",
+      "source_event_id": 145085,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666046,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-13T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390493",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "03c5f24ca640557187b4e899db567fdce13d95642bb82035b2771c031e9e49fa",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390493",
+      "source_event_id": 145086,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666047,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-14T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390494",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "c1edb2997b30a008cc2f88477d95f9246e1c4c98311b091422e47ab356f99a5d",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390494",
+      "source_event_id": 145087,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666048,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-15T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390495",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "76486ca68bd1cbb7fdc39dd2587c28f9a8ee9eaac144562a636b43ac0aab3021",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390495",
+      "source_event_id": 145088,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7844463,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-18T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390498",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "d1a378bc8e5ba4aa23df1375c6f24c2114e90181107305c6c23b14d8c59657f9",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390498",
+      "source_event_id": 145091,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666052,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-19T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390497",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "df124bfbbb2bc16bc5c91410dc5ebb18ec69b57eab94d736f8d37c4d3e906179",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390497",
+      "source_event_id": 145090,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666053,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-20T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390499",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "f7e81c7e00caba61a4cb1bd7d0025d5c0875336336eaeb5fefaf04b8bd83b245",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390499",
+      "source_event_id": 145092,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666054,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-21T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390501",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "fea93c2f11767eaf8625924475301127eac495e5278a359657e85e8d151d7806",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390501",
+      "source_event_id": 145094,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666055,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-22T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390521",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "45ca3b77e644a87b0f7ab4aa81f8ca90e83d3bd09e37f1b0e434f5d70ada13de",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390521",
+      "source_event_id": 145107,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 3846708,
+      "show_name": "Heavy Hitters",
+      "date": "2026-10-23T00:00:00+00:00",
+      "show_page_url": "http://www.prekindle.com/event/35488-heavy-hitters-dallas",
+      "club_id": 16112,
+      "club_name": "Dallas Comedy Club",
+      "last_scraped_by": "json_ld",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "bd57ea72eb9af487c8ee9ec1ac09a79fc78a4e5afe1197812bea581f767f0d29",
+      "evidence_url": "http://www.prekindle.com/event/35488-heavy-hitters-dallas",
+      "classification": "multi-comic showcase/tour label",
+      "evidence_summary": "Official ticket page bills a showcase of five comics, not an individual named Heavy Hitters."
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666056,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-23T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390506",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "97d443f291e3821b2db14a25a8a6a1e7f08aba27ee4eb5cb9091219a493a2ca6",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390506",
+      "source_event_id": 145099,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666057,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-24T01:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390507",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "e8f2025976ffd7e75455a00da3c9ab7ef187f3a50dbd1caa0ea7997c10cba628",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390507",
+      "source_event_id": 145099,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666058,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-24T03:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390508",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "d48b004e2d0e1435fa82bbeda79fd2f380988cf9b50d95e473c00b01d641e417",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390508",
+      "source_event_id": 145099,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666059,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-24T21:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390509",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "9fa54b484317e55fb2ddd6bd661d1b0e972d10c208a21c4ff10ca7246157d1d3",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390509",
+      "source_event_id": 145100,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666060,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-24T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390510",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "5a99c5921ac77e6c9ad30679d7ce13b5f7ee386ae50987032bb3cc89a6d4d27b",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390510",
+      "source_event_id": 145100,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666061,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-25T01:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390511",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "83aae3a746566f0ce38382350414393c5aa588b2e35d4f536eba9c787e7d5fc2",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390511",
+      "source_event_id": 145100,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666062,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-25T03:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390512",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "529d262d65ad1223e872c258d1db50e3f5559a4b3a7fb706cbb221b2e9ccbe44",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390512",
+      "source_event_id": 145100,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7844475,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-25T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390513",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "9962ed4bda6e5e68b402dc1a1e435fb0f7977932909577b2f71a0ff488203dc1",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390513",
+      "source_event_id": 145101,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666064,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-26T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390514",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "916191f5292b283d37b640ba640f9f97c42b44cf31c3b3a2246e0d8d237c19cc",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390514",
+      "source_event_id": 145102,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666065,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-27T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390515",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "418147dd21e811220f07620d600880d43787bfc5155c557752359d5aca9a4831",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390515",
+      "source_event_id": 145103,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666066,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-28T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390516",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "308651881b1203a20380652f55ec7621c7ad513fecafdf5c64ee98f01d61d0be",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390516",
+      "source_event_id": 145104,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666067,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-29T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390517",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "6a07291622b4a62091b7886e04be705d528a623c2e257f7360ced3b178615a25",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390517",
+      "source_event_id": 145105,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666068,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-30T23:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390518",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "0930172e6f1eb28b4b8feb019ff41332753b0047db3b235b8a8ee264dda2a1a1",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390518",
+      "source_event_id": 145106,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666069,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-31T01:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390519",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "f5c490ad6c0e3750e739cf5a2dd3b5add0f8042fb1049505e43bda9ce3fa997e",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390519",
+      "source_event_id": 145106,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 7666070,
+      "show_name": "Heavy Hitters of Atlanta Comedy",
+      "date": "2026-10-31T03:00:00+00:00",
+      "show_page_url": "https://whiplashcomedy.com/shows/390520",
+      "club_id": 1347,
+      "club_name": "Whiplash Comedy",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "5f0d9bc9ebfa7461f51724722af05f9b3de85b92331b70af87786b2639c2f512",
+      "evidence_url": "https://services.seatengine.com/api/v1/venues/650/shows/390520",
+      "source_event_id": 145106,
+      "source_venue_id": 650,
+      "source_talents": [
+        {
+          "id": 54827,
+          "name": "Heavy Hitters"
+        }
+      ],
+      "classification": "multi-comic showcase label"
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5656056,
+      "show_name": "Heavy Hitters of Comedy, Legends And Laughter Tour",
+      "date": "2026-12-04T01:00:00+00:00",
+      "show_page_url": "https://www.ticketmaster.com/heavy-hitters-of-comedy-legends-and-macon-georgia-12-03-2026/event/0E00650DCCFAC5C4",
+      "club_id": 5289,
+      "club_name": "Macon City Auditorium",
+      "last_scraped_by": "ticketmaster_national",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "9eb388df0af05017898cfe91746a70d332a933e8d1eca178d8dc298e181e8d8d",
+      "evidence_url": "https://www.maconcentreplex.org/event/heavy-hitters-of-comedy-legends-and-laughter-tour/",
+      "classification": "multi-comic showcase/tour label",
+      "fetch_limitation": "Ticket page returned bot verification; Discovery API returned no event. Official venue page independently verifies event and named performers.",
+      "named_performers": [
+        "Earthquake",
+        "Adele Givens",
+        "Bishop",
+        "MC Lightfoot"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5775541,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-09T23:00:00+00:00",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/384861",
+      "club_id": 73,
+      "club_name": "Greenville Comedy Zone",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "19888294364127220868aec6bc74f438f6b7f2c42ddafdd7c0f1dab03e17a8b2",
+      "evidence_url": "http://greenvillecomedyzone.com/shows/384861",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5775542,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-10T01:00:00+00:00",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/384862",
+      "club_id": 73,
+      "club_name": "Greenville Comedy Zone",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "7aa1b87c72b570e513a5aebf99d8460f380d65e83adb99b3b9646490de35d6c2",
+      "evidence_url": "http://greenvillecomedyzone.com/shows/384862",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5775543,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-10T22:00:00+00:00",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/384863",
+      "club_id": 73,
+      "club_name": "Greenville Comedy Zone",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "40467bf84999e127ff5b9d7905f0578a72d72d9d75e66033752edffc932f0fca",
+      "evidence_url": "http://greenvillecomedyzone.com/shows/384863",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5775544,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-11T01:00:00+00:00",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/384864",
+      "club_id": 73,
+      "club_name": "Greenville Comedy Zone",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "f3766c0da12679595b4ea1d98089893a13ebf50ca916fa2d9ff1f774fc801620",
+      "evidence_url": "http://greenvillecomedyzone.com/shows/384864",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5774824,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-17T01:00:00+00:00",
+      "show_page_url": "https://thecomedyzone.com/shows/384866",
+      "club_id": 57,
+      "club_name": "Greensboro Comedy Zone",
+      "last_scraped_by": "seatengine_classic",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "51070a23d8bac2c5dfa4759d107628a832e0fb593c1c12be467b8bed1b38d137",
+      "evidence_url": "https://thecomedyzone.com/shows/384866",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5774825,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-17T03:00:00+00:00",
+      "show_page_url": "https://thecomedyzone.com/shows/384868",
+      "club_id": 57,
+      "club_name": "Greensboro Comedy Zone",
+      "last_scraped_by": "seatengine_classic",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "4af926f559a6edc7294f59acab7ff0471a7c50e75f6e5301c74e1839f546eea4",
+      "evidence_url": "https://thecomedyzone.com/shows/384868",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5774826,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-18T01:00:00+00:00",
+      "show_page_url": "https://thecomedyzone.com/shows/384867",
+      "club_id": 57,
+      "club_name": "Greensboro Comedy Zone",
+      "last_scraped_by": "seatengine_classic",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "6b31a9be2c118bb687cd5f40e8cd55978acfee66a38022ae6d93d0ae5fcb0e14",
+      "evidence_url": "https://thecomedyzone.com/shows/384867",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5774827,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-18T03:00:00+00:00",
+      "show_page_url": "https://thecomedyzone.com/shows/384869",
+      "club_id": 57,
+      "club_name": "Greensboro Comedy Zone",
+      "last_scraped_by": "seatengine_classic",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "8cd0ab58cafaa1fda1865b0dc8728687bd5229fe8f51fc792f480c63f3c6df66",
+      "evidence_url": "https://thecomedyzone.com/shows/384869",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5802092,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-05-08T01:15:00+00:00",
+      "show_page_url": "https://www.comedyzone.com/shows/384849",
+      "club_id": 59,
+      "club_name": "Jacksonville Comedy Zone",
+      "last_scraped_by": "seatengine_classic",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "f7d7cd2eeac8ffa69aec3fca3387f7142a814c0f2b44f003d4ce57b6ef96ad11",
+      "evidence_url": "https://www.comedyzone.com/shows/384849",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5802093,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-05-08T03:45:00+00:00",
+      "show_page_url": "https://www.comedyzone.com/shows/384850",
+      "club_id": 59,
+      "club_name": "Jacksonville Comedy Zone",
+      "last_scraped_by": "seatengine_classic",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "96f39d0d125e10e51291f6fbb3fe72bf835b895b6190be46843a1b46eac04efe",
+      "evidence_url": "https://www.comedyzone.com/shows/384850",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5802094,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-05-09T01:00:00+00:00",
+      "show_page_url": "https://www.comedyzone.com/shows/384851",
+      "club_id": 59,
+      "club_name": "Jacksonville Comedy Zone",
+      "last_scraped_by": "seatengine_classic",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "cc34fbc44fb5c6710bfd77fe166336e34b48b42df184218c448b9c107beebcb8",
+      "evidence_url": "https://www.comedyzone.com/shows/384851",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "comedian_id": 2447993,
+      "uuid": "be88ca2bc26b2b43c28b7938d79cdbb8",
+      "comedian_name": "Heavy Hitters",
+      "show_id": 5802095,
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-05-09T03:30:00+00:00",
+      "show_page_url": "https://www.comedyzone.com/shows/384852",
+      "club_id": 59,
+      "club_name": "Jacksonville Comedy Zone",
+      "last_scraped_by": "seatengine_classic",
+      "source_performance_id": null,
+      "decision": "detach_label_retain_show",
+      "fetched_sha256": "721f7987b550b45311cc1ccc7bb8825e831a05c9d7af4ee0b72735ed73c24f8e",
+      "evidence_url": "https://www.comedyzone.com/shows/384852",
+      "classification": "multi-comic showcase/tour label",
+      "named_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    }
+  ]
+}
