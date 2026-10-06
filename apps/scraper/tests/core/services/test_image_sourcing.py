@@ -577,7 +577,7 @@ def test_find_club_image_source_falls_back_to_places(monkeypatch):
     monkeypatch.setattr(image_sourcing, "_get_google_places_photo", fake_photo)
 
     candidate = image_sourcing.find_club_image_source(
-        "Club", "https://c.com", place_query="Club, Austin, TX"
+        "Club", "https://c.com", place_query="Club, Austin, TX", expected_place_id="ChIJplace"
     )
     # place_id + attribution come through so the sourcer can persist them.
     assert candidate == image_sourcing.ClubImageCandidate(
@@ -702,8 +702,9 @@ def test_upload_succeeds_even_when_purge_fails(monkeypatch, post_behavior):
 
 
 def test_source_club_image_fetches_then_uploads(monkeypatch):
+    candidate = image_sourcing.ClubImageCandidate("website og:image", "https://club.example/og.png")
     monkeypatch.setattr(
-        image_sourcing, "fetch_club_image_png", lambda name, website, **kw: (b"png", "google places")
+        image_sourcing, "fetch_club_image_png", lambda name, website, **kw: (b"png", candidate)
     )
     captured: Dict[str, Any] = {}
     monkeypatch.setattr(
@@ -714,6 +715,13 @@ def test_source_club_image_fetches_then_uploads(monkeypatch):
 
     assert image_sourcing.source_club_image("Club", None, place_query="Club, NY") is True
     assert captured == {"name": "Club", "data": b"png"}
+
+
+def test_compatibility_wrapper_rejects_google_without_attribution_publication(monkeypatch):
+    candidate = image_sourcing.ClubImageCandidate("google places", "https://image.example/photo", "ChIJplace")
+    monkeypatch.setattr(image_sourcing, "fetch_club_image_png", lambda *a, **kw: (b"png", candidate))
+    monkeypatch.setattr(image_sourcing, "upload_club_image_png", lambda *a: pytest.fail("must not upload"))
+    assert image_sourcing.source_club_image("Club", None) is False
 
 
 # ---------------------------------------------------------------------------
@@ -743,14 +751,16 @@ class _FakeClubConnection:
 
 def test_get_missing_image_clubs_orders_and_builds_place_query():
     rows = [
-        ("Comedy Cellar", "https://cc.com", "New York", "NY"),
-        ("No Location Club", "https://nlc.com", None, None),
+        (1, "Comedy Cellar", "https://cc.com", "New York", "NY", "ChIJplace"),
+        (2, "No Location Club", "https://nlc.com", None, None, None),
     ]
     conn = _FakeClubConnection(rows)
 
     clubs = source_club_images.get_missing_image_clubs(conn, limit=5)
 
     assert clubs[0] == {
+        "id": 1,
+        "google_place_id": "ChIJplace",
         "name": "Comedy Cellar",
         "website": "https://cc.com",
         "place_query": "Comedy Cellar, New York, NY",
@@ -762,8 +772,8 @@ def test_get_missing_image_clubs_orders_and_builds_place_query():
 
 def test_main_dry_run_lists_clubs_and_sources_without_writing(monkeypatch, capsys):
     rows = [
-        ("Has OG Club", "https://og.com", "Austin", "TX"),
-        ("No OG Club", "https://noog.com", None, None),
+        (1, "Has OG Club", "https://og.com", "Austin", "TX", None),
+        (2, "No OG Club", "https://noog.com", None, None, "ChIJplace"),
     ]
     monkeypatch.setattr(source_club_images, "_load_env_defaults", lambda: None)
 
@@ -807,7 +817,7 @@ def test_main_dry_run_lists_clubs_and_sources_without_writing(monkeypatch, capsy
 
 
 def test_main_review_dir_saves_files_without_cdn_or_flag_flip(monkeypatch, tmp_path, capsys):
-    rows = [("Comedy Cellar", "https://cc.com", "New York", "NY")]
+    rows = [(1, "Comedy Cellar", "https://cc.com", "New York", "NY", "ChIJplace")]
     review_dir = tmp_path / "club-images"
     monkeypatch.setattr(source_club_images, "_load_env_defaults", lambda: None)
 
@@ -900,27 +910,16 @@ def test_run_upload_from_dir_rejects_unsafe_stem(tmp_path):
     assert exc.value.code == 2
 
 
-def test_run_upload_from_dir_uploads_and_flips_has_image(monkeypatch, tmp_path, capsys):
-    upload_dir = tmp_path / "reviewed"
-    upload_dir.mkdir()
-    (upload_dir / "Comedy Cellar.png").write_bytes(b"png-bytes")
-
-    uploaded: Dict[str, Any] = {}
-    monkeypatch.setattr(
-        source_club_images,
-        "upload_club_image_png",
-        lambda name, data: uploaded.update(name=name, data=data) or True,
-    )
-    flipped: Dict[str, Any] = {}
-    monkeypatch.setattr(
-        source_club_images, "_update_has_image", lambda names: flipped.update(names=list(names))
-    )
-
-    source_club_images._run_upload_from_dir(upload_dir, dry_run=False)
-
-    assert uploaded == {"name": "Comedy Cellar", "data": b"png-bytes"}
-    # has_image flip happens only after a successful upload, keyed on the stem.
-    assert flipped == {"names": ["Comedy Cellar"]}
+def test_run_upload_from_dir_publishes_validated_sidecar(monkeypatch, tmp_path, capsys):
+    path = tmp_path / "Comedy Cellar.png"
+    path.write_bytes(b"png-bytes")
+    club = {"id": 1, "name": "Comedy Cellar", "google_place_id": "ChIJplace"}
+    candidate = image_sourcing.ClubImageCandidate("website og:image", "https://cc.com/og.png")
+    monkeypatch.setattr(source_club_images, "_load_review_image", lambda p: (club, p.read_bytes(), candidate))
+    published = []
+    monkeypatch.setattr(source_club_images, "_publish_image", lambda *args: published.append(args) or True)
+    source_club_images._run_upload_from_dir(tmp_path, dry_run=False)
+    assert published == [(club, b"png-bytes", candidate)]
     assert "Uploaded:  1" in capsys.readouterr().out
 
 
@@ -960,116 +959,54 @@ class _FakeTransaction:
         return False
 
 
-def test_persist_places_provenance_writes_place_id_and_attribution(monkeypatch):
+def _photo_club():
+    return dict(id=1, name="Comedy Cellar", google_place_id="ChIJplace", website="https://cc.com", place_query="q")
+
+
+def test_persist_places_provenance_writes_attribution_without_identity_assignment(monkeypatch):
     cur = _FakeProvenanceCursor()
-    monkeypatch.setattr(
-        source_club_images,
-        "get_transaction",
-        lambda: _FakeTransaction(_FakeProvenanceConn(cur)),
-    )
-    candidate = image_sourcing.ClubImageCandidate(
-        source_label="google places",
-        image_url="https://lh3.googleusercontent.com/p.png",
-        place_id="ChIJplace",
-        attributions=[{"displayName": "Jane D", "uri": "https://maps.google.com/jane"}],
-    )
-
-    source_club_images._persist_places_provenance("Comedy Cellar", candidate)
-
-    assert len(cur.executed) == 1
+    candidate = image_sourcing.ClubImageCandidate("google places", "https://lh3.googleusercontent.com/p.png", "ChIJplace", [{"displayName": "Jane D"}])
+    assert source_club_images._persist_places_provenance(_photo_club(), candidate, cursor=cur)
     sql, params = cur.executed[0]
-    assert "google_place_id" in sql and "google_place_attribution" in sql
-    assert params[0] == "ChIJplace"
-    # Attribution is JSON-encoded for the ::jsonb cast.
-    assert json.loads(params[1]) == [
-        {"displayName": "Jane D", "uri": "https://maps.google.com/jane"}
-    ]
-    assert params[2] == "Comedy Cellar"
+    assignment = sql.split("WHERE")[0]
+    assert "google_place_id" not in assignment
+    assert "google_place_attribution" in assignment and "has_image=true" in assignment
+    assert json.loads(params[0]) == candidate.attributions
+    assert params[1:] == (1, "Comedy Cellar", "ChIJplace")
 
 
-def test_persist_places_provenance_noops_for_website_candidate(monkeypatch):
-    # Website og:image carries no place_id/attribution → no DB write at all.
-    monkeypatch.setattr(
-        source_club_images,
-        "get_transaction",
-        lambda: (_ for _ in ()).throw(AssertionError("no DB write for a website candidate")),
-    )
-    candidate = image_sourcing.ClubImageCandidate(
-        source_label="website og:image", image_url="https://c.com/og.png"
-    )
-
-    source_club_images._persist_places_provenance("Comedy Cellar", candidate)
+def test_persist_website_candidate_clears_stale_photo_attribution():
+    cur = _FakeProvenanceCursor()
+    candidate = image_sourcing.ClubImageCandidate("website og:image", "https://cc.com/og.png")
+    assert source_club_images._persist_places_provenance(_photo_club(), candidate, cursor=cur)
+    assert json.loads(cur.executed[0][1][0]) == []
 
 
-def test_source_to_cdn_persists_provenance_after_successful_upload(monkeypatch):
-    candidate = image_sourcing.ClubImageCandidate(
-        source_label="google places",
-        image_url="https://lh3.googleusercontent.com/p.png",
-        place_id="ChIJplace",
-        attributions=[{"displayName": "Jane D"}],
-    )
-    monkeypatch.setattr(
-        source_club_images, "fetch_club_image_png", lambda name, website, **kw: (b"png", candidate)
-    )
-    monkeypatch.setattr(source_club_images, "upload_club_image_png", lambda name, data: True)
-    persisted: Dict[str, Any] = {}
-    monkeypatch.setattr(
-        source_club_images,
-        "_persist_places_provenance",
-        lambda name, cand: persisted.update(name=name, candidate=cand),
-    )
-
-    club = {"name": "Comedy Cellar", "website": "https://cc.com", "place_query": "Comedy Cellar, NY"}
-    ok, label = source_club_images._source_to_cdn(club)
-
-    assert (ok, label) == (True, "google places")
-    # The place_id-bearing candidate is persisted after a successful upload.
-    assert persisted == {"name": "Comedy Cellar", "candidate": candidate}
+def test_source_to_cdn_uses_guarded_publication(monkeypatch):
+    candidate = image_sourcing.ClubImageCandidate("google places", "https://lh3.googleusercontent.com/p.png", "ChIJplace")
+    monkeypatch.setattr(source_club_images, "fetch_club_image_png", lambda *a, **kw: (b"png", candidate))
+    published = []
+    monkeypatch.setattr(source_club_images, "_publish_image", lambda *args: published.append(args) or True)
+    club = _photo_club()
+    assert source_club_images._source_to_cdn(club) == (True, "google places")
+    assert published == [(club, b"png", candidate)]
 
 
-def test_source_to_cdn_skips_provenance_when_upload_fails(monkeypatch):
-    candidate = image_sourcing.ClubImageCandidate(
-        source_label="google places",
-        image_url="https://lh3.googleusercontent.com/p.png",
-        place_id="ChIJplace",
-    )
-    monkeypatch.setattr(
-        source_club_images, "fetch_club_image_png", lambda name, website, **kw: (b"png", candidate)
-    )
-    monkeypatch.setattr(source_club_images, "upload_club_image_png", lambda name, data: False)
-    monkeypatch.setattr(
-        source_club_images,
-        "_persist_places_provenance",
-        lambda *a, **k: (_ for _ in ()).throw(AssertionError("no persist when upload fails")),
-    )
-
-    club = {"name": "Comedy Cellar", "website": "https://cc.com", "place_query": "q"}
-    ok, _label = source_club_images._source_to_cdn(club)
-    assert ok is False
+def test_source_to_cdn_reports_upload_failure(monkeypatch):
+    candidate = image_sourcing.ClubImageCandidate("google places", "https://lh3.googleusercontent.com/p.png", "ChIJplace")
+    monkeypatch.setattr(source_club_images, "fetch_club_image_png", lambda *a, **kw: (b"png", candidate))
+    monkeypatch.setattr(source_club_images, "_publish_image", lambda *args: False)
+    assert source_club_images._source_to_cdn(_photo_club()) == (False, "google places")
 
 
-def test_source_to_review_dir_persists_provenance_for_places_candidate(monkeypatch, tmp_path):
-    candidate = image_sourcing.ClubImageCandidate(
-        source_label="google places",
-        image_url="https://lh3.googleusercontent.com/p.png",
-        place_id="ChIJplace",
-    )
-    monkeypatch.setattr(
-        source_club_images, "fetch_club_image_png", lambda name, website, **kw: (b"png", candidate)
-    )
-    persisted: Dict[str, Any] = {}
-    monkeypatch.setattr(
-        source_club_images,
-        "_persist_places_provenance",
-        lambda name, cand: persisted.update(name=name, candidate=cand),
-    )
-    review_dir = tmp_path / "out"
-    review_dir.mkdir()
-    club = {"name": "Comedy Cellar", "website": "https://cc.com", "place_query": "q"}
-
-    ok, label = source_club_images._source_to_review_dir(club, review_dir)
-
-    assert (ok, label) == (True, "google places")
-    assert (review_dir / "Comedy Cellar.png").read_bytes() == b"png"
-    # Staging a Places candidate also records its provenance.
-    assert persisted == {"name": "Comedy Cellar", "candidate": candidate}
+def test_review_stage_keeps_provenance_in_sidecar_without_db_writes(monkeypatch, tmp_path):
+    import hashlib
+    candidate = image_sourcing.ClubImageCandidate("google places", "https://lh3.googleusercontent.com/p.png", "ChIJplace", [{"displayName": "Jane"}])
+    monkeypatch.setattr(source_club_images, "fetch_club_image_png", lambda *a, **kw: (b"png", candidate))
+    monkeypatch.setattr(source_club_images, "get_transaction", lambda: (_ for _ in ()).throw(AssertionError("no staging writes")))
+    assert source_club_images._source_to_review_dir(_photo_club(), tmp_path) == (True, "google places")
+    assert (tmp_path / "Comedy Cellar.png").read_bytes() == b"png"
+    payload = json.loads((tmp_path / "Comedy Cellar.png.json").read_text())
+    assert payload["attributions"] == candidate.attributions
+    assert payload["club_id"] == 1 and payload["google_place_id"] == "ChIJplace"
+    assert payload["sha256"] == hashlib.sha256(b"png").hexdigest()

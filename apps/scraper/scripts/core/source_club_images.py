@@ -7,6 +7,21 @@ club website's og:image first, a Google Places venue photo as fallback),
 uploads to Bunny CDN as ``clubs/{name}.png``, and sets has_image=true for
 successful uploads.
 
+Venue identity is owned by onboarding/enrichment, never photo sourcing. Google
+photos require an existing google_place_id and an exact candidate match; unknown
+or conflicting matches are rejected before image download. Website OG remains
+eligible. Successful publication changes only has_image and photo attribution
+(website images clear stale Google attribution).
+
+Review mode makes no database changes. Each <name>.png has a <name>.png.json
+sidecar: version=1, club_id, club_name, expected google_place_id, sha256 of image
+bytes, source_label, image_url, candidate place_id, and attributions. Publication
+requires the sidecar, unchanged bytes/name, and unchanged database identity.
+Legacy review files without sidecars must be re-staged; do not invent provenance.
+Dry-run writes neither CDN nor database and makes no paid Google request.
+CDN upload and database commit cannot be atomic: a database failure after upload
+requires retrying the same reviewed image to finish attribution publication.
+
 Re-running is safe — only clubs with has_image=false are processed.
 
 Usage:
@@ -19,11 +34,12 @@ Usage:
     # has_image is NOT flipped)
     python -m scripts.core.source_club_images --review-dir /tmp/club-images
 
-    # Publish reviewed images: each file's stem becomes the club name
+    # Publish images with their matching provenance sidecars
     python -m scripts.core.source_club_images --upload-from-dir /tmp/club-images
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -41,6 +57,7 @@ for _path in (_root / "src", _root):
 from dotenv import dotenv_values
 
 from laughtrack.core.services.image_sourcing import (
+    ClubImageCandidate,
     fetch_club_image_png,
     find_club_image_source,
     upload_club_image_png,
@@ -110,13 +127,7 @@ def _is_review_safe_name(name: str) -> bool:
     invariant. Unsafe names are skipped (with a warning) rather than crashing
     a batch — they come from the DB, not user CLI input.
     """
-    return not (
-        "/" in name
-        or "\\" in name
-        or ".." in name
-        or "\x00" in name
-        or name.startswith(".")
-    )
+    return not ("/" in name or "\\" in name or ".." in name or "\x00" in name or name.startswith("."))
 
 
 def get_missing_image_clubs(conn, limit=None):
@@ -128,7 +139,7 @@ def get_missing_image_clubs(conn, limit=None):
     using city/state when available.
     """
     query = """
-        SELECT name, website, city, state FROM clubs
+        SELECT id, name, website, city, state, google_place_id FROM clubs
         WHERE has_image = false
           AND (visible IS NULL OR visible = true)
         ORDER BY popularity DESC NULLS LAST, total_shows DESC NULLS LAST, name
@@ -140,10 +151,12 @@ def get_missing_image_clubs(conn, limit=None):
         rows = rows[: int(limit)]
 
     clubs = []
-    for name, website, city, state in rows:
+    for ident, name, website, city, state, google_place_id in rows:
         place_parts = [name] + [p for p in (city, state) if p]
         clubs.append(
             {
+                "id": ident,
+                "google_place_id": google_place_id,
                 "name": name,
                 "website": website,
                 "place_query": ", ".join(place_parts),
@@ -244,23 +257,13 @@ def main():
         if i < len(clubs) - 1:
             time.sleep(_CLUB_IMAGE_SOURCE_DELAY_S)
 
-        # Batch-update has_image every 50 successful uploads (CDN mode only)
-        if not args.review_dir and len(sourced) > 0 and len(sourced) % 50 == 0:
-            _update_has_image(sourced[-50:])
-
-    # Final batch update for remaining (CDN mode only)
-    if not args.review_dir:
-        remainder = len(sourced) % 50
-        if remainder > 0:
-            _update_has_image(sourced[-remainder:])
-
-    print(f"\n=== Club Image Sourcing Complete ===")
+    print("\n=== Club Image Sourcing Complete ===")
     print(f"Processed: {len(clubs)}")
     print(f"Sourced:   {len(sourced)} ({100 * len(sourced) / len(clubs):.1f}%)")
     print(f"Failed:    {len(failed)} ({100 * len(failed) / len(clubs):.1f}%)")
     if args.review_dir:
         print(f"\nReview the images in {args.review_dir}, delete any wrong matches,")
-        print(f"then publish with:")
+        print("then publish with:")
         print(f"  python -m scripts.core.source_club_images --upload-from-dir {args.review_dir}")
 
 
@@ -278,7 +281,11 @@ def _print_dry_run(clubs):
         if candidate is not None:
             label = candidate.source_label
         else:
-            label = "google places (fallback — not probed in dry-run)"
+            label = (
+                "google places (fallback — not probed in dry-run)"
+                if club.get("google_place_id")
+                else "no established Google identity (fallback disabled)"
+            )
         print(f"  {club['name']} — {label}")
 
 
@@ -291,25 +298,40 @@ def _source_to_review_dir(club, review_dir: Path):
     if not _is_review_safe_name(name):
         Logger.warn(f"image_sourcing: skipping club with unsafe name for review file: {name!r}")
         return (False, "")
-    result = fetch_club_image_png(name, club["website"], place_query=club["place_query"])
+    result = fetch_club_image_png(
+        name, club["website"], place_query=club["place_query"], expected_place_id=club.get("google_place_id")
+    )
     if result is None:
         return (False, "")
     png, candidate = result
-    (review_dir / f"{name}.png").write_bytes(png)
-    _persist_places_provenance(name, candidate)
+    _validate_candidate(club, candidate)
+    path = review_dir / f"{name}.png"
+    path.write_bytes(png)
+    payload = dict(
+        version=1,
+        club_id=club["id"],
+        club_name=name,
+        google_place_id=club.get("google_place_id"),
+        sha256=hashlib.sha256(png).hexdigest(),
+        source_label=candidate.source_label,
+        image_url=candidate.image_url,
+        place_id=candidate.place_id,
+        attributions=candidate.attributions,
+    )
+    path.with_name(path.name + ".json").write_text(json.dumps(payload, indent=2) + "\n")
     return (True, candidate.source_label)
 
 
 def _source_to_cdn(club):
     """Source a club image and upload it to the CDN. Returns ``(ok, label)``."""
     name = club["name"]
-    result = fetch_club_image_png(name, club["website"], place_query=club["place_query"])
+    result = fetch_club_image_png(
+        name, club["website"], place_query=club["place_query"], expected_place_id=club.get("google_place_id")
+    )
     if result is None:
         return (False, "")
     png, candidate = result
-    ok = upload_club_image_png(name, png)
-    if ok:
-        _persist_places_provenance(name, candidate)
+    ok = _publish_image(club, png, candidate)
     return (ok, candidate.source_label)
 
 
@@ -319,10 +341,7 @@ def _run_upload_from_dir(upload_dir: Path, dry_run: bool):
         print(f"Error: --upload-from-dir not a directory: {upload_dir}", file=sys.stderr)
         sys.exit(1)
 
-    all_files = sorted(
-        p for p in upload_dir.iterdir()
-        if p.is_file() and p.suffix.lower() in _SUPPORTED_REVIEW_EXTS
-    )
+    all_files = sorted(p for p in upload_dir.iterdir() if p.is_file() and p.suffix.lower() in _SUPPORTED_REVIEW_EXTS)
     # Dedup by stem so a sibling '<club>.jpg' doesn't double-upload after
     # '<club>.png'. First match (sorted alpha by full name) wins.
     by_stem: dict[str, Path] = {}
@@ -358,7 +377,8 @@ def _run_upload_from_dir(upload_dir: Path, dry_run: bool):
         name = path.stem
         progress = f"[{i + 1}/{len(candidates)}]"
         try:
-            if upload_club_image_png(name, path.read_bytes()):
+            club, png, candidate = _load_review_image(path)
+            if _publish_image(club, png, candidate):
                 sourced.append(name)
                 print(f"  {progress} ✓ {name}  ({path.name})")
             else:
@@ -369,10 +389,7 @@ def _run_upload_from_dir(upload_dir: Path, dry_run: bool):
             Logger.warn(f"image_sourcing: unexpected upload error for club '{name}': {e}")
             print(f"  {progress} ✗ {name} — {e}")
 
-    if sourced:
-        _update_has_image(sourced)
-
-    print(f"\n=== Upload-from-dir Complete ===")
+    print("\n=== Upload-from-dir Complete ===")
     print(f"Uploaded:  {len(sourced)} ({100 * len(sourced) / len(candidates):.1f}%)")
     print(f"Failed:    {len(failed)} ({100 * len(failed) / len(candidates):.1f}%)")
 
@@ -389,45 +406,89 @@ def _reject_unsafe_name(name: str, source: str) -> None:
         sys.exit(2)
 
 
-def _persist_places_provenance(name, candidate):
-    """Persist a Google Places candidate's place_id + attribution onto a club.
+def _validate_candidate(club, candidate):
+    if not isinstance(club.get("id"), int) or isinstance(club["id"], bool) or club["id"] <= 0:
+        raise ValueError("Missing stable club identity")
+    if not isinstance(candidate.attributions, list) or any(
+        not isinstance(item, dict) or any(not isinstance(k, str) or not isinstance(v, str) for k, v in item.items())
+        for item in candidate.attributions
+    ):
+        raise ValueError("Invalid image attribution")
+    if candidate.source_label == "google places":
+        expected = club.get("google_place_id")
+        if not isinstance(expected, str) or not expected.strip() or candidate.place_id != expected:
+            raise ValueError("Photo does not match established Google venue identity")
+    elif candidate.source_label == "website og:image":
+        if candidate.place_id is not None or candidate.attributions:
+            raise ValueError("Website image has conflicting Google provenance")
+    else:
+        raise ValueError("Unknown image source")
 
-    No-op for website og:image candidates (no place_id, no attribution). Stores
-    the required author attributions as JSONB so they travel with the venue for
-    downstream display. Matches the club by unique name, mirroring
-    ``_update_has_image``.
 
-    Provenance is intentionally coupled to the *source attempt*, not to CDN
-    publication: it is written whenever a Places photo is sourced — both the
-    direct ``_source_to_cdn`` path and the ``--review-dir`` staging path. The
-    place_id is venue identity and stays correct regardless of whether a staged
-    image is later published or discarded, and the ``--upload-from-dir`` publish
-    step only has file bytes (no candidate) so it cannot re-derive provenance.
-    The chosen storage is a JSON column on ``clubs`` (not a per-image sidecar),
-    so persisting at source time is the only point where the candidate exists.
-    """
-    if candidate.place_id is None and not candidate.attributions:
-        return
+def _get_club_by_id(ident):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id,name,google_place_id FROM clubs WHERE id=%s", (ident,))
+            row = cur.fetchone()
+    return dict(zip(("id", "name", "google_place_id"), row)) if row else None
+
+
+def _load_review_image(path):
+    """Bind staged provenance to exact bytes and unchanged database identity."""
+    payload = json.loads(path.with_name(path.name + ".json").read_text())
+    if not isinstance(payload, dict) or payload.get("version") != 1:
+        raise ValueError("Invalid image sidecar; re-stage this image")
+    png = path.read_bytes()
+    if payload.get("sha256") != hashlib.sha256(png).hexdigest() or payload.get("club_name") != path.stem:
+        raise ValueError("Reviewed image bytes/name changed; re-stage this image")
+    club = {
+        "id": payload.get("club_id"),
+        "name": payload.get("club_name"),
+        "google_place_id": payload.get("google_place_id"),
+    }
+    candidate = ClubImageCandidate(
+        source_label=payload.get("source_label"),
+        image_url=payload.get("image_url"),
+        place_id=payload.get("place_id"),
+        attributions=payload.get("attributions"),
+    )
+    _validate_candidate(club, candidate)
+    if _get_club_by_id(club["id"]) != club:
+        raise ValueError("Club identity changed since review staging")
+    return club, png, candidate
+
+
+def _persist_places_provenance(club, candidate, *, cursor=None):
+    """Publish attribution/status only; Google place identity is never assigned."""
+    _validate_candidate(club, candidate)
+    if cursor is None:
+        with get_transaction() as conn:
+            with conn.cursor() as cur:
+                return _persist_places_provenance(club, candidate, cursor=cur)
+    cursor.execute(
+        "UPDATE clubs SET google_place_attribution=%s::jsonb, has_image=true "
+        "WHERE id=%s AND name=%s AND google_place_id IS NOT DISTINCT FROM %s",
+        (json.dumps(candidate.attributions), club["id"], club["name"], club.get("google_place_id")),
+    )
+    if cursor.rowcount != 1:
+        raise ValueError("Club identity changed before image publication")
+    return True
+
+
+def _publish_image(club, png, candidate):
+    """Lock identity through upload, then publish the matching attribution."""
+    _validate_candidate(club, candidate)
+    _reject_unsafe_name(club["name"], "image publication")
     with get_transaction() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                "UPDATE clubs SET google_place_id = %s, "
-                "google_place_attribution = %s::jsonb WHERE name = %s",
-                (candidate.place_id, json.dumps(candidate.attributions), name),
-            )
-            rowcount = cur.rowcount
-    if rowcount == 0:
-        # Name drift (rename or casing mismatch between fetch and persist) means
-        # the provenance was silently dropped — surface it for debugging.
-        Logger.warn(
-            f"source_club_images: no club matched name {name!r} — Google Places "
-            f"provenance not stored (place_id={candidate.place_id!r})"
-        )
-    else:
-        Logger.info(
-            f"source_club_images: stored Google Places provenance for {rowcount} club(s) "
-            f"(place_id={candidate.place_id!r})"
-        )
+            cur.execute("SELECT id,name,google_place_id FROM clubs WHERE id=%s FOR UPDATE", (club["id"],))
+            row = cur.fetchone()
+            expected = (club["id"], club["name"], club.get("google_place_id"))
+            if row is None or tuple(row) != expected:
+                raise ValueError("Club identity changed before image publication")
+            if not upload_club_image_png(club["name"], png):
+                return False
+            return _persist_places_provenance(club, candidate, cursor=cur)
 
 
 def _update_has_image(names):

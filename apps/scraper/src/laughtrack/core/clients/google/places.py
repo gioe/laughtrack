@@ -74,8 +74,8 @@ class PlacesPhotoResult:
 
     ``photo_uri`` is the key-free, directly-downloadable image URL (the same
     value ``fetch_photo_url`` returns). ``place_id`` is the resolved Places
-    identifier for the venue — callers persist it on ``clubs.google_place_id``
-    so the venue can be re-queried without re-resolving. ``attributions`` is
+    identifier reported by photo search. It is candidate provenance, not
+    authorization to assign or replace a club's established venue identity. ``attributions`` is
     the list of author attributions Google requires to be displayed alongside
     the photo; each entry is a ``{"displayName", "uri", "photoUri"}`` dict of
     string values (empty list when the API provided none).
@@ -385,8 +385,8 @@ class GooglePlacesClient:
         ``lh3.googleusercontent.com`` URL) instead of the raw bytes. The
         key-free ``photoUri`` keeps the API key out of the caller's download
         path and logs; ``place_id`` and ``attributions`` are returned so callers
-        can persist them (``clubs.google_place_id`` /
-        ``clubs.google_place_attribution``).
+        can validate the candidate against an established venue identity and
+        retain its attribution when the image is actually published.
 
         Returns ``None`` on missing key, blank query, quota breach, any HTTP
         or network error, no match, or a match with no photos.

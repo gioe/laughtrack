@@ -575,10 +575,9 @@ class ClubImageCandidate:
     """A sourced club image plus the provenance needed to persist it.
 
     ``place_id`` and ``attributions`` are populated only for Google Places
-    candidates — a website og:image carries neither. They feed
-    ``clubs.google_place_id`` / ``clubs.google_place_attribution`` so the venue
-    identity and the photo's required author attributions travel with the club
-    once the image is published.
+    candidates — a website og:image carries neither. The candidate place ID
+    must match established venue identity; it never authorizes an identity
+    update. Attribution belongs to this image and is published with it.
     """
 
     source_label: str
@@ -593,25 +592,33 @@ def find_club_image_source(
     *,
     place_query: Optional[str] = None,
     use_places: bool = True,
+    expected_place_id: Optional[str] = None,
 ) -> Optional[ClubImageCandidate]:
     """Resolve the best image candidate for a club.
 
     Tries the club website's og:image first, then a Google Places venue photo.
     Returns a :class:`ClubImageCandidate` for the first source that yields a
-    candidate, or ``None``. ``use_places=False`` reports only the website
+    candidate, or ``None``. Google requires a nonempty ``expected_place_id``
+    and an exact match; unknown/conflicting identities fail closed.
+    ``use_places=False`` reports only the website
     result — used by dry-run so a listing pass never spends paid Places quota.
     """
     og_url = _get_og_image_url(website)
     if og_url:
         return ClubImageCandidate(source_label="website og:image", image_url=og_url)
-    if use_places:
+    if use_places and isinstance(expected_place_id, str) and expected_place_id.strip():
         photo = _get_google_places_photo(place_query or club_name)
-        if photo:
+        if photo and photo.place_id == expected_place_id:
             return ClubImageCandidate(
                 source_label="google places",
                 image_url=photo.photo_uri,
                 place_id=photo.place_id,
                 attributions=photo.attributions,
+            )
+        if photo:
+            Logger.warn(
+                f"image_sourcing: rejecting Google photo for {club_name!r}: "
+                f"expected place ID {expected_place_id!r}, candidate {photo.place_id!r}"
             )
     return None
 
@@ -621,6 +628,7 @@ def fetch_club_image_png(
     website: Optional[str],
     *,
     place_query: Optional[str] = None,
+    expected_place_id: Optional[str] = None,
 ) -> Optional[tuple[bytes, "ClubImageCandidate"]]:
     """Fetch and resize a club image without uploading.
 
@@ -629,7 +637,9 @@ def fetch_club_image_png(
     fetch from upload lets callers stage images locally for human review before
     publishing them to the CDN.
     """
-    candidate = find_club_image_source(club_name, website, place_query=place_query)
+    candidate = find_club_image_source(
+        club_name, website, place_query=place_query, expected_place_id=expected_place_id
+    )
     if candidate is None:
         return None
 
@@ -673,13 +683,17 @@ def source_club_image(
     *,
     place_query: Optional[str] = None,
 ) -> bool:
-    """Find, download, resize, and upload a venue image for a club.
+    """Find, download, resize, and upload a website image for a club.
 
-    Tries the website og:image first, then Google Places. Uploads to Bunny CDN
-    as ``clubs/{name}.png``. Returns True on success, False otherwise.
+    This compatibility wrapper is website-only: it cannot publish attribution.
+    Google photos must use the source_club_images script's ownership flow.
+    Uploads to Bunny CDN as ``clubs/{name}.png``. Returns True on success.
     """
     result = fetch_club_image_png(club_name, website, place_query=place_query)
     if result is None:
         return False
-    png_data, _candidate = result
+    png_data, candidate = result
+    if candidate.source_label != "website og:image" or candidate.place_id is not None or candidate.attributions:
+        Logger.warn(f"image_sourcing: compatibility upload rejected non-website candidate for {club_name!r}")
+        return False
     return upload_club_image_png(club_name, png_data)
