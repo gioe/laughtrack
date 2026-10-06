@@ -550,7 +550,9 @@ export class QueryHelper {
         // For ambiguous city names (e.g. "Portland" → OR, ME, TN …) this
         // returns zips from every matching metro area.
         try {
-            const allNearbyZips = new Set<string>();
+            // radius() can omit its origin when self-distance is NaN. Reserve
+            // every city/state origin before neighbors so the cap retains them.
+            const allNearbyZips = new Set<string>(startingZips);
             for (const startZip of startingZips) {
                 const zipResults = zipcodes.radius(startZip, radiusNum);
                 if (zipResults) {

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { QueryHelper } from "./QueryHelper";
 import zipcodes from "zipcodes";
+import { resolveLocationInput } from "@/util/location/resolveLocation";
 
 function makeHelper(zip?: string, distance?: string): QueryHelper {
     return new QueryHelper({
@@ -28,6 +29,17 @@ describe("QueryHelper.getZipCodeClause", () => {
     });
 
     describe("5-digit zip code input", () => {
+        it.each(["94102", "01923"])(
+            "retains origin %s with the real installed radius library",
+            (origin) => {
+                const helper = makeHelper(origin, "25");
+                const clause = helper.getZipCodeClause() as ZipCodeClause;
+                expect(clause.zipCode.in).toContain(origin);
+                expect(clause.zipCode.in!.length).toBeGreaterThan(1);
+                expect(helper.isZipCapTriggered()).toBe(false);
+            },
+        );
+
         it("returns exact match when no distance is provided", () => {
             const clause = makeHelper("10001", undefined).getZipCodeClause();
             expect(clause).toEqual({ zipCode: { equals: "10001" } });
@@ -142,7 +154,12 @@ describe("QueryHelper.getZipCodeClause", () => {
             const msg = warnSpy.mock.calls[0][0] as string;
             expect(msg).toContain("Portland");
             expect(msg).toContain("500");
-            expect(msg).toContain("600");
+            const resolution = resolveLocationInput("Portland");
+            if (!resolution.found) throw new Error("Portland must resolve");
+            const origins = resolution.startingZips;
+            expect(msg).toContain(
+                `raw count=${new Set([...origins, ...bigList]).size}`,
+            );
         });
 
         it("does not warn when the zip count is at or below the cap", () => {
