@@ -1,0 +1,52 @@
+{
+  "pages": [
+    {
+      "key": "property",
+      "url": "https://shopdesertridge.com/districtdome/",
+      "length": 85263,
+      "sha256": "bfdd755d4930fcd531adad4d798c291fe9ae1b84c2b1ea8f5709e7aa307c2ed9"
+    },
+    {
+      "key": "dome",
+      "url": "https://www.districtdome.com/",
+      "length": 13304,
+      "sha256": "8259e8b3f1018d86191b5f4ad8b5520feac1df55f258ca7bdef761357c69d5a2"
+    },
+    {
+      "key": "carry",
+      "url": "https://www.carryonphx.com/",
+      "length": 242398,
+      "sha256": "0f9898e6cd0328dc32694b04b12c4c08390e29a6ba1546cf92f01d805b22949a"
+    },
+    {
+      "key": "show",
+      "url": "https://www.districtdome.com/shows/291128",
+      "length": 20984,
+      "sha256": "b77074352eec9f416233c765ce5836af5c4c55428ebb60accaa9e331f488e5fe"
+    }
+  ],
+  "venue": {
+    "id": 534,
+    "name": "District Dome",
+    "website": "https://www.districtdome.com",
+    "settings": {
+      "currency": "USD",
+      "timezone": "America/Phoenix",
+      "sales_tax": "0.0"
+    }
+  },
+  "show_count": 1,
+  "show": {
+    "id": 291128,
+    "event_id": 104497,
+    "start_date_time": "2027-06-04T17:30:00-07:00",
+    "sold_out": false
+  },
+  "event": {
+    "id": 104497,
+    "name": "Carry On Airlines: Flight 111824",
+    "venue_id": 534,
+    "cancelled_at": null
+  },
+  "inventory_count": 11
+}
