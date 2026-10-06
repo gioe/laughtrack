@@ -1,0 +1,395 @@
+{
+  "task_id": 4112,
+  "clubs": {
+    "2c13bafd-cfae-49e9-8a4f-3d057861c73a": {
+      "fields": {
+        "name": "Big Shots Restaurant & Lounge",
+        "address": "780 U.S. 1",
+        "website": "",
+        "city": "Woodbridge Township",
+        "state": "NJ",
+        "zip_code": "08830",
+        "country": "US",
+        "timezone": "America/New_York",
+        "visible": true,
+        "club_type": "venue"
+      }
+    },
+    "671e9f7a-9501-43c6-9563-26ad02b0dee1": {
+      "fields": {
+        "name": "Mauch Chunk Opera House",
+        "address": "14 West Broadway",
+        "website": "",
+        "city": "Jim Thorpe",
+        "state": "PA",
+        "zip_code": "18229",
+        "country": "US",
+        "timezone": "America/New_York",
+        "visible": true,
+        "club_type": "venue"
+      }
+    },
+    "75c8f720-9ec5-4eaa-9ace-ec01cb9697e9": {
+      "fields": {
+        "name": "Arcadia Clubhouse",
+        "address": "447 Arcadia Pkwy",
+        "website": "",
+        "city": "Myrtle Beach",
+        "state": "SC",
+        "zip_code": "29588",
+        "country": "US",
+        "timezone": "America/New_York",
+        "visible": true,
+        "club_type": "venue"
+      }
+    },
+    "934596d6-a21d-4d83-ae7b-39a7c139ca67": {
+      "fields": {
+        "name": "Newtown Theatre",
+        "address": "120 North State Street",
+        "website": "",
+        "city": "Newtown",
+        "state": "PA",
+        "zip_code": "18940",
+        "country": "US",
+        "timezone": "America/New_York",
+        "visible": true,
+        "club_type": "venue"
+      }
+    },
+    "a6eca676-0913-44ec-85b6-66a539d2d172": {
+      "fields": {
+        "name": "Dreamers Restaurant",
+        "address": "312 Rembert C Dennis Boulevard",
+        "website": "",
+        "city": "Moncks Corner",
+        "state": "SC",
+        "zip_code": "29461",
+        "country": "US",
+        "timezone": "America/New_York",
+        "visible": true,
+        "club_type": "venue"
+      }
+    },
+    "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25": {
+      "fields": {
+        "name": "Wonders Theatre",
+        "address": "1320 Celebrity Circle",
+        "website": "",
+        "city": "Myrtle Beach",
+        "state": "SC",
+        "zip_code": "29577",
+        "country": "US",
+        "timezone": "America/New_York",
+        "visible": true,
+        "club_type": "venue"
+      }
+    },
+    "fe7b418c-b709-4d53-a9d0-c7aa4cb2cf1a": {
+      "fields": {
+        "name": "Bloomsburg Theatre Ensemble",
+        "address": "226 Center Street",
+        "website": "",
+        "city": "Bloomsburg",
+        "state": "PA",
+        "zip_code": "17815",
+        "country": "US",
+        "timezone": "America/New_York",
+        "visible": true,
+        "club_type": "venue"
+      }
+    }
+  },
+  "producers": {
+    "comedy-shoppe": {
+      "fields": {
+        "name": "The Comedy Shoppe",
+        "slug": "the-comedy-shoppe",
+        "website": "https://www.jjcomedy.com"
+      }
+    }
+  },
+  "organizer": {
+    "id": 327,
+    "before_hash": "1816b61bba83ded08ae632d4da5d4d5d8536ce94c3dd057c48527071f76bbd13"
+  },
+  "source": {
+    "id": 617,
+    "before_hash": "aa9613489d311f27d8b14663858849a837aa74c00e614bad84c0b18e78bee8f7",
+    "patch": {
+      "platform": "custom",
+      "scraper_key": "the_comedy_shoppe",
+      "source_url": "https://www.jjcomedy.com/socials",
+      "metadata": {
+        "punchup_venue_routes": {
+          "source_id": 617,
+          "page_id": "4969662d-af53-4d87-b151-9f94c8f89d4c",
+          "slug": "comedyshoppe",
+          "producer_id": {
+            "$producer": "comedy-shoppe"
+          },
+          "routes": {
+            "2c13bafd-cfae-49e9-8a4f-3d057861c73a": {
+              "club_id": {
+                "$club": "2c13bafd-cfae-49e9-8a4f-3d057861c73a"
+              },
+              "name": "Big Shots Restaurant & Lounge",
+              "address": "780 U.S. 1",
+              "city": "Woodbridge Township",
+              "state": "NJ",
+              "postal_code": "08830",
+              "country_code": "US",
+              "timezone": "America/New_York"
+            },
+            "671e9f7a-9501-43c6-9563-26ad02b0dee1": {
+              "club_id": {
+                "$club": "671e9f7a-9501-43c6-9563-26ad02b0dee1"
+              },
+              "name": "Mauch Chunk Opera House",
+              "address": "14 West Broadway",
+              "city": "Jim Thorpe",
+              "state": "PA",
+              "postal_code": "18229",
+              "country_code": "US",
+              "timezone": "America/New_York"
+            },
+            "75c8f720-9ec5-4eaa-9ace-ec01cb9697e9": {
+              "club_id": {
+                "$club": "75c8f720-9ec5-4eaa-9ace-ec01cb9697e9"
+              },
+              "name": "Arcadia Clubhouse",
+              "address": "447 Arcadia Pkwy",
+              "city": "Myrtle Beach",
+              "state": "SC",
+              "postal_code": "29588",
+              "country_code": "US",
+              "timezone": "America/New_York"
+            },
+            "934596d6-a21d-4d83-ae7b-39a7c139ca67": {
+              "club_id": {
+                "$club": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+              },
+              "name": "Newtown Theatre",
+              "address": "120 North State Street",
+              "city": "Newtown",
+              "state": "PA",
+              "postal_code": "18940",
+              "country_code": "US",
+              "timezone": "America/New_York"
+            },
+            "a6eca676-0913-44ec-85b6-66a539d2d172": {
+              "club_id": {
+                "$club": "a6eca676-0913-44ec-85b6-66a539d2d172"
+              },
+              "name": "Dreamers Restaurant",
+              "address": "312 Rembert C Dennis Boulevard",
+              "city": "Moncks Corner",
+              "state": "SC",
+              "postal_code": "29461",
+              "country_code": "US",
+              "timezone": "America/New_York"
+            },
+            "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25": {
+              "club_id": {
+                "$club": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+              },
+              "name": "Wonders Theatre ",
+              "address": "1320 Celebrity Circle",
+              "city": "Myrtle Beach",
+              "state": "SC",
+              "postal_code": "29577",
+              "country_code": "US",
+              "timezone": "America/New_York"
+            },
+            "fe7b418c-b709-4d53-a9d0-c7aa4cb2cf1a": {
+              "club_id": {
+                "$club": "fe7b418c-b709-4d53-a9d0-c7aa4cb2cf1a"
+              },
+              "name": "Bloomsburg Theatre Ensemble",
+              "address": "226 Center Street",
+              "city": "Bloomsburg",
+              "state": "PA",
+              "postal_code": "17815",
+              "country_code": "US",
+              "timezone": "America/New_York"
+            }
+          }
+        },
+        "exclude_title_patterns": [
+          "^\\s*The Day Players at Wonders Theatre\\s*$"
+        ]
+      }
+    }
+  },
+  "duplicate_check": {
+    "urls": [
+      "https://ci.ovationtix.com/36052/production/1262681",
+      "https://event.tixologi.com/event/10932/tickets",
+      "https://event.tixologi.com/event/11353/tickets",
+      "https://event.tixologi.com/event/11547/tickets",
+      "https://event.tixologi.com/event/12613/tickets",
+      "https://event.tixologi.com/event/12615/tickets",
+      "https://event.tixologi.com/event/12956/tickets",
+      "https://event.tixologi.com/event/13065/tickets",
+      "https://event.tixologi.com/event/13067/tickets",
+      "https://event.tixologi.com/event/13116/tickets",
+      "https://event.tixologi.com/event/13117/tickets",
+      "https://event.tixologi.com/event/13243/tickets",
+      "https://event.tixologi.com/event/13351/tickets",
+      "https://event.tixologi.com/event/13352/tickets",
+      "https://event.tixologi.com/event/13917/tickets",
+      "https://event.tixologi.com/event/13918/tickets",
+      "https://event.tixologi.com/event/14374/tickets",
+      "https://event.tixologi.com/event/14403/tickets",
+      "https://event.tixologi.com/event/14404/tickets",
+      "https://event.tixologi.com/event/14745/tickets",
+      "https://event.tixologi.com/event/15064/tickets",
+      "https://event.tixologi.com/event/15065/tickets",
+      "https://event.tixologi.com/event/15066/tickets",
+      "https://event.tixologi.com/event/15073/tickets",
+      "https://event.tixologi.com/event/15074/tickets",
+      "https://event.tixologi.com/event/15352/tickets",
+      "https://event.tixologi.com/event/15353/tickets"
+    ],
+    "events": [
+      {
+        "name": "Big Shots Big Laughs Comedy Night Kick Off!",
+        "date": "2026-10-22T20:00:00-04:00",
+        "venue": "2c13bafd-cfae-49e9-8a4f-3d057861c73a"
+      },
+      {
+        "name": "The Uncle Louie Variety Show at the Newtown Theatre",
+        "date": "2026-10-23T19:00:00-04:00",
+        "venue": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+      },
+      {
+        "name": "Joe Starr at Dreamers Restaurant",
+        "date": "2026-10-26T19:30:00-04:00",
+        "venue": "a6eca676-0913-44ec-85b6-66a539d2d172"
+      },
+      {
+        "name": "Joe DeVito at the Newtown Theatre",
+        "date": "2026-11-27T19:00:00-05:00",
+        "venue": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+      },
+      {
+        "name": "Jenn Snyder at Dreamers Restaurant",
+        "date": "2026-11-30T19:30:00-05:00",
+        "venue": "a6eca676-0913-44ec-85b6-66a539d2d172"
+      },
+      {
+        "name": "Emo Philips at Wonders Theatre",
+        "date": "2026-12-04T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Shelly Belly Returns to Wonders Theatre in Myrtle Beach!",
+        "date": "2026-12-12T16:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Shelly Belly Returns to Wonders Theatre in Myrtle Beach!",
+        "date": "2026-12-13T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Uncle Louie Christmas Variety Show!",
+        "date": "2026-12-19T15:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Uncle Louie Christmas Variety Show!",
+        "date": "2026-12-20T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Newtown Theatre's New Year\u2019s Eve Comedy Countdown!",
+        "date": "2026-12-31T18:00:00-05:00",
+        "venue": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+      },
+      {
+        "name": "NYE with Jim Florentine at Wonders Theatre!",
+        "date": "2026-12-31T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Newtown Theatre's New Year\u2019s Eve Comedy Countdown!",
+        "date": "2026-12-31T21:00:00-05:00",
+        "venue": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+      },
+      {
+        "name": "Jim Florentine at Wonders Theatre!",
+        "date": "2027-01-01T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Michael Malice & Dave Landau LIVE at the Wonders Theatre in Myrtle Beach!",
+        "date": "2027-01-15T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Michael Malice & Dave Landau LIVE at the Wonders Theatre in Myrtle Beach!",
+        "date": "2027-01-16T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Nick DiPaolo LIVE at the Wonders Theatre in Myrtle Beach!",
+        "date": "2027-01-22T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Tammy Pescatelli at the Newtown Theatre",
+        "date": "2027-01-29T18:00:00-05:00",
+        "venue": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+      },
+      {
+        "name": "Crystal Marie at Wonders Theatre in Myrtle Beach!",
+        "date": "2027-02-05T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Crystal Marie at Wonders Theatre in Myrtle Beach!",
+        "date": "2027-02-06T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "The Original Psychic Stand Up Karen Rontowski returns to Wonders Theatre!",
+        "date": "2027-02-13T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "The Day Players at Wonders Theatre",
+        "date": "2027-02-19T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "The Day Players at Wonders Theatre",
+        "date": "2027-02-20T19:00:00-05:00",
+        "venue": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25"
+      },
+      {
+        "name": "Joe Matarese at the Newtown Theatre",
+        "date": "2027-02-26T19:00:00-05:00",
+        "venue": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+      },
+      {
+        "name": "Gabriel Rutlege at the Newtown Theatre",
+        "date": "2027-04-23T19:00:00-04:00",
+        "venue": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+      },
+      {
+        "name": "Gabriel Rutlege at the Newtown Theatre",
+        "date": "2027-04-23T21:30:00-04:00",
+        "venue": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+      },
+      {
+        "name": "Psychic Stand-Up Karen Rontowski at the Newtown Theatre",
+        "date": "2027-05-21T20:00:00-04:00",
+        "venue": "934596d6-a21d-4d83-ae7b-39a7c139ca67"
+      }
+    ]
+  },
+  "preserved_club_ids": [
+    76800
+  ]
+}

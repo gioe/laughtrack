@@ -1,0 +1,967 @@
+[
+  {
+    "event_id": "90b7572e-396f-4fd3-9e3c-262f8c945fd9",
+    "title": "Big Shots Big Laughs Comedy Night Kick Off!",
+    "local_datetime": "2026-10-22T20:00:00",
+    "candidates": [
+      {
+        "row": [
+          6412745,
+          1034,
+          "Hard Knock Laughs",
+          "2026-10-22 23:00:00+00:00",
+          "https://richmond.funnybone.com/event/hard-knock-laughs/richmond-funny-bone-comedy-club",
+          "Richmond Funny Bone",
+          "11800 W Broad St, #1090",
+          "Richmond",
+          "VA"
+        ],
+        "overlapping_title_words": [
+          "laughs"
+        ]
+      }
+    ],
+    "decision": "Retain as distinct: candidates share only generic words or performer first names and have different performers/physical venues"
+  },
+  {
+    "event_id": "b816e156-c3e1-4836-9898-69872161247d",
+    "title": "The Uncle Louie Variety Show at the Newtown Theatre",
+    "local_datetime": "2026-10-23T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "8e0e616d-6714-4df2-9983-ebd65f92ded9",
+    "title": "Joe Starr at Dreamers Restaurant",
+    "local_datetime": "2026-10-26T19:30:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "71d8bf8a-7501-40a3-b80c-022b77a0c96c",
+    "title": "Joe DeVito at the Newtown Theatre",
+    "local_datetime": "2026-11-27T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "d8ea353f-d2dd-48e5-8356-b80685c0f04f",
+    "title": "Jenn Snyder at Dreamers Restaurant",
+    "local_datetime": "2026-11-30T19:30:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "6ce6695f-a0ee-4319-9c6a-48223748d7df",
+    "title": "Emo Philips at Wonders Theatre",
+    "local_datetime": "2026-12-04T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "843b52e7-8186-41a4-86b6-bbc498653f44",
+    "title": "Shelly Belly Returns to Wonders Theatre in Myrtle Beach!",
+    "local_datetime": "2026-12-12T16:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "88e78646-4ad3-4ad2-99d2-4b5bbc07305f",
+    "title": "Shelly Belly Returns to Wonders Theatre in Myrtle Beach!",
+    "local_datetime": "2026-12-13T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "ca7326f2-59d6-4f5d-8a13-33b1e11418b3",
+    "title": "Uncle Louie Christmas Variety Show!",
+    "local_datetime": "2026-12-19T15:00:00",
+    "candidates": [
+      {
+        "row": [
+          3433968,
+          11467,
+          "Invasion: Christmas Carol 2026",
+          "2026-12-19 19:00:00+00:00",
+          "https://dadsgarage.my.salesforce-sites.com/ticket/#/instances/a0FTN000003sKeL2AU",
+          "Dad's Garage",
+          "569 Ezzard St SE",
+          "Atlanta",
+          "GA"
+        ],
+        "overlapping_title_words": [
+          "christmas"
+        ]
+      },
+      {
+        "row": [
+          4014960,
+          4997,
+          "The Betsy Carmichael Christmas Special",
+          "2026-12-19 19:00:00+00:00",
+          "https://www.ticketmaster.com/the-betsy-carmichael-christmas-special-buffalo-new-york-12-19-2026/event/000064DDC671400E",
+          "Shea's Smith Theatre",
+          "660 Main Street, Buffalo, NY",
+          "Buffalo",
+          "NY"
+        ],
+        "overlapping_title_words": [
+          "christmas"
+        ]
+      },
+      {
+        "row": [
+          4065066,
+          4813,
+          "The 2026 Christmas Show: Winter Wonderland",
+          "2026-12-19 20:00:00+00:00",
+          "https://www.ticketmaster.com/event/Z7r9jZ1A7P0Cv",
+          "American Music Theatre",
+          "2425 Lincoln Hwy East, Lancaster, PA",
+          "Lancaster",
+          "PA"
+        ],
+        "overlapping_title_words": [
+          "christmas"
+        ]
+      },
+      {
+        "row": [
+          3092527,
+          9118,
+          "A DRUNK CHRISTMAS CAROL",
+          "2026-12-19 21:00:00+00:00",
+          "https://brasstix.com/pmt/payment1.php?Show=CarolCHI&EventId=7772&EventTime=2026-12-19%2015:00:00&v=5",
+          "Drunk Shakespeare Chicago",
+          "182 N Wabash Ave",
+          "Chicago",
+          "IL"
+        ],
+        "overlapping_title_words": [
+          "christmas"
+        ]
+      },
+      {
+        "row": [
+          5436003,
+          542,
+          "A Very Marietta Christmas Cabaret",
+          "2026-12-19 21:00:00+00:00",
+          "https://alleystage.org/shows/383662",
+          "The Alley Stage",
+          "11 Anderson St SE, Marietta, GA 30064, USA",
+          "Marietta",
+          "GA"
+        ],
+        "overlapping_title_words": [
+          "christmas"
+        ]
+      }
+    ],
+    "decision": "Retain as distinct: candidates share only generic words or performer first names and have different performers/physical venues"
+  },
+  {
+    "event_id": "0ea0e6a9-13fd-4490-a480-d06f29df59c8",
+    "title": "Uncle Louie Christmas Variety Show!",
+    "local_datetime": "2026-12-20T19:00:00",
+    "candidates": [
+      {
+        "row": [
+          3092532,
+          9118,
+          "A DRUNK CHRISTMAS CAROL",
+          "2026-12-20 23:00:00+00:00",
+          "https://brasstix.com/pmt/payment1.php?Show=CarolCHI&EventId=7777&EventTime=2026-12-20%2017:00:00&v=5",
+          "Drunk Shakespeare Chicago",
+          "182 N Wabash Ave",
+          "Chicago",
+          "IL"
+        ],
+        "overlapping_title_words": [
+          "christmas"
+        ]
+      },
+      {
+        "row": [
+          3257235,
+          2420,
+          "A John Waters Christmas",
+          "2026-12-21 00:30:00+00:00",
+          "https://tickets.citywinery.com/event/a-john-waters-christmas-9dfr22",
+          "City Winery - New York City",
+          "25 11th Ave",
+          "New York",
+          "NY"
+        ],
+        "overlapping_title_words": [
+          "christmas"
+        ]
+      },
+      {
+        "row": [
+          3092533,
+          9118,
+          "A DRUNK CHRISTMAS CAROL",
+          "2026-12-21 01:00:00+00:00",
+          "https://brasstix.com/pmt/payment1.php?Show=CarolCHI&EventId=7778&EventTime=2026-12-20%2019:00:00&v=5",
+          "Drunk Shakespeare Chicago",
+          "182 N Wabash Ave",
+          "Chicago",
+          "IL"
+        ],
+        "overlapping_title_words": [
+          "christmas"
+        ]
+      }
+    ],
+    "decision": "Retain as distinct: candidates share only generic words or performer first names and have different performers/physical venues"
+  },
+  {
+    "event_id": "b236d372-544b-40b8-a914-c2e48d2fdfcd",
+    "title": "Newtown Theatre's New Year\u2019s Eve Comedy Countdown!",
+    "local_datetime": "2026-12-31T18:00:00",
+    "candidates": [
+      {
+        "row": [
+          5538980,
+          11446,
+          "NEW YEAR'S EVE with SAM EVANS presented by Commonwealth Comedy Club",
+          "2026-12-31 22:00:00+00:00",
+          "https://www.simpletix.com/e/new-year-s-eve-with-sam-evans-presented-by-tickets-288772",
+          "Commonwealth Comedy Club",
+          "522 5th Ave, Dayton, KY 41074",
+          "Dayton",
+          "KY"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          7428609,
+          435,
+          "New Year\u2019s Eve with Kurt Braunholer",
+          "2026-12-31 23:00:00+00:00",
+          "https://www.madisoncomedy.com/event/new-years-eve-with-kurt-braunholer26/2026-12-31/1",
+          "Comedy on State",
+          "202 State Street, Lower Level",
+          "Madison",
+          "WI"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          394559,
+          122,
+          "New Year's Eve Celebration with Comedian Anthony Rodia Live in Naples, Florida!",
+          "2026-12-31 23:00:00+00:00",
+          "https://www.offthehookcomedy.com/shows/358461",
+          "Off The Hook Comedy Club",
+          "2500 Vanderbilt Beach Rd, Naples, FL 34109",
+          "Naples",
+          "FL"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          7324658,
+          140,
+          "New Year's Eve: Best in Boston Showcase",
+          "2026-12-31 23:30:00+00:00",
+          "https://www.tixr.com/groups/laughboston/events/new-year-s-eve-best-in-boston-showcase-208225",
+          "Laugh Boston",
+          "425 Summer St",
+          "Boston",
+          "MA"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          4534291,
+          1024,
+          "New Year's Eve with Todd Youngman",
+          "2027-01-01 00:00:00+00:00",
+          "https://ci.ovationtix.com/35843/production/1283992?performanceId=11844253",
+          "Comedy @ The Carlson",
+          "50 Carlson Rd, Rochester, NY 14610",
+          "Rochester",
+          "NY"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          4783915,
+          132,
+          "Special Event: New Year's Eve With Gary Vider",
+          "2027-01-01 00:00:00+00:00",
+          "https://buffalo.heliumcomedy.com/shows/382111",
+          "Helium & Elements Restaurant - Buffalo",
+          "30 Mississippi Street, Buffalo, NY 14203",
+          "Buffalo",
+          "NY"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          2825043,
+          1352,
+          "New Year's Eve with Matthew Broussard",
+          "2027-01-01 00:00:00+00:00",
+          "https://www.comedyworks.com/comedians/new-years-eve-matt-broussard",
+          "Comedy Works South",
+          "5345 Landmark Pl, Greenwood Village, CO 80111",
+          "Greenwood Village",
+          "CO"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          7886146,
+          96,
+          "New Year's Eve Extravaganza",
+          "2027-01-01 00:00:00+00:00",
+          "https://www.comedycabana.com/shows/390526",
+          "Comedy Cabana",
+          "9588 N Kings Hwy, Myrtle Beach, SC 29572",
+          "Myrtle Beach",
+          "SC"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          2964881,
+          8726,
+          "The New Year's Eve Spectacular comedy show 12/31 (7pm)",
+          "2027-01-01 00:00:00+00:00",
+          "https://plugin.vbotickets.com/v5.0/event.asp?eid=188120",
+          "Amish Country Theater",
+          "4365 OH-39, Berlin, OH 44610",
+          "Berlin",
+          "OH"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      }
+    ],
+    "decision": "Retain as distinct: candidates share only generic words or performer first names and have different performers/physical venues"
+  },
+  {
+    "event_id": "c9db7cc5-d9e2-4fb4-833f-312f6a173c83",
+    "title": "NYE with Jim Florentine at Wonders Theatre!",
+    "local_datetime": "2026-12-31T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "138f1288-38dc-4bc0-a764-02dddd992c89",
+    "title": "Newtown Theatre's New Year\u2019s Eve Comedy Countdown!",
+    "local_datetime": "2026-12-31T21:00:00",
+    "candidates": [
+      {
+        "row": [
+          6401868,
+          81,
+          "New Year's Eve with Ray Harrington!",
+          "2027-01-01 01:00:00+00:00",
+          "https://www-vermontcomedyclub-com.seatengine.com/shows/386453",
+          "Vermont Comedy Club",
+          "101 Main Street, Burlington VT 05401",
+          "Burlington",
+          "VT"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          394560,
+          122,
+          "New Year's Eve Celebration with Comedian Anthony Rodia Live in Naples, Florida!",
+          "2027-01-01 01:00:00+00:00",
+          "https://www.offthehookcomedy.com/shows/358462",
+          "Off The Hook Comedy Club",
+          "2500 Vanderbilt Beach Rd, Naples, FL 34109",
+          "Naples",
+          "FL"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          6144253,
+          66,
+          "New Year's Eve Starring Brent Terhune!",
+          "2027-01-01 01:00:00+00:00",
+          "https://www.comedyattic.com/shows/385682",
+          "The Comedy Attic",
+          "Corner of 4th & Walnut, Bloomington, IN 47404",
+          "Bloomington",
+          "IN"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          6691440,
+          656,
+          "Stevie Ray's Comedy Cabaret *New Year's Eve*",
+          "2027-01-01 01:30:00+00:00",
+          "https://tickets.chanhassendt.com/Online/default.asp?BOparam::WScontent::loadArticle::permalink=stevierays",
+          "Stevie Ray's Improv Company",
+          "501 West 78th Street",
+          "Chanhassen",
+          "MN"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          6429506,
+          11290,
+          "2026 New Year's Eve Celebration",
+          "2027-01-01 02:00:00+00:00",
+          "https://ci.ovationtix.com/35628/production/1085497?performanceId=11867051",
+          "The Clocktower Cabaret",
+          "1601 Arapahoe St, Denver, CO 80202, USA",
+          "Denver",
+          "CO"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          6147728,
+          58,
+          "Jamie Lissow's New Year's Eve Kickoff",
+          "2027-01-01 02:00:00+00:00",
+          "https://www.cltcomedyzone.com/shows/385750",
+          "Charlotte Comedy Zone",
+          "900 NC Music Factory Blvd. B3, Charlotte NC, 28206",
+          "Charlotte",
+          "NC"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          7324659,
+          140,
+          "New Year's Eve: Best in Boston Showcase",
+          "2027-01-01 02:00:00+00:00",
+          "https://www.tixr.com/groups/laughboston/events/new-year-s-eve-best-in-boston-showcase-208226",
+          "Laugh Boston",
+          "425 Summer St",
+          "Boston",
+          "MA"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          2825044,
+          1352,
+          "New Year's Eve with Matthew Broussard",
+          "2027-01-01 02:30:00+00:00",
+          "https://www.comedyworks.com/comedians/new-years-eve-matt-broussard",
+          "Comedy Works South",
+          "5345 Landmark Pl, Greenwood Village, CO 80111",
+          "Greenwood Village",
+          "CO"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          3319182,
+          57,
+          "New Year's Eve Kickoff Featuring Drew Thomas",
+          "2027-01-01 02:30:00+00:00",
+          "https://thecomedyzone.com/shows/378330",
+          "Greensboro Comedy Zone",
+          "1126 S Holden Rd, Greensboro, NC 27407",
+          "Greensboro",
+          "NC"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          4783916,
+          132,
+          "Special Event: New Year's Eve With Gary Vider",
+          "2027-01-01 02:30:00+00:00",
+          "https://buffalo.heliumcomedy.com/shows/382130",
+          "Helium & Elements Restaurant - Buffalo",
+          "30 Mississippi Street, Buffalo, NY 14203",
+          "Buffalo",
+          "NY"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          7000692,
+          1036,
+          "New Year's Eve with Mike Finoia",
+          "2027-01-01 02:45:00+00:00",
+          "https://www.comedyworks.com/comedians/new-year-s-eve-w-mike-finioa",
+          "Comedy Works Downtown",
+          "1226 15th St, Denver, CO 80202, USA",
+          "Denver",
+          "CO"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          7011732,
+          1352,
+          "New Year's Eve with Mike Finoia",
+          "2027-01-01 02:45:00+00:00",
+          "https://www.comedyworks.com/comedians/new-year-s-eve-w-mike-finioa",
+          "Comedy Works South",
+          "5345 Landmark Pl, Greenwood Village, CO 80111",
+          "Greenwood Village",
+          "CO"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          6729729,
+          194,
+          "Greg Proops: New Year's Eve Show",
+          "2027-01-01 03:00:00+00:00",
+          "https://www.ticketmaster.com/greg-proops-new-years-eve-show-san-francisco-california-12-31-2026/event/1C006525DFCA4A85",
+          "Punch Line Comedy Club - San Francisco",
+          "444 Battery Street",
+          "San Francisco",
+          "CA"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          7856076,
+          574,
+          "New Year's Eve with Nathan Lund",
+          "2027-01-01 03:00:00+00:00",
+          "https://gobananascomedy.com/main/show/new-years-eve-with-nathan-lund",
+          "Go Bananas Comedy Club",
+          "8410 Market Pl Ln, Cincinnati, OH 45242, USA",
+          "Cincinnati",
+          "OH"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          7271250,
+          103,
+          "New Year's Eve Comedy Show Bash! w/ Olivia Carter and Free Pizza!",
+          "2027-01-01 03:00:00+00:00",
+          "http://denvercomedyunderground.seatengine.com/shows/388729",
+          "Denver Comedy Underground",
+          "675 22nd St, Denver, CO 80205",
+          "Denver",
+          "CO"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          6548285,
+          96,
+          "New Year's Eve Extravaganza",
+          "2027-01-01 03:00:00+00:00",
+          "https://www.comedycabana.com/shows/390527",
+          "Comedy Cabana",
+          "9588 N Kings Hwy, Myrtle Beach, SC 29572",
+          "Myrtle Beach",
+          "SC"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      },
+      {
+        "row": [
+          7520940,
+          12,
+          "NEW YEAR'S AT RODNEY'S !",
+          "2027-01-01 03:00:00+00:00",
+          "https://rodneysnewyorkcomedyclub.com/shows/new-years-at-rodneys-",
+          "Rodney\u2019s",
+          "1118 1st Ave., New York, NY 10065",
+          "New York",
+          "NY"
+        ],
+        "overlapping_title_words": [
+          "year"
+        ]
+      }
+    ],
+    "decision": "Retain as distinct: candidates share only generic words or performer first names and have different performers/physical venues"
+  },
+  {
+    "event_id": "66b992ef-b502-4d2c-a813-ace59ff65d5a",
+    "title": "Jim Florentine at Wonders Theatre!",
+    "local_datetime": "2027-01-01T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "fb44c578-cdc2-43a9-8ad3-a31823c3b4b1",
+    "title": "Michael Malice & Dave Landau LIVE at the Wonders Theatre in Myrtle Beach!",
+    "local_datetime": "2027-01-15T19:00:00",
+    "candidates": [
+      {
+        "row": [
+          7821819,
+          81,
+          "Michael Rowland",
+          "2027-01-15 23:30:00+00:00",
+          "https://www-vermontcomedyclub-com.seatengine.com/shows/390350",
+          "Vermont Comedy Club",
+          "101 Main Street, Burlington VT 05401",
+          "Burlington",
+          "VT"
+        ],
+        "overlapping_title_words": [
+          "michael"
+        ]
+      },
+      {
+        "row": [
+          6716926,
+          152,
+          "Dave Smith",
+          "2027-01-16 00:00:00+00:00",
+          "https://www.ticketmaster.com/dave-smith-philadelphia-pennsylvania-01-15-2027/event/020065241E065552",
+          "Punch Line Philly",
+          "33 E. Laurel Street",
+          "Philadelphia",
+          "PA"
+        ],
+        "overlapping_title_words": [
+          "dave"
+        ]
+      },
+      {
+        "row": [
+          4139984,
+          1024,
+          "Michael Yo",
+          "2027-01-16 00:00:00+00:00",
+          "https://ci.ovationtix.com/35843/production/1269676?performanceId=11785171",
+          "Comedy @ The Carlson",
+          "50 Carlson Rd, Rochester, NY 14610",
+          "Rochester",
+          "NY"
+        ],
+        "overlapping_title_words": [
+          "michael"
+        ]
+      },
+      {
+        "row": [
+          5740269,
+          29044,
+          "Michael Longfellow LIVE @ The Attic Comedy Club! January 15, 7 PM",
+          "2027-01-16 00:00:00+00:00",
+          "https://www.eventbrite.com/e/michael-longfellow-live-the-attic-comedy-club-january-15-7-pm-tickets-1994865248659",
+          "The Walrus",
+          "143 E Main St, Columbus, OH",
+          "Columbus",
+          "OH"
+        ],
+        "overlapping_title_words": [
+          "michael"
+        ]
+      },
+      {
+        "row": [
+          7779254,
+          99,
+          "Special Event ~ Comedian Michael Loftus with Kerry Pollock",
+          "2027-01-16 01:00:00+00:00",
+          "https://www.comedymagiccabaret.com/shows/390126",
+          "Comedy Magic Cabaret",
+          "843 William Hilton Pkwy, Hilton Head Island, SC 29928",
+          "Hilton Head Island",
+          "SC"
+        ],
+        "overlapping_title_words": [
+          "michael"
+        ]
+      },
+      {
+        "row": [
+          7793200,
+          12707,
+          "Virginia Beach Winery",
+          "2027-01-16 01:00:00+00:00",
+          "https://www.nextstopcomedy.com/events/virginia-beach-winery-2027-01-15-8-pm",
+          "Virginia Beach Winery",
+          "1064 Lynnhaven Parkway #110",
+          "Virginia Beach",
+          "VA"
+        ],
+        "overlapping_title_words": [
+          "beach"
+        ]
+      }
+    ],
+    "decision": "Retain as distinct: candidates share only generic words or performer first names and have different performers/physical venues"
+  },
+  {
+    "event_id": "8e9de180-4321-406f-9742-e9ac4c1af428",
+    "title": "Michael Malice & Dave Landau LIVE at the Wonders Theatre in Myrtle Beach!",
+    "local_datetime": "2027-01-16T19:00:00",
+    "candidates": [
+      {
+        "row": [
+          7821821,
+          81,
+          "Michael Rowland",
+          "2027-01-16 23:30:00+00:00",
+          "https://www-vermontcomedyclub-com.seatengine.com/shows/390352",
+          "Vermont Comedy Club",
+          "101 Main Street, Burlington VT 05401",
+          "Burlington",
+          "VT"
+        ],
+        "overlapping_title_words": [
+          "michael"
+        ]
+      },
+      {
+        "row": [
+          4139986,
+          1024,
+          "Michael Yo",
+          "2027-01-17 00:00:00+00:00",
+          "https://ci.ovationtix.com/35843/production/1269676?performanceId=11785173",
+          "Comedy @ The Carlson",
+          "50 Carlson Rd, Rochester, NY 14610",
+          "Rochester",
+          "NY"
+        ],
+        "overlapping_title_words": [
+          "michael"
+        ]
+      },
+      {
+        "row": [
+          6716928,
+          152,
+          "Dave Smith",
+          "2027-01-17 00:00:00+00:00",
+          "https://www.ticketmaster.com/dave-smith-philadelphia-pennsylvania-01-16-2027/event/020065241E0C555F",
+          "Punch Line Philly",
+          "33 E. Laurel Street",
+          "Philadelphia",
+          "PA"
+        ],
+        "overlapping_title_words": [
+          "dave"
+        ]
+      },
+      {
+        "row": [
+          5740271,
+          29044,
+          "Michael Longfellow LIVE @ The Attic Comedy Club! January 16, 7 PM",
+          "2027-01-17 00:00:00+00:00",
+          "https://www.eventbrite.com/e/michael-longfellow-live-the-attic-comedy-club-january-16-7-pm-tickets-1994870569574",
+          "The Walrus",
+          "143 E Main St, Columbus, OH",
+          "Columbus",
+          "OH"
+        ],
+        "overlapping_title_words": [
+          "michael"
+        ]
+      },
+      {
+        "row": [
+          7779255,
+          99,
+          "Special Event ~ Comedian Michael Loftus with Kerry Pollock",
+          "2027-01-17 01:00:00+00:00",
+          "https://www.comedymagiccabaret.com/shows/390127",
+          "Comedy Magic Cabaret",
+          "843 William Hilton Pkwy, Hilton Head Island, SC 29928",
+          "Hilton Head Island",
+          "SC"
+        ],
+        "overlapping_title_words": [
+          "michael"
+        ]
+      }
+    ],
+    "decision": "Retain as distinct: candidates share only generic words or performer first names and have different performers/physical venues"
+  },
+  {
+    "event_id": "1e5c7c9a-08ca-49cd-9c98-587452751f13",
+    "title": "Nick DiPaolo LIVE at the Wonders Theatre in Myrtle Beach!",
+    "local_datetime": "2027-01-22T19:00:00",
+    "candidates": [
+      {
+        "row": [
+          7509493,
+          83,
+          "Nick Thune",
+          "2027-01-23 00:00:00+00:00",
+          "https://www.witsendcharleston.com/shows/389552",
+          "Wit's End Comedy Lounge",
+          "3320 Rivers Ave, North Charleston SC 29405",
+          "North Charleston",
+          "SC"
+        ],
+        "overlapping_title_words": [
+          "nick"
+        ]
+      },
+      {
+        "row": [
+          6991901,
+          524,
+          "Nick Hoff Benefitting MC Live",
+          "2027-01-23 01:00:00+00:00",
+          "https://giveahootcomedy.com/shows/387895",
+          "Give a Hoot Comedy Club",
+          "16143 Shady Grove Rd, Gaithersburg, MD 20877, USA",
+          "Gaithersburg",
+          "MD"
+        ],
+        "overlapping_title_words": [
+          "nick"
+        ]
+      }
+    ],
+    "decision": "Retain as distinct: candidates share only generic words or performer first names and have different performers/physical venues"
+  },
+  {
+    "event_id": "52241bd2-944f-440e-acad-a95d0480f5a3",
+    "title": "Tammy Pescatelli at the Newtown Theatre",
+    "local_datetime": "2027-01-29T18:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "09f2adae-b850-474a-b1b0-8151d70f550d",
+    "title": "Crystal Marie at Wonders Theatre in Myrtle Beach!",
+    "local_datetime": "2027-02-05T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "9aef6a4f-6c18-47f0-95d7-72305458f60c",
+    "title": "Crystal Marie at Wonders Theatre in Myrtle Beach!",
+    "local_datetime": "2027-02-06T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "861c5cee-fbe3-49bb-8bd6-6f58bf071a58",
+    "title": "The Original Psychic Stand Up Karen Rontowski returns to Wonders Theatre!",
+    "local_datetime": "2027-02-13T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "b4f2de4c-f11a-4d3c-b165-005df9e2941b",
+    "title": "The Day Players at Wonders Theatre",
+    "local_datetime": "2027-02-19T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "9b40355b-ee1b-4314-90ab-5dacf41ecb8b",
+    "title": "The Day Players at Wonders Theatre",
+    "local_datetime": "2027-02-20T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "48526cde-9dce-45fd-87ed-eab355d3e27b",
+    "title": "Joe Matarese at the Newtown Theatre",
+    "local_datetime": "2027-02-26T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "318343d0-17aa-4f30-aedd-ece52bdd1482",
+    "title": "Gabriel Rutlege at the Newtown Theatre",
+    "local_datetime": "2027-04-23T19:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "34bf9656-3bb9-4541-aad5-4ee415d97c99",
+    "title": "Gabriel Rutlege at the Newtown Theatre",
+    "local_datetime": "2027-04-23T21:30:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  },
+  {
+    "event_id": "19e4d467-edb0-40a3-9eb5-cc95f0635b36",
+    "title": "Psychic Stand-Up Karen Rontowski at the Newtown Theatre",
+    "local_datetime": "2027-05-21T20:00:00",
+    "candidates": [],
+    "decision": "No title-word candidates within one hour"
+  }
+]

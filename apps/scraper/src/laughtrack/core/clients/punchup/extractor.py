@@ -41,6 +41,9 @@ class PunchupShow:
     metadata_text: Optional[str]
     show_comedians: List[Dict[str, Any]] = field(default_factory=list)
     tixologi_ticket_types: List[Dict[str, Any]] = field(default_factory=list)
+    venue_id: Optional[str] = None
+    venue: Optional[str] = None
+    location: Optional[str] = None
 
     def to_show(
         self,
@@ -327,6 +330,9 @@ class PunchupExtractor:
             is_sold_out=bool(data.get("is_sold_out", False)),
             metadata_text=data.get("metadata_text") or None,
             show_comedians=data.get("show_comedians") or [],
+            venue_id=data.get("venue_id"),
+            venue=data.get("venue"),
+            location=data.get("location"),
         )
 
     @staticmethod

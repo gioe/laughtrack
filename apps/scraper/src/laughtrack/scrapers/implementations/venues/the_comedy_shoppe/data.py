@@ -12,3 +12,10 @@ class ShowSlingerPageData(EventListContainer[ShowSlingerEvent]):
     """Raw extracted data from a ShowSlinger combo widget."""
 
     event_list: List[ShowSlingerEvent]
+
+
+@dataclass
+class ShoppePageData(EventListContainer):
+    """Reviewed PunchUp occurrences ready for the conversion pipeline."""
+
+    event_list: list

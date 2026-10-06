@@ -1,0 +1,286 @@
+[
+  {
+    "url": "https://punchup.live/api/shows?venuePageId=4969662d-af53-4d87-b151-9f94c8f89d4c&limit=20&offset=0",
+    "events": [
+      {
+        "id": "90b7572e-396f-4fd3-9e3c-262f8c945fd9",
+        "title": "Big Shots Big Laughs Comedy Night Kick Off!",
+        "datetime": "2026-10-22T20:00:00",
+        "ticket_link": "https://event.tixologi.com/event/14745/tickets",
+        "tixologi_event_id": "14745",
+        "venue_id": "2c13bafd-cfae-49e9-8a4f-3d057861c73a",
+        "venue": "Big Shots Restaurant & Lounge",
+        "location": "Woodbridge Township, NJ"
+      },
+      {
+        "id": "b816e156-c3e1-4836-9898-69872161247d",
+        "title": "The Uncle Louie Variety Show at the Newtown Theatre",
+        "datetime": "2026-10-23T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/10932/tickets",
+        "tixologi_event_id": "10932",
+        "venue_id": "934596d6-a21d-4d83-ae7b-39a7c139ca67",
+        "venue": "Newtown Theatre",
+        "location": "Newtown, PA"
+      },
+      {
+        "id": "8e0e616d-6714-4df2-9983-ebd65f92ded9",
+        "title": "Joe Starr at Dreamers Restaurant",
+        "datetime": "2026-10-26T19:30:00",
+        "ticket_link": "https://event.tixologi.com/event/14403/tickets",
+        "tixologi_event_id": "14403",
+        "venue_id": "a6eca676-0913-44ec-85b6-66a539d2d172",
+        "venue": "Dreamers Restaurant",
+        "location": "Moncks Corner, SC"
+      },
+      {
+        "id": "71d8bf8a-7501-40a3-b80c-022b77a0c96c",
+        "title": "Joe DeVito at the Newtown Theatre",
+        "datetime": "2026-11-27T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/11353/tickets",
+        "tixologi_event_id": "11353",
+        "venue_id": "934596d6-a21d-4d83-ae7b-39a7c139ca67",
+        "venue": "Newtown Theatre",
+        "location": "Newtown, PA"
+      },
+      {
+        "id": "d8ea353f-d2dd-48e5-8356-b80685c0f04f",
+        "title": "Jenn Snyder at Dreamers Restaurant",
+        "datetime": "2026-11-30T19:30:00",
+        "ticket_link": "https://event.tixologi.com/event/14404/tickets",
+        "tixologi_event_id": "14404",
+        "venue_id": "a6eca676-0913-44ec-85b6-66a539d2d172",
+        "venue": "Dreamers Restaurant",
+        "location": "Moncks Corner, SC"
+      },
+      {
+        "id": "6ce6695f-a0ee-4319-9c6a-48223748d7df",
+        "title": "Emo Philips at Wonders Theatre",
+        "datetime": "2026-12-04T19:00:00",
+        "ticket_link": "https://ci.ovationtix.com/36052/production/1262681",
+        "tixologi_event_id": null,
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "843b52e7-8186-41a4-86b6-bbc498653f44",
+        "title": "Shelly Belly Returns to Wonders Theatre in Myrtle Beach!",
+        "datetime": "2026-12-12T16:00:00",
+        "ticket_link": "https://event.tixologi.com/event/13065/tickets",
+        "tixologi_event_id": "13065",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "88e78646-4ad3-4ad2-99d2-4b5bbc07305f",
+        "title": "Shelly Belly Returns to Wonders Theatre in Myrtle Beach!",
+        "datetime": "2026-12-13T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/13067/tickets",
+        "tixologi_event_id": "13067",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "ca7326f2-59d6-4f5d-8a13-33b1e11418b3",
+        "title": "Uncle Louie Christmas Variety Show!",
+        "datetime": "2026-12-19T15:00:00",
+        "ticket_link": "https://event.tixologi.com/event/13116/tickets",
+        "tixologi_event_id": "13116",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "0ea0e6a9-13fd-4490-a480-d06f29df59c8",
+        "title": "Uncle Louie Christmas Variety Show!",
+        "datetime": "2026-12-20T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/13117/tickets",
+        "tixologi_event_id": "13117",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "b236d372-544b-40b8-a914-c2e48d2fdfcd",
+        "title": "Newtown Theatre's New Year\u2019s Eve Comedy Countdown!",
+        "datetime": "2026-12-31T18:00:00",
+        "ticket_link": "https://event.tixologi.com/event/12613/tickets",
+        "tixologi_event_id": "12613",
+        "venue_id": "934596d6-a21d-4d83-ae7b-39a7c139ca67",
+        "venue": "Newtown Theatre",
+        "location": "Newtown, PA"
+      },
+      {
+        "id": "c9db7cc5-d9e2-4fb4-833f-312f6a173c83",
+        "title": "NYE with Jim Florentine at Wonders Theatre!",
+        "datetime": "2026-12-31T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/13917/tickets",
+        "tixologi_event_id": "13917",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "138f1288-38dc-4bc0-a764-02dddd992c89",
+        "title": "Newtown Theatre's New Year\u2019s Eve Comedy Countdown!",
+        "datetime": "2026-12-31T21:00:00",
+        "ticket_link": "https://event.tixologi.com/event/12615/tickets",
+        "tixologi_event_id": "12615",
+        "venue_id": "934596d6-a21d-4d83-ae7b-39a7c139ca67",
+        "venue": "Newtown Theatre",
+        "location": "Newtown, PA"
+      },
+      {
+        "id": "66b992ef-b502-4d2c-a813-ace59ff65d5a",
+        "title": "Jim Florentine at Wonders Theatre!",
+        "datetime": "2027-01-01T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/13918/tickets",
+        "tixologi_event_id": "13918",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "fb44c578-cdc2-43a9-8ad3-a31823c3b4b1",
+        "title": "Michael Malice & Dave Landau LIVE at the Wonders Theatre in Myrtle Beach!",
+        "datetime": "2027-01-15T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/15065/tickets",
+        "tixologi_event_id": "15065",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "8e9de180-4321-406f-9742-e9ac4c1af428",
+        "title": "Michael Malice & Dave Landau LIVE at the Wonders Theatre in Myrtle Beach!",
+        "datetime": "2027-01-16T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/15066/tickets",
+        "tixologi_event_id": "15066",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "1e5c7c9a-08ca-49cd-9c98-587452751f13",
+        "title": "Nick DiPaolo LIVE at the Wonders Theatre in Myrtle Beach!",
+        "datetime": "2027-01-22T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/15064/tickets",
+        "tixologi_event_id": "15064",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "52241bd2-944f-440e-acad-a95d0480f5a3",
+        "title": "Tammy Pescatelli at the Newtown Theatre",
+        "datetime": "2027-01-29T18:00:00",
+        "ticket_link": "https://event.tixologi.com/event/11547/tickets",
+        "tixologi_event_id": "11547",
+        "venue_id": "934596d6-a21d-4d83-ae7b-39a7c139ca67",
+        "venue": "Newtown Theatre",
+        "location": "Newtown, PA"
+      },
+      {
+        "id": "09f2adae-b850-474a-b1b0-8151d70f550d",
+        "title": "Crystal Marie at Wonders Theatre in Myrtle Beach!",
+        "datetime": "2027-02-05T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/15073/tickets",
+        "tixologi_event_id": "15073",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "9aef6a4f-6c18-47f0-95d7-72305458f60c",
+        "title": "Crystal Marie at Wonders Theatre in Myrtle Beach!",
+        "datetime": "2027-02-06T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/15074/tickets",
+        "tixologi_event_id": "15074",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      }
+    ]
+  },
+  {
+    "url": "https://punchup.live/api/shows?venuePageId=4969662d-af53-4d87-b151-9f94c8f89d4c&limit=20&offset=20",
+    "events": [
+      {
+        "id": "861c5cee-fbe3-49bb-8bd6-6f58bf071a58",
+        "title": "The Original Psychic Stand Up Karen Rontowski returns to Wonders Theatre!",
+        "datetime": "2027-02-13T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/14374/tickets",
+        "tixologi_event_id": "14374",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "b4f2de4c-f11a-4d3c-b165-005df9e2941b",
+        "title": "The Day Players at Wonders Theatre",
+        "datetime": "2027-02-19T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/15352/tickets",
+        "tixologi_event_id": "15352",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "9b40355b-ee1b-4314-90ab-5dacf41ecb8b",
+        "title": "The Day Players at Wonders Theatre",
+        "datetime": "2027-02-20T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/15353/tickets",
+        "tixologi_event_id": "15353",
+        "venue_id": "fc5b4198-5aa9-4dde-835e-c7b5fbb6ca25",
+        "venue": "Wonders Theatre ",
+        "location": "Myrtle Beach, SC"
+      },
+      {
+        "id": "48526cde-9dce-45fd-87ed-eab355d3e27b",
+        "title": "Joe Matarese at the Newtown Theatre",
+        "datetime": "2027-02-26T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/13243/tickets",
+        "tixologi_event_id": "13243",
+        "venue_id": "934596d6-a21d-4d83-ae7b-39a7c139ca67",
+        "venue": "Newtown Theatre",
+        "location": "Newtown, PA"
+      },
+      {
+        "id": "318343d0-17aa-4f30-aedd-ece52bdd1482",
+        "title": "Gabriel Rutlege at the Newtown Theatre",
+        "datetime": "2027-04-23T19:00:00",
+        "ticket_link": "https://event.tixologi.com/event/13351/tickets",
+        "tixologi_event_id": "13351",
+        "venue_id": "934596d6-a21d-4d83-ae7b-39a7c139ca67",
+        "venue": "Newtown Theatre",
+        "location": "Newtown, PA"
+      },
+      {
+        "id": "34bf9656-3bb9-4541-aad5-4ee415d97c99",
+        "title": "Gabriel Rutlege at the Newtown Theatre",
+        "datetime": "2027-04-23T21:30:00",
+        "ticket_link": "https://event.tixologi.com/event/13352/tickets",
+        "tixologi_event_id": "13352",
+        "venue_id": "934596d6-a21d-4d83-ae7b-39a7c139ca67",
+        "venue": "Newtown Theatre",
+        "location": "Newtown, PA"
+      },
+      {
+        "id": "19e4d467-edb0-40a3-9eb5-cc95f0635b36",
+        "title": "Psychic Stand-Up Karen Rontowski at the Newtown Theatre",
+        "datetime": "2027-05-21T20:00:00",
+        "ticket_link": "https://event.tixologi.com/event/12956/tickets",
+        "tixologi_event_id": "12956",
+        "venue_id": "934596d6-a21d-4d83-ae7b-39a7c139ca67",
+        "venue": "Newtown Theatre",
+        "location": "Newtown, PA"
+      }
+    ]
+  },
+  {
+    "url": "https://punchup.live/api/shows?venuePageId=4969662d-af53-4d87-b151-9f94c8f89d4c&limit=20&offset=40",
+    "events": []
+  }
+]

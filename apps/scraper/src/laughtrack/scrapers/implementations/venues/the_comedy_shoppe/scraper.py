@@ -51,3 +51,8 @@ class ShowSlingerScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+# Registry discovery imports modules named scraper; retain ShowSlinger support.
+from .punchup import ComedyShoppeScraper
+
+__all__ = ['ShowSlingerScraper', 'ComedyShoppeScraper']
