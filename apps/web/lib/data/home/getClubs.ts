@@ -21,6 +21,7 @@ export async function getClubs(
     // findClubsWithCount (club search) — see docs/design/empty-club-discovery-policy.md.
     // Dormant clubs remain reachable at /club/[name] for deep links/SEO.
     const where: Prisma.ClubWhereInput = {
+        visible: true,
         status: "active",
         ...(options.requireImage && { hasImage: true }),
         shows: { some: { isCancelled: false, date: { gt: now } } },

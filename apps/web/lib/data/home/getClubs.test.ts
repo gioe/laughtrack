@@ -75,13 +75,14 @@ describe("getClubs", () => {
             await expect(getClubs()).rejects.toThrow("DB unavailable");
         });
 
-        it("requests active clubs with at least one upcoming show", async () => {
+        it("requires visible active clubs even when hidden clubs retain upcoming shows", async () => {
             mockFindMany.mockResolvedValue([] as never);
 
             await getClubs();
 
             const call = mockFindMany.mock.calls[0][0];
             expect(call?.where).toMatchObject({
+                visible: true,
                 status: "active",
                 shows: { some: { date: { gt: expect.any(Date) } } },
             });
@@ -95,6 +96,7 @@ describe("getClubs", () => {
 
             const call = mockFindMany.mock.calls[0][0];
             expect(call?.where).toMatchObject({
+                visible: true,
                 status: "active",
                 hasImage: true,
                 shows: { some: { date: { gt: expect.any(Date) } } },
