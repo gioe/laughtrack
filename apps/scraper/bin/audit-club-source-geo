@@ -11,6 +11,21 @@ venue its scraping source targets, with no guard. This audit surfaces those
 mismatches cheaply (pure SQL + domain parsing, no network calls) so they can be
 corrected.
 
+SeatEngine audit (TASK-4114, read-only):
+    PYTHONPATH=src:. .venv/bin/python3 bin/audit-club-source-geo \
+      --signal source_venue_geo_mismatch --platform seatengine \
+      --enabled-only --include-hidden --format json
+
+Classic SeatEngine IDs resolve through the authenticated native client
+(SEATENGINE_AUTH_TOKEN when configured), then only the API-authorized website's
+unambiguous EventVenue JSON-LD supplies city/state. No API auth headers are sent
+to the website. Up to four venues run concurrently, with a 25-second venue deadline.
+seatengine_resolution reports every selected source: match/mismatch, missing or
+unsupported ID, failed fetch, missing/conflicting metadata, and capped resolution.
+Postal disagreement is evidence only, never a guessed correction. The database
+session is explicitly read-only. Network diagnostics go to stderr; JSON stdout
+contains one report. --max-resolve caps distinct classic IDs, reporting the rest.
+
 Signals:
 
     website_domain_mismatch  (offline, default)
@@ -275,12 +290,13 @@ VENUE_ID_COLUMNS = (
 # Subset of VENUE_ID_COLUMNS the network signal can resolve to a canonical
 # city/state, in priority order. Each kind maps to a per-platform resolver
 # wired in main(): ticketmaster_id -> TM Discovery venues API; eventbrite_id ->
-# Eventbrite venues API. The remaining VENUE_ID_COLUMNS (seatengine_id /
+# Eventbrite venues API and SeatEngine API-authorized website JSON-LD.
+# The remaining VENUE_ID_COLUMNS (
 # seatengine_v3_id / ovationtix_id / wix_event_id / squadup_id) have no
 # single-venue geo endpoint wired yet, so they stay offline-only —
 # shared_venue_across_geo still covers cross-club collisions on them. Add a
 # platform here only after wiring its resolver + credential in main().
-RESOLVABLE_VENUE_ID_KINDS = ("ticketmaster_id", "eventbrite_id")
+RESOLVABLE_VENUE_ID_KINDS = ("ticketmaster_id", "eventbrite_id", "seatengine_id")
 
 
 def _fetch_sources(cur, include_hidden: bool):
@@ -289,7 +305,7 @@ def _fetch_sources(cur, include_hidden: bool):
     cur.execute(f"""
         SELECT s.id AS source_id, s.club_id, s.platform::text AS platform,
                s.source_url, s.enabled,
-               c.name AS club_name, c.city, c.state, c.website, c.visible,
+               c.name AS club_name, c.city, c.state, c.zip_code AS postal_code, c.website, c.visible,
                c.chain_id,
                {id_cols}
         FROM scraping_sources s
@@ -640,6 +656,84 @@ def _format_csv(signal: str, rows: list) -> str:
     return buf.getvalue()
 
 
+def _select_sources(sources, platform=None, enabled_only=False):
+    return [s for s in sources if (not enabled_only or s.get("enabled") is True)
+            and (platform != "seatengine" or str(s.get("platform", "")).startswith("seatengine")
+                 or s.get("seatengine_id") is not None or s.get("seatengine_v3_id") is not None)]
+
+
+def _seatengine_report(sources, resolved):
+    rows = []
+    for source in _select_sources(sources, "seatengine"):
+        row = {key: source.get(key) for key in ("source_id", "club_id", "club_name", "city", "state", "postal_code", "enabled", "visible")}
+        ident = source.get("seatengine_id")
+        if ident is None or not str(ident).strip():
+            row["status"] = "unsupported_v3" if source.get("seatengine_v3_id") else "missing_id"
+            row["venue_id"] = source.get("seatengine_v3_id")
+        else:
+            result = dict(resolved.get(str(ident), {"status": "fetch_error", "reason": "no_resolution_result"}))
+            row["venue_id"] = str(ident)
+            for key, value in result.items():
+                row["venue_" + key if key in ("name", "city", "state", "postal_code") else key] = value
+            if result.get("status") == "resolved":
+                if not source.get("city") or not source.get("state"):
+                    row["status"] = "insufficient_club_geo"
+                elif str(source["state"]).strip().upper() != result["state"]:
+                    row.update(status="mismatch", mismatch="state")
+                elif _normalize_city(source["city"]) != _normalize_city(result["city"]):
+                    row.update(status="mismatch", mismatch="city")
+                else:
+                    row["status"] = "match"
+                row["warnings"] = list(result.get("warnings", []))
+                native_postal = str(result.get("postal_code") or "")[:5]
+                club_postal = str(source.get("postal_code") or "")[:5]
+                if native_postal and club_postal and native_postal != club_postal:
+                    row["warnings"].append("postal_code_mismatch_no_correction_inferred")
+        rows.append(row)
+    return rows
+
+
+def _resolve_seatengine_sources(sources, max_resolve=None):
+    ids = {str(s["seatengine_id"]) for s in sources if s.get("seatengine_id") is not None}
+    if not os.environ.get("SEATENGINE_AUTH_TOKEN", "").strip():
+        return {
+            ident: {
+                "status": "missing_credential",
+                "reason": "SEATENGINE_AUTH_TOKEN is not configured",
+                "venue_id": ident,
+                "api_url": f"https://services.seatengine.com/api/v1/venues/{ident}",
+            }
+            for ident in ids
+        }
+    # Existing logging handlers may have captured stdout before this CLI runs.
+    # Route diagnostics to stderr so stdout remains one machine-readable report.
+    import asyncio
+    import contextlib
+    import logging
+    streams = []
+    for logger in [logging.getLogger(), *logging.Logger.manager.loggerDict.values()]:
+        for handler in getattr(logger, "handlers", []):
+            if getattr(handler, "stream", None) is sys.stdout:
+                streams.append((handler, handler.stream))
+                handler.setStream(sys.stderr)
+    try:
+        with contextlib.redirect_stdout(sys.stderr):
+            from laughtrack.core.clients.seatengine.geo import resolve_venues
+            from laughtrack.foundation.infrastructure.http.client import close_js_browser
+            async def run():
+                try:
+                    return await resolve_venues(ids, max_resolve=max_resolve)
+                finally:
+                    try:
+                        await asyncio.wait_for(close_js_browser(), timeout=5)
+                    except (Exception, asyncio.CancelledError):
+                        pass
+            return asyncio.run(run())
+    finally:
+        for handler, stream in streams:
+            handler.setStream(stream)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="audit-club-source-geo",
@@ -670,7 +764,11 @@ def main() -> None:
         help="Cap the number of distinct venue ids resolved via the network "
              "(source_venue_geo_mismatch only; useful for spot checks).",
     )
+    parser.add_argument("--platform", choices=("seatengine",), help="Select SeatEngine platform/ID sources, including unsupported or missing IDs.")
+    parser.add_argument("--enabled-only", action="store_true", help="Audit only enabled sources; combine with --include-hidden for complete enabled inventory.")
     args = parser.parse_args()
+    if args.max_resolve is not None and args.max_resolve < 0:
+        parser.error("--max-resolve must be nonnegative")
 
     # dict.fromkeys dedups repeated --signal while preserving order (argparse
     # append does not dedup, which would double output rows / summary lines).
@@ -678,7 +776,7 @@ def main() -> None:
     signals = list(dict.fromkeys(args.signal)) if args.signal else list(OFFLINE_SIGNALS)
 
     try:
-        import psycopg2  # noqa: F401
+        __import__("psycopg2")
     except ImportError:
         print("Error: psycopg2 is not installed. Run: pip install psycopg2-binary", file=sys.stderr)
         sys.exit(1)
@@ -689,12 +787,13 @@ def main() -> None:
     dsn = _resolve_database_url()
     conn = connect_with_retry(dsn)
     try:
-        conn.autocommit = True
+        conn.set_session(readonly=True, autocommit=True)
         with conn.cursor() as cur:
             sources = _fetch_sources(cur, args.include_hidden)
     finally:
         conn.close()
 
+    sources = _select_sources(sources, args.platform, args.enabled_only)
     results = {}
     if "website_domain_mismatch" in signals:
         results["website_domain_mismatch"] = _website_domain_mismatch(sources)
@@ -715,8 +814,15 @@ def main() -> None:
              _resolve_eventbrite_venues, "Eventbrite venues"),
         )
         venue_locations = {}
-        resolved_any = False
-        for id_kind, env_var, resolver, label in platform_resolvers:
+        seatengine_sources = _select_sources(sources, "seatengine")
+        resolved_any = bool(seatengine_sources)
+        if seatengine_sources:
+            seatengine_resolved = _resolve_seatengine_sources(seatengine_sources, args.max_resolve)
+            results["seatengine_resolution"] = _seatengine_report(seatengine_sources, seatengine_resolved)
+            for vid, loc in seatengine_resolved.items():
+                if loc.get("status") == "resolved":
+                    venue_locations[("seatengine_id", vid)] = loc
+        for id_kind, env_var, resolver, label in (() if args.platform == "seatengine" else platform_resolvers):
             ids = {
                 str(s[id_kind]).strip()
                 for s in sources
@@ -763,6 +869,14 @@ def main() -> None:
         chunks = []
         for sig in signals:
             chunks.append(_format_csv(sig, results.get(sig, [])))
+        if "seatengine_resolution" in results:
+            rows = results["seatengine_resolution"]
+            if rows:
+                buf = io.StringIO()
+                writer = csv.DictWriter(buf, fieldnames=sorted({key for row in rows for key in row}))
+                writer.writeheader()
+                writer.writerows(rows)
+                chunks.append(buf.getvalue())
         sys.stdout.write("\n".join(c for c in chunks if c))
     else:
         print(json.dumps(results, indent=2, default=str))
