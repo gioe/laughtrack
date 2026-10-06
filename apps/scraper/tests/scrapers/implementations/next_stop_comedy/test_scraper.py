@@ -410,3 +410,176 @@ def test_extracted_address_remains_safe_for_discovered_venue_city_parser(address
     html = '<script type="application/ld+json">' + json.dumps(node) + "</script>"
     event = extract_json_ld_events(html)[0]
     assert parse_city_state_from_address(event.venue_payload()["address"]) == expected
+
+
+_REDIRECT_ID = "1df52ed6-a1f9-4f4f-9002-87a6eff110cf"
+_OTHER_REDIRECT_ID = "8c332f13-b17e-4bf9-b916-75c2d8b07321"
+_REDIRECT_URL = "https://www.nextstopcomedy.com/events/trillium-canton-2026-07-09"
+
+
+def _redirect_html(*, ident=_REDIRECT_ID, changes=None, node_changes=None, split=False):
+    node = json.loads(_EVENT_HTML.split('<script type="application/ld+json">')[1].split("</script>")[0])
+    node.update(node_changes or {})
+    props = dict(eventId=ident, currentEventId=ident, eventSlug=node["url"].rsplit("/", 1)[-1], venueTimezone="America/New_York")
+    props.update(changes or {})
+    flight = "1:" + json.dumps(["$", "component", None, props]) + "\n"
+    chunks = [flight[: len(flight) // 2], flight[len(flight) // 2 :]] if split else [flight]
+    return '<script type="application/ld+json">' + json.dumps(node) + '</script>' + ''.join(
+        '<script>self.__next_f.push(' + json.dumps([1, chunk]) + ')</script>' for chunk in chunks
+    )
+
+
+@pytest.mark.parametrize("split", [False, True])
+def test_redirect_identity_uses_matching_main_uuid(split):
+    event = extract_json_ld_events(_redirect_html(split=split))[0]
+    assert event.native_event_id == _REDIRECT_ID
+    assert event.canonical_event_url == _REDIRECT_URL
+
+
+@pytest.mark.parametrize("changes", [
+    {"eventSlug": "unrelated"}, {"currentEventId": _OTHER_REDIRECT_ID},
+    {"eventDate": "2026-07-10T23:00:00Z"}, {"eventDate": "bad"},
+    {"eventId": "not-uuid", "currentEventId": "not-uuid"},
+])
+def test_redirect_invalid_main_identity_cannot_activate(changes):
+    assert extract_json_ld_events(_redirect_html(changes=changes))[0].native_event_id is None
+
+
+def test_redirect_conflicting_main_ids_are_not_arbitrarily_chosen():
+    html = _redirect_html() + _redirect_html(ident=_OTHER_REDIRECT_ID)
+    assert extract_json_ld_events(html) == []
+
+
+def test_redirect_nearby_uuid_is_not_main_identity():
+    html = _EVENT_HTML + '<script>self.__next_f.push(' + json.dumps([1, '1:' + json.dumps({
+        'nearbyShows': [{'eventId': _REDIRECT_ID, 'eventSlug': 'trillium-canton-2026-07-09'}]
+    }) + '\n']) + ')</script>'
+    assert extract_json_ld_events(html)[0].native_event_id is None
+
+
+async def _redirect_scraper(monkeypatch, promoter_proxy, pages, rows=None):
+    promoter_proxy.production_company_id = 35
+    scraper = NextStopComedyScraper(promoter_proxy)
+    queries = []
+    def query(sql, args, **kwargs):
+        queries.append((sql, args))
+        return rows if rows is not None else [dict(source_performance_id=f"next_stop_comedy:{_REDIRECT_ID}", show_page_url=_REDIRECT_URL, club_id=4242)]
+    async def fetch(url):
+        if url.endswith('/events'):
+            return ''.join(f'<a href="{key}">Show</a>' for key in pages)
+        return pages.get(url)
+    async def api():
+        return []
+    monkeypatch.setattr(scraper._club_handler, 'execute_with_cursor', query)
+    monkeypatch.setattr(scraper._club_handler, 'upsert_discovered_venue', _venue_club)
+    monkeypatch.setattr(scraper, '_fetch_page', fetch)
+    monkeypatch.setattr(scraper, '_collect_api_events', api)
+    return scraper, queries
+
+
+@pytest.mark.asyncio
+async def test_redirect_aliases_emit_one_backfilled_identity(monkeypatch, promoter_proxy):
+    scraper, queries = await _redirect_scraper(monkeypatch, promoter_proxy, {
+        _REDIRECT_URL: _redirect_html(),
+        'https://www.nextstopcomedy.com/events/old-alias': _redirect_html(),
+    })
+    shows = await scraper.scrape_async()
+    assert len(shows) == 1
+    assert shows[0].source_performance_id == f"next_stop_comedy:{_REDIRECT_ID}"
+    assert shows[0].show_page_url == _REDIRECT_URL
+    assert len(queries) == 1 and queries[0][1] == (35,)
+
+
+@pytest.mark.parametrize('second', [
+    {'startDate': '2026-07-09T20:00:00-04:00'}, {'name': 'Different venue'},
+])
+@pytest.mark.asyncio
+async def test_redirect_conflicting_current_payloads_hold_all(monkeypatch, promoter_proxy, second):
+    scraper, _ = await _redirect_scraper(monkeypatch, promoter_proxy, {
+        _REDIRECT_URL: _redirect_html(),
+        'https://www.nextstopcomedy.com/events/old-alias': _redirect_html(node_changes=second),
+    })
+    assert await scraper.scrape_async() == []
+
+
+@pytest.mark.parametrize('html', [_EVENT_HTML, _redirect_html(ident=_OTHER_REDIRECT_ID), None])
+@pytest.mark.asyncio
+async def test_redirect_missing_or_mismatched_proof_never_inserts_legacy_or_cancels(monkeypatch, promoter_proxy, html):
+    scraper, _ = await _redirect_scraper(monkeypatch, promoter_proxy, {_REDIRECT_URL: html})
+    assert await scraper.scrape_async() == []
+
+
+@pytest.mark.asyncio
+async def test_redirect_new_slug_and_time_reuse_reviewed_uuid(monkeypatch, promoter_proxy):
+    url = 'https://www.nextstopcomedy.com/events/new-slug'
+    scraper, _ = await _redirect_scraper(monkeypatch, promoter_proxy, {
+        url: _redirect_html(node_changes={'url': url, 'offers': {'url': url}, 'startDate': '2026-07-10T20:00:00-04:00'}),
+    })
+    show = (await scraper.scrape_async())[0]
+    assert show.source_performance_id == f'next_stop_comedy:{_REDIRECT_ID}'
+    assert show.show_page_url == url
+    assert show.date.isoformat() == '2026-07-10T20:00:00-04:00'
+
+
+@pytest.mark.asyncio
+async def test_redirect_unreviewed_uuid_stays_legacy(monkeypatch, promoter_proxy):
+    scraper, _ = await _redirect_scraper(monkeypatch, promoter_proxy, {_REDIRECT_URL: _redirect_html()}, rows=[])
+    show = (await scraper.scrape_async())[0]
+    assert show.source_performance_id is None
+
+
+@pytest.mark.asyncio
+async def test_redirect_review_read_failure_aborts_instead_of_downgrading(monkeypatch, promoter_proxy):
+    scraper, _ = await _redirect_scraper(monkeypatch, promoter_proxy, {_REDIRECT_URL: _redirect_html()})
+    def failed(*args, **kwargs):
+        raise RuntimeError('database unavailable')
+    monkeypatch.setattr(scraper._club_handler, 'execute_with_cursor', failed)
+    with pytest.raises(RuntimeError, match='database unavailable'):
+        await scraper.scrape_async()
+
+
+@pytest.mark.asyncio
+async def test_redirect_reviewed_uuid_cannot_move_to_different_club(monkeypatch, promoter_proxy):
+    scraper, _ = await _redirect_scraper(monkeypatch, promoter_proxy, {_REDIRECT_URL: _redirect_html()}, rows=[
+        dict(source_performance_id=f'next_stop_comedy:{_REDIRECT_ID}', show_page_url=_REDIRECT_URL, club_id=999),
+    ])
+    assert await scraper.scrape_async() == []
+
+
+@pytest.mark.asyncio
+async def test_redirect_distinct_ids_at_same_slot_remain_distinct(monkeypatch, promoter_proxy):
+    other_url = 'https://www.nextstopcomedy.com/events/second-performance'
+    rows = [dict(source_performance_id=f'next_stop_comedy:{ident}', show_page_url=url, club_id=4242)
+            for ident, url in [(_REDIRECT_ID, _REDIRECT_URL), (_OTHER_REDIRECT_ID, other_url)]]
+    scraper, _ = await _redirect_scraper(monkeypatch, promoter_proxy, {
+        _REDIRECT_URL: _redirect_html(),
+        other_url: _redirect_html(ident=_OTHER_REDIRECT_ID, node_changes={'url': other_url, 'offers': {'url': other_url}}),
+    }, rows=rows)
+    shows = await scraper.scrape_async()
+    assert len(shows) == 2
+    assert shows[0].date == shows[1].date
+    assert {show.source_performance_id for show in shows} == {row['source_performance_id'] for row in rows}
+
+
+@pytest.mark.parametrize('bad_html', [None, _EVENT_HTML, _redirect_html(ident=_OTHER_REDIRECT_ID),
+                                      _redirect_html() + _redirect_html(ident=_OTHER_REDIRECT_ID)])
+def test_redirect_partial_hold_prevents_stale_reconciliation(monkeypatch, promoter_proxy, bad_html):
+    import asyncio
+    from laughtrack.utilities.domain.scraper.result import ScrapingResultProcessor
+    from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
+
+    async def prepare():
+        good_url = 'https://www.nextstopcomedy.com/events/unreviewed-good'
+        return await _redirect_scraper(monkeypatch, promoter_proxy, {
+            _REDIRECT_URL: bad_html,
+            good_url: _redirect_html(ident=_OTHER_REDIRECT_ID, node_changes={'url': good_url, 'offers': {'url': good_url}}),
+        })
+    scraper, _ = asyncio.run(prepare())
+    def scrape():
+        current_diagnostics().record_fetch_ok()
+        return asyncio.run(scraper.scrape_async())
+    monkeypatch.setattr(scraper, 'scrape', scrape)
+    result = scraper.scrape_with_result()
+    assert len(result.shows) == 1
+    assert result.fetches_failed > 0
+    assert not ScrapingResultProcessor._is_clean_for_reconciliation(result)

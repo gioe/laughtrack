@@ -23,6 +23,9 @@ class NextStopComedyEvent(ShowConvertible):
     performers: list[Any] = field(default_factory=list)
     ticket_price: Optional[float] = None
     sold_out: bool = False
+    native_event_id: Optional[str] = None
+    canonical_event_url: str = ""
+    source_performance_id: Optional[str] = None
 
     def venue_payload(self) -> dict:
         return {
@@ -42,7 +45,7 @@ class NextStopComedyEvent(ShowConvertible):
                 sold_out=self.sold_out,
             )
         ]
-        return ShowFactoryUtils.create_enhanced_show_base(
+        show = ShowFactoryUtils.create_enhanced_show_base(
             name=self.title or club.name,
             club=club,
             date=self.start_date,
@@ -53,3 +56,5 @@ class NextStopComedyEvent(ShowConvertible):
             supplied_tags=["event"],
             enhanced=enhanced,
         )
+        show.source_performance_id = self.source_performance_id
+        return show

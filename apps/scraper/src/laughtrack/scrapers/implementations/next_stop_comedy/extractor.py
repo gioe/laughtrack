@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Any, Iterable, Optional
 from urllib.parse import urljoin, urlparse
+from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from bs4 import BeautifulSoup
@@ -40,10 +41,49 @@ def extract_json_ld_events(html: str) -> list[NextStopComedyEvent]:
         for node in _flatten_json_ld(payload):
             event = _event_from_json_ld(node)
             if event is not None:
+                event.native_event_id, conflicting = _native_event_identity(node, event, event_props)
+                if conflicting:
+                    continue
+                event.canonical_event_url = str(node.get("url") or "")
                 event.venue_timezone = _supplied_timezone(node, event, event_props)
                 event.start_date = _verified_alberta_start(soup, node, event)
                 events.append(event)
     return events
+
+
+def normalize_event_id(value: Any) -> Optional[str]:
+    """Accept only complete native UUIDs, never slugs or nearby-show labels."""
+    if not isinstance(value, str):
+        return None
+    try:
+        normalized = str(UUID(value))
+    except ValueError:
+        return None
+    return normalized if value.lower() == normalized else None
+
+
+def _native_event_identity(node, event, candidates) -> tuple[Optional[str], bool]:
+    parsed = urlparse(str(node.get("url") or ""))
+    path = parsed.path.rstrip("/").split("/")
+    if parsed.scheme != "https" or parsed.hostname not in {"nextstopcomedy.com", "www.nextstopcomedy.com"}:
+        return None, False
+    if len(path) != 3 or path[1] != "events":
+        return None, False
+    identities = set()
+    for props in candidates:
+        if props.get("eventSlug") != path[2]:
+            continue
+        if props.get("eventDate"):
+            try:
+                supplied = datetime.fromisoformat(str(props["eventDate"]).removeprefix("$D").replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            if supplied != event.start_date:
+                continue
+        ident = normalize_event_id(props.get("eventId"))
+        if ident:
+            identities.add(ident)
+    return (next(iter(identities)) if len(identities) == 1 else None, len(identities) > 1)
 
 
 def _verified_alberta_start(
