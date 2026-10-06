@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Iterable, Optional
 from urllib.parse import urljoin, urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -41,8 +41,75 @@ def extract_json_ld_events(html: str) -> list[NextStopComedyEvent]:
             event = _event_from_json_ld(node)
             if event is not None:
                 event.venue_timezone = _supplied_timezone(node, event, event_props)
+                event.start_date = _verified_alberta_start(soup, node, event)
                 events.append(event)
     return events
+
+
+def _verified_alberta_start(
+    soup: BeautifulSoup, node: dict[str, Any], event: NextStopComedyEvent
+) -> datetime:
+    """Repair obsolete Alberta winter offsets only with matching advertised time.
+
+    Alberta stays at UTC-6 from November 2026. Some older Next Stop JSON-LD
+    retained UTC-7 while the main event header advertised the intended wall time.
+    Keep every other explicit instant intact, including ambiguous/missing evidence.
+    ZoneInfo is deliberate: the installed pytz data may predate this rule change.
+    """
+    original = event.start_date
+    if (
+        event.venue_timezone != "America/Edmonton"
+        or original.utcoffset() != timedelta(hours=-7)
+        or original.replace(tzinfo=None) < datetime(2026, 11, 1)
+    ):
+        return original
+    location = node.get("location")
+    if not isinstance(location, dict):
+        return original
+    address = location.get("address") or {}
+    if not isinstance(address, dict):
+        return original
+    country = address.get("addressCountry")
+    if isinstance(country, dict):
+        country = country.get("name")
+    if address.get("addressRegion") != "AB" or country != "CA":
+        return original
+
+    # Restrict evidence to the single main heading's immediate header container.
+    # Never inspect page-wide text: nearby cards and seating times are not starts.
+    headings = soup.select("main h1")
+    if len(headings) != 1 or headings[0].get_text(" ", strip=True) != event.title:
+        return original
+    header = headings[0].parent.parent
+    if header.name != "div" or not {"mb-8", "sm:mb-10"}.issubset(header.get("class", [])):
+        return original
+    advertised = []
+    for date_element in header.select("div.text-foreground"):
+        text = date_element.get_text(" ", strip=True)
+        try:
+            day = datetime.strptime(text, "%A, %B %d, %Y")
+        except ValueError:
+            continue
+        if day.strftime("%A") != text.split(",", 1)[0]:
+            return original
+        time_element = date_element.find_next_sibling("div")
+        if time_element is None:
+            continue
+        # Full-match the captured header line, explicitly using Show, not Seating.
+        match = re.fullmatch(
+            r"Seating Begins \d{1,2}:\d{2} [AP]M\s*·\s*Show\s+(\d{1,2}:\d{2}) ([ap])\.m\.",
+            time_element.get_text(" ", strip=True),
+        )
+        if match:
+            try:
+                clock = datetime.strptime(f"{match[1]} {match[2].upper()}M", "%I:%M %p")
+            except ValueError:
+                continue
+            advertised.append(day.replace(hour=clock.hour, minute=clock.minute))
+    if len(advertised) != 1 or advertised[0] != original.replace(tzinfo=None):
+        return original
+    corrected = advertised[0].replace(tzinfo=ZoneInfo(event.venue_timezone))
+    return corrected if corrected.utcoffset() == timedelta(hours=-6) else original
 
 
 def _main_event_props(soup: BeautifulSoup) -> list[dict[str, Any]]:
