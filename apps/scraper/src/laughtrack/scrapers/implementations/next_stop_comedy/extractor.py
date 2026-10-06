@@ -51,6 +51,55 @@ def extract_json_ld_events(html: str) -> list[NextStopComedyEvent]:
     return events
 
 
+def has_explicit_cancellation(html: str) -> bool:
+    soup = BeautifulSoup(html or "", "html.parser")
+    for script in soup.find_all("script", {"type": "application/ld+json"}):
+        for node in _flatten_json_ld(_loads_json(script.string or script.get_text("", strip=True))):
+            if isinstance(node.get("eventStatus"), str) and node.get("eventStatus") in {"https://schema.org/EventCancelled", "http://schema.org/EventCancelled", "EventCancelled"}:
+                return True
+    return False
+
+
+def extract_cancelled_events(html: str, requested_url: str) -> list[NextStopComedyEvent]:
+    """Return only explicit cancellations on this exact main event page.
+
+    A redirect destination is not evidence about the originally stored event.
+    Cancelled Next Stop pages omit Flight UUIDs, so canonical URL, aware date,
+    and venue evidence must subsequently match one existing database row.
+    """
+    if not html:
+        return []
+    parsed = urlparse(requested_url)
+    if (parsed.scheme != "https" or parsed.hostname not in {"nextstopcomedy.com", "www.nextstopcomedy.com"}
+            or not parsed.path.startswith("/events/") or parsed.query or parsed.fragment):
+        return []
+    soup = BeautifulSoup(html, "html.parser")
+    canonicals = [link.get("href") for link in soup.find_all("link", rel="canonical")]
+    headings = soup.select("main h1")
+    if canonicals != [requested_url] or len(headings) != 1:
+        return []
+    nodes = []
+    for script in soup.find_all("script", {"type": "application/ld+json"}):
+        nodes.extend(_flatten_json_ld(_loads_json(script.string or script.get_text("", strip=True))))
+    main = [node for node in nodes if node.get("url") == requested_url]
+    if len(main) != 1 or not isinstance(main[0].get("eventStatus"), str) or main[0].get("eventStatus") not in {
+        "https://schema.org/EventCancelled", "http://schema.org/EventCancelled", "EventCancelled"
+    }:
+        return []
+    event = _event_from_json_ld(main[0], include_cancelled=True)
+    if (event is None or event.start_date.utcoffset() is None or not event.venue_address
+            or headings[0].get_text(" ", strip=True) != event.title):
+        return []
+    event.canonical_event_url = requested_url
+    props = _main_event_props(soup)
+    event.native_event_id, conflicting = _native_event_identity(main[0], event, props)
+    inconsistent_native = not event.native_event_id and any(
+        item.get("eventSlug") == parsed.path.rsplit("/", 1)[-1] and normalize_event_id(item.get("eventId"))
+        for item in props
+    )
+    return [] if conflicting or inconsistent_native else [event]
+
+
 def normalize_event_id(value: Any) -> Optional[str]:
     """Accept only complete native UUIDs, never slugs or nearby-show labels."""
     if not isinstance(value, str):
@@ -230,7 +279,7 @@ def _flatten_json_ld(payload: Any) -> list[dict[str, Any]]:
     return []
 
 
-def _event_from_json_ld(node: dict[str, Any]) -> Optional[NextStopComedyEvent]:
+def _event_from_json_ld(node: dict[str, Any], *, include_cancelled: bool = False) -> Optional[NextStopComedyEvent]:
     json_type = node.get("@type")
     types = json_type if isinstance(json_type, list) else [json_type]
     if not any(str(t).lower() in {"comedyevent", "event"} for t in types):
@@ -239,7 +288,7 @@ def _event_from_json_ld(node: dict[str, Any]) -> Optional[NextStopComedyEvent]:
     # Only an explicit source cancellation excludes an event. Missing/unknown
     # status, rescheduling, and an unavailable detail page are not cancellations.
     status = node.get("eventStatus")
-    if isinstance(status, str) and status.strip() in {
+    if not include_cancelled and isinstance(status, str) and status.strip() in {
         "https://schema.org/EventCancelled",
         "http://schema.org/EventCancelled",
         "EventCancelled",
@@ -275,6 +324,7 @@ def _event_from_json_ld(node: dict[str, Any]) -> Optional[NextStopComedyEvent]:
         venue_name=venue_name,
         venue_address=venue_address,
         venue_zip=venue_zip,
+        venue_street_address=str(address.get("streetAddress") or "").strip(),
         description=str(node.get("description") or "").strip() or None,
         performers=_performers(node.get("performer")),
         ticket_price=price,

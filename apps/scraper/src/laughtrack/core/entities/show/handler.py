@@ -68,6 +68,53 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         """Return the Show class for instantiation."""
         return Show
 
+    def apply_cancellations(self, intents, *, conn=None) -> list[int]:
+        """Flag exact existing source identities; never insert, delete, or reactivate.
+
+        A caller-owned transaction is supported for integration/operator replay.
+        Any changed or ambiguous identity aborts the whole cancellation batch.
+        Only referenced show/venue rows are locked; no global table locks.
+        """
+        from laughtrack.core.models.results import ShowCancellation
+
+        if not intents:
+            return []
+        if conn is None:
+            with self.transaction() as connection:
+                return self.apply_cancellations(intents, conn=connection)
+        updated = []
+        unique = {intent.show_id: intent for intent in intents}
+        if len(unique) != len(intents):
+            raise ValueError("Duplicate cancellation intents")
+        for intent in sorted(intents, key=lambda item: item.show_id):
+            if (not isinstance(intent, ShowCancellation) or intent.scraper_key != "next_stop_comedy"
+                    or intent.production_company_id <= 0 or intent.date.utcoffset() is None):
+                raise ValueError("Invalid source cancellation intent")
+            rows = self.execute_with_cursor(
+                """SELECT s.id,s.club_id,s.production_company_id,s.last_scraped_by,s.show_page_url,
+                          s.date,s.source_performance_id,s.name,c.name AS venue_name,c.address AS venue_address,c.zip_code AS venue_zip
+                   FROM shows s JOIN clubs c ON c.id=s.club_id
+                   WHERE s.id=%s FOR UPDATE OF s FOR SHARE OF c""", (intent.show_id,), True, conn=conn,
+            )
+            expected = dict(id=intent.show_id, club_id=intent.club_id,
+                            production_company_id=intent.production_company_id, last_scraped_by=intent.scraper_key,
+                            show_page_url=intent.show_page_url, date=intent.date,
+                            source_performance_id=intent.source_performance_id, name=intent.name,
+                            venue_name=intent.venue_name, venue_address=intent.venue_address, venue_zip=intent.venue_zip)
+            if len(rows or []) != 1 or dict(rows[0]) != expected:
+                raise ValueError(f"Cancellation identity changed for show {intent.show_id}")
+            matches = self.execute_with_cursor(
+                """SELECT id FROM shows WHERE production_company_id=%s AND last_scraped_by=%s
+                       AND show_page_url=%s AND date=%s AND club_id=%s FOR UPDATE""",
+                (intent.production_company_id, intent.scraper_key, intent.show_page_url, intent.date, intent.club_id),
+                True, conn=conn,
+            )
+            if len(matches or []) != 1 or matches[0]["id"] != intent.show_id:
+                raise ValueError(f"Ambiguous cancellation identity for show {intent.show_id}")
+            self.execute_with_cursor("UPDATE shows SET is_cancelled=true WHERE id=%s", (intent.show_id,), conn=conn)
+            updated.append(intent.show_id)
+        return updated
+
     def count_stale_future_shows(
         self, club_id: int, scraper_key: str, cutoff: datetime
     ) -> int:

@@ -311,7 +311,7 @@ def test_cancelled_source_events(status, expected_count):
 
 
 @pytest.mark.asyncio
-async def test_scrape_excludes_cancelled_nodes_before_venue_upsert(monkeypatch, promoter_proxy):
+async def test_scrape_holds_conflicting_cancelled_and_scheduled_nodes_before_venue_upsert(monkeypatch, promoter_proxy):
     scraper = NextStopComedyScraper(promoter_proxy)
     node = json.loads(_EVENT_HTML.split('<script type="application/ld+json">')[1].split("</script>")[0])
     cancelled = dict(node, eventStatus="https://schema.org/EventCancelled", name="Cancelled show")
@@ -337,8 +337,8 @@ async def test_scrape_excludes_cancelled_nodes_before_venue_upsert(monkeypatch, 
     monkeypatch.setattr(scraper, "_collect_api_events", api_events)
     monkeypatch.setattr(scraper._club_handler, "upsert_discovered_venue", upsert)
     shows = await scraper.scrape_async()
-    assert len(shows) == len(upserts) == 1
-    assert shows[0].show_page_url == detail_url
+    assert shows == []
+    assert upserts == []
 
 
 @pytest.mark.parametrize(

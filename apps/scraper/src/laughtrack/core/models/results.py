@@ -7,10 +7,28 @@ aggregated scraping operation results.
 """
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import List, Optional, Set, Tuple
 
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.models.metrics import PerClubStat, ErrorDetail
+
+
+@dataclass(frozen=True)
+class ShowCancellation:
+    """Verified source evidence bound to an exact existing show snapshot."""
+
+    show_id: int
+    club_id: int
+    production_company_id: int
+    scraper_key: str
+    show_page_url: str
+    date: datetime
+    source_performance_id: Optional[str]
+    name: str
+    venue_name: str
+    venue_address: str
+    venue_zip: str
 
 
 @dataclass
@@ -67,6 +85,7 @@ class ClubScrapingResult:
     # encoding (TASK-2552, TASK-2565).
     is_synthetic: bool = False
     production_company_id: Optional[int] = None
+    cancellations: List[ShowCancellation] = field(default_factory=list)
 
     @property
     def num_shows(self) -> int:

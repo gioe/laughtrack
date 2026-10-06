@@ -69,6 +69,20 @@ class ScrapingResultProcessor:
                 scraper_key=club_result.scraper_key,
             )
 
+        if club_result.cancellations:
+            try:
+                if any(intent.scraper_key != club_result.scraper_key
+                       or intent.production_company_id != club_result.production_company_id
+                       for intent in club_result.cancellations):
+                    raise ValueError("Cancellation attribution differs from scrape result")
+                changed = self.show_service.show_handler.apply_cancellations(club_result.cancellations)
+                db_result.updates += len(changed)
+            except Exception as exc:
+                message = f"Cancellation persistence failed: {exc}"
+                Logger.error(message)
+                db_result.db_errors += 1
+                db_result.error_entries.append((club_result.club_name, message))
+
         # A successful fetch is insufficient when persistence rejected part of
         # that inventory. Those untouched rows are not evidence of cancellation.
         if db_result.errors or db_result.db_errors or db_result.validation_errors:

@@ -26,6 +26,7 @@ class NextStopComedyEvent(ShowConvertible):
     native_event_id: Optional[str] = None
     canonical_event_url: str = ""
     source_performance_id: Optional[str] = None
+    venue_street_address: str = ""
 
     def venue_payload(self) -> dict:
         return {
