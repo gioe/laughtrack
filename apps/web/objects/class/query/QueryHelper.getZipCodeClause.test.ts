@@ -126,6 +126,120 @@ describe("QueryHelper.getZipCodeClause", () => {
             warnSpy.mockRestore();
         });
 
+        it.each([499, 500, 501, 600])(
+            "counts a missing origin toward the cap with %i neighbors",
+            (neighborCount) => {
+                const neighbors = Array.from(
+                    { length: neighborCount },
+                    (_, i) => String(10000 + i),
+                );
+                radiusSpy = vi
+                    .spyOn(zipcodes, "radius")
+                    .mockReturnValue(neighbors as never);
+                const helper = makeHelper("94102", "25");
+                const zips = (helper.getZipCodeClause() as ZipCodeClause)
+                    .zipCode.in!;
+
+                expect(zips[0]).toBe("94102");
+                expect(zips.filter((zip) => zip === "94102")).toHaveLength(1);
+                expect(zips).toHaveLength(Math.min(neighborCount + 1, 500));
+                expect(new Set(zips).size).toBe(zips.length);
+                const capped = neighborCount + 1 > 500;
+                expect(helper.isZipCapTriggered()).toBe(capped);
+                expect(warnSpy).toHaveBeenCalledTimes(capped ? 1 : 0);
+                if (capped) {
+                    expect(warnSpy).toHaveBeenCalledWith(
+                        expect.stringContaining(
+                            `raw count=${neighborCount + 1}`,
+                        ),
+                    );
+                }
+            },
+        );
+
+        it("deduplicates an origin returned after the cap and as a ZIP object", () => {
+            const neighbors = Array.from({ length: 500 }, (_, i) =>
+                String(10000 + i),
+            );
+            radiusSpy = vi
+                .spyOn(zipcodes, "radius")
+                .mockReturnValue([
+                    ...neighbors,
+                    "94102",
+                    { zip: "94102" },
+                    neighbors[0],
+                ] as never);
+            const helper = makeHelper("94102", "25");
+            const zips = (helper.getZipCodeClause() as ZipCodeClause).zipCode
+                .in!;
+
+            expect(zips).toEqual(["94102", ...neighbors.slice(0, 499)]);
+            expect(helper.isZipCapTriggered()).toBe(true);
+            expect(warnSpy).toHaveBeenCalledWith(
+                expect.stringContaining("raw count=501"),
+            );
+        });
+
+        it("reserves every ambiguous-city origin before capping the combined pool", () => {
+            const resolution = resolveLocationInput("Portland");
+            if (!resolution.found) throw new Error("Portland must resolve");
+            const origins = resolution.startingZips;
+            expect(origins.length).toBeGreaterThan(1);
+            const neighbors = Array.from({ length: 600 }, (_, i) =>
+                String(10000 + i),
+            ).filter((zip) => !origins.includes(zip));
+            radiusSpy = vi
+                .spyOn(zipcodes, "radius")
+                .mockReturnValue(neighbors as never);
+            const helper = makeHelper("Portland", "25");
+            const zips = (helper.getZipCodeClause() as ZipCodeClause).zipCode
+                .in!;
+
+            expect(zips.slice(0, origins.length)).toEqual(origins);
+            expect(zips).toHaveLength(500);
+            expect(new Set(zips).size).toBe(500);
+            expect(radiusSpy).toHaveBeenCalledTimes(origins.length);
+            for (const origin of origins) {
+                expect(radiusSpy).toHaveBeenCalledWith(origin, 25);
+            }
+            expect(helper.isZipCapTriggered()).toBe(true);
+            expect(warnSpy).toHaveBeenCalledOnce();
+        });
+
+        it("preserves all city origins when the library returns no neighbors", () => {
+            const resolution = resolveLocationInput("Portland");
+            if (!resolution.found) throw new Error("Portland must resolve");
+            radiusSpy = vi.spyOn(zipcodes, "radius").mockReturnValue([]);
+            const helper = makeHelper("Portland", "25");
+
+            expect(helper.getZipCodeClause()).toEqual({
+                zipCode: { in: resolution.startingZips },
+            });
+            expect(helper.isZipCapTriggered()).toBe(false);
+            expect(warnSpy).not.toHaveBeenCalled();
+        });
+
+        it("preserves all city origins when the library throws", () => {
+            const resolution = resolveLocationInput("Portland");
+            if (!resolution.found) throw new Error("Portland must resolve");
+            radiusSpy = vi.spyOn(zipcodes, "radius").mockImplementation(() => {
+                throw new Error("radius failed");
+            });
+            const errorSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
+            try {
+                const helper = makeHelper("Portland", "25");
+                expect(helper.getZipCodeClause()).toEqual({
+                    zipCode: { in: resolution.startingZips },
+                });
+                expect(helper.isZipCapTriggered()).toBe(false);
+                expect(warnSpy).not.toHaveBeenCalled();
+            } finally {
+                errorSpy.mockRestore();
+            }
+        });
+
         it("caps the IN clause at 500 when the union exceeds the limit", () => {
             // Mock radius to return 600 unique zips for any starting zip
             const bigList = Array.from({ length: 600 }, (_, i) =>
