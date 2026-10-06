@@ -1,0 +1,36 @@
+{
+  "after": {
+    "admin_action_audits": 215,
+    "clubs": 48,
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 122,
+    "production_companies": 1,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "shows": 128,
+    "tagged_shows": 270,
+    "ticket_purchase_click_events": 3163,
+    "tickets": 128
+  },
+  "before": {
+    "admin_action_audits": 0,
+    "clubs": 48,
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 147,
+    "production_companies": 1,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "shows": 181,
+    "tagged_shows": 381,
+    "ticket_purchase_click_events": 3163,
+    "tickets": 181
+  },
+  "environment": "isolated local PostgreSQL schema",
+  "plan_hash": "ce8607e2259bfd00e2ef2cde9fc938fd1716a9653a67ea09dba53d94df73a9de",
+  "reapply_exact": true,
+  "repeat_idempotent": true,
+  "restore_exact": true,
+  "schema_scope": "Production column types, primary/unique constraints and unique indexes; seven show child foreign keys; actual repository min_price/sold_out trigger migrations. Unrelated foreign keys and other triggers not cloned.",
+  "task_id": 4121,
+  "transaction": "rolled_back"
+}

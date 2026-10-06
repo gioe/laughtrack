@@ -1,0 +1,63 @@
+{
+  "after_hash_at_commit": "b75652f0e3a402bc625b93beaab0ad5cbbdeb9e8595c18749d755bd71448ee0d",
+  "all_other_after_rows_exact": true,
+  "appended_postcommit_clicks": 0,
+  "canonical_highlights": [
+    {
+      "canonical_show_id": 3590689,
+      "date": "2026-10-25T01:30:00+00:00",
+      "tickets": [
+        {
+          "id": 4018113,
+          "price": 38.0,
+          "type": "General Admission"
+        }
+      ],
+      "venue": "Big Beaver Brewing"
+    },
+    {
+      "canonical_show_id": 3591191,
+      "date": "2027-01-01T01:00:00+00:00",
+      "tickets": [
+        {
+          "id": 4018615,
+          "price": 47.0,
+          "type": "General Admission"
+        }
+      ],
+      "venue": "Leduc Brewing Company"
+    }
+  ],
+  "canonical_identities_dates_urls_verified": 55,
+  "counts": {
+    "admin_action_audits": 215,
+    "clubs": 48,
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 122,
+    "production_companies": 1,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "shows": 128,
+    "tagged_shows": 270,
+    "ticket_purchase_click_events": 3165,
+    "tickets": 128
+  },
+  "current_hash": "b75652f0e3a402bc625b93beaab0ad5cbbdeb9e8595c18749d755bd71448ee0d",
+  "exact_durable_archives": 215,
+  "held_original_shows_unchanged": [
+    5585129,
+    5722554,
+    5809308,
+    5960094,
+    6011053,
+    6062245,
+    6213884,
+    6311574,
+    7557421
+  ],
+  "original_after_clicks_exact": 3165,
+  "plan_hash": "d0e1c7e646001147ae918061fee9f3d21582487f3552c996c6545d597faa1ecc",
+  "retired_show_ids_absent": 53,
+  "task_id": 4121,
+  "transaction": "read_only_rolled_back"
+}
