@@ -651,3 +651,396 @@ def test_format_csv_shared_venue_flattens_one_row_per_club(mod):
 
 def test_format_csv_empty_is_blank(mod):
     assert mod._format_csv("website_domain_mismatch", []) == ""
+
+
+def test_seatengine_exact_id_geo_can_detect_same_domain_corruption(mod):
+    from copy import deepcopy
+    from laughtrack.core.clients.seatengine.geo import structured_geo
+
+    source = _src(
+        seatengine_id=650,
+        city="Brooklyn",
+        state="NY",
+        website="https://www.whiplashcomedy.com",
+        source_url="https://www.whiplashcomedy.com",
+    )
+    before = deepcopy(source)
+    location = structured_geo(
+        _venue_html(), "https://whiplashcomedy.com", "Whiplash Comedy"
+    )
+    assert location["status"] == "resolved"
+    assert mod._website_domain_mismatch([source]) == []
+    rows = mod._source_venue_geo_mismatch(
+        [source], {("seatengine_id", "650"): location}
+    )
+    assert len(rows) == 1 and rows[0]["venue_id_kind"] == "seatengine_id"
+    assert rows[0]["venue_city"] == "Atlanta" and rows[0]["mismatch"] == "state"
+    assert source == before
+
+
+def _venue_html(city="Atlanta", state="GA", postal="30080", **overrides):
+    import json
+
+    venue = {
+        "@type": "EventVenue",
+        "name": "Whiplash Comedy",
+        "url": "https://www.whiplashcomedy.com/",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "650 North Avenue Suite S210",
+            "addressLocality": city,
+            "addressRegion": state,
+            "postalCode": postal,
+        },
+    }
+    venue.update(overrides)
+    return '<script type="application/ld+json">' + json.dumps(venue) + "</script>"
+
+
+def test_seatengine_structured_city_state_retains_postal_evidence(mod):
+    from laughtrack.core.clients.seatengine.geo import structured_geo
+
+    loc = structured_geo(_venue_html(), "https://whiplashcomedy.com", "Whiplash Comedy")
+    source = _src(seatengine_id=650, city="Atlanta", state="GA", postal_code="30308")
+    row = mod._seatengine_report([source], {"650": loc})[0]
+    assert row["status"] == "match" and row["venue_postal_code"] == "30080"
+    assert (
+        row["postal_code"] == "30308"
+        and "postal_code_mismatch_no_correction_inferred" in row["warnings"]
+    )
+
+
+@pytest.mark.parametrize(
+    "html,reason",
+    [
+        ("<p>Whiplash Comedy in Atlanta GA</p>", "missing_metadata"),
+        (
+            _venue_html(url="https://whiplashcomedy.com/another-branch"),
+            "conflicting_metadata",
+        ),
+        (_venue_html(name="Other theatre"), "conflicting_metadata"),
+        (
+            _venue_html() + _venue_html(city="Brooklyn", state="NY"),
+            "conflicting_metadata",
+        ),
+        (_venue_html() + _venue_html(address=None), "conflicting_metadata"),
+        ('<script type="application/ld+json">{bad}</script>', "conflicting_metadata"),
+    ],
+)
+def test_seatengine_ambiguous_or_unbound_metadata_is_not_a_location(html, reason):
+    from laughtrack.core.clients.seatengine.geo import structured_geo
+
+    assert (
+        structured_geo(html, "https://whiplashcomedy.com", "Whiplash Comedy")["status"]
+        == reason
+    )
+
+
+def test_seatengine_event_locations_do_not_become_venue_identity():
+    import json
+    from laughtrack.core.clients.seatengine.geo import structured_geo
+
+    event = {
+        "@type": "Event",
+        "location": {
+            "@type": "EventVenue",
+            "name": "Whiplash Comedy",
+            "url": "https://whiplashcomedy.com",
+            "address": {
+                "addressLocality": "Atlanta",
+                "addressRegion": "GA",
+                "streetAddress": "1 Main",
+            },
+        },
+    }
+    html = '<script type="application/ld+json">' + json.dumps(event) + "</script>"
+    assert (
+        structured_geo(html, "https://whiplashcomedy.com", "Whiplash Comedy")["status"]
+        == "missing_metadata"
+    )
+
+
+def test_seatengine_multiple_postals_are_warning_not_guessed_correction():
+    from laughtrack.core.clients.seatengine.geo import structured_geo
+
+    result = structured_geo(
+        _venue_html() + _venue_html(postal="30308"),
+        "https://whiplashcomedy.com",
+        "Whiplash Comedy",
+    )
+    assert result["status"] == "resolved" and result["postal_code"] is None
+    assert result["postal_codes"] == ["30080", "30308"] and result["warnings"]
+
+
+@pytest.mark.asyncio
+async def test_seatengine_resolver_binds_exact_api_id_before_website_fetch():
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from laughtrack.core.clients.seatengine.geo import resolve_venue
+
+    client = SimpleNamespace(
+        fetch_venue_details=AsyncMock(
+            return_value={
+                "id": 999,
+                "name": "Whiplash Comedy",
+                "website": "https://whiplashcomedy.com",
+            }
+        ),
+        fetch_html=AsyncMock(return_value=_venue_html()),
+    )
+    result = await resolve_venue("650", client_factory=lambda _: client)
+    assert result["status"] == "conflicting_metadata"
+    client.fetch_html.assert_not_called()
+    client.fetch_venue_details.return_value["id"] = 650
+    result = await resolve_venue("650", client_factory=lambda _: client)
+    assert result["status"] == "resolved" and result["city"] == "Atlanta"
+    assert (
+        result["api_url"].endswith("/650")
+        and result["website_url"] == "https://whiplashcomedy.com"
+    )
+
+
+@pytest.mark.asyncio
+async def test_seatengine_resolver_timeout_and_error_are_reported_without_secrets():
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from laughtrack.core.clients.seatengine.geo import resolve_venue
+
+    client = SimpleNamespace(
+        fetch_venue_details=AsyncMock(side_effect=RuntimeError("secret auth token"))
+    )
+    result = await resolve_venue("650", client_factory=lambda _: client)
+    assert result["status"] == "fetch_error" and "secret" not in str(result)
+
+    async def slow(_):
+        await asyncio.sleep(0.1)
+
+    client.fetch_venue_details = slow
+    assert (await resolve_venue("650", timeout=0.001, client_factory=lambda _: client))[
+        "reason"
+    ] == "timeout"
+
+
+@pytest.mark.asyncio
+async def test_seatengine_distinct_id_cap_and_concurrency_are_bounded(monkeypatch):
+    import asyncio
+    from laughtrack.core.clients.seatengine import geo
+
+    active = 0
+    peak = 0
+    calls = []
+
+    async def resolve(ident, **kwargs):
+        nonlocal active, peak
+        active += 1
+        peak = max(peak, active)
+        calls.append(ident)
+        await asyncio.sleep(0)
+        active -= 1
+        return {"status": "missing_metadata"}
+
+    monkeypatch.setattr(geo, "resolve_venue", resolve)
+    result = await geo.resolve_venues(
+        ["3", "2", "1", "1"], max_resolve=2, concurrency=1
+    )
+    assert calls == ["1", "2"] and peak == 1 and result["3"]["status"] == "capped"
+
+
+def test_seatengine_selection_and_status_include_hidden_missing_and_v3(mod):
+    sources = [
+        _src(
+            source_id=1,
+            platform="seatengine",
+            seatengine_id=None,
+            enabled=True,
+            visible=False,
+        ),
+        _src(
+            source_id=2, platform="seatengine_v3", seatengine_v3_id="uuid", enabled=True
+        ),
+        _src(source_id=3, platform="custom", seatengine_id=650, enabled=True),
+        _src(source_id=4, platform="seatengine", enabled=False),
+    ]
+    selected = mod._select_sources(sources, "seatengine", True)
+    assert [s["source_id"] for s in selected] == [1, 2, 3]
+    rows = mod._seatengine_report(selected, {"650": {"status": "capped"}})
+    assert [r["status"] for r in rows] == ["missing_id", "unsupported_v3", "capped"]
+
+
+def test_seatengine_cli_uses_readonly_session_and_reports_entire_selected_cohort(
+    mod, monkeypatch, capsys
+):
+    import json
+    from unittest.mock import MagicMock
+    from laughtrack.foundation import db_util
+
+    conn = MagicMock()
+    monkeypatch.setattr(db_util, "connect_with_retry", lambda _: conn)
+    monkeypatch.setattr(mod, "_resolve_database_url", lambda: "unused")
+    seen = []
+
+    def sources(cur, include_hidden):
+        seen.append(include_hidden)
+        return [
+            _src(
+                source_id=1,
+                platform="seatengine",
+                seatengine_id=None,
+                visible=False,
+                enabled=True,
+            ),
+            _src(source_id=2, platform="seatengine", seatengine_id=650, enabled=False),
+        ]
+
+    monkeypatch.setattr(mod, "_fetch_sources", sources)
+    monkeypatch.setattr(mod, "_resolve_seatengine_sources", lambda rows, cap: {})
+    monkeypatch.setattr(
+        mod.sys,
+        "argv",
+        [
+            "audit",
+            "--signal",
+            "source_venue_geo_mismatch",
+            "--platform",
+            "seatengine",
+            "--enabled-only",
+            "--include-hidden",
+        ],
+    )
+    mod.main()
+    output = json.loads(capsys.readouterr().out)
+    conn.set_session.assert_called_once_with(readonly=True, autocommit=True)
+    conn.close.assert_called_once()
+    assert seen == [True] and len(output["seatengine_resolution"]) == 1
+    assert output["seatengine_resolution"][0]["status"] == "missing_id"
+
+
+def test_seatengine_native_resolver_logs_do_not_pollute_json_stdout(
+    mod, monkeypatch, capsys
+):
+    monkeypatch.setenv("SEATENGINE_AUTH_TOKEN", "test-only-token")
+    from laughtrack.core.clients.seatengine import geo
+    from laughtrack.foundation.infrastructure.http import client
+    from unittest.mock import AsyncMock
+
+    async def resolve(*args, **kwargs):
+        print("native diagnostic")
+        return {"650": {"status": "missing_metadata"}}
+
+    monkeypatch.setattr(geo, "resolve_venues", resolve)
+    close = AsyncMock()
+    monkeypatch.setattr(client, "close_js_browser", close)
+    assert (
+        mod._resolve_seatengine_sources([_src(seatengine_id=650)])["650"]["status"]
+        == "missing_metadata"
+    )
+    captured = capsys.readouterr()
+    assert not captured.out and "native diagnostic" in captured.err
+    close.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_seatengine_auth_never_sent_to_authorized_website():
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from laughtrack.core.clients.seatengine.geo import resolve_venue
+
+    client = SimpleNamespace(
+        headers={"x-auth-token": "private"},
+        fetch_venue_details=AsyncMock(
+            return_value={
+                "id": 650,
+                "name": "Whiplash Comedy",
+                "website": "https://whiplashcomedy.com",
+            }
+        ),
+        fetch_html=AsyncMock(return_value=_venue_html()),
+    )
+    assert (await resolve_venue("650", client_factory=lambda _: client))[
+        "status"
+    ] == "resolved"
+    client.fetch_html.assert_awaited_once_with(
+        "https://whiplashcomedy.com", headers={"accept": "text/html"}, timeout=25
+    )
+
+
+@pytest.mark.parametrize(
+    "wrapper", [lambda node: [node], lambda node: {"@graph": [node]}]
+)
+def test_seatengine_graph_and_list_preserve_matching_evidence_without_mutation(
+    mod, wrapper
+):
+    import json
+    from copy import deepcopy
+    from laughtrack.core.clients.seatengine.geo import structured_geo
+
+    html = _venue_html(postal="30308")
+    node = json.loads(html.split(">", 1)[1].rsplit("<", 1)[0])
+    payload = wrapper(node)
+    before = deepcopy(payload)
+    result = structured_geo(
+        '<script type="application/ld+json">' + json.dumps(payload) + "</script>",
+        "https://whiplashcomedy.com",
+        "Whiplash Comedy",
+    )
+    source = _src(seatengine_id=650, city="Atlanta", state="GA", postal_code="30308")
+    source_before = deepcopy(source)
+    row = mod._seatengine_report([source], {"650": result})[0]
+    assert row["status"] == "match" and row["warnings"] == []
+    assert row["street_address"] == "650 North Avenue Suite S210"
+    assert row["structured_url"] == "https://www.whiplashcomedy.com/"
+    assert payload == before and source == source_before
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "venue",
+    [
+        {"name": "Whiplash Comedy", "website": "https://whiplashcomedy.com"},
+        {"id": 999, "name": "Whiplash Comedy", "website": "https://whiplashcomedy.com"},
+        {"id": 650, "name": "Whiplash Comedy", "website": "https://[malformed"},
+    ],
+)
+async def test_seatengine_unverified_id_or_malformed_url_never_fetches_website(venue):
+    from copy import deepcopy
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from laughtrack.core.clients.seatengine.geo import resolve_venue
+
+    before = deepcopy(venue)
+    client = SimpleNamespace(
+        fetch_venue_details=AsyncMock(return_value=venue), fetch_html=AsyncMock()
+    )
+    result = await resolve_venue("650", client_factory=lambda _: client)
+    assert result["status"] in {"conflicting_metadata", "fetch_error"}
+    assert result["api_url"] == "https://services.seatengine.com/api/v1/venues/650"
+    client.fetch_html.assert_not_called()
+    assert venue == before
+
+
+@pytest.mark.parametrize("credential", [None, "", "   "])
+def test_seatengine_missing_credential_reports_each_source_without_fetch(mod, monkeypatch, credential):
+    from unittest.mock import AsyncMock
+    from laughtrack.core.clients.seatengine import geo
+
+    if credential is None:
+        monkeypatch.delenv("SEATENGINE_AUTH_TOKEN", raising=False)
+    else:
+        monkeypatch.setenv("SEATENGINE_AUTH_TOKEN", credential)
+    resolver = AsyncMock(side_effect=AssertionError("must not fetch without authentication"))
+    monkeypatch.setattr(geo, "resolve_venues", resolver)
+    sources = [
+        _src(source_id=1, seatengine_id=650),
+        _src(source_id=2, seatengine_id=650),
+        _src(source_id=3, platform="seatengine", seatengine_id=None),
+        _src(source_id=4, platform="seatengine_v3", seatengine_v3_id="uuid"),
+    ]
+    resolved = mod._resolve_seatengine_sources(sources)
+    rows = mod._seatengine_report(sources, resolved)
+    assert [row["status"] for row in rows] == [
+        "missing_credential", "missing_credential", "missing_id", "unsupported_v3"
+    ]
+    assert rows[0]["venue_id"] == "650"
+    assert rows[0]["api_url"] == "https://services.seatengine.com/api/v1/venues/650"
+    resolver.assert_not_called()
