@@ -1,0 +1,45 @@
+{
+  "task_id": 4119,
+  "mode": "production transaction rolled back",
+  "plan_hash": "63ba864b73059ee8cbdac3409637c406ea656fdc3e64d59cd046d63fddb38fb4",
+  "before_hash": "27569a9c3e306bd8ce05867425f6be67465a9d256b4d8ace1ef9779f7a56a11d",
+  "after_hash": "e3d660a29b8d168e730b54a82b623f3b0c6371e4e401744d9c4ad1d5484f90c1",
+  "rollback_exact": true,
+  "reapply_exact": true,
+  "idempotent": true,
+  "ingestion_upsert_ids": [
+    3591192,
+    4168927,
+    4168928,
+    4168929,
+    4168930,
+    4168931,
+    4944796,
+    4944798,
+    4944800
+  ],
+  "before_counts": {
+    "clubs": 2,
+    "production_companies": 1,
+    "shows": 20,
+    "tickets": 20,
+    "lineup_items": 6,
+    "tagged_shows": 41,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 342
+  },
+  "after_counts": {
+    "clubs": 2,
+    "production_companies": 1,
+    "shows": 15,
+    "tickets": 15,
+    "lineup_items": 6,
+    "tagged_shows": 31,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 342
+  }
+}

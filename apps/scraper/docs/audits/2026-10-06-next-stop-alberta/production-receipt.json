@@ -1,0 +1,99 @@
+{
+  "task_id": 4119,
+  "applied": true,
+  "plan_hash": "63ba864b73059ee8cbdac3409637c406ea656fdc3e64d59cd046d63fddb38fb4",
+  "before_hash": "27569a9c3e306bd8ce05867425f6be67465a9d256b4d8ace1ef9779f7a56a11d",
+  "after_hash": "e3d660a29b8d168e730b54a82b623f3b0c6371e4e401744d9c4ad1d5484f90c1",
+  "all_click_ids_and_payloads_preserved": true,
+  "click_rows": 342,
+  "corrected_events": [
+    {
+      "id": 4168927,
+      "utc": "2026-11-22T01:00:00+00:00",
+      "source_local": "2026-11-21T19:00:00-06:00",
+      "duplicate_count": 0
+    },
+    {
+      "id": 4168928,
+      "utc": "2027-01-01T02:00:00+00:00",
+      "source_local": "2026-12-31T20:00:00-06:00",
+      "duplicate_count": 0
+    },
+    {
+      "id": 4168929,
+      "utc": "2027-01-17T01:00:00+00:00",
+      "source_local": "2027-01-16T19:00:00-06:00",
+      "duplicate_count": 0
+    },
+    {
+      "id": 4944796,
+      "utc": "2026-11-21T01:00:00+00:00",
+      "source_local": "2026-11-20T19:00:00-06:00",
+      "duplicate_count": 0
+    },
+    {
+      "id": 4944798,
+      "utc": "2027-01-16T01:00:00+00:00",
+      "source_local": "2027-01-15T19:00:00-06:00",
+      "duplicate_count": 0
+    },
+    {
+      "id": 4168930,
+      "utc": "2027-02-14T02:00:00+00:00",
+      "source_local": "2027-02-13T20:00:00-06:00",
+      "duplicate_count": 0
+    },
+    {
+      "id": 3591192,
+      "utc": "2027-02-14T02:00:00+00:00",
+      "source_local": "2027-02-13T20:00:00-06:00",
+      "duplicate_count": 0
+    },
+    {
+      "id": 4168931,
+      "utc": "2027-03-14T01:00:00+00:00",
+      "source_local": "2027-03-13T19:00:00-06:00",
+      "duplicate_count": 0
+    },
+    {
+      "id": 4944800,
+      "utc": "2027-03-13T01:00:00+00:00",
+      "source_local": "2027-03-12T19:00:00-06:00",
+      "duplicate_count": 0
+    }
+  ],
+  "held_ids": [
+    3591191,
+    4944797,
+    7744009,
+    3590689,
+    4944445
+  ],
+  "followup_task": 4121,
+  "backup_sha256": "0bd2b803acedb45992ac417fb005111519e58c004c02b17cb02a74ba746c52e5",
+  "after_backup_sha256": "882247a4de8f50f84eee40816f5da3546fe2f7127f4a6af45b53296072d7fd66",
+  "before_counts": {
+    "clubs": 2,
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 6,
+    "production_companies": 1,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "shows": 20,
+    "tagged_shows": 41,
+    "ticket_purchase_click_events": 342,
+    "tickets": 20
+  },
+  "after_counts": {
+    "clubs": 2,
+    "production_companies": 1,
+    "shows": 15,
+    "tickets": 15,
+    "lineup_items": 6,
+    "tagged_shows": 31,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 342
+  }
+}

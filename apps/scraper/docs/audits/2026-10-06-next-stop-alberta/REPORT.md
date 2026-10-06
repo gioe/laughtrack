@@ -82,5 +82,15 @@ cover repair, rollback/reapply, dry-run, drift, schema changes and loss preventi
 
 The production dry run passed and rolled back: 20 → 15 show rows, 20 → 15 tickets,
 41 → 31 tags through equivalent duplicate coalescence; all 6 lineup rows and all
-342 click records retained. Production application and final replay receipts will
-be recorded separately after execution.
+342 click records retained. Production application is complete; production-receipt.json verifies all nine
+instants, no duplicate URLs in the corrected cohort, and all click payloads/IDs.
+rehearsal-receipt.json records exact rollback/reapply and real shared ingestion
+upserts reusing all nine canonical IDs inside a rolled-back transaction.
+Private recovery files are /private/tmp/task4119-production-recovery.json and
+its .after.json companion; never commit them. TASK-4121 context785 and criterion
+13469 explicitly retain both held cases.
+
+The full scraper gate stops during collection because the shared environment
+lacks tzdata. Three clean-HEAD precheck runs reproduced this unchanged baseline
+failure with no upstream divergence or flakiness. The documented path-limited
+commit recovery applies; focused tests and real database checks above are green.
