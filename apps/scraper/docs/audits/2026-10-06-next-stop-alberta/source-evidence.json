@@ -1,0 +1,463 @@
+{
+  "captured_at": "2026-10-06",
+  "method": "Scraper HttpClient.fetch_html curl-cffi; parsed actual JSON-LD, matched main Flight props and visible header",
+  "timezone_authority": "https://www.alberta.ca/albertas-new-time-system-abt",
+  "events": [
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-730pm",
+      "canonical_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-730pm",
+      "sha256": "b7b94c9bf378ae5f98019d4d2119c54910b3f054492115c86e04f64d6b6e5a06",
+      "length": 112725,
+      "event_id": "8c4e9da7-24a7-4f8d-8ddd-4081894e1e81",
+      "current_event_id": "8c4e9da7-24a7-4f8d-8ddd-4081894e1e81",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-10-24T19:30:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Big Beaver Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+          "addressLocality": "Okotoks",
+          "addressRegion": "AB",
+          "postalCode": "T1S 0N8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Saturday, October 24, 2026 Seating Begins 7 PM \u00b7 Show 7:30 p.m. Okotoks , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-7pm",
+      "canonical_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-730pm",
+      "sha256": "f14fb343f66aef6104fe68066748bf807ca656320af5595d0cda915d8d81029e",
+      "length": 112725,
+      "event_id": "8c4e9da7-24a7-4f8d-8ddd-4081894e1e81",
+      "current_event_id": "8c4e9da7-24a7-4f8d-8ddd-4081894e1e81",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-10-24T19:30:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Big Beaver Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+          "addressLocality": "Okotoks",
+          "addressRegion": "AB",
+          "postalCode": "T1S 0N8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Saturday, October 24, 2026 Seating Begins 7 PM \u00b7 Show 7:30 p.m. Okotoks , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-11-21",
+      "canonical_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-11-21",
+      "sha256": "cd91abc1c3017606c4675e6d20a2dcd6d2b279d8cf843f817b83040ebc0ecadc",
+      "length": 98535,
+      "event_id": "48b569c8-2f51-4e82-b1ba-cacdb93b2fa3",
+      "current_event_id": "48b569c8-2f51-4e82-b1ba-cacdb93b2fa3",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-11-21T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Big Beaver Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+          "addressLocality": "Okotoks",
+          "addressRegion": "AB",
+          "postalCode": "T1S 0N8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Saturday, November 21, 2026 Seating Begins 6:30 PM \u00b7 Show 7:00 p.m. Okotoks , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-12-31",
+      "canonical_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-12-31",
+      "sha256": "d2c26353d6b5bd50561fecc231a166ee239b1981d1fde6fe9a5b537cd530c843",
+      "length": 101178,
+      "event_id": "aa6bfd56-5487-4280-87fa-5095fe606e0c",
+      "current_event_id": "aa6bfd56-5487-4280-87fa-5095fe606e0c",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-12-31T20:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Big Beaver Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+          "addressLocality": "Okotoks",
+          "addressRegion": "AB",
+          "postalCode": "T1S 0N8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Thursday, December 31, 2026 Seating Begins 7:30 PM \u00b7 Show 8:00 p.m. Okotoks , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-01-16",
+      "canonical_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-01-16",
+      "sha256": "865baaaa0a56add2f7d096a62ce636b77887c2f9eaf028d54c12f24065651f54",
+      "length": 101190,
+      "event_id": "b840a67c-c0a5-44e8-82bc-f60725a0ec1c",
+      "current_event_id": "b840a67c-c0a5-44e8-82bc-f60725a0ec1c",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2027-01-16T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Big Beaver Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+          "addressLocality": "Okotoks",
+          "addressRegion": "AB",
+          "postalCode": "T1S 0N8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Saturday, January 16, 2027 Seating Begins 6:30 PM \u00b7 Show 7:00 p.m. Okotoks , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-02-13",
+      "canonical_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-02-13",
+      "sha256": "bc61098ad96ef97eed0a05d86df5bdeec23001d3dfa0d990ef0e179d7b1c20bd",
+      "length": 101199,
+      "event_id": "f7c3c9bb-da74-42dd-abe9-4b815177fab2",
+      "current_event_id": "f7c3c9bb-da74-42dd-abe9-4b815177fab2",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2027-02-13T20:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Big Beaver Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+          "addressLocality": "Okotoks",
+          "addressRegion": "AB",
+          "postalCode": "T1S 0N8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Saturday, February 13, 2027 Seating Begins 7:30 PM \u00b7 Show 8:00 p.m. Okotoks , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-03-13",
+      "canonical_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2027-03-13",
+      "sha256": "900782ea8d2af5de6f78ffabf2ab19e500d3c62c7dca62be0636c5c1a37e276d",
+      "length": 101172,
+      "event_id": "8c332f13-b17e-4bf9-b916-75c2d8b07321",
+      "current_event_id": "8c332f13-b17e-4bf9-b916-75c2d8b07321",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2027-03-13T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Big Beaver Brewing",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+          "addressLocality": "Okotoks",
+          "addressRegion": "AB",
+          "postalCode": "T1S 0N8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Saturday, March 13, 2027 Seating Begins 6:30 PM \u00b7 Show 7:00 p.m. Okotoks , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2026-10-22-7-pm",
+      "canonical_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2026-10-22-7-pm",
+      "sha256": "dbf964536176841f447e9eda0caee393d6df59e6d3e38b86f5eca8d116f466c5",
+      "length": 106181,
+      "event_id": "0ecdb460-e290-4780-8427-fcc8af9f667a",
+      "current_event_id": "0ecdb460-e290-4780-8427-fcc8af9f667a",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-10-22T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Glitch Gaming Lounge",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "203, 127 Kingsview Rd. SE, Airdrie, AB T4A 0A8, Canada",
+          "addressLocality": "Airdrie",
+          "addressRegion": "AB",
+          "postalCode": "T4A 0A8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Thursday, October 22, 2026 Seating Begins 5 PM \u00b7 Show 7:00 p.m. Airdrie , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2026-11-19-7-pm",
+      "canonical_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2026-11-19-7-pm",
+      "sha256": "cc6232bac2f5be4b61bf19b4d44d11cf7921c71340e8b4afdf5519726cdc6737",
+      "length": 95091,
+      "event_id": "b97d84e5-1e6a-4e9a-8cd7-29ee2dc3771a",
+      "current_event_id": "b97d84e5-1e6a-4e9a-8cd7-29ee2dc3771a",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-11-19T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Glitch Gaming Lounge",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "203, 127 Kingsview Rd. SE, Airdrie, AB T4A 0A8, Canada",
+          "addressLocality": "Airdrie",
+          "addressRegion": "AB",
+          "postalCode": "T4A 0A8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Thursday, November 19, 2026 Seating Begins 5 PM \u00b7 Show 7:00 p.m. Airdrie , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2026-12-17-7-pm",
+      "canonical_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2026-12-17-7-pm",
+      "sha256": "20cd033398ea19ab20da72060c2f605ad89c81a30417764720079ece6ebe15c1",
+      "length": 103896,
+      "event_id": "86d01cba-cf7b-4a03-88db-c0a5e98f037f",
+      "current_event_id": "86d01cba-cf7b-4a03-88db-c0a5e98f037f",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-12-17T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Glitch Gaming Lounge",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "203, 127 Kingsview Rd. SE, Airdrie, AB T4A 0A8, Canada",
+          "addressLocality": "Airdrie",
+          "addressRegion": "AB",
+          "postalCode": "T4A 0A8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Thursday, December 17, 2026 Seating Begins 5 PM \u00b7 Show 7:00 p.m. Airdrie , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2027-01-14-7-pm",
+      "canonical_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2027-01-14-7-pm",
+      "sha256": "1e32515522ea8c48c97fb3f1e65cafb631b91c9623acd02ee9e6ffd4481cffb7",
+      "length": 97746,
+      "event_id": "ac0910ac-fdd5-4f4b-bb97-09df99b6bb42",
+      "current_event_id": "ac0910ac-fdd5-4f4b-bb97-09df99b6bb42",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2027-01-14T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Glitch Gaming Lounge",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "203, 127 Kingsview Rd. SE, Airdrie, AB T4A 0A8, Canada",
+          "addressLocality": "Airdrie",
+          "addressRegion": "AB",
+          "postalCode": "T4A 0A8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Thursday, January 14, 2027 Seating Begins 5 PM \u00b7 Show 7:00 p.m. Airdrie , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2027-02-11-7-pm",
+      "canonical_url": "https://www.nextstopcomedy.com/events/glitch-gaming-lounge-2027-02-11-7-pm",
+      "sha256": "2f306437b44f8a56571d2ad5b5fb4883b3852420310fec81ca260f14a333c289",
+      "length": 97755,
+      "event_id": "51b49257-5973-469a-81e1-730f68c9acdb",
+      "current_event_id": "51b49257-5973-469a-81e1-730f68c9acdb",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2027-02-11T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Glitch Gaming Lounge",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "203, 127 Kingsview Rd. SE, Airdrie, AB T4A 0A8, Canada",
+          "addressLocality": "Airdrie",
+          "addressRegion": "AB",
+          "postalCode": "T4A 0A8",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Thursday, February 11, 2027 Seating Begins 5 PM \u00b7 Show 7:00 p.m. Airdrie , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-10-16",
+      "canonical_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-10-16",
+      "sha256": "7f0ff77555f2cc90799e8f91c3a5f1ce2391c8827f92926a1e656bea4867d5e7",
+      "length": 116047,
+      "event_id": "79bb8020-7b91-4f70-83ad-744bb962bf6a",
+      "current_event_id": "79bb8020-7b91-4f70-83ad-744bb962bf6a",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-10-16T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Leduc Brewing Company",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4901 50th Ave, Leduc, AB T9E 6W7",
+          "addressLocality": "Leduc",
+          "addressRegion": "AB",
+          "postalCode": "T9E 6W7",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Friday, October 16, 2026 Seating Begins 6:30 PM \u00b7 Show 7:00 p.m. Leduc , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-11-20",
+      "canonical_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-11-20",
+      "sha256": "ba477310481dfeb1333d6cd9ab2568ca4d02e5ea15522555a48b4780b6e1f815",
+      "length": 98672,
+      "event_id": "ebf7db9e-b868-4976-b0be-1cf7f1ef93a6",
+      "current_event_id": "ebf7db9e-b868-4976-b0be-1cf7f1ef93a6",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-11-20T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Leduc Brewing Company",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4901 50th Ave, Leduc, AB T9E 6W7",
+          "addressLocality": "Leduc",
+          "addressRegion": "AB",
+          "postalCode": "T9E 6W7",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Friday, November 20, 2026 Seating Begins 6:30 PM \u00b7 Show 7:00 p.m. Leduc , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-12-31",
+      "canonical_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2026-12-31",
+      "sha256": "ce3fc3b2e00396d70f8b00f1f90e38b7b84ac2e4c7bd76d46aca74d8a0179c3c",
+      "length": 98669,
+      "event_id": "1df52ed6-a1f9-4f4f-9002-87a6eff110cf",
+      "current_event_id": "1df52ed6-a1f9-4f4f-9002-87a6eff110cf",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-12-31T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Leduc Brewing Company",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4901 50th Ave, Leduc, AB T9E 6W7",
+          "addressLocality": "Leduc",
+          "addressRegion": "AB",
+          "postalCode": "T9E 6W7",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Thursday, December 31, 2026 Seating Begins 6:30 PM \u00b7 Show 7:00 p.m. Leduc , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-01-15",
+      "canonical_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-01-15",
+      "sha256": "0003548bbe10b88b1069079ff3626d547f92e1ac13ad51fe4486493a69139171",
+      "length": 98663,
+      "event_id": "17be0ac8-ede7-4f7a-b46b-d9d9dae3e1dc",
+      "current_event_id": "17be0ac8-ede7-4f7a-b46b-d9d9dae3e1dc",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2027-01-15T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Leduc Brewing Company",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4901 50th Ave, Leduc, AB T9E 6W7",
+          "addressLocality": "Leduc",
+          "addressRegion": "AB",
+          "postalCode": "T9E 6W7",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Friday, January 15, 2027 Seating Begins 6:30 PM \u00b7 Show 7:00 p.m. Leduc , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-02-13",
+      "canonical_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-02-13",
+      "sha256": "684578fdfecb56bd71ef1f3e4c755588d351c644336f354ca3285e848eba33c8",
+      "length": 98690,
+      "event_id": "5c1331dd-96f2-4d7e-8bf5-3ea9773dd8de",
+      "current_event_id": "5c1331dd-96f2-4d7e-8bf5-3ea9773dd8de",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2027-02-13T20:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Leduc Brewing Company",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4901 50th Ave, Leduc, AB T9E 6W7",
+          "addressLocality": "Leduc",
+          "addressRegion": "AB",
+          "postalCode": "T9E 6W7",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Saturday, February 13, 2027 Seating Begins 7:30 PM \u00b7 Show 8:00 p.m. Leduc , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-03-12",
+      "canonical_url": "https://www.nextstopcomedy.com/events/leduc-brewing-company-2027-03-12",
+      "sha256": "944d6eca43f45ee99716466c5c855378c55a7d62cc73bcd906c189c4298d3aa7",
+      "length": 98645,
+      "event_id": "6eabd486-bfce-4ba3-a277-957bd95f9560",
+      "current_event_id": "6eabd486-bfce-4ba3-a277-957bd95f9560",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2027-03-12T19:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Leduc Brewing Company",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4901 50th Ave, Leduc, AB T9E 6W7",
+          "addressLocality": "Leduc",
+          "addressRegion": "AB",
+          "postalCode": "T9E 6W7",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Friday, March 12, 2027 Seating Begins 6:30 PM \u00b7 Show 7:00 p.m. Leduc , AB"
+    },
+    {
+      "requested_url": "https://www.nextstopcomedy.com/events/many-horses-saloon-2026-10-10",
+      "canonical_url": "https://www.nextstopcomedy.com/events/many-horses-saloon-2026-10-10",
+      "sha256": "4525855b8047e148e70c0b03c1b296e588eef0927c03b9ff391ca80d18d31dcb",
+      "length": 111769,
+      "event_id": "6886cb48-cc53-46a2-827b-c025f71c4cda",
+      "current_event_id": "6886cb48-cc53-46a2-827b-c025f71c4cda",
+      "venue_timezone": "America/Edmonton",
+      "start_date": "2026-10-10T20:00:00-06:00",
+      "event_status": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": "Many Horses Saloon",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "5004 50 Ave, Forestburg, AB T0B 0H7, Canada",
+          "addressLocality": "Forestburg",
+          "addressRegion": "AB",
+          "postalCode": "T0B 0H7",
+          "addressCountry": "CA"
+        }
+      },
+      "advertised_header": "Saturday, October 10, 2026 Seating Begins 7:30 PM \u00b7 Show 8:00 p.m. Forestburg , AB"
+    }
+  ]
+}
