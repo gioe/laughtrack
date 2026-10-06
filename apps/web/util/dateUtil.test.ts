@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { formatShowCountdown, formatShowDate, isShowPast } from "./dateUtil";
 
 describe("formatShowDate", () => {
@@ -193,4 +193,239 @@ describe("Canadian permanent-time runtime regressions", () => {
             expect(formatShowDate(instant, zone)).toContain(`at ${wallTime}`);
         },
     );
+});
+
+describe("permanent Canadian time presentation", () => {
+    it.each([
+        [
+            "2026-06-18T05:59:59Z",
+            "America/Edmonton",
+            "June 17th at 11:59 pm MDT",
+        ],
+        [
+            "2026-06-18T06:00:00Z",
+            "America/Edmonton",
+            "June 18th at 12:00 am ABT",
+        ],
+        [
+            "2026-06-18T06:00:01Z",
+            "America/Edmonton",
+            "June 18th at 12:00 am ABT",
+        ],
+        [
+            "2026-03-09T06:59:59Z",
+            "America/Vancouver",
+            "March 8th at 11:59 pm PDT",
+        ],
+        [
+            "2026-03-09T07:00:00Z",
+            "America/Vancouver",
+            "March 9th at 12:00 am PT",
+        ],
+        [
+            "2026-03-09T07:00:01Z",
+            "America/Vancouver",
+            "March 9th at 12:00 am PT",
+        ],
+        [
+            "2026-11-01T07:59:59Z",
+            "America/Edmonton",
+            "November 1st at 1:59 am ABT",
+        ],
+        [
+            "2026-11-01T08:00:00Z",
+            "America/Edmonton",
+            "November 1st at 2:00 am ABT",
+        ],
+        [
+            "2026-11-01T08:59:59Z",
+            "America/Vancouver",
+            "November 1st at 1:59 am PT",
+        ],
+        [
+            "2026-11-01T09:00:00Z",
+            "America/Vancouver",
+            "November 1st at 2:00 am PT",
+        ],
+        [
+            "2026-12-01T20:00:00Z",
+            "America/Edmonton",
+            "December 1st at 2:00 pm ABT",
+        ],
+        [
+            "2026-12-01T20:00:00Z",
+            "America/Vancouver",
+            "December 1st at 1:00 pm PT",
+        ],
+        [
+            "2027-03-14T01:00:00Z",
+            "America/Edmonton",
+            "March 13th at 7:00 pm ABT",
+        ],
+        [
+            "2027-03-13T01:00:00Z",
+            "America/Edmonton",
+            "March 12th at 7:00 pm ABT",
+        ],
+        [
+            "2027-07-15T20:00:00Z",
+            "America/Edmonton",
+            "July 15th at 2:00 pm ABT",
+        ],
+        [
+            "2027-07-15T20:00:00Z",
+            "America/Vancouver",
+            "July 15th at 1:00 pm PT",
+        ],
+        [
+            "2027-01-01T05:30:00Z",
+            "America/Edmonton",
+            "December 31st at 11:30 pm ABT",
+        ],
+        [
+            "2027-01-01T06:30:00Z",
+            "America/Vancouver",
+            "December 31st at 11:30 pm PT",
+        ],
+        [
+            "2026-01-15T20:00:00Z",
+            "America/Edmonton",
+            "January 15th at 1:00 pm MST",
+        ],
+        [
+            "2026-01-15T20:00:00Z",
+            "America/Vancouver",
+            "January 15th at 12:00 pm PST",
+        ],
+        [
+            "2025-07-15T20:00:00Z",
+            "America/Edmonton",
+            "July 15th at 2:00 pm MDT",
+        ],
+        [
+            "2025-07-15T20:00:00Z",
+            "America/Vancouver",
+            "July 15th at 1:00 pm PDT",
+        ],
+        [
+            "2026-12-01T20:00:00Z",
+            "America/Denver",
+            "December 1st at 1:00 pm MST",
+        ],
+        [
+            "2026-12-01T20:00:00Z",
+            "America/Los_Angeles",
+            "December 1st at 12:00 pm PST",
+        ],
+        [
+            "2026-12-01T20:00:00Z",
+            "America/Toronto",
+            "December 1st at 3:00 pm EST",
+        ],
+        [
+            "2026-12-01T20:00:00Z",
+            "America/Phoenix",
+            "December 1st at 1:00 pm MST",
+        ],
+        [
+            "2026-12-01T20:00:00Z",
+            "Canada/Mountain",
+            "December 1st at 2:00 pm ABT",
+        ],
+        [
+            "2026-12-01T20:00:00Z",
+            "Canada/Pacific",
+            "December 1st at 1:00 pm PT",
+        ],
+        [
+            "2026-01-15T20:00:00Z",
+            "Canada/Mountain",
+            "January 15th at 1:00 pm MST",
+        ],
+        [
+            "2026-01-15T20:00:00Z",
+            "Canada/Pacific",
+            "January 15th at 12:00 pm PST",
+        ],
+    ])("formats %s in %s as %s", (instant, zone, expected) => {
+        expect(formatShowDate(instant, zone)).toBe(expected);
+    });
+
+    it("does not change the stored UTC instant, timezone ID, or countdown", () => {
+        const show = Object.freeze({
+            date: "2027-03-14T01:00:00Z",
+            timezone: "America/Edmonton",
+        });
+        const now = new Date("2027-03-14T00:00:00Z");
+        const before = formatShowCountdown(show.date, now);
+        expect(formatShowDate(show.date, show.timezone)).toBe(
+            "March 13th at 7:00 pm ABT",
+        );
+        expect(show).toEqual({
+            date: "2027-03-14T01:00:00Z",
+            timezone: "America/Edmonton",
+        });
+        expect(formatShowCountdown(show.date, now)).toEqual(before);
+        expect(before).toEqual({ label: "Show in 1 hour", tone: "future" });
+    });
+
+    it("renders correct client labels even when Intl still applies the old seasonal rules", async () => {
+        const NativeFormatter = Intl.DateTimeFormat;
+        const legacyZones: Record<string, string> = {
+            "America/Edmonton": "America/Denver",
+            "Canada/Mountain": "America/Denver",
+            "America/Vancouver": "America/Los_Angeles",
+            "Canada/Pacific": "America/Los_Angeles",
+        };
+        const staleFormatter = new Proxy(NativeFormatter, {
+            construct(target, args) {
+                const [locales, options] = args;
+                return new target(locales, {
+                    ...options,
+                    timeZone:
+                        legacyZones[options?.timeZone] ?? options?.timeZone,
+                });
+            },
+        });
+        vi.spyOn(Intl, "DateTimeFormat").mockImplementation(staleFormatter);
+        // date-fns-tz caches Intl formatters by zone. Load a fresh module graph
+        // after installing the stale client, rather than accidentally reusing
+        // a server formatter and letting the regression pass for the wrong reason.
+        vi.resetModules();
+        try {
+            const client = await import("./dateUtil");
+            for (const [zone, staleHour, expected] of [
+                ["America/Edmonton", "13:00", "December 1st at 2:00 pm ABT"],
+                ["America/Vancouver", "12:00", "December 1st at 1:00 pm PT"],
+                ["Canada/Mountain", "13:00", "December 1st at 2:00 pm ABT"],
+                ["Canada/Pacific", "12:00", "December 1st at 1:00 pm PT"],
+            ]) {
+                const instant = "2026-12-01T20:00:00Z";
+                expect(
+                    new Intl.DateTimeFormat("en-GB", {
+                        timeZone: zone,
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hourCycle: "h23",
+                    }).format(new Date(instant)),
+                ).toBe(staleHour);
+                expect(client.formatShowDate(instant, zone)).toBe(expected);
+            }
+            expect(
+                client.formatShowDate(
+                    "2026-01-15T20:00:00Z",
+                    "America/Edmonton",
+                ),
+            ).toBe("January 15th at 1:00 pm MST");
+            expect(
+                client.formatShowDate(
+                    "2026-12-01T20:00:00Z",
+                    "America/New_York",
+                ),
+            ).toBe("December 1st at 3:00 pm EST");
+        } finally {
+            vi.restoreAllMocks();
+            vi.resetModules();
+        }
+    });
 });

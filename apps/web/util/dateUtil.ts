@@ -4,6 +4,25 @@ import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 // default in apps/scraper/src/laughtrack/core/entities/club/model.py:27).
 export const DEFAULT_SHOW_TIMEZONE = "America/New_York";
 
+// Presentation compatibility for clients whose ICU predates IANA 2026b/2026c.
+// These legal boundaries precede the first skipped autumn clock change. Keep
+// historical instants on their original IANA rules and store no adjusted dates.
+// Aliases are IANA links, not guesses based on province or geographic proximity.
+const PERMANENT_SHOW_TIME = [
+    {
+        zones: ["America/Edmonton", "Canada/Mountain"],
+        since: Date.parse("2026-06-18T06:00:00Z"),
+        offsetHours: -6,
+        label: "ABT",
+    },
+    {
+        zones: ["America/Vancouver", "Canada/Pacific"],
+        since: Date.parse("2026-03-09T07:00:00Z"),
+        offsetHours: -7,
+        label: "PT",
+    },
+] as const;
+
 export function formatShowDate(
     dateString: string,
     timezone?: string | null,
@@ -11,11 +30,17 @@ export function formatShowDate(
     const date = new Date(dateString);
     const tz = timezone || DEFAULT_SHOW_TIMEZONE;
 
-    // toZonedTime returns a Date whose *local* fields (getMonth/getDate/getHours/...)
-    // carry the wallclock time in `tz`. The value is computed from the tz database
-    // via Intl, so it's deterministic across server and client regardless of the
-    // host system's timezone — no hydration mismatch (cf. hydration error #418).
-    const zoned = toZonedTime(date, tz);
+    const permanentTime = PERMANENT_SHOW_TIME.find(
+        (rule) =>
+            rule.zones.some((zone) => zone === tz) &&
+            date.getTime() >= rule.since,
+    );
+    // Fixed-rule wall fields use UTC accessors: neither the host timezone nor
+    // stale browser ICU can change them. Other dates retain the existing Intl
+    // path; toZonedTime exposes their venue wall time through local accessors.
+    const zoned = permanentTime
+        ? new Date(date.getTime() + permanentTime.offsetHours * 60 * 60 * 1000)
+        : toZonedTime(date, tz);
 
     const months = [
         "January",
@@ -31,17 +56,20 @@ export function formatShowDate(
         "November",
         "December",
     ];
-    const month = months[zoned.getMonth()];
-    const day = zoned.getDate();
+    const month =
+        months[permanentTime ? zoned.getUTCMonth() : zoned.getMonth()];
+    const day = permanentTime ? zoned.getUTCDate() : zoned.getDate();
     const suffix = getDaySuffix(day);
 
-    const hours = zoned.getHours();
-    const minutes = zoned.getMinutes();
+    const hours = permanentTime ? zoned.getUTCHours() : zoned.getHours();
+    const minutes = permanentTime ? zoned.getUTCMinutes() : zoned.getMinutes();
     const period = hours >= 12 ? "pm" : "am";
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, "0");
 
-    const tzLabel = formatInTimeZone(date, tz, "zzz");
+    // Government-facing labels remain stable across ICU versions, which may
+    // variously call the new fixed offsets MDT/CST and PDT/MST.
+    const tzLabel = permanentTime?.label ?? formatInTimeZone(date, tz, "zzz");
 
     return `${month} ${day}${suffix} at ${displayHours}:${displayMinutes} ${period} ${tzLabel}`;
 }
