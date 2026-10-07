@@ -491,8 +491,12 @@ async def test_scrape_runtime_regression(monkeypatch):
     import asyncio
 
     scraper = GenericThunderTixScraper(_club())
-    scraper._PRICE_BUDGET_SECONDS = 0.05
-    scraper._PRICE_URL_TIMEOUT_SECONDS = 1
+    # The shared deadline must expire before the per-request timeout.
+    scraper._PRICE_URL_TIMEOUT_SECONDS = scraper._PRICE_BUDGET_SECONDS * 2
+    loop = asyncio.get_running_loop()
+    real_time = loop.time
+    clock_offset = 0.0
+    stalled = asyncio.Event()
     calls, cancelled = [], []
 
     async def calendar(url):
@@ -504,6 +508,7 @@ async def test_scrape_runtime_regression(monkeypatch):
         if url.endswith("/1"):
             return _detail_page_html("15.0")
         try:
+            stalled.set()
             await asyncio.Event().wait()
         finally:
             cancelled.append(url)
@@ -515,11 +520,33 @@ async def test_scrape_runtime_regression(monkeypatch):
     scraper.fetch_html = detail
     scraper.rate_limiter = SimpleNamespace(await_if_needed=unlimited)
     targets = await scraper.collect_scraping_targets()
-    results = await asyncio.wait_for(asyncio.gather(*(scraper.get_data(url) for url in targets)), 0.5)
+    known_url = "https://example.thundertix.com/events/1"
+    stalled_url = "https://example.thundertix.com/events/2"
+    with monkeypatch.context() as clock_patch:
+        clock_patch.setattr(loop, "time", lambda: real_time() + clock_offset)
+        weeks = asyncio.gather(*(scraper.get_data(url) for url in targets))
+        try:
+            # A watchdog catches deadlocks; it does not decide which price wins.
+            async with asyncio.timeout(10) as watchdog:
+                await stalled.wait()
+                assert await scraper._run_price_tasks[known_url] == 15.0
+                assert not scraper._run_price_tasks[stalled_url].done()
+                # Expire the real shared-deadline timer only after parsing the
+                # known price. Move the watchdog too, preserving its real budget.
+                advance = scraper._price_deadline - loop.time() + 1
+                watchdog.reschedule(watchdog.when() + advance)
+                clock_offset += advance
+                results = await weeks
+        finally:
+            weeks.cancel()
+            for task in scraper._run_price_tasks.values():
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(weeks, *scraper._run_price_tasks.values(), return_exceptions=True)
     assert len(results) == 12
     assert all([p.price for p in result.event_list] == [15.0, None] for result in results)
-    assert len(calls) == 2
-    assert len(cancelled) == 1
+    assert sorted(calls) == [known_url, stalled_url]
+    assert cancelled == [stalled_url]
     assert all(task.done() for task in scraper._run_price_tasks.values())
     await scraper.get_data(targets[0])
     assert len(calls) == 2
