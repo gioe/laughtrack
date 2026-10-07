@@ -1,0 +1,479 @@
+[
+  {
+    "id": 522171,
+    "club_id": 573,
+    "name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "date": "2026-03-30T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361127",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522172,
+    "club_id": 573,
+    "name": "EPK Review",
+    "date": "2026-03-31T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361012",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522173,
+    "club_id": 573,
+    "name": "Big Pine Comedy Festival Submission",
+    "date": "2026-04-01T19:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/313315",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522174,
+    "club_id": 573,
+    "name": "Hosting Like a Pro – Notes Version",
+    "date": "2026-04-07T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361013",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522175,
+    "club_id": 573,
+    "name": "BIG PINE COMEDY FESTIVAL PASS",
+    "date": "2026-04-09T01:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/363358",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522176,
+    "club_id": 573,
+    "name": "CACTUS COMEDY HOUR",
+    "date": "2026-04-09T02:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362575",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522177,
+    "club_id": 573,
+    "name": "THE ENCHANTED MIC",
+    "date": "2026-04-09T02:30:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362568",
+    "last_scraped_by": null
+  },
+  {
+    "id": 852196,
+    "club_id": 573,
+    "name": "ONCE UPON A MIC",
+    "date": "2026-04-09T05:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/367191",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522178,
+    "club_id": 573,
+    "name": "LOVE BOMBED",
+    "date": "2026-04-10T02:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362576",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522179,
+    "club_id": 573,
+    "name": "HAPPILY EVER LAUGHTER",
+    "date": "2026-04-10T02:30:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362569",
+    "last_scraped_by": null
+  },
+  {
+    "id": 852199,
+    "club_id": 573,
+    "name": "BEE FUNNY AT BIG PINE COMEDY FESTIVAL",
+    "date": "2026-04-10T04:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/367189",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522180,
+    "club_id": 573,
+    "name": "ALL KILLER, NO FILLER",
+    "date": "2026-04-10T04:30:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362570",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522181,
+    "club_id": 573,
+    "name": "GLASS COFFIN COMEDY HOUR",
+    "date": "2026-04-11T02:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362577",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522182,
+    "club_id": 573,
+    "name": "BIG PINE COMEDY FESTIVAL PRESENTS: DULCÉ SLOAN",
+    "date": "2026-04-11T02:30:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362571",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522183,
+    "club_id": 573,
+    "name": "50 SHADES OF COMEDY (DIRTY COMEDY)",
+    "date": "2026-04-11T05:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362578",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522184,
+    "club_id": 573,
+    "name": "HI-HO COMEDY SHOW",
+    "date": "2026-04-12T01:30:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362579",
+    "last_scraped_by": null
+  },
+  {
+    "id": 852205,
+    "club_id": 573,
+    "name": "BIG PINE COMEDY FESTIVAL PRESENTS: MICHAEL TURNER",
+    "date": "2026-04-12T02:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/367190",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522185,
+    "club_id": 573,
+    "name": "MAGIC MIRROR MIC",
+    "date": "2026-04-12T02:30:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362573",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522186,
+    "club_id": 573,
+    "name": "THE BREAKOUT HOUR",
+    "date": "2026-04-12T05:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362574",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522187,
+    "club_id": 573,
+    "name": "Challenges & Stepping Stones: Comic Guide (Digital Download)",
+    "date": "2026-04-14T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361014",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522188,
+    "club_id": 573,
+    "name": "1:1 Coaching Call with Geoff Grooms",
+    "date": "2026-04-21T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361019",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522189,
+    "club_id": 573,
+    "name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "date": "2026-04-27T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361128",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522190,
+    "club_id": 573,
+    "name": "EPK Review",
+    "date": "2026-04-28T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361024",
+    "last_scraped_by": null
+  },
+  {
+    "id": 1418265,
+    "club_id": 573,
+    "name": "SUMMER COMEDY CAMP",
+    "date": "2026-05-02T16:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/356283",
+    "last_scraped_by": null
+  },
+  {
+    "id": 1376604,
+    "club_id": 573,
+    "name": "Creativity & Motivation - Comedian Guide (Digital Download)",
+    "date": "2026-05-05T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369982",
+    "last_scraped_by": null
+  },
+  {
+    "id": 522192,
+    "club_id": 573,
+    "name": "SUMMER COMEDY CAMP",
+    "date": "2026-05-10T16:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/356284",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376607,
+    "club_id": 573,
+    "name": "📱 Social Media 101 w/ Megan McConnell & Camille Cagua (Audio Version)",
+    "date": "2026-05-12T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369973",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376608,
+    "club_id": 573,
+    "name": "Social Media Review",
+    "date": "2026-05-19T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369972",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376609,
+    "club_id": 573,
+    "name": "EPK Review",
+    "date": "2026-05-26T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369966",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 522193,
+    "club_id": 573,
+    "name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "date": "2026-06-01T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361129",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376611,
+    "club_id": 573,
+    "name": "Branding & Diversity – Notes Version",
+    "date": "2026-06-02T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369984",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 522194,
+    "club_id": 573,
+    "name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "date": "2026-06-06T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361130",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1550284,
+    "club_id": 573,
+    "name": "SUMMER COMEDY CAMP",
+    "date": "2026-06-06T16:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/371369",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1550285,
+    "club_id": 573,
+    "name": "SUMMER COMEDY CAMP",
+    "date": "2026-06-07T16:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/371370",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376613,
+    "club_id": 573,
+    "name": "🎤 Punchlines to Plotlines with Big Irish Jay Hollingsworth (Audio Version)",
+    "date": "2026-06-09T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369985",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376614,
+    "club_id": 573,
+    "name": "1 on 1 Coaching Call with Hillary Hutson",
+    "date": "2026-06-16T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369986",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376615,
+    "club_id": 573,
+    "name": "EPK Review",
+    "date": "2026-06-23T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369987",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376616,
+    "club_id": 573,
+    "name": "Comedian Education Guide & Workbook (Digital Download)",
+    "date": "2026-06-30T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369988",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376617,
+    "club_id": 573,
+    "name": "Auditions & EPKs – Notes Version",
+    "date": "2026-07-07T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369990",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376618,
+    "club_id": 573,
+    "name": "Comedy Festivals 101 - Comedian Guide (Digital Download)",
+    "date": "2026-07-14T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369991",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376619,
+    "club_id": 573,
+    "name": "1:1 Coaching with Brian Kearley",
+    "date": "2026-07-21T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369992",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376620,
+    "club_id": 573,
+    "name": "EPK Review",
+    "date": "2026-07-28T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369995",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 522195,
+    "club_id": 573,
+    "name": "COMEDY ASSASSINS 2026 - NETWORKING GAME",
+    "date": "2026-08-02T00:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/340141",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376622,
+    "club_id": 573,
+    "name": "Booking Readiness – Notes Version",
+    "date": "2026-08-04T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369996",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376623,
+    "club_id": 573,
+    "name": "Industry Pain Points: A Booker’s Perspective (Digital Download)",
+    "date": "2026-08-11T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369999",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376624,
+    "club_id": 573,
+    "name": "1:1 Coaching Call with Mikey Perry",
+    "date": "2026-08-18T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370001",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 522196,
+    "club_id": 573,
+    "name": "BIG TOMATO COMEDY FESTIVAL",
+    "date": "2026-08-21T02:00:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361183",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376626,
+    "club_id": 573,
+    "name": "Strategies for Comedians – Notes Version",
+    "date": "2026-08-25T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370004",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376627,
+    "club_id": 573,
+    "name": "EPK Review",
+    "date": "2026-09-01T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370006",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376630,
+    "club_id": 573,
+    "name": "Brainstorming – Notes Version",
+    "date": "2026-09-08T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370081",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376631,
+    "club_id": 573,
+    "name": "Business & Finance: Comedian Guide (Digital Download)",
+    "date": "2026-09-15T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370082",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 1376632,
+    "club_id": 573,
+    "name": "1:1 Coaching with Naela Durrani",
+    "date": "2026-09-22T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370083",
+    "last_scraped_by": "seatengine"
+  },
+  {
+    "id": 7773673,
+    "club_id": 573,
+    "name": "Big Pine Comedy Festival Submission 2027",
+    "date": "2026-11-01T06:59:00+00:00",
+    "room": "",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/390223",
+    "last_scraped_by": "seatengine"
+  }
+]

@@ -1,0 +1,966 @@
+[
+  {
+    "show_id": 522171,
+    "native_id": 361127,
+    "event_id": 132504,
+    "decision": "remove",
+    "category": "submission",
+    "stored_name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "native_name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "stored_date": "2026-03-30T06:59:00+00:00",
+    "native_date": "2026-03-29T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361127",
+    "room": "",
+    "inventory": [
+      "Big Tomato Submission March - September "
+    ],
+    "reason": "Native inventory identifies submission: Big Tomato Submission March - September "
+  },
+  {
+    "show_id": 522172,
+    "native_id": 361012,
+    "event_id": 132417,
+    "decision": "remove",
+    "category": "review_service",
+    "stored_name": "EPK Review",
+    "native_name": "EPK Review",
+    "stored_date": "2026-03-31T06:59:00+00:00",
+    "native_date": "2026-03-30T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361012",
+    "room": "",
+    "inventory": [
+      "Digital Review"
+    ],
+    "reason": "Native inventory identifies review service: Digital Review"
+  },
+  {
+    "show_id": 522173,
+    "native_id": 313315,
+    "event_id": 113040,
+    "decision": "remove",
+    "category": "submission",
+    "stored_name": "Big Pine Comedy Festival Submission",
+    "native_name": "Big Pine Comedy Festival Submission",
+    "stored_date": "2026-04-01T19:00:00+00:00",
+    "native_date": "2026-04-01T12:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/313315",
+    "room": "",
+    "inventory": [
+      "2026 Submission ($20 with $5 service fee)"
+    ],
+    "reason": "Native inventory identifies submission: 2026 Submission ($20 with $5 service fee)"
+  },
+  {
+    "show_id": 522174,
+    "native_id": 361013,
+    "event_id": 132418,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Hosting Like a Pro – Notes Version",
+    "native_name": "Hosting Like a Pro – Notes Version",
+    "stored_date": "2026-04-07T06:59:00+00:00",
+    "native_date": "2026-04-06T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361013",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 522175,
+    "native_id": 363358,
+    "event_id": 133357,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "BIG PINE COMEDY FESTIVAL PASS",
+    "native_name": "BIG PINE COMEDY FESTIVAL  PASS",
+    "stored_date": "2026-04-09T01:00:00+00:00",
+    "native_date": "2026-04-08T18:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/363358",
+    "room": "",
+    "inventory": [
+      "festival pass"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522176,
+    "native_id": 362575,
+    "event_id": 132981,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "CACTUS COMEDY HOUR",
+    "native_name": "CACTUS COMEDY HOUR",
+    "stored_date": "2026-04-09T02:00:00+00:00",
+    "native_date": "2026-04-08T19:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362575",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "FESTIVAL PASS"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522177,
+    "native_id": 362568,
+    "event_id": 132974,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "THE ENCHANTED MIC",
+    "native_name": "THE ENCHANTED MIC",
+    "stored_date": "2026-04-09T02:30:00+00:00",
+    "native_date": "2026-04-08T19:30:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362568",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "FESTIVAL PASS"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 852196,
+    "native_id": 367191,
+    "event_id": 135031,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "ONCE UPON A MIC",
+    "native_name": "ONCE UPON A MIC",
+    "stored_date": "2026-04-09T05:00:00+00:00",
+    "native_date": "2026-04-08T22:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/367191",
+    "room": "",
+    "inventory": [
+      "General Admission"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522178,
+    "native_id": 362576,
+    "event_id": 132982,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "LOVE BOMBED",
+    "native_name": "LOVE BOMBED",
+    "stored_date": "2026-04-10T02:00:00+00:00",
+    "native_date": "2026-04-09T19:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362576",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "FESTIVAL PASS"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522179,
+    "native_id": 362569,
+    "event_id": 132975,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "HAPPILY EVER LAUGHTER",
+    "native_name": "HAPPILY EVER LAUGHTER",
+    "stored_date": "2026-04-10T02:30:00+00:00",
+    "native_date": "2026-04-09T19:30:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362569",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "FESTIVAL PASS"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 852199,
+    "native_id": 367189,
+    "event_id": 135029,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "BEE FUNNY AT BIG PINE COMEDY FESTIVAL",
+    "native_name": "BEE FUNNY AT BIG PINE COMEDY FESTIVAL",
+    "stored_date": "2026-04-10T04:00:00+00:00",
+    "native_date": "2026-04-09T21:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/367189",
+    "room": "",
+    "inventory": [
+      "General Admission"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522180,
+    "native_id": 362570,
+    "event_id": 132976,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "ALL KILLER, NO FILLER",
+    "native_name": "ALL KILLER, NO FILLER",
+    "stored_date": "2026-04-10T04:30:00+00:00",
+    "native_date": "2026-04-09T21:30:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362570",
+    "room": "",
+    "inventory": [
+      "General Admission"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522181,
+    "native_id": 362577,
+    "event_id": 132983,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "GLASS COFFIN COMEDY HOUR",
+    "native_name": "GLASS COFFIN COMEDY HOUR",
+    "stored_date": "2026-04-11T02:00:00+00:00",
+    "native_date": "2026-04-10T19:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362577",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "festival pass "
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522182,
+    "native_id": 362571,
+    "event_id": 132977,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "BIG PINE COMEDY FESTIVAL PRESENTS: DULCÉ SLOAN",
+    "native_name": "BIG PINE COMEDY FESTIVAL PRESENTS: DULCÉ SLOAN",
+    "stored_date": "2026-04-11T02:30:00+00:00",
+    "native_date": "2026-04-10T19:30:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362571",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "festival pass"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522183,
+    "native_id": 362578,
+    "event_id": 132984,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "50 SHADES OF COMEDY (DIRTY COMEDY)",
+    "native_name": "50 SHADES OF COMEDY (DIRTY COMEDY)",
+    "stored_date": "2026-04-11T05:00:00+00:00",
+    "native_date": "2026-04-10T22:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362578",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "festival pass"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522184,
+    "native_id": 362579,
+    "event_id": 132985,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "HI-HO COMEDY SHOW",
+    "native_name": "HI-HO COMEDY SHOW",
+    "stored_date": "2026-04-12T01:30:00+00:00",
+    "native_date": "2026-04-11T18:30:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362579",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "festival pass"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 852205,
+    "native_id": 367190,
+    "event_id": 135030,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "BIG PINE COMEDY FESTIVAL PRESENTS: MICHAEL TURNER",
+    "native_name": "BIG PINE COMEDY FESTIVAL PRESENTS: MICHAEL TURNER",
+    "stored_date": "2026-04-12T02:00:00+00:00",
+    "native_date": "2026-04-11T19:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/367190",
+    "room": "",
+    "inventory": [
+      "General Admission ($20 + $5.50 Service Fee)"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522185,
+    "native_id": 362573,
+    "event_id": 132979,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "MAGIC MIRROR MIC",
+    "native_name": "MAGIC MIRROR MIC",
+    "stored_date": "2026-04-12T02:30:00+00:00",
+    "native_date": "2026-04-11T19:30:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362573",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "festival pass"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522186,
+    "native_id": 362574,
+    "event_id": 132980,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "THE BREAKOUT HOUR",
+    "native_name": "THE BREAKOUT HOUR",
+    "stored_date": "2026-04-12T05:00:00+00:00",
+    "native_date": "2026-04-11T22:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/362574",
+    "room": "",
+    "inventory": [
+      "General Admission",
+      "festival pass"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 522187,
+    "native_id": 361014,
+    "event_id": 132419,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Challenges & Stepping Stones: Comic Guide (Digital Download)",
+    "native_name": "Challenges & Stepping Stones: Comic Guide (Digital Download)",
+    "stored_date": "2026-04-14T06:59:00+00:00",
+    "native_date": "2026-04-13T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361014",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 522188,
+    "native_id": 361019,
+    "event_id": 132424,
+    "decision": "remove",
+    "category": "virtual_consultation",
+    "stored_name": "1:1 Coaching Call with Geoff Grooms",
+    "native_name": "1:1 Coaching Call with Geoff Grooms",
+    "stored_date": "2026-04-21T06:59:00+00:00",
+    "native_date": "2026-04-20T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361019",
+    "room": "",
+    "inventory": [
+      "Virtual Consultation"
+    ],
+    "reason": "Native inventory identifies virtual consultation: Virtual Consultation"
+  },
+  {
+    "show_id": 522189,
+    "native_id": 361128,
+    "event_id": 132504,
+    "decision": "remove",
+    "category": "submission",
+    "stored_name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "native_name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "stored_date": "2026-04-27T06:59:00+00:00",
+    "native_date": "2026-04-26T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361128",
+    "room": "",
+    "inventory": [
+      "Big Tomato Submission April - September "
+    ],
+    "reason": "Native inventory identifies submission: Big Tomato Submission April - September "
+  },
+  {
+    "show_id": 522190,
+    "native_id": 361024,
+    "event_id": 132429,
+    "decision": "remove",
+    "category": "review_service",
+    "stored_name": "EPK Review",
+    "native_name": "EPK Review",
+    "stored_date": "2026-04-28T06:59:00+00:00",
+    "native_date": "2026-04-27T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361024",
+    "room": "",
+    "inventory": [
+      "Digital Review"
+    ],
+    "reason": "Native inventory identifies review service: Digital Review"
+  },
+  {
+    "show_id": 1418265,
+    "native_id": 356283,
+    "event_id": 130311,
+    "decision": "remove",
+    "category": "workshop_panel_pass",
+    "stored_name": "SUMMER COMEDY CAMP",
+    "native_name": "SUMMER  COMEDY CAMP ",
+    "stored_date": "2026-05-02T16:00:00+00:00",
+    "native_date": "2026-05-02T09:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/356283",
+    "room": "",
+    "inventory": [
+      "SPRING CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)"
+    ],
+    "reason": "Native inventory identifies workshop panel pass: SPRING CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)"
+  },
+  {
+    "show_id": 1376604,
+    "native_id": 369982,
+    "event_id": 136230,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Creativity & Motivation - Comedian Guide (Digital Download)",
+    "native_name": " Creativity & Motivation - Comedian Guide (Digital Download)",
+    "stored_date": "2026-05-05T06:59:00+00:00",
+    "native_date": "2026-05-04T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369982",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 522192,
+    "native_id": 356284,
+    "event_id": 130312,
+    "decision": "hold",
+    "category": null,
+    "stored_name": "SUMMER COMEDY CAMP",
+    "native_name": "SUMMER COMEDY CAMP",
+    "stored_date": "2026-05-10T16:00:00+00:00",
+    "native_date": "2026-05-03T09:00:00-07:00",
+    "date_matches": false,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/356284",
+    "room": "",
+    "inventory": [
+      "SPRING CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)"
+    ],
+    "reason": "Native workshop product date is May3; stored date is May10. Hold unresolved occurrence-date discrepancy."
+  },
+  {
+    "show_id": 1376607,
+    "native_id": 369973,
+    "event_id": 136226,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "📱 Social Media 101 w/ Megan McConnell & Camille Cagua (Audio Version)",
+    "native_name": " 📱 Social Media 101 w/ Megan McConnell & Camille Cagua (Audio Version)",
+    "stored_date": "2026-05-12T06:59:00+00:00",
+    "native_date": "2026-05-11T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369973",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376608,
+    "native_id": 369972,
+    "event_id": 136225,
+    "decision": "remove",
+    "category": "review_service",
+    "stored_name": "Social Media Review",
+    "native_name": "Social Media Review",
+    "stored_date": "2026-05-19T06:59:00+00:00",
+    "native_date": "2026-05-18T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369972",
+    "room": "",
+    "inventory": [
+      "Social Media Review"
+    ],
+    "reason": "Native inventory identifies review service: Social Media Review"
+  },
+  {
+    "show_id": 1376609,
+    "native_id": 369966,
+    "event_id": 136223,
+    "decision": "remove",
+    "category": "review_service",
+    "stored_name": "EPK Review",
+    "native_name": "EPK Review",
+    "stored_date": "2026-05-26T06:59:00+00:00",
+    "native_date": "2026-05-25T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369966",
+    "room": "",
+    "inventory": [
+      "EPK Review"
+    ],
+    "reason": "Native inventory identifies review service: EPK Review"
+  },
+  {
+    "show_id": 522193,
+    "native_id": 361129,
+    "event_id": 132504,
+    "decision": "remove",
+    "category": "submission",
+    "stored_name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "native_name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "stored_date": "2026-06-01T06:59:00+00:00",
+    "native_date": "2026-05-31T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361129",
+    "room": "",
+    "inventory": [
+      "Big Pine Submission May - September "
+    ],
+    "reason": "Native inventory identifies submission: Big Pine Submission May - September "
+  },
+  {
+    "show_id": 1376611,
+    "native_id": 369984,
+    "event_id": 136232,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Branding & Diversity – Notes Version",
+    "native_name": "Branding & Diversity – Notes Version",
+    "stored_date": "2026-06-02T06:59:00+00:00",
+    "native_date": "2026-06-01T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369984",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 522194,
+    "native_id": 361130,
+    "event_id": 132504,
+    "decision": "remove",
+    "category": "submission",
+    "stored_name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "native_name": "BIG TOMATO COMEDY FESTIVAL: SUBMIT HERE",
+    "stored_date": "2026-06-06T06:59:00+00:00",
+    "native_date": "2026-06-05T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361130",
+    "room": "",
+    "inventory": [
+      "Big Pine Submission June - September "
+    ],
+    "reason": "Native inventory identifies submission: Big Pine Submission June - September "
+  },
+  {
+    "show_id": 1550284,
+    "native_id": 371369,
+    "event_id": 136806,
+    "decision": "remove",
+    "category": "workshop_panel_pass",
+    "stored_name": "SUMMER COMEDY CAMP",
+    "native_name": "SUMMER COMEDY CAMP ",
+    "stored_date": "2026-06-06T16:00:00+00:00",
+    "native_date": "2026-06-06T09:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/371369",
+    "room": "",
+    "inventory": [
+      "SUMMER  CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)"
+    ],
+    "reason": "Native inventory identifies workshop panel pass: SUMMER  CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)"
+  },
+  {
+    "show_id": 1550285,
+    "native_id": 371370,
+    "event_id": 136807,
+    "decision": "remove",
+    "category": "workshop_panel_pass",
+    "stored_name": "SUMMER COMEDY CAMP",
+    "native_name": "SUMMER COMEDY CAMP ",
+    "stored_date": "2026-06-07T16:00:00+00:00",
+    "native_date": "2026-06-07T09:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/371370",
+    "room": "",
+    "inventory": [
+      "SUMMER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)"
+    ],
+    "reason": "Native inventory identifies workshop panel pass: SUMMER CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)"
+  },
+  {
+    "show_id": 1376613,
+    "native_id": 369985,
+    "event_id": 136233,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "🎤 Punchlines to Plotlines with Big Irish Jay Hollingsworth (Audio Version)",
+    "native_name": "🎤 Punchlines to Plotlines with Big Irish Jay Hollingsworth (Audio Version)",
+    "stored_date": "2026-06-09T06:59:00+00:00",
+    "native_date": "2026-06-08T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369985",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376614,
+    "native_id": 369986,
+    "event_id": 136234,
+    "decision": "remove",
+    "category": "virtual_consultation",
+    "stored_name": "1 on 1 Coaching Call with Hillary Hutson",
+    "native_name": " 1 on 1 Coaching Call with Hillary Hutson",
+    "stored_date": "2026-06-16T06:59:00+00:00",
+    "native_date": "2026-06-15T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369986",
+    "room": "",
+    "inventory": [
+      "Virtual Consultation"
+    ],
+    "reason": "Native inventory identifies virtual consultation: Virtual Consultation"
+  },
+  {
+    "show_id": 1376615,
+    "native_id": 369987,
+    "event_id": 136235,
+    "decision": "remove",
+    "category": "review_service",
+    "stored_name": "EPK Review",
+    "native_name": " EPK Review",
+    "stored_date": "2026-06-23T06:59:00+00:00",
+    "native_date": "2026-06-22T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369987",
+    "room": "",
+    "inventory": [
+      "Virtual Consultation"
+    ],
+    "reason": "Native inventory identifies review service: Virtual Consultation"
+  },
+  {
+    "show_id": 1376616,
+    "native_id": 369988,
+    "event_id": 136236,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Comedian Education Guide & Workbook (Digital Download)",
+    "native_name": "Comedian Education Guide & Workbook (Digital Download)",
+    "stored_date": "2026-06-30T06:59:00+00:00",
+    "native_date": "2026-06-29T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369988",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376617,
+    "native_id": 369990,
+    "event_id": 136238,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Auditions & EPKs – Notes Version",
+    "native_name": "Auditions & EPKs – Notes Version",
+    "stored_date": "2026-07-07T06:59:00+00:00",
+    "native_date": "2026-07-06T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369990",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376618,
+    "native_id": 369991,
+    "event_id": 136239,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Comedy Festivals 101 - Comedian Guide (Digital Download)",
+    "native_name": "Comedy Festivals 101 - Comedian Guide (Digital Download)",
+    "stored_date": "2026-07-14T06:59:00+00:00",
+    "native_date": "2026-07-13T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369991",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376619,
+    "native_id": 369992,
+    "event_id": 136240,
+    "decision": "remove",
+    "category": "virtual_consultation",
+    "stored_name": "1:1 Coaching with Brian Kearley",
+    "native_name": "1:1 Coaching with Brian Kearley",
+    "stored_date": "2026-07-21T06:59:00+00:00",
+    "native_date": "2026-07-20T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369992",
+    "room": "",
+    "inventory": [
+      "Virtual Consultation"
+    ],
+    "reason": "Native inventory identifies virtual consultation: Virtual Consultation"
+  },
+  {
+    "show_id": 1376620,
+    "native_id": 369995,
+    "event_id": 136242,
+    "decision": "remove",
+    "category": "review_service",
+    "stored_name": "EPK Review",
+    "native_name": "EPK Review",
+    "stored_date": "2026-07-28T06:59:00+00:00",
+    "native_date": "2026-07-27T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369995",
+    "room": "",
+    "inventory": [
+      "EPK Review"
+    ],
+    "reason": "Native inventory identifies review service: EPK Review"
+  },
+  {
+    "show_id": 522195,
+    "native_id": 340141,
+    "event_id": 123770,
+    "decision": "remove",
+    "category": "networking_game",
+    "stored_name": "COMEDY ASSASSINS 2026 - NETWORKING GAME",
+    "native_name": "COMEDY ASSASSINS 2026 - NETWORKING GAME",
+    "stored_date": "2026-08-02T00:00:00+00:00",
+    "native_date": "2026-08-01T17:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/340141",
+    "room": "",
+    "inventory": [
+      "General Admission"
+    ],
+    "reason": "Native add-on Extra Life - Revival Life explicitly sells re-entry after elimination into Comedy Assassins; networking game, not a performance."
+  },
+  {
+    "show_id": 1376622,
+    "native_id": 369996,
+    "event_id": 136243,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Booking Readiness – Notes Version",
+    "native_name": "Booking Readiness – Notes Version",
+    "stored_date": "2026-08-04T06:59:00+00:00",
+    "native_date": "2026-08-03T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369996",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376623,
+    "native_id": 369999,
+    "event_id": 136245,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Industry Pain Points: A Booker’s Perspective (Digital Download)",
+    "native_name": "Industry Pain Points: A Booker’s Perspective (Digital Download)",
+    "stored_date": "2026-08-11T06:59:00+00:00",
+    "native_date": "2026-08-10T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/369999",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376624,
+    "native_id": 370001,
+    "event_id": 136246,
+    "decision": "remove",
+    "category": "virtual_consultation",
+    "stored_name": "1:1 Coaching Call with Mikey Perry",
+    "native_name": "1:1 Coaching Call with Mikey Perry",
+    "stored_date": "2026-08-18T06:59:00+00:00",
+    "native_date": "2026-08-17T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370001",
+    "room": "",
+    "inventory": [
+      "Virtual Consultation"
+    ],
+    "reason": "Native inventory identifies virtual consultation: Virtual Consultation"
+  },
+  {
+    "show_id": 522196,
+    "native_id": 361183,
+    "event_id": 132540,
+    "decision": "retain",
+    "category": null,
+    "stored_name": "BIG TOMATO COMEDY FESTIVAL",
+    "native_name": "BIG TOMATO COMEDY FESTIVAL",
+    "stored_date": "2026-08-21T02:00:00+00:00",
+    "native_date": "2026-08-20T19:00:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/361183",
+    "room": "",
+    "inventory": [
+      "General Admission"
+    ],
+    "reason": "Native occurrence matches stored ID/date and has performance or festival-admission inventory; preserve historical admission."
+  },
+  {
+    "show_id": 1376626,
+    "native_id": 370004,
+    "event_id": 136248,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Strategies for Comedians – Notes Version",
+    "native_name": " Strategies for Comedians – Notes Version",
+    "stored_date": "2026-08-25T06:59:00+00:00",
+    "native_date": "2026-08-24T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370004",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376627,
+    "native_id": 370006,
+    "event_id": 136249,
+    "decision": "remove",
+    "category": "review_service",
+    "stored_name": "EPK Review",
+    "native_name": "EPK Review",
+    "stored_date": "2026-09-01T06:59:00+00:00",
+    "native_date": "2026-08-31T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370006",
+    "room": "",
+    "inventory": [
+      "EPK Review"
+    ],
+    "reason": "Native inventory identifies review service: EPK Review"
+  },
+  {
+    "show_id": 1376630,
+    "native_id": 370081,
+    "event_id": 136279,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Brainstorming – Notes Version",
+    "native_name": "Brainstorming – Notes Version",
+    "stored_date": "2026-09-08T06:59:00+00:00",
+    "native_date": "2026-09-07T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370081",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376631,
+    "native_id": 370082,
+    "event_id": 136280,
+    "decision": "remove",
+    "category": "digital_download",
+    "stored_name": "Business & Finance: Comedian Guide (Digital Download)",
+    "native_name": "Business & Finance: Comedian Guide (Digital Download)",
+    "stored_date": "2026-09-15T06:59:00+00:00",
+    "native_date": "2026-09-14T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370082",
+    "room": "",
+    "inventory": [
+      "Digital Download"
+    ],
+    "reason": "Native inventory identifies digital download: Digital Download"
+  },
+  {
+    "show_id": 1376632,
+    "native_id": 370083,
+    "event_id": 136281,
+    "decision": "remove",
+    "category": "virtual_consultation",
+    "stored_name": "1:1 Coaching with Naela Durrani",
+    "native_name": "1:1 Coaching with Naela Durrani",
+    "stored_date": "2026-09-22T06:59:00+00:00",
+    "native_date": "2026-09-21T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/370083",
+    "room": "",
+    "inventory": [
+      "Virtual Consultation"
+    ],
+    "reason": "Native inventory identifies virtual consultation: Virtual Consultation"
+  },
+  {
+    "show_id": 7773673,
+    "native_id": 390223,
+    "event_id": 144970,
+    "decision": "remove",
+    "category": "submission",
+    "stored_name": "Big Pine Comedy Festival Submission 2027",
+    "native_name": "Big Pine Comedy Festival Submission 2027",
+    "stored_date": "2026-11-01T06:59:00+00:00",
+    "native_date": "2026-10-31T23:59:00-07:00",
+    "date_matches": true,
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/390223",
+    "room": "",
+    "inventory": [
+      "Digital Submission"
+    ],
+    "reason": "Native inventory identifies submission: Digital Submission"
+  }
+]
