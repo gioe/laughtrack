@@ -29,6 +29,19 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.eventbrite.scraper import EventbriteScraper
 
 
+@pytest.fixture(autouse=True)
+def isolate_existing_venue_lookup():
+    """Unit tests must not reach the production DB before their mocked upsert.
+
+    Cases exercising reuse replace this default with their own lookup mock.
+    """
+    with patch(
+        "laughtrack.core.entities.club.handler.ClubHandler.resolve_existing_eventbrite_venue_club",
+        return_value=None,
+    ):
+        yield
+
+
 _LEELA_ORGANIZER_URL = "https://www.eventbrite.com/o/leela-815038611"
 
 
@@ -140,10 +153,9 @@ async def test_organizer_mode_excludes_class_events_when_exclude_classes_set():
 
     scraper = EventbriteScraper(club)
     assert scraper._is_organizer_mode is True
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club),
     ):
         shows = await scraper.scrape_async()
 
@@ -161,10 +173,9 @@ async def test_organizer_mode_keeps_all_events_when_filter_off_by_default():
     venue_club = _venue_club()
 
     scraper = EventbriteScraper(club)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club),
     ):
         shows = await scraper.scrape_async()
 
@@ -174,9 +185,7 @@ async def test_organizer_mode_keeps_all_events_when_filter_off_by_default():
 @pytest.mark.asyncio
 async def test_exclude_title_patterns_custom_regex_drops_matches():
     """A caller-supplied regex drops only the events whose title matches it."""
-    club = _club_with_metadata(
-        _LEELA_ORGANIZER_URL, "815038611", {"exclude_title_patterns": [r"open mic"]}
-    )
+    club = _club_with_metadata(_LEELA_ORGANIZER_URL, "815038611", {"exclude_title_patterns": [r"open mic"]})
     venue = _api_venue()
     feed = [
         _event("Open Mic Night", "https://eventbrite.com/e/1", venue),
@@ -185,10 +194,9 @@ async def test_exclude_title_patterns_custom_regex_drops_matches():
     venue_club = _venue_club()
 
     scraper = EventbriteScraper(club)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club),
     ):
         shows = await scraper.scrape_async()
 
@@ -198,17 +206,13 @@ async def test_exclude_title_patterns_custom_regex_drops_matches():
 @pytest.mark.asyncio
 async def test_single_venue_mode_applies_filter_in_get_data():
     """The single-venue get_data path also honors the filter."""
-    club = _club_with_metadata(
-        "https://www.eventbrite.com/_internal/venue/page", "VENUE1", {"exclude_classes": True}
-    )
+    club = _club_with_metadata("https://www.eventbrite.com/_internal/venue/page", "VENUE1", {"exclude_classes": True})
     venue = _api_venue()
     feed = _mixed_feed(venue)
 
     scraper = EventbriteScraper(club)
     assert scraper._is_organizer_mode is False
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)
-    ):
+    with patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)):
         page = await scraper.get_data(club.eventbrite_id)
 
     kept = [e.name for e in page.event_list]
@@ -239,10 +243,9 @@ async def test_include_title_patterns_keeps_only_matching_comedy_events():
     venue_club = _venue_club()
 
     scraper = EventbriteScraper(club)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club),
     ):
         shows = await scraper.scrape_async()
 
@@ -272,10 +275,9 @@ async def test_include_and_exclude_patterns_compose():
     venue_club = _venue_club()
 
     scraper = EventbriteScraper(club)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club),
     ):
         shows = await scraper.scrape_async()
 

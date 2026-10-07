@@ -41,7 +41,46 @@ from laughtrack.core.services.scraping import (
 from laughtrack.scrapers.implementations.api.eventbrite.scraper import EventbriteScraper
 
 
+@pytest.fixture(autouse=True)
+def isolate_existing_venue_lookup():
+    """Unit tests must not reach the production DB before their mocked upsert.
+
+    Cases exercising reuse replace this default with their own lookup mock.
+    """
+    with patch(
+        "laughtrack.core.entities.club.handler.ClubHandler.resolve_existing_eventbrite_venue_club",
+        return_value=None,
+    ):
+        yield
+
+
 _ENCORE_ORGANIZER_URL = "https://www.eventbrite.com/o/encore-comedy/72313162423/"
+
+
+@pytest.mark.asyncio
+async def test_fetch_diagnostics_complete_empty_organizer_page():
+    """An HTTP-successful empty feed must record its actual API fetch."""
+    from laughtrack.foundation.infrastructure.http.diagnostics import (
+        ScrapeDiagnostics,
+        bind_diagnostics,
+        reset_diagnostics,
+    )
+
+    scraper = EventbriteScraper(_build_synthetic_proxy_for_company(_encore_company()))
+    diagnostics = ScrapeDiagnostics()
+    token = bind_diagnostics(diagnostics)
+    try:
+        with patch.object(
+            scraper.eventbrite_client,
+            "fetch_json",
+            new=AsyncMock(return_value={"events": [], "pagination": {"has_more_items": False}}),
+        ) as fetch:
+            assert await scraper.scrape_async() == []
+        assert fetch.await_count == 1
+        assert diagnostics.fetches_ok == 1
+        assert diagnostics.fetches_failed == 0
+    finally:
+        reset_diagnostics(token)
 
 
 def _encore_company() -> ProductionCompany:
@@ -127,9 +166,7 @@ def _fake_venue_club(club_id: int, name: str, city: str, state: str) -> Club:
 
 
 def test_extract_organizer_id_handles_path_segment_form():
-    assert (
-        _extract_eventbrite_organizer_id(_ENCORE_ORGANIZER_URL) == "72313162423"
-    )
+    assert _extract_eventbrite_organizer_id(_ENCORE_ORGANIZER_URL) == "72313162423"
 
 
 def test_eventbrite_upsert_normalizes_comic_strip_live_alias_before_sql_fallback():
@@ -144,22 +181,14 @@ def test_eventbrite_upsert_normalizes_comic_strip_live_alias_before_sql_fallback
 def test_extract_organizer_id_handles_slug_suffix_form():
     # Improbable Comedy uses the legacy /o/<slug>-<id> shape (production_companies id=2).
     assert (
-        _extract_eventbrite_organizer_id(
-            "https://www.eventbrite.com/o/improbable-comedy-10899180919"
-        )
-        == "10899180919"
+        _extract_eventbrite_organizer_id("https://www.eventbrite.com/o/improbable-comedy-10899180919") == "10899180919"
     )
 
 
 def test_extract_organizer_id_returns_none_for_non_eventbrite_urls():
     assert _extract_eventbrite_organizer_id("") is None
     assert _extract_eventbrite_organizer_id(None) is None
-    assert (
-        _extract_eventbrite_organizer_id(
-            "https://www.etix.com/ticket/v/26727/the-lounge-at-world-stage"
-        )
-        is None
-    )
+    assert _extract_eventbrite_organizer_id("https://www.etix.com/ticket/v/26727/the-lounge-at-world-stage") is None
 
 
 # ---------------------------------------------------------------------------
@@ -282,12 +311,8 @@ async def test_organizer_mode_routes_each_event_to_its_own_venue_club():
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
-    silver_diner = _api_venue(
-        venue_id="V_SILVER", name="Silver Diner", city="Cabin John", region="MD", postal="20818"
-    )
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
+    silver_diner = _api_venue(venue_id="V_SILVER", name="Silver Diner", city="Cabin John", region="MD", postal="20818")
 
     api_events = [
         _domain_event(
@@ -320,11 +345,10 @@ async def test_organizer_mode_routes_each_event_to_its_own_venue_club():
     scraper = EventbriteScraper(proxy)
     assert scraper._is_organizer_mode is True
 
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
-    ) as upsert_mock:
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert) as upsert_mock,
+    ):
         shows = await scraper.scrape_async()
 
     # One upsert per distinct venue (not per event).
@@ -354,12 +378,8 @@ async def test_organizer_mode_skips_events_with_missing_venue():
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
-    good = _domain_event(
-        name="Encore at Bull Pen", url="https://www.eventbrite.com/e/bull-pen-3", api_venue=bull_pen
-    )
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
+    good = _domain_event(name="Encore at Bull Pen", url="https://www.eventbrite.com/e/bull-pen-3", api_venue=bull_pen)
     orphan = EventbriteEvent(
         name="Orphan event",
         event_url="https://www.eventbrite.com/e/orphan",
@@ -371,10 +391,9 @@ async def test_organizer_mode_skips_events_with_missing_venue():
     bull_pen_club = _fake_venue_club(1001, "Bull Pen Tap House", "Chesterfield", "VA")
 
     scraper = EventbriteScraper(proxy)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=[good, orphan])
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=bull_pen_club
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=[good, orphan])),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", return_value=bull_pen_club),
     ):
         shows = await scraper.scrape_async()
 
@@ -395,16 +414,12 @@ async def test_organizer_mode_runs_per_venue_upserts_concurrently():
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    venues = [
-        _api_venue(venue_id=f"V_{i}", name=f"Venue {i}", city="X", region="VA") for i in range(4)
-    ]
+    venues = [_api_venue(venue_id=f"V_{i}", name=f"Venue {i}", city="X", region="VA") for i in range(4)]
     api_events = [
         _domain_event(name=f"Show {i}", url=f"https://www.eventbrite.com/e/{i}", api_venue=v)
         for i, v in enumerate(venues)
     ]
-    venue_clubs = {
-        v.id: _fake_venue_club(2000 + i, f"Venue {i}", "X", "VA") for i, v in enumerate(venues)
-    }
+    venue_clubs = {v.id: _fake_venue_club(2000 + i, f"Venue {i}", "X", "VA") for i, v in enumerate(venues)}
 
     # 5.0s tolerates cold thread-pool spin-up under heavy CI load. A
     # sequential-regression failure still trips the barrier's per-call
@@ -425,13 +440,13 @@ async def test_organizer_mode_runs_per_venue_upserts_concurrently():
     # is to serialize the actual DB writes; here we want to verify the
     # asyncio.gather over per-venue upserts dispatches them all concurrently
     # before any completes, which is the criterion 6274 structural guarantee.
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_blocking_upsert
-    ), patch(
-        "laughtrack.scrapers.implementations.api.eventbrite.scraper.serialized_db_call",
-        new=lambda fn, *args, **kwargs: fn(*args, **kwargs),
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_blocking_upsert),
+        patch(
+            "laughtrack.scrapers.implementations.api.eventbrite.scraper.serialized_db_call",
+            new=lambda fn, *args, **kwargs: fn(*args, **kwargs),
+        ),
     ):
         shows = await scraper.scrape_async()
 
@@ -467,11 +482,10 @@ async def test_organizer_mode_dedupes_distinct_venue_ids_with_identical_name_cit
     busboys_club = _fake_venue_club(2001, "Busboys and Poets TAKOMA", "Washington", "DC")
 
     scraper = EventbriteScraper(proxy)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=busboys_club
-    ) as upsert_mock:
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", return_value=busboys_club) as upsert_mock,
+    ):
         shows = await scraper.scrape_async()
 
     # Two events, two distinct venue.id values, identical name+city+state →
@@ -492,23 +506,21 @@ async def test_organizer_mode_routes_per_venue_upserts_through_serialized_db_cal
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
     bull_pen_club = _fake_venue_club(1001, "Bull Pen Tap House", "Chesterfield", "VA")
     api_events = [
         _domain_event("Bull Pen show", "https://www.eventbrite.com/e/1", bull_pen),
     ]
 
     scraper = EventbriteScraper(proxy)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=bull_pen_club
-    ) as upsert_mock, patch(
-        "laughtrack.scrapers.implementations.api.eventbrite.scraper.serialized_db_call",
-        wraps=lambda fn, *args, **kwargs: fn(*args, **kwargs),
-    ) as serialized_mock:
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", return_value=bull_pen_club) as upsert_mock,
+        patch(
+            "laughtrack.scrapers.implementations.api.eventbrite.scraper.serialized_db_call",
+            wraps=lambda fn, *args, **kwargs: fn(*args, **kwargs),
+        ) as serialized_mock,
+    ):
         shows = await scraper.scrape_async()
 
         assert len(shows) == 1
@@ -540,17 +552,16 @@ async def test_organizer_mode_reuses_existing_eventbrite_venue_source_without_wr
     alpine_goat_club = _fake_venue_club(3356, "The Alpine Goat Brewery", "Weyers Cave", "VA")
 
     scraper = EventbriteScraper(proxy)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler,
-        "resolve_existing_eventbrite_venue_club",
-        return_value=alpine_goat_club,
-    ) as lookup_mock, patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue"
-    ) as upsert_mock, patch(
-        "laughtrack.scrapers.implementations.api.eventbrite.scraper.serialized_db_call"
-    ) as serialized_mock:
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(
+            scraper._club_handler,
+            "resolve_existing_eventbrite_venue_club",
+            return_value=alpine_goat_club,
+        ) as lookup_mock,
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue") as upsert_mock,
+        patch("laughtrack.scrapers.implementations.api.eventbrite.scraper.serialized_db_call") as serialized_mock,
+    ):
         shows = await scraper.scrape_async()
 
     lookup_mock.assert_called_once_with(alpine_goat)
@@ -592,9 +603,7 @@ async def test_organizer_mode_bounded_upsert_completes_when_venue_hangs(monkeypa
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
     api_events = [
         _domain_event("Bull Pen show", "https://www.eventbrite.com/e/1", bull_pen),
     ]
@@ -626,13 +635,11 @@ async def test_organizer_mode_bounded_upsert_completes_when_venue_hangs(monkeypa
 
     scraper = EventbriteScraper(proxy)
     try:
-        with patch.object(
-            scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-        ), patch.object(
-            scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
-        ), patch(
-            "laughtrack.scrapers.implementations.api.eventbrite.scraper.Logger"
-        ) as logger_mock:
+        with (
+            patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+            patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert),
+            patch("laughtrack.scrapers.implementations.api.eventbrite.scraper.Logger") as logger_mock,
+        ):
             t0 = time.monotonic()
             shows = await scraper.scrape_async()
             elapsed = time.monotonic() - t0
@@ -653,8 +660,7 @@ async def test_organizer_mode_bounded_upsert_completes_when_venue_hangs(monkeypa
         # metric never names individual venues inside an organizer scrape.
         error_messages = [call.args[0] for call in logger_mock.error.call_args_list]
         assert any(
-            "Bull Pen Tap House" in msg and "timed out" in msg and "1 event" in msg
-            for msg in error_messages
+            "Bull Pen Tap House" in msg and "timed out" in msg and "1 event" in msg for msg in error_messages
         ), f"expected venue-named timeout error for Bull Pen, got: {error_messages}"
 
         # Sanity: confirm the hung worker actually started (otherwise we are
@@ -671,12 +677,8 @@ async def test_organizer_mode_skips_venue_when_upsert_fails():
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
-    silver = _api_venue(
-        venue_id="V_SILVER", name="Silver Diner", city="Cabin John", region="MD", postal="20818"
-    )
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
+    silver = _api_venue(venue_id="V_SILVER", name="Silver Diner", city="Cabin John", region="MD", postal="20818")
     api_events = [
         _domain_event("Bull Pen show", "https://www.eventbrite.com/e/1", bull_pen),
         _domain_event("Silver show", "https://www.eventbrite.com/e/2", silver),
@@ -690,10 +692,9 @@ async def test_organizer_mode_skips_venue_when_upsert_fails():
         raise RuntimeError("transient DB failure")
 
     scraper = EventbriteScraper(proxy)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert),
     ):
         shows = await scraper.scrape_async()
 
@@ -712,12 +713,8 @@ async def test_organizer_mode_warns_when_venue_group_yields_zero_shows():
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
-    silver = _api_venue(
-        venue_id="V_SILVER", name="Silver Diner", city="Cabin John", region="MD", postal="20818"
-    )
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
+    silver = _api_venue(venue_id="V_SILVER", name="Silver Diner", city="Cabin John", region="MD", postal="20818")
     api_events = [
         _domain_event("Bull Pen show 1", "https://www.eventbrite.com/e/bp-1", bull_pen),
         _domain_event("Bull Pen show 2", "https://www.eventbrite.com/e/bp-2", bull_pen),
@@ -745,15 +742,12 @@ async def test_organizer_mode_warns_when_venue_group_yields_zero_shows():
         return original_to_show(self, club)
 
     scraper = EventbriteScraper(proxy)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
-    ), patch.object(
-        EventbriteEvent, "to_show", _to_show
-    ), patch(
-        "laughtrack.scrapers.implementations.api.eventbrite.scraper.Logger"
-    ) as logger_mock:
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert),
+        patch.object(EventbriteEvent, "to_show", _to_show),
+        patch("laughtrack.scrapers.implementations.api.eventbrite.scraper.Logger") as logger_mock,
+    ):
         shows = await scraper.scrape_async()
 
     # Bull Pen still produces its 2 shows; Silver's 1 event is dropped.
@@ -762,8 +756,7 @@ async def test_organizer_mode_warns_when_venue_group_yields_zero_shows():
 
     warn_messages = [call.args[0] for call in logger_mock.warn.call_args_list]
     assert any(
-        "Silver Diner" in msg and "0 shows from 1 event" in msg
-        for msg in warn_messages
+        "Silver Diner" in msg and "0 shows from 1 event" in msg for msg in warn_messages
     ), f"expected aggregate zero-shows warn for Silver Diner, got: {warn_messages}"
     # Bull Pen produced shows, so no aggregate warn should fire for it.
     assert not any("Bull Pen Tap House" in msg and "0 shows" in msg for msg in warn_messages)
@@ -776,29 +769,25 @@ async def test_organizer_mode_does_not_warn_when_every_venue_group_produces_show
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
     api_events = [
         _domain_event("Bull Pen show", "https://www.eventbrite.com/e/bp-1", bull_pen),
     ]
     bull_pen_club = _fake_venue_club(1001, "Bull Pen Tap House", "Chesterfield", "VA")
 
     scraper = EventbriteScraper(proxy)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=bull_pen_club
-    ), patch(
-        "laughtrack.scrapers.implementations.api.eventbrite.scraper.Logger"
-    ) as logger_mock:
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", return_value=bull_pen_club),
+        patch("laughtrack.scrapers.implementations.api.eventbrite.scraper.Logger") as logger_mock,
+    ):
         shows = await scraper.scrape_async()
 
     assert len(shows) == 1
     warn_messages = [call.args[0] for call in logger_mock.warn.call_args_list]
-    assert not any("0 shows" in msg for msg in warn_messages), (
-        f"expected no zero-shows warn on happy path, got: {warn_messages}"
-    )
+    assert not any(
+        "0 shows" in msg for msg in warn_messages
+    ), f"expected no zero-shows warn on happy path, got: {warn_messages}"
 
 
 @pytest.mark.asyncio
@@ -909,9 +898,7 @@ async def test_organizer_mode_retries_lock_held_error_and_succeeds(monkeypatch):
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
     api_events = [
         _domain_event("Bull Pen show A", "https://www.eventbrite.com/e/1", bull_pen),
         _domain_event("Bull Pen show B", "https://www.eventbrite.com/e/2", bull_pen),
@@ -926,8 +913,7 @@ async def test_organizer_mode_retries_lock_held_error_and_succeeds(monkeypatch):
         upsert_calls["count"] += 1
         if upsert_calls["count"] == 1:
             raise LockHeldError(
-                "_DB_WRITE_LOCK still held after 0.05s (LOCK_HOLD_TIMEOUT=0.05s); "
-                "prior writer thread is stuck"
+                "_DB_WRITE_LOCK still held after 0.05s (LOCK_HOLD_TIMEOUT=0.05s); " "prior writer thread is stuck"
             )
         return bull_pen_club
 
@@ -935,10 +921,9 @@ async def test_organizer_mode_retries_lock_held_error_and_succeeds(monkeypatch):
     monkeypatch.setenv("EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS", "0.01")
 
     scraper = EventbriteScraper(proxy)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert),
     ):
         shows = await scraper.scrape_async()
 
@@ -967,18 +952,14 @@ async def test_organizer_mode_records_lock_timeout_when_retry_also_fails(monkeyp
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    comedy_inn = _api_venue(
-        venue_id="V_COMEDY_INN", name="The Comedy Inn", city="Toronto", region="ON"
-    )
+    comedy_inn = _api_venue(venue_id="V_COMEDY_INN", name="The Comedy Inn", city="Toronto", region="ON")
     api_events = [
-        _domain_event(f"Comedy Inn show {i}", f"https://www.eventbrite.com/e/{i}", comedy_inn)
-        for i in range(5)
+        _domain_event(f"Comedy Inn show {i}", f"https://www.eventbrite.com/e/{i}", comedy_inn) for i in range(5)
     ]
 
     def _always_fails(api_venue):
         raise LockHeldError(
-            "_DB_WRITE_LOCK still held after 0.05s (LOCK_HOLD_TIMEOUT=0.05s); "
-            "prior writer thread is stuck"
+            "_DB_WRITE_LOCK still held after 0.05s (LOCK_HOLD_TIMEOUT=0.05s); " "prior writer thread is stuck"
         )
 
     monkeypatch.setenv("EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS", "0.01")
@@ -987,10 +968,9 @@ async def test_organizer_mode_records_lock_timeout_when_retry_also_fails(monkeyp
     token = bind_diagnostics(diagnostics)
     scraper = EventbriteScraper(proxy)
     try:
-        with patch.object(
-            scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-        ), patch.object(
-            scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_always_fails
+        with (
+            patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+            patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_always_fails),
         ):
             shows = await scraper.scrape_async()
     finally:
@@ -1021,9 +1001,7 @@ async def test_organizer_mode_records_lock_timeout_on_asyncio_timeout(monkeypatc
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
     api_events = [
         _domain_event("Bull Pen show", "https://www.eventbrite.com/e/1", bull_pen),
     ]
@@ -1044,10 +1022,9 @@ async def test_organizer_mode_records_lock_timeout_on_asyncio_timeout(monkeypatc
     token = bind_diagnostics(diagnostics)
     scraper = EventbriteScraper(proxy)
     try:
-        with patch.object(
-            scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-        ), patch.object(
-            scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
+        with (
+            patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+            patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert),
         ):
             shows = await scraper.scrape_async()
     finally:
@@ -1074,12 +1051,8 @@ def test_organizer_mode_scrape_with_result_surfaces_lock_timeout_on_error_field(
     proxy = _build_synthetic_proxy_for_company(_encore_company())
     assert proxy is not None
 
-    comedy_inn = _api_venue(
-        venue_id="V_COMEDY_INN", name="The Comedy Inn", city="Toronto", region="ON"
-    )
-    bull_pen = _api_venue(
-        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
-    )
+    comedy_inn = _api_venue(venue_id="V_COMEDY_INN", name="The Comedy Inn", city="Toronto", region="ON")
+    bull_pen = _api_venue(venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA")
     api_events = [
         _domain_event("Comedy Inn 1", "https://www.eventbrite.com/e/1", comedy_inn),
         _domain_event("Comedy Inn 2", "https://www.eventbrite.com/e/2", comedy_inn),
@@ -1092,18 +1065,16 @@ def test_organizer_mode_scrape_with_result_surfaces_lock_timeout_on_error_field(
             # Both initial and retry attempts hit the same LockHeldError —
             # the stuck prior writer doesn't clear within the test window.
             raise LockHeldError(
-                "_DB_WRITE_LOCK still held after 0.05s (LOCK_HOLD_TIMEOUT=0.05s); "
-                "prior writer thread is stuck"
+                "_DB_WRITE_LOCK still held after 0.05s (LOCK_HOLD_TIMEOUT=0.05s); " "prior writer thread is stuck"
             )
         return bull_pen_club
 
     monkeypatch.setenv("EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS", "0.01")
 
     scraper = EventbriteScraper(proxy)
-    with patch.object(
-        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
-    ), patch.object(
-        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
+    with (
+        patch.object(scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)),
+        patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert),
     ):
         result = scraper.scrape_with_result()
 
@@ -1122,3 +1093,108 @@ def test_organizer_mode_scrape_with_result_surfaces_lock_timeout_on_error_field(
 
     # success is computed from result.error — the metric must flag this run.
     assert result.success is False
+
+
+def _diagnostic_page(ids=(), more=False, continuation=None):
+    return {
+        "events": [
+            {
+                "id": str(i),
+                "name": {"text": f"Comedy {i}"},
+                "url": f"https://www.eventbrite.com/e/{i}",
+                "start": {"utc": "2027-06-15T23:00:00Z"},
+            }
+            for i in ids
+        ],
+        "pagination": {"has_more_items": more, "continuation": continuation},
+    }
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "pages, expected_names, counts, has_error",
+    [
+        ([_diagnostic_page([1], True, "next"), _diagnostic_page([2])], ["Comedy 1", "Comedy 2"], (2, 0), False),
+        ([_diagnostic_page([], True, "next"), _diagnostic_page([2])], ["Comedy 2"], (2, 0), False),
+        ([_diagnostic_page([1], True, "next"), None], ["Comedy 1"], (1, 1), False),
+        ([None], [], (0, 1), False),
+        ([RuntimeError("HTTP 403 denied")], [], (0, 1), True),
+        ([_diagnostic_page([1], True, "next"), RuntimeError("timeout")], ["Comedy 1"], (1, 1), True),
+        ([_diagnostic_page([1], True)], ["Comedy 1"], (1, 0), True),
+        (
+            [_diagnostic_page([1], True, "same"), _diagnostic_page([2], True, "same")],
+            ["Comedy 1", "Comedy 2"],
+            (2, 0),
+            True,
+        ),
+        ([{"error": "FORBIDDEN"}], [], (0, 1), True),
+        ([{"events": []}], [], (0, 1), True),
+        ([{"events": [], "pagination": {"has_more_items": "false"}}], [], (0, 1), True),
+        ([{"events": {}, "pagination": {"has_more_items": False}}], [], (0, 1), True),
+    ],
+)
+async def test_fetch_diagnostics_page_outcomes(pages, expected_names, counts, has_error):
+    from laughtrack.foundation.infrastructure.http.diagnostics import (
+        ScrapeDiagnostics,
+        bind_diagnostics,
+        reset_diagnostics,
+    )
+
+    scraper = EventbriteScraper(_build_synthetic_proxy_for_company(_encore_company()))
+    diagnostics = ScrapeDiagnostics()
+    token = bind_diagnostics(diagnostics)
+    try:
+        with patch.object(scraper.eventbrite_client, "fetch_json", new=AsyncMock(side_effect=pages)) as fetch:
+            events = await scraper.eventbrite_client.fetch_all_events()
+        assert [event.name for event in events] == expected_names
+        assert (diagnostics.fetches_ok, diagnostics.fetches_failed) == counts
+        assert bool(diagnostics.scrape_errors) is has_error
+        assert fetch.await_count == len(pages)
+    finally:
+        reset_diagnostics(token)
+        await scraper._cleanup_resources()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("fallback", [False, True])
+async def test_fetch_diagnostics_venue_does_not_double_count(fallback):
+    from laughtrack.foundation.infrastructure.http.diagnostics import (
+        ScrapeDiagnostics,
+        bind_diagnostics,
+        reset_diagnostics,
+    )
+
+    club = _fake_venue_club(575, "Attic", "Columbus", "OH")
+    scraper = EventbriteScraper(club)
+    assert not scraper._is_organizer_mode
+    diagnostics = ScrapeDiagnostics()
+    token = bind_diagnostics(diagnostics)
+    pages = ([None] if fallback else []) + [_diagnostic_page([], True, "next"), _diagnostic_page()]
+    try:
+        with patch.object(scraper.eventbrite_client, "fetch_json", new=AsyncMock(side_effect=pages)) as fetch:
+            assert await scraper.scrape_async() == []
+        assert fetch.await_count == len(pages)
+        assert (diagnostics.fetches_ok, diagnostics.fetches_failed) == (2, int(fallback))
+    finally:
+        reset_diagnostics(token)
+
+
+@pytest.mark.asyncio
+async def test_fetch_diagnostics_cancellation_propagates():
+    import asyncio
+    from laughtrack.foundation.infrastructure.http.diagnostics import (
+        ScrapeDiagnostics,
+        bind_diagnostics,
+        reset_diagnostics,
+    )
+
+    scraper = EventbriteScraper(_build_synthetic_proxy_for_company(_encore_company()))
+    diagnostics = ScrapeDiagnostics()
+    token = bind_diagnostics(diagnostics)
+    try:
+        with patch.object(scraper.eventbrite_client, "fetch_json", new=AsyncMock(side_effect=asyncio.CancelledError)):
+            with pytest.raises(asyncio.CancelledError):
+                await scraper.scrape_async()
+        assert diagnostics.fetches_ok == 0
+    finally:
+        reset_diagnostics(token)

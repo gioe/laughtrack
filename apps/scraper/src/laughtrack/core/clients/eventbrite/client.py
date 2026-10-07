@@ -10,7 +10,9 @@ from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from .models import EventbriteListEventsResponse, EventbriteSingleEventResponse
+
 
 class EventbriteClient(BaseApiClient):
     """Client for interacting with Eventbrite's API."""
@@ -132,38 +134,56 @@ class EventbriteClient(BaseApiClient):
     ) -> Optional[List[EventbriteEvent]]:
         """Paginated fetch from /venues/{id}/events/ or /organizers/{id}/events/.
 
-        Returns None if the first API call fails (e.g. 404) — callers use this
-        to distinguish an endpoint failure from a valid-but-empty event list.
-        Returns [] when the endpoint responds successfully with no events.
+        Each usable page records one successful fetch; unavailable or invalid
+        pages record one failed fetch. Pagination-integrity failures record a
+        scrape error without inventing another HTTP request. Partial events
+        remain available, but their diagnostics cannot indicate a clean run.
+        Returns None if the first page fails, or [] for a valid empty feed.
         """
         events: List[EventbriteEvent] = []
         continuation = None
+        seen_continuations = set()
         first_call = True
         while True:
-            if endpoint_type == "organizers":
-                response = await self.fetch_organizer_event_list(
-                    organizer_id=entity_id, continuation=continuation
+            diagnostics = current_diagnostics()
+            try:
+                if endpoint_type == "organizers":
+                    response = await self.fetch_organizer_event_list(organizer_id=entity_id, continuation=continuation)
+                else:
+                    response = await self.fetch_eventbrite_event_list(venue_id=entity_id, continuation=continuation)
+                page_events = (
+                    [EventbriteEvent.from_api_model(event) for event in response.events] if response is not None else []
                 )
-            else:
-                response = await self.fetch_eventbrite_event_list(
-                    venue_id=entity_id, continuation=continuation
-                )
+            except Exception as exc:
+                if diagnostics is not None:
+                    diagnostics.record_fetch_failed()
+                    diagnostics.record_scrape_error(f"Eventbrite page failed: {type(exc).__name__}: {exc}")
+                Logger.warn(f"Eventbrite {endpoint_type} {entity_id} page failed: {exc}")
+                return None if first_call else events
             if response is None:
+                if diagnostics is not None:
+                    diagnostics.record_fetch_failed()
                 if first_call:
                     return None  # Endpoint failed — signal to caller
                 break
+            if diagnostics is not None:
+                diagnostics.record_fetch_ok()
             first_call = False
-            if not response.events:
-                break
-            events.extend(
-                EventbriteEvent.from_api_model(api_event) for api_event in response.events
-            )
-            # EventbriteListEventsResponse.from_dict always constructs a valid
-            # EventbritePagination (defaults to has_more_items=False) so this
-            # access is safe even when the API omits the pagination key.
+            events.extend(page_events)
+            # The raw page helper validates pagination before model defaults
+            # can turn a malformed response into a successful empty calendar.
             if not response.pagination.has_more_items:
                 break
             continuation = response.pagination.continuation
+            if not continuation or continuation in seen_continuations:
+                message = (
+                    f"Eventbrite {endpoint_type} {entity_id} pagination is incomplete: missing or repeated continuation"
+                )
+                if diagnostics is not None:
+                    diagnostics.record_scrape_error(message)
+                Logger.warn(message)
+                break
+            seen_continuations.add(continuation)
         return events
 
     async def _fetch_event_list_page(
@@ -214,6 +234,17 @@ class EventbriteClient(BaseApiClient):
 
         if not data:
             return None
+
+        # A JSON error envelope is not a successful empty calendar. The model
+        # defaults missing fields, so validate the transport envelope first.
+        if not isinstance(data, dict) or not isinstance(data.get("events"), list):
+            raise ValueError("Eventbrite response has no valid events array")
+        pagination = data.get("pagination")
+        if not isinstance(pagination, dict) or not isinstance(pagination.get("has_more_items"), bool):
+            raise ValueError("Eventbrite response has no valid pagination status")
+        continuation_value = pagination.get("continuation")
+        if continuation_value is not None and not isinstance(continuation_value, str):
+            raise ValueError("Eventbrite response has an invalid continuation")
 
         resp = EventbriteListEventsResponse.from_dict(data)
         try:

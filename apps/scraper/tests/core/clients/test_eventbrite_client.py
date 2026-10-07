@@ -20,7 +20,9 @@ def stub_base_init(monkeypatch):
             # Minimal attributes used by EventbriteClient methods
             self.club = club
             self.headers = {}
+
         monkeypatch.setattr(eb_client_module.BaseApiClient, "__init__", _init)
+
     return _stub
 
 
@@ -61,10 +63,12 @@ async def test_init_sets_rate_limit(monkeypatch, stub_base_init):
     class FakeLimiter:
         def __init__(self):
             self.calls = []
+
         def set_domain_limit(self, domain, rate):
             self.calls.append((domain, rate))
 
     created = {}
+
     def fake_rate_limiter():
         rl = FakeLimiter()
         created["limiter"] = rl
@@ -125,16 +129,19 @@ async def test_fetch_event_list_builds_url_without_continuation(monkeypatch, stu
 
     # Capture URL used
     called = {}
+
     async def fake_fetch_json(url, headers, timeout, logger_context):
         called["url"] = url
         called["headers"] = headers
         called["timeout"] = timeout
         called["logger_context"] = logger_context
-        return {"ok": True}
+        return {"events": [], "pagination": {"has_more_items": False}}
 
     sentinel_resp = object()
     monkeypatch.setattr(c, "fetch_json", fake_fetch_json)
-    monkeypatch.setattr(eb_client_module, "EventbriteListEventsResponse", types.SimpleNamespace(from_dict=lambda d: sentinel_resp))
+    monkeypatch.setattr(
+        eb_client_module, "EventbriteListEventsResponse", types.SimpleNamespace(from_dict=lambda d: sentinel_resp)
+    )
 
     # Act
     resp = await c.fetch_eventbrite_event_list(venue_id="VENUE_ID")
@@ -161,13 +168,16 @@ async def test_fetch_event_list_builds_url_with_continuation(monkeypatch, stub_b
     c.headers = {"X": "Y"}
 
     called = {}
+
     async def fake_fetch_json(url, headers, timeout, logger_context):
         called["url"] = url
-        return {"ok": True}
+        return {"events": [], "pagination": {"has_more_items": False}}
 
     sentinel_resp = object()
     monkeypatch.setattr(c, "fetch_json", fake_fetch_json)
-    monkeypatch.setattr(eb_client_module, "EventbriteListEventsResponse", types.SimpleNamespace(from_dict=lambda d: sentinel_resp))
+    monkeypatch.setattr(
+        eb_client_module, "EventbriteListEventsResponse", types.SimpleNamespace(from_dict=lambda d: sentinel_resp)
+    )
 
     resp = await c.fetch_eventbrite_event_list(venue_id="VENUE_ID", continuation="abc")
 
@@ -290,11 +300,15 @@ async def test_fetch_organizer_event_list_url_format(monkeypatch, stub_base_init
     async def fake_fetch_json(url, headers, timeout, logger_context):
         called["url"] = url
         called["logger_context"] = logger_context
-        return {"ok": True}
+        return {"events": [], "pagination": {"has_more_items": False}}
 
     sentinel_resp = object()
     monkeypatch.setattr(c, "fetch_json", fake_fetch_json)
-    monkeypatch.setattr(eb_client_module, "EventbriteListEventsResponse", type("R", (), {"from_dict": staticmethod(lambda d: sentinel_resp)})())
+    monkeypatch.setattr(
+        eb_client_module,
+        "EventbriteListEventsResponse",
+        type("R", (), {"from_dict": staticmethod(lambda d: sentinel_resp)})(),
+    )
 
     resp = await c.fetch_organizer_event_list(organizer_id="ORG999")
 
@@ -316,10 +330,14 @@ async def test_fetch_organizer_event_list_url_with_continuation(monkeypatch, stu
 
     async def fake_fetch_json(url, headers, timeout, logger_context):
         called["url"] = url
-        return {"ok": True}
+        return {"events": [], "pagination": {"has_more_items": False}}
 
     monkeypatch.setattr(c, "fetch_json", fake_fetch_json)
-    monkeypatch.setattr(eb_client_module, "EventbriteListEventsResponse", type("R", (), {"from_dict": staticmethod(lambda d: object())})())
+    monkeypatch.setattr(
+        eb_client_module,
+        "EventbriteListEventsResponse",
+        type("R", (), {"from_dict": staticmethod(lambda d: object())})(),
+    )
 
     await c.fetch_organizer_event_list(organizer_id="ORG999", continuation="tok1")
     assert "continuation=tok1" in called["url"]
@@ -337,13 +355,16 @@ async def test_retrieve_event_success_and_not_found(monkeypatch, stub_base_init)
 
     sentinel = object()
     monkeypatch.setattr(c, "fetch_json", fake_fetch_json_ok)
-    monkeypatch.setattr(eb_client_module, "EventbriteSingleEventResponse", types.SimpleNamespace(from_json_dict=lambda d: sentinel))
+    monkeypatch.setattr(
+        eb_client_module, "EventbriteSingleEventResponse", types.SimpleNamespace(from_json_dict=lambda d: sentinel)
+    )
 
     got = await c.retrieve_event("EVT")
     assert got is sentinel
 
     # Not found path
     warnings = {"msg": None}
+
     async def fake_fetch_json_none(url, headers, timeout, logger_context):
         return None
 

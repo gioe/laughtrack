@@ -44,7 +44,6 @@ from laughtrack.ports.scraping import EventListContainer
 from .extractor import EventbriteExtractor
 from .transformer import EventbriteEventTransformer
 
-
 # Per-venue upsert deadline inside _upsert_one. The organizer-mode pipeline
 # dispatches one _upsert_one coroutine per distinct venue via asyncio.gather;
 # each coroutine awaits loop.run_in_executor(None, serialized_db_call, ...).
@@ -140,7 +139,7 @@ _DEFAULT_CLASS_TITLE_PATTERNS = (
     r"\bworkshop\b",
     r"\bdrop[\s-]?in\b",
     r"\blesson\b",
-    r"\bimprov\s*[1-9]\b",   # leveled courses: "Improv 1".."Improv 9"
+    r"\bimprov\s*[1-9]\b",  # leveled courses: "Improv 1".."Improv 9"
     r"\blevel\s*[1-9]\b",
 )
 
@@ -154,7 +153,7 @@ class EventbriteScraper(BaseScraper):
     ``/o/``), per-event venue routing is enabled via :meth:`_scrape_organizer_async`.
     """
 
-    key = 'eventbrite'
+    key = "eventbrite"
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -273,11 +272,36 @@ class EventbriteScraper(BaseScraper):
             kept.append(ev)
         if dropped:
             Logger.info(
-                f"{self._log_prefix}: title filter dropped {dropped} of "
-                f"{len(events)} event(s); {len(kept)} kept",
+                f"{self._log_prefix}: title filter dropped {dropped} of " f"{len(events)} event(s); {len(kept)} kept",
                 self.logger_context,
             )
         return kept
+
+    async def _fetch_all_raw_data(self, targets):
+        """Use client page diagnostics in venue mode, without outer counting.
+
+        BaseScraper counts one get_data call; Eventbrite can make several API
+        calls (including a failed venue endpoint followed by organizer fallback).
+        Keep the normal rate-limit/retry boundary but let the client own counts.
+        """
+
+        async def fetch_target(target):
+            try:
+                await self.rate_limiter.await_if_needed(target)
+
+                async def fetch():
+                    return await self.get_data(target)
+
+                data = await self.error_handler.execute_with_retry(fetch, f"Fetch Data: {target}")
+                return data, target
+            except Exception as exc:
+                diagnostics = current_diagnostics()
+                if diagnostics is not None:
+                    diagnostics.record_scrape_error(f"Eventbrite fetch pipeline failed: {type(exc).__name__}: {exc}")
+                Logger.error(f"{self._log_prefix}: Fetch pipeline failed for {target}: {exc}")
+                return None, target
+
+        return await asyncio.gather(*(fetch_target(target) for target in targets))
 
     async def get_data(self, target: str) -> Optional[EventListContainer]:
         """Fetch Eventbrite events and wrap into PageData container.
@@ -291,7 +315,9 @@ class EventbriteScraper(BaseScraper):
             Logger.info(f"{self._log_prefix}: Fetching Eventbrite events for venue {target}", self.logger_context)
             events = await self.eventbrite_client.fetch_all_events()
             if events is None:
-                Logger.warn(f"{self._log_prefix}: Network failure fetching Eventbrite events for {target}", self.logger_context)
+                Logger.warn(
+                    f"{self._log_prefix}: Network failure fetching Eventbrite events for {target}", self.logger_context
+                )
                 return None
             events = self._filter_events(events)
             return EventbriteExtractor.to_page_data(events)
@@ -358,8 +384,7 @@ class EventbriteScraper(BaseScraper):
         events = self._filter_events(events)
         if not events:
             Logger.info(
-                f"{self._log_prefix}: organizer feed had no events left after the "
-                f"title-exclusion filter",
+                f"{self._log_prefix}: organizer feed had no events left after the " f"title-exclusion filter",
                 self.logger_context,
             )
             return []
@@ -567,9 +592,7 @@ class EventbriteScraper(BaseScraper):
         # await is bounded by _EB_UPSERT_TIMEOUT so a single hung executor
         # thread cannot pin this gather() open past the EB scraper's parent
         # per-club timeout.
-        per_venue_shows = await asyncio.gather(
-            *[_upsert_one(key, group) for key, group in venue_groups.items()]
-        )
+        per_venue_shows = await asyncio.gather(*[_upsert_one(key, group) for key, group in venue_groups.items()])
 
         # Aggregate warn whenever a venue group produced 0 shows from N>0
         # input events. _upsert_one already logs each per-event failure
