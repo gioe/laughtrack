@@ -1,0 +1,40 @@
+{
+  "stage": "live",
+  "verified_at": "2026-10-07T23:43:57.694986+00:00",
+  "counts": {
+    "clubs": 1,
+    "scraping_sources": 3,
+    "source_targets": 2,
+    "shows": 17,
+    "tickets": 17,
+    "lineup_items": 2,
+    "tagged_shows": 38,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 1146
+  },
+  "state_hash": "536310ee4c63c573315e7446185ca920e51f476b97b5e4710a9a9f5393cec122",
+  "exact_comparison_passed": true,
+  "click_records_preserved": true,
+  "source_targets_preserved": true,
+  "retained_show_ids": [
+    522175,
+    522176,
+    522177,
+    852196,
+    522178,
+    522179,
+    852199,
+    522180,
+    522181,
+    522182,
+    522183,
+    522184,
+    852205,
+    522185,
+    522186,
+    522192,
+    522196
+  ]
+}

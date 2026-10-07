@@ -1,0 +1,60 @@
+{
+  "session": {
+    "duration_seconds": 1.518401,
+    "exported_at": "2026-10-07T19:43:18.765043"
+  },
+  "shows": {
+    "scraped": 0,
+    "saved": 0,
+    "inserted": 0,
+    "updated": 0,
+    "failed_save": 0,
+    "skipped_dedup": 0,
+    "validation_failed": 0,
+    "db_errors": 0
+  },
+  "clubs": {
+    "processed": 1,
+    "successful": 1,
+    "failed": 0
+  },
+  "errors": {
+    "total": 0
+  },
+  "success_rate": 0.0,
+  "execution_times": [
+    1.518401
+  ],
+  "per_club_stats": [
+    {
+      "club": "Big Pine Comedy Festival",
+      "num_shows": 0,
+      "execution_time": 1.518401,
+      "success": true,
+      "error": null,
+      "club_id": 573,
+      "errors": 0,
+      "success_rate": 100.0,
+      "http_status": 200,
+      "bot_block_detected": false,
+      "bot_block_signature": null,
+      "bot_block_provider": null,
+      "bot_block_type": null,
+      "bot_block_source": null,
+      "bot_block_stage": null,
+      "playwright_fallback_used": false,
+      "items_before_filter": 16,
+      "targets_collected": 1,
+      "fetches_ok": 1,
+      "fetches_failed": 0,
+      "ticketless_shows": 0,
+      "is_synthetic": false,
+      "production_company_id": null
+    }
+  ],
+  "error_details": [],
+  "duplicate_show_details": [],
+  "run_type": "verify",
+  "run_key": "scraper:2026-10-07T19:43:18.765043",
+  "post_cleanup_dry_run_already_applied": true
+}
