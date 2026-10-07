@@ -1,0 +1,163 @@
+{
+  "task_id": 4127,
+  "method": "Direct HttpClient.fetch_html using curl-cffi AsyncSession chrome124 and built-in browser fallback; historical API JSON parsed directly, never summarized for item counts. Digests hash UTF-8 decoded response text; full temporary captures are not committed.",
+  "observations": [
+    {
+      "kind": "calendar",
+      "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1778371200&end=1778976000",
+      "checked_at": "2026-10-07T15:17:07.666311+00:00",
+      "length": 18905,
+      "sha256": "76df6cf9e3e95d482678fb6af7a33950e4b16a0b195915c13b5ca1cdfad95721",
+      "count": 18,
+      "matches": []
+    },
+    {
+      "kind": "calendar",
+      "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1778976000&end=1779580800",
+      "checked_at": "2026-10-07T15:17:08.042757+00:00",
+      "length": 17747,
+      "sha256": "de9e8a4cf5870d64333c40bccf4c8d4e420fb84e023362f24b796503d9fceef1",
+      "count": 17,
+      "matches": []
+    },
+    {
+      "kind": "calendar",
+      "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1779580800&end=1780185600",
+      "checked_at": "2026-10-07T15:17:08.259612+00:00",
+      "length": 16599,
+      "sha256": "376771766ced154febf756d1300a53e23ba84e6c48717f29ffc51f9a3fdb80d3",
+      "count": 16,
+      "matches": [
+        {
+          "expires": "2026-05-24T23:30:00.000Z",
+          "start": "2026-05-24T18:30:00.000-05:00",
+          "title": "Spitball",
+          "performance_id": 3249429,
+          "end": "2026-05-24T18:30:00.000-05:00",
+          "event_id": 263284,
+          "order_products_url": "/orders/new?event_id=263284&performance_id=3249429",
+          "show_event_tooltip_url": "/events/263284?performance_id=3249429",
+          "publicly_available": true,
+          "time_with_timezone": "Sun - May 24, 2026 - 6:30pm CDT"
+        }
+      ]
+    },
+    {
+      "kind": "calendar",
+      "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1789257600&end=1789862400",
+      "checked_at": "2026-10-07T15:17:08.486067+00:00",
+      "length": 19828,
+      "sha256": "c276822cb64ee09568a0dc5690046f2614556f772518bbff89d9d5aa54343421",
+      "count": 19,
+      "matches": []
+    },
+    {
+      "kind": "calendar",
+      "url": "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1789862400&end=1790467200",
+      "checked_at": "2026-10-07T15:17:08.611309+00:00",
+      "length": 23998,
+      "sha256": "797c61e9b26f4f786b2fa564cc076bf86c368a3eda7a95427bc1940d20afa388",
+      "count": 23,
+      "matches": [
+        {
+          "expires": "2026-09-20T01:00:00.000Z",
+          "start": "2026-09-19T20:00:00.000-05:00",
+          "title": "Fire & Beer",
+          "performance_id": 3256449,
+          "end": "2026-09-19T20:00:00.000-05:00",
+          "event_id": 188918,
+          "order_products_url": "/orders/new?event_id=188918&performance_id=3256449",
+          "show_event_tooltip_url": "/events/188918?performance_id=3256449",
+          "publicly_available": true,
+          "time_with_timezone": "Sat - Sep 19, 2026 - 8:00pm CDT"
+        }
+      ]
+    },
+    {
+      "kind": "order",
+      "url": "https://theannoyance.thundertix.com/orders/new?event_id=188918&performance_id=3256449",
+      "checked_at": "2026-10-07T15:17:09.122094+00:00",
+      "length": 148163,
+      "sha256": "018238f569b8acdd55a6f23ea43c7a6c0d21b787184e421c500bc375cb8559a2",
+      "ticket_links": [
+        "https://theannoyance.thundertix.com/resend_my_email"
+      ],
+      "interpretation": "The expired order URL renders a current listing, not an authoritative historical performance detail."
+    },
+    {
+      "kind": "order",
+      "url": "https://theannoyance.thundertix.com/orders/new?event_id=263284&performance_id=3249429",
+      "checked_at": "2026-10-07T15:17:10.625350+00:00",
+      "length": 173528,
+      "sha256": "758bea8514e2df86a91780741bec3995c40354d4bebba4cfe1330d2cf2ef44e5",
+      "ticket_links": [
+        "https://theannoyance.thundertix.com/resend_my_email"
+      ],
+      "performance_inputs": [
+        "<input autocomplete=\"off\" id=\"performance_id\" name=\"performance_id\" type=\"hidden\" value=\"3277845\"/>",
+        "<input autocomplete=\"off\" id=\"performance_id\" name=\"performance_id\" type=\"hidden\" value=\"3277845\"/>"
+      ],
+      "interpretation": "The expired order URL now selects performance 3277845, not requested historical performance 3249429. Its displayed date cannot resolve this pair."
+    },
+    {
+      "kind": "order",
+      "url": "https://theannoyance.thundertix.com/orders/new?event_id=263406&performance_id=3250362",
+      "checked_at": "2026-10-07T15:17:12.608067+00:00",
+      "length": 2820,
+      "sha256": "4c3c6d97be4726cab142c8d5050fc42f04d28cf0181312c2b4a65cc3ba1f3ffa",
+      "ticket_links": [],
+      "interpretation": "HTTP stack logged 404; returned body is an error page. Not evidence of cancellation or of a preferred stored date."
+    },
+    {
+      "kind": "page",
+      "url": "https://www.theannoyance.com/show/spitball",
+      "checked_at": "2026-10-07T15:17:15.214769+00:00",
+      "length": 929083,
+      "sha256": "feb5ed4e454a91cc0a757ee715fb232fb185e68026f0d07bba88d1a43bf0372d",
+      "ticket_links": [
+        "https://theannoyance.thundertix.com/events/263284"
+      ],
+      "observation": "Venue page advertises Spitball SUN 5/17 at 6:30 PM, linking event 263284 only; no performance ID or explicit year. Conflicts with exact-ID historical calendar May 24."
+    },
+    {
+      "kind": "page",
+      "url": "https://www.micknapier.com/",
+      "checked_at": "2026-10-07T15:17:15.628039+00:00",
+      "length": 554317,
+      "sha256": "1813dbe01e36f7c08683d28116078d53e6672fa09c6bba326206b2d687168033",
+      "ticket_links": [
+        "https://theannoyance.thundertix.com/events/263406"
+      ],
+      "observation": "Author advertises God Lens release May 16 at 3 pm on a Saturday, linking event 263406 only; no performance ID or explicit year. Supports May 16 but does not adjudicate native performance 3250362."
+    },
+    {
+      "kind": "page",
+      "url": "https://www.theannoyance.com/show/fire-%26-beer%3A-annoyance-house-ensemble",
+      "checked_at": "2026-10-07T15:17:15.942139+00:00",
+      "length": 1013806,
+      "sha256": "d6ad7c05684ede7296ecab9a95610346f3b4e088328a7e6a51d5538f851b72ba",
+      "ticket_links": [
+        "https://theannoyance.thundertix.com/events/188918"
+      ],
+      "observation": "Venue advertises an open-run Saturday Fire & Beer show at 8:00 PM; generic event 188918 link, no individual historical performance."
+    }
+  ],
+  "archive_probes": [
+    {
+      "url": "https://web.archive.org/cdx/search/cdx?url=theannoyance.thundertix.com/events/263406*&output=json&filter=statuscode:200&collapse=digest&filter=mimetype:text/html",
+      "date": "2026-10-07",
+      "result": []
+    },
+    {
+      "url": "https://archive.org/wayback/available?url=https%3A%2F%2Ftheannoyance.thundertix.com%2Fevents%2F263406&timestamp=20260516",
+      "date": "2026-10-07",
+      "result": "HTTP error page: 429 Too Many Requests"
+    },
+    {
+      "url": "https://web.archive.org/__wb/calendarcaptures/2?date=202605&groupby=day&url=https%3A%2F%2Ftheannoyance.thundertix.com%2Fevents%2F263406",
+      "date": "2026-10-07",
+      "result": {}
+    }
+  ],
+  "archive_limitations": "No usable God Lens snapshot was returned by these scoped probes. This is not an exhaustive archive search or proof that no snapshot exists."
+}
