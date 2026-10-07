@@ -140,7 +140,25 @@ class _FakeSolver(DataDomeSolver):
 
 class TestDataDomeSolverSolve:
     @pytest.mark.asyncio
-    async def test_success_returns_solved_cookie(self):
+    @pytest.mark.parametrize("query", ["cid=X&t=bv", "t=fe&t=bv", "t=%62%76"])
+    async def test_banned_ip_skips_solver_api(self, query):
+        solver = _FakeSolver()
+        result = await solver.solve(
+            captcha_url=f"https://geo.captcha-delivery.com/captcha/?{query}",
+            website_url="https://www.etix.com/foo",
+            user_agent="Mozilla/5.0",
+            proxy_url="http://proxy:3128",
+        )
+        assert result is None
+        assert solver.calls == []
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("query", [
+        "cid=X",
+        "cid=X&t=fe",
+        "t=fe&referer=https%3A%2F%2Fexample.com%2F%3Ft%3Dbv",
+    ])
+    async def test_success_returns_solved_cookie(self, query):
         solver = _FakeSolver(
             responses=[
                 {"errorId": 0, "taskId": "t-1"},
@@ -154,8 +172,9 @@ class TestDataDomeSolverSolve:
                 },
             ]
         )
+        captcha_url = f"https://geo.captcha-delivery.com/c/?{query}"
         result = await solver.solve(
-            captcha_url="https://geo.captcha-delivery.com/c/?cid=X",
+            captcha_url=captcha_url,
             website_url="https://www.etix.com/foo",
             user_agent="Mozilla/5.0 …",
             proxy_url="http://proxy:3128",
@@ -166,6 +185,7 @@ class TestDataDomeSolverSolve:
         # createTask + getTaskResult both called
         assert len(solver.calls) == 2
         assert solver.calls[0][0].endswith("/createTask")
+        assert solver.calls[0][1]["task"]["captchaUrl"] == captcha_url
         assert solver.calls[1][0].endswith("/getTaskResult")
 
     @pytest.mark.asyncio

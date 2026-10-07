@@ -29,6 +29,7 @@ from __future__ import annotations
 import asyncio
 import os
 from typing import Any, NamedTuple, Optional
+from urllib.parse import parse_qs, urlsplit
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
@@ -158,6 +159,13 @@ class DataDomeSolver:
         is therefore skipped up front (warn + ``None``) instead of burning
         the doomed API round-trip.
         """
+        if "bv" in parse_qs(urlsplit(captcha_url).query).get("t", []):
+            Logger.warn(
+                "[DataDomeSolver] Unsupported DataDome mode t=bv (banned IP) "
+                "— skipping CapSolver solve"
+            )
+            return None
+
         if not proxy_url:
             Logger.warn(
                 "[DataDomeSolver] capsolver's DatadomeSliderTask requires a "
