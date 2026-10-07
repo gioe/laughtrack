@@ -221,8 +221,8 @@ async def test_existing_room_identity_survives_standard_show_handler(monkeypatch
     handler.execute_with_cursor = MagicMock(
         side_effect=[[dict(id=9001, name="Hi Point Pub"), dict(id=9002, name="The Cove Restaurant")], rows]
     )
-    assert handler._suppress_room_matching_club_name(shows) == 2
-    assert handler._collapse_cross_batch_duplicates(shows) == 3
+    assert handler._suppress_room_matching_club_name(shows) == 0
+    assert handler._collapse_cross_batch_duplicates(shows) == 1
     assert [s.room for s in shows] == stored_rooms
 
 

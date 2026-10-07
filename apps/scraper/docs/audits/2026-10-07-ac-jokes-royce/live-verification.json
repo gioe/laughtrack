@@ -1,0 +1,180 @@
+{
+  "stage": "live",
+  "verified_at": "2026-10-07T22:24:43.023969+00:00",
+  "destination_id": 93720,
+  "show_count": 192,
+  "dependent_counts": {
+    "tickets": 192,
+    "lineup_items": 12,
+    "tagged_shows": 989,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 2827
+  },
+  "changed_show_fields": {
+    "7190389": [
+      "last_scraped_date"
+    ],
+    "7349809": [
+      "last_scraped_date"
+    ],
+    "7349810": [
+      "last_scraped_date"
+    ],
+    "7190392": [
+      "last_scraped_date"
+    ],
+    "7190393": [
+      "last_scraped_date"
+    ],
+    "7190394": [
+      "last_scraped_date"
+    ],
+    "7349814": [
+      "last_scraped_date"
+    ],
+    "7349816": [
+      "last_scraped_date"
+    ],
+    "7190398": [
+      "last_scraped_date"
+    ],
+    "7190399": [
+      "last_scraped_date"
+    ],
+    "7190400": [
+      "last_scraped_date"
+    ],
+    "7349820": [
+      "last_scraped_date"
+    ],
+    "7349821": [
+      "last_scraped_date"
+    ],
+    "7190403": [
+      "last_scraped_date",
+      "popularity"
+    ],
+    "7190404": [
+      "last_scraped_date"
+    ],
+    "7190405": [
+      "last_scraped_date",
+      "popularity"
+    ],
+    "7349825": [
+      "last_scraped_date",
+      "popularity"
+    ],
+    "7349826": [
+      "last_scraped_date"
+    ],
+    "7851605": [
+      "last_scraped_date"
+    ],
+    "7851607": [
+      "last_scraped_date"
+    ],
+    "937070": [
+      "last_scraped_date"
+    ],
+    "937071": [
+      "last_scraped_date"
+    ],
+    "7851611": [
+      "last_scraped_date"
+    ],
+    "7851612": [
+      "last_scraped_date"
+    ],
+    "937072": [
+      "last_scraped_date"
+    ],
+    "937073": [
+      "last_scraped_date"
+    ],
+    "7851616": [
+      "last_scraped_date"
+    ],
+    "7851617": [
+      "last_scraped_date"
+    ],
+    "937074": [
+      "last_scraped_date"
+    ],
+    "937075": [
+      "last_scraped_date"
+    ],
+    "7851621": [
+      "last_scraped_date"
+    ],
+    "7851622": [
+      "last_scraped_date"
+    ],
+    "7898523": [
+      "last_scraped_date"
+    ],
+    "937076": [
+      "last_scraped_date"
+    ],
+    "937077": [
+      "last_scraped_date"
+    ],
+    "7851625": [
+      "last_scraped_date"
+    ],
+    "7851626": [
+      "last_scraped_date"
+    ],
+    "937078": [
+      "last_scraped_date"
+    ],
+    "937079": [
+      "last_scraped_date"
+    ],
+    "937081": [
+      "last_scraped_date"
+    ],
+    "937082": [
+      "last_scraped_date"
+    ],
+    "937083": [
+      "last_scraped_date"
+    ],
+    "937084": [
+      "last_scraped_date"
+    ],
+    "937085": [
+      "last_scraped_date"
+    ],
+    "4562202": [
+      "last_scraped_date"
+    ],
+    "6537828": [
+      "last_scraped_date"
+    ],
+    "6537839": [
+      "last_scraped_date"
+    ],
+    "7475796": [
+      "last_scraped_date"
+    ],
+    "7898492": [
+      "last_scraped_date",
+      "name",
+      "popularity"
+    ],
+    "7898494": [
+      "last_scraped_date",
+      "popularity"
+    ],
+    "7898497": [
+      "last_scraped_date",
+      "popularity"
+    ]
+  },
+  "existing_show_ids_preserved": true,
+  "existing_dependencies_preserved": true,
+  "source_ownership_preserved": true
+}

@@ -14,6 +14,8 @@ import json
 from pathlib import Path
 import sys
 
+from psycopg2 import sql
+
 _root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
 for _path in (_root / "src", _root):
     if str(_path) not in sys.path:
@@ -246,6 +248,81 @@ def repair(cur, plan, backup_path=None):
     return recovery
 
 
+def cleanup_live_duplicate(cur, plan, backup_path=None):
+    """Remove only the redundant row created by TASK-4131's first live check.
+
+    This deliberately refuses new, nonredundant dependencies. It is not a
+    general merge or a restoration of the pre-scrape snapshot.
+    """
+    original = plan["original_plan"]
+    validate_plan(original)
+    if plan.get("task_id") != 4131:
+        raise ValueError("Expected TASK-4131 cleanup plan")
+    destination = plan["destination_id"]
+    schema = lock_schema(cur)
+    before = snapshot(cur, destination)
+    if before != plan["before"]:
+        raise ValueError("Fresh full snapshot drift; refresh cleanup review")
+    if before["scraping_sources"][0]["metadata"] != changed_metadata(original, destination):
+        raise ValueError("Repaired source metadata changed")
+    shows = {row["id"]: row for row in before["shows"]}
+    original_shows = {row["id"]: row for row in original["before"]["shows"]}
+    duplicate, survivor = 8030992, 7898492
+    if shows.keys() != original_shows.keys() | {duplicate}:
+        raise ValueError("Unexpected show cohort for duplicate cleanup")
+    for ident in (duplicate, survivor):
+        row = shows[ident]
+        if (
+            row["club_id"] != destination
+            or row["date"] != original_shows[survivor]["date"]
+            or row["show_page_url"] != original_shows[survivor]["show_page_url"]
+            or row["production_company_id"] != 46
+            or row["scraped_by_organizer_id"] != 46
+            or row["last_scraped_by"] != "wix_events"
+            or row["room"] != ("" if ident == duplicate else LOCATION["name"])
+        ):
+            raise ValueError("Unexpected duplicate occurrence identity")
+    expected = deepcopy(before)
+    removed_counts = {}
+    for table in CHILDREN:
+        def payload(row):
+            return {k: v for k, v in row.items() if k not in {"id", "show_id"}}
+
+        retained = [payload(row) for row in before[table] if row["show_id"] == survivor]
+        redundant = [row for row in before[table] if row["show_id"] == duplicate]
+        if redundant and table not in {"tickets", "tagged_shows"}:
+            raise ValueError(f"New duplicate references require review: {table}")
+        if any(payload(row) not in retained for row in redundant):
+            raise ValueError(f"Nonredundant duplicate dependency requires review: {table}")
+        removed_counts[table] = len(redundant)
+        expected[table] = [row for row in before[table] if row["show_id"] != duplicate]
+    expected["shows"] = [row for row in before["shows"] if row["id"] != duplicate]
+    for club in expected["clubs"]:
+        if club["id"] == destination:
+            club["total_shows"] = sum(row["club_id"] == destination for row in expected["shows"])
+    recovery = dict(task_id=4131, plan_hash=digest(plan), schema=schema, before=before)
+    if backup_path:
+        save_backup(backup_path, recovery)
+    for table, count in removed_counts.items():
+        cur.execute(sql.SQL("DELETE FROM {} WHERE show_id=%s").format(sql.Identifier(table)), (duplicate,))
+        if cur.rowcount != count:
+            raise ValueError("Duplicate dependency count changed")
+    cur.execute("DELETE FROM shows WHERE id=%s", (duplicate,))
+    if cur.rowcount != 1:
+        raise ValueError("Duplicate disappeared")
+    cur.execute(
+        "UPDATE clubs SET total_shows=(SELECT count(*) FROM shows WHERE club_id=%s) WHERE id=%s",
+        (destination, destination),
+    )
+    after = snapshot(cur, destination)
+    if after != expected:
+        raise ValueError("Unexpected cleanup after-image")
+    recovery.update(after=after, destination_id=destination, already_applied=False, removed_counts=removed_counts)
+    if backup_path:
+        save_backup(str(backup_path) + ".after.json", recovery)
+    return recovery
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan", type=Path, required=True)
@@ -253,6 +330,7 @@ def main():
     modes.add_argument("--apply", action="store_true")
     modes.add_argument("--dry-run", action="store_true")
     parser.add_argument("--backup", type=Path)
+    parser.add_argument("--cleanup-live-duplicate", action="store_true")
     args = parser.parse_args()
     if args.apply and not args.backup:
         parser.error("--apply requires a new private --backup path")
@@ -263,7 +341,8 @@ def main():
 
     with get_transaction() as connection:
         with connection.cursor() as cur:
-            result = repair(cur, json.loads(args.plan.read_text()), args.backup if args.apply else None)
+            operation = cleanup_live_duplicate if args.cleanup_live_duplicate else repair
+            result = operation(cur, json.loads(args.plan.read_text()), args.backup if args.apply else None)
         if not args.apply:
             connection.rollback()
         print(

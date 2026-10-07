@@ -1,6 +1,6 @@
-# TASK-4131 — Royce evidence and unresolved postal identity
+# TASK-4131 — Royce routing and repair evidence
 
-Status: guarded repair applied and independently verified; live scrape verification pending.
+Status: guarded repair applied; corrected live scrape and independent preservation checks passed.
 
 On 2026-10-07 the scraper-native Wix HTTP stack fetched the complete source291
 feed: 51 events across two pages, with hasMore=false on the last page.
@@ -81,3 +81,38 @@ and apply-verification.json for sanitized independent comparisons.
 Future reruns after legitimate scraping may refuse the old snapshot; that is an
 intentional guard. Recovery requires comparing current rows to the private saved
 after-image before restoring selected fields. Never restore old TASK4110 backups.
+
+## Live verification and room preservation
+
+The first live check exposed a persistence-boundary defect: ShowHandler removed
+the room when it equaled the physical club name. Its subsequent title-based
+reconciliation could not match the changed 8PM-to-8:30PM title. That scrape
+created duplicate8030992 with an empty room for original7898492.
+
+ShowHandler now preserves native rooms for reviewed Wix routes, recognized by
+the Wix scraper key and matching positive producer/organizer IDs supplied by
+WixVenueRouter. Other scrapers and unconfigured Wix retain existing suppression.
+The regression reproduced the failure before the fix; 54 focused tests then
+passed, including two real PostgreSQL upserts across a title change retaining
+the original show ID, room, saved-show and purchase-click references.
+
+The repair script's separate --cleanup-live-duplicate mode requires a fresh full
+snapshot, unchanged routing metadata, the exact task-created duplicate pair,
+matching occurrence identity, and schema coverage. It removes only redundant
+tickets/tags already represented on the original. Any other new references or
+conflicting child payload refuse cleanup. Twenty-five PostgreSQL repair tests
+passed, including cleanup drift and reference guards. A production rollback
+dry-run preserved all rows. Apply removed only duplicate8030992, ticket9167558,
+and its three redundant tags, retaining original IDs and a private recovery log.
+
+The corrected live run at 2026-10-07T22:24Z processed all 51 native events with
+**0 inserts and 51 updates**, with no routing holds. Independent verification
+against the original post-repair snapshot confirms the exact same 192 show IDs,
+all dates, URLs, rooms, venue assignments, producer attribution and source291
+ownership/configuration. All preexisting rows in the seven dependency tables
+remain unchanged: 192 tickets, 12 lineup links, 989 tags, and 2826 original
+purchase-click rows. One additional purchase click arrived independently.
+Expected show enrichment consists only of scrape timestamps, popularity, and
+the corrected title on7898492. See live-verification.json and
+cleanup-verification.json for sanitized evidence. Missing or conflicting source
+suites remain held in regression coverage; matching is not relaxed.

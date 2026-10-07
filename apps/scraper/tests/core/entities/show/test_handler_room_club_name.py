@@ -7,6 +7,9 @@ The handler suppresses those values before in-batch dedup and the upsert.
 from datetime import datetime
 from unittest.mock import MagicMock
 
+import pytest
+import time_machine
+
 from laughtrack.core.entities.show.handler import ShowHandler
 from laughtrack.core.entities.show.model import Show
 from sql.show_queries import ShowQueries
@@ -136,3 +139,103 @@ def test_suppressed_duplicates_collapse_in_batch_dedup():
     ])
 
     assert _inserted_rooms(h) == [""]
+
+
+def test_reviewed_wix_room_survives_title_change_before_physical_upsert():
+    """Title corrections must not change a reviewed Wix performance's room key."""
+    h = _handler([{"id": 1, "name": "The Royce Social Hall"}])
+    show = _show(room="The Royce Social Hall", name="Comedy | 8:30PM")
+    show.last_scraped_by = "wix_events"
+    show.production_company_id = show.scraped_by_organizer_id = 46
+    # Existing title is 8PM, so the title-based reconciliation returns no match.
+    h._process_single_batch([show])
+    assert _inserted_rooms(h) == ["The Royce Social Hall"]
+
+
+def test_unreviewed_wix_room_still_suppressed():
+    h = _handler([{"id": 1, "name": "The Royce Social Hall"}])
+    show = _show(room="The Royce Social Hall")
+    show.last_scraped_by = "wix_events"
+    h._process_single_batch([show])
+    assert _inserted_rooms(h) == [""]
+
+
+@pytest.mark.parametrize("producer,organizer", [(46, 47), (46, None), (None, 46), (0, 0), (-1, -1), (True, True), (46, "46"), ("46", "46")])
+def test_invalid_wix_provenance_cannot_preserve_venue_name_room(producer, organizer):
+    h = _handler([{"id": 1, "name": "The Royce Social Hall"}])
+    show = _show(room="The Royce Social Hall")
+    show.last_scraped_by = "wix_events"
+    show.production_company_id = producer
+    show.scraped_by_organizer_id = organizer
+    h._process_single_batch([show])
+    assert _inserted_rooms(h) == [""]
+
+
+def test_other_scraper_with_producer_provenance_still_suppresses_room():
+    h = _handler([{"id": 1, "name": "The Royce Social Hall"}])
+    show = _show(room="The Royce Social Hall")
+    show.last_scraped_by = "seatengine"
+    show.production_company_id = show.scraped_by_organizer_id = 46
+    h._process_single_batch([show])
+    assert _inserted_rooms(h) == [""]
+
+
+@time_machine.travel("2036-10-07T12:00:00Z", tick=False)
+def test_reviewed_wix_title_refresh_updates_original_postgres_row_and_references():
+    """Exercise the real physical-key upsert after room suppression and title lookup."""
+    import os
+    import psycopg2
+    from psycopg2.extras import RealDictCursor, execute_values
+
+    dsn = os.environ.get("TEST_DATABASE_URL")
+    if not dsn:
+        pytest.skip("TEST_DATABASE_URL required for physical-key PostgreSQL regression")
+    connection = psycopg2.connect(dsn)
+    try:
+        with connection.cursor() as cur:
+            cur.execute("""
+                CREATE TEMP TABLE clubs(id int PRIMARY KEY,name text);
+                CREATE TEMP TABLE shows(id serial PRIMARY KEY,name text,show_page_url text,description text,
+                    date timestamptz,club_id int,last_scraped_date timestamptz,room text,
+                    production_company_id int,last_scraped_by text,scraped_by_organizer_id int,
+                    show_type text,source_performance_id text);
+                CREATE UNIQUE INDEX ON shows(club_id,date,room) WHERE source_performance_id IS NULL;
+                CREATE TEMP TABLE saved_shows(show_id int REFERENCES shows ON DELETE CASCADE,profile_id text);
+                CREATE TEMP TABLE ticket_purchase_click_events(id int,show_id int REFERENCES shows ON DELETE SET NULL);
+                INSERT INTO clubs VALUES(1,'The Royce Social Hall');
+                INSERT INTO shows(id,name,club_id,date,room,show_page_url) VALUES
+                    (7898492,'Comedy | 8PM',1,'2036-10-17T00:30:00Z','The Royce Social Hall','https://example.com/show');
+                INSERT INTO saved_shows VALUES(7898492,'saved-profile');
+                INSERT INTO ticket_purchase_click_events VALUES(1,7898492);
+            """)
+        h = _handler([])
+
+        def execute(query, params=None, return_results=False):
+            with connection.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(query, params)
+                return cur.fetchall() if return_results else None
+
+        def batch(query, items, template, **kwargs):
+            with connection.cursor(cursor_factory=RealDictCursor) as cur:
+                return execute_values(cur, query, items, template=template, fetch=True)
+
+        h.execute_with_cursor = execute
+        h.execute_batch_operation = batch
+        for _ in range(2):
+            show = _show(room="The Royce Social Hall", name="Comedy | 8:30PM",
+                         date=datetime.fromisoformat("2036-10-17T00:30:00+00:00"))
+            show.last_scraped_by = "wix_events"
+            show.production_company_id = show.scraped_by_organizer_id = 46
+            result = h._process_single_batch([show])
+            assert result.updates == 1 and result.inserts == 0
+            assert show.id == 7898492
+        with connection.cursor() as cur:
+            cur.execute("SELECT id,name,room FROM shows")
+            assert cur.fetchall() == [(7898492,"Comedy | 8:30PM","The Royce Social Hall")]
+            cur.execute("SELECT show_id FROM saved_shows")
+            assert cur.fetchall() == [(7898492,)]
+            cur.execute("SELECT show_id FROM ticket_purchase_click_events")
+            assert cur.fetchall() == [(7898492,)]
+    finally:
+        connection.rollback()
+        connection.close()

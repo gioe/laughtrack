@@ -18,6 +18,57 @@ database = _schema.database
 
 
 @pytest.fixture
+def cleanup_plan(database, plan):
+    with database.cursor() as cur:
+        result = repair.repair(cur, plan)
+        destination = result["destination_id"]
+        cur.execute("ALTER TABLE shows ADD COLUMN last_scraped_by text DEFAULT 'wix_events'")
+        cur.execute(
+            "INSERT INTO shows(id,club_id,date,show_page_url,room,production_company_id,scraped_by_organizer_id) "
+            "SELECT 8030992,club_id,date,show_page_url,'',production_company_id,scraped_by_organizer_id "
+            "FROM shows WHERE id=7898492"
+        )
+        cur.execute(
+            "INSERT INTO tickets(id,show_id,type,price) SELECT 9167558,8030992,type,price "
+            "FROM tickets WHERE show_id=7898492"
+        )
+        cur.execute("INSERT INTO tagged_shows VALUES(7898492,12),(8030992,12)")
+        return dict(task_id=4131, original_plan=plan, destination_id=destination, before=repair.snapshot(cur, destination))
+
+
+def test_live_cleanup_retains_original_ids_and_only_removes_redundancy(database, cleanup_plan, tmp_path):
+    with database.cursor() as cur:
+        result = repair.cleanup_live_duplicate(cur, cleanup_plan, tmp_path / "cleanup.json")
+        before, after = result["before"], result["after"]
+        assert {r["id"] for r in before["shows"]} - {r["id"] for r in after["shows"]} == {8030992}
+        assert [r for r in before["shows"] if r["id"] != 8030992] == after["shows"]
+        for table in repair.CHILDREN:
+            assert after[table] == [r for r in before[table] if r["show_id"] != 8030992]
+        assert before["scraping_sources"] == after["scraping_sources"]
+
+
+@pytest.mark.parametrize("change", ["price", "new_click", "identity", "snapshot", "inbound"])
+def test_live_cleanup_refuses_dependency_or_identity_drift(database, cleanup_plan, change):
+    with database.cursor() as cur:
+        if change == "price":
+            cur.execute("UPDATE tickets SET price=99 WHERE show_id=8030992")
+        elif change == "new_click":
+            cur.execute("INSERT INTO ticket_purchase_click_events VALUES(8030992,8030992)")
+        elif change == "identity":
+            cur.execute("UPDATE shows SET room='Other room' WHERE id=8030992")
+        elif change == "snapshot":
+            cur.execute("UPDATE shows SET description='drift' WHERE id=7898492")
+        else:
+            cur.execute("CREATE TEMP TABLE ticket_refs(ticket_id int REFERENCES tickets(id))")
+        if change != "snapshot":
+            cleanup_plan["before"] = repair.snapshot(cur, cleanup_plan["destination_id"])
+        with pytest.raises(ValueError):
+            repair.cleanup_live_duplicate(cur, cleanup_plan)
+        cur.execute("SELECT count(*) FROM shows WHERE id=8030992")
+        assert cur.fetchone()[0] == 1
+
+
+@pytest.fixture
 def plan(database):
     native = []
     with database.cursor() as cur:

@@ -406,6 +406,21 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         suppressed = 0
         for show in candidates:
             club_name = club_names.get(show.club_id)
+            # Reviewed Wix routing preserves the native location as the physical
+            # room key. Blanking it here makes a corrected title miss the later
+            # club/date/name lookup and insert a duplicate of the original row.
+            # Only the reviewed router supplies this matching producer provenance;
+            # fixed-venue Wix and other scrapers retain normal suppression.
+            producer = show.production_company_id
+            organizer = show.scraped_by_organizer_id
+            if (
+                show.last_scraped_by == "wix_events"
+                and type(producer) is int
+                and producer > 0
+                and type(organizer) is int
+                and organizer == producer
+            ):
+                continue
             if club_name and show.room.strip().casefold() == club_name:
                 show.room = ""
                 suppressed += 1

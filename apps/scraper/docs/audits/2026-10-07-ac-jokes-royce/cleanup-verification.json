@@ -1,0 +1,16 @@
+{
+  "task_id": 4131,
+  "destination_id": 93720,
+  "removed_task_created_duplicate": 8030992,
+  "preserved_original_show": 7898492,
+  "redundant_rows_removed": {
+    "tickets": 1,
+    "tagged_shows": 3
+  },
+  "rollback_dry_run_verified": true,
+  "exact_after_image_verified": true,
+  "original_show_count_restored": 192,
+  "subsequent_live_inserts": 0,
+  "subsequent_live_updates": 51,
+  "private_recovery_retained": true
+}
