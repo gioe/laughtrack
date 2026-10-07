@@ -247,3 +247,56 @@ async def test_real_source_less_destination_query(database):
     assert len(shows) == 1 and shows[0].club_id == 9001
     assert not scraper.venue_router.destinations[9001].scraping_sources
     assert not scraper.venue_router.errors
+
+
+ROYCE_AUDIT = Path(__file__).resolve().parents[5] / "docs/audits/2026-10-07-ac-jokes-royce/native-events.json"
+ROYCE_EVENTS = [event for event in json.loads(ROYCE_AUDIT.read_text())["events"]
+                if event["location"]["name"] == "The Royce Social Hall"]
+
+
+def royce_source():
+    club = source()
+    club.source_metadata["wix_venue_routes"]["routes"].append(
+        {"club_id": 9003, "location": signature(ROYCE_EVENTS[0]["location"])}
+    )
+    return club
+
+
+@pytest.mark.asyncio
+async def test_reviewed_royce_route_keeps_native_dates_rooms_and_other_venues(monkeypatch):
+    # The physical venue can omit its suite; the reviewed source signature cannot.
+    scraper, shows = await pipeline(monkeypatch, deepcopy(EVENTS + ROYCE_EVENTS), royce_source())
+    assert len(shows) == len(EVENTS) + 3
+    assert not scraper.venue_router.errors
+    royce = [show for show in shows if show.club_id == 9003]
+    assert len(royce) == 3
+    assert all(show.room == "The Royce Social Hall" for show in royce)
+    assert [show.date.isoformat() for show in royce] == [
+        "2026-10-16T20:30:00-04:00", "2026-10-17T19:00:00-04:00", "2026-10-17T21:00:00-04:00"
+    ]
+    for raw, show in zip(ROYCE_EVENTS, royce):
+        assert show.show_page_url == f"https://www.acjokes.com/event-details/{raw['slug']}"
+        assert show.production_company_id == show.scraped_by_organizer_id == 73
+    assert sum(show.club_id == 412 for show in shows) == 40
+    assert sum(show.club_id == 9001 for show in shows) == 3
+    assert sum(show.club_id == 9002 for show in shows) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("suite", ["", "Suite 304", "Suite 309", None])
+async def test_royce_other_or_missing_source_suite_stays_held(monkeypatch, suite):
+    raw = deepcopy(ROYCE_EVENTS[0])
+    raw["location"]["fullAddress"]["streetAddress"]["apt"] = suite
+    scraper, shows = await pipeline(monkeypatch, [raw], royce_source())
+    assert shows == []
+    assert scraper.venue_router.errors
+
+
+@pytest.mark.asyncio
+async def test_royce_route_does_not_clear_unreviewed_location_hold(monkeypatch):
+    unknown = deepcopy(ROYCE_EVENTS[0])
+    unknown["id"] = "unreviewed-location"
+    unknown["location"]["name"] = "Another Tropicana Room"
+    scraper, shows = await pipeline(monkeypatch, deepcopy(ROYCE_EVENTS) + [unknown], royce_source())
+    assert len(shows) == 3
+    assert len(scraper.venue_router.errors) == 1

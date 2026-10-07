@@ -1,0 +1,40 @@
+{
+  "task_id": 4131,
+  "canonical_venue": {
+    "address": "2831 Pacific Avenue",
+    "city": "Atlantic City",
+    "name": "The Royce Social Hall",
+    "state": "NJ",
+    "timezone": "America/New_York",
+    "visible": true,
+    "website": "https://theroyceac.com/",
+    "zip_code": "08401"
+  },
+  "show_ids": [
+    7898492,
+    7898494,
+    7898497
+  ],
+  "producer_id": 46,
+  "source_id": 291,
+  "preserved_club_ids": [
+    412,
+    90822,
+    90823
+  ],
+  "counts": {
+    "clubs": 3,
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 12,
+    "production_companies": 1,
+    "production_company_venues": 3,
+    "saved_shows": 0,
+    "scraping_sources": 1,
+    "sent_notifications": 0,
+    "shows": 192,
+    "tagged_shows": 989,
+    "ticket_purchase_click_events": 2826,
+    "tickets": 192
+  },
+  "private_plan": "Full snapshot, child rows, and repair before/after files are deliberately excluded from version control."
+}

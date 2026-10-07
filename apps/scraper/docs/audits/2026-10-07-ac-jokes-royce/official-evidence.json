@@ -1,0 +1,37 @@
+[
+  {
+    "url": "https://theroyceac.com/",
+    "captured_date": "2026-10-07",
+    "sha256": "bd94f93226a896f81de5ab44d4da43795a70c965ca5b4c8adfca78a7e3890f6d",
+    "address": "The Quarter at Tropicana, 2831 Pacific Avenue, Atlantic City, NJ 08401",
+    "suite": null,
+    "linked_comedy_site": "https://www.comedyattheroyce.com/"
+  },
+  {
+    "url": "https://www.acjokes.com/event-details/10-16-2026-8PM-Tropicana-ft-stoner-rob",
+    "captured_date": "2026-10-07",
+    "sha256": "65b5d8d5690b637e2ad1bd2779a7867d8dd3ce683e710d4cea8fb2426290935f",
+    "address": "2801 Pacific Ave Suite 308, Atlantic City, NJ 08401, USA",
+    "startDate": "2026-10-17T00:30:00.000Z",
+    "room": "The Royce Social Hall"
+  },
+  {
+    "url": "https://www.comedyattheroyce.com/",
+    "captured_date": "2026-10-07",
+    "sha256": "80808a049600ebbc7ee3e3306e552b9ca79e5f70e798cf3d26fe0eecf200ca27",
+    "venue": {
+      "@type": "EventVenue",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Atlantic City",
+        "addressRegion": "NJ",
+        "postalCode": "08401",
+        "streetAddress": "2831 Boardwalk"
+      },
+      "identifier": "3c57e2b2-42fb-4765-a51d-6d277a79d6c8",
+      "name": "Comedy at the Royce",
+      "telephone": "640-696-8535",
+      "url": "https://www.comedyattheroyce.com"
+    }
+  }
+]
