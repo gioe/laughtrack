@@ -78,7 +78,8 @@ def test_collision_blocks_stale_cleanup():
     processor.show_service = handler
     processor._reconcile_stale_future_shows = MagicMock()
     club_result = SimpleNamespace(
-        shows=[_show(1), _show(1, hour=21)], is_synthetic=False, club_name="Venue", scraper_key="thundertix"
+        shows=[_show(1), _show(1, hour=21)], is_synthetic=False, club_name="Venue", scraper_key="thundertix",
+        cancellations=[],
     )
     result = processor.insert_club_result(club_result)
     assert result.validation_errors == 2
