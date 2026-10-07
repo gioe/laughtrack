@@ -85,3 +85,27 @@ def test_only_dropped_items_are_added_before_base_counts_kept():
         assert diagnostics.items_before_filter == 2
     finally:
         reset_diagnostics(token)
+
+
+def test_remaining_cleanup_current_feed_is_filtered_with_reconciliation_guard():
+    audit = AUDIT.parent / "2026-10-07-big-pine-remaining"
+    current = json.loads((audit / "native.json").read_text())["current"]
+    assert len(current) == 16
+    assert any(row["id"] == 390223 for row in current)
+    instance = scraper()
+    instance.seatengine_client.fetch_events = AsyncMock(return_value=deepcopy(current))
+    result = instance.scrape_with_result()
+    assert result.num_shows == 0
+    assert result.fetches_ok == 1 and result.fetches_failed == 0
+    assert result.items_before_filter == 16
+    assert not ScrapingResultProcessor._is_clean_for_reconciliation(result)
+
+
+def test_remaining_cleanup_retained_native_performances_are_not_filtered():
+    audit = AUDIT.parent / "2026-10-07-big-pine-remaining"
+    decisions = json.loads((audit / "decisions.json").read_text())
+    retained = {row["show_id"] for row in decisions if row["decision"] == "retain"}
+    details = json.loads((audit / "native.json").read_text())["details"]
+    performances = [row["data"] for row in details if row["show_id"] in retained]
+    assert len(performances) == 16
+    assert scraper()._filter_title_patterns(performances) == performances
