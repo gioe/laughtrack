@@ -1,0 +1,605 @@
+{
+  "task_id": 4127,
+  "production_mutations": 0,
+  "transaction_read_only": true,
+  "foreign_keys": [
+    [
+      "discovery_show_feature_snapshots",
+      "show_id"
+    ],
+    [
+      "lineup_items",
+      "show_id"
+    ],
+    [
+      "saved_shows",
+      "show_id"
+    ],
+    [
+      "sent_notifications",
+      "show_id"
+    ],
+    [
+      "tagged_shows",
+      "show_id"
+    ],
+    [
+      "ticket_purchase_click_events",
+      "show_id"
+    ],
+    [
+      "tickets",
+      "show_id"
+    ]
+  ],
+  "before": {
+    "checked_at": "2026-10-07T15:20:24.596594+00:00",
+    "tables": {
+      "shows": {
+        "count": 6,
+        "by_show": {
+          "7451272": 1,
+          "3769502": 1,
+          "1371908": 1,
+          "847662": 1,
+          "1024865": 1,
+          "927780": 1
+        },
+        "all_columns_hmac_sha256": "34b26a40a5ac40c05b7e5e0b2bbf6fa0ba127e750b10998a7d1f76a47ae2fee8"
+      },
+      "tickets": {
+        "count": 6,
+        "by_show": {
+          "7451272": 1,
+          "3769502": 1,
+          "1371908": 1,
+          "847662": 1,
+          "1024865": 1,
+          "927780": 1
+        },
+        "all_columns_hmac_sha256": "2d961cb16b17cb634dcd4d18219c721c96b3e01ea90522abc21c6b80ff8ef730"
+      },
+      "lineup_items": {
+        "count": 0,
+        "by_show": {
+          "7451272": 0,
+          "3769502": 0,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "65fb5a783f7be2953ba286d83c96480bff2a884f40f3aa641d855c7df1387661"
+      },
+      "tagged_shows": {
+        "count": 15,
+        "by_show": {
+          "7451272": 1,
+          "3769502": 2,
+          "1371908": 2,
+          "847662": 2,
+          "1024865": 4,
+          "927780": 4
+        },
+        "all_columns_hmac_sha256": "1c499a4575e36b10942a144b27f91e97ccb625c05cf46772ef3af3979844461a"
+      },
+      "saved_shows": {
+        "count": 0,
+        "by_show": {
+          "7451272": 0,
+          "3769502": 0,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "65fb5a783f7be2953ba286d83c96480bff2a884f40f3aa641d855c7df1387661"
+      },
+      "sent_notifications": {
+        "count": 0,
+        "by_show": {
+          "7451272": 0,
+          "3769502": 0,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "65fb5a783f7be2953ba286d83c96480bff2a884f40f3aa641d855c7df1387661"
+      },
+      "discovery_show_feature_snapshots": {
+        "count": 0,
+        "by_show": {
+          "7451272": 0,
+          "3769502": 0,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "65fb5a783f7be2953ba286d83c96480bff2a884f40f3aa641d855c7df1387661"
+      },
+      "ticket_purchase_click_events": {
+        "count": 27,
+        "by_show": {
+          "7451272": 1,
+          "3769502": 26,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "18d00e96124410a136758aa396bf0e8d4ebf13fa2dbad69bbbf2571710112202"
+      }
+    },
+    "shows": [
+      {
+        "id": 847662,
+        "date": "2026-05-17T23:30:00+00:00",
+        "name": "Spitball",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": null,
+        "popularity": 0.03349225,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/263284",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-04-28T07:07:57.833564+00:00",
+        "first_discovered_at": null,
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 927780,
+        "date": "2026-05-10T20:00:00+00:00",
+        "name": "God Lens Book Release Show & Party",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": null,
+        "popularity": 0.03349225,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/263406",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-04-13T06:52:33.519157+00:00",
+        "first_discovered_at": null,
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 1024865,
+        "date": "2026-05-16T20:00:00+00:00",
+        "name": "God Lens Book Release Show & Party",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": null,
+        "popularity": 0.03349225,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/263406",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-05-17T07:29:08.778554+00:00",
+        "first_discovered_at": null,
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 1371908,
+        "date": "2026-05-24T23:30:00+00:00",
+        "name": "Spitball",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": null,
+        "popularity": 0.03349225,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/263284",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-05-24T07:32:17.43513+00:00",
+        "first_discovered_at": null,
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 3769502,
+        "date": "2026-09-19T13:00:00+00:00",
+        "name": "Fire & Beer",
+        "room": "",
+        "club_id": 183,
+        "min_price": 15.0,
+        "show_type": "unknown",
+        "popularity": 0.17547675000000001,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/188918",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-08-22T21:12:24.82908+00:00",
+        "first_discovered_at": "2026-07-05T21:44:34.351765+00:00",
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 7451272,
+        "date": "2026-09-20T01:00:00+00:00",
+        "name": "Fire & Beer",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": "unknown",
+        "popularity": 0.11547675000000002,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/188918",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-09-25T00:44:19.49107+00:00",
+        "first_discovered_at": "2026-09-25T00:44:19.651558+00:00",
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      }
+    ],
+    "tickets": [
+      {
+        "id": 782156,
+        "show_id": 847662,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=263284&performance_id=3249429",
+        "price": 0.0
+      },
+      {
+        "id": 865090,
+        "show_id": 927780,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=263406&performance_id=3250362",
+        "price": 0.0
+      },
+      {
+        "id": 966178,
+        "show_id": 1024865,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=263406&performance_id=3250362",
+        "price": 0.0
+      },
+      {
+        "id": 1320025,
+        "show_id": 1371908,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=263284&performance_id=3249429",
+        "price": null
+      },
+      {
+        "id": 4225195,
+        "show_id": 3769502,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=188918&performance_id=3256449",
+        "price": 15.0
+      },
+      {
+        "id": 8491061,
+        "show_id": 7451272,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=188918&performance_id=3256449",
+        "price": null
+      }
+    ],
+    "pairs": [
+      {
+        "show_ids": [
+          7451272,
+          3769502
+        ],
+        "native_identity": "thundertix:theannoyance:188918:3256449"
+      },
+      {
+        "show_ids": [
+          1371908,
+          847662
+        ],
+        "native_identity": "thundertix:theannoyance:263284:3249429"
+      },
+      {
+        "show_ids": [
+          1024865,
+          927780
+        ],
+        "native_identity": "thundertix:theannoyance:263406:3250362"
+      }
+    ]
+  },
+  "after": {
+    "checked_at": "2026-10-07T15:20:24.622095+00:00",
+    "tables": {
+      "shows": {
+        "count": 6,
+        "by_show": {
+          "7451272": 1,
+          "3769502": 1,
+          "1371908": 1,
+          "847662": 1,
+          "1024865": 1,
+          "927780": 1
+        },
+        "all_columns_hmac_sha256": "34b26a40a5ac40c05b7e5e0b2bbf6fa0ba127e750b10998a7d1f76a47ae2fee8"
+      },
+      "tickets": {
+        "count": 6,
+        "by_show": {
+          "7451272": 1,
+          "3769502": 1,
+          "1371908": 1,
+          "847662": 1,
+          "1024865": 1,
+          "927780": 1
+        },
+        "all_columns_hmac_sha256": "2d961cb16b17cb634dcd4d18219c721c96b3e01ea90522abc21c6b80ff8ef730"
+      },
+      "lineup_items": {
+        "count": 0,
+        "by_show": {
+          "7451272": 0,
+          "3769502": 0,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "65fb5a783f7be2953ba286d83c96480bff2a884f40f3aa641d855c7df1387661"
+      },
+      "tagged_shows": {
+        "count": 15,
+        "by_show": {
+          "7451272": 1,
+          "3769502": 2,
+          "1371908": 2,
+          "847662": 2,
+          "1024865": 4,
+          "927780": 4
+        },
+        "all_columns_hmac_sha256": "1c499a4575e36b10942a144b27f91e97ccb625c05cf46772ef3af3979844461a"
+      },
+      "saved_shows": {
+        "count": 0,
+        "by_show": {
+          "7451272": 0,
+          "3769502": 0,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "65fb5a783f7be2953ba286d83c96480bff2a884f40f3aa641d855c7df1387661"
+      },
+      "sent_notifications": {
+        "count": 0,
+        "by_show": {
+          "7451272": 0,
+          "3769502": 0,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "65fb5a783f7be2953ba286d83c96480bff2a884f40f3aa641d855c7df1387661"
+      },
+      "discovery_show_feature_snapshots": {
+        "count": 0,
+        "by_show": {
+          "7451272": 0,
+          "3769502": 0,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "65fb5a783f7be2953ba286d83c96480bff2a884f40f3aa641d855c7df1387661"
+      },
+      "ticket_purchase_click_events": {
+        "count": 27,
+        "by_show": {
+          "7451272": 1,
+          "3769502": 26,
+          "1371908": 0,
+          "847662": 0,
+          "1024865": 0,
+          "927780": 0
+        },
+        "all_columns_hmac_sha256": "18d00e96124410a136758aa396bf0e8d4ebf13fa2dbad69bbbf2571710112202"
+      }
+    },
+    "shows": [
+      {
+        "id": 847662,
+        "date": "2026-05-17T23:30:00+00:00",
+        "name": "Spitball",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": null,
+        "popularity": 0.03349225,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/263284",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-04-28T07:07:57.833564+00:00",
+        "first_discovered_at": null,
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 927780,
+        "date": "2026-05-10T20:00:00+00:00",
+        "name": "God Lens Book Release Show & Party",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": null,
+        "popularity": 0.03349225,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/263406",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-04-13T06:52:33.519157+00:00",
+        "first_discovered_at": null,
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 1024865,
+        "date": "2026-05-16T20:00:00+00:00",
+        "name": "God Lens Book Release Show & Party",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": null,
+        "popularity": 0.03349225,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/263406",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-05-17T07:29:08.778554+00:00",
+        "first_discovered_at": null,
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 1371908,
+        "date": "2026-05-24T23:30:00+00:00",
+        "name": "Spitball",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": null,
+        "popularity": 0.03349225,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/263284",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-05-24T07:32:17.43513+00:00",
+        "first_discovered_at": null,
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 3769502,
+        "date": "2026-09-19T13:00:00+00:00",
+        "name": "Fire & Beer",
+        "room": "",
+        "club_id": 183,
+        "min_price": 15.0,
+        "show_type": "unknown",
+        "popularity": 0.17547675000000001,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/188918",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-08-22T21:12:24.82908+00:00",
+        "first_discovered_at": "2026-07-05T21:44:34.351765+00:00",
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      },
+      {
+        "id": 7451272,
+        "date": "2026-09-20T01:00:00+00:00",
+        "name": "Fire & Beer",
+        "room": "",
+        "club_id": 183,
+        "min_price": null,
+        "show_type": "unknown",
+        "popularity": 0.11547675000000002,
+        "description": "",
+        "is_cancelled": false,
+        "show_page_url": "https://theannoyance.thundertix.com/events/188918",
+        "last_scraped_by": "thundertix",
+        "tickets_sold_out": false,
+        "last_scraped_date": "2026-09-25T00:44:19.49107+00:00",
+        "first_discovered_at": "2026-09-25T00:44:19.651558+00:00",
+        "production_company_id": null,
+        "source_performance_id": null,
+        "scraped_by_organizer_id": null
+      }
+    ],
+    "tickets": [
+      {
+        "id": 782156,
+        "show_id": 847662,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=263284&performance_id=3249429",
+        "price": 0.0
+      },
+      {
+        "id": 865090,
+        "show_id": 927780,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=263406&performance_id=3250362",
+        "price": 0.0
+      },
+      {
+        "id": 966178,
+        "show_id": 1024865,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=263406&performance_id=3250362",
+        "price": 0.0
+      },
+      {
+        "id": 1320025,
+        "show_id": 1371908,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=263284&performance_id=3249429",
+        "price": null
+      },
+      {
+        "id": 4225195,
+        "show_id": 3769502,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=188918&performance_id=3256449",
+        "price": 15.0
+      },
+      {
+        "id": 8491061,
+        "show_id": 7451272,
+        "purchase_url": "https://theannoyance.thundertix.com/orders/new?event_id=188918&performance_id=3256449",
+        "price": null
+      }
+    ],
+    "pairs": [
+      {
+        "show_ids": [
+          7451272,
+          3769502
+        ],
+        "native_identity": "thundertix:theannoyance:188918:3256449"
+      },
+      {
+        "show_ids": [
+          1371908,
+          847662
+        ],
+        "native_identity": "thundertix:theannoyance:263284:3249429"
+      },
+      {
+        "show_ids": [
+          1024865,
+          927780
+        ],
+        "native_identity": "thundertix:theannoyance:263406:3250362"
+      }
+    ]
+  },
+  "all_rows_unchanged_between_observations": true,
+  "limitations": "Two independent statement snapshots detect net visible changes only; no claim about historical correctness or concurrent reverted writes. The ephemeral HMAC key is discarded; hashes are comparable only within this run."
+}
