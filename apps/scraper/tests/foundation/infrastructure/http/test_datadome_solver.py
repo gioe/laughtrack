@@ -153,6 +153,39 @@ class TestDataDomeSolverSolve:
         assert solver.calls == []
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("proxy_url", [None, "http://proxy-user:proxy-secret@proxy:3128"])
+    async def test_banned_ip_diagnostic_excludes_sensitive_inputs(self, proxy_url):
+        solver = _FakeSolver(api_key="api-secret")
+        with patch(
+            "laughtrack.foundation.infrastructure.http.protection.datadome_solver.Logger.warn"
+        ) as warn:
+            result = await solver.solve(
+                captcha_url=(
+                    "https://geo.captcha-delivery.com/captcha/"
+                    "?cid=challenge-secret&hash=hash-secret&t=bv"
+                ),
+                website_url="https://www.etix.com/foo?token=website-secret",
+                user_agent="user-agent-secret",
+                proxy_url=proxy_url,
+            )
+        assert result is None
+        assert solver.calls == []
+        warn.assert_called_once()
+        message, = warn.call_args.args
+        assert "t=bv" in message
+        assert "banned IP" in message
+        assert "unsupported" in message.lower()
+        assert "skipping" in message.lower()
+        # Inspect the entire call, including structured context, for leakage.
+        diagnostic = repr(warn.call_args)
+        for sensitive in (
+            "api-secret", "challenge-secret", "hash-secret", "website-secret",
+            "user-agent-secret", "proxy-user", "proxy-secret", "https://", "http://",
+        ):
+            assert sensitive not in diagnostic
+        assert warn.call_args.kwargs == {}
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("query", [
         "cid=X",
         "cid=X&t=fe",

@@ -1,12 +1,14 @@
 """Capsolver-backed DataDome interactive-CAPTCHA solver.
 
-When DataDome serves an interactive visible-CAPTCHA challenge (mode ``bv``,
-deployed platform-wide on etix.com on 2026-04-16 — see TASK-1647 audit),
-neither curl-cffi impersonation nor Playwright stealth defeats it. The
-challenge has to be solved out-of-band. This module wraps the capsolver.com
-API (``createTask`` + ``getTaskResult`` polling) for the
-``DatadomeSliderTask`` challenge type and returns the solved cookie that
-the caller injects back into the browser context to retry the origin URL.
+CapSolver supports DataDome challenges with ``t=fe`` in the challenge URL.
+Mode ``t=bv`` indicates a banned IP and is unsupported, so :meth:`solve`
+skips it without submitting an API task. See the provider's contract:
+https://docs.capsolver.com/en/guide/captcha/datadome/
+
+This module wraps the capsolver.com API (``createTask`` + ``getTaskResult``
+polling) for the ``DatadomeSliderTask`` challenge type and returns a solved
+cookie when available. The caller can inject it into the browser context
+and retry the origin URL; this does not guarantee access recovery.
 
 Guardrail: when ``CAPSOLVER_API_KEY`` is unset, ``build_default_solver()``
 returns ``None`` and callers must skip the solver path entirely. This keeps
@@ -146,8 +148,9 @@ class DataDomeSolver:
     ) -> Optional[SolvedCookie]:
         """Submit a DataDome challenge and poll until ready.
 
-        Returns ``None`` when capsolver fails to produce a solution within
-        ``timeout_sec`` or when the response is missing the cookie field.
+        Returns ``None`` for unsupported banned-IP challenges (``t=bv``),
+        when capsolver fails to produce a solution within ``timeout_sec``,
+        or when the response is missing the cookie field.
         Raises :class:`DataDomeSolverError` on capsolver-reported errors
         (auth, quota, bad payload, etc.) so the caller can distinguish a
         configuration problem from a slow solve.
