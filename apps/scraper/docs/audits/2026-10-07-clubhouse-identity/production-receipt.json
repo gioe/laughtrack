@@ -1,0 +1,21 @@
+{
+  "task_id": 4124,
+  "applied": true,
+  "captured_at": "2026-10-07T01:26:46.659275+00:00",
+  "target_id": 92123,
+  "show_id": 7123739,
+  "changed": true,
+  "child_counts": {
+    "tickets": 1,
+    "lineup_items": 0,
+    "tagged_shows": 2,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 0
+  },
+  "la_metadata_unchanged": true,
+  "migration_and_repair_replay": "no-op",
+  "seconds": 1.881,
+  "independent_read_verified": true
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "url": "https://www.nextstopcomedy.com/events/the-clubhouse-2026-10-24-8-pm",
+    "captured_at": "2026-10-07T01:26:12.648426+00:00",
+    "sha256": "8db43d4c12aa02c089a842ad5dc8cbb2e6ce4ddcb9398626d74661f5f0d59d8b",
+    "bytes": 92789,
+    "structured": [
+      {
+        "@context": "https://schema.org",
+        "@type": "ComedyEvent",
+        "name": "The Clubhouse",
+        "description": "Next Stop Comedy brings the best comedians, with new lineups every time, straight to your neighborhood for an unforgettable night of laughter! Our shows feature top-tier talent from across the country, delivering high-energy performances in intimate, local venues. Whether you need an exciting date night, you're a die-hard comedy fan, or you're just looking for a fun night out, Next Stop Comedy guarantees big laughs, great vibes, and an experience you won't want to miss.",
+        "url": "https://www.nextstopcomedy.com/events/the-clubhouse-2026-10-24-8-pm",
+        "image": "https://sq0ma0ipjxghdvjf.public.blob.vercel-storage.com/event-image-pool/1778688764528-4.png",
+        "startDate": "2026-10-24T20:00:00-04:00",
+        "endDate": "2026-10-24T22:00:00-04:00",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "organizer": {
+          "@type": "Organization",
+          "name": "Next Stop Comedy",
+          "url": "https://www.nextstopcomedy.com"
+        },
+        "location": {
+          "@type": "Place",
+          "name": "The Clubhouse",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "377 Denton Ave.",
+            "addressLocality": "New Hyde Park",
+            "addressRegion": "NY",
+            "postalCode": "11040",
+            "addressCountry": "US"
+          }
+        },
+        "performer": [
+          {
+            "@type": "PerformingGroup",
+            "name": "Next Stop Comedy"
+          }
+        ],
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": 27,
+          "highPrice": 27,
+          "priceCurrency": "USD",
+          "validFrom": "2026-09-17T00:10:20.826Z",
+          "url": "https://www.nextstopcomedy.com/events/the-clubhouse-2026-10-24-8-pm",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    ],
+    "address_corroborated": true
+  },
+  {
+    "url": "https://www.theclubhouseny.com/",
+    "captured_at": "2026-10-07T01:26:12.745234+00:00",
+    "sha256": "21df8f4539b206eda46076bc00bc5d4a6b896db5e326314df90ab8d6581f68f3",
+    "bytes": 542525,
+    "structured": [],
+    "address_corroborated": true
+  }
+]

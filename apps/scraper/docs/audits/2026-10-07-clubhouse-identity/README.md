@@ -48,5 +48,41 @@ venue and alias in place. It must refuse if affected data changed after apply.
 
 ## Verification
 
-Implementation, isolated PostgreSQL rehearsal, and production receipts are
-recorded below when completed.
+All 23 isolated PostgreSQL tests passed. They execute the real Prisma migration
+and alias-normalization trigger, rerun both migration and repair, exercise every
+reference table with nonempty synthetic records, reject evidence drift and
+collisions, and verify exact restoration. The real location lookup SQL resolves
+the unqualified name in New Hyde Park to the new venue only.
+
+A production rollback-only rehearsal applied the migration and repair twice,
+restored the original assignment, compared every captured row, and rolled back.
+The subsequent apply at `2026-10-07T01:26:46Z` created club **92123** and moved
+show **7123739** from **8828** to **92123**. The complete operation took 1.88
+seconds; an independent read confirmed the after-state. The replay was a no-op.
+See `production-receipt.json`. Prisma's migration ledger was not manually edited;
+the idempotent migration remains safe for normal deployment.
+
+The public endpoint `/api/v1/shows/7123739?audit=4124-after` returned club 92123,
+377 Denton Avenue, the original UTC instant and the unchanged $27 ticket.
+The one ticket and two tag links were unchanged; all LA club columns matched
+their before-state. Existing LA timezone/count metadata was deliberately retained.
+
+The exact private recovery files are `/private/tmp/task4124-production.private.json`
+and its `.after.json` companion (0600). Recovery, from `apps/scraper`:
+
+```sh
+PYTHONPATH=src:. .venv/bin/python3 scripts/core/repair_clubhouse_identity.py --restore /private/tmp/task4124-production.private.json.after.json
+```
+
+Restore refuses subsequent affected-state changes and retains the separate NY
+venue/alias. The private files must be retained for recovery and never committed.
+`source-evidence.json` records a second fresh capture at 01:26:12Z (dynamic HTML
+hash differs from the initial exploration fetch), including structured event
+evidence and the official venue URL. Raw HTML copies are temporary evidence only.
+
+The full scraper commit gate could not collect tests because the shared virtualenv
+lacks `tzdata`. `tusk test-precheck --flake-retries 2` reproduced the same error
+on unchanged HEAD in all three runs, with no upstream divergence or flake signal.
+The task used the documented path-limited Git recovery; focused PostgreSQL
+verification remains the passing regression evidence. No unrelated dependency
+or test changes were made.
