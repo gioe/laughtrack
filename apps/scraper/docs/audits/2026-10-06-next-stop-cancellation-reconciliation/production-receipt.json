@@ -1,0 +1,30 @@
+{
+  "changed_fields": [
+    "shows.is_cancelled"
+  ],
+  "changed_show_ids": [
+    5722554,
+    5960094,
+    6213884
+  ],
+  "held_show_ids": [
+    3590689,
+    6311574,
+    7557421
+  ],
+  "post_cancelled": 44,
+  "preserved_child_counts": {
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 11,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "tagged_shows": 14,
+    "ticket_purchase_click_events": 112,
+    "tickets": 6
+  },
+  "prior_cancelled_retained": 41,
+  "task_id": 4122,
+  "total_seconds": 1.413,
+  "transaction_lock_seconds": 0.346,
+  "verified_at": "2026-10-06T23:58:52.840598+00:00"
+}

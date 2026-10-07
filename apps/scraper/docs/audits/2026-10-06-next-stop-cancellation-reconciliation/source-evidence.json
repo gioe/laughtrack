@@ -1,0 +1,394 @@
+[
+  {
+    "input": {
+      "id": 5722554,
+      "club_id": 34270,
+      "date": "2026-10-10T03:00:00+00:00",
+      "show_page_url": "https://www.nextstopcomedy.com/events/sociology-coffee-bar-2026-10-09-8-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_name": "Sociology Coffee Bar"
+    },
+    "requested_url": "https://www.nextstopcomedy.com/events/sociology-coffee-bar-2026-10-09-8-pm",
+    "fetched_at": "2026-10-06T23:51:07.607436+00:00",
+    "http_observations": [
+      {
+        "requested_url": "https://www.nextstopcomedy.com/events/sociology-coffee-bar-2026-10-09-8-pm",
+        "response_url": "https://www.nextstopcomedy.com/events/sociology-coffee-bar-2026-10-09-8-pm",
+        "status_code": 200,
+        "redirect_count": 0,
+        "history": []
+      }
+    ],
+    "length": 104854,
+    "body_sha256": "5098a2b476e027b852a86701becf5f3649ea22006b2ae46c5f9a378862c71a93",
+    "canonical_jsonld_urls": [
+      "https://www.nextstopcomedy.com/events/sociology-coffee-bar-2026-10-09-8-pm"
+    ],
+    "html_canonical_urls": [
+      "https://www.nextstopcomedy.com/events/sociology-coffee-bar-2026-10-09-8-pm"
+    ],
+    "main_headings": [
+      "Sociology Coffee Bar"
+    ],
+    "main_header_text": [
+      "Sociology Coffee Bar Share Friday, October 9, 2026 Seating Begins 7:30 PM \u00b7 Show 8:00 PM Placerville , CA"
+    ],
+    "identities": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/sociology-coffee-bar-2026-10-09-8-pm",
+        "native_event_ids": [],
+        "date": "2026-10-09T20:00:00-07:00",
+        "status": "https://schema.org/EventCancelled",
+        "name": "Sociology Coffee Bar",
+        "venue": {
+          "@type": "Place",
+          "name": "Sociology Coffee Bar",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "564 Main St.",
+            "addressLocality": "Placerville",
+            "addressRegion": "CA",
+            "postalCode": "95667",
+            "addressCountry": "US"
+          }
+        },
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": 27,
+          "highPrice": 27,
+          "priceCurrency": "USD",
+          "validFrom": "2026-08-17T19:41:02.107Z",
+          "url": "https://www.nextstopcomedy.com/events/sociology-coffee-bar-2026-10-09-8-pm",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    ],
+    "main_event_props": [],
+    "extractor_event_count": 0,
+    "disposition": "ambiguous_or_missing_main_identity",
+    "task_4122_disposition": "verified_exact_cancellation_candidate"
+  },
+  {
+    "input": {
+      "id": 5960094,
+      "club_id": 38678,
+      "date": "2026-11-07T02:00:00+00:00",
+      "show_page_url": "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_name": "Hudson\u2019s On Main"
+    },
+    "requested_url": "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm",
+    "fetched_at": "2026-10-06T23:51:07.607444+00:00",
+    "http_observations": [
+      {
+        "requested_url": "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm",
+        "response_url": "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm",
+        "status_code": 200,
+        "redirect_count": 0,
+        "history": []
+      }
+    ],
+    "length": 91946,
+    "body_sha256": "3b0b2aa3b72ac51f8eaa5c07305c47214ed91605144b876d49e074eed96156c3",
+    "canonical_jsonld_urls": [
+      "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm"
+    ],
+    "html_canonical_urls": [
+      "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm"
+    ],
+    "main_headings": [
+      "Hudson\u2019s On Main"
+    ],
+    "main_header_text": [
+      "Hudson\u2019s On Main Share Friday, November 6, 2026 Seating Begins 6 PM \u00b7 Show 8:00 PM Olney , TX"
+    ],
+    "identities": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm",
+        "native_event_ids": [],
+        "date": "2026-11-06T20:00:00-06:00",
+        "status": "https://schema.org/EventCancelled",
+        "name": "Hudson\u2019s On Main",
+        "venue": {
+          "@type": "Place",
+          "name": "Hudson\u2019s On Main",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "119 E Main St.",
+            "addressLocality": "Olney",
+            "addressRegion": "TX",
+            "postalCode": "76374",
+            "addressCountry": "US"
+          }
+        },
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": 27,
+          "highPrice": 27,
+          "priceCurrency": "USD",
+          "validFrom": "2026-08-24T04:19:07.993Z",
+          "url": "https://www.nextstopcomedy.com/events/hudson-s-on-main-2026-11-06-8-pm",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    ],
+    "main_event_props": [],
+    "extractor_event_count": 0,
+    "disposition": "ambiguous_or_missing_main_identity",
+    "task_4122_disposition": "verified_exact_cancellation_candidate"
+  },
+  {
+    "input": {
+      "id": 3590689,
+      "club_id": 11709,
+      "date": "2026-10-25T01:00:00+00:00",
+      "show_page_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-7pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_name": "Big Beaver Brewing"
+    },
+    "requested_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-7pm",
+    "fetched_at": "2026-10-06T23:51:07.607150+00:00",
+    "http_observations": [
+      {
+        "requested_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-7pm",
+        "response_url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-730pm",
+        "status_code": 200,
+        "redirect_count": 1,
+        "history": []
+      }
+    ],
+    "length": 112725,
+    "body_sha256": "b14709d75a9e591da54814e6f5035e45a3c498cc750f5bc6165d417f2b2d734d",
+    "canonical_jsonld_urls": [
+      "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-730pm"
+    ],
+    "html_canonical_urls": [
+      "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-730pm"
+    ],
+    "main_headings": [
+      "Big Beaver Brewing"
+    ],
+    "main_header_text": [
+      "Big Beaver Brewing Share Saturday, October 24, 2026 Seating Begins 7 PM \u00b7 Show 7:30 p.m. Okotoks , AB"
+    ],
+    "identities": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-730pm",
+        "native_event_ids": [
+          "8c4e9da7-24a7-4f8d-8ddd-4081894e1e81"
+        ],
+        "date": "2026-10-24T19:30:00-06:00",
+        "status": "https://schema.org/EventScheduled",
+        "name": "Big Beaver Brewing",
+        "venue": {
+          "@type": "Place",
+          "name": "Big Beaver Brewing",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "200 Southridge Dr #1013, Okotoks, AB T1S 0N8",
+            "addressLocality": "Okotoks",
+            "addressRegion": "AB",
+            "postalCode": "T1S 0N8",
+            "addressCountry": "CA"
+          }
+        },
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": 38,
+          "highPrice": 38,
+          "priceCurrency": "CAD",
+          "validFrom": "2026-03-20T19:07:53.819Z",
+          "url": "https://www.nextstopcomedy.com/events/big-beaver-brewing-2026-10-24-730pm",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    ],
+    "main_event_props": [
+      {
+        "eventId": "8c4e9da7-24a7-4f8d-8ddd-4081894e1e81",
+        "currentEventId": "8c4e9da7-24a7-4f8d-8ddd-4081894e1e81",
+        "eventSlug": "big-beaver-brewing-2026-10-24-730pm",
+        "venueTimezone": "America/Edmonton"
+      },
+      {
+        "eventId": "8c4e9da7-24a7-4f8d-8ddd-4081894e1e81",
+        "currentEventId": "8c4e9da7-24a7-4f8d-8ddd-4081894e1e81",
+        "eventSlug": "big-beaver-brewing-2026-10-24-730pm",
+        "venueTimezone": "America/Edmonton"
+      }
+    ],
+    "extractor_event_count": 1,
+    "disposition": "canonical_url_changed",
+    "task_4122_disposition": "scheduled_redirect_control"
+  },
+  {
+    "input": {
+      "id": 6213884,
+      "club_id": 45259,
+      "date": "2026-10-25T00:00:00+00:00",
+      "show_page_url": "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_name": "Pinfish Entertainment"
+    },
+    "requested_url": "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm",
+    "fetched_at": "2026-10-06T23:51:07.607451+00:00",
+    "http_observations": [
+      {
+        "requested_url": "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm",
+        "response_url": "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm",
+        "status_code": 200,
+        "redirect_count": 0,
+        "history": []
+      }
+    ],
+    "length": 98745,
+    "body_sha256": "dd6a5504d150232625316042d07c8aadcc59783e47c53a6b291b7e59c3f55ca1",
+    "canonical_jsonld_urls": [
+      "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm"
+    ],
+    "html_canonical_urls": [
+      "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm"
+    ],
+    "main_headings": [
+      "Pinfish Entertainment"
+    ],
+    "main_header_text": [
+      "Pinfish Entertainment Share Saturday, October 24, 2026 Seating Begins 7:30 PM \u00b7 Show 8:00 PM Tavernier , FL"
+    ],
+    "identities": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm",
+        "native_event_ids": [],
+        "date": "2026-10-24T20:00:00-04:00",
+        "status": "https://schema.org/EventCancelled",
+        "name": "Pinfish Entertainment",
+        "venue": {
+          "@type": "Place",
+          "name": "Pinfish Entertainment",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "91214 Overseas Highway",
+            "addressLocality": "Tavernier",
+            "addressRegion": "FL",
+            "postalCode": "33070",
+            "addressCountry": "US"
+          }
+        },
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": 27,
+          "highPrice": 27,
+          "priceCurrency": "USD",
+          "validFrom": "2026-08-29T20:14:34.243Z",
+          "url": "https://www.nextstopcomedy.com/events/pinfish-entertainment-2026-10-24-8-pm",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    ],
+    "main_event_props": [],
+    "extractor_event_count": 0,
+    "disposition": "ambiguous_or_missing_main_identity",
+    "task_4122_disposition": "verified_exact_cancellation_candidate"
+  },
+  {
+    "input": {
+      "id": 6311574,
+      "club_id": 47475,
+      "date": "2026-11-08T00:00:00+00:00",
+      "show_page_url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-07-7-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_name": "Formosa Winery"
+    },
+    "requested_url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-07-7-pm",
+    "fetched_at": "2026-10-06T23:51:07.607455+00:00",
+    "http_observations": [
+      {
+        "requested_url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-07-7-pm",
+        "response_url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+        "status_code": 200,
+        "redirect_count": 1,
+        "history": []
+      }
+    ],
+    "length": 102693,
+    "body_sha256": "90c61243e6818ec1893379e084ebbef2fdf95ac0bd9f34865c8bcaef9250e068",
+    "canonical_jsonld_urls": [
+      "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm"
+    ],
+    "html_canonical_urls": [
+      "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm"
+    ],
+    "main_headings": [
+      "Formosa Winery"
+    ],
+    "main_header_text": [
+      "Formosa Winery Share Friday, November 6, 2026 Seating Begins 6:30 PM \u00b7 Show 7:00 PM Kissimmee , FL"
+    ],
+    "identities": [
+      {
+        "url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+        "native_event_ids": [],
+        "date": "2026-11-06T19:00:00-05:00",
+        "status": "https://schema.org/EventCancelled",
+        "name": "Formosa Winery",
+        "venue": {
+          "@type": "Place",
+          "name": "Formosa Winery",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "3011 Formosa Gardens Blvd.",
+            "addressLocality": "Kissimmee",
+            "addressRegion": "FL",
+            "postalCode": "34747",
+            "addressCountry": "US"
+          }
+        },
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": 27,
+          "highPrice": 27,
+          "priceCurrency": "USD",
+          "validFrom": "2026-08-31T17:36:43.530Z",
+          "url": "https://www.nextstopcomedy.com/events/formosa-winery-2026-11-06-7-pm",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    ],
+    "main_event_props": [],
+    "extractor_event_count": 0,
+    "disposition": "ambiguous_or_missing_main_identity",
+    "task_4122_disposition": "hold_redirected_cancellation_identity"
+  },
+  {
+    "input": {
+      "id": 7557421,
+      "club_id": 79275,
+      "date": "2026-12-05T03:00:00+00:00",
+      "show_page_url": "https://www.nextstopcomedy.com/events/xanadu-astoria-2026-12-04-7-pm",
+      "last_scraped_by": "next_stop_comedy",
+      "club_name": "Xanadu Astoria"
+    },
+    "requested_url": "https://www.nextstopcomedy.com/events/xanadu-astoria-2026-12-04-7-pm",
+    "fetched_at": "2026-10-06T23:51:07.607459+00:00",
+    "http_observations": [
+      {
+        "requested_url": "https://www.nextstopcomedy.com/events/xanadu-astoria-2026-12-04-7-pm",
+        "response_url": "https://www.nextstopcomedy.com/events/xanadu-astoria-2026-12-04-7-pm",
+        "status_code": 404,
+        "redirect_count": 0,
+        "history": []
+      }
+    ],
+    "length": 25716,
+    "body_sha256": "15bda93baab6b9b5bedc2b969250efa8a57b7fff0fc270b3adec2771f83dce0e",
+    "canonical_jsonld_urls": [],
+    "html_canonical_urls": [],
+    "main_headings": [],
+    "main_header_text": [],
+    "identities": [],
+    "main_event_props": [],
+    "extractor_event_count": 0,
+    "disposition": "ambiguous_or_missing_main_identity",
+    "task_4122_disposition": "hold_http_404_control"
+  }
+]

@@ -616,3 +616,31 @@ class TestStaleFutureShowReconciliation:
         outcome = proc.insert_club_result(self._clean_result())
 
         assert outcome.inserts == 1  # persistence result still returned
+
+
+def test_cancellation_persists_before_cleanup_even_without_scheduled_shows():
+    proc = _make_processor()
+    result = _make_result('Next Stop', num_shows=0, scraper_key='next_stop_comedy')
+    result.production_company_id = 35
+    intent = MagicMock(scraper_key='next_stop_comedy', production_company_id=35)
+    result.cancellations = [intent]
+    calls = []
+    proc.show_service.show_handler.apply_cancellations.side_effect = lambda intents: calls.append('cancel') or [101]
+    proc._reconcile_stale_future_shows = lambda *args: calls.append('cleanup')
+    outcome = proc.insert_club_result(result)
+    assert calls == ['cancel', 'cleanup']
+    assert outcome.updates == 1
+
+
+def test_cancellation_persistence_failure_blocks_cleanup_with_partial_success():
+    proc = _make_processor()
+    result = _make_result('Next Stop', num_shows=1, scraper_key='next_stop_comedy')
+    result.production_company_id = 35
+    result.cancellations = [MagicMock(scraper_key='next_stop_comedy', production_company_id=35)]
+    proc.show_service.insert_shows.return_value = DatabaseOperationResult(updates=1)
+    proc.show_service.show_handler.apply_cancellations.side_effect = ValueError('identity changed')
+    proc._reconcile_stale_future_shows = MagicMock()
+    outcome = proc.insert_club_result(result)
+    assert outcome.updates == 1 and outcome.db_errors == 1
+    assert 'identity changed' in outcome.error_entries[0][1]
+    proc._reconcile_stale_future_shows.assert_not_called()
