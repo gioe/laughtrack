@@ -10,7 +10,8 @@ from laughtrack.foundation.models.operation_result import DatabaseOperationResul
 
 def _make_processor():
     from laughtrack.utilities.domain.scraper.result import ScrapingResultProcessor
-    with patch.object(ScrapingResultProcessor, '__init__', lambda self, *a, **kw: None):
+
+    with patch.object(ScrapingResultProcessor, "__init__", lambda self, *a, **kw: None):
         proc = ScrapingResultProcessor.__new__(ScrapingResultProcessor)
         proc.show_service = MagicMock()
         proc.metrics_service = MagicMock()
@@ -23,7 +24,10 @@ def _make_processor():
 def _make_result(club_name, num_shows=2, error=None, scraper_key=None):
     shows = [MagicMock() for _ in range(num_shows)]
     return ClubScrapingResult(
-        club_name=club_name, shows=shows, execution_time=1.0, error=error,
+        club_name=club_name,
+        shows=shows,
+        execution_time=1.0,
+        error=error,
         scraper_key=scraper_key,
     )
 
@@ -38,7 +42,9 @@ class TestInsertClubResult:
         outcome = proc.insert_club_result(result)
 
         proc.show_service.insert_shows.assert_called_once_with(
-            result.shows, club_name="Comedy Club", scraper_key=None,
+            result.shows,
+            club_name="Comedy Club",
+            scraper_key=None,
         )
         assert outcome.inserts == 3
 
@@ -51,7 +57,9 @@ class TestInsertClubResult:
         proc.insert_club_result(result)
 
         proc.show_service.insert_shows.assert_called_once_with(
-            result.shows, club_name="Stress Factory", scraper_key="live_nation",
+            result.shows,
+            club_name="Stress Factory",
+            scraper_key="live_nation",
         )
 
     def test_error_entries_propagated_from_db_errors(self):
@@ -99,9 +107,7 @@ class TestProcessResults:
 
         proc.process_results(club_results, provided_db_result)
 
-        proc.metrics_service.end_session.assert_called_once_with(
-            club_results, provided_db_result, run_type="scraper"
-        )
+        proc.metrics_service.end_session.assert_called_once_with(club_results, provided_db_result, run_type="scraper")
 
     def test_defaults_run_type_to_scraper(self):
         """Full/nightly runs leave run_type at the 'scraper' default so they stay in
@@ -144,7 +150,8 @@ class TestIncrementalPersistenceInScrapeOne:
 
     def _make_service(self):
         from laughtrack.core.services.scraping import ScrapingService
-        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+
+        with patch.object(ScrapingService, "__init__", lambda self, *a, **kw: None):
             svc = ScrapingService.__new__(ScrapingService)
             svc.success_rate_threshold = 70.0
             svc.proxy_pool = None
@@ -171,9 +178,7 @@ class TestIncrementalPersistenceInScrapeOne:
 
         def scraper_factory(club, **kw):
             s = MagicMock()
-            s.scrape_with_result.return_value = (
-                club_a_result if "A" in club.name else club_b_result
-            )
+            s.scrape_with_result.return_value = club_a_result if "A" in club.name else club_b_result
             return s
 
         svc._scraping_resolver.get.return_value = scraper_factory
@@ -201,8 +206,8 @@ class TestIncrementalPersistenceInScrapeOne:
         clubs = [self._make_club(f"Club {i}") for i in range(3)]
         _, _, db_result = svc._scrape_clubs_with_metrics(clubs)
 
-        assert db_result.inserts == 9   # 3 clubs × 3 inserts each
-        assert db_result.updates == 3   # 3 clubs × 1 update each
+        assert db_result.inserts == 9  # 3 clubs × 3 inserts each
+        assert db_result.updates == 3  # 3 clubs × 1 update each
 
     def test_insert_failure_does_not_abort_other_clubs(self):
         """A DB insert failure for one club must not prevent other clubs from being scraped."""
@@ -276,7 +281,7 @@ class TestStaleFutureShowReconciliation:
             shows=[MagicMock()],
             execution_time=1.0,
             club_id=2301,
-            scraper_key="eventbrite",
+            scraper_key="live_nation",
             fetches_ok=1,
             fetches_failed=0,
             items_before_filter=1,
@@ -291,9 +296,7 @@ class TestStaleFutureShowReconciliation:
         cap logic runs (a bare MagicMock would break the numeric comparison)."""
         proc = _make_processor()
         proc.show_service.insert_shows.return_value = DatabaseOperationResult(inserts=1)
-        deleted_rows = [
-            {"id": 1532633, "name": "Cancelled Show", "date": "2026-07-24", "room": ""}
-        ]
+        deleted_rows = [{"id": 1532633, "name": "Cancelled Show", "date": "2026-07-24", "room": ""}]
         proc.show_service.count_stale_future_shows.return_value = stale_count
         proc.show_service.delete_stale_future_shows.return_value = deleted_rows
         # Organizer-scoped variants (TASK-2861): organizer-mode results reconcile
@@ -310,7 +313,7 @@ class TestStaleFutureShowReconciliation:
         proc.show_service.delete_stale_future_shows.assert_called_once()
         args = proc.show_service.delete_stale_future_shows.call_args[0]
         assert args[0] == 2301
-        assert args[1] == "eventbrite"
+        assert args[1] == "live_nation"
         assert isinstance(args[2], datetime)
         assert args[2].tzinfo is not None  # tz-aware UTC cutoff
 
@@ -378,9 +381,7 @@ class TestStaleFutureShowReconciliation:
     def test_no_reconcile_when_no_fetch_succeeded(self):
         """fetches_ok == 0 is the DEGRADED fallback — absence is not trustworthy."""
         proc = self._proc()
-        proc.insert_club_result(
-            self._clean_result(shows=[], fetches_ok=0, items_before_filter=0)
-        )
+        proc.insert_club_result(self._clean_result(shows=[], fetches_ok=0, items_before_filter=0))
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
     def test_no_reconcile_when_classifier_rejected_all(self):
@@ -414,13 +415,10 @@ class TestStaleFutureShowReconciliation:
 
         proc.insert_club_result(self._organizer_result([101, 101, 202]))
 
-        deleted_club_ids = sorted(
-            call.args[0]
-            for call in proc.show_service.delete_stale_future_shows.call_args_list
-        )
+        deleted_club_ids = sorted(call.args[0] for call in proc.show_service.delete_stale_future_shows.call_args_list)
         assert deleted_club_ids == [101, 202]
         for call in proc.show_service.delete_stale_future_shows.call_args_list:
-            assert call.args[1] == "eventbrite"
+            assert call.args[1] == "live_nation"
             assert call.args[2].tzinfo is not None  # tz-aware UTC cutoff
         # The synthetic proxy id (0) is never the delete target.
         assert 0 not in deleted_club_ids
@@ -432,10 +430,7 @@ class TestStaleFutureShowReconciliation:
 
         proc.insert_club_result(self._organizer_result([None, 0, 303]))
 
-        deleted_club_ids = [
-            call.args[0]
-            for call in proc.show_service.delete_stale_future_shows.call_args_list
-        ]
+        deleted_club_ids = [call.args[0] for call in proc.show_service.delete_stale_future_shows.call_args_list]
         assert deleted_club_ids == [303]
 
     def test_organizer_applies_cap_per_venue(self):
@@ -451,18 +446,13 @@ class TestStaleFutureShowReconciliation:
 
         proc.insert_club_result(self._organizer_result([101, 202]))
 
-        deleted_club_ids = [
-            call.args[0]
-            for call in proc.show_service.delete_stale_future_shows.call_args_list
-        ]
+        deleted_club_ids = [call.args[0] for call in proc.show_service.delete_stale_future_shows.call_args_list]
         assert deleted_club_ids == [202]  # 101 skipped by the cap, 202 deleted
 
     def test_organizer_still_gated_on_clean_scrape(self):
         """A degraded organizer scrape (bot-blocked) reconciles no venue."""
         proc = self._proc()
-        proc.insert_club_result(
-            self._organizer_result([101, 202], bot_block_detected=True)
-        )
+        proc.insert_club_result(self._organizer_result([101, 202], bot_block_detected=True))
         proc.show_service.count_stale_future_shows.assert_not_called()
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
@@ -493,9 +483,7 @@ class TestStaleFutureShowReconciliation:
         proc = self._proc(stale_count=1)
         proc.organizer_venue_handler.get_venue_club_ids.return_value = []
 
-        proc.insert_club_result(
-            self._organizer_result([101, 202], production_company_id=55)
-        )
+        proc.insert_club_result(self._organizer_result([101, 202], production_company_id=55))
 
         calls = proc.show_service.delete_stale_future_shows_by_organizer.call_args_list
         assert sorted(c.args[0] for c in calls) == [101, 202]
@@ -511,13 +499,9 @@ class TestStaleFutureShowReconciliation:
         proc = self._proc(stale_count=0)  # no stale shows; just exercise history
         proc.organizer_venue_handler.get_venue_club_ids.return_value = []
 
-        proc.insert_club_result(
-            self._organizer_result([101, 202], production_company_id=55)
-        )
+        proc.insert_club_result(self._organizer_result([101, 202], production_company_id=55))
 
-        proc.organizer_venue_handler.record_venues.assert_called_once_with(
-            55, [101, 202]
-        )
+        proc.organizer_venue_handler.record_venues.assert_called_once_with(55, [101, 202])
 
     def test_no_history_ops_without_production_company_id(self):
         """Without a production_company_id no attribution was stamped, so the run
@@ -540,9 +524,7 @@ class TestStaleFutureShowReconciliation:
         # Prior run saw 101, 202, 303; this run only carries 101, 202.
         proc.organizer_venue_handler.get_venue_club_ids.return_value = [101, 202, 303]
 
-        proc.insert_club_result(
-            self._organizer_result([101, 202], production_company_id=55)
-        )
+        proc.insert_club_result(self._organizer_result([101, 202], production_company_id=55))
 
         calls = proc.show_service.delete_stale_future_shows_by_organizer.call_args_list
         # 101 + 202 present, 303 dropped — all scoped to organizer 55.
@@ -556,13 +538,9 @@ class TestStaleFutureShowReconciliation:
         """If reading the prior venue set errors, the dropped-venue pass aborts
         early and does NOT overwrite history — but present venues still reconcile."""
         proc = self._proc(stale_count=1)
-        proc.organizer_venue_handler.get_venue_club_ids.side_effect = RuntimeError(
-            "db down"
-        )
+        proc.organizer_venue_handler.get_venue_club_ids.side_effect = RuntimeError("db down")
 
-        proc.insert_club_result(
-            self._organizer_result([101], production_company_id=55)
-        )
+        proc.insert_club_result(self._organizer_result([101], production_company_id=55))
 
         # Present-venue reconcile still ran (101 deleted, organizer-scoped)...
         calls = proc.show_service.delete_stale_future_shows_by_organizer.call_args_list
@@ -620,27 +598,63 @@ class TestStaleFutureShowReconciliation:
 
 def test_cancellation_persists_before_cleanup_even_without_scheduled_shows():
     proc = _make_processor()
-    result = _make_result('Next Stop', num_shows=0, scraper_key='next_stop_comedy')
+    result = _make_result("Next Stop", num_shows=0, scraper_key="next_stop_comedy")
     result.production_company_id = 35
-    intent = MagicMock(scraper_key='next_stop_comedy', production_company_id=35)
+    intent = MagicMock(scraper_key="next_stop_comedy", production_company_id=35)
     result.cancellations = [intent]
     calls = []
-    proc.show_service.show_handler.apply_cancellations.side_effect = lambda intents: calls.append('cancel') or [101]
-    proc._reconcile_stale_future_shows = lambda *args: calls.append('cleanup')
+    proc.show_service.show_handler.apply_cancellations.side_effect = lambda intents: calls.append("cancel") or [101]
+    proc._reconcile_stale_future_shows = lambda *args: calls.append("cleanup")
     outcome = proc.insert_club_result(result)
-    assert calls == ['cancel', 'cleanup']
+    assert calls == ["cancel", "cleanup"]
     assert outcome.updates == 1
 
 
 def test_cancellation_persistence_failure_blocks_cleanup_with_partial_success():
     proc = _make_processor()
-    result = _make_result('Next Stop', num_shows=1, scraper_key='next_stop_comedy')
+    result = _make_result("Next Stop", num_shows=1, scraper_key="next_stop_comedy")
     result.production_company_id = 35
-    result.cancellations = [MagicMock(scraper_key='next_stop_comedy', production_company_id=35)]
+    result.cancellations = [MagicMock(scraper_key="next_stop_comedy", production_company_id=35)]
     proc.show_service.insert_shows.return_value = DatabaseOperationResult(updates=1)
-    proc.show_service.show_handler.apply_cancellations.side_effect = ValueError('identity changed')
+    proc.show_service.show_handler.apply_cancellations.side_effect = ValueError("identity changed")
     proc._reconcile_stale_future_shows = MagicMock()
     outcome = proc.insert_club_result(result)
     assert outcome.updates == 1 and outcome.db_errors == 1
-    assert 'identity changed' in outcome.error_entries[0][1]
+    assert "identity changed" in outcome.error_entries[0][1]
     proc._reconcile_stale_future_shows.assert_not_called()
+
+
+@pytest.mark.parametrize("stale_count", [1, 10])
+@pytest.mark.parametrize("synthetic", [False, True])
+@pytest.mark.parametrize("fetch_state", [(1, 0), (0, 0), (1, 1), (0, 1)])
+@pytest.mark.parametrize("num_shows", [0, 1])
+def test_eventbrite_unresolved_inventory_never_reconciled(stale_count, synthetic, fetch_state, num_shows):
+    """At/below the delete cap, feed omissions still cannot erase references."""
+    proc = _make_processor()
+    proc.show_service.insert_shows.return_value = DatabaseOperationResult(inserts=num_shows)
+    proc.show_service.count_stale_future_shows.return_value = stale_count
+    proc.show_service.count_stale_future_shows_by_organizer.return_value = stale_count
+    proc.organizer_venue_handler.get_venue_club_ids.return_value = [575, 999]
+    show = MagicMock()
+    show.club_id = 575
+    result = ClubScrapingResult(
+        club_name="Attic organizer",
+        club_id=575,
+        scraper_key="eventbrite",
+        is_synthetic=synthetic,
+        production_company_id=42 if synthetic else None,
+        shows=[show] if num_shows else [],
+        execution_time=1.0,
+        fetches_ok=fetch_state[0],
+        fetches_failed=fetch_state[1],
+    )
+    proc.insert_club_result(result)
+    if num_shows:
+        proc.show_service.insert_shows.assert_called_once()
+    # Prevent the entry to both deleting services; this also prevents cascades
+    # into tickets, clicks, saved shows, notifications and other child tables.
+    proc.show_service.count_stale_future_shows.assert_not_called()
+    proc.show_service.delete_stale_future_shows.assert_not_called()
+    proc.show_service.count_stale_future_shows_by_organizer.assert_not_called()
+    proc.show_service.delete_stale_future_shows_by_organizer.assert_not_called()
+    proc.organizer_venue_handler.get_venue_club_ids.assert_not_called()

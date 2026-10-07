@@ -17,7 +17,6 @@ from laughtrack.core.models.results import ClubScrapingResult
 from laughtrack.core.services.metrics import MetricsService
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
-
 # Safety cap for stale-show reconciliation (TASK-2847). A single clean scrape
 # that would drop more than this many future shows for one club at once is far
 # more likely a silent parser break (upstream format change yielding zero/near-
@@ -71,9 +70,11 @@ class ScrapingResultProcessor:
 
         if club_result.cancellations:
             try:
-                if any(intent.scraper_key != club_result.scraper_key
-                       or intent.production_company_id != club_result.production_company_id
-                       for intent in club_result.cancellations):
+                if any(
+                    intent.scraper_key != club_result.scraper_key
+                    or intent.production_company_id != club_result.production_company_id
+                    for intent in club_result.cancellations
+                ):
                     raise ValueError("Cancellation attribution differs from scrape result")
                 changed = self.show_service.show_handler.apply_cancellations(club_result.cancellations)
                 db_result.updates += len(changed)
@@ -94,9 +95,7 @@ class ScrapingResultProcessor:
             self._reconcile_stale_future_shows(club_result, reconcile_cutoff)
         return db_result
 
-    def _reconcile_stale_future_shows(
-        self, club_result: ClubScrapingResult, cutoff: datetime
-    ) -> None:
+    def _reconcile_stale_future_shows(self, club_result: ClubScrapingResult, cutoff: datetime) -> None:
         """Delete future shows this scraper stopped seeing on a CLEAN scrape.
 
         Gated on :meth:`_is_clean_for_reconciliation` so a failed, errored, or
@@ -112,6 +111,15 @@ class ScrapingResultProcessor:
         the upsert re-creates a show on a later clean scrape if the source brings
         it back (self-healing).
         """
+        if club_result.scraper_key == "eventbrite":
+            # The live/public API excludes private, unpublished and otherwise
+            # unresolved events. Even complete pagination cannot establish that
+            # an omitted event is cancelled or safe to delete with its history.
+            Logger.info(
+                f"Eventbrite stale-show reconciliation SKIPPED for '{club_result.club_name}': "
+                "live/public feed absence is not deletion evidence"
+            )
+            return
         if not self._is_clean_for_reconciliation(club_result):
             return
         if not club_result.scraper_key:
@@ -130,9 +138,7 @@ class ScrapingResultProcessor:
             cutoff,
         )
 
-    def _reconcile_organizer_venues(
-        self, club_result: ClubScrapingResult, cutoff: datetime
-    ) -> None:
+    def _reconcile_organizer_venues(self, club_result: ClubScrapingResult, cutoff: datetime) -> None:
         """Reconcile an organizer-mode scrape's present AND dropped venues.
 
         An Eventbrite organizer feed (source URL with ``/o/``) fans one fetch out
@@ -174,8 +180,7 @@ class ScrapingResultProcessor:
             {
                 show.club_id
                 for show in club_result.shows
-                if getattr(show, "club_id", None) is not None
-                and show.club_id != Club.SYNTHETIC_PROXY_PLACEHOLDER_ID
+                if getattr(show, "club_id", None) is not None and show.club_id != Club.SYNTHETIC_PROXY_PLACEHOLDER_ID
             }
         )
         pc_id = club_result.production_company_id
@@ -200,9 +205,7 @@ class ScrapingResultProcessor:
                 cutoff,
             )
 
-        self._reconcile_dropped_organizer_venues(
-            pc_id, venue_club_ids, club_result.club_name, cutoff
-        )
+        self._reconcile_dropped_organizer_venues(pc_id, venue_club_ids, club_result.club_name, cutoff)
 
     def _reconcile_dropped_organizer_venues(
         self,
@@ -221,14 +224,9 @@ class ScrapingResultProcessor:
         run continues.
         """
         try:
-            prior = set(
-                self.organizer_venue_handler.get_venue_club_ids(production_company_id)
-            )
+            prior = set(self.organizer_venue_handler.get_venue_club_ids(production_company_id))
         except Exception as e:
-            Logger.error(
-                f"Organizer venue-history read failed for "
-                f"production_company={production_company_id}: {e}"
-            )
+            Logger.error(f"Organizer venue-history read failed for " f"production_company={production_company_id}: {e}")
             return
 
         current = set(current_club_ids)
@@ -241,9 +239,7 @@ class ScrapingResultProcessor:
                     cutoff,
                 )
                 # This organizer no longer produces the venue — drop the history claim.
-                self.organizer_venue_handler.forget_venue(
-                    production_company_id, club_id
-                )
+                self.organizer_venue_handler.forget_venue(production_company_id, club_id)
             except Exception as e:
                 Logger.error(
                     f"Dropped-venue reconciliation failed for "
@@ -251,49 +247,34 @@ class ScrapingResultProcessor:
                 )
 
         try:
-            self.organizer_venue_handler.record_venues(
-                production_company_id, sorted(current)
-            )
+            self.organizer_venue_handler.record_venues(production_company_id, sorted(current))
         except Exception as e:
             Logger.error(
-                f"Organizer venue-history write failed for "
-                f"production_company={production_company_id}: {e}"
+                f"Organizer venue-history write failed for " f"production_company={production_company_id}: {e}"
             )
 
-    def _reconcile_one_venue(
-        self, club_id: int, scraper_key: str, label: str, cutoff: datetime
-    ) -> None:
+    def _reconcile_one_venue(self, club_id: int, scraper_key: str, label: str, cutoff: datetime) -> None:
         """Single-venue / non-organizer reconcile, scoped by (club_id, scraper_key).
 
         Scoping to ``scraper_key`` keeps a multi-source club's other scrapers'
         shows untouched; the ``cutoff`` excludes rows re-stamped this run.
         """
         self._apply_stale_reconcile(
-            lambda: self.show_service.count_stale_future_shows(
-                club_id, scraper_key, cutoff
-            ),
-            lambda: self.show_service.delete_stale_future_shows(
-                club_id, scraper_key, cutoff
-            ),
+            lambda: self.show_service.count_stale_future_shows(club_id, scraper_key, cutoff),
+            lambda: self.show_service.delete_stale_future_shows(club_id, scraper_key, cutoff),
             label,
             f"scraper={scraper_key}",
         )
 
-    def _reconcile_one_organizer_venue(
-        self, club_id: int, organizer_id: int, label: str, cutoff: datetime
-    ) -> None:
+    def _reconcile_one_organizer_venue(self, club_id: int, organizer_id: int, label: str, cutoff: datetime) -> None:
         """Organizer-mode reconcile, scoped by (club_id, scraped_by_organizer_id).
 
         Deletes only the shows THIS organizer produced for the venue (TASK-2861),
         so a sibling organizer/source's shows at a shared venue are never removed.
         """
         self._apply_stale_reconcile(
-            lambda: self.show_service.count_stale_future_shows_by_organizer(
-                club_id, organizer_id, cutoff
-            ),
-            lambda: self.show_service.delete_stale_future_shows_by_organizer(
-                club_id, organizer_id, cutoff
-            ),
+            lambda: self.show_service.count_stale_future_shows_by_organizer(club_id, organizer_id, cutoff),
+            lambda: self.show_service.delete_stale_future_shows_by_organizer(club_id, organizer_id, cutoff),
             label,
             f"organizer={organizer_id}",
         )
@@ -321,14 +302,10 @@ class ScrapingResultProcessor:
                 return
             deleted = delete()
         except Exception as e:  # pragma: no cover - defensive; never fail the run
-            Logger.error(
-                f"Stale-show reconciliation failed for '{label}': {e}"
-            )
+            Logger.error(f"Stale-show reconciliation failed for '{label}': {e}")
             return
         if deleted:
-            titles = ", ".join(
-                f"{row.get('name') or '(untitled)'} @ {row.get('date')}" for row in deleted
-            )
+            titles = ", ".join(f"{row.get('name') or '(untitled)'} @ {row.get('date')}" for row in deleted)
             Logger.warn(
                 f"Reconciled {len(deleted)} stale future show(s) for "
                 f"'{label}' ({scope_desc}, "
@@ -350,10 +327,7 @@ class ScrapingResultProcessor:
         try:
             return int(raw)
         except ValueError:
-            Logger.warn(
-                f"Invalid RECONCILE_DELETE_CAP={raw!r}; using default "
-                f"{_DEFAULT_RECONCILE_DELETE_CAP}"
-            )
+            Logger.warn(f"Invalid RECONCILE_DELETE_CAP={raw!r}; using default " f"{_DEFAULT_RECONCILE_DELETE_CAP}")
             return _DEFAULT_RECONCILE_DELETE_CAP
 
     @staticmethod
