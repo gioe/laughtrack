@@ -1,0 +1,35 @@
+{
+  "task_id": 4126,
+  "checked_at": "2026-10-07T14:57:41.116612+00:00",
+  "full_artifact_sha256": "60023fec3a841760dbe241e4a127fc0f1bda5168c281b07a989483cc4f1e68bb",
+  "passes": 2,
+  "each_pass": {
+    "pages": 1,
+    "source_events": 45,
+    "http_status": 200,
+    "fetches_ok": 1,
+    "fetches_failed": 0,
+    "scrape_errors": [],
+    "bot_block_detected": false,
+    "routed_club_counts": {"575": 1, "29044": 44}
+  },
+  "preserved_cohort": {
+    "shows": 16,
+    "tickets": 16,
+    "lineup_items": 0,
+    "tagged_shows": 59,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 359
+  },
+  "all_show_fields_and_children_unchanged": true,
+  "repeated_inventory_and_routing_equal": true,
+  "cleanup_simulation_candidate_counts": [1, 9, 10],
+  "cleanup_simulation_modes": ["venue", "synthetic_organizer"],
+  "cleanup_simulation_clean_gate": true,
+  "cleanup_simulation_persistence_calls": 0,
+  "production_writes": 0,
+  "show_persistence_calls": 0,
+  "scope": "Live read-only organizer refresh and cleanup simulations, not a production persistence run"
+}
