@@ -1,0 +1,35 @@
+{
+  "stage": "apply",
+  "verified_at": "2026-10-07T20:30:50.598785+00:00",
+  "destination_id": 93720,
+  "show_count": 192,
+  "dependent_counts": {
+    "tickets": 192,
+    "lineup_items": 12,
+    "tagged_shows": 989,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 2826
+  },
+  "changed_show_fields": {
+    "7898492": [
+      "club_id",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7898494": [
+      "club_id",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ],
+    "7898497": [
+      "club_id",
+      "production_company_id",
+      "scraped_by_organizer_id"
+    ]
+  },
+  "existing_show_ids_preserved": true,
+  "existing_dependencies_preserved": true,
+  "source_ownership_preserved": true
+}

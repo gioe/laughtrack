@@ -1,7 +1,6 @@
 # TASK-4131 — Royce evidence and unresolved postal identity
 
-Status: identity policy resolved by operator; guarded repair in preparation.
-No production writes or live persistence run have been performed yet.
+Status: guarded repair applied and independently verified; live scrape verification pending.
 
 On 2026-10-07 the scraper-native Wix HTTP stack fetched the complete source291
 feed: 51 events across two pages, with hasMore=false on the last page.
@@ -16,8 +15,8 @@ The same three reviewed Royce occurrences remain in the source and database:
 | 7898494 | 54f73481-a918-4f0c-8a45-b42a6995f47e | 2026-10-17T23:00:00Z |
 | 7898497 | 2634bee1-2f29-42bf-b9a8-d23e175021ea | 2026-10-18T01:00:00Z |
 
-All three still belong to club412, have room The Royce Social Hall, and lack
-producer fields. Source291 remains enabled and owned by club412. Its four
+Before repair, all three belonged to club412, had room The Royce Social Hall,
+and lacked producer fields. Source291 remains enabled and owned by club412. Its four
 reviewed routes (two Resorts rooms, Hi Point, Cove) and producer46 are intact.
 No existing Royce club was found by venue-name or the candidate street addresses.
 
@@ -53,4 +52,32 @@ apply, then validate normal live scraping reuses the repaired IDs and preserves
 Resorts/Hi Point/Cove assignments. Suite conflicts must remain held.
 
 October16 is **8:30 PM EDT**, as stated by the fresh event title and startDate.
-The 8PM slug is not time evidence. No acceptance criterion is complete yet.
+The 8PM slug is not time evidence. The routing regression criterion is complete.
+
+## Applied repair
+
+The new guarded script is `scripts/core/repair_ac_jokes_royce.py`. It reuses the
+existing schema locks, exact venue resolution, row snapshots, and 0600 recovery
+writer. Its private plan must contain complete before-images and the three raw
+native occurrences; the plan and private before/after backup are excluded from Git.
+It verifies the exact native-ID-to-show mapping, URL, UTC instant, location, and
+confirmed schedule, then requires every protected row to still match.
+
+Nineteen PostgreSQL tests passed using connection-local temporary tables with
+rollback cleanup. They cover preservation/idempotence; show, source, inventory,
+dependency, venue and schema drift; collisions; failed backup writes; altered
+native IDs/dates/slugs; and conflicting address/suite or TBD data.
+
+The production dry-run rolled back. Independent comparison found all192shows,
+192tickets,12lineup links,989tags and2826purchase-click rows exactly unchanged.
+Apply created physical club **93720**, linked existing producer **46**, and
+changed only club_id, production_company_id and scraped_by_organizer_id on the
+three approved show IDs. All other show columns and all seven dependency tables
+were preserved exactly. Source291 retained ownership, enabled state, previous
+routes and metadata; only the Royce route and repair marker were added.
+An immediate repeat returned already_applied=true. See rollback-verification.json
+and apply-verification.json for sanitized independent comparisons.
+
+Future reruns after legitimate scraping may refuse the old snapshot; that is an
+intentional guard. Recovery requires comparing current rows to the private saved
+after-image before restoring selected fields. Never restore old TASK4110 backups.

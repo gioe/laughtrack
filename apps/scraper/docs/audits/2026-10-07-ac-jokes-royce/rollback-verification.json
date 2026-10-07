@@ -1,0 +1,19 @@
+{
+  "stage": "rollback",
+  "verified_at": "2026-10-07T20:27:53.575219+00:00",
+  "destination_id": null,
+  "show_count": 192,
+  "dependent_counts": {
+    "tickets": 192,
+    "lineup_items": 12,
+    "tagged_shows": 989,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 2826
+  },
+  "changed_show_fields": {},
+  "existing_show_ids_preserved": true,
+  "existing_dependencies_preserved": true,
+  "source_ownership_preserved": true
+}
