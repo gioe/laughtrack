@@ -5,8 +5,8 @@ The venue runs a custom Next.js site (Vercel + Sanity CMS) and sells every show
 through on-site Stripe checkout — there is no ticketing-platform feed (Eventbrite
 is used only for occasional guest events). The venue-owned ``/shows`` page
 server-renders a schema.org ``ItemList`` of upcoming shows; each item carries a
-title plus a detail URL whose slug encodes the date and start time
-(e.g. ``/shows/friday-7pm-2026-06-26``).
+title plus a detail URL. Recurring slugs encode the date and start time
+(e.g. ``/shows/friday-7pm-2026-06-26``); named events need detail Event metadata.
 
 Pipeline:
   1. collect_scraping_targets() -> [/shows URL from scraping_sources.source_url]
@@ -54,6 +54,8 @@ class DenverComedyLoungeScraper(BaseScraper):
             return None
 
         shows = DenverComedyLoungeExtractor.extract_shows(html_content)
+        named_urls = DenverComedyLoungeExtractor.extract_named_event_urls(html_content)
+        await self._hydrate_prices(shows, named_urls)
         if not shows:
             self._warn_empty_extraction(
                 url,
@@ -62,37 +64,41 @@ class DenverComedyLoungeScraper(BaseScraper):
             )
             return None
 
-        await self._hydrate_prices(shows)
-
         Logger.info(
             f"{self._log_prefix}: extracted {len(shows)} shows from {url}",
             self.logger_context,
         )
         return DenverComedyLoungePageData(event_list=shows)
 
-    async def _hydrate_prices(self, shows: List[DenverComedyLoungeShow]) -> None:
-        """Fetch each show's detail page and attach its Offer price in place.
+    async def _hydrate_prices(self, shows: List[DenverComedyLoungeShow],
+                              named_urls: Optional[List[str]] = None) -> None:
+        """Resolve named performances and prices with one bounded fetch per detail URL.
 
-        The /shows ItemList exposes no price, so we fetch each per-show detail
-        page (which server-renders an Event JSON-LD ``offers`` array) and set
-        ``show.price`` from it. Each fetch is isolated: a failed/empty detail
-        page, or one without offers, simply leaves ``price`` as None rather than
-        dropping the show.
+        Recurring shows survive failed enrichment. Named shows are added only when
+        their own detail Event supplies an unambiguous aware start time.
         """
         semaphore = asyncio.Semaphore(4)
 
-        async def hydrate(show):
+        async def hydrate(url, show=None):
             async with semaphore:
                 try:
                     detail_html = await asyncio.wait_for(
-                        self.fetch_html(show.show_page_url, skip_js_fallback=True), 10)
+                        self.fetch_html(url, skip_js_fallback=True), 10)
+                    if show is None:
+                        show = DenverComedyLoungeExtractor.extract_named_show(detail_html, url)
+                        if show is None:
+                            Logger.warn(f"{self._log_prefix}: unresolved named performance at {url}")
+                            return
+                        shows.append(show)
                     price = DenverComedyLoungeExtractor.extract_offer_price(detail_html, show)
                     if price is not None:
                         show.price = price
                 except Exception as exc:
-                    Logger.warn(f"{self._log_prefix}: price fetch failed for {show.show_page_url}: {exc}")
+                    Logger.warn(f"{self._log_prefix}: detail fetch failed for {url}: {exc}")
 
+        jobs = [hydrate(show.show_page_url, show) for show in shows]
+        jobs.extend(hydrate(url) for url in (named_urls or []))
         try:
-            await asyncio.wait_for(asyncio.gather(*(hydrate(show) for show in shows)), 30)
+            await asyncio.wait_for(asyncio.gather(*jobs), 30)
         except asyncio.TimeoutError:
-            Logger.warn(f"{self._log_prefix}: price enrichment exceeded 30 seconds")
+            Logger.warn(f"{self._log_prefix}: detail enrichment exceeded 30 seconds")

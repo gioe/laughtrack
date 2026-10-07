@@ -1,6 +1,7 @@
 """Data models for the Denver Comedy Lounge scraper."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -28,13 +29,16 @@ class DenverComedyLoungeShow:
     shows where each item exposes a name and a detail URL whose slug encodes the
     weekday, start time, and date (e.g. ``/shows/friday-7pm-2026-06-26``). The
     extractor parses that slug into ``datetime_str`` (naive local) and keeps the
-    detail URL as ``show_page_url``.
+    detail URL as ``show_page_url``. Named events use the matched detail Event
+    startDate, retained as an aware local ``start_datetime``.
     """
 
     title: str
     datetime_str: str
     show_page_url: str
     price: Optional[float] = None
+    # Preserve the verified instant, including DST fold, for named events.
+    start_datetime: Optional[datetime] = None
 
     def to_show(
         self,
@@ -43,7 +47,7 @@ class DenverComedyLoungeShow:
         url: Optional[str] = None,
     ) -> Optional[Show]:
         """Convert to a Show entity, or None when the datetime can't be parsed."""
-        date = ShowFactoryUtils.safe_parse_datetime_string(
+        date = self.start_datetime or ShowFactoryUtils.safe_parse_datetime_string(
             self.datetime_str,
             _DATETIME_FORMAT,
             timezone_name=club.timezone or _DEFAULT_TIMEZONE,

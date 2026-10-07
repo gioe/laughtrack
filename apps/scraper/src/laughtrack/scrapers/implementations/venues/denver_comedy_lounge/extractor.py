@@ -9,13 +9,12 @@ from laughtrack.core.clients.rsc.extractor import extract_push_payloads, extract
 from typing import Any, List, Optional
 from urllib.parse import urlparse
 
-from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.json.utils import JSONUtils
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 
 from .data import DenverComedyLoungeShow
 
-# Each show detail slug encodes weekday, start time, and date, e.g.
+# Recurring show slugs encode weekday, start time, and date, e.g.
 # ``friday-7pm-2026-06-26`` or ``saturday-10pm-2026-09-19``.
 _SLUG_RE = re.compile(r"^[a-z]+-(\d{1,2})(am|pm)-(\d{4})-(\d{2})-(\d{2})$")
 
@@ -26,8 +25,8 @@ class DenverComedyLoungeExtractor:
     The page server-renders a schema.org ``ItemList`` whose ``itemListElement``
     entries each carry a ``name`` (the show title, with a human date suffix) and
     a detail ``url``. The per-show date/time is not in the JSON-LD body — it is
-    encoded in the detail URL slug — so the extractor derives the datetime from
-    the slug and keeps the title (minus its trailing date suffix).
+    encoded in recurring detail URL slugs. Named events instead require a matched
+    detail Event with an explicit, timezone-aware startDate.
     """
 
     @staticmethod
@@ -87,9 +86,6 @@ class DenverComedyLoungeExtractor:
         slug = urlparse(url).path.rstrip("/").rsplit("/", 1)[-1]
         match = _SLUG_RE.match(slug)
         if not match:
-            Logger.warn(
-                f"DenverComedyLoungeExtractor: unparseable show slug {slug!r} ({url})"
-            )
             return None
 
         hour_12, meridiem, year, month, day = match.groups()
@@ -115,37 +111,19 @@ class DenverComedyLoungeExtractor:
         return hour
 
     @staticmethod
-    def extract_offer_price(html_content: str, show: Optional[DenverComedyLoungeShow] = None,
-                            *, now: Optional[datetime] = None) -> Optional[float]:
-        """Read matched, currently available USD General Admission; never VIP packages.
+    def _show_identity(url: Any) -> Optional[str]:
+        if not isinstance(url, str):
+            return None
+        parsed = urlparse(url)
+        if parsed.scheme != "https" or parsed.netloc not in (
+                "denvercomedylounge.com", "www.denvercomedylounge.com"):
+            return None
+        path = parsed.path.rstrip("/")
+        return path if path.startswith("/shows/") else None
 
-        Streamed text chunks can split objects, so decode and concatenate the flight
-        before balanced extraction. Only top-level Event objects are candidates.
-        """
-        if not html_content or show is None:
-            return None
-        now = now or datetime.now(timezone.utc)
-        try:
-            expected = datetime.strptime(show.datetime_str, "%Y-%m-%d %H:%M:%S").replace(
-                tzinfo=ZoneInfo("America/Denver"))
-        except ValueError:
-            return None
-        if expected <= now:
-            return None
-
-        def identity(url):
-            if not isinstance(url, str):
-                return None
-            parsed = urlparse(url)
-            if parsed.scheme != "https" or parsed.netloc not in (
-                    "denvercomedylounge.com", "www.denvercomedylounge.com"):
-                return None
-            path = parsed.path.rstrip("/")
-            return path if path.startswith("/shows/") else None
-
-        target = identity(show.show_page_url)
-        if not target:
-            return None
+    @staticmethod
+    def _event_objects(html_content: str) -> List[dict]:
+        """Read literal and streamed top-level Events without traversing related props."""
         objects = JSONUtils.parse_json_ld_contents(
             HtmlScraper.get_json_ld_script_contents(html_content))
         flight = "".join(extract_push_payloads(html_content))
@@ -160,6 +138,78 @@ class DenverComedyLoungeExtractor:
                 objects.append(json.loads(block))
             except ValueError:
                 continue
+        return [obj for obj in objects if isinstance(obj, dict) and obj.get("@type") == "Event"]
+
+    @staticmethod
+    def extract_named_event_urls(html_content: str) -> List[str]:
+        """Collect venue-owned listing URLs whose slugs do not provide a showtime."""
+        urls = {}
+        for obj in JSONUtils.parse_json_ld_contents(
+                HtmlScraper.get_json_ld_script_contents(html_content)):
+            for element in DenverComedyLoungeExtractor._item_list_elements(obj):
+                item = element.get("item")
+                if not isinstance(item, dict):
+                    continue
+                url = item.get("url")
+                identity = DenverComedyLoungeExtractor._show_identity(url)
+                if identity and not _SLUG_RE.fullmatch(identity.rsplit("/", 1)[-1]):
+                    urls.setdefault(identity, url)
+        return list(urls.values())
+
+    @staticmethod
+    def extract_named_show(html_content: str, url: str) -> Optional[DenverComedyLoungeShow]:
+        """Resolve one unambiguous performance; a date-only slug is never evidence."""
+        target = DenverComedyLoungeExtractor._show_identity(url)
+        if not html_content or not target:
+            return None
+        performances = {}
+        for event in DenverComedyLoungeExtractor._event_objects(html_content):
+            if DenverComedyLoungeExtractor._show_identity(event.get("url")) != target:
+                continue
+            name = event.get("name")
+            if (not isinstance(name, str) or not name.strip()
+                    or event.get("eventStatus") != "https://schema.org/EventScheduled"):
+                return None
+            try:
+                start = datetime.fromisoformat(event.get("startDate", "").replace("Z", "+00:00"))
+            except (ValueError, TypeError, AttributeError):
+                return None
+            if start.tzinfo is None:
+                return None
+            performances[start.astimezone(timezone.utc)] = (name.strip(), start)
+        if len(performances) != 1:
+            return None
+        name, start = next(iter(performances.values()))
+        local = start.astimezone(ZoneInfo("America/Denver"))
+        return DenverComedyLoungeShow(
+            title=name, datetime_str=local.strftime("%Y-%m-%d %H:%M:%S"),
+            show_page_url=url, start_datetime=local,
+        )
+
+    @staticmethod
+    def extract_offer_price(html_content: str, show: Optional[DenverComedyLoungeShow] = None,
+                            *, now: Optional[datetime] = None) -> Optional[float]:
+        """Read matched, currently available USD General Admission; never VIP packages.
+
+        Streamed text chunks can split objects, so decode and concatenate the flight
+        before balanced extraction. Only top-level Event objects are candidates.
+        """
+        if not html_content or show is None:
+            return None
+        now = now or datetime.now(timezone.utc)
+        try:
+            expected = show.start_datetime or datetime.strptime(show.datetime_str, "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=ZoneInfo("America/Denver"))
+        except ValueError:
+            return None
+        if expected <= now:
+            return None
+
+        identity = DenverComedyLoungeExtractor._show_identity
+        target = identity(show.show_page_url)
+        if not target:
+            return None
+        objects = DenverComedyLoungeExtractor._event_objects(html_content)
         matched = []
         for obj in objects:
             if not isinstance(obj, dict) or obj.get("@type") != "Event":
@@ -170,7 +220,7 @@ class DenverComedyLoungeExtractor:
                 start = datetime.fromisoformat(obj.get("startDate", "").replace("Z", "+00:00"))
             except (ValueError, TypeError, AttributeError):
                 continue
-            if start.tzinfo is None or start != expected:
+            if start.tzinfo is None or start.astimezone(timezone.utc) != expected.astimezone(timezone.utc):
                 continue
             matched.append(obj)
         prices = set()
