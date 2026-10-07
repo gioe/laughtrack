@@ -1,0 +1,59 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "Jennifer Gable Live In Denver",
+  "url": "https://denvercomedylounge.com/shows/jennifer-gable-live-in-denver-2026-12-03",
+  "startDate": "2026-12-03T20:00:00-07:00",
+  "endDate": "2026-12-03T21:30:00-07:00",
+  "doorTime": "2026-12-03T19:30:00-07:00",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "location": {
+    "@type": "Place",
+    "@id": "https://denvercomedylounge.com/#business",
+    "name": "Denver Comedy Lounge",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "3559 Larimer St",
+      "addressLocality": "Denver",
+      "addressRegion": "CO",
+      "postalCode": "80205",
+      "addressCountry": "US"
+    }
+  },
+  "image": [
+    "https://cdn.sanity.io/images/o1mp11yx/production/ef292211fcdef1613b0145b6e07ad5a5e511c844-1241x858.png?rect=0,80,1241,698&w=1920&h=1080",
+    "https://cdn.sanity.io/images/o1mp11yx/production/ef292211fcdef1613b0145b6e07ad5a5e511c844-1241x858.png?rect=49,0,1144,858&w=1920&h=1440",
+    "https://cdn.sanity.io/images/o1mp11yx/production/ef292211fcdef1613b0145b6e07ad5a5e511c844-1241x858.png?rect=192,0,858,858&w=1920&h=1920"
+  ],
+  "description": "Jennifer Gable is a DC-born, LA-based headlining Comedian who's been grinding on the LA and NYC comedy scenes for about 12 years now\u2014so yes, she has opinions and a parking ticket collection to prove it. She's performed thousands of times across the U.S. and internationally, headlining everywhere from London to Reno. She performs clean to almost cancelled, to old, young, intellectuals and idiots. She jokes about everything and every subject. She performs a blend of written material & crowd work. Ranked #154 on Vulture's Top 1,000 Comedians list, Jennifer mixes smart jokes, dumb jokes, clean, dirty, roasts, crowd work, and the kind of one-liners that make you laugh and then question yourself. You may've seen her on Drunk History, Apple TV, Amazon, SiriusXM, FunnyorDie, DiscoveryCh, etc. Her debut Comedy Dynamics Special '6 Drink Minimum' dropped in 2024-2025 on Apple TV, Amazon Prime, and her YouTube channel, and her second Special 'I Get Deja Vu Sometimes' is coming out soon. She performs regularly at top clubs like the Hollywood Improv and Laugh Factory\u2014basically, she's done everything except quit. Enjoy our craft sake bar and Japanese izakaya plates throughout the show.",
+  "organizer": {
+    "@type": "Organization",
+    "@id": "https://denvercomedylounge.com/#business",
+    "name": "Denver Comedy Lounge",
+    "url": "https://denvercomedylounge.com/"
+  },
+  "performer": [
+    {
+      "@type": "Person",
+      "name": "Jennifer Gable",
+      "url": "https://denvercomedylounge.com/comedians/jennifer-gable"
+    }
+  ],
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "General Admission",
+      "price": 33,
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "url": "https://denvercomedylounge.com/shows/jennifer-gable-live-in-denver-2026-12-03",
+      "validFrom": "2026-07-01T22:31:57Z"
+    }
+  ],
+  "potentialAction": {
+    "@type": "ReserveAction",
+    "target": "https://denvercomedylounge.com/shows/jennifer-gable-live-in-denver-2026-12-03",
+    "name": "Get Tickets"
+  }
+}

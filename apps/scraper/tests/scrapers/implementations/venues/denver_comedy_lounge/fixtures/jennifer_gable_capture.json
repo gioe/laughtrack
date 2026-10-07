@@ -1,0 +1,11 @@
+{
+  "captured_date": "2026-10-07",
+  "native_stack": "PlaywrightBrowser.fetch_html",
+  "listing_url": "https://denvercomedylounge.com/shows",
+  "detail_url": "https://denvercomedylounge.com/shows/jennifer-gable-live-in-denver-2026-12-03",
+  "verified_startDate": "2026-12-03T20:00:00-07:00",
+  "timezone": "America/Denver",
+  "listing_html_sha256": "e1763497035feefd7aac68fb46fa75970f132a124736321c7ad339bae9a761f8",
+  "detail_html_sha256": "121cedcc9459092479823aeea39d3188998339b775d566d2381a44b9c7b5e32c",
+  "extraction": "Listing entry copied from JSON-LD; matching Event copied from concatenated decoded RSC payloads. Other page data omitted. Original extraction skipped this named slug."
+}
