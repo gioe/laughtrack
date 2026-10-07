@@ -36,6 +36,7 @@ import asyncio
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -51,16 +52,18 @@ from laughtrack.shared.types import ScrapingTarget
 
 from .data import PabstAXSPageData
 from .extractor import extract_events
+from .cancellations import PabstCancellationMixin
 from .transformer import PabstAXSEventTransformer
 
 
-class PabstAXSVenueScraper(BaseScraper):
+class PabstAXSVenueScraper(PabstCancellationMixin, BaseScraper):
     """Venue-page scraper for Pabst Theater Group rooms (AXS-ticketed)."""
 
     key = "pabst_axs"
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self._club_handler = ClubHandler()
         self.transformation_pipeline.register_transformer(PabstAXSEventTransformer(club))
         self._comedy_filter = is_comedy_filter_enabled(self.club.source_metadata)
         self._lineup_handler = LineupHandler() if self._comedy_filter else None
@@ -95,6 +98,7 @@ class PabstAXSVenueScraper(BaseScraper):
 
         events = extract_events(html)
         if not events:
+            await self._review_cancellations([])
             Logger.warn(
                 f"{self._log_prefix}: No event cards parsed from Pabst venue page {target}",
                 self.logger_context,
@@ -104,12 +108,14 @@ class PabstAXSVenueScraper(BaseScraper):
         if self._comedy_filter:
             events = await self._filter_comedy(events)
             if not events:
+                await self._review_cancellations([])
                 Logger.warn(
                     f"{self._log_prefix}: comedy filter dropped all events from {target}",
                     self.logger_context,
                 )
                 return None
 
+        events = await self._review_cancellations(events)
         Logger.info(
             f"{self._log_prefix}: Parsed {len(events)} event(s) from Pabst venue page {target}",
             self.logger_context,

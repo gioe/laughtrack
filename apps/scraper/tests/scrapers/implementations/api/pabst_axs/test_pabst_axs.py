@@ -175,6 +175,7 @@ def _make_scraper(*, source_url="https://pabsttheater.org/venues/the-riverside-t
         scraping_sources=[src], active_scraping_source=src,
     )
     scraper = PabstAXSVenueScraper(club)
+    scraper._club_handler.execute_with_cursor = MagicMock(return_value=[])
     # Keep the comedy filter DB-free: stub the known-comedian lookups so only the
     # cheap keyword + allowlist signals decide. get_comedians_from_show_names
     # returns no matches, so non-comedy concerts are dropped.

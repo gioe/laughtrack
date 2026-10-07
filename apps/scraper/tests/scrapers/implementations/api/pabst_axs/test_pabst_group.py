@@ -12,6 +12,12 @@ from laughtrack.scrapers.implementations.api.pabst_axs.group_scraper import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _no_live_identity_queries(monkeypatch):
+    from laughtrack.core.entities.club.handler import ClubHandler
+    monkeypatch.setattr(ClubHandler, "execute_with_cursor", lambda *a, **kw: [])
+
+
 # The scraper derives each event's date from its thumbnail filename
 # (assets/img/YYYY.MM.DD-<venue>-<slug>.png) and PabstAXSEvent.to_show() drops
 # past-dated shows. Compute the fixture dates relative to "now" so the tests
@@ -165,3 +171,17 @@ async def test_comedy_filter_runs_before_venue_upsert(monkeypatch):
     assert [show.name for show in shows] == ["Steve Hofstetter"]
     upsert.assert_called_once()
     assert upsert.call_args.args[0]["name"] == "Vivarium"
+
+@pytest.mark.asyncio
+async def test_cancelled_detail_is_not_emitted_as_scheduled(monkeypatch):
+    scraper = PabstTheaterGroupScraper(_operator_proxy())
+    detail = f'''<div class="event_detail"><h1 class="title">Steve Hofstetter</h1>
+    <img src="https://www.pabsttheatergroup.com/assets/img/{_DATE_1}-V-Steve.png">
+    <li class="sidebar_event_date"><span>CANCELED</span></li>
+    <li class="sidebar_event_venue"><a>Vivarium</a></li></div>'''
+    scraper.fetch_html = AsyncMock(side_effect=lambda url, **kw: _EVENTS_HTML if url.endswith('/events') else detail)
+    scraper.fetch_json = AsyncMock(return_value='')
+    monkeypatch.setattr(scraper._club_handler, 'upsert_discovered_venue', _venue_club)
+    monkeypatch.setattr(scraper._club_handler, 'execute_with_cursor', lambda *a, **kw: [])
+    shows = await scraper.scrape_async()
+    assert 'Steve Hofstetter' not in [show.name for show in shows]

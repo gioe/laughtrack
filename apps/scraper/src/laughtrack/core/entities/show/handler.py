@@ -87,8 +87,9 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         if len(unique) != len(intents):
             raise ValueError("Duplicate cancellation intents")
         for intent in sorted(intents, key=lambda item: item.show_id):
-            if (not isinstance(intent, ShowCancellation) or intent.scraper_key != "next_stop_comedy"
-                    or intent.production_company_id <= 0 or intent.date.utcoffset() is None):
+            if (not isinstance(intent, ShowCancellation) or intent.scraper_key not in {"next_stop_comedy", "pabst_theater_group", "pabst_axs"}
+                    or (intent.scraper_key == "next_stop_comedy" and (intent.production_company_id is None or intent.production_company_id <= 0))
+                    or intent.date.utcoffset() is None):
                 raise ValueError("Invalid source cancellation intent")
             rows = self.execute_with_cursor(
                 """SELECT s.id,s.club_id,s.production_company_id,s.last_scraped_by,s.show_page_url,
@@ -104,7 +105,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             if len(rows or []) != 1 or dict(rows[0]) != expected:
                 raise ValueError(f"Cancellation identity changed for show {intent.show_id}")
             matches = self.execute_with_cursor(
-                """SELECT id FROM shows WHERE production_company_id=%s AND last_scraped_by=%s
+                """SELECT id FROM shows WHERE production_company_id IS NOT DISTINCT FROM %s AND last_scraped_by=%s
                        AND show_page_url=%s AND date=%s AND club_id=%s FOR UPDATE""",
                 (intent.production_company_id, intent.scraper_key, intent.show_page_url, intent.date, intent.club_id),
                 True, conn=conn,

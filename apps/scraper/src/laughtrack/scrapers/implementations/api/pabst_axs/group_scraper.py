@@ -25,6 +25,7 @@ from laughtrack.scrapers.utils.comedy_filter import (
 )
 
 from .extractor import extract_events
+from .cancellations import PabstCancellationMixin
 from .data import PabstAXSPageData
 
 _DEFAULT_EVENTS_URL = "https://www.pabsttheatergroup.com/events"
@@ -32,7 +33,7 @@ _PAGE_SIZE = 12
 _MAX_AJAX_PAGES = 80
 
 
-class PabstTheaterGroupScraper(BaseScraper):
+class PabstTheaterGroupScraper(PabstCancellationMixin, BaseScraper):
     """Operator calendar scraper for pabsttheatergroup.com/events."""
 
     key = "pabst_theater_group"
@@ -54,6 +55,7 @@ class PabstTheaterGroupScraper(BaseScraper):
         events = await self._collect_events()
         if self._comedy_filter:
             events = await self._filter_comedy(events)
+        events = await self._review_cancellations(events)
         if not events:
             Logger.warn(f"{self._log_prefix}: no routable Pabst Theater Group events parsed")
             return []

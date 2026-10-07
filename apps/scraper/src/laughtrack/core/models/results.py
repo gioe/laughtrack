@@ -20,7 +20,7 @@ class ShowCancellation:
 
     show_id: int
     club_id: int
-    production_company_id: int
+    production_company_id: Optional[int]
     scraper_key: str
     show_page_url: str
     date: datetime
