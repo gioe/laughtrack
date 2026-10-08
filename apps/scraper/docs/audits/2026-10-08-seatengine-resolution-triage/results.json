@@ -1,0 +1,2285 @@
+{
+  "after_snapshot_sha256": "a6163ce9941974bb5e2568b1015999a95f0ac577f07b7c470603db08aa498921",
+  "before_snapshot_sha256": "a6163ce9941974bb5e2568b1015999a95f0ac577f07b7c470603db08aa498921",
+  "finished_at": "2026-10-08T00:08:57.609919+00:00",
+  "full_source_and_club_snapshots_identical": true,
+  "limitations": [
+    "No confirmed platform migration or geographic correction is inferred. Reachable configured pages are supplemental evidence only.",
+    "Four API null responses and one server error leave identity unavailable; no replacement IDs are guessed.",
+    "HTTP status and final_url in curl_responses refer to curl responses, not browser navigation. Direct Playwright errors identify failed URL navigation; no successful browser result is mislabeled as an HTTP200.",
+    "Probes were repeated outside the sandbox after initial DNS failures; committed results contain the escalated recheck.",
+    "Full source/club snapshots include all columns and compare exactly; private snapshots are not committed."
+  ],
+  "method": "Native SeatEngineClient and scraper curl-cffi/Playwright; per-operation deadline90seconds; API credentials excluded from websites; no scraping or persistence. Full source and club read-only snapshots retained privately.",
+  "previous_probe_finished_at": "2026-10-08T00:07:32.655179+00:00",
+  "probe_artifacts": [
+    {
+      "file": "/private/tmp/task4133-probe.py",
+      "sha256": "f87e1ecf5fdc296a96785669d9310861469bc638db32184cda8b4b42eac97630"
+    },
+    {
+      "file": "/private/tmp/task4133-supplement.py",
+      "sha256": "930c45509c04bec2a7e523ea3d27968000f36a2a37465ad99a92dd489340abdb"
+    }
+  ],
+  "source_ids": [
+    246,
+    631,
+    371,
+    431,
+    598,
+    77,
+    134,
+    74,
+    644,
+    637,
+    268,
+    441,
+    594,
+    82,
+    571
+  ],
+  "sources": [
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 971,
+              "body_sha256": "d82198e629c1802b5d4de0fa9466c26ed3feb01111c7ffa19b29c2cd0c7cbdc9",
+              "final_url": "https://services.seatengine.com/api/v1/venues/367",
+              "finished_at": "2026-10-08T00:07:59.497628+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:07:59.436371+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/367"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:07:59.498166+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:07:59.435906+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/367"
+        }
+      ],
+      "api_identity": {
+        "id": 367,
+        "name": "Wiseguys - Jordan Landing",
+        "website": "http://jordanlanding.wiseguyscomedy.com"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "official_website_dns_failure",
+      "club_id": 389,
+      "club_name": "Wiseguys - Jordan Landing",
+      "configured_venue_id": 367,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Verify the current canonical website through independently bound venue/platform evidence, then handle any API website pointer or source repair as separate work. Do not infer a new address.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/367",
+        "city": "West Jordan",
+        "club_id": 389,
+        "club_name": "Wiseguys - Jordan Landing",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "84084",
+        "reason": "official_website_unavailable",
+        "source_id": 74,
+        "source_url": "https://www.wiseguyscomedy.com/utah/west-jordan",
+        "state": "UT",
+        "status": "fetch_error",
+        "venue_id": "367",
+        "visible": true,
+        "website_url": "http://jordanlanding.wiseguyscomedy.com"
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine",
+        "seatengine_id": 367,
+        "seatengine_v3_id": null,
+        "source_url": "https://www.wiseguyscomedy.com/utah/west-jordan"
+      },
+      "source_id": 74,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 79514,
+              "body_sha256": "f1def40bfcce8fd854a63f8d0737c21bd1d235daca0850717a3446f6f6564956",
+              "final_url": "https://www.wiseguyscomedy.com/utah/west-jordan",
+              "finished_at": "2026-10-08T00:08:26.901718+00:00",
+              "started_at": "2026-10-08T00:08:26.565558+00:00",
+              "status": 200,
+              "url": "https://www.wiseguyscomedy.com/utah/west-jordan"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:26.906890+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:26.565177+00:00",
+          "url": "https://www.wiseguyscomedy.com/utah/west-jordan"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 79507,
+          "event_links": [
+            "/utah/calendar",
+            "/utah/group-events"
+          ],
+          "platform_markers": [
+            "seatengine.com"
+          ],
+          "sha256": "f1def40bfcce8fd854a63f8d0737c21bd1d235daca0850717a3446f6f6564956",
+          "text_excerpt": "Wiseguys Jordan Landing | West Jordan, UT Home Calendar Open Mic FAQs Group Events Gift Certificate Jobs Contact Us See All Locations Utah Locations West Jordan , UT Jordan Landing Menu Directions Wiseguys Comedy Club Jordan Landing West Jordan , Utah Avoid Resellers Tickets from third-party sites won't be accepted at the door. For guaranteed entry, buy only from wiseguyscomedy.com or seatengine.com . Tickets from Vivid Seats, SeatGeek, StubHub, Craigslist, or any other unauthorized site will result in denied admission . Jenna Kim Jones Jordan Landing Oct 9-10 Jon \"Polar Bear\" Gonzalez Jordan Landing Oct 16-17 Comedy Hypnosis w John Moyer Jordan Landing Oct 23-24 West Jordan , UT Jordan Landing Menu Directions 3763 West Center Park Drive West Jordan , Utah 84084 (801) 463-2909 About Wiseguys Jordan Landing Wiseguys brings the laughter to Salt Lake's south valley at Jordan Landing featuring performances by local and nationally known comedians.\n\nWiseguys Jordan Landing offers cafe-style menu with burgers, nachos, sandwiches, salads, appetizers, desserts and a full bar.\n\nA favorite among comedians, Wiseguys considers stand-up comedy an art form, a perspective which drives all decisions affecting the comedy club. Wiseguys is a proud champion of stand-up comedy and continually strives to bring diverse, creative and unique comedy each and every week.\n\nAll patrons of Wiseguys Jordan Landing must be age 21 and older. Home Calendar Open Mic FAQs Group Events Gift Certificate Jobs Contact Us Utah West Jordan , Utah Salt Lake City , Utah Ogden , Utah Nevada Las Vegas , Nevada \u00a9 2026 W",
+          "title": "Wiseguys Jordan Landing | West Jordan, UT"
+        }
+      },
+      "supported_cause": "API-listed website hostname fails DNS in native curl and direct Playwright. Configured source_url is independently reachable and has SeatEngine markers, supporting an obsolete API website-pointer hypothesis; its authorization as a replacement remains unverified.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: jordanlanding.wiseguyscomedy.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:07:59.499895+00:00",
+              "started_at": "2026-10-08T00:07:59.498264+00:00",
+              "url": "http://jordanlanding.wiseguyscomedy.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:07:59.500058+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:07:59.498179+00:00",
+          "url": "http://jordanlanding.wiseguyscomedy.com"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_NAME_NOT_RESOLVED at http://jordanlanding.wiseguyscomedy.com/\nCall log:\n  - navigating to \"http://jordanlanding.wiseguyscomedy.com/\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:00.483028+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:07:59.500074+00:00",
+          "url": "http://jordanlanding.wiseguyscomedy.com"
+        }
+      ]
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 313,
+              "body_sha256": "5abf12389c61f26b17da032d54c3369b1d3d89d2fcbc8809107b9ecb036d7ec4",
+              "final_url": "https://services.seatengine.com/api/v1/venues/324",
+              "finished_at": "2026-10-08T00:07:59.597784+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:07:59.439915+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/324"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:07:59.598593+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:07:59.436176+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/324"
+        }
+      ],
+      "api_identity": {
+        "id": 324,
+        "name": "Bridgeport",
+        "website": "http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "official_website_tls_hostname_mismatch",
+      "club_id": 88,
+      "club_name": "Barrel Room Portland",
+      "configured_venue_id": 324,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Prioritize independent platform identity verification before any repair. The configured page is reachable but does not by itself establish the correct numeric SeatEngine identity.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/324",
+        "city": "Portland",
+        "club_id": 88,
+        "club_name": "Barrel Room Portland",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "97209",
+        "reason": "official_website_unavailable",
+        "source_id": 77,
+        "source_url": "https://www.barrelroompdx.com/events",
+        "state": "OR",
+        "status": "fetch_error",
+        "venue_id": "324",
+        "visible": true,
+        "website_url": "http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com"
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "seatengine_id": 324,
+        "seatengine_v3_id": null,
+        "source_url": "https://www.barrelroompdx.com/events"
+      },
+      "source_id": 77,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 681518,
+              "body_sha256": "84693a5f695946ccb6f76bf63820e9ce06b65a71b9b0cea420c7983a4274aabc",
+              "final_url": "https://www.barrelroompdx.com/events",
+              "finished_at": "2026-10-08T00:08:27.294493+00:00",
+              "started_at": "2026-10-08T00:08:26.569501+00:00",
+              "status": 200,
+              "url": "https://www.barrelroompdx.com/events"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:27.306472+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:26.565424+00:00",
+          "url": "https://www.barrelroompdx.com/events"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 681070,
+          "event_links": [
+            "/events",
+            "/private-events",
+            "https://www.eventbrite.com/e/join-our-email-list-tickets-1994104488204?aff=oddtdtcreator",
+            "https://www.eventbrite.com/o/80388668013?aff=ebdsshcopyurl",
+            "https://www.eventbrite.com/o/barrel-room-80388668013"
+          ],
+          "platform_markers": [
+            "eventbrite.com"
+          ],
+          "sha256": "84693a5f695946ccb6f76bf63820e9ce06b65a71b9b0cea420c7983a4274aabc",
+          "text_excerpt": "Barrel Room Loading... Barrel Room Portland Home Events Private Events FAQ Our Story Book Tickets Now Calendar events For the Dueling Piano Show: Doors open 1 hour before showtime. Online ticket sales end 2 hours before showtime \u2014 after that, call 503-242-0700 for availability. VIP Tickets include front row seating and table service only. View All Events fridays @7PM Saturdays @5PM DUELING PIANOS All-Request Fun Oregon's last Dueling Piano Show! Sing, clap, and dance along to our all-request musical showdown with the PNW's finest live musicians. Buy Tickets sundays @8PM  tuesdays @7PM open Jam and games Jam Out! Free weekly Open Jam & Games with a full backline, ping pong, arcade games, food, drinks, and spontaneous music. 21+ must have valid ID. More Info wednesdays @9PM Wednesday wubs Perfect Afterparty Midweek bass, fresh DJs, PLUR vibes, flow arts, and the perfect Mt. Tabor afterparty. Every Wednesday. More Info Bringing a group? Make it a Private Event Explore Private Events Barrel Room Dueling Pianos \u00b7 Portland Portland's premier dueling piano and live music venue. Old Town Entertainment District. No two nights the same. Navigate Home events Private Events FAQ Our Story Location 120 NW Couch St Portland, OR 97209 503-242-0700 mail@barrelroompdx.com Join Email List Follow Us Online \u00a9 2026 Barrel Room. All rights reserved. Off-site shows powered by Felix & Fingers",
+          "title": "Barrel Room"
+        }
+      },
+      "supported_cause": "API-listed website fails certificate hostname validation in native curl and direct Playwright. API-returned venue name differs from the stored club label: Bridgeport versus Barrel Room Portland. This is an identity discrepancy requiring independent investigation, not proof of a corrected ID or location. The configured Barrel Room page has Eventbrite links; this is a platform-use signal, not proof of a completed migration.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (60) SSL: no alternative certificate subject name matches target hostname 'bridge.bob-exp-seatengine-seatengine-com.seatengine.com'. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "CertificateVerifyError",
+              "finished_at": "2026-10-08T00:07:59.644951+00:00",
+              "started_at": "2026-10-08T00:07:59.598739+00:00",
+              "url": "http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:07:59.645437+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:07:59.598612+00:00",
+          "url": "http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_CERT_COMMON_NAME_INVALID at http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com/\nCall log:\n  - navigating to \"http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com/\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:00.541517+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:07:59.645457+00:00",
+          "url": "http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com"
+        }
+      ]
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 283,
+              "body_sha256": "5941c8feda1404a68e62cfba9f35990dd1d327da9263b55dec3c48e230634a0c",
+              "final_url": "https://services.seatengine.com/api/v1/venues/542",
+              "finished_at": "2026-10-08T00:08:00.554774+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:00.502036+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/542"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:00.555405+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:00.501828+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/542"
+        }
+      ],
+      "api_identity": {
+        "id": 542,
+        "name": "The Hickory Premier",
+        "website": "https://www.comedyzonehickory.com"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "official_website_dns_failure",
+      "club_id": 562,
+      "club_name": "The Hickory Premier",
+      "configured_venue_id": 542,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Obtain a currently authorized canonical website or platform identity from the venue/platform operator. Both API website and configured source pointer fail; closure, migration, and replacement identity remain unresolved.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/542",
+        "city": "Hickory",
+        "club_id": 562,
+        "club_name": "The Hickory Premier",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "28601",
+        "reason": "official_website_unavailable",
+        "source_id": 82,
+        "source_url": "https://www.comedyzonehickory.com",
+        "state": "NC",
+        "status": "fetch_error",
+        "venue_id": "542",
+        "visible": true,
+        "website_url": "https://www.comedyzonehickory.com"
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine",
+        "seatengine_id": 542,
+        "seatengine_v3_id": null,
+        "source_url": "https://www.comedyzonehickory.com"
+      },
+      "source_id": 82,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: www.comedyzonehickory.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:08:26.934930+00:00",
+              "started_at": "2026-10-08T00:08:26.931916+00:00",
+              "url": "https://www.comedyzonehickory.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:26.935247+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:26.931557+00:00",
+          "url": "https://www.comedyzonehickory.com"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website"
+      },
+      "supported_cause": "API-listed website hostname fails DNS in native curl and direct Playwright.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: www.comedyzonehickory.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:08:00.556881+00:00",
+              "started_at": "2026-10-08T00:08:00.555515+00:00",
+              "url": "https://www.comedyzonehickory.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:00.557036+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:00.555421+00:00",
+          "url": "https://www.comedyzonehickory.com"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.comedyzonehickory.com/\nCall log:\n  - navigating to \"https://www.comedyzonehickory.com/\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:00.860332+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:08:00.557055+00:00",
+          "url": "https://www.comedyzonehickory.com"
+        }
+      ]
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 443,
+              "body_sha256": "29c6f3960a042d206c05868808df4294d2fbb9b986f62f14b431f2e0c8e33547",
+              "final_url": "https://services.seatengine.com/api/v1/venues/336",
+              "finished_at": "2026-10-08T00:08:00.709187+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:00.561348+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/336"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:00.709817+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:00.561175+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/336"
+        }
+      ],
+      "api_identity": {
+        "id": 336,
+        "name": "Summer of Sass Inaugural Fundrasier",
+        "website": "https://www.summerofsass.com"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "official_website_dns_failure",
+      "club_id": 129,
+      "club_name": "StandUpLive Phoenix",
+      "configured_venue_id": 336,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Prioritize independent platform identity verification before any repair. The configured page is reachable but does not by itself establish the correct numeric SeatEngine identity.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/336",
+        "city": "Phoenix",
+        "club_id": 129,
+        "club_name": "StandUpLive Phoenix",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "85003",
+        "reason": "official_website_unavailable",
+        "source_id": 134,
+        "source_url": "phoenix.standuplive.com/events",
+        "state": "AZ",
+        "status": "fetch_error",
+        "venue_id": "336",
+        "visible": true,
+        "website_url": "https://www.summerofsass.com"
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "seatengine_id": 336,
+        "seatengine_v3_id": null,
+        "source_url": "phoenix.standuplive.com/events"
+      },
+      "source_id": 134,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 673098,
+              "body_sha256": "767210c418b0a798bfcfbc63240b1bbf8e69da7c8e592300a61ab04ef2bb3e1d",
+              "final_url": "https://phoenix.standuplive.com/events",
+              "finished_at": "2026-10-08T00:08:27.406916+00:00",
+              "started_at": "2026-10-08T00:08:26.937698+00:00",
+              "status": 200,
+              "url": "https://phoenix.standuplive.com/events"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:27.417806+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:26.937447+00:00",
+          "url": "https://phoenix.standuplive.com/events"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 671208,
+          "event_links": [
+            "/calendar",
+            "/events",
+            "/events/124435",
+            "/events/130170",
+            "/events/132881",
+            "/events/135535",
+            "/events/135847",
+            "/events/136128",
+            "/events/136993",
+            "/events/137322",
+            "/events/137754",
+            "/events/138513",
+            "/events/138525",
+            "/events/138526",
+            "/events/138527",
+            "/events/138531",
+            "/events/138533",
+            "/events/139092",
+            "/events/139629",
+            "/events/139630"
+          ],
+          "platform_markers": [
+            "cdn.seatengine.com",
+            "seatengine.com"
+          ],
+          "sha256": "767210c418b0a798bfcfbc63240b1bbf8e69da7c8e592300a61ab04ef2bb3e1d",
+          "text_excerpt": "StandUpLive Phoenix Sign up Login 50 W. Jefferson St Phoenix AZ 85003 (480) 719-6100 info@standuplive.com HOME Events Calendar GIFT CARDS MENU Group Events FAQ NOW HIRING Contact Menu HOME Events Calendar GIFT CARDS MENU Group Events FAQ NOW HIRING Contact Upcoming Events List View Calendar View October 07 Stand Up Comedy Class Graduation Join us for an evening of comedy with graduates from the Improv \nStand Up Comedy Class. Watch as they showcase their amazing comedic talents from \nwhat they have worked on and learned over the past five weeks. The \ngraduates come from the Advanced Course, and they will prove this to you\n on the world famous Tempe Improv stage. Congratulations to all the \ngraduating comedians! 2-Drink minimum per person inside the showroom CLASSES: Monday: Beginners Class - 7 PM - 10 PM Tuesday: Advanced Class - 7 PM - 10 PM The Thursday, Friday Late, and Sunday Shows Are 18+ | All Other Shows 21+ Unless Otherwise Stated Two Drink Minimum Per Person Inside Of The Showroom Valid Photo ID Is Required For Entry | You Can Also Print Out Your Tickets Or Pull Them Up On Your Smartphone! Management Reserves The Right To Release Your Tickets/Seats If You Do Not Arrive By Scheduled Showtime ALL SALES ARE FINAL AND NO REFUNDS WILL BE GIVEN UNDER ANY CIRCUMSTANCES PLEASE DON'T PURCHASE TICKETS FROM ANY OTHER SITE. TICKET RESALE IS STRICTLY PROHIBITED. YOUR NAME, CREDIT CARD, ADDRESS, AND EMAIL ADDRESS WILL BE VERIFIED. TICKETS SUSPECTED OF BEING PURCHASED FOR THE SOLE PURPOSE OF RESELLING WILL BE CANCELLED AT THE DISCRETION OF STAND UP LIVE. PLEASE NOTE THAT SEATING I",
+          "title": "StandUpLive Phoenix"
+        }
+      },
+      "supported_cause": "API-listed website hostname fails DNS in native curl and direct Playwright. API-returned venue name differs from the stored club label: Summer of Sass Inaugural Fundrasier versus StandUpLive Phoenix. This is an identity discrepancy requiring independent investigation, not proof of a corrected ID or location.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: www.summerofsass.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:08:00.711165+00:00",
+              "started_at": "2026-10-08T00:08:00.709922+00:00",
+              "url": "https://www.summerofsass.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:00.711329+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:00.709830+00:00",
+          "url": "https://www.summerofsass.com"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.summerofsass.com/\nCall log:\n  - navigating to \"https://www.summerofsass.com/\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:01.033873+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:08:00.711344+00:00",
+          "url": "https://www.summerofsass.com"
+        }
+      ]
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 13,
+              "body_sha256": "ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
+              "final_url": "https://services.seatengine.com/api/v1/venues/310",
+              "finished_at": "2026-10-08T00:08:00.937891+00:00",
+              "response_excerpt": "{\"data\": null}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:00.888528+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/310"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:00.938497+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:00.888326+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/310"
+        },
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 13,
+              "body_sha256": "ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
+              "final_url": "https://services.seatengine.com/api/v1/venues/310",
+              "finished_at": "2026-10-08T00:08:00.989366+00:00",
+              "response_excerpt": "{\"data\": null}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:00.938641+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/310"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:00.990487+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:00.938503+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/310"
+        }
+      ],
+      "classification": "api_identity_null_with_live_classic_site",
+      "club_id": 45,
+      "club_name": "Stress Factory",
+      "configured_venue_id": 310,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Independently confirm the numeric identity used by the live configured site before changing any source ID or resolver behavior. Do not replace the configured ID merely because the API returned null.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/310",
+        "city": "New Brunswick",
+        "club_id": 45,
+        "club_name": "Stress Factory",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "08901",
+        "reason": "venue_api_unavailable",
+        "source_id": 246,
+        "source_url": "newbrunswick.stressfactory.com/events",
+        "state": "NJ",
+        "status": "fetch_error",
+        "venue_id": "310",
+        "visible": true
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "seatengine_id": 310,
+        "seatengine_v3_id": null,
+        "source_url": "newbrunswick.stressfactory.com/events"
+      },
+      "source_id": 246,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 544161,
+              "body_sha256": "0c1faa2d724590956bacb5cacec97871bfe78b81201a4c39d38ef2a656a4275f",
+              "final_url": "https://newbrunswick.stressfactory.com/events",
+              "finished_at": "2026-10-08T00:08:27.618709+00:00",
+              "started_at": "2026-10-08T00:08:27.362132+00:00",
+              "status": 200,
+              "url": "https://newbrunswick.stressfactory.com/events"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:27.623844+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:27.361946+00:00",
+          "url": "https://newbrunswick.stressfactory.com/events"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 544064,
+          "event_links": [
+            "/calendar",
+            "/events",
+            "/events/122005",
+            "/events/126594",
+            "/events/127467",
+            "/events/128631",
+            "/events/130888",
+            "/events/133963",
+            "/events/134369",
+            "/events/134618",
+            "/events/134941",
+            "/events/135043",
+            "/events/135663",
+            "/events/135893",
+            "/events/135989",
+            "/events/136597",
+            "/events/136851",
+            "/events/137102",
+            "/events/137280",
+            "/events/140897"
+          ],
+          "platform_markers": [
+            "cdn.seatengine.com",
+            "seatengine.com"
+          ],
+          "sha256": "0c1faa2d724590956bacb5cacec97871bfe78b81201a4c39d38ef2a656a4275f",
+          "text_excerpt": "Stress Factory New Brunswick Sign up Login Visit CONNECTICUT Location Visit Valley Forge Location BUY NEW BRUNSWICK TICKETS 732-545-HAHA (4242) Stress Factory New Brunswick 90 Church St. New Brunswick,  NJ 08901 Home Calendar Events Contact Group Events Book a Comic Physical Gift Card Digital Gift Card Check Your Gift Card balance (Toast Only) Menu Home Calendar Events Contact Group Events Book a Comic Physical Gift Card Digital Gift Card Check Your Gift Card balance (Toast Only) Upcoming Events Special Event October 08 - October 10 Russell Peters WE DO NOT ACCEPT THIRD PARTY TICKETS. ALL PRICES INCLUDE FEES ALL SALES ARE FINAL- NO REFUNDS. GIVE US A CALL IF YOU HAVE QUESTIONS. WE DON'T ACCEPT THIRD PARTY TICKETS. WE ONLY ACCEPT TICKETS SOLD ON OUR WEBSITE.  PHOTO ID REQUIRED AT THE DOOR. NAME ON THE TICKET MUST MATCH THE ID PRESENTED AT THE DOOR. YOU WILL BE DENIED ENTRY IF IT DOESN'T MATCH. CLICK the showtime you want to attend to purchase tickets! Show Details: Electronic ticket, you do not need to print out tickets Show Type: Stand Up Comedy ALL SALES ARE FINAL Table seating, first come first served Restrictions: 16 & over There is a two-item minimum per person, can be any two items that we sell You must purchase the table for the amount of people in your party. IF YOU PURCHASE A SINGLE TICKET, YOU WILL BE SEATED WITH OTHERS.  HOWEVER, YOU BE SEATED WITH YOUR GROUP. If you need extra assistance with seating due to auditory, visual or physical impairments, please reach out to us. VIP ticket holders must arrive 15 minutes prior to showtime to guarantee VIP seats. PLEASE D",
+          "title": "Stress Factory New Brunswick"
+        }
+      },
+      "supported_cause": "Two authenticated native venue calls returned HTTP200 with data:null. Configured events URL returned HTTP200 with classic SeatEngine CDN markers. This distinguishes absent API identity data from a network outage; stale ID, retired API record, or API/classic incompatibility remain unresolved.",
+      "website_attempts": []
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 309,
+              "body_sha256": "82bec82bcc376b9f9fd323b286eaaaffbc7df6531d26d7615cf9545e4de1107f",
+              "final_url": "https://services.seatengine.com/api/v1/venues/455",
+              "finished_at": "2026-10-08T00:08:01.045016+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:00.991778+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/455"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.045593+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:00.991376+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/455"
+        }
+      ],
+      "api_identity": {
+        "id": 455,
+        "name": "Riddles Comedy Club",
+        "website": "https://www.riddles.seatengine.com"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "official_website_tls_hostname_mismatch",
+      "club_id": 479,
+      "club_name": "Riddles Comedy Club",
+      "configured_venue_id": 455,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Obtain a currently authorized canonical website or platform identity from the venue/platform operator. Both API website and configured source pointer fail; closure, migration, and replacement identity remain unresolved.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/455",
+        "city": "Alsip",
+        "club_id": 479,
+        "club_name": "Riddles Comedy Club",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "60803",
+        "reason": "official_website_unavailable",
+        "source_id": 268,
+        "source_url": "https://www.riddles.seatengine.com",
+        "state": "IL",
+        "status": "fetch_error",
+        "venue_id": "455",
+        "visible": true,
+        "website_url": "https://www.riddles.seatengine.com"
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine",
+        "seatengine_id": 455,
+        "seatengine_v3_id": null,
+        "source_url": "https://www.riddles.seatengine.com"
+      },
+      "source_id": 268,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (60) SSL: no alternative certificate subject name matches target hostname 'www.riddles.seatengine.com'. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "CertificateVerifyError",
+              "finished_at": "2026-10-08T00:08:27.517752+00:00",
+              "started_at": "2026-10-08T00:08:27.494617+00:00",
+              "url": "https://www.riddles.seatengine.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:27.518220+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:27.493960+00:00",
+          "url": "https://www.riddles.seatengine.com"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website"
+      },
+      "supported_cause": "API-listed website fails certificate hostname validation in native curl and direct Playwright.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (60) SSL: no alternative certificate subject name matches target hostname 'www.riddles.seatengine.com'. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "CertificateVerifyError",
+              "finished_at": "2026-10-08T00:08:01.068391+00:00",
+              "started_at": "2026-10-08T00:08:01.045690+00:00",
+              "url": "https://www.riddles.seatengine.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.068805+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.045607+00:00",
+          "url": "https://www.riddles.seatengine.com"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.riddles.seatengine.com/\nCall log:\n  - navigating to \"https://www.riddles.seatengine.com/\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:01.388244+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:08:01.068819+00:00",
+          "url": "https://www.riddles.seatengine.com"
+        }
+      ]
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 37,
+              "body_sha256": "a41313e620c6d30c7508602ed58c2d5221de778922c0cd3a37e3cb2e2a4c5683",
+              "final_url": "https://services.seatengine.com/api/v1/venues/298",
+              "finished_at": "2026-10-08T00:08:01.202234+00:00",
+              "response_excerpt": "{\"errors\":{\"message\":\"Server Error\"}}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.061446+00:00",
+              "status": 500,
+              "url": "https://services.seatengine.com/api/v1/venues/298"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 500,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.203022+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.061283+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/298"
+        },
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 37,
+              "body_sha256": "a41313e620c6d30c7508602ed58c2d5221de778922c0cd3a37e3cb2e2a4c5683",
+              "final_url": "https://services.seatengine.com/api/v1/venues/298",
+              "finished_at": "2026-10-08T00:08:01.249736+00:00",
+              "response_excerpt": "{\"errors\":{\"message\":\"Server Error\"}}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.203143+00:00",
+              "status": 500,
+              "url": "https://services.seatengine.com/api/v1/venues/298"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 500,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.250376+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.203031+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/298"
+        }
+      ],
+      "classification": "api_server_error_with_live_classic_site",
+      "club_id": 71,
+      "club_name": "The Comedy Loft of DC",
+      "configured_venue_id": 298,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Retry the exact venue endpoint later or report the venue-specific API failure to SeatEngine; preserve the configured ID until independent identity evidence exists.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/298",
+        "city": "Washington",
+        "club_id": 71,
+        "club_name": "The Comedy Loft of DC",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "20037",
+        "reason": "venue_api_unavailable",
+        "source_id": 371,
+        "source_url": "www.dccomedyloft.com/events",
+        "state": "DC",
+        "status": "fetch_error",
+        "venue_id": "298",
+        "visible": true
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "seatengine_id": 298,
+        "seatengine_v3_id": null,
+        "source_url": "www.dccomedyloft.com/events"
+      },
+      "source_id": 371,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 1286155,
+              "body_sha256": "38acdf68fe780f7327ede8d3eecc3ebcc3135513292acb86c01c4961052614aa",
+              "final_url": "https://www.dccomedyloft.com/events",
+              "finished_at": "2026-10-08T00:08:27.997445+00:00",
+              "started_at": "2026-10-08T00:08:27.519290+00:00",
+              "status": 200,
+              "url": "https://www.dccomedyloft.com/events"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:28.008176+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:27.519212+00:00",
+          "url": "https://www.dccomedyloft.com/events"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 1281234,
+          "event_links": [
+            "/calendar",
+            "/events",
+            "/events/123128",
+            "/events/125999",
+            "/events/126008",
+            "/events/126009",
+            "/events/130441",
+            "/events/131430",
+            "/events/131749",
+            "/events/133223",
+            "/events/133573",
+            "/events/133646",
+            "/events/134078",
+            "/events/134183",
+            "/events/134184",
+            "/events/134186",
+            "/events/134189",
+            "/events/134506",
+            "/events/135243",
+            "/events/135730"
+          ],
+          "platform_markers": [
+            "cdn.seatengine.com",
+            "seatengine.com"
+          ],
+          "sha256": "38acdf68fe780f7327ede8d3eecc3ebcc3135513292acb86c01c4961052614aa",
+          "text_excerpt": "The Comedy Loft of DC Sign up Login 2022931887 The Comedy Loft of DC 1523 22nd St NW Washington DC 20037 Home Events Store Calendar Menu FAQ/Booking Contact Sign Up for Our Newsletter Menu Home Events Store Calendar Menu FAQ/Booking Contact Sign Up for Our Newsletter Upcoming Events Special Event October 08 - October 10 Alex Falcone Alex Falcone is the only comedian and writer living in Los Angeles* (*citation needed). He\u2019s appeared in several episodes of Portlandia, performed standup on The Late Show with Stephen Colbert, and his videos have racked up over 300 million views online. He\u2019s also the author of a best selling young-adult romance novel for some reason. Despite these modest accomplishments, he\u2019s somehow remained down to earth and approachable. Please note, there is a 2 item per person minimum in the showroom. This can be any combination of food items or beverages.  This does NOT include items bought in the basement at the Bier Baron Tavern. All General Admission seating is first come first serve, therefore we cannot guarantee seating together.  Groups need to be particularly aware of this. We recommend arriving at least 30 minutes to an hour prior to show time for better seat selection. Doors close 30 minutes after showtime. Tickets are available at the door UNLESS tickets have sold out. Guests must be 18+for entry. Those under the age of 21 will be given wristbands to wear. ALL SALES ARE FINAL.  NO REFUNDS.  This includes switching of showtimes, once purchased all sales are final. Management reserves the right to prevent customers from entering the facility who t",
+          "title": "The Comedy Loft of DC"
+        }
+      },
+      "supported_cause": "Two authenticated native venue calls returned HTTP500 and Server Error. The configured events page returned HTTP200 with classic SeatEngine CDN markers. No migration or stale identity is established.",
+      "website_attempts": []
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 13,
+              "body_sha256": "ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
+              "final_url": "https://services.seatengine.com/api/v1/venues/587",
+              "finished_at": "2026-10-08T00:08:01.301033+00:00",
+              "response_excerpt": "{\"data\": null}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.251184+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/587"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.301755+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.251048+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/587"
+        },
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 13,
+              "body_sha256": "ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
+              "final_url": "https://services.seatengine.com/api/v1/venues/587",
+              "finished_at": "2026-10-08T00:08:01.349648+00:00",
+              "response_excerpt": "{\"data\": null}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.301885+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/587"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.350218+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.301764+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/587"
+        }
+      ],
+      "classification": "api_identity_null_with_live_classic_site",
+      "club_id": 127,
+      "club_name": "Snappers Palm Harbor",
+      "configured_venue_id": 587,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Independently confirm the numeric identity used by the live configured site before changing any source ID or resolver behavior. Do not replace the configured ID merely because the API returned null.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/587",
+        "city": "Palm Harbor",
+        "club_id": 127,
+        "club_name": "Snappers Palm Harbor",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "34684",
+        "reason": "venue_api_unavailable",
+        "source_id": 431,
+        "source_url": "https://www.snappersgrill.com/events",
+        "state": "FL",
+        "status": "fetch_error",
+        "venue_id": "587",
+        "visible": true
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "seatengine_id": 587,
+        "seatengine_v3_id": null,
+        "source_url": "https://www.snappersgrill.com/events"
+      },
+      "source_id": 431,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 259129,
+              "body_sha256": "33849c900d83d5f12c09b3615d48993dd0c13f4ba9ad4d528ca92fa2590f8d48",
+              "final_url": "https://www.snappersgrill.com/events",
+              "finished_at": "2026-10-08T00:08:27.934685+00:00",
+              "started_at": "2026-10-08T00:08:27.684804+00:00",
+              "status": 200,
+              "url": "https://www.snappersgrill.com/events"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:27.942313+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:27.684621+00:00",
+          "url": "https://www.snappersgrill.com/events"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 258415,
+          "event_links": [
+            "/events",
+            "/events/131292",
+            "/events/138498",
+            "/events/139140",
+            "/events/142494",
+            "/events/142496",
+            "/events/142497",
+            "/events/142498",
+            "/events/142499",
+            "/events/142500",
+            "/events/142501",
+            "/events/142503",
+            "/events/142504",
+            "/events/142505",
+            "/events/142506",
+            "/events/142507",
+            "/events/143508",
+            "/events/143509",
+            "/events/143511",
+            "/events/143513"
+          ],
+          "platform_markers": [
+            "cdn.seatengine.com",
+            "seatengine.com"
+          ],
+          "sha256": "33849c900d83d5f12c09b3615d48993dd0c13f4ba9ad4d528ca92fa2590f8d48",
+          "text_excerpt": "Snappers Palm Harbor Sign up Login 727-938-2027 Snappers Palm Harbor 36657 US Hwy 19N Palm Harbor  FL 34684 Home Food Menu Live Comedy Live Music E-Gift Cards Email Signup FAQ's Happenings Order Online Order Food Order Comedy Tickets Order Gift Card About Us Terms & Conditions Menu Home Food Menu Live Comedy Live Music E-Gift Cards Email Signup FAQ's Happenings Order Online Order Food Order Comedy Tickets Order Gift Card About Us Terms & Conditions Upcoming Events Comedy October 08 - October 10 Ed Regine Comedy In 1985 Ed made his first ever open mic appearance in a little comedy club in Providence Rhode Island. Four months later Ed got his first paid gig. Ed has been going strong ever since. In less than two years Ed was headlining major comedy clubs all across America. As the 90\u2019s approached Ed moved into TV where he appeared on most Comedy shows Including MTV, Comedy Central, Showtime and HBO as well as a Live Pay-Per-View from Sony Studios in NYC just to name a few. In the late nineties, Ed began performing on luxury cruise liners as well as major corporate events. In the year 2000 Ed relocated to Hollywood to pursue his acting career\u2026 Ed quickly landed roles in many feature films, working with such actors as Tom Hanks, Al Pacino, Barbara Hershey, Philip Seymour Hoffman, Ron Perlman, John Savage, Rip Torn, Linda Blair Jamie Foxx plus many more\u2026To date Ed has 50 credits on IMDb!! In his standup career, Ed has shared the stage with such great comics as Billy Crystal, Rodney Dangerfield, Jamie Foxx, Andrew \u201cDice\u201d Clay, Louie C.K. Bill Burr, Jackie Mason, Wanda Sykes and so",
+          "title": "Snappers Palm Harbor"
+        }
+      },
+      "supported_cause": "Two authenticated native venue calls returned HTTP200 with data:null. Configured events URL returned HTTP200 with classic SeatEngine CDN markers. This distinguishes absent API identity data from a network outage; stale ID, retired API record, or API/classic incompatibility remain unresolved.",
+      "website_attempts": []
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 497,
+              "body_sha256": "c78cbe2c6e2520bd719015a55d59a6bb43e570984eb74467096edf56fa8731ee",
+              "final_url": "https://services.seatengine.com/api/v1/venues/524",
+              "finished_at": "2026-10-08T00:08:01.401198+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.350998+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/524"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.401815+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:01.350851+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/524"
+        }
+      ],
+      "api_identity": {
+        "id": 524,
+        "name": "Krackpots Comedy Club, Massillon",
+        "website": "http://www.krackpotscomedyclub.com/"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "official_website_dns_failure",
+      "club_id": 548,
+      "club_name": "Krackpots Comedy Club",
+      "configured_venue_id": 524,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Verify the current canonical website through independently bound venue/platform evidence, then handle any API website pointer or source repair as separate work. Do not infer a new address.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/524",
+        "city": "Massillon",
+        "club_id": 548,
+        "club_name": "Krackpots Comedy Club",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "44647",
+        "reason": "official_website_unavailable",
+        "source_id": 441,
+        "source_url": "https://www.krackpotscomedy.com/",
+        "state": "OH",
+        "status": "fetch_error",
+        "venue_id": "524",
+        "visible": true,
+        "website_url": "http://www.krackpotscomedyclub.com/"
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine",
+        "seatengine_id": 524,
+        "seatengine_v3_id": null,
+        "source_url": "https://www.krackpotscomedy.com/"
+      },
+      "source_id": 441,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 303976,
+              "body_sha256": "2620007f000ec7b4b9a4a1e5d9f91ba7bf8c5e7dbe0a6c0bb6b26663dc8d9b6f",
+              "final_url": "https://www.krackpotscomedy.com/",
+              "finished_at": "2026-10-08T00:08:28.257945+00:00",
+              "started_at": "2026-10-08T00:08:28.007254+00:00",
+              "status": 200,
+              "url": "https://www.krackpotscomedy.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:28.261434+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:27.996701+00:00",
+          "url": "https://www.krackpotscomedy.com/"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 303398,
+          "event_links": [
+            "/calendar",
+            "/events",
+            "/events/126823",
+            "/events/132213",
+            "/events/139518",
+            "/events/140881",
+            "/events/142090",
+            "/events/142629",
+            "/events/142631",
+            "/events/144739",
+            "/pages/group-events",
+            "http://www.seatengine.com",
+            "https://v-524.seatengine-sites.com/"
+          ],
+          "platform_markers": [
+            "cdn.seatengine.com",
+            "seatengine.com"
+          ],
+          "sha256": "2620007f000ec7b4b9a4a1e5d9f91ba7bf8c5e7dbe0a6c0bb6b26663dc8d9b6f",
+          "text_excerpt": "Krackpots Comedy Club, Massillon Sign up Login 330.809.0360 Krackpots Comedy Club, Massillon 14 Lincoln Way W. Massillon OH 44647 HOME EVENTS CALENDAR FAQs FOOD & DRINK MENU MERCHANDISE GIFT CARDS GROUP EVENTS CLASSES, WORKSHOPS, & SEMINARS NE OHIO'S LARGEST OPEN MIC NIGHT PHOTO GALLERY CONTACT COMEDIANS LINCOLN HIGHWAY COMEDY FESTIVAL 2026 Menu HOME EVENTS CALENDAR FAQs FOOD & DRINK MENU MERCHANDISE GIFT CARDS GROUP EVENTS CLASSES, WORKSHOPS, & SEMINARS NE OHIO'S LARGEST OPEN MIC NIGHT PHOTO GALLERY CONTACT COMEDIANS LINCOLN HIGHWAY COMEDY FESTIVAL 2026 FREE COMEDY OPEN MIC NIGHT October 08 - December 30 BUY TICKETS MATT ANDREW October 09 - October 10 BUY TICKETS **** FREE **** LATE NIGHT SATURDAY OPEN MIC October 09 BUY TICKETS JACK WILLHITE'S ROCK 'N ROLL COMEDY SHOW October 16 BUY TICKETS MINERVA'S ROXY THEATER PRESENTS AN EVENING WITH COMEDIAN CAM BERTRAND AS SEEN ON AMERICA'S GOT TALENT October 16 BUY TICKETS COMEDY WORKSHOP - THE HISTORY OF COMEDY & 10 THINGS YOU SHOULD BE DOING AS A COMEDIAN October 17 BUY TICKETS DOBIE MAXWELL October 17 BUY TICKETS DJ SANDHU October 23 - October 24 BUY TICKETS UPCOMING SHOWS FREE COMEDY OPEN MIC NIGHT NE OHIO'S LARGEST OPEN MIC October 08 - December 30 BUY TICKETS MATT ANDREW a special agent and diplomat smuggled for Navy SEALs October 09 - October 10 BUY TICKETS **** FREE **** LATE NIGHT SATURDAY OPEN MIC October 09 BUY TICKETS JACK WILLHITE'S ROCK 'N ROLL COMEDY SHOW Where Rock & Roll and Comedy Collide October 16 BUY TICKETS MINERVA'S ROXY THEATER PRESENTS AN EVENING WITH COMEDIAN CAM BERTRAND AS SEEN ON AMERICA'S GOT TALENT AS",
+          "title": "Krackpots Comedy Club, Massillon"
+        }
+      },
+      "supported_cause": "API-listed website hostname fails DNS in native curl and direct Playwright. Configured source_url is independently reachable and has SeatEngine markers, supporting an obsolete API website-pointer hypothesis; its authorization as a replacement remains unverified.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: www.krackpotscomedyclub.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:08:01.403117+00:00",
+              "started_at": "2026-10-08T00:08:01.401927+00:00",
+              "url": "http://www.krackpotscomedyclub.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.403241+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.401830+00:00",
+          "url": "http://www.krackpotscomedyclub.com/"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_NAME_NOT_RESOLVED at http://www.krackpotscomedyclub.com/\nCall log:\n  - navigating to \"http://www.krackpotscomedyclub.com/\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:01.706260+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:08:01.403253+00:00",
+          "url": "http://www.krackpotscomedyclub.com/"
+        }
+      ]
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 286,
+              "body_sha256": "7271f2d00d6b4f0450e3a63e071422f9d8e588ec6cf0f0017c5e0afa2c5a5399",
+              "final_url": "https://services.seatengine.com/api/v1/venues/294",
+              "finished_at": "2026-10-08T00:08:01.463983+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.407668+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/294"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.464614+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:01.407496+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/294"
+        }
+      ],
+      "api_identity": {
+        "id": 294,
+        "name": "Bananas Comedy Club",
+        "website": "http://bcccme.com"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "official_website_dns_failure",
+      "club_id": 850,
+      "club_name": "Bananas Comedy Club",
+      "configured_venue_id": 294,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Verify the current canonical website through independently bound venue/platform evidence, then handle any API website pointer or source repair as separate work. Do not infer a new address.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/294",
+        "city": "Rutherford",
+        "club_id": 850,
+        "club_name": "Bananas Comedy Club",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "07070",
+        "reason": "official_website_unavailable",
+        "source_id": 571,
+        "source_url": "https://www.bananascomedyclub.com",
+        "state": "NJ",
+        "status": "fetch_error",
+        "venue_id": "294",
+        "visible": true,
+        "website_url": "http://bcccme.com"
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_web",
+        "seatengine_id": 294,
+        "seatengine_v3_id": null,
+        "source_url": "https://www.bananascomedyclub.com"
+      },
+      "source_id": 571,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 95180,
+              "body_sha256": "5883ad9127ad405d264bfe32c13128fbcb1c935a9580c7b4bf6c101c6714598d",
+              "final_url": "https://www.bananascomedyclub.com/",
+              "finished_at": "2026-10-08T00:08:28.330550+00:00",
+              "started_at": "2026-10-08T00:08:28.134998+00:00",
+              "status": 200,
+              "url": "https://www.bananascomedyclub.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:28.332228+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:28.134551+00:00",
+          "url": "https://www.bananascomedyclub.com"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 94785,
+          "event_links": [
+            "/calendar",
+            "/events",
+            "/events/129194",
+            "/events/131849",
+            "/events/135239",
+            "/events/140365",
+            "/events/144582",
+            "/events/144609",
+            "/events/145056",
+            "/events/145267",
+            "/pages/group-events",
+            "http://www.seatengine.com",
+            "https://www.bananascomedyclub.com/events/131849",
+            "https://www.bananascomedyclub.com/events/135239",
+            "https://www.bananascomedyclub.com/pages/group-events",
+            "https://www.bananascomedyclub.com/pages/ticket-resale-policy"
+          ],
+          "platform_markers": [
+            "cdn.seatengine.com",
+            "seatengine.com"
+          ],
+          "sha256": "5883ad9127ad405d264bfe32c13128fbcb1c935a9580c7b4bf6c101c6714598d",
+          "text_excerpt": "Bananas Comedy Club Renaissance Hotel Sign up Login Listed Price Includes Fees \u00a0|\u00a0 There's a 2-item min in the showroom \u00a0| Beware of 3rd Party Ticket Resellers 201-727-1090 Bananas Comedy Club Renaissance Hotel 801 Rutherford Ave Rutherford NJ 07070 Home Club Events Calendar Gift Cards Insiders Club Group Events Contact Careers Helium Comedy Studios FAQ Menu Home Club Events Calendar Gift Cards Insiders Club Group Events Contact Careers Helium Comedy Studios FAQ Upcoming Shows Poly D\u00edaz - EN ESPA\u00d1OL (THIS SHOW IS ENTIRELY IN SPANISH WITH NO TRANSLATION) Social Media Star October 08 Buy Tickets Vic Dibitetto Social Media Star October 09 - October 10 Buy Tickets Teachers Gone Bad Educators-Turned-Comedians Let Loose October 10 Buy Tickets Irene Tu \"After Midnight\" October 16 - October 18 Buy Tickets Angelo Colina - EN ESPA\u00d1OL (THIS SHOW IS COMPLETELY IN SPANISH WITH NO TRANSLATION) Netflix Is A Joke October 16 Buy Tickets Patricia Pe\u00f1a - EN ESPA\u00d1OL (THIS SHOW IS ENTIRELY IN SPANISH WITH NO TRANSLATION) Social Media Star October 22 Buy Tickets Aaron Weber \"The Nateland Podcast\" October 30 - November 01 Buy Tickets Zar The Star Social Media Star November 05 Buy Tickets View Full Event List View Full Calendar Bananas Comedy Club is a contemporary entertainment venue that bring stadium-sized talent to an intimate theater on a weekly basis. For a modest ticket price, patrons enjoy live standup comedy and other performance art from a nationally accredited act, no more than 60 feet away. Shows average 1 hour and forty minutes and comprise an opener, a feature, and a headliner with n",
+          "title": "Bananas Comedy Club Renaissance Hotel"
+        }
+      },
+      "supported_cause": "API-listed website hostname fails DNS in native curl and direct Playwright. Configured source_url is independently reachable and has SeatEngine markers, supporting an obsolete API website-pointer hypothesis; its authorization as a replacement remains unverified.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: bcccme.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:08:01.466926+00:00",
+              "started_at": "2026-10-08T00:08:01.464724+00:00",
+              "url": "http://bcccme.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.467095+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.464630+00:00",
+          "url": "http://bcccme.com"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_NAME_NOT_RESOLVED at http://bcccme.com/\nCall log:\n  - navigating to \"http://bcccme.com/\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:01.783824+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:08:01.467110+00:00",
+          "url": "http://bcccme.com"
+        }
+      ]
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 286,
+              "body_sha256": "ffa2d7eb931d6bd8d29f06018e3bff227d8249448e54cf63bb198be54fe2f2f3",
+              "final_url": "https://services.seatengine.com/api/v1/venues/531",
+              "finished_at": "2026-10-08T00:08:01.778671+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.723469+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/531"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.779636+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:01.723229+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/531"
+        }
+      ],
+      "api_identity": {
+        "id": 531,
+        "name": "Deaf Puppy Comedy Club",
+        "website": "Http://www.deafpuppyclub.com"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "native_url_scheme_case_normalization_failure",
+      "club_id": 551,
+      "club_name": "Deaf Puppy Comedy Club",
+      "configured_venue_id": 531,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Separate code follow-up: normalize URL scheme case in shared URL handling with regression coverage for Http:// before retrying the resolver. No venue/source configuration or geography changes are justified.",
+      "offline_normalization_reproduction": {
+        "actual_output": "https://Http://www.deafpuppyclub.com",
+        "control_output": "http://www.deafpuppyclub.com",
+        "helper": "laughtrack.foundation.utilities.url.URLUtils.normalize_url",
+        "input": "Http://www.deafpuppyclub.com",
+        "interpretation": "Case-sensitive scheme detection prepends https:// to the mixed-case Http:// scheme, causing a request to hostname Http. No source code or configuration was modified.",
+        "lowercase_scheme_control_input": "http://www.deafpuppyclub.com",
+        "source_file": "apps/scraper/src/laughtrack/foundation/utilities/url/utils.py"
+      },
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/531",
+        "city": "Manteca",
+        "club_id": 551,
+        "club_name": "Deaf Puppy Comedy Club",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "95336",
+        "reason": "official_website_unavailable",
+        "source_id": 594,
+        "source_url": "Http://www.deafpuppyclub.com",
+        "state": "CA",
+        "status": "fetch_error",
+        "venue_id": "531",
+        "visible": true,
+        "website_url": "Http://www.deafpuppyclub.com"
+      },
+      "scheme_case_control": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 67348,
+              "body_sha256": "9ff50c64d722f11808f5e03fa4c5a471091537a61364d3aebfd697a700f9ab1c",
+              "final_url": "https://www.deafpuppyclub.com/",
+              "finished_at": "2026-10-08T00:08:28.666629+00:00",
+              "started_at": "2026-10-08T00:08:28.288953+00:00",
+              "status": 200,
+              "url": "http://www.deafpuppyclub.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:28.670748+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:28.288844+00:00",
+          "url": "http://www.deafpuppyclub.com"
+        },
+        "change": "Only RFC case-insensitive scheme Http changed to http; host/path preserved",
+        "content": {
+          "characters": 67344,
+          "event_links": [
+            "/calendar",
+            "/events",
+            "/events/136321",
+            "/events/140350",
+            "/events/141570",
+            "/events/141863",
+            "/events/143205",
+            "/events/143206",
+            "/events/143275",
+            "/events/143277",
+            "http://www.seatengine.com",
+            "https://venue-deaf-puppy-comedy-club-531.seatengine.cloud"
+          ],
+          "platform_markers": [
+            "cdn.seatengine.com",
+            "seatengine.com"
+          ],
+          "sha256": "9ff50c64d722f11808f5e03fa4c5a471091537a61364d3aebfd697a700f9ab1c",
+          "text_excerpt": "Deaf Puppy Comedy Club Sign up Login 209-622-5745 Deaf Puppy Comedy Club 127 N. Main St. Manteca Home Events Contact Calendar Menu Home Events Contact Calendar Free Wednesday Open Mic October 07 - October 14 Buy Tickets Trivia/Skills Competition w/Jacob Goss October 08 - October 15 Buy Tickets Bruce Gray October 09 - October 10 Buy Tickets All Ages NFL Watch Party Sundays/Niners and Raiders games shown October 11 - January 03 Buy Tickets Monday Night Football Madness October 12 - January 04 Buy Tickets Steve Furey October 16 - October 17 Buy Tickets Mike E. Winfield October 23 - October 24 Buy Tickets I.C.F. Branch 139 Sunday Spaghetti Dinner Fundraiser October 25 Buy Tickets Upcoming Shows Free Wednesday Open Mic October 07 - October 14 Buy Tickets Trivia/Skills Competition w/Jacob Goss October 08 - October 15 Buy Tickets Bruce Gray October 09 - October 10 Buy Tickets All Ages NFL Watch Party Sundays/Niners and Raiders games shown October 11 - January 03 Buy Tickets View Full Event List View Full Calendar 209-622-5745 Deaf Puppy Comedy Club 127 N. Main St. Manteca Sign Up For Exclusives & Updates! Submit Powered by Seat Engine",
+          "title": "Deaf Puppy Comedy Club"
+        }
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine",
+        "seatengine_id": 531,
+        "seatengine_v3_id": null,
+        "source_url": "Http://www.deafpuppyclub.com"
+      },
+      "source_id": 594,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: Http. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:08:57.414986+00:00",
+              "started_at": "2026-10-08T00:08:57.404966+00:00",
+              "url": "https://Http://www.deafpuppyclub.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:57.415145+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:57.404593+00:00",
+          "url": "Http://www.deafpuppyclub.com"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website"
+      },
+      "supported_cause": "API returns website Http://www.deafpuppyclub.com. Exact native curl and direct native Playwright attempts resolve a host named Http and fail. Changing only scheme case to http yields HTTP200 at https://www.deafpuppyclub.com/ with Deaf Puppy Comedy Club title and classic SeatEngine markers. This supports a native URL-normalization defect, not a dead official hostname.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: Http. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:08:01.796371+00:00",
+              "started_at": "2026-10-08T00:08:01.779833+00:00",
+              "url": "https://Http://www.deafpuppyclub.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.796591+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.779656+00:00",
+          "url": "Http://www.deafpuppyclub.com"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_NAME_NOT_RESOLVED at https://http//www.deafpuppyclub.com\nCall log:\n  - navigating to \"https://http//www.deafpuppyclub.com\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:02.095318+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:08:01.796607+00:00",
+          "url": "Http://www.deafpuppyclub.com"
+        }
+      ]
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 13,
+              "body_sha256": "ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
+              "final_url": "https://services.seatengine.com/api/v1/venues/601",
+              "finished_at": "2026-10-08T00:08:01.855765+00:00",
+              "response_excerpt": "{\"data\": null}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.802929+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/601"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.856370+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.802734+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/601"
+        },
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 13,
+              "body_sha256": "ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
+              "final_url": "https://services.seatengine.com/api/v1/venues/601",
+              "finished_at": "2026-10-08T00:08:01.907420+00:00",
+              "response_excerpt": "{\"data\": null}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.856486+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/601"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.908383+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.856378+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/601"
+        }
+      ],
+      "classification": "api_identity_null_with_live_classic_site",
+      "club_id": 130,
+      "club_name": "Stress Factory - Valley Forge",
+      "configured_venue_id": 601,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Independently confirm the numeric identity used by the live configured site before changing any source ID or resolver behavior. Do not replace the configured ID merely because the API returned null.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/601",
+        "city": "King of Prussia",
+        "club_id": 130,
+        "club_name": "Stress Factory - Valley Forge",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "19406",
+        "reason": "venue_api_unavailable",
+        "source_id": 598,
+        "source_url": "valleyforge.stressfactory.com/events",
+        "state": "PA",
+        "status": "fetch_error",
+        "venue_id": "601",
+        "visible": true
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "seatengine_id": 601,
+        "seatengine_v3_id": null,
+        "source_url": "valleyforge.stressfactory.com/events"
+      },
+      "source_id": 598,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 155831,
+              "body_sha256": "b2e807d70a74a111cad024ddc1b36f34855cb77ab680b43a109fd058e05ff622",
+              "final_url": "https://valleyforge.stressfactory.com/events",
+              "finished_at": "2026-10-08T00:08:28.699975+00:00",
+              "started_at": "2026-10-08T00:08:28.344699+00:00",
+              "status": 200,
+              "url": "https://valleyforge.stressfactory.com/events"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:28.703155+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:28.344601+00:00",
+          "url": "https://valleyforge.stressfactory.com/events"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 155803,
+          "event_links": [
+            "/calendar",
+            "/events",
+            "/events/134055",
+            "/events/134167",
+            "/events/134610",
+            "/events/136028",
+            "/events/140634",
+            "/events/140900",
+            "/events/141619",
+            "/events/142084",
+            "/events/143055",
+            "/events/143334",
+            "/events/143470",
+            "/events/144046",
+            "http://www.seatengine.com",
+            "https://valleyforge.stressfactory.com/events"
+          ],
+          "platform_markers": [
+            "cdn.seatengine.com",
+            "seatengine.com"
+          ],
+          "sha256": "b2e807d70a74a111cad024ddc1b36f34855cb77ab680b43a109fd058e05ff622",
+          "text_excerpt": "Stress Factory - Valley Forge Casino Sign up Login Visit New Jersey Location Visit CONNECTICUT Location BUY VALLEY FORGE TICKETS 484-592-HAHA (4242) Stress Factory - Valley Forge Casino 1160 First Avenue King of Prussia PA 19406 Home Calendar Events Contact Menu Home Calendar Events Contact Upcoming Events SPECIAL EVENT October 09 Dale Elliott JR.- \"FUNNY HOW LIFE WORKS TOUR\" ALL PRICES INCLUDE FEES VIP TICKET INCLUDES A MEET AND GREET! ALL SALES ARE FINAL- NO REFUNDS. GIVE US A CALL IF YOU HAVE QUESTIONS. WE DON'T ACCEPT THIRD PARTY TICKETS. WE ONLY ACCEPT TICKETS SOLD ON OUR WEBSITE. PHOTO ID REQUIRED AT THE DOOR. NAME ON THE TICKET MUST MATCH THE ID PRESENTED AT THE DOOR. YOU WILL BE DENIED ENTRY IF IT DOESN'T MATCH. CLICK the showtime you want to attend to purchase tickets! CLICK HERE FOR HOTEL, DINNER & COMEDY TICKETS PACKAGE! https://vfcasino.boyd.pegsbe.com/promo?offerCode=PSTCA&hotel=VF Show Details: Electronic ticket, you do not need to print out tickets Show Type: Stand Up Comedy ALL SALES ARE FINAL Table seating, first come first served Restrictions: 16 & over There is a two-item minimum per person, can be any two items that we sell You must purchase the table for the amount of people in your party. IF YOU PURCHASE A SINGLE TICKET, YOU WILL BE SEATED WITH OTHERS. HOWEVER, YOU BE SEATED WITH YOUR GROUP. If you need extra assistance with seating due to auditory, visual or physical impairments, please reach out to us. VIP ticket holders must arrive 15 minutes prior to showtime to guarantee VIP seats. PLEASE DOUBLE CHECK YOUR ORDER BEFORE PURCHASING TICKETS. IF YOU P",
+          "title": "Stress Factory - Valley Forge Casino"
+        }
+      },
+      "supported_cause": "Two authenticated native venue calls returned HTTP200 with data:null. Configured events URL returned HTTP200 with classic SeatEngine CDN markers. This distinguishes absent API identity data from a network outage; stale ID, retired API record, or API/classic incompatibility remain unresolved.",
+      "website_attempts": []
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 13,
+              "body_sha256": "ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
+              "final_url": "https://services.seatengine.com/api/v1/venues/311",
+              "finished_at": "2026-10-08T00:08:01.956082+00:00",
+              "response_excerpt": "{\"data\": null}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.909395+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/311"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:01.956743+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.909223+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/311"
+        },
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 13,
+              "body_sha256": "ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
+              "final_url": "https://services.seatengine.com/api/v1/venues/311",
+              "finished_at": "2026-10-08T00:08:02.005844+00:00",
+              "response_excerpt": "{\"data\": null}",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:01.956879+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/311"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:02.006515+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:01.956751+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/311"
+        }
+      ],
+      "classification": "api_identity_null_with_live_classic_site",
+      "club_id": 46,
+      "club_name": "Stress Factory Bridgeport",
+      "configured_venue_id": 311,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Independently confirm the numeric identity used by the live configured site before changing any source ID or resolver behavior. Do not replace the configured ID merely because the API returned null.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/311",
+        "city": "Bridgeport",
+        "club_id": 46,
+        "club_name": "Stress Factory Bridgeport",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "06604",
+        "reason": "venue_api_unavailable",
+        "source_id": 631,
+        "source_url": "bridgeport.stressfactory.com/events",
+        "state": "CT",
+        "status": "fetch_error",
+        "venue_id": "311",
+        "visible": true
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "seatengine_id": 311,
+        "seatengine_v3_id": null,
+        "source_url": "bridgeport.stressfactory.com/events"
+      },
+      "source_id": 631,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 322109,
+              "body_sha256": "0d29b8686a086e1e8d910672ee185f1a934fc096bad4bf70c924a657269357cd",
+              "final_url": "https://bridgeport.stressfactory.com/events",
+              "finished_at": "2026-10-08T00:08:28.966274+00:00",
+              "started_at": "2026-10-08T00:08:28.696901+00:00",
+              "status": 200,
+              "url": "https://bridgeport.stressfactory.com/events"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:28.974418+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:28.696177+00:00",
+          "url": "https://bridgeport.stressfactory.com/events"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 322085,
+          "event_links": [
+            "/calendar",
+            "/events",
+            "/events/134056",
+            "/events/134416",
+            "/events/134622",
+            "/events/134677",
+            "/events/134734",
+            "/events/135661",
+            "/events/136332",
+            "/events/136469",
+            "/events/138532",
+            "/events/140448",
+            "/events/141007",
+            "/events/141093",
+            "/events/141177",
+            "/events/141830",
+            "/events/141850",
+            "/events/141895",
+            "/events/142282",
+            "/events/142997"
+          ],
+          "platform_markers": [
+            "cdn.seatengine.com",
+            "seatengine.com"
+          ],
+          "sha256": "0d29b8686a086e1e8d910672ee185f1a934fc096bad4bf70c924a657269357cd",
+          "text_excerpt": "The Stress Factory Bridgeport Sign up Login Visit New Jersey Location Visit Valley Forge Location BUY BRIDGEPORT TICKETS 203-576-HAHA (4242) The Stress Factory Bridgeport 167 State St. Bridgeport, CT 06604 Home Calendar Events Contact Group Events Book a Comic Menu Home Calendar Events Contact Group Events Book a Comic Upcoming Events Special Event October 09 - October 10 Malik Elassal ALL PRICES INCLUDE FEES ALL SALES ARE FINAL- NO REFUNDS. WE ONLY ACCEPT TICKETS SOLD ON OUR WEBSITE. PHOTO ID REQUIRED AT THE DOOR. NAME AND INFORMATION ON THE TICKET MUST MATCH THE ID PRESENTED AT THE DOOR. YOU WILL BE DENIED ENTRY IF IT DOESN'T MATCH. Electronic ticket, you do not need to print out tickets Show Type: Stand Up Comedy Table seating, first come first served Restrictions: 16 & over There is a two-item minimum per person, can be any two items that we sell You must purchase the table for the amount of people in your party. If you need extra assistance with seating due to auditory, visual or physical impairments, please reach out to us. IF YOU PURCHASE A SINGLE TICKET, YOU WILL BE SEATED WITH OTHERS. VIP ticket holders must arrive 15 minutes prior to showtime to guarantee your VIP seats. Our tickets are non-refundable. PLEASE DOUBLE CHECK YOUR ORDER BEFORE PURCHASING TICKETS. IF YOU PURCHASE A TABLE OF 2 IT INCLUDES ADMISSION FOR 2 GUESTS AT A TABLE OF 2, IF YOU PURCHASE A TABLE OF 4 IT INCLUDES ADMISSION FOR 4 GUESTS AT A TABLE... DO NOT PURCHASE YOUR TICKETS FROM THIRD PARTIES.  WE ONLY HONOR TICKETS SOLD THROUGH OUR WEBSITE. CLICK the showtime you want to attend to purchase tic",
+          "title": "The Stress Factory Bridgeport"
+        }
+      },
+      "supported_cause": "Two authenticated native venue calls returned HTTP200 with data:null. Configured events URL returned HTTP200 with classic SeatEngine CDN markers. This distinguishes absent API identity data from a network outage; stale ID, retired API record, or API/classic incompatibility remain unresolved.",
+      "website_attempts": []
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 995,
+              "body_sha256": "36d23d1bce717ddd42f488219aace7a45d3bdcae8da839b29fbd7936c4bf698e",
+              "final_url": "https://services.seatengine.com/api/v1/venues/366",
+              "finished_at": "2026-10-08T00:08:02.065234+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:02.007538+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/366"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:02.065932+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:02.007397+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/366"
+        }
+      ],
+      "api_identity": {
+        "id": 366,
+        "name": "Wiseguys - Historic Ogden",
+        "website": "http://historicogden.wiseguyscomedy.com"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "official_website_dns_failure",
+      "club_id": 391,
+      "club_name": "Wiseguys - Historic Ogden",
+      "configured_venue_id": 366,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Verify the current canonical website through independently bound venue/platform evidence, then handle any API website pointer or source repair as separate work. Do not infer a new address.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/366",
+        "city": "Ogden",
+        "club_id": 391,
+        "club_name": "Wiseguys - Historic Ogden",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "84401",
+        "reason": "official_website_unavailable",
+        "source_id": 637,
+        "source_url": "https://www.wiseguyscomedy.com/utah/ogden",
+        "state": "UT",
+        "status": "fetch_error",
+        "venue_id": "366",
+        "visible": true,
+        "website_url": "http://historicogden.wiseguyscomedy.com"
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine",
+        "seatengine_id": 366,
+        "seatengine_v3_id": null,
+        "source_url": "https://www.wiseguyscomedy.com/utah/ogden"
+      },
+      "source_id": 637,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 100699,
+              "body_sha256": "f13a272479ed1934c4a7f2496e5fc3a17defc226c13dcb2a3571ddd4a16239bf",
+              "final_url": "https://www.wiseguyscomedy.com/utah/ogden",
+              "finished_at": "2026-10-08T00:08:29.039291+00:00",
+              "started_at": "2026-10-08T00:08:28.732183+00:00",
+              "status": 200,
+              "url": "https://www.wiseguyscomedy.com/utah/ogden"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:29.040467+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:28.731994+00:00",
+          "url": "https://www.wiseguyscomedy.com/utah/ogden"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 100692,
+          "event_links": [
+            "/utah/calendar",
+            "/utah/group-events"
+          ],
+          "platform_markers": [
+            "seatengine.com"
+          ],
+          "sha256": "f13a272479ed1934c4a7f2496e5fc3a17defc226c13dcb2a3571ddd4a16239bf",
+          "text_excerpt": "Wiseguys Historic Ogden | Ogden, UT Home Calendar Open Mic FAQs Group Events Gift Certificate Jobs Contact Us See All Locations Utah Locations Ogden , UT Historic Ogden Menu Directions Wiseguys Comedy Club Historic Ogden Ogden , Utah Avoid Resellers Tickets from third-party sites won't be accepted at the door. For guaranteed entry, buy only from wiseguyscomedy.com or seatengine.com . Tickets from Vivid Seats, SeatGeek, StubHub, Craigslist, or any other unauthorized site will result in denied admission . Seth Tippetts Historic Ogden Oct 9-10 Spencer King Historic Ogden Oct 16-17 Chris Munch Historic Ogden Oct 23-24 Muskieween 3 Historic Ogden Oct 31 Steve Soelberg Historic Ogden Nov 6-7 Alaina Hirschi Historic Ogden Nov 20-21 Marcus and Guy Historic Ogden Nov 27-28 Paul Sheffield Historic Ogden Dec 4-5 Bengt Washburn Historic Ogden Dec 11-12 Jordan Makin Historic Ogden Dec 18-19 Dustin Anderson Historic Ogden Feb 5-6 Ogden , UT Historic Ogden Menu Directions 269 25th St Ogden , Utah 84401 (801) 622-5588 About Wiseguys Comedy Ogden Come experience Ogden's colorful history on 25th Street where you will find buildings dating back to the late 1800s that currently house a variety of restaurants, eclectic shops and best of all, Wiseguys Ogden.\n\nWiseguys Ogden was opened in 2003 by comedian Keith Stubbs. Comedians who have made stops at Wiseguys Ogden include Joel McHale, Frank Caliendo, Bill Burr, Maria Bamford, Norm MacDonald, Marlon Wayans, Louie Anderson, Caroline Rhea and more.\n\nWiseguys Ogden features a cafe style menu with pizza, sandwiches, nachos, desserts, Coke products a",
+          "title": "Wiseguys Historic Ogden | Ogden, UT"
+        }
+      },
+      "supported_cause": "API-listed website hostname fails DNS in native curl and direct Playwright. Configured source_url is independently reachable and has SeatEngine markers, supporting an obsolete API website-pointer hypothesis; its authorization as a replacement remains unverified.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: historicogden.wiseguyscomedy.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:08:02.067245+00:00",
+              "started_at": "2026-10-08T00:08:02.066058+00:00",
+              "url": "http://historicogden.wiseguyscomedy.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:02.067391+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:02.065952+00:00",
+          "url": "http://historicogden.wiseguyscomedy.com"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_NAME_NOT_RESOLVED at http://historicogden.wiseguyscomedy.com/\nCall log:\n  - navigating to \"http://historicogden.wiseguyscomedy.com/\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:02.371516+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:08:02.067401+00:00",
+          "url": "http://historicogden.wiseguyscomedy.com"
+        }
+      ]
+    },
+    {
+      "api_attempts": [
+        {
+          "curl_responses": [
+            {
+              "body_bytes": 1742,
+              "body_sha256": "951a57458f09b3d3f02a73e0e9de1a1360c890bc33975edcc3fd7650d4a74411",
+              "final_url": "https://services.seatengine.com/api/v1/venues/361",
+              "finished_at": "2026-10-08T00:08:02.254045+00:00",
+              "response_shape": "dict",
+              "started_at": "2026-10-08T00:08:02.122171+00:00",
+              "status": 200,
+              "url": "https://services.seatengine.com/api/v1/venues/361"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:02.254668+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:02.121972+00:00",
+          "url": "https://services.seatengine.com/api/v1/venues/361"
+        }
+      ],
+      "api_identity": {
+        "id": 361,
+        "name": "Wiseguys - Downtown SLC",
+        "website": "http://downtown-slc.wiseguyscomedy.com"
+      },
+      "api_identity_matches_configured_id": true,
+      "classification": "official_website_dns_failure",
+      "club_id": 390,
+      "club_name": "Wiseguys Comedy Club - Salt Lake City",
+      "configured_venue_id": 361,
+      "identity_limit": "API numeric identity is checked against configured venue ID; agreement of names is not used to infer replacement IDs or geographic corrections. Configured source_url is supplemental and not an authoritative replacement.",
+      "next_action": "Verify the current canonical website through independently bound venue/platform evidence, then handle any API website pointer or source repair as separate work. Do not infer a new address.",
+      "prior": {
+        "api_url": "https://services.seatengine.com/api/v1/venues/361",
+        "city": "Salt Lake City",
+        "club_id": 390,
+        "club_name": "Wiseguys Comedy Club - Salt Lake City",
+        "enabled": true,
+        "platform": "seatengine",
+        "postal_code": "84101",
+        "reason": "official_website_unavailable",
+        "source_id": 644,
+        "source_url": "https://www.wiseguyscomedy.com/utah/salt-lake-city/the-showroom",
+        "state": "UT",
+        "status": "fetch_error",
+        "venue_id": "361",
+        "visible": true,
+        "website_url": "http://downtown-slc.wiseguyscomedy.com"
+      },
+      "source_configuration": {
+        "enabled": true,
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine",
+        "seatengine_id": 361,
+        "seatengine_v3_id": null,
+        "source_url": "https://www.wiseguyscomedy.com/utah/salt-lake-city/the-showroom"
+      },
+      "source_id": 644,
+      "supplemental_configured_pointer": {
+        "attempt": {
+          "curl_responses": [
+            {
+              "body_bytes": 173593,
+              "body_sha256": "2d687510813a1853d078e49bd3ae61b076891d68164f384914b4e937af365eef",
+              "final_url": "https://www.wiseguyscomedy.com/utah/salt-lake-city/the-showroom",
+              "finished_at": "2026-10-08T00:08:29.488319+00:00",
+              "started_at": "2026-10-08T00:08:29.039067+00:00",
+              "status": 200,
+              "url": "https://www.wiseguyscomedy.com/utah/salt-lake-city/the-showroom"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": 200,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:29.492479+00:00",
+          "returned_content": true,
+          "started_at": "2026-10-08T00:08:29.038488+00:00",
+          "url": "https://www.wiseguyscomedy.com/utah/salt-lake-city/the-showroom"
+        },
+        "authority": "Configured source_url only; not a verified replacement API identity or website",
+        "content": {
+          "characters": 173542,
+          "event_links": [
+            "/utah/calendar",
+            "/utah/group-events"
+          ],
+          "platform_markers": [
+            "seatengine.com"
+          ],
+          "sha256": "2d687510813a1853d078e49bd3ae61b076891d68164f384914b4e937af365eef",
+          "text_excerpt": "Wiseguys The Showroom | Salt Lake City, UT Home Calendar Open Mic FAQs Group Events Gift Certificate Jobs Contact Us See All Locations Utah Locations Salt Lake City , UT The Showroom @ The Gateway Menu Directions Wiseguys Comedy Club The Showroom at The Gateway Salt Lake City , Utah Avoid Resellers Tickets from third-party sites won't be accepted at the door. For guaranteed entry, buy only from wiseguyscomedy.com or seatengine.com . Tickets from Vivid Seats, SeatGeek, StubHub, Craigslist, or any other unauthorized site will result in denied admission . Showroom Open Mic The Gateway Wednesdays Showroom Joanne McNally The Gateway Oct 8 Showroom Christina P The Gateway Oct 9-10 Showroom Ben Bankas The Gateway Oct 15 Showroom Jessica Kirson The Gateway Oct 16-17 Showroom Davide De Pierro The Gateway Oct 18 Showroom Eric Andr\u00e9: Subtle The Gateway Oct 22-24 Showroom Life Afterlife: Travis Holp Live The Gateway Oct 29 Showroom \u200bKill Tony's Pat O\u2019Neill The Gateway Oct 30-31 Showroom Dan Soder The Gateway Nov 5-7 Showroom Don McMillan The Gateway Nov 12 Showroom Craig Conant The Gateway Nov 13-14 Showroom Richie O\u2019Farrill: En Espa\u00f1ol The Gateway Nov 15 Showroom Ryan Long The Gateway Nov 20-21 Showroom Bryan Callen The Gateway Nov 27-28 Showroom T.J. Miller The Gateway Dec 11-12 Showroom Maria Bamford The Gateway Dec 13 Showroom Frank Caliendo The Gateway Dec 15 Showroom Grits & Eggs Podcast The Gateway Dec 16 Showroom Jamie Wolf The Gateway Dec 31, 2026-Jan 2, 2027 Showroom Brad Williams The Gateway Jan 5-7 Showroom Mark Gagnon The Gateway Jan 8-9 Showroom Jamie Lissow The Gateway J",
+          "title": "Wiseguys The Showroom | Salt Lake City, UT"
+        }
+      },
+      "supported_cause": "API-listed website hostname fails DNS in native curl and direct Playwright. Configured source_url is independently reachable and has SeatEngine markers, supporting an obsolete API website-pointer hypothesis; its authorization as a replacement remains unverified.",
+      "website_attempts": [
+        {
+          "curl_responses": [
+            {
+              "error": "Failed to perform, curl: (6) Could not resolve host: downtown-slc.wiseguyscomedy.com. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+              "error_class": "DNSError",
+              "finished_at": "2026-10-08T00:08:02.256043+00:00",
+              "started_at": "2026-10-08T00:08:02.254770+00:00",
+              "url": "http://downtown-slc.wiseguyscomedy.com"
+            }
+          ],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "finished_at": "2026-10-08T00:08:02.256262+00:00",
+          "returned_content": false,
+          "started_at": "2026-10-08T00:08:02.254682+00:00",
+          "url": "http://downtown-slc.wiseguyscomedy.com"
+        },
+        {
+          "curl_responses": [],
+          "diagnostics": {
+            "bot_block_detected": false,
+            "bot_block_signature": null,
+            "http_status": null,
+            "playwright_fallback_used": false
+          },
+          "error": "Page.goto: net::ERR_NAME_NOT_RESOLVED at http://downtown-slc.wiseguyscomedy.com/\nCall log:\n  - navigating to \"http://downtown-slc.wiseguyscomedy.com/\", waiting until \"domcontentloaded\"\n",
+          "error_class": "Error",
+          "finished_at": "2026-10-08T00:08:02.573221+00:00",
+          "method": "direct native Playwright retry after curl network error",
+          "started_at": "2026-10-08T00:08:02.256300+00:00",
+          "url": "http://downtown-slc.wiseguyscomedy.com"
+        }
+      ]
+    }
+  ],
+  "started_at": "2026-10-08T00:07:28.682368+00:00",
+  "task_id": 4133
+}
