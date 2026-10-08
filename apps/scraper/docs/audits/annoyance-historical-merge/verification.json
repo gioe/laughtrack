@@ -1,0 +1,88 @@
+{
+  "task_id": 4136,
+  "verified_at": "2026-10-08T14:15:27.642343+00:00",
+  "production_applied": true,
+  "private_backup_mode": "0600",
+  "private_recovery_files": [
+    "/private/tmp/task4136-production-backup.json",
+    "/private/tmp/task4136-production-backup.json.after.json"
+  ],
+  "before_hash": "ffb5a847fd4adb148acd3f7436e45e960831617451f50459ff81b15ec9bd7cf2",
+  "after_hash": "9239ca9b0b3d2d8db2a0cfd80e2b39b14d24f45c18fa9518ae2c062dec70de94",
+  "all_full_rows_match_reviewed_after_state": true,
+  "rerun_already_applied": true,
+  "god_lens_all_rows_unchanged": true,
+  "venue_and_sources_unchanged": true,
+  "all_27_click_ids_and_non_show_fields_preserved": true,
+  "retired_show_ids": [
+    3769502,
+    847662
+  ],
+  "survivor_show_ids": [
+    7451272,
+    1371908
+  ],
+  "survivor_field_changes": {
+    "927780": {},
+    "1024865": {},
+    "1371908": {},
+    "7451272": {
+      "min_price": {
+        "before": null,
+        "after": 15.0
+      }
+    }
+  },
+  "before_counts": {
+    "clubs": 1,
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 0,
+    "saved_shows": 0,
+    "scraping_sources": 1,
+    "sent_notifications": 0,
+    "shows": 6,
+    "tagged_shows": 15,
+    "ticket_purchase_click_events": 27,
+    "tickets": 6
+  },
+  "after_counts": {
+    "shows": 4,
+    "clubs": 1,
+    "scraping_sources": 1,
+    "tickets": 4,
+    "lineup_items": 0,
+    "tagged_shows": 12,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 27
+  },
+  "tests": {
+    "postgresql_tests": 26,
+    "passed": 26,
+    "skipped": 0,
+    "production_trigger_migrations_used": true,
+    "full_gate": "Blocked by pre-existing missing tzdata; clean HEAD reproduced 3/3, not flaky or divergent"
+  },
+  "public_api": {
+    "url_template": "https://www.laugh-track.com/api/v1/shows/{id}",
+    "before_statuses": {
+      "7451272": 200,
+      "3769502": 200,
+      "1371908": 200,
+      "847662": 200,
+      "1024865": 200,
+      "927780": 200
+    },
+    "after_statuses": {
+      "7451272": 200,
+      "3769502": 404,
+      "1371908": 200,
+      "847662": 404,
+      "1024865": 200,
+      "927780": 200
+    },
+    "god_lens_response_bodies_unchanged": true,
+    "after_checked_at": "2026-10-08T14:15:42.750828+00:00"
+  }
+}

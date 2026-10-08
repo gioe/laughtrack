@@ -55,7 +55,29 @@ exclusive mode-0600 recovery backup before mutations, then verifies the exact
 modeled after-state, including ticket-derived caches, before commit. The private after-image supports guarded
 exact restoration. A retry matching the reviewed after-state is a no-op; any
 partial or changed state refuses. Production execution and final verification
-will be recorded separately in this directory.
+are recorded in [verification.json](verification.json).
+
+## Applied outcome
+
+The corrected rehearsal matched the full expected state and rolled back. The
+reviewed repair then committed in production. Independent post-commit inspection
+matched every affected row to the private after-image; a retry returned
+`already_applied=true` without writes. Counts changed from six to four shows,
+six to four tickets, and 15 to 12 tags. All 27 click IDs and non-show fields were
+preserved. Both God Lens shows, their relationships, the venue and source stayed
+unchanged. The only retained show-field change was Fire & Beer's derived minimum
+price becoming 15.
+
+Public API verification returned 404 for both retired IDs and 200 for the two
+survivors and both God Lens IDs. God Lens response bodies matched the preflight.
+
+Private full-row recovery files (mode 0600) are stored outside the repository at
+`/private/tmp/task4136-production-backup.json` and its `.after.json` companion.
+The executed repair is archived at
+`scripts/archive/merge_annoyance_historical_pairs_2026_10_08.py`.
+The focused PostgreSQL suite passes **26 tests, zero skipped**, including exact
+JSON backup restoration, transaction rollback, relationship preservation,
+idempotence and row/schema/trigger/function drift refusal.
 
 ## Rehearsal and validation
 
