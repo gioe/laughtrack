@@ -1,0 +1,149 @@
+{
+  "retrieved_at": "2026-10-08T01:40:18.892985+00:00",
+  "read_only": true,
+  "show_count": 137,
+  "error": null,
+  "routing_errors": [],
+  "reviewed_matches": [
+    {
+      "retained_show_id": 3179527,
+      "candidate": {
+        "id": null,
+        "name": "Riot Improv Mainstage: Stories to Scenes",
+        "club_id": 10970,
+        "date": "2026-10-17T20:30:00-04:00",
+        "room": "18b Corinth Street, Boston, MA",
+        "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US",
+        "production_company_id": 50,
+        "scraped_by_organizer_id": 50,
+        "tickets": [
+          {
+            "type": "General Admission",
+            "price": 15.0,
+            "purchase_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US"
+          }
+        ]
+      }
+    },
+    {
+      "retained_show_id": 3179503,
+      "candidate": {
+        "id": null,
+        "name": "Uncomposed!",
+        "club_id": 10970,
+        "date": "2026-10-24T20:30:00-04:00",
+        "room": "18b Corinth Street, Boston, MA",
+        "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/uncomposed-your-town-the-musical?lang=en-US",
+        "production_company_id": 50,
+        "scraped_by_organizer_id": 50,
+        "tickets": [
+          {
+            "type": "General Admission",
+            "price": 15.0,
+            "purchase_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/uncomposed-your-town-the-musical?lang=en-US"
+          }
+        ]
+      }
+    },
+    {
+      "retained_show_id": 3179545,
+      "candidate": {
+        "id": null,
+        "name": "Level 1B Improv Showcase",
+        "club_id": 61212,
+        "date": "2026-11-05T20:00:00-05:00",
+        "room": "The Substation, Washington Street, Roslindale, MA",
+        "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US",
+        "production_company_id": 50,
+        "scraped_by_organizer_id": 50,
+        "tickets": [
+          {
+            "type": "General Admission",
+            "price": 11.0,
+            "purchase_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US"
+          }
+        ]
+      }
+    },
+    {
+      "retained_show_id": 3179540,
+      "candidate": {
+        "id": null,
+        "name": "Riot Improv: Monthly Special",
+        "club_id": 10970,
+        "date": "2026-11-07T20:30:00-05:00",
+        "room": "18b Corinth Street, Boston, MA",
+        "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-monthly-special?lang=en-US",
+        "production_company_id": 50,
+        "scraped_by_organizer_id": 50,
+        "tickets": [
+          {
+            "type": "General Admission",
+            "price": 15.0,
+            "purchase_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-monthly-special?lang=en-US"
+          }
+        ]
+      }
+    },
+    {
+      "retained_show_id": 3179547,
+      "candidate": {
+        "id": null,
+        "name": "Level 3B Improv Showcase",
+        "club_id": 61212,
+        "date": "2026-11-23T20:00:00-05:00",
+        "room": "The Substation, Washington Street, Roslindale, MA",
+        "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-3b-improv-showcase?lang=en-US",
+        "production_company_id": 50,
+        "scraped_by_organizer_id": 50,
+        "tickets": [
+          {
+            "type": "General Admission",
+            "price": 12.0,
+            "purchase_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-3b-improv-showcase?lang=en-US"
+          }
+        ]
+      }
+    },
+    {
+      "retained_show_id": 3558371,
+      "candidate": {
+        "id": null,
+        "name": "ComedySportz\u00ae",
+        "club_id": 10970,
+        "date": "2027-06-26T18:00:00-04:00",
+        "room": "18b Corinth Street, Boston, MA",
+        "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US",
+        "production_company_id": 50,
+        "scraped_by_organizer_id": 50,
+        "tickets": [
+          {
+            "type": "General Admission",
+            "price": 13.0,
+            "purchase_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+          }
+        ]
+      }
+    },
+    {
+      "retained_show_id": 3789139,
+      "candidate": {
+        "id": null,
+        "name": "ComedySportz\u00ae",
+        "club_id": 10970,
+        "date": "2027-07-03T18:00:00-04:00",
+        "room": "18b Corinth Street, Boston, MA",
+        "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US",
+        "production_company_id": 50,
+        "scraped_by_organizer_id": 50,
+        "tickets": [
+          {
+            "type": "General Admission",
+            "price": 13.0,
+            "purchase_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+          }
+        ]
+      }
+    }
+  ]
+}

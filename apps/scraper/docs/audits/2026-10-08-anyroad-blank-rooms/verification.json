@@ -1,0 +1,142 @@
+{
+  "task_id": 4135,
+  "applied": true,
+  "counts": {
+    "clubs": {
+      "before": 2,
+      "after": 2
+    },
+    "discovery_show_feature_snapshots": {
+      "before": 0,
+      "after": 0
+    },
+    "lineup_items": {
+      "before": 0,
+      "after": 0
+    },
+    "production_companies": {
+      "before": 1,
+      "after": 1
+    },
+    "production_company_venues": {
+      "before": 2,
+      "after": 2
+    },
+    "saved_shows": {
+      "before": 0,
+      "after": 0
+    },
+    "scraping_sources": {
+      "before": 2,
+      "after": 2
+    },
+    "sent_notifications": {
+      "before": 0,
+      "after": 0
+    },
+    "shows": {
+      "before": 146,
+      "after": 141
+    },
+    "tagged_shows": {
+      "before": 256,
+      "after": 244
+    },
+    "ticket_purchase_click_events": {
+      "before": 2000,
+      "after": 2000
+    },
+    "tickets": {
+      "before": 146,
+      "after": 141
+    }
+  },
+  "unchanged_unreviewed_shows": 134,
+  "public_original_urls_verified": true,
+  "cdn_cache_purged": true,
+  "retained_occurrences": [
+    {
+      "id": 3179527,
+      "status": 200,
+      "club_id": 10970,
+      "room": "18b Corinth Street, Boston, MA",
+      "date": "2026-10-18T00:30:00.000Z",
+      "tickets_unchanged": true,
+      "checked_at": "2026-10-08T02:00:16.983685+00:00"
+    },
+    {
+      "id": 3179503,
+      "status": 200,
+      "club_id": 10970,
+      "room": "18b Corinth Street, Boston, MA",
+      "date": "2026-10-25T00:30:00.000Z",
+      "tickets_unchanged": true,
+      "checked_at": "2026-10-08T02:00:17.150237+00:00"
+    },
+    {
+      "id": 3179545,
+      "status": 200,
+      "club_id": 61212,
+      "room": "The Substation, Washington Street, Roslindale, MA",
+      "date": "2026-11-06T01:00:00.000Z",
+      "tickets_unchanged": true,
+      "checked_at": "2026-10-08T02:00:17.354850+00:00"
+    },
+    {
+      "id": 3179540,
+      "status": 200,
+      "club_id": 10970,
+      "room": "18b Corinth Street, Boston, MA",
+      "date": "2026-11-08T01:30:00.000Z",
+      "tickets_unchanged": true,
+      "checked_at": "2026-10-08T02:00:17.535399+00:00"
+    },
+    {
+      "id": 3179547,
+      "status": 200,
+      "club_id": 61212,
+      "room": "The Substation, Washington Street, Roslindale, MA",
+      "date": "2026-11-24T01:00:00.000Z",
+      "tickets_unchanged": true,
+      "checked_at": "2026-10-08T02:00:17.750026+00:00"
+    },
+    {
+      "id": 3558371,
+      "status": 200,
+      "club_id": 10970,
+      "room": "18b Corinth Street, Boston, MA",
+      "date": "2027-06-26T22:00:00.000Z",
+      "tickets_unchanged": true,
+      "checked_at": "2026-10-08T02:00:17.992848+00:00"
+    },
+    {
+      "id": 3789139,
+      "status": 200,
+      "club_id": 10970,
+      "room": "18b Corinth Street, Boston, MA",
+      "date": "2027-07-03T22:00:00.000Z",
+      "tickets_unchanged": true,
+      "checked_at": "2026-10-08T02:00:18.173100+00:00"
+    }
+  ],
+  "retired_ids": [
+    3789152,
+    3789159,
+    3789163,
+    3789169,
+    3789171
+  ],
+  "held_public_ids": [
+    3789176,
+    3179550,
+    3179544
+  ],
+  "idempotent_retry": true,
+  "all_click_ids_preserved": true,
+  "tests": {
+    "passed": 47,
+    "skipped": 0
+  },
+  "backup_sha256": "056e8b40000b3416103d6dea75882779e049be3c03f2c5d4df84d9b6951d6267",
+  "after_backup_sha256": "94f192e2045a14e4f0c7bb03069f88f170e81e51d95ed2bb70e8d1eb0b48128c"
+}
