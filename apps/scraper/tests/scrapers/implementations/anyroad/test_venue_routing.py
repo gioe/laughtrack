@@ -362,3 +362,57 @@ def test_malformed_detail_calendar_holds_experience_without_midnight_or_cleanup(
     result = scraper.scrape_with_result()
     assert not result.shows
     assert result.error and not ScrapingResultProcessor._is_clean_for_reconciliation(result)
+
+
+@pytest.mark.parametrize("batch_size", [1, 100])
+def test_repaired_canonical_slot_replay_never_recreates_blank_placeholder(
+    persistence_database, monkeypatch, batch_size
+):
+    """TASK-4135: native offsite calendar refreshes the repaired survivor twice."""
+    from psycopg2.extras import RealDictCursor
+    from laughtrack.core.entities.show.handler import ShowHandler
+
+    raw = record()
+    raw["attributes"]["url"] = "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US"
+    scraper = setup_pipeline(monkeypatch, raw)
+    handler = handler_for(persistence_database)
+    handler._suppress_room_matching_club_name = ShowHandler._suppress_room_matching_club_name.__get__(handler)
+    handler._collapse_cross_batch_duplicates = ShowHandler._collapse_cross_batch_duplicates.__get__(handler)
+
+    def execute(query, params=None, return_results=False):
+        with persistence_database.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, params)
+            return cursor.fetchall() if return_results else None
+
+    handler.execute_with_cursor = execute
+    with persistence_database.cursor() as cur:
+        cur.execute("CREATE TABLE clubs(id integer PRIMARY KEY,name text)")
+        cur.execute("INSERT INTO clubs VALUES(10970,'The Rozzie Square Theater'),(61212,'The Substation')")
+        cur.execute(
+            """INSERT INTO shows(id,name,club_id,date,room,show_page_url,production_company_id,scraped_by_organizer_id)
+            VALUES(3179545,'Level 1B Improv Showcase',61212,'2027-11-06T00:00Z',%s,%s,73,73)""",
+            (raw["attributes"]["locationInfo"], raw["attributes"]["url"]),
+        )
+        cur.execute("INSERT INTO tickets(id,show_id,purchase_url) VALUES(700,3179545,%s)", (raw["attributes"]["url"],))
+        cur.execute("INSERT INTO saved_shows VALUES('repaired-user',3179545)")
+        cur.execute("INSERT INTO ticket_purchase_click_events VALUES(700,3179545)")
+    for _ in range(2):
+        result = scraper.scrape_with_result()
+        assert not result.error
+        assert len(result.shows) == 1
+        candidate = result.shows[0]
+        assert candidate.date.hour == 20 and candidate.club_id == 61212
+        persisted = handler.insert_shows(result.shows, batch_size=batch_size, scraper_key="anyroad")
+        assert persisted.errors == persisted.db_errors == persisted.validation_errors == 0
+        assert persisted.updates == 1 and candidate.id == 3179545
+    with persistence_database.cursor() as cur:
+        cur.execute("SELECT id,club_id,room FROM shows WHERE show_page_url=%s", (raw["attributes"]["url"],))
+        assert cur.fetchall() == [(3179545, 61212, raw["attributes"]["locationInfo"])]
+        cur.execute("SELECT id,purchase_url FROM tickets WHERE show_id=3179545")
+        assert cur.fetchall() == [(700, raw["attributes"]["url"])]
+        cur.execute("SELECT show_id FROM saved_shows WHERE profile_id='repaired-user'")
+        assert cur.fetchone() == (3179545,)
+        cur.execute("SELECT show_id FROM ticket_purchase_click_events WHERE id=700")
+        assert cur.fetchone() == (3179545,)
+        cur.execute("SELECT count(*) FROM shows WHERE id=3789169")
+        assert cur.fetchone() == (0,)
