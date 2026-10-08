@@ -1,0 +1,139 @@
+{
+  "task_id": 4137,
+  "decision": "continued_hold",
+  "production_mutations": 0,
+  "started_at": "2026-10-08T14:38:48.542197+00:00",
+  "verified_at": "2026-10-08T14:38:50.240287+00:00",
+  "transaction_read_only": true,
+  "isolation_level": "REPEATABLE READ per independent observation",
+  "before": {
+    "shows": {
+      "count": 17,
+      "all_columns_hmac_sha256": "5824ec7f20e0a664b669ae4a6bb101f8cb577e3d5201bc939ae808958023e077"
+    },
+    "clubs": {
+      "count": 1,
+      "all_columns_hmac_sha256": "d8732cfc56e1bbb9e2b9b0bd8a3e270c390fd2b349379601da44499fc5334438"
+    },
+    "scraping_sources": {
+      "count": 3,
+      "all_columns_hmac_sha256": "491d9f02d9624d3a28706545d357fa30abe01e0342a208897cde956edf0eb491"
+    },
+    "source_targets": {
+      "count": 2,
+      "all_columns_hmac_sha256": "6f8d6f10daee6e32133ced5facf70f4a8ad6c0876e070324b2eead0677db13c3"
+    },
+    "tickets": {
+      "count": 17,
+      "all_columns_hmac_sha256": "1c1e8a85e7f04bc5b0ebdd280d783c3a9a8f16cf8e1aa077700535813d794311"
+    },
+    "lineup_items": {
+      "count": 2,
+      "all_columns_hmac_sha256": "756454a89ffa8ef6a6b5e6c5699e6ecdc74edd0f9e29b2597a8c786346c5099f"
+    },
+    "tagged_shows": {
+      "count": 38,
+      "all_columns_hmac_sha256": "badce54059c814d98a746bebd08c9ff1df2c6e7d3bfd1d545457302aa9f7c527"
+    },
+    "saved_shows": {
+      "count": 0,
+      "all_columns_hmac_sha256": "5ae83951b18e7a1c2cedce48e3504a2bb92a3611fa91d856cc06a38f459cfadf"
+    },
+    "sent_notifications": {
+      "count": 0,
+      "all_columns_hmac_sha256": "5ae83951b18e7a1c2cedce48e3504a2bb92a3611fa91d856cc06a38f459cfadf"
+    },
+    "discovery_show_feature_snapshots": {
+      "count": 0,
+      "all_columns_hmac_sha256": "5ae83951b18e7a1c2cedce48e3504a2bb92a3611fa91d856cc06a38f459cfadf"
+    },
+    "ticket_purchase_click_events": {
+      "count": 1146,
+      "all_columns_hmac_sha256": "1c82184651366b482c1c572f58799ecd36212a76445274598fd2a55c7733fbef"
+    }
+  },
+  "after": {
+    "shows": {
+      "count": 17,
+      "all_columns_hmac_sha256": "5824ec7f20e0a664b669ae4a6bb101f8cb577e3d5201bc939ae808958023e077"
+    },
+    "clubs": {
+      "count": 1,
+      "all_columns_hmac_sha256": "d8732cfc56e1bbb9e2b9b0bd8a3e270c390fd2b349379601da44499fc5334438"
+    },
+    "scraping_sources": {
+      "count": 3,
+      "all_columns_hmac_sha256": "491d9f02d9624d3a28706545d357fa30abe01e0342a208897cde956edf0eb491"
+    },
+    "source_targets": {
+      "count": 2,
+      "all_columns_hmac_sha256": "6f8d6f10daee6e32133ced5facf70f4a8ad6c0876e070324b2eead0677db13c3"
+    },
+    "tickets": {
+      "count": 17,
+      "all_columns_hmac_sha256": "1c1e8a85e7f04bc5b0ebdd280d783c3a9a8f16cf8e1aa077700535813d794311"
+    },
+    "lineup_items": {
+      "count": 2,
+      "all_columns_hmac_sha256": "756454a89ffa8ef6a6b5e6c5699e6ecdc74edd0f9e29b2597a8c786346c5099f"
+    },
+    "tagged_shows": {
+      "count": 38,
+      "all_columns_hmac_sha256": "badce54059c814d98a746bebd08c9ff1df2c6e7d3bfd1d545457302aa9f7c527"
+    },
+    "saved_shows": {
+      "count": 0,
+      "all_columns_hmac_sha256": "5ae83951b18e7a1c2cedce48e3504a2bb92a3611fa91d856cc06a38f459cfadf"
+    },
+    "sent_notifications": {
+      "count": 0,
+      "all_columns_hmac_sha256": "5ae83951b18e7a1c2cedce48e3504a2bb92a3611fa91d856cc06a38f459cfadf"
+    },
+    "discovery_show_feature_snapshots": {
+      "count": 0,
+      "all_columns_hmac_sha256": "5ae83951b18e7a1c2cedce48e3504a2bb92a3611fa91d856cc06a38f459cfadf"
+    },
+    "ticket_purchase_click_events": {
+      "count": 1146,
+      "all_columns_hmac_sha256": "1c82184651366b482c1c572f58799ecd36212a76445274598fd2a55c7733fbef"
+    }
+  },
+  "all_full_rows_unchanged": true,
+  "retained_show_ids": [
+    522175,
+    522176,
+    522177,
+    522178,
+    522179,
+    522180,
+    522181,
+    522182,
+    522183,
+    522184,
+    522185,
+    522186,
+    522192,
+    522196,
+    852196,
+    852199,
+    852205
+  ],
+  "held_show": {
+    "id": 522192,
+    "club_id": 573,
+    "name": "SUMMER COMEDY CAMP",
+    "date": "2026-05-10T16:00:00+00:00",
+    "show_page_url": "https://www.bigpinecomedyfestival.org/shows/356284",
+    "source_performance_id": null
+  },
+  "held_relationship_counts": {
+    "tickets": 1,
+    "lineup_items": 0,
+    "tagged_shows": 2,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 0
+  },
+  "limitations": "Two independent coherent snapshots prove net equality at the observation points, not absence of intervening reverted writes; no assertion of historical date correctness. HMAC key discarded after this run."
+}
