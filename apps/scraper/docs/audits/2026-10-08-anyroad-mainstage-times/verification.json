@@ -1,0 +1,66 @@
+{
+  "task_id": 4140,
+  "changes": [
+    {
+      "id": 3179528,
+      "field": "date",
+      "before": "2026-11-22T01:00:00+00:00",
+      "after": "2026-11-22T01:30:00+00:00"
+    },
+    {
+      "id": 3179529,
+      "field": "date",
+      "before": "2026-12-20T01:00:00+00:00",
+      "after": "2026-12-20T01:30:00+00:00"
+    }
+  ],
+  "counts": {
+    "clubs": 2,
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 0,
+    "production_companies": 1,
+    "production_company_venues": 2,
+    "saved_shows": 0,
+    "scraping_sources": 2,
+    "sent_notifications": 0,
+    "shows": 141,
+    "tagged_shows": 244,
+    "ticket_purchase_click_events": 2005,
+    "tickets": 141
+  },
+  "relationships_and_unrelated_inventory_unchanged": true,
+  "private_backup_mode": "0600",
+  "before_hash": "36d757d7911aa924562e249a301f81728d0eddddf913cf3d37b2889267c0c25e",
+  "after_hash": "a03cf054b1c373b28585a3b40c62ab6622505020435cd7ad69da6090cc02e110",
+  "production_rehearsal": {
+    "rolled_back": true,
+    "exact_restore": true,
+    "repeat_safe": true
+  },
+  "post_apply_dry_run_already_applied": true,
+  "public_api": [
+    {
+      "id": 3179528,
+      "status": 200,
+      "before_date": "2026-11-22T01:00:00.000Z",
+      "after_date": "2026-11-22T01:30:00.000Z",
+      "timezone": "America/New_York",
+      "checked_at": "2026-10-08T16:35:03.997289+00:00",
+      "other_detail_fields_unchanged": true
+    },
+    {
+      "id": 3179529,
+      "status": 200,
+      "before_date": "2026-12-20T01:00:00.000Z",
+      "after_date": "2026-12-20T01:30:00.000Z",
+      "timezone": "America/New_York",
+      "checked_at": "2026-10-08T16:35:04.390062+00:00",
+      "other_detail_fields_unchanged": true
+    }
+  ],
+  "focused_tests": {
+    "passed": 75,
+    "mainstage_postgresql_tests": 9
+  },
+  "full_gate": "Pre-existing missing tzdata collection failure; clean HEAD reproduced 3/3, nonflaky and nondivergent."
+}

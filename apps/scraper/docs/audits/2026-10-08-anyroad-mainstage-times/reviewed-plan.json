@@ -1,0 +1,51 @@
+{
+  "task_id": 4140,
+  "dates": {
+    "3179528": "2026-11-22T01:30:00+00:00",
+    "3179529": "2026-12-20T01:30:00+00:00"
+  },
+  "expected_shows": [
+    {
+      "id": 3179528,
+      "date": "2026-11-22T01:00:00+00:00",
+      "name": "Riot Improv Mainstage: Stories to Scenes",
+      "room": "18b Corinth Street, Boston, MA",
+      "club_id": 10970,
+      "min_price": 15.0,
+      "show_type": "improv",
+      "popularity": 0.23,
+      "description": "On the third Saturday of every month, Riot Improv collaborates with local storytellers in a unique mash-up to create hilarious improv comedy with a narrative twist! Riot Improv will create improv...",
+      "is_cancelled": false,
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US",
+      "last_scraped_by": "anyroad",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-06-30T22:14:30.557548+00:00",
+      "first_discovered_at": "2026-06-22T19:03:11.140991+00:00",
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    },
+    {
+      "id": 3179529,
+      "date": "2026-12-20T01:00:00+00:00",
+      "name": "Riot Improv Mainstage: Stories to Scenes",
+      "room": "18b Corinth Street, Boston, MA",
+      "club_id": 10970,
+      "min_price": 15.0,
+      "show_type": "improv",
+      "popularity": 0.13,
+      "description": "On the third Saturday of every month, Riot Improv collaborates with local storytellers in a unique mash-up to create hilarious improv comedy with a narrative twist! Riot Improv will create improv...",
+      "is_cancelled": false,
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US",
+      "last_scraped_by": "anyroad",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-06-30T22:14:30.557551+00:00",
+      "first_discovered_at": "2026-06-22T19:03:11.140991+00:00",
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    }
+  ],
+  "before_hash": "36d757d7911aa924562e249a301f81728d0eddddf913cf3d37b2889267c0c25e",
+  "after_hash": "a03cf054b1c373b28585a3b40c62ab6622505020435cd7ad69da6090cc02e110"
+}
