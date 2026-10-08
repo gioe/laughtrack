@@ -1,0 +1,31 @@
+{
+  "task_id": 4142,
+  "verified_at": "2026-10-08T18:01:49.929719+00:00",
+  "source_id": 77,
+  "club_id": 88,
+  "enabled": false,
+  "changed_source_fields": [
+    "enabled",
+    "updated_at"
+  ],
+  "history_unchanged": true,
+  "live_equals_saved_after": true,
+  "repeat_already_applied": true,
+  "normal_scrape_target_selected": false,
+  "counts": {
+    "scraping_sources": 1,
+    "shows": 323,
+    "tickets": 323,
+    "lineup_items": 10,
+    "tagged_shows": 278,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 1694,
+    "clubs": 1
+  },
+  "private_recovery_modes": [
+    "0o600",
+    "0o600"
+  ]
+}
