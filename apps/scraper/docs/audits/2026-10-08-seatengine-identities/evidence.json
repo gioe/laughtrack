@@ -1,0 +1,446 @@
+{
+  "task_id": 4139,
+  "checked_at": "2026-10-08T15:46:12.826655+00:00",
+  "records": [
+    {
+      "label": "native-324",
+      "url": "https://services.seatengine.com/api/v1/venues/324",
+      "started_at": "2026-10-08T15:46:08.292968+00:00",
+      "finished_at": "2026-10-08T15:46:08.376916+00:00",
+      "identity": {
+        "id": 324,
+        "name": "Bridgeport",
+        "website": "http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com",
+        "organization_id": 177
+      },
+      "structured_identity": []
+    },
+    {
+      "label": "api-website-324",
+      "url": "http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com",
+      "started_at": "2026-10-08T15:46:08.376927+00:00",
+      "returned_content": false,
+      "finished_at": "2026-10-08T15:46:08.588483+00:00",
+      "structured_identity": []
+    },
+    {
+      "label": "configured-77",
+      "url": "https://www.barrelroompdx.com/events",
+      "started_at": "2026-10-08T15:46:08.588496+00:00",
+      "returned_content": true,
+      "title": "Barrel Room",
+      "links": [
+        "https://www.eventbrite.com/e/dueling-pianos-tickets-1979378673897",
+        "https://www.eventbrite.com/e/join-our-email-list-tickets-1994104488204?aff=oddtdtcreator",
+        "https://www.eventbrite.com/e/open-jam-and-games-tickets-1993993047883",
+        "https://www.eventbrite.com/e/wednesday-wubs-tickets-1994108833200",
+        "https://www.eventbrite.com/o/80388668013?aff=ebdsshcopyurl",
+        "https://www.eventbrite.com/o/barrel-room-80388668013",
+        "https://www.instagram.com/barrelroomportland/?hl=en"
+      ],
+      "finished_at": "2026-10-08T15:46:08.979311+00:00",
+      "structured_identity": []
+    },
+    {
+      "label": "native-336",
+      "url": "https://services.seatengine.com/api/v1/venues/336",
+      "started_at": "2026-10-08T15:46:08.979390+00:00",
+      "finished_at": "2026-10-08T15:46:09.145154+00:00",
+      "identity": {
+        "id": 336,
+        "name": "Summer of Sass Inaugural Fundrasier",
+        "website": "https://www.summerofsass.com",
+        "organization_id": 62
+      },
+      "structured_identity": []
+    },
+    {
+      "label": "api-website-336",
+      "url": "https://www.summerofsass.com",
+      "started_at": "2026-10-08T15:46:09.145182+00:00",
+      "returned_content": false,
+      "finished_at": "2026-10-08T15:46:09.269550+00:00",
+      "structured_identity": []
+    },
+    {
+      "label": "configured-134",
+      "url": "phoenix.standuplive.com/events",
+      "started_at": "2026-10-08T15:46:09.269561+00:00",
+      "returned_content": true,
+      "title": "StandUpLive Phoenix",
+      "links": [
+        "/events/124435",
+        "/events/130170",
+        "/events/132881",
+        "/events/135847",
+        "/events/136128",
+        "/events/136993",
+        "/events/137322",
+        "/events/137754",
+        "/events/138513",
+        "/events/138525",
+        "/events/138526",
+        "/events/138527",
+        "/events/138531",
+        "/events/138533",
+        "/events/139092",
+        "/events/139629",
+        "/events/139630",
+        "/events/140773",
+        "/events/140948",
+        "/events/140955",
+        "/events/141024",
+        "/events/141247",
+        "/events/142046",
+        "/events/142176",
+        "/events/142869"
+      ],
+      "finished_at": "2026-10-08T15:46:09.664919+00:00",
+      "structured_identity": [
+        {
+          "@type": "Place",
+          "name": "StandUpLive Phoenix",
+          "url": "http://phoenix.standuplive.com",
+          "address": {
+            "@type": "PostalAddress",
+            "name": "StandUpLive Phoenix",
+            "streetAddress": "50 W. Jefferson St",
+            "addressLocality": "Phoenix",
+            "addressRegion": "AZ"
+          },
+          "embedded_event_count": 87
+        }
+      ]
+    },
+    {
+      "label": "eventbrite-organizer",
+      "url": "https://www.eventbrite.com/o/barrel-room-80388668013",
+      "started_at": "2026-10-08T15:46:09.665097+00:00",
+      "returned_content": true,
+      "title": "Barrel Room PDX",
+      "links": [
+        "https://www.eventbritecareers.com/",
+        "https://www.eventbritestatus.com/",
+        "https://www.instagram.com/eventbrite",
+        "https://www.linkedin.com/company/eventbrite",
+        "https://www.tiktok.com/@eventbrite",
+        "https://www.x.com/eventbritehelp"
+      ],
+      "finished_at": "2026-10-08T15:46:10.585703+00:00",
+      "structured_identity": [
+        {
+          "@type": "ProfilePage",
+          "mainEntity": {
+            "@type": "Organization",
+            "name": "Barrel Room PDX",
+            "url": "https://www.eventbrite.com/o/barrel-room-pdx-80388668013",
+            "sameAs": [
+              "https://www.barrelroompdx.com/"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "eventbrite-event",
+      "url": "https://www.eventbrite.com/e/open-jam-and-games-tickets-1993993047883",
+      "started_at": "2026-10-08T15:46:10.585725+00:00",
+      "returned_content": true,
+      "title": "Open Jam and Games Tickets, Multiple dates | Eventbrite",
+      "links": [
+        "https://www.eventbrite.com/o/80388668013"
+      ],
+      "finished_at": "2026-10-08T15:46:10.875303+00:00",
+      "structured_identity": [
+        {
+          "@type": "WebPage",
+          "name": "Open Jam and Games",
+          "url": "https://www.eventbrite.com/e/open-jam-and-games-tickets-1993993047883"
+        },
+        {
+          "@type": "Event",
+          "name": "Open Jam and Games",
+          "url": "https://www.eventbrite.com/e/open-jam-and-games-tickets-1993993047883",
+          "organizer": {
+            "@type": "Organization",
+            "name": "Barrel Room PDX",
+            "url": "https://www.eventbrite.com/o/barrel-room-pdx-80388668013"
+          },
+          "location": {
+            "@type": "Place",
+            "name": "Barrel Room",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Portland",
+              "addressRegion": "OR",
+              "addressCountry": "US",
+              "streetAddress": "120 Northwest Couch Street, Portland, OR 97209"
+            }
+          }
+        },
+        {
+          "@type": "FAQPage"
+        },
+        {
+          "@type": "BreadcrumbList"
+        }
+      ]
+    },
+    {
+      "label": "standuplive-parent",
+      "url": "https://www.standuplive.com/",
+      "started_at": "2026-10-08T15:46:10.875324+00:00",
+      "returned_content": true,
+      "title": "StandUpLive Phoenix",
+      "links": [
+        "http://facebook.com/standuplive",
+        "http://www.instagram.com/standuplive",
+        "http://www.seatengine.com",
+        "http://www.twitter.com/standuplive",
+        "https://phoenix.standuplive.com",
+        "https://standuplivephoenix.digitalgiftcardmanager.com/gift",
+        "https://www.instagram.com/standuplive",
+        "https://www.seatengine.com",
+        "https://www.standuplive.com/events/124435",
+        "https://www.standuplive.com/events/137754",
+        "https://www.standuplive.com/events/138526",
+        "https://www.standuplive.com/events/139092",
+        "https://www.standuplive.com/events/140773",
+        "https://www.standuplive.com/events/141247",
+        "https://www.standuplive.com/events/142176",
+        "https://www.standuplive.com/events/143343"
+      ],
+      "finished_at": "2026-10-08T15:46:11.516549+00:00",
+      "structured_identity": [
+        {
+          "@type": "Place",
+          "name": "StandUpLive Phoenix",
+          "url": "http://phoenix.standuplive.com",
+          "address": {
+            "@type": "PostalAddress",
+            "name": "StandUpLive Phoenix",
+            "streetAddress": "50 W. Jefferson St",
+            "addressLocality": "Phoenix",
+            "addressRegion": "AZ"
+          },
+          "embedded_event_count": 87
+        }
+      ]
+    },
+    {
+      "label": "phoenix-platform",
+      "url": "https://phoenix-standuplive-com.seatengine.com/calendar",
+      "started_at": "2026-10-08T15:46:11.516711+00:00",
+      "returned_content": true,
+      "title": "StandUpLive Phoenix",
+      "links": [
+        "http://facebook.com/standuplive",
+        "http://www.instagram.com/standuplive",
+        "http://www.seatengine.com",
+        "http://www.twitter.com/standuplive",
+        "https://phoenix-standuplive-com.seatengine.com/events/124435",
+        "https://phoenix-standuplive-com.seatengine.com/events/130170",
+        "https://phoenix-standuplive-com.seatengine.com/events/135535",
+        "https://phoenix-standuplive-com.seatengine.com/events/136128",
+        "https://phoenix-standuplive-com.seatengine.com/events/137754",
+        "https://phoenix-standuplive-com.seatengine.com/events/138526",
+        "https://phoenix-standuplive-com.seatengine.com/events/138527",
+        "https://phoenix-standuplive-com.seatengine.com/events/138533",
+        "https://phoenix-standuplive-com.seatengine.com/events/139092",
+        "https://phoenix-standuplive-com.seatengine.com/events/140773",
+        "https://phoenix-standuplive-com.seatengine.com/events/141247",
+        "https://phoenix-standuplive-com.seatengine.com/events/141415",
+        "https://phoenix-standuplive-com.seatengine.com/events/142176",
+        "https://phoenix-standuplive-com.seatengine.com/events/142178",
+        "https://phoenix-standuplive-com.seatengine.com/events/143343",
+        "https://phoenix-standuplive-com.seatengine.com/shows/341671",
+        "https://phoenix-standuplive-com.seatengine.com/shows/355945",
+        "https://phoenix-standuplive-com.seatengine.com/shows/373833",
+        "https://phoenix-standuplive-com.seatengine.com/shows/373834",
+        "https://phoenix-standuplive-com.seatengine.com/shows/373835",
+        "https://phoenix-standuplive-com.seatengine.com/shows/373836"
+      ],
+      "finished_at": "2026-10-08T15:46:12.330368+00:00",
+      "structured_identity": [
+        {
+          "@type": "Place",
+          "name": "StandUpLive Phoenix",
+          "url": "http://phoenix.standuplive.com",
+          "address": {
+            "@type": "PostalAddress",
+            "name": "StandUpLive Phoenix",
+            "streetAddress": "50 W. Jefferson St",
+            "addressLocality": "Phoenix",
+            "addressRegion": "AZ"
+          },
+          "embedded_event_count": 87
+        }
+      ]
+    },
+    {
+      "label": "barrel-platform",
+      "url": "https://www-barrelroompdx-com.seatengine.com/",
+      "started_at": "2026-10-08T15:46:12.330468+00:00",
+      "returned_content": true,
+      "title": "Barrel Room Portland",
+      "links": [
+        "http://www.seatengine.com",
+        "https://www-barrelroompdx-com.seatengine.com/events/100990",
+        "https://www-barrelroompdx-com.seatengine.com/events/109309",
+        "https://www-barrelroompdx-com.seatengine.com/events/122875",
+        "https://www-barrelroompdx-com.seatengine.com/events/134784",
+        "https://www-barrelroompdx-com.seatengine.com/events/87722",
+        "https://www.barrelroompdx.com"
+      ],
+      "finished_at": "2026-10-08T15:46:12.761192+00:00",
+      "structured_identity": [
+        {
+          "@type": "Place",
+          "name": "Barrel Room Portland",
+          "url": "http://www.barrelroompdx.com",
+          "address": {
+            "@type": "PostalAddress",
+            "name": "Barrel Room Portland",
+            "streetAddress": "120 NW Couch",
+            "addressLocality": "Portland",
+            "addressRegion": "OR"
+          },
+          "embedded_event_count": 36
+        }
+      ]
+    }
+  ],
+  "requests": [
+    {
+      "url": "https://services.seatengine.com/api/v1/venues/324",
+      "started_at": "2026-10-08T15:46:08.293343+00:00",
+      "status": 200,
+      "final_url": "https://services.seatengine.com/api/v1/venues/324",
+      "bytes": 313,
+      "sha256": "5abf12389c61f26b17da032d54c3369b1d3d89d2fcbc8809107b9ecb036d7ec4",
+      "finished_at": "2026-10-08T15:46:08.375515+00:00"
+    },
+    {
+      "url": "http://bridge.bob-exp-seatengine-seatengine-com.seatengine.com",
+      "started_at": "2026-10-08T15:46:08.377254+00:00",
+      "error_class": "CertificateVerifyError",
+      "finished_at": "2026-10-08T15:46:08.587387+00:00"
+    },
+    {
+      "url": "https://www.barrelroompdx.com/events",
+      "started_at": "2026-10-08T15:46:08.588753+00:00",
+      "status": 200,
+      "final_url": "https://www.barrelroompdx.com/events",
+      "bytes": 681518,
+      "sha256": "1e81f17d45317ff763db2b2898c16fc9e0d23240bd958784710b4d9a61ec499a",
+      "finished_at": "2026-10-08T15:46:08.947040+00:00"
+    },
+    {
+      "url": "https://services.seatengine.com/api/v1/venues/336",
+      "started_at": "2026-10-08T15:46:08.979603+00:00",
+      "status": 200,
+      "final_url": "https://services.seatengine.com/api/v1/venues/336",
+      "bytes": 443,
+      "sha256": "29c6f3960a042d206c05868808df4294d2fbb9b986f62f14b431f2e0c8e33547",
+      "finished_at": "2026-10-08T15:46:09.142540+00:00"
+    },
+    {
+      "url": "https://www.summerofsass.com",
+      "started_at": "2026-10-08T15:46:09.145749+00:00",
+      "error_class": "DNSError",
+      "finished_at": "2026-10-08T15:46:09.269056+00:00"
+    },
+    {
+      "url": "https://phoenix.standuplive.com/events",
+      "started_at": "2026-10-08T15:46:09.269785+00:00",
+      "status": 200,
+      "final_url": "https://phoenix.standuplive.com/events",
+      "bytes": 670049,
+      "sha256": "8c6d6851bf67525530a7f75467bfb954a3dbaf44d2ae835d047125ea5187332f",
+      "finished_at": "2026-10-08T15:46:09.612959+00:00"
+    },
+    {
+      "url": "https://www.eventbrite.com/o/barrel-room-80388668013",
+      "started_at": "2026-10-08T15:46:09.665287+00:00",
+      "status": 200,
+      "final_url": "https://www.eventbrite.com/o/barrel-room-80388668013",
+      "bytes": 170279,
+      "sha256": "e9d8100fa82e0b3f7f588b5b8113fa69f6fa766983854a52ec6641045e6a78aa",
+      "finished_at": "2026-10-08T15:46:10.555768+00:00"
+    },
+    {
+      "url": "https://www.eventbrite.com/e/open-jam-and-games-tickets-1993993047883",
+      "started_at": "2026-10-08T15:46:10.585967+00:00",
+      "status": 200,
+      "final_url": "https://www.eventbrite.com/e/open-jam-and-games-tickets-1993993047883",
+      "bytes": 240510,
+      "sha256": "97713dbffb4b8ff13f56fa2b0ecff3dece95843c3da91022d3f5d0cedaef9b5d",
+      "finished_at": "2026-10-08T15:46:10.838134+00:00"
+    },
+    {
+      "url": "https://www.standuplive.com",
+      "started_at": "2026-10-08T15:46:10.875613+00:00",
+      "status": 200,
+      "final_url": "https://phoenix.standuplive.com/",
+      "bytes": 478347,
+      "sha256": "b4fbe825ddd56fe57ba27c79788b2515378b4b64eb47436a1c2dd6439452c56f",
+      "finished_at": "2026-10-08T15:46:11.497288+00:00"
+    },
+    {
+      "url": "https://phoenix-standuplive-com.seatengine.com/calendar",
+      "started_at": "2026-10-08T15:46:11.516882+00:00",
+      "status": 200,
+      "final_url": "https://phoenix-standuplive-com.seatengine.com/calendar",
+      "bytes": 476148,
+      "sha256": "9c201411513879bda2f0c0794898874e5d527505319a77c70da925965668a6f8",
+      "finished_at": "2026-10-08T15:46:12.298803+00:00"
+    },
+    {
+      "url": "https://www-barrelroompdx-com.seatengine.com",
+      "started_at": "2026-10-08T15:46:12.330669+00:00",
+      "status": 200,
+      "final_url": "https://www-barrelroompdx-com.seatengine.com/",
+      "bytes": 118299,
+      "sha256": "3729c57a4a587392439086b455fc943ad44c1a006cc2b3c4717fd0975a1b326b",
+      "finished_at": "2026-10-08T15:46:12.743961+00:00"
+    }
+  ],
+  "verification": {
+    "read_only": true,
+    "production_mutations": 0,
+    "complete_club_source_rows_unchanged": true,
+    "before_hmac": "87b7d4548939d89bdef50b12d36194e656c3200ec39613965f799f66bbd84e71",
+    "after_hmac": "87b7d4548939d89bdef50b12d36194e656c3200ec39613965f799f66bbd84e71",
+    "counts": {
+      "clubs": 2,
+      "sources": 2
+    },
+    "hmac_key_discarded": true,
+    "limitations": "Independent read-only snapshots prove equality at observation points, not absence of intervening reverted writes. Full rows stayed in memory."
+  },
+  "configuration": [
+    {
+      "source_id": 77,
+      "club_id": 88,
+      "source_url": "https://www.barrelroompdx.com/events",
+      "scraper_key": "seatengine_classic",
+      "seatengine_id": 324,
+      "enabled": true
+    },
+    {
+      "source_id": 134,
+      "club_id": 129,
+      "source_url": "phoenix.standuplive.com/events",
+      "scraper_key": "seatengine_classic",
+      "seatengine_id": 336,
+      "enabled": true
+    }
+  ],
+  "extractor_observations": {
+    "method": "SeatEngineClassicExtractor.extract_shows against captured HTML only; no persistence",
+    "configured_source_77": 0,
+    "configured_source_134": 82,
+    "legacy_barrel_platform": 36,
+    "counts_are": "extracted candidates, not validated comedy shows or persisted rows"
+  }
+}
