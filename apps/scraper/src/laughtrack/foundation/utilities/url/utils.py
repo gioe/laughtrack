@@ -118,8 +118,11 @@ class URLUtils:
         if not url:
             return url
 
-        # Add scheme if missing
-        if not url.startswith(("http://", "https://")):
+        # Schemes are case-insensitive; preserve case in the rest of the URL.
+        scheme, separator, remainder = url.partition("://")
+        if separator and scheme.lower() in ("http", "https"):
+            url = scheme.lower() + separator + remainder
+        else:
             url = "https://" + url
 
         # Remove trailing slash if requested
