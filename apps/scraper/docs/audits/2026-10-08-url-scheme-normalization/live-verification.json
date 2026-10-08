@@ -1,0 +1,39 @@
+{
+  "task_id": 4138,
+  "checked_at": "2026-10-08T15:38:05.392288+00:00",
+  "resolver": {
+    "venue_id": "531",
+    "api_url": "https://services.seatengine.com/api/v1/venues/531",
+    "website_url": "Http://www.deafpuppyclub.com",
+    "status": "missing_metadata",
+    "reason": "no_eventvenue_jsonld"
+  },
+  "requests": [
+    {
+      "url": "https://services.seatengine.com/api/v1/venues/531",
+      "status": 200,
+      "final_url": "https://services.seatengine.com/api/v1/venues/531",
+      "body_bytes": 286,
+      "sha256": "ffa2d7eb931d6bd8d29f06018e3bff227d8249448e54cf63bb198be54fe2f2f3"
+    },
+    {
+      "url": "http://www.deafpuppyclub.com",
+      "status": 200,
+      "final_url": "https://www.deafpuppyclub.com/",
+      "body_bytes": 61603,
+      "sha256": "1916003e01450f4ef2a63dee1b6f112091d0af764ad2e7b46f1906476a5d28a8"
+    }
+  ],
+  "configuration_full_rows_unchanged": true,
+  "club_id": 551,
+  "source_id": 594,
+  "production_mutations": 0,
+  "configuration": {
+    "source_url": "Http://www.deafpuppyclub.com",
+    "seatengine_id": 531,
+    "enabled": true,
+    "scraper_key": "seatengine",
+    "platform": "seatengine"
+  },
+  "visible": true
+}
