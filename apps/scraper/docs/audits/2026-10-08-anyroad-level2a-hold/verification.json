@@ -1,0 +1,153 @@
+{
+  "retrieved_at": "2026-10-08T17:01:39.001821+00:00",
+  "read_only": true,
+  "cohort_unchanged": true,
+  "before_hash": "a03cf054b1c373b28585a3b40c62ab6622505020435cd7ad69da6090cc02e110",
+  "after_hash": "a03cf054b1c373b28585a3b40c62ab6622505020435cd7ad69da6090cc02e110",
+  "counts": {
+    "shows": 141,
+    "clubs": 2,
+    "production_companies": 1,
+    "production_company_venues": 2,
+    "scraping_sources": 2,
+    "tickets": 141,
+    "lineup_items": 0,
+    "tagged_shows": 244,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 2005
+  },
+  "protected_rows": [
+    {
+      "id": 3179544,
+      "date": "2026-08-21T00:00:00+00:00",
+      "name": "Level 1B Improv Showcase",
+      "room": "The Substation, 4228 Washington Street, Roslindale, MA",
+      "club_id": 10970,
+      "min_price": 11.0,
+      "show_type": "improv",
+      "popularity": 0.095,
+      "description": "For one night only the Level 1B: Skills to Scenes students will be performing a show that has never been seen before and will never be seen again. Students have been diving into improvised scene...",
+      "is_cancelled": false,
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US",
+      "last_scraped_by": "anyroad",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-06-30T22:14:30.557582+00:00",
+      "first_discovered_at": "2026-06-22T19:03:11.140991+00:00",
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    },
+    {
+      "id": 3789176,
+      "date": "2026-11-15T14:00:00+00:00",
+      "name": "Showcase show: Level 2A Improv",
+      "room": "",
+      "club_id": 10970,
+      "min_price": 11.0,
+      "show_type": "improv",
+      "popularity": 0.23,
+      "description": "For one afternoon only the Level 2A: Scene Work Development students will be performing a show that has never been seen before and will never be seen again. Students have been diving into advanced...",
+      "is_cancelled": false,
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-2a-improv-showcase?lang=en-US",
+      "last_scraped_by": "anyroad",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-07-05T22:52:51.199004+00:00",
+      "first_discovered_at": "2026-07-05T22:52:51.331054+00:00",
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    },
+    {
+      "id": 3179550,
+      "date": "2026-11-15T19:00:00+00:00",
+      "name": "Showcase show: Level 2A Improv",
+      "room": "18b Corinth Street, Boston, MA",
+      "club_id": 10970,
+      "min_price": 11.0,
+      "show_type": "improv",
+      "popularity": 0.23,
+      "description": "For one afternoon only the Level 2A: Scene Work Development students will be performing a show that has never been seen before and will never be seen again. Students have been diving into advanced...",
+      "is_cancelled": false,
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-2a-improv-showcase?lang=en-US",
+      "last_scraped_by": "anyroad",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-06-30T22:14:33.291849+00:00",
+      "first_discovered_at": "2026-06-22T19:03:15.620787+00:00",
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    }
+  ],
+  "protected_child_counts": {
+    "tickets": 3,
+    "lineup_items": 0,
+    "tagged_shows": 11,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 46
+  },
+  "replay": {
+    "show_count": 136,
+    "error": null,
+    "routing_errors": [],
+    "level2a_showcase_candidates": []
+  },
+  "public_api": [
+    {
+      "id": 3789176,
+      "status": 200,
+      "checked_at": "2026-10-08T17:04:58.294037+00:00",
+      "date": "2026-11-15T14:00:00.000Z",
+      "room": "",
+      "club_id": 10970,
+      "tickets": [
+        {
+          "price": 11,
+          "purchaseUrl": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-2a-improv-showcase?lang=en-US",
+          "type": "General Admission",
+          "soldOut": false
+        }
+      ]
+    },
+    {
+      "id": 3179550,
+      "status": 200,
+      "checked_at": "2026-10-08T17:04:58.495942+00:00",
+      "date": "2026-11-15T19:00:00.000Z",
+      "room": "18b Corinth Street, Boston, MA",
+      "club_id": 10970,
+      "tickets": [
+        {
+          "price": 11,
+          "purchaseUrl": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-2a-improv-showcase?lang=en-US",
+          "type": "General Admission",
+          "soldOut": false
+        }
+      ]
+    },
+    {
+      "id": 3179544,
+      "status": 200,
+      "checked_at": "2026-10-08T17:04:58.677768+00:00",
+      "date": "2026-08-21T00:00:00.000Z",
+      "room": "The Substation, 4228 Washington Street, Roslindale, MA",
+      "club_id": 10970,
+      "tickets": [
+        {
+          "price": 11,
+          "purchaseUrl": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US",
+          "type": "General Admission",
+          "soldOut": false
+        }
+      ]
+    }
+  ],
+  "focused_tests": {
+    "passed": 66,
+    "command": "TEST_DATABASE_URL=postgresql:///test_sql_parse PYTHONPATH=src:. .venv/bin/python3 -m pytest tests/scripts/test_repair_anyroad_blank_rooms.py tests/scrapers/implementations/anyroad -q"
+  },
+  "full_gate": "Pre-existing missing tzdata collection failure reproduced on clean HEAD3/3; nonflaky, nondivergent."
+}
