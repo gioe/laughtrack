@@ -1,0 +1,112 @@
+{
+  "task_id": 4134,
+  "applied": true,
+  "identity_id": 1936878,
+  "changed_identity_fields": [
+    "visible",
+    "block_reason",
+    "block_added_at"
+  ],
+  "block_reason": "task_4134_tour_label",
+  "counts": {
+    "clubs": {
+      "before": 1,
+      "after": 1
+    },
+    "comedians": {
+      "before": 1,
+      "after": 1
+    },
+    "discovery_show_feature_snapshots": {
+      "before": 0,
+      "after": 0
+    },
+    "lineup_items": {
+      "before": 4,
+      "after": 0
+    },
+    "real_comedians": {
+      "before": 0,
+      "after": 0
+    },
+    "saved_shows": {
+      "before": 0,
+      "after": 0
+    },
+    "sent_notifications": {
+      "before": 0,
+      "after": 0
+    },
+    "shows": {
+      "before": 4,
+      "after": 4
+    },
+    "sources": {
+      "before": 2,
+      "after": 2
+    },
+    "tagged_shows": {
+      "before": 5,
+      "after": 5
+    },
+    "target_lineups": {
+      "before": 4,
+      "after": 0
+    },
+    "ticket_purchase_click_events": {
+      "before": 67,
+      "after": 67
+    },
+    "tickets": {
+      "before": 8,
+      "after": 8
+    }
+  },
+  "all_protected_rows_identical": true,
+  "other_reference_tables": 14,
+  "other_reference_rows_preserved": 1,
+  "idempotent_retry": true,
+  "public": {
+    "detail_status": 404,
+    "search_total": 0,
+    "shows": [
+      {
+        "show_id": 5775541,
+        "http_status": 200,
+        "lineup_count": 0,
+        "all_non_lineup_fields_identical": true,
+        "ticket_count": 2,
+        "checked_at": "2026-10-08T00:40:51.838035+00:00"
+      },
+      {
+        "show_id": 5775542,
+        "http_status": 200,
+        "lineup_count": 0,
+        "all_non_lineup_fields_identical": true,
+        "ticket_count": 2,
+        "checked_at": "2026-10-08T00:40:52.326564+00:00"
+      },
+      {
+        "show_id": 5775543,
+        "http_status": 200,
+        "lineup_count": 0,
+        "all_non_lineup_fields_identical": true,
+        "ticket_count": 2,
+        "checked_at": "2026-10-08T00:40:52.701133+00:00"
+      },
+      {
+        "show_id": 5775544,
+        "http_status": 200,
+        "lineup_count": 0,
+        "all_non_lineup_fields_identical": true,
+        "ticket_count": 2,
+        "checked_at": "2026-10-08T00:40:53.194586+00:00"
+      }
+    ],
+    "cache_note": "Initial repeated GETs returned pre-cleanup responses; fresh query variants confirmed current public behavior."
+  },
+  "tests": {
+    "passed": 12,
+    "skipped": 0
+  }
+}
