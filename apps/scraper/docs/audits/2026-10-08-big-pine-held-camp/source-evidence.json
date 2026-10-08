@@ -1,0 +1,115 @@
+{
+  "task_id": 4137,
+  "captured_at": "2026-10-08T14:29:38.021131+00:00",
+  "native_url": "https://services.seatengine.com/api/v1/venues/553/shows/356284",
+  "detail": {
+    "id": 356284,
+    "event": {
+      "id": 130312,
+      "name": "SUMMER COMEDY CAMP",
+      "status": 2,
+      "labels": [
+        {
+          "name": "PLANO, TX",
+          "public": true,
+          "color": "rgb(236, 75, 212)"
+        }
+      ],
+      "available": 0,
+      "venue_id": 553,
+      "purchased": 0,
+      "talents": [
+        {
+          "id": 44719,
+          "name": "SUMMER COMEDY CAMP",
+          "image": "https://files.seatengine.com/talent/headshots/photos/87179/full/data",
+          "role": "headliner"
+        }
+      ],
+      "cancelled_at": null,
+      "image_url": "https://files.seatengine.com/talent/headshots/photos/87179/full/data",
+      "next_show": null,
+      "sold_out": false
+    },
+    "event_id": 130312,
+    "start_date_time": "2026-05-03T09:00:00-07:00",
+    "addons": [],
+    "upgrades": [],
+    "sold_out": false,
+    "end_on_sale": "2026-05-03T16:00:00Z",
+    "max_seats": 15,
+    "start_on_sale": "2026-01-27T21:19:59Z",
+    "inventories": [
+      {
+        "allocated": 125,
+        "id": 765044,
+        "name": "SPRING CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+        "title": "SPRING CAMP PASS - Includes Entry to all Workshops/Panels ($135 + $20 Fee)",
+        "child": false,
+        "available": 90,
+        "price": 15500,
+        "service_charge": 0,
+        "purchased": 35,
+        "in_cart": 0,
+        "assigned": false,
+        "children_purchased": 0,
+        "customer_assigned": false
+      }
+    ],
+    "total_available": 90
+  },
+  "current_count": 16,
+  "current_ids": [
+    370091,
+    370092,
+    370093,
+    390223,
+    370097,
+    378010,
+    378011,
+    370098,
+    370099,
+    370101,
+    370095,
+    370094,
+    370103,
+    370104,
+    370106,
+    370096
+  ],
+  "pages": [
+    {
+      "url": "https://www.bigpinecomedyfestival.org/shows/356284",
+      "checked_at": "2026-10-08T14:29:39.716885+00:00",
+      "length": 94747,
+      "sha256": "0e186e316ab0cae6eaf67d45929b1f0fc023ad016aa8ce48ee705a9d1ad92e1e",
+      "interpretation": "Returned current festival listing, not historical occurrence detail; JSON-LD lists upcoming products and does not resolve May3 versus May10."
+    },
+    {
+      "url": "https://bigpinecomedyfestival.seatengine.com/shows/356284",
+      "checked_at": "2026-10-08T14:29:40.192480+00:00",
+      "length": 91198,
+      "sha256": "044384fab881ef5793884d3fdd9d3922eb5ed1f9080c70fca5f24c269a3360e9",
+      "interpretation": "Speculative legacy SeatEngine hostname returned vendor marketing page, not occurrence evidence."
+    },
+    {
+      "url": "https://web.archive.org/cdx/search/cdx?url=www.bigpinecomedyfestival.org/shows/356284&output=json&filter=statuscode:200&collapse=digest",
+      "error": "Failed to perform, curl: (28) Operation timed out after 30001 milliseconds with 0 bytes received. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."
+    },
+    {
+      "url": "https://archive.org/wayback/available?url=https%3A%2F%2Fwww.bigpinecomedyfestival.org%2Fshows%2F356284&timestamp=20260510",
+      "checked_at": "2026-10-08T14:30:12.378455+00:00",
+      "length": 130,
+      "sha256": "d729d882df8b2245aef58d00c272a6f29efb7be049e466b6cc26805c1190c551",
+      "response": "Non-JSON response; see local capture",
+      "http_status_observed": 429
+    }
+  ],
+  "method": "Native SeatEngineClient.get_ticket_data/fetch_events with configured scraper headers; complete JSON parsed directly. Public HTML/archive requests use HttpClient with curl-cffi chrome124 and browser fallback.",
+  "historical_search_lead": {
+    "url": "https://www.bigpinecomedyfestival.org/events/109194",
+    "search_observation": "Search index preview describes May9/May10 2026 SUMMER COMEDY CAMP workshops. It does not bind May10 to native356284. Opening the indexed URL resolves to /events with a later upcoming calendar and no May10 text. Not a captured reschedule history.",
+    "checked_on": "2026-10-08"
+  },
+  "limitations": "Archive CDX timed out; availability endpoint returned429. These failures do not prove absence of historical archives. No retrieved record resolves whether native356284 moved dates or whether storedMay10 was a scrape error."
+}
