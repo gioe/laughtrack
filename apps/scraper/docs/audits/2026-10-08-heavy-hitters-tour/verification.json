@@ -103,7 +103,9 @@
         "checked_at": "2026-10-08T00:40:53.194586+00:00"
       }
     ],
-    "cache_note": "Initial repeated GETs returned pre-cleanup responses; fresh query variants confirmed current public behavior."
+    "cache_note": "Purged CDN response cache for verified LaughTrack project; all original URLs then passed without cache-busting parameters.",
+    "cdn_cache_purged": true,
+    "original_urls_verified_at": "2026-10-08T00:56:04.153933+00:00"
   },
   "tests": {
     "passed": 12,

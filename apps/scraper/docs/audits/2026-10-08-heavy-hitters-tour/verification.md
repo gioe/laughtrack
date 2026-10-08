@@ -48,9 +48,14 @@ search for Heavy Hitters Tour with `includeEmpty=true` returns zero results,
 and all four show endpoints return 200 with the false performer absent.
 Every other field of each show response, including both tickets, matches its
 saved pre-cleanup response exactly. Initial repeated GETs returned the old
-responses; fresh query variants verified current behavior. Private public API
+responses under the app's one-hour shared-cache policy; fresh query variants
+verified current behavior. After verifying the linked project as
+`gioes-projects/laughtrack`, the Vercel CLI successfully purged its CDN response
+cache. All six original URLs then passed without cache-busting parameters:
+performer detail 404, search zero results, and four retained shows with empty
+lineups and all other response fields unchanged. Private public API
 responses are in `/private/tmp/task4134-public-before.json` and
-`/private/tmp/task4134-public-fresh.json`; [verification.json](verification.json)
+`/private/tmp/task4134-public-final.json`; [verification.json](verification.json)
 contains sanitized counts and timestamps.
 
 All 12 focused tests passed with no skips against a local PostgreSQL test
