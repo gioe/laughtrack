@@ -1,0 +1,173 @@
+{
+  "task_id": 4134,
+  "reviewed_identity": {
+    "id": 1936878,
+    "uuid": "aa1d65a5844b25bda5016b1c8868c08b",
+    "name": "Heavy Hitters Tour",
+    "visible_before": true,
+    "decision": "hide canonical tour-label row; preserve identity and historical references"
+  },
+  "method": "Read-only complete association query followed by native scraper HTTP fetch of every official show page. No guessed performer alias or replacement lineup.",
+  "associations": [
+    {
+      "show_id": 5775541,
+      "uuid": "aa1d65a5844b25bda5016b1c8868c08b",
+      "comedian_id": 1936878,
+      "comedian_name": "Heavy Hitters Tour",
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-09 23:00:00+00:00",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/384861",
+      "club_id": 73,
+      "club_name": "Greenville Comedy Zone",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "sources": [
+        {
+          "platform": "seatengine",
+          "source_id": 32,
+          "source_url": "greenvillecomedyzone.com/events",
+          "seatengine_id": 464
+        },
+        {
+          "platform": "ticketmaster",
+          "source_id": 6262,
+          "source_url": "https://www.ticketmaster.com",
+          "seatengine_id": null
+        }
+      ],
+      "started_at": "2026-10-08T00:29:02.314065+00:00",
+      "finished_at": "2026-10-08T00:29:02.782863+00:00",
+      "http_status": 200,
+      "title": "Greenville Comedy Zone @ Revel Event Center | Heavy Hitters of Comedy ",
+      "sha256": "6178543a824910da18af0ee5483b7e26a66c945c2a0d5ed038456cf0c55b344a",
+      "excerpt": "graphy April 09 - April 10 Heavy Hitters of Comedy Heavy Hitters of Comedy Bringing together improv royalty, sharp storytelling, and high-energy stage presence, the powerhouse comedy lineup featuring Darren Brand , Marvin Hunter , Burpie , and GiGi LeFlair delivers an unforgettable live experience. Meet the Lineup - Darren \"Big Baby\" Brand: A breakout fan favorite from MTV\u2019s Wild 'N Out, Darren ",
+      "decision": "detach reviewed tour-label association; retain show, tickets, and all unrelated references",
+      "source_billed_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "show_id": 5775542,
+      "uuid": "aa1d65a5844b25bda5016b1c8868c08b",
+      "comedian_id": 1936878,
+      "comedian_name": "Heavy Hitters Tour",
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-10 01:00:00+00:00",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/384862",
+      "club_id": 73,
+      "club_name": "Greenville Comedy Zone",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "sources": [
+        {
+          "platform": "seatengine",
+          "source_id": 32,
+          "source_url": "greenvillecomedyzone.com/events",
+          "seatengine_id": 464
+        },
+        {
+          "platform": "ticketmaster",
+          "source_id": 6262,
+          "source_url": "https://www.ticketmaster.com",
+          "seatengine_id": null
+        }
+      ],
+      "started_at": "2026-10-08T00:29:02.783349+00:00",
+      "finished_at": "2026-10-08T00:29:03.174346+00:00",
+      "http_status": 200,
+      "title": "Greenville Comedy Zone @ Revel Event Center | Heavy Hitters of Comedy ",
+      "sha256": "6eea61f367e8e8224e1abf3400c6c76041e09773efa425a401ee4b6b387fb6fd",
+      "excerpt": "graphy April 09 - April 10 Heavy Hitters of Comedy Heavy Hitters of Comedy Bringing together improv royalty, sharp storytelling, and high-energy stage presence, the powerhouse comedy lineup featuring Darren Brand , Marvin Hunter , Burpie , and GiGi LeFlair delivers an unforgettable live experience. Meet the Lineup - Darren \"Big Baby\" Brand: A breakout fan favorite from MTV\u2019s Wild 'N Out, Darren ",
+      "decision": "detach reviewed tour-label association; retain show, tickets, and all unrelated references",
+      "source_billed_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "show_id": 5775543,
+      "uuid": "aa1d65a5844b25bda5016b1c8868c08b",
+      "comedian_id": 1936878,
+      "comedian_name": "Heavy Hitters Tour",
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-10 22:00:00+00:00",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/384863",
+      "club_id": 73,
+      "club_name": "Greenville Comedy Zone",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "sources": [
+        {
+          "platform": "seatengine",
+          "source_id": 32,
+          "source_url": "greenvillecomedyzone.com/events",
+          "seatengine_id": 464
+        },
+        {
+          "platform": "ticketmaster",
+          "source_id": 6262,
+          "source_url": "https://www.ticketmaster.com",
+          "seatengine_id": null
+        }
+      ],
+      "started_at": "2026-10-08T00:29:03.175688+00:00",
+      "finished_at": "2026-10-08T00:29:03.604811+00:00",
+      "http_status": 200,
+      "title": "Greenville Comedy Zone @ Revel Event Center | Heavy Hitters of Comedy ",
+      "sha256": "b143813fd52f39a4689624b0af41739b8c10bae27dde8703b8a64c1bc12edd2d",
+      "excerpt": "graphy April 09 - April 10 Heavy Hitters of Comedy Heavy Hitters of Comedy Bringing together improv royalty, sharp storytelling, and high-energy stage presence, the powerhouse comedy lineup featuring Darren Brand , Marvin Hunter , Burpie , and GiGi LeFlair delivers an unforgettable live experience. Meet the Lineup - Darren \"Big Baby\" Brand: A breakout fan favorite from MTV\u2019s Wild 'N Out, Darren ",
+      "decision": "detach reviewed tour-label association; retain show, tickets, and all unrelated references",
+      "source_billed_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    },
+    {
+      "show_id": 5775544,
+      "uuid": "aa1d65a5844b25bda5016b1c8868c08b",
+      "comedian_id": 1936878,
+      "comedian_name": "Heavy Hitters Tour",
+      "show_name": "Heavy Hitters of Comedy",
+      "date": "2027-04-11 01:00:00+00:00",
+      "show_page_url": "http://greenvillecomedyzone.com/shows/384864",
+      "club_id": 73,
+      "club_name": "Greenville Comedy Zone",
+      "last_scraped_by": "seatengine",
+      "source_performance_id": null,
+      "sources": [
+        {
+          "platform": "seatengine",
+          "source_id": 32,
+          "source_url": "greenvillecomedyzone.com/events",
+          "seatengine_id": 464
+        },
+        {
+          "platform": "ticketmaster",
+          "source_id": 6262,
+          "source_url": "https://www.ticketmaster.com",
+          "seatengine_id": null
+        }
+      ],
+      "started_at": "2026-10-08T00:29:03.605400+00:00",
+      "finished_at": "2026-10-08T00:29:03.868112+00:00",
+      "http_status": 200,
+      "title": "Greenville Comedy Zone @ Revel Event Center | Heavy Hitters of Comedy ",
+      "sha256": "9defb6e50ed92db33d7352adc9d81470939677407b374a299d18b01c449e1ee3",
+      "excerpt": "graphy April 09 - April 10 Heavy Hitters of Comedy Heavy Hitters of Comedy Bringing together improv royalty, sharp storytelling, and high-energy stage presence, the powerhouse comedy lineup featuring Darren Brand , Marvin Hunter , Burpie , and GiGi LeFlair delivers an unforgettable live experience. Meet the Lineup - Darren \"Big Baby\" Brand: A breakout fan favorite from MTV\u2019s Wild 'N Out, Darren ",
+      "decision": "detach reviewed tour-label association; retain show, tickets, and all unrelated references",
+      "source_billed_performers": [
+        "Darren Brand",
+        "Marvin Hunter",
+        "Burpie",
+        "GiGi LeFlair"
+      ]
+    }
+  ]
+}
