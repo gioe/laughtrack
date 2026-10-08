@@ -1,0 +1,130 @@
+{
+  "retrieved_at": "2026-10-08T16:21:50.760161+00:00",
+  "calendar": {
+    "2026-10-17": {
+      " 8:30pm": 21
+    },
+    "2026-11-21": {
+      " 8:30pm": 21
+    },
+    "2026-12-19": {
+      " 8:30pm": 21
+    }
+  },
+  "page_sha256": "d1fe9403c434ce9d9ed7d7f84e5e87e53a00750b0b5157ba6dce6f0e3614b092",
+  "production": [
+    {
+      "id": 3179528,
+      "date": "2026-11-22T01:00:00+00:00",
+      "name": "Riot Improv Mainstage: Stories to Scenes",
+      "room": "18b Corinth Street, Boston, MA",
+      "club_id": 10970,
+      "min_price": 15.0,
+      "show_type": "improv",
+      "popularity": 0.23,
+      "description": "On the third Saturday of every month, Riot Improv collaborates with local storytellers in a unique mash-up to create hilarious improv comedy with a narrative twist! Riot Improv will create improv...",
+      "is_cancelled": false,
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US",
+      "last_scraped_by": "anyroad",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-06-30T22:14:30.557548+00:00",
+      "first_discovered_at": "2026-06-22T19:03:11.140991+00:00",
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    },
+    {
+      "id": 3179529,
+      "date": "2026-12-20T01:00:00+00:00",
+      "name": "Riot Improv Mainstage: Stories to Scenes",
+      "room": "18b Corinth Street, Boston, MA",
+      "club_id": 10970,
+      "min_price": 15.0,
+      "show_type": "improv",
+      "popularity": 0.13,
+      "description": "On the third Saturday of every month, Riot Improv collaborates with local storytellers in a unique mash-up to create hilarious improv comedy with a narrative twist! Riot Improv will create improv...",
+      "is_cancelled": false,
+      "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US",
+      "last_scraped_by": "anyroad",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-06-30T22:14:30.557551+00:00",
+      "first_discovered_at": "2026-06-22T19:03:11.140991+00:00",
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    }
+  ],
+  "experience_id": 88719,
+  "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US",
+  "name": "Riot Improv Mainstage: Stories to Scenes",
+  "list_location": "18b Corinth Street, Boston, MA",
+  "detail_identity": {
+    "id": 88719,
+    "name": "Riot Improv Mainstage: Stories to Scenes",
+    "place": "18b Corinth Street, Boston, MA"
+  },
+  "timezone": "America/New_York",
+  "native_iso_dates": [
+    {
+      "date": "2026-10-17",
+      "datetime": "2026-10-17T20:30:00-04:00",
+      "spots_left": 21
+    },
+    {
+      "date": "2026-11-21",
+      "datetime": "2026-11-21T20:30:00-05:00",
+      "spots_left": 21
+    },
+    {
+      "date": "2026-12-19",
+      "datetime": "2026-12-19T20:30:00-05:00",
+      "spots_left": 21
+    }
+  ],
+  "collision_review": [
+    {
+      "id": 3179528,
+      "local_date": "2026-11-21",
+      "same_day_inventory": [
+        {
+          "id": 3179468,
+          "name": "ComedySportz\u00ae",
+          "club_id": 10970,
+          "room": "18b Corinth Street, Boston, MA",
+          "date": "2026-11-21T23:00:00+00:00",
+          "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+        },
+        {
+          "id": 3179528,
+          "name": "Riot Improv Mainstage: Stories to Scenes",
+          "club_id": 10970,
+          "room": "18b Corinth Street, Boston, MA",
+          "date": "2026-11-22T01:00:00+00:00",
+          "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US"
+        }
+      ]
+    },
+    {
+      "id": 3179529,
+      "local_date": "2026-12-19",
+      "same_day_inventory": [
+        {
+          "id": 3179472,
+          "name": "ComedySportz\u00ae",
+          "club_id": 10970,
+          "room": "18b Corinth Street, Boston, MA",
+          "date": "2026-12-19T23:00:00+00:00",
+          "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US"
+        },
+        {
+          "id": 3179529,
+          "name": "Riot Improv Mainstage: Stories to Scenes",
+          "club_id": 10970,
+          "room": "18b Corinth Street, Boston, MA",
+          "date": "2026-12-20T01:00:00+00:00",
+          "show_page_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US"
+        }
+      ]
+    }
+  ]
+}
