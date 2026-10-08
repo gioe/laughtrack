@@ -1,0 +1,110 @@
+{
+  "task_id": 4142,
+  "retrieved_at": "2026-10-08T17:13:58.162112+00:00",
+  "website": "https://www.barrelroompdx.com/events",
+  "organizer": "https://www.eventbrite.com/o/barrel-room-80388668013",
+  "organizer_id": "80388668013",
+  "eventbrite_count": 151,
+  "eventbrite_groups": {
+    "Dueling Pianos": {
+      "count": 21,
+      "example_url": "https://www.eventbrite.com/e/dueling-pianos-tickets-1991019074649",
+      "description": "Oregon's last Dueling Piano Show! Sing, clap, and dance along to our all-request musical showdown with the PNW's finest live musicians.",
+      "category_id": "105",
+      "subcategory_id": "5002",
+      "eligibility": "non-comedy"
+    },
+    "Open Jam and Games": {
+      "count": 24,
+      "example_url": "https://www.eventbrite.com/e/open-jam-and-games-tickets-1993994065928",
+      "description": "Free weekly Open Jam & Games with a full backline, ping pong, arcade games, food, drinks, and spontaneous music. 21+ must have valid ID.",
+      "category_id": null,
+      "subcategory_id": null,
+      "eligibility": "non-comedy"
+    },
+    "Join Our Email List": {
+      "count": 85,
+      "example_url": "https://www.eventbrite.com/e/join-our-email-list-tickets-1994104599537",
+      "description": "Join our email list for the latest Barrel Room events, special offers, and community happenings.",
+      "category_id": null,
+      "subcategory_id": null,
+      "eligibility": "non-comedy"
+    },
+    "Wednesday Wubs": {
+      "count": 10,
+      "example_url": "https://www.eventbrite.com/e/wednesday-wubs-tickets-1994108853260",
+      "description": "Midweek bass, fresh DJs, PLUR vibes, flow arts, and the perfect Mt. Tabor afterparty. Every Wednesday.",
+      "category_id": "103",
+      "subcategory_id": "3006",
+      "eligibility": "non-comedy"
+    },
+    "Barrel Bandapalooza - Support Local Music": {
+      "count": 2,
+      "example_url": "https://www.eventbrite.com/e/barrel-bandapalooza-support-local-music-tickets-1998991788250",
+      "description": "A non-stop night of local artists playing at the Barrel Room",
+      "category_id": "103",
+      "subcategory_id": "3999",
+      "eligibility": "non-comedy"
+    },
+    "Haunted House Band Takeover": {
+      "count": 1,
+      "example_url": "https://www.eventbrite.com/e/haunted-house-band-takeover-tickets-1999743951992",
+      "description": "Dueling Piano Halloween show + after-party dance bash. Our staff's graveyard shift = hours of live top-40 hits. Dress up, win prizes!",
+      "category_id": "103",
+      "subcategory_id": "3018",
+      "eligibility": "non-comedy"
+    },
+    "Open Mic Night": {
+      "count": 8,
+      "example_url": "https://www.eventbrite.com/e/open-mic-night-tickets-2001963968120",
+      "description": "Open Mic for musicians every 3rd Sunday of the month!",
+      "category_id": "103",
+      "subcategory_id": "3030",
+      "eligibility": "non-comedy"
+    }
+  },
+  "legacy_url": "https://www-barrelroompdx-com.seatengine.com/",
+  "classic_counts": {
+    "site": 0,
+    "legacy": 36
+  },
+  "legacy_open_mic_url": "https://www-barrelroompdx-com.seatengine.com/events/122875",
+  "legacy_open_mic_eligibility": "Music open mic: artists, singers and music lovers; no comedy evidence",
+  "html_sha256": {
+    "site": "04a85a47097cf888c38433b26e4ae812c3109a59294db234a5184f8526e88947",
+    "legacy": "315fb58facfa5e3ed7a26fc9f496ea660d99b3800dd023cc46ff7a477956b655",
+    "eventbrite": "e9d8100fa82e0b3f7f588b5b8113fa69f6fa766983854a52ec6641045e6a78aa",
+    "openmic": "e1ba47ad7def34a135e8e2498c78b9081d99d33bcf46610bc55393091e22ec81",
+    "piano": "1f851ed002d05bf9e96f1c7a6154d5f3849f437422030b09fec28aed8499d474",
+    "jam": "97713dbffb4b8ff13f56fa2b0ecff3dece95843c3da91022d3f5d0cedaef9b5d",
+    "wubs": "549c64f618e9a9cbd80decfd4f8dcf95bce20579d8785728006b439cc288c11c"
+  },
+  "reviewed_source": {
+    "id": 77,
+    "club_id": 88,
+    "enabled": true,
+    "metadata": {
+      "task_2561_canonicalize_source_url": {
+        "probed_at": "2026-06-01",
+        "probed_user_agent": "Mozilla/5.0",
+        "previous_source_url": "barrelroompdx.com/events",
+        "probed_location_header": "https://www.barrelroompdx.com/events"
+      }
+    },
+    "platform": "seatengine",
+    "priority": 0,
+    "created_at": "2026-04-21T19:57:12.315022+00:00",
+    "source_url": "https://www.barrelroompdx.com/events",
+    "squadup_id": null,
+    "updated_at": "2026-06-01T20:38:29.04297+00:00",
+    "scraper_key": "seatengine_classic",
+    "wix_event_id": null,
+    "eventbrite_id": null,
+    "ovationtix_id": null,
+    "seatengine_id": 324,
+    "ticketmaster_id": null,
+    "seatengine_v3_id": null,
+    "source_target_id": null
+  },
+  "decision": "Disable source77 only; no verified eligible comedy inventory in either feed; preserve venue identity and all existing history"
+}
