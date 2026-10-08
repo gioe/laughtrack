@@ -1,0 +1,452 @@
+{
+  "task_id": 4143,
+  "captured_at": "2026-10-08T18:13:36.419353+00:00",
+  "club_id": 88,
+  "source_id": 77,
+  "source_enabled": false,
+  "reviewed_count": 36,
+  "series": [
+    {
+      "series_id": 87722,
+      "url": "https://www-barrelroompdx-com.seatengine.com/events/87722",
+      "sha256": "f19cf47c7ebf9c344ce008335fb0ca170f3efa3bc31baf6587e6ecc84291d0d0",
+      "reason": "All-request piano performances, songs, singing and dancing."
+    },
+    {
+      "series_id": 109309,
+      "url": "https://www-barrelroompdx-com.seatengine.com/events/109309",
+      "sha256": "a6aaa575ddf32bca0b9343771e6280776d7619a8d564b862bb4b348ec8ab9f24",
+      "reason": "Open jam explicitly invites musicians and instruments."
+    },
+    {
+      "series_id": 100990,
+      "url": "https://www-barrelroompdx-com.seatengine.com/events/100990",
+      "sha256": "c14e3bd79856bfa3128722b2ef45e0affb12721a909c3d932317040593eb6f4a",
+      "reason": "Musician jam with instruments, singers and cover songs."
+    },
+    {
+      "series_id": 134784,
+      "url": "https://www-barrelroompdx-com.seatengine.com/events/134784",
+      "sha256": "ad612c6ef92fcdddae70338068eaa2ed2cc646044fd81cdf26e4146cec85c2b7",
+      "reason": "Weekly bass music and local arts."
+    },
+    {
+      "series_id": 122875,
+      "url": "https://www-barrelroompdx-com.seatengine.com/events/122875",
+      "sha256": "59920ee4197ff0134e477af0ca6c9f3b084011df9419eea9b65393172e3ce326",
+      "reason": "Open mic explicitly addresses artists, singers and music lovers."
+    }
+  ],
+  "shows": [
+    {
+      "id": 2342419,
+      "name": "Dueling Piano Show",
+      "date": "2026-10-10T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375582",
+      "native_id": 375582,
+      "series_id": 87722,
+      "native_date": "2026-10-09T20:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342420,
+      "name": "Dueling Piano Show",
+      "date": "2026-10-11T01:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375583",
+      "native_id": 375583,
+      "series_id": 87722,
+      "native_date": "2026-10-10T18:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342421,
+      "name": "Sunday Open Jam",
+      "date": "2026-10-12T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375637",
+      "native_id": 375637,
+      "series_id": 109309,
+      "native_date": "2026-10-11T20:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342422,
+      "name": "Open Jam & Games",
+      "date": "2026-10-14T02:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375611",
+      "native_id": 375611,
+      "series_id": 100990,
+      "native_date": "2026-10-13T19:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342423,
+      "name": "Wednesday Wubs",
+      "date": "2026-10-15T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375661",
+      "native_id": 375661,
+      "series_id": 134784,
+      "native_date": "2026-10-14T21:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342424,
+      "name": "Dueling Piano Show",
+      "date": "2026-10-17T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375584",
+      "native_id": 375584,
+      "series_id": 87722,
+      "native_date": "2026-10-16T20:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 1773863,
+      "name": "Dueling Piano Show",
+      "date": "2026-10-18T01:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/361586",
+      "native_id": 361586,
+      "series_id": 87722,
+      "native_date": "2026-10-17T18:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342426,
+      "name": "Open Mic at The Barrel Room!",
+      "date": "2026-10-19T00:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375695",
+      "native_id": 375695,
+      "series_id": 122875,
+      "native_date": "2026-10-18T17:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342427,
+      "name": "Sunday Open Jam",
+      "date": "2026-10-19T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375638",
+      "native_id": 375638,
+      "series_id": 109309,
+      "native_date": "2026-10-18T20:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342428,
+      "name": "Open Jam & Games",
+      "date": "2026-10-21T02:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375612",
+      "native_id": 375612,
+      "series_id": 100990,
+      "native_date": "2026-10-20T19:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342429,
+      "name": "Wednesday Wubs",
+      "date": "2026-10-22T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375662",
+      "native_id": 375662,
+      "series_id": 134784,
+      "native_date": "2026-10-21T21:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342430,
+      "name": "Dueling Piano Show",
+      "date": "2026-10-24T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375585",
+      "native_id": 375585,
+      "series_id": 87722,
+      "native_date": "2026-10-23T20:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342431,
+      "name": "Dueling Piano Show",
+      "date": "2026-10-25T01:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375586",
+      "native_id": 375586,
+      "series_id": 87722,
+      "native_date": "2026-10-24T18:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342432,
+      "name": "Sunday Open Jam",
+      "date": "2026-10-26T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375639",
+      "native_id": 375639,
+      "series_id": 109309,
+      "native_date": "2026-10-25T20:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342433,
+      "name": "Open Jam & Games",
+      "date": "2026-10-28T02:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375613",
+      "native_id": 375613,
+      "series_id": 100990,
+      "native_date": "2026-10-27T19:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342434,
+      "name": "Wednesday Wubs",
+      "date": "2026-10-29T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375663",
+      "native_id": 375663,
+      "series_id": 134784,
+      "native_date": "2026-10-28T21:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342435,
+      "name": "Dueling Piano Show",
+      "date": "2026-10-31T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375587",
+      "native_id": 375587,
+      "series_id": 87722,
+      "native_date": "2026-10-30T20:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342436,
+      "name": "Dueling Piano Show",
+      "date": "2026-11-01T01:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375588",
+      "native_id": 375588,
+      "series_id": 87722,
+      "native_date": "2026-10-31T18:00:00-07:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342437,
+      "name": "Sunday Open Jam",
+      "date": "2026-11-02T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375640",
+      "native_id": 375640,
+      "series_id": 109309,
+      "native_date": "2026-11-01T20:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342438,
+      "name": "Open Jam & Games",
+      "date": "2026-11-04T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375614",
+      "native_id": 375614,
+      "series_id": 100990,
+      "native_date": "2026-11-03T19:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342439,
+      "name": "Dueling Piano Show",
+      "date": "2026-11-08T02:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375589",
+      "native_id": 375589,
+      "series_id": 87722,
+      "native_date": "2026-11-07T18:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342440,
+      "name": "Sunday Open Jam",
+      "date": "2026-11-09T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375641",
+      "native_id": 375641,
+      "series_id": 109309,
+      "native_date": "2026-11-08T20:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342441,
+      "name": "Open Jam & Games",
+      "date": "2026-11-11T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375615",
+      "native_id": 375615,
+      "series_id": 100990,
+      "native_date": "2026-11-10T19:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342442,
+      "name": "Dueling Piano Show",
+      "date": "2026-11-14T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375590",
+      "native_id": 375590,
+      "series_id": 87722,
+      "native_date": "2026-11-13T20:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342443,
+      "name": "Dueling Piano Show",
+      "date": "2026-11-15T02:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375591",
+      "native_id": 375591,
+      "series_id": 87722,
+      "native_date": "2026-11-14T18:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342444,
+      "name": "Open Mic at The Barrel Room!",
+      "date": "2026-11-16T01:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375696",
+      "native_id": 375696,
+      "series_id": 122875,
+      "native_date": "2026-11-15T17:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342445,
+      "name": "Sunday Open Jam",
+      "date": "2026-11-16T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375642",
+      "native_id": 375642,
+      "series_id": 109309,
+      "native_date": "2026-11-15T20:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342446,
+      "name": "Open Jam & Games",
+      "date": "2026-11-18T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375616",
+      "native_id": 375616,
+      "series_id": 100990,
+      "native_date": "2026-11-17T19:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342447,
+      "name": "Dueling Piano Show",
+      "date": "2026-11-21T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375592",
+      "native_id": 375592,
+      "series_id": 87722,
+      "native_date": "2026-11-20T20:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342448,
+      "name": "Dueling Piano Show",
+      "date": "2026-11-22T02:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375593",
+      "native_id": 375593,
+      "series_id": 87722,
+      "native_date": "2026-11-21T18:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342449,
+      "name": "Sunday Open Jam",
+      "date": "2026-11-23T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375643",
+      "native_id": 375643,
+      "series_id": 109309,
+      "native_date": "2026-11-22T20:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342450,
+      "name": "Open Jam & Games",
+      "date": "2026-11-25T03:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375617",
+      "native_id": 375617,
+      "series_id": 100990,
+      "native_date": "2026-11-24T19:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342451,
+      "name": "Dueling Piano Show",
+      "date": "2026-11-28T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375594",
+      "native_id": 375594,
+      "series_id": 87722,
+      "native_date": "2026-11-27T20:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342452,
+      "name": "Dueling Piano Show",
+      "date": "2026-11-29T02:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375595",
+      "native_id": 375595,
+      "series_id": 87722,
+      "native_date": "2026-11-28T18:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342453,
+      "name": "Sunday Open Jam",
+      "date": "2026-11-30T04:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375644",
+      "native_id": 375644,
+      "series_id": 109309,
+      "native_date": "2026-11-29T20:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    },
+    {
+      "id": 2342454,
+      "name": "Open Mic at The Barrel Room!",
+      "date": "2026-12-21T01:00:00+00:00",
+      "show_page_url": "https://www.barrelroompdx.com/shows/375697",
+      "native_id": 375697,
+      "series_id": 122875,
+      "native_date": "2026-12-20T17:00:00-08:00",
+      "identity_and_date_match": true,
+      "decision": "verified_non_comedy"
+    }
+  ],
+  "retained_historical_count": 287,
+  "retained_historical_comedy_ids": [
+    393844,
+    474028,
+    769560,
+    941148,
+    1267042,
+    1583850,
+    1773843,
+    1773854,
+    2342337,
+    2342350
+  ],
+  "pending_decision": "Preserve134click-to-showlinks with new exclusion support, or use existing deletion with retained but detached click records; operator response required"
+}
