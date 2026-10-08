@@ -448,5 +448,5 @@
     2342337,
     2342350
   ],
-  "pending_decision": "Preserve134click-to-showlinks with new exclusion support, or use existing deletion with retained but detached click records; operator response required"
+  "approved_disposition": "Operator chose existing cleanup: remove only reviewed upcoming shows and their tickets/tags; retain clicks with show_id=NULL; preserve historical rows and all other relationships; refuse new protected references."
 }

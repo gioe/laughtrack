@@ -1,0 +1,31 @@
+{
+  "after_counts": {
+    "clubs": 1,
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 10,
+    "saved_shows": 0,
+    "scraping_sources": 1,
+    "sent_notifications": 0,
+    "shows": 287,
+    "tagged_shows": 249,
+    "ticket_purchase_click_events": 1726,
+    "tickets": 287
+  },
+  "after_hash": "0cf79dcb55d50140147a5a0913d299c526dedefc8678f1c0a24738bf886c8b24",
+  "before_counts": {
+    "clubs": 1,
+    "discovery_show_feature_snapshots": 0,
+    "lineup_items": 10,
+    "saved_shows": 0,
+    "scraping_sources": 1,
+    "sent_notifications": 0,
+    "shows": 323,
+    "tagged_shows": 278,
+    "ticket_purchase_click_events": 1726,
+    "tickets": 323
+  },
+  "before_hash": "197ecd755eb982e742cfaba38d1ee0ef30e18a61370082481d6113e47afc0d3f",
+  "review_digest": "4a5e50d0e177c5def24735ce887789329933548c1a46c154ef14c42e91138a75",
+  "schema_hash": "b314bdc9dfa4f05b609dd1509f9b471814ec11b1c5f52bbcc2fb86cb90f10934",
+  "task_id": 4143
+}

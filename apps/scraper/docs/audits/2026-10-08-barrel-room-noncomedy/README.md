@@ -20,17 +20,34 @@ crowd-driven comedy** shows. Source 77 remains disabled. Do not infer that the
 venue never hosts comedy, hide its entire history, or mark musical shows as
 source-cancelled.
 
-## Preservation decision pending
+## Approved cleanup and preservation
 
 The 36 upcoming rows have 36 tickets, 29 tag links, zero lineup entries and
 134 ticket-click records. They have no saved-show, sent-notification or feature
-snapshot references in this capture. The entire venue has 1,694 click records.
+snapshot references in this capture. There are 1,694 clicks still attached to
+venue shows, plus 32 already-detached venue clicks; the repair preserves all 1,726.
 
 Existing cleanup scripts delete selected shows and rely on the click foreign
 key's SET NULL behavior: click records survive but their show links do not.
-TASK-4143 currently requires preserving user and analytics relationships. The
-operator has been asked whether to add show-level exclusion support that retains
-those links or explicitly allow existing cleanup with detached click records.
-No production repair has been applied. Fresh full before-images and guarded
-recovery will be required for the chosen approach; this evidence snapshot is
-not an executable deletion plan.
+The operator explicitly selected **cleanup**: remove the 36 verified shows and
+their 36 tickets/29 tag links, retain all click records with only the 134 retiring
+show links cleared. Historical shows and their references remain unchanged;
+club identity/visibility and disabled source 77 stay unchanged. Update the club's
+stored show count to the surviving count. Any newly discovered saved-show,
+notification, feature-snapshot or lineup reference on a retiring show aborts.
+
+The dated archive script pins this exact native manifest, verifies a fresh
+`reviewed-plan.json` against full schema and row hashes, and writes new private
+mode-0600 before/after recovery files before commit. Detached clicks remain in
+the guarded cohort by club ID. Recovery restores exact original shows, ticket/tag
+links and click associations only if the entire affected after-state still matches.
+Neither a cancellation flag nor a venue-wide visibility change is used.
+
+Before apply, 18 local PostgreSQL tests passed. A production rehearsal performed
+cleanup, verified repeat safety, restored the entire original state exactly,
+and rolled back the transaction. The public club-shows API independently returned
+all 36 reviewed IDs before cleanup. The full commit gate has a pre-existing
+missing-tzdata collection error (8,210 collected); three clean-HEAD runs reproduced
+it without flakiness or default-branch divergence. No full-suite pass is claimed.
+
+Execution outcome and private recovery locations are recorded in verification.md.
