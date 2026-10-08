@@ -1,0 +1,30 @@
+{
+  "verified_at": "2026-10-08T00:09:47.336010+00:00",
+  "source_ids": [
+    74,
+    77,
+    82,
+    134,
+    246,
+    268,
+    371,
+    431,
+    441,
+    571,
+    594,
+    598,
+    631,
+    637,
+    644
+  ],
+  "source_count": 15,
+  "club_count": 15,
+  "transaction_read_only": true,
+  "full_source_rows_unchanged": true,
+  "full_club_rows_unchanged": true,
+  "before_snapshot_sha256": "a6163ce9941974bb5e2568b1015999a95f0ac577f07b7c470603db08aa498921",
+  "after_snapshot_sha256": "a6163ce9941974bb5e2568b1015999a95f0ac577f07b7c470603db08aa498921",
+  "evidence_cohort_complete": true,
+  "website_attempts_complete": true,
+  "credential_scan_passed": true
+}
