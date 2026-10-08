@@ -1,0 +1,1167 @@
+{
+  "task_id": 4136,
+  "schema": {
+    "clubs": {
+      "columns": [
+        [
+          "id",
+          "integer"
+        ],
+        [
+          "name",
+          "text"
+        ],
+        [
+          "address",
+          "text"
+        ],
+        [
+          "website",
+          "text"
+        ],
+        [
+          "popularity",
+          "double precision"
+        ],
+        [
+          "zip_code",
+          "character varying(10)"
+        ],
+        [
+          "phone_number",
+          "text"
+        ],
+        [
+          "timezone",
+          "text"
+        ],
+        [
+          "visible",
+          "boolean"
+        ],
+        [
+          "city",
+          "text"
+        ],
+        [
+          "state",
+          "text"
+        ],
+        [
+          "total_shows",
+          "integer"
+        ],
+        [
+          "status",
+          "text"
+        ],
+        [
+          "closed_at",
+          "timestamp with time zone"
+        ],
+        [
+          "has_image",
+          "boolean"
+        ],
+        [
+          "country",
+          "text"
+        ],
+        [
+          "chain_id",
+          "integer"
+        ],
+        [
+          "club_type",
+          "text"
+        ],
+        [
+          "description",
+          "text"
+        ],
+        [
+          "hours",
+          "jsonb"
+        ],
+        [
+          "latitude",
+          "double precision"
+        ],
+        [
+          "longitude",
+          "double precision"
+        ],
+        [
+          "google_place_id",
+          "text"
+        ],
+        [
+          "google_place_attribution",
+          "jsonb"
+        ],
+        [
+          "geocode_attempted_at",
+          "timestamp with time zone"
+        ],
+        [
+          "geocode_attempt_count",
+          "integer"
+        ],
+        [
+          "geocode_outcome",
+          "text"
+        ]
+      ],
+      "primary": [
+        "id"
+      ],
+      "constraints": [
+        [
+          "clubs_chain_id_fkey",
+          "FOREIGN KEY (chain_id) REFERENCES chains(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        ],
+        [
+          "clubs_club_type_check",
+          "CHECK ((club_type = ANY (ARRAY['club'::text, 'venue'::text, 'festival'::text, 'producer'::text, 'secret_location'::text, 'non_comedy'::text])))"
+        ],
+        [
+          "clubs_pkey",
+          "PRIMARY KEY (id)"
+        ],
+        [
+          "clubs_status_check",
+          "CHECK ((status = ANY (ARRAY['active'::text, 'closed'::text, 'hiatus'::text, 'not_open_yet'::text])))"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE INDEX clubs_chain_id_idx ON public.clubs USING btree (chain_id)"
+        ],
+        [
+          "CREATE INDEX clubs_city_state_lower_idx ON public.clubs USING btree (lower(TRIM(BOTH FROM city)), lower(TRIM(BOTH FROM state))) WHERE ((visible = true) AND (status = 'active'::text))"
+        ],
+        [
+          "CREATE INDEX clubs_missing_coordinates_geocode_attempt_idx ON public.clubs USING btree (geocode_attempted_at NULLS FIRST, id) WHERE ((visible = true) AND (status = 'active'::text) AND (club_type = ANY (ARRAY['club'::text, 'venue'::text])) AND ((latitude IS NULL) OR (longitude IS NULL)))"
+        ],
+        [
+          "CREATE UNIQUE INDEX clubs_name_key ON public.clubs USING btree (name)"
+        ],
+        [
+          "CREATE UNIQUE INDEX clubs_pkey ON public.clubs USING btree (id)"
+        ],
+        [
+          "CREATE INDEX clubs_visible_idx ON public.clubs USING btree (visible)"
+        ]
+      ],
+      "triggers": []
+    },
+    "production_companies": {
+      "columns": [
+        [
+          "id",
+          "integer"
+        ],
+        [
+          "name",
+          "text"
+        ],
+        [
+          "slug",
+          "text"
+        ],
+        [
+          "website",
+          "text"
+        ],
+        [
+          "scraping_url",
+          "text"
+        ],
+        [
+          "visible",
+          "boolean"
+        ],
+        [
+          "show_name_keywords",
+          "text[]"
+        ]
+      ],
+      "primary": [
+        "id"
+      ],
+      "constraints": [
+        [
+          "production_companies_pkey",
+          "PRIMARY KEY (id)"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE UNIQUE INDEX production_companies_name_key ON public.production_companies USING btree (name)"
+        ],
+        [
+          "CREATE UNIQUE INDEX production_companies_pkey ON public.production_companies USING btree (id)"
+        ],
+        [
+          "CREATE UNIQUE INDEX production_companies_slug_key ON public.production_companies USING btree (slug)"
+        ]
+      ]
+    },
+    "shows": {
+      "columns": [
+        [
+          "id",
+          "integer"
+        ],
+        [
+          "name",
+          "text"
+        ],
+        [
+          "date",
+          "timestamp(6) with time zone"
+        ],
+        [
+          "show_page_url",
+          "text"
+        ],
+        [
+          "club_id",
+          "integer"
+        ],
+        [
+          "popularity",
+          "double precision"
+        ],
+        [
+          "last_scraped_date",
+          "timestamp(6) with time zone"
+        ],
+        [
+          "description",
+          "text"
+        ],
+        [
+          "room",
+          "text"
+        ],
+        [
+          "production_company_id",
+          "integer"
+        ],
+        [
+          "last_scraped_by",
+          "text"
+        ],
+        [
+          "min_price",
+          "numeric(7,2)"
+        ],
+        [
+          "first_discovered_at",
+          "timestamp(6) with time zone"
+        ],
+        [
+          "scraped_by_organizer_id",
+          "integer"
+        ],
+        [
+          "show_type",
+          "text"
+        ],
+        [
+          "tickets_sold_out",
+          "boolean"
+        ],
+        [
+          "is_cancelled",
+          "boolean"
+        ],
+        [
+          "source_performance_id",
+          "text"
+        ]
+      ],
+      "primary": [
+        "id"
+      ],
+      "constraints": [
+        [
+          "shows_club_id_fkey",
+          "FOREIGN KEY (club_id) REFERENCES clubs(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ],
+        [
+          "shows_pkey",
+          "PRIMARY KEY (id)"
+        ],
+        [
+          "shows_production_company_id_fkey",
+          "FOREIGN KEY (production_company_id) REFERENCES production_companies(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        ],
+        [
+          "shows_scraped_by_organizer_id_fkey",
+          "FOREIGN KEY (scraped_by_organizer_id) REFERENCES production_companies(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        ],
+        [
+          "shows_source_performance_nonempty",
+          "CHECK (((source_performance_id IS NULL) OR (length(TRIM(BOTH FROM source_performance_id)) > 0)))"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE INDEX shows_club_id_date_idx ON public.shows USING btree (club_id, date)"
+        ],
+        [
+          "CREATE INDEX shows_club_id_scraped_by_organizer_id_idx ON public.shows USING btree (club_id, scraped_by_organizer_id)"
+        ],
+        [
+          "CREATE UNIQUE INDEX shows_club_source_performance_key ON public.shows USING btree (club_id, source_performance_id) WHERE (source_performance_id IS NOT NULL)"
+        ],
+        [
+          "CREATE INDEX shows_date_idx ON public.shows USING btree (date)"
+        ],
+        [
+          "CREATE INDEX shows_first_discovered_at_idx ON public.shows USING btree (first_discovered_at)"
+        ],
+        [
+          "CREATE INDEX shows_last_scraped_by_idx ON public.shows USING btree (last_scraped_by)"
+        ],
+        [
+          "CREATE UNIQUE INDEX shows_legacy_club_date_room_key ON public.shows USING btree (club_id, date, room) WHERE (source_performance_id IS NULL)"
+        ],
+        [
+          "CREATE UNIQUE INDEX shows_pkey ON public.shows USING btree (id)"
+        ],
+        [
+          "CREATE INDEX shows_production_company_id_idx ON public.shows USING btree (production_company_id)"
+        ],
+        [
+          "CREATE INDEX shows_show_type_idx ON public.shows USING btree (show_type)"
+        ]
+      ],
+      "triggers": []
+    },
+    "tickets": {
+      "columns": [
+        [
+          "id",
+          "integer"
+        ],
+        [
+          "purchase_url",
+          "text"
+        ],
+        [
+          "price",
+          "numeric(7,2)"
+        ],
+        [
+          "sold_out",
+          "boolean"
+        ],
+        [
+          "show_id",
+          "integer"
+        ],
+        [
+          "type",
+          "text"
+        ]
+      ],
+      "primary": [
+        "id"
+      ],
+      "constraints": [
+        [
+          "tickets_pkey",
+          "PRIMARY KEY (id)"
+        ],
+        [
+          "tickets_show_id_fkey",
+          "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE UNIQUE INDEX tickets_pkey ON public.tickets USING btree (id)"
+        ],
+        [
+          "CREATE UNIQUE INDEX tickets_show_id_type_key ON public.tickets USING btree (show_id, type)"
+        ]
+      ],
+      "triggers": [
+        [
+          "tickets_refresh_all_show_tickets_sold_out_trunc",
+          "O",
+          "CREATE TRIGGER tickets_refresh_all_show_tickets_sold_out_trunc AFTER TRUNCATE ON public.tickets FOR EACH STATEMENT EXECUTE FUNCTION tickets_refresh_all_show_tickets_sold_out()",
+          "CREATE OR REPLACE FUNCTION public.tickets_refresh_all_show_tickets_sold_out()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    UPDATE shows\n    SET tickets_sold_out = sub.tickets_sold_out\n    FROM (\n        SELECT\n            s.id AS show_id,\n            COALESCE(\n                BOOL_AND(t.sold_out) FILTER (WHERE t.id IS NOT NULL),\n                false\n            ) AS tickets_sold_out\n        FROM shows s\n        LEFT JOIN tickets t ON t.show_id = s.id\n        GROUP BY s.id\n    ) sub\n    WHERE shows.id = sub.show_id;\n\n    RETURN NULL;\nEND;\n$function$\n"
+        ],
+        [
+          "tickets_trickle_show_min_price_del",
+          "O",
+          "CREATE TRIGGER tickets_trickle_show_min_price_del AFTER DELETE ON public.tickets FOR EACH ROW EXECUTE FUNCTION tickets_trickle_show_min_price()",
+          "CREATE OR REPLACE FUNCTION public.tickets_trickle_show_min_price()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' THEN\n        PERFORM refresh_show_min_price(OLD.show_id);\n        RETURN OLD;\n    ELSIF TG_OP = 'UPDATE' THEN\n        IF OLD.show_id IS DISTINCT FROM NEW.show_id THEN\n            PERFORM refresh_show_min_price(OLD.show_id);\n        END IF;\n        PERFORM refresh_show_min_price(NEW.show_id);\n        RETURN NEW;\n    ELSE\n        PERFORM refresh_show_min_price(NEW.show_id);\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n"
+        ],
+        [
+          "tickets_trickle_show_min_price_ins",
+          "O",
+          "CREATE TRIGGER tickets_trickle_show_min_price_ins AFTER INSERT ON public.tickets FOR EACH ROW EXECUTE FUNCTION tickets_trickle_show_min_price()",
+          "CREATE OR REPLACE FUNCTION public.tickets_trickle_show_min_price()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' THEN\n        PERFORM refresh_show_min_price(OLD.show_id);\n        RETURN OLD;\n    ELSIF TG_OP = 'UPDATE' THEN\n        IF OLD.show_id IS DISTINCT FROM NEW.show_id THEN\n            PERFORM refresh_show_min_price(OLD.show_id);\n        END IF;\n        PERFORM refresh_show_min_price(NEW.show_id);\n        RETURN NEW;\n    ELSE\n        PERFORM refresh_show_min_price(NEW.show_id);\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n"
+        ],
+        [
+          "tickets_trickle_show_min_price_upd",
+          "O",
+          "CREATE TRIGGER tickets_trickle_show_min_price_upd AFTER UPDATE ON public.tickets FOR EACH ROW WHEN (((old.price IS DISTINCT FROM new.price) OR (old.show_id IS DISTINCT FROM new.show_id))) EXECUTE FUNCTION tickets_trickle_show_min_price()",
+          "CREATE OR REPLACE FUNCTION public.tickets_trickle_show_min_price()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' THEN\n        PERFORM refresh_show_min_price(OLD.show_id);\n        RETURN OLD;\n    ELSIF TG_OP = 'UPDATE' THEN\n        IF OLD.show_id IS DISTINCT FROM NEW.show_id THEN\n            PERFORM refresh_show_min_price(OLD.show_id);\n        END IF;\n        PERFORM refresh_show_min_price(NEW.show_id);\n        RETURN NEW;\n    ELSE\n        PERFORM refresh_show_min_price(NEW.show_id);\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n"
+        ],
+        [
+          "tickets_trickle_show_tickets_sold_out_del",
+          "O",
+          "CREATE TRIGGER tickets_trickle_show_tickets_sold_out_del AFTER DELETE ON public.tickets FOR EACH ROW EXECUTE FUNCTION tickets_trickle_show_tickets_sold_out()",
+          "CREATE OR REPLACE FUNCTION public.tickets_trickle_show_tickets_sold_out()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' THEN\n        PERFORM refresh_show_tickets_sold_out(OLD.show_id);\n        RETURN OLD;\n    ELSIF TG_OP = 'UPDATE' THEN\n        IF OLD.show_id IS DISTINCT FROM NEW.show_id THEN\n            PERFORM refresh_show_tickets_sold_out(OLD.show_id);\n        END IF;\n        PERFORM refresh_show_tickets_sold_out(NEW.show_id);\n        RETURN NEW;\n    ELSE\n        PERFORM refresh_show_tickets_sold_out(NEW.show_id);\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n"
+        ],
+        [
+          "tickets_trickle_show_tickets_sold_out_ins",
+          "O",
+          "CREATE TRIGGER tickets_trickle_show_tickets_sold_out_ins AFTER INSERT ON public.tickets FOR EACH ROW EXECUTE FUNCTION tickets_trickle_show_tickets_sold_out()",
+          "CREATE OR REPLACE FUNCTION public.tickets_trickle_show_tickets_sold_out()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' THEN\n        PERFORM refresh_show_tickets_sold_out(OLD.show_id);\n        RETURN OLD;\n    ELSIF TG_OP = 'UPDATE' THEN\n        IF OLD.show_id IS DISTINCT FROM NEW.show_id THEN\n            PERFORM refresh_show_tickets_sold_out(OLD.show_id);\n        END IF;\n        PERFORM refresh_show_tickets_sold_out(NEW.show_id);\n        RETURN NEW;\n    ELSE\n        PERFORM refresh_show_tickets_sold_out(NEW.show_id);\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n"
+        ],
+        [
+          "tickets_trickle_show_tickets_sold_out_upd",
+          "O",
+          "CREATE TRIGGER tickets_trickle_show_tickets_sold_out_upd AFTER UPDATE ON public.tickets FOR EACH ROW WHEN (((old.sold_out IS DISTINCT FROM new.sold_out) OR (old.show_id IS DISTINCT FROM new.show_id))) EXECUTE FUNCTION tickets_trickle_show_tickets_sold_out()",
+          "CREATE OR REPLACE FUNCTION public.tickets_trickle_show_tickets_sold_out()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' THEN\n        PERFORM refresh_show_tickets_sold_out(OLD.show_id);\n        RETURN OLD;\n    ELSIF TG_OP = 'UPDATE' THEN\n        IF OLD.show_id IS DISTINCT FROM NEW.show_id THEN\n            PERFORM refresh_show_tickets_sold_out(OLD.show_id);\n        END IF;\n        PERFORM refresh_show_tickets_sold_out(NEW.show_id);\n        RETURN NEW;\n    ELSE\n        PERFORM refresh_show_tickets_sold_out(NEW.show_id);\n        RETURN NEW;\n    END IF;\nEND;\n$function$\n"
+        ]
+      ]
+    },
+    "lineup_items": {
+      "columns": [
+        [
+          "id",
+          "integer"
+        ],
+        [
+          "show_id",
+          "integer"
+        ],
+        [
+          "comedian_id",
+          "text"
+        ],
+        [
+          "role",
+          "text"
+        ]
+      ],
+      "primary": [
+        "show_id",
+        "comedian_id"
+      ],
+      "constraints": [
+        [
+          "lineup_items_comedian_id_fkey",
+          "FOREIGN KEY (comedian_id) REFERENCES comedians(uuid) ON UPDATE CASCADE ON DELETE CASCADE"
+        ],
+        [
+          "lineup_items_pkey",
+          "PRIMARY KEY (show_id, comedian_id)"
+        ],
+        [
+          "lineup_items_show_id_fkey",
+          "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE INDEX lineup_items_comedian_id_idx ON public.lineup_items USING btree (comedian_id)"
+        ],
+        [
+          "CREATE UNIQUE INDEX lineup_items_pkey ON public.lineup_items USING btree (show_id, comedian_id)"
+        ]
+      ],
+      "triggers": []
+    },
+    "tagged_shows": {
+      "columns": [
+        [
+          "id",
+          "integer"
+        ],
+        [
+          "show_id",
+          "integer"
+        ],
+        [
+          "tag_id",
+          "integer"
+        ]
+      ],
+      "primary": [
+        "id"
+      ],
+      "constraints": [
+        [
+          "tagged_shows_pkey",
+          "PRIMARY KEY (id)"
+        ],
+        [
+          "tagged_shows_show_id_fkey",
+          "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ],
+        [
+          "tagged_shows_tag_id_fkey",
+          "FOREIGN KEY (tag_id) REFERENCES tags(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE UNIQUE INDEX tagged_shows_pkey ON public.tagged_shows USING btree (id)"
+        ],
+        [
+          "CREATE UNIQUE INDEX tagged_shows_show_id_tag_id_key ON public.tagged_shows USING btree (show_id, tag_id)"
+        ]
+      ],
+      "triggers": []
+    },
+    "saved_shows": {
+      "columns": [
+        [
+          "profile_id",
+          "text"
+        ],
+        [
+          "show_id",
+          "integer"
+        ],
+        [
+          "created_at",
+          "timestamp with time zone"
+        ]
+      ],
+      "primary": [
+        "profile_id",
+        "show_id"
+      ],
+      "constraints": [
+        [
+          "saved_shows_pkey",
+          "PRIMARY KEY (profile_id, show_id)"
+        ],
+        [
+          "saved_shows_profile_id_fkey",
+          "FOREIGN KEY (profile_id) REFERENCES user_profiles(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ],
+        [
+          "saved_shows_show_id_fkey",
+          "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE UNIQUE INDEX saved_shows_pkey ON public.saved_shows USING btree (profile_id, show_id)"
+        ],
+        [
+          "CREATE INDEX saved_shows_show_id_idx ON public.saved_shows USING btree (show_id)"
+        ]
+      ],
+      "triggers": []
+    },
+    "sent_notifications": {
+      "columns": [
+        [
+          "id",
+          "integer"
+        ],
+        [
+          "user_id",
+          "text"
+        ],
+        [
+          "comedian_id",
+          "text"
+        ],
+        [
+          "show_id",
+          "integer"
+        ],
+        [
+          "sent_at",
+          "timestamp(3) without time zone"
+        ],
+        [
+          "notification_type",
+          "text"
+        ],
+        [
+          "notification_group_id",
+          "text"
+        ]
+      ],
+      "primary": [
+        "id"
+      ],
+      "constraints": [
+        [
+          "sent_notifications_comedian_id_fkey",
+          "FOREIGN KEY (comedian_id) REFERENCES comedians(uuid) ON UPDATE CASCADE ON DELETE CASCADE"
+        ],
+        [
+          "sent_notifications_notification_type_check",
+          "CHECK ((notification_type = ANY (ARRAY['email'::text, 'push'::text])))"
+        ],
+        [
+          "sent_notifications_pkey",
+          "PRIMARY KEY (id)"
+        ],
+        [
+          "sent_notifications_show_id_fkey",
+          "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ],
+        [
+          "sent_notifications_user_id_fkey",
+          "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE UNIQUE INDEX sent_notifications_pkey ON public.sent_notifications USING btree (id)"
+        ],
+        [
+          "CREATE UNIQUE INDEX sent_notifications_unique_per_channel ON public.sent_notifications USING btree (user_id, comedian_id, show_id, notification_type)"
+        ],
+        [
+          "CREATE INDEX sent_notifications_user_id_idx ON public.sent_notifications USING btree (user_id)"
+        ],
+        [
+          "CREATE INDEX sent_notifications_user_id_notification_group_id_idx ON public.sent_notifications USING btree (user_id, notification_group_id)"
+        ]
+      ],
+      "triggers": []
+    },
+    "discovery_show_feature_snapshots": {
+      "columns": [
+        [
+          "id",
+          "bigint"
+        ],
+        [
+          "show_id",
+          "integer"
+        ],
+        [
+          "feature_version",
+          "text"
+        ],
+        [
+          "as_of",
+          "timestamp with time zone"
+        ],
+        [
+          "prominence",
+          "double precision"
+        ],
+        [
+          "momentum",
+          "double precision"
+        ],
+        [
+          "growth",
+          "double precision"
+        ],
+        [
+          "confidence",
+          "double precision"
+        ],
+        [
+          "availability",
+          "text"
+        ],
+        [
+          "evidence",
+          "jsonb"
+        ],
+        [
+          "computed_at",
+          "timestamp with time zone"
+        ]
+      ],
+      "primary": [
+        "id"
+      ],
+      "constraints": [
+        [
+          "discovery_show_feature_snapshot_identity_key",
+          "UNIQUE (show_id, feature_version, as_of)"
+        ],
+        [
+          "discovery_show_feature_snapshots_availability_check",
+          "CHECK ((availability = ANY (ARRAY['available'::text, 'unknown'::text, 'unavailable'::text])))"
+        ],
+        [
+          "discovery_show_feature_snapshots_confidence_check",
+          "CHECK (((confidence >= (0)::double precision) AND (confidence <= (1)::double precision)))"
+        ],
+        [
+          "discovery_show_feature_snapshots_feature_version_check",
+          "CHECK ((feature_version ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$'::text))"
+        ],
+        [
+          "discovery_show_feature_snapshots_growth_check",
+          "CHECK (((growth >= (0)::double precision) AND (growth <= (1)::double precision)))"
+        ],
+        [
+          "discovery_show_feature_snapshots_momentum_check",
+          "CHECK (((momentum >= (0)::double precision) AND (momentum <= (1)::double precision)))"
+        ],
+        [
+          "discovery_show_feature_snapshots_pkey",
+          "PRIMARY KEY (id)"
+        ],
+        [
+          "discovery_show_feature_snapshots_prominence_check",
+          "CHECK (((prominence >= (0)::double precision) AND (prominence <= (1)::double precision)))"
+        ],
+        [
+          "discovery_show_feature_snapshots_show_id_fkey",
+          "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE UNIQUE INDEX discovery_show_feature_snapshot_identity_key ON public.discovery_show_feature_snapshots USING btree (show_id, feature_version, as_of)"
+        ],
+        [
+          "CREATE UNIQUE INDEX discovery_show_feature_snapshots_pkey ON public.discovery_show_feature_snapshots USING btree (id)"
+        ],
+        [
+          "CREATE INDEX discovery_show_feature_snapshots_version_as_of_idx ON public.discovery_show_feature_snapshots USING btree (feature_version, as_of)"
+        ]
+      ],
+      "triggers": []
+    },
+    "ticket_purchase_click_events": {
+      "columns": [
+        [
+          "id",
+          "integer"
+        ],
+        [
+          "show_id",
+          "integer"
+        ],
+        [
+          "club_id",
+          "integer"
+        ],
+        [
+          "profile_id",
+          "text"
+        ],
+        [
+          "anonymous_visitor_id",
+          "text"
+        ],
+        [
+          "destination_url",
+          "text"
+        ],
+        [
+          "source_surface",
+          "text"
+        ],
+        [
+          "user_agent",
+          "text"
+        ],
+        [
+          "device_metadata",
+          "jsonb"
+        ],
+        [
+          "created_at",
+          "timestamp with time zone"
+        ],
+        [
+          "destination_provider",
+          "text"
+        ],
+        [
+          "routed_destination_url",
+          "text"
+        ],
+        [
+          "affiliate_applied",
+          "boolean"
+        ],
+        [
+          "fallback_reason",
+          "text"
+        ],
+        [
+          "discovery_impression_event_id",
+          "uuid"
+        ],
+        [
+          "discovery_surface",
+          "text"
+        ],
+        [
+          "discovery_policy_version",
+          "text"
+        ],
+        [
+          "discovery_experiment_variant",
+          "text"
+        ],
+        [
+          "discovery_rank",
+          "integer"
+        ]
+      ],
+      "primary": [
+        "id"
+      ],
+      "constraints": [
+        [
+          "ticket_purchase_click_events_club_id_fkey",
+          "FOREIGN KEY (club_id) REFERENCES clubs(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ],
+        [
+          "ticket_purchase_click_events_discovery_attribution_check",
+          "CHECK ((((discovery_impression_event_id IS NULL) AND (discovery_surface IS NULL) AND (discovery_policy_version IS NULL) AND (discovery_experiment_variant IS NULL) AND (discovery_rank IS NULL)) OR ((discovery_impression_event_id IS NOT NULL) AND (discovery_surface IS NOT NULL) AND (discovery_policy_version IS NOT NULL) AND (discovery_experiment_variant IS NOT NULL) AND ((discovery_rank >= 1) AND (discovery_rank <= 1000)))))"
+        ],
+        [
+          "ticket_purchase_click_events_pkey",
+          "PRIMARY KEY (id)"
+        ],
+        [
+          "ticket_purchase_click_events_profile_id_fkey",
+          "FOREIGN KEY (profile_id) REFERENCES user_profiles(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        ],
+        [
+          "ticket_purchase_click_events_show_id_fkey",
+          "FOREIGN KEY (show_id) REFERENCES shows(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE INDEX ticket_purchase_click_events_anonymous_visitor_id_created_at_id ON public.ticket_purchase_click_events USING btree (anonymous_visitor_id, created_at)"
+        ],
+        [
+          "CREATE INDEX ticket_purchase_click_events_club_id_created_at_idx ON public.ticket_purchase_click_events USING btree (club_id, created_at)"
+        ],
+        [
+          "CREATE INDEX ticket_purchase_click_events_created_at_idx ON public.ticket_purchase_click_events USING btree (created_at)"
+        ],
+        [
+          "CREATE INDEX ticket_purchase_click_events_discovery_impression_event_id_idx ON public.ticket_purchase_click_events USING btree (discovery_impression_event_id)"
+        ],
+        [
+          "CREATE UNIQUE INDEX ticket_purchase_click_events_pkey ON public.ticket_purchase_click_events USING btree (id)"
+        ],
+        [
+          "CREATE INDEX ticket_purchase_click_events_profile_id_created_at_idx ON public.ticket_purchase_click_events USING btree (profile_id, created_at)"
+        ],
+        [
+          "CREATE INDEX ticket_purchase_click_events_show_id_created_at_idx ON public.ticket_purchase_click_events USING btree (show_id, created_at)"
+        ]
+      ],
+      "triggers": []
+    },
+    "scraping_sources": {
+      "columns": [
+        [
+          "id",
+          "integer"
+        ],
+        [
+          "club_id",
+          "integer"
+        ],
+        [
+          "platform",
+          "\"ScrapingPlatform\""
+        ],
+        [
+          "scraper_key",
+          "text"
+        ],
+        [
+          "source_url",
+          "text"
+        ],
+        [
+          "priority",
+          "integer"
+        ],
+        [
+          "enabled",
+          "boolean"
+        ],
+        [
+          "metadata",
+          "jsonb"
+        ],
+        [
+          "created_at",
+          "timestamp with time zone"
+        ],
+        [
+          "updated_at",
+          "timestamp with time zone"
+        ],
+        [
+          "seatengine_id",
+          "integer"
+        ],
+        [
+          "eventbrite_id",
+          "text"
+        ],
+        [
+          "ticketmaster_id",
+          "text"
+        ],
+        [
+          "wix_event_id",
+          "text"
+        ],
+        [
+          "ovationtix_id",
+          "text"
+        ],
+        [
+          "squadup_id",
+          "text"
+        ],
+        [
+          "seatengine_v3_id",
+          "text"
+        ],
+        [
+          "source_target_id",
+          "integer"
+        ]
+      ],
+      "primary": [
+        "id"
+      ],
+      "constraints": [
+        [
+          "scraping_sources_club_id_fkey",
+          "FOREIGN KEY (club_id) REFERENCES clubs(id) ON DELETE CASCADE"
+        ],
+        [
+          "scraping_sources_exactly_one_owner_chk",
+          "CHECK ((((club_id IS NOT NULL) AND (source_target_id IS NULL)) OR ((club_id IS NULL) AND (source_target_id IS NOT NULL))))"
+        ],
+        [
+          "scraping_sources_pkey",
+          "PRIMARY KEY (id)"
+        ],
+        [
+          "scraping_sources_source_target_id_fkey",
+          "FOREIGN KEY (source_target_id) REFERENCES source_targets(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        ]
+      ],
+      "indexes": [
+        [
+          "CREATE INDEX scraping_sources_club_enabled_priority_idx ON public.scraping_sources USING btree (club_id, enabled, priority)"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_club_platform_priority_key ON public.scraping_sources USING btree (club_id, platform, priority)"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_club_priority_enabled_unique ON public.scraping_sources USING btree (club_id, priority) WHERE (enabled = true)"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_eventbrite_id_unique ON public.scraping_sources USING btree (eventbrite_id) WHERE ((platform = 'eventbrite'::\"ScrapingPlatform\") AND (enabled = true) AND (eventbrite_id IS NOT NULL))"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_ovationtix_id_unique ON public.scraping_sources USING btree (ovationtix_id) WHERE ((platform = 'ovationtix'::\"ScrapingPlatform\") AND (enabled = true) AND (ovationtix_id IS NOT NULL))"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_pkey ON public.scraping_sources USING btree (id)"
+        ],
+        [
+          "CREATE INDEX scraping_sources_platform_enabled_idx ON public.scraping_sources USING btree (platform, enabled)"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_seatengine_id_unique ON public.scraping_sources USING btree (seatengine_id) WHERE ((platform = 'seatengine'::\"ScrapingPlatform\") AND (enabled = true) AND (seatengine_id IS NOT NULL) AND (seatengine_id <> ALL (ARRAY[21, 424, 428, 464, 493, 508, 556])))"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_seatengine_v3_id_unique ON public.scraping_sources USING btree (seatengine_v3_id) WHERE ((platform = 'seatengine_v3'::\"ScrapingPlatform\") AND (enabled = true) AND (seatengine_v3_id IS NOT NULL))"
+        ],
+        [
+          "CREATE INDEX scraping_sources_source_target_id_enabled_priority_idx ON public.scraping_sources USING btree (source_target_id, enabled, priority)"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_source_target_platform_priority_key ON public.scraping_sources USING btree (source_target_id, platform, priority)"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_squadup_id_unique ON public.scraping_sources USING btree (squadup_id) WHERE ((platform = 'squadup'::\"ScrapingPlatform\") AND (enabled = true) AND (squadup_id IS NOT NULL) AND (squadup_id <> '9086799'::text))"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_ticketmaster_id_unique ON public.scraping_sources USING btree (ticketmaster_id) WHERE ((platform = 'ticketmaster'::\"ScrapingPlatform\") AND (enabled = true) AND (ticketmaster_id IS NOT NULL))"
+        ],
+        [
+          "CREATE UNIQUE INDEX scraping_sources_wix_event_id_unique ON public.scraping_sources USING btree (wix_event_id) WHERE ((platform = 'wix_events'::\"ScrapingPlatform\") AND (enabled = true) AND (wix_event_id IS NOT NULL))"
+        ]
+      ],
+      "triggers": [
+        [
+          "scraping_sources_set_updated_at",
+          "O",
+          "CREATE TRIGGER scraping_sources_set_updated_at BEFORE UPDATE ON public.scraping_sources FOR EACH ROW EXECUTE FUNCTION set_scraping_sources_updated_at()",
+          "CREATE OR REPLACE FUNCTION public.set_scraping_sources_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = NOW();\n    RETURN NEW;\nEND;\n$function$\n"
+        ]
+      ]
+    },
+    "ticket_cache_helpers": [
+      [
+        "refresh_show_min_price",
+        "CREATE OR REPLACE FUNCTION public.refresh_show_min_price(p_show_id integer)\n RETURNS void\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    UPDATE shows\n    SET min_price = (\n        SELECT MIN(price)\n        FROM tickets\n        WHERE show_id = p_show_id\n          AND price IS NOT NULL\n          AND price > 0\n    )\n    WHERE id = p_show_id;\nEND;\n$function$\n"
+      ],
+      [
+        "refresh_show_tickets_sold_out",
+        "CREATE OR REPLACE FUNCTION public.refresh_show_tickets_sold_out(p_show_id integer)\n RETURNS void\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    UPDATE shows\n    SET tickets_sold_out = COALESCE(\n        (\n            SELECT BOOL_AND(sold_out)\n            FROM tickets\n            WHERE show_id = p_show_id\n        ),\n        false\n    )\n    WHERE id = p_show_id;\nEND;\n$function$\n"
+      ]
+    ]
+  },
+  "expected_shows": [
+    {
+      "id": 927780,
+      "date": "2026-05-10T20:00:00+00:00",
+      "name": "God Lens Book Release Show & Party",
+      "room": "",
+      "club_id": 183,
+      "min_price": null,
+      "show_type": null,
+      "popularity": 0.03349225,
+      "description": "",
+      "is_cancelled": false,
+      "show_page_url": "https://theannoyance.thundertix.com/events/263406",
+      "last_scraped_by": "thundertix",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-04-13T06:52:33.519157+00:00",
+      "first_discovered_at": null,
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    },
+    {
+      "id": 1024865,
+      "date": "2026-05-16T20:00:00+00:00",
+      "name": "God Lens Book Release Show & Party",
+      "room": "",
+      "club_id": 183,
+      "min_price": null,
+      "show_type": null,
+      "popularity": 0.03349225,
+      "description": "",
+      "is_cancelled": false,
+      "show_page_url": "https://theannoyance.thundertix.com/events/263406",
+      "last_scraped_by": "thundertix",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-05-17T07:29:08.778554+00:00",
+      "first_discovered_at": null,
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    },
+    {
+      "id": 847662,
+      "date": "2026-05-17T23:30:00+00:00",
+      "name": "Spitball",
+      "room": "",
+      "club_id": 183,
+      "min_price": null,
+      "show_type": null,
+      "popularity": 0.03349225,
+      "description": "",
+      "is_cancelled": false,
+      "show_page_url": "https://theannoyance.thundertix.com/events/263284",
+      "last_scraped_by": "thundertix",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-04-28T07:07:57.833564+00:00",
+      "first_discovered_at": null,
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    },
+    {
+      "id": 1371908,
+      "date": "2026-05-24T23:30:00+00:00",
+      "name": "Spitball",
+      "room": "",
+      "club_id": 183,
+      "min_price": null,
+      "show_type": null,
+      "popularity": 0.03349225,
+      "description": "",
+      "is_cancelled": false,
+      "show_page_url": "https://theannoyance.thundertix.com/events/263284",
+      "last_scraped_by": "thundertix",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-05-24T07:32:17.43513+00:00",
+      "first_discovered_at": null,
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    },
+    {
+      "id": 3769502,
+      "date": "2026-09-19T13:00:00+00:00",
+      "name": "Fire & Beer",
+      "room": "",
+      "club_id": 183,
+      "min_price": 15.0,
+      "show_type": "unknown",
+      "popularity": 0.17547675000000001,
+      "description": "",
+      "is_cancelled": false,
+      "show_page_url": "https://theannoyance.thundertix.com/events/188918",
+      "last_scraped_by": "thundertix",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-08-22T21:12:24.82908+00:00",
+      "first_discovered_at": "2026-07-05T21:44:34.351765+00:00",
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    },
+    {
+      "id": 7451272,
+      "date": "2026-09-20T01:00:00+00:00",
+      "name": "Fire & Beer",
+      "room": "",
+      "club_id": 183,
+      "min_price": null,
+      "show_type": "unknown",
+      "popularity": 0.11547675000000002,
+      "description": "",
+      "is_cancelled": false,
+      "show_page_url": "https://theannoyance.thundertix.com/events/188918",
+      "last_scraped_by": "thundertix",
+      "tickets_sold_out": false,
+      "last_scraped_date": "2026-09-25T00:44:19.49107+00:00",
+      "first_discovered_at": "2026-09-25T00:44:19.651558+00:00",
+      "production_company_id": null,
+      "source_performance_id": null,
+      "scraped_by_organizer_id": null
+    }
+  ],
+  "ticket_fills": [
+    {
+      "from_id": 4225195,
+      "to_id": 8491061,
+      "price": 15.0
+    },
+    {
+      "from_id": 782156,
+      "to_id": 1320025,
+      "price": 0.0
+    }
+  ],
+  "before_hash": "ffb5a847fd4adb148acd3f7436e45e960831617451f50459ff81b15ec9bd7cf2",
+  "after_hash": "9239ca9b0b3d2d8db2a0cfd80e2b39b14d24f45c18fa9518ae2c062dec70de94"
+}

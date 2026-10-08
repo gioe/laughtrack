@@ -1,0 +1,57 @@
+{
+  "task_id": 4136,
+  "before_counts": {
+    "shows": 6,
+    "clubs": 1,
+    "scraping_sources": 1,
+    "tickets": 6,
+    "lineup_items": 0,
+    "tagged_shows": 15,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 27
+  },
+  "after_counts": {
+    "shows": 4,
+    "clubs": 1,
+    "scraping_sources": 1,
+    "tickets": 4,
+    "lineup_items": 0,
+    "tagged_shows": 12,
+    "saved_shows": 0,
+    "sent_notifications": 0,
+    "discovery_show_feature_snapshots": 0,
+    "ticket_purchase_click_events": 27
+  },
+  "ticket_fills": [
+    {
+      "from_id": 4225195,
+      "to_id": 8491061,
+      "price": 15.0
+    },
+    {
+      "from_id": 782156,
+      "to_id": 1320025,
+      "price": 0.0
+    }
+  ],
+  "coalesced_child_ids": {
+    "tickets": [
+      782156,
+      4225195
+    ],
+    "lineup_items": [],
+    "tagged_shows": [
+      1658399,
+      1658522,
+      8306701
+    ],
+    "saved_shows": [],
+    "sent_notifications": [],
+    "discovery_show_feature_snapshots": [],
+    "ticket_purchase_click_events": []
+  },
+  "before_hash": "ffb5a847fd4adb148acd3f7436e45e960831617451f50459ff81b15ec9bd7cf2",
+  "after_hash": "9239ca9b0b3d2d8db2a0cfd80e2b39b14d24f45c18fa9518ae2c062dec70de94"
+}
