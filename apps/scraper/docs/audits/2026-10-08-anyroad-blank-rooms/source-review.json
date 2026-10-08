@@ -1,0 +1,150 @@
+{
+  "task_id": 4135,
+  "source_id": 6820,
+  "plugin_id": "rozziesquaretheater",
+  "listing_retrieved_at": "2026-10-08T01:38:32.962784+00:00",
+  "listing_records": 44,
+  "validated_calendars": 44,
+  "routing_errors": [],
+  "source_snapshot_sha256": "0c11ce45f0a76a2519210656b0702d89802b2654836d48ac779337562a81d67d",
+  "decisions": [
+    {
+      "legacy_show_id": 3789152,
+      "canonical_show_id": 3179527,
+      "native_experience_id": "88719",
+      "booking_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US",
+      "source_sha256": "b53bc8d18f2fea9b7872b25db44171ef95feea62549610f2d4305e3576c7a073",
+      "retrieved_at": "2026-10-08T01:39:36.423772+00:00",
+      "local_day": "2026-10-17",
+      "native_slots": {
+        " 8:30pm": 21
+      },
+      "native_place": "18b Corinth Street, Boston, MA",
+      "timezone": "America/New_York",
+      "target_date_utc": "2026-10-18T00:30:00+00:00",
+      "target_club_id": 10970,
+      "decision": "merge",
+      "reason": "Native detail confirms occurrence at specified physical venue and time; merge duplicate placeholder into canonical show."
+    },
+    {
+      "legacy_show_id": 3789159,
+      "canonical_show_id": 3179503,
+      "native_experience_id": "133266",
+      "booking_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/uncomposed-your-town-the-musical?lang=en-US",
+      "source_sha256": "5248d7783b610a58eaf49fd77c0c325bc7c7abcb0e257146fe2e8b461b95fc9e",
+      "retrieved_at": "2026-10-08T01:39:36.713005+00:00",
+      "local_day": "2026-10-24",
+      "native_slots": {
+        " 8:30pm": 24
+      },
+      "native_place": "18b Corinth Street, Boston, MA",
+      "timezone": "America/New_York",
+      "target_date_utc": "2026-10-25T00:30:00+00:00",
+      "target_club_id": 10970,
+      "decision": "merge",
+      "reason": "Native detail confirms occurrence at specified physical venue and time; merge duplicate placeholder into canonical show."
+    },
+    {
+      "legacy_show_id": 3789169,
+      "canonical_show_id": 3179545,
+      "native_experience_id": "102243",
+      "booking_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-1b-showcase?lang=en-US",
+      "source_sha256": "e7f1df7d42442059b8101c46715cde249ce20eed99ebadb8dde4166744abdc1e",
+      "retrieved_at": "2026-10-08T01:39:37.030360+00:00",
+      "local_day": "2026-11-05",
+      "native_slots": {
+        " 8:00pm": 23
+      },
+      "native_place": "The Substation, Washington Street, Roslindale, MA",
+      "timezone": "America/New_York",
+      "target_date_utc": "2026-11-06T01:00:00+00:00",
+      "target_club_id": 61212,
+      "decision": "merge",
+      "reason": "Native detail confirms occurrence at specified physical venue and time; merge duplicate placeholder into canonical show."
+    },
+    {
+      "legacy_show_id": 3789163,
+      "canonical_show_id": 3179540,
+      "native_experience_id": "141813",
+      "booking_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-monthly-special?lang=en-US",
+      "source_sha256": "06e39f8c28f024f42027b267a6afc1d198f998e2abae65855eddd57aa6bf7b79",
+      "retrieved_at": "2026-10-08T01:39:37.304497+00:00",
+      "local_day": "2026-11-07",
+      "native_slots": {
+        " 8:30pm": 25
+      },
+      "native_place": "18b Corinth Street, Boston, MA",
+      "timezone": "America/New_York",
+      "target_date_utc": "2026-11-08T01:30:00+00:00",
+      "target_club_id": 10970,
+      "decision": "merge",
+      "reason": "Native detail confirms occurrence at specified physical venue and time; merge duplicate placeholder into canonical show."
+    },
+    {
+      "legacy_show_id": 3789171,
+      "canonical_show_id": 3179547,
+      "native_experience_id": "137902",
+      "booking_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-3b-improv-showcase?lang=en-US",
+      "source_sha256": "2b0294f8999cf7eb3ddfe6bd5961e0faaa37cf8fb0ebbf743ada8d342241c4e6",
+      "retrieved_at": "2026-10-08T01:39:37.702129+00:00",
+      "local_day": "2026-11-23",
+      "native_slots": {
+        " 8:00pm": 23
+      },
+      "native_place": "The Substation, Washington Street, Roslindale, MA",
+      "timezone": "America/New_York",
+      "target_date_utc": "2026-11-24T01:00:00+00:00",
+      "target_club_id": 61212,
+      "decision": "merge",
+      "reason": "Native detail confirms occurrence at specified physical venue and time; merge duplicate placeholder into canonical show."
+    },
+    {
+      "legacy_show_id": 3558371,
+      "canonical_show_id": 3558371,
+      "native_experience_id": "79259",
+      "booking_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US",
+      "source_sha256": "a3cd95e79c8eae6ec33216e9c2d92a64c2a89ae77225bb1fc33d6b840306fc79",
+      "retrieved_at": "2026-10-08T01:39:36.127372+00:00",
+      "local_day": "2027-06-26",
+      "native_slots": {
+        " 6:00pm": 23
+      },
+      "native_place": "18b Corinth Street, Boston, MA",
+      "timezone": "America/New_York",
+      "target_date_utc": "2027-06-26T22:00:00+00:00",
+      "target_club_id": 10970,
+      "decision": "repair_room",
+      "reason": "Native detail confirms existing 18:00 occurrence at Corinth Street; fill room without changing date."
+    },
+    {
+      "legacy_show_id": 3789139,
+      "canonical_show_id": 3789139,
+      "native_experience_id": "79259",
+      "booking_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US",
+      "source_sha256": "a3cd95e79c8eae6ec33216e9c2d92a64c2a89ae77225bb1fc33d6b840306fc79",
+      "retrieved_at": "2026-10-08T01:39:36.127372+00:00",
+      "local_day": "2027-07-03",
+      "native_slots": {
+        " 6:00pm": 23
+      },
+      "native_place": "18b Corinth Street, Boston, MA",
+      "timezone": "America/New_York",
+      "target_date_utc": "2027-07-03T22:00:00+00:00",
+      "target_club_id": 10970,
+      "decision": "repair_room",
+      "reason": "Native detail confirms existing 18:00 occurrence at Corinth Street; fill room without changing date."
+    },
+    {
+      "legacy_show_id": 3789176,
+      "canonical_show_id": 3179550,
+      "native_experience_id": "127816",
+      "booking_url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/level-2a-improv-showcase?lang=en-US",
+      "retrieved_at": "2026-10-08T01:39:38.091408+00:00",
+      "source_sha256": "8735cf2cd56468dc7002b5bd737598dbdaf4579e25f73151bfcf85767cf7c61f",
+      "native_place": "The Substation, Washington Street, Roslindale, MA",
+      "native_slots": {},
+      "decision": "hold",
+      "reason": "Absent from current 44-experience listing; direct native booking page has empty availability. Current venue text alone does not establish November 15 occurrence. Preserve both rows."
+    }
+  ]
+}
