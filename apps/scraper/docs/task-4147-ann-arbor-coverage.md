@@ -36,3 +36,34 @@ response continues to use the existing complete-calendar parser.
 The accessible evidence supports four Jay Stevens performances, of which three
 were upcoming at verification time. Full-calendar recovery remains limited by
 Etix access; this fallback must never be described as complete inventory.
+
+## Production verification (2026-10-09)
+
+Ran `make scrape-club CLUB='Ann Arbor Comedy Showcase'` from the task worktree's
+`apps/scraper`, with its source directory on PYTHONPATH. Run 1711 inserted four
+shows. Run 1712 added the explicitly corroborated performer lineup; run 1713
+repeated the final implementation with zero show inserts and four updates.
+
+| Show ID | Local date | America/Detroit time | Lineup |
+|---|---|---|---|
+| 8128083 | 2026-10-08 | 19:15 | Jay Stevens |
+| 8128084 | 2026-10-09 | 19:15 | Jay Stevens |
+| 8128085 | 2026-10-10 | 19:15 | Jay Stevens |
+| 8128086 | 2026-10-10 | 21:45 | Jay Stevens |
+
+All four have one ticket linking https://www.etix.com/ticket/e/1059733 and
+unknown price (NULL). After the repeat, production still has four show IDs,
+four tickets and four lineup rows for this venue, with three upcoming shows.
+The older Thursday performance is retained as historical inventory. The source
+remains the single enabled row 7682, unchanged; no identity/configuration
+migration was needed. Existing HTTPS website and Detroit timezone are correct.
+
+All three run records retain HTTP 403, DataDome detection and one failed fetch
+alongside the recovered shows. The fallback records incomplete diagnostics so
+stale reconciliation cannot delete inventory merely absent from the highlights.
+
+Untimed listings including Sklar Brothers, David Dyer, Comedy Rumble, Andy
+Hendrickson and Nate Craig remain a coverage gap, not cancelled performances.
+Workshop classes, gift cards and happy hour are legitimate non-show exclusions.
+Complete future-calendar recovery requires a trustworthy accessible source with
+event-specific times; generic weekly hours cannot fill this gap.
