@@ -157,6 +157,17 @@ class EtixScraper(BaseScraper):
         if not html or not html.strip():
             raise self._source_failure(f"Etix mandatory source returned no HTML: {url}")
         signature = _bot_block_reason(html)
+        if signature == "datadome" and "captcha-delivery.com" not in html.lower():
+            # Hartford's populated Rockhouse calendar loads the normal vendor
+            # telemetry tag. Its presence alone is not a challenge response.
+            # Keep all other signatures and challenge markup subject to the guard.
+            from bs4 import BeautifulSoup
+
+            soup = BeautifulSoup(html, "html.parser")
+            if soup.select_one(".rhp-event__single-event--list, .rhp-event__single-series--list"):
+                for script in soup.select('script[src="https://js.datadome.co/tags.js"]'):
+                    script.decompose()
+                signature = _bot_block_reason(str(soup))
         if signature:
             diagnostics = current_diagnostics()
             if diagnostics is not None:
