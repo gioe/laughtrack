@@ -41,6 +41,7 @@ from .data import EtixPageData
 from .extractor import EtixExtractor
 from .public_ticket_tailor import fetch_highlights as fetch_laughing_tap_highlights, ticket_identity
 from .public_vixen import fetch_highlights as fetch_vixen_highlights
+from .public_ann_arbor import fetch_highlights as fetch_ann_arbor_highlights
 from .rockhouse import extract_rockhouse_events_with_conflicts
 from .rockhouse_identity import resolve_rockhouse_conflicts
 from .tribe import extract_tribe_events
@@ -363,7 +364,8 @@ class EtixScraper(BaseScraper):
 
     def _partial_public_fallback(self):
         return {("27614", 9070): fetch_laughing_tap_highlights,
-                ("28278", 9074): fetch_vixen_highlights}.get((self._venue_id, self.club.id))
+                ("28278", 9074): fetch_vixen_highlights,
+                ("515", 16122): fetch_ann_arbor_highlights}.get((self._venue_id, self.club.id))
 
     def _uses_laugh_patriot_place_fallback(self, url: str) -> bool:
         return (

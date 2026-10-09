@@ -8,7 +8,7 @@ consistent HTML structure: microdata (itemprop=startDate), CSS classes
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
@@ -35,6 +35,8 @@ class EtixEvent(ShowConvertible):
     # pages are DataDome-blocked without a CAPTCHA-capable path, so unknown must
     # remain null rather than becoming an explicit Free/0.00 ticket.
     ticket_price: Optional[float] = None
+    # Opt-in names corroborated by source performer evidence, never arbitrary titles.
+    performer_names: list[str] = field(default_factory=list)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -58,15 +60,19 @@ class EtixEvent(ShowConvertible):
             )
         ]
 
-        return ShowFactoryUtils.create_enhanced_show_base(
+        lineup = ShowFactoryUtils.create_lineup_from_performers(self.performer_names)
+        show = ShowFactoryUtils.create_enhanced_show_base(
             name=self._clean_title(),
             club=club,
             date=start_dt,
             show_page_url=show_page_url,
-            lineup=[],
+            lineup=lineup,
             tickets=tickets,
             enhanced=enhanced,
         )
+        if lineup:
+            show.infer_lineup_from_title = False
+        return show
 
     def _parse_start_date(self, club: Club) -> Optional[datetime]:
         """Parse start_date (ISO with optional offset) and merge show time."""

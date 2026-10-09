@@ -652,6 +652,21 @@ a complete calendar. Healthy Etix responses keep the normal extraction path.
   date and matching event JSON-LD establish the date. Its calendar start field
   can mean doors opening and must never become the showtime by default.
 
+Ann Arbor Comedy Showcase (club 16122 / Etix venue 515) also retains its Etix
+primary. Its official Duda homepage exposes featured performances with explicit
+month/day/showtime headings. The fallback requires a matching event card's dates
+and the same year-bearing Etix series link in both sections; series links are
+canonicalized to HTTPS `/ticket/e/{id}` and each showtime remains a separate show.
+Generic weekly hours, doors, stale badge dates, untimed cards, classes, gift cards
+and happy hours never generate performances. This is partial inventory and keeps
+failed-fetch diagnostics and stale-reconciliation protection. Missing or ambiguous
+evidence fails closed. Reference: `api/etix/public_ann_arbor.py` and
+[the Ann Arbor coverage audit](docs/task-4147-ann-arbor-coverage.md).
+Performer names are supplied only when the featured section labels its biography
+“Comedian Overview” and explicitly describes the named subject as a comedian.
+These authoritative names disable substring title inference; ordinary Etix events
+retain their existing default behavior.
+
 Reference implementations: `api/etix/public_ticket_tailor.py` and
 `api/etix/public_vixen.py` under `src/laughtrack/scrapers/implementations/`.
 See [the access audit](docs/audits/2026-10-01-etix-access/REPORT.md) for accepted
