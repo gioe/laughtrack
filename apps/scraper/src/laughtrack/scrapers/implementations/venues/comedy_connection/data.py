@@ -20,7 +20,8 @@ class ComedyConnectionEvent(ShowConvertible):
     performers: List[str] = field(default_factory=list)
 
     def to_show(self, club, enhanced=True, url=None):
-        return ShowFactoryUtils.create_enhanced_show_base(
+        lineup = ShowFactoryUtils.create_lineup_from_performers(self.performers)
+        show = ShowFactoryUtils.create_enhanced_show_base(
             name=self.name,
             club=club,
             date=self.start.astimezone(ZoneInfo(club.timezone)),
@@ -28,9 +29,13 @@ class ComedyConnectionEvent(ShowConvertible):
             tickets=[
                 ShowFactoryUtils.create_fallback_ticket(self.ticket_url, price=self.price, sold_out=self.sold_out)
             ],
-            lineup=ShowFactoryUtils.create_lineup_from_performers(self.performers),
+            lineup=lineup,
             enhanced=enhanced,
         )
+        # The source names the performer explicitly. Substring matches in a
+        # title (e.g. Andre De inside Andre De Freitas) must not add other acts.
+        show.infer_lineup_from_title = not bool(lineup)
+        return show
 
 
 @dataclass

@@ -57,4 +57,8 @@ class ComedyConnectionScraper(BaseScraper):
         html = await self.fetch_html(url)
         if not html:
             raise ValueError(f"Comedy Connection detail returned no content: {url}")
-        return ComedyConnectionPageData(ComedyConnectionExtractor.extract_events(html, url))
+        return ComedyConnectionPageData(
+            ComedyConnectionExtractor.extract_events(
+                html, url, performer_overrides=(self.club.source_metadata or {}).get("performer_overrides")
+            )
+        )

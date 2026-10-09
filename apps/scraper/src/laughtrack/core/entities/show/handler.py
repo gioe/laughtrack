@@ -1125,6 +1125,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             show_name_comedians_map: Mapping of show names to comedians
         """
         for show in shows:
+            if not getattr(show, "infer_lineup_from_title", True):
+                continue
             if show_name_comedians := show_name_comedians_map.get(show.name, []):
                 existing_comedian_uuids = {comedian.uuid for comedian in show.lineup}
                 novel_comedians = [

@@ -2298,6 +2298,14 @@ VALUES (<club_id>, 'custom', 'ical',
   purchase. Keep sold-out performances and mark their tickets sold out.
 - Join JSON-LD `ComedyEvent` entries by `#show-<id>` for price and performer.
   Unknown prices remain null. Ignore RSC `relatedEvents` recommendations.
+- Upstream JSON-LD can truncate performers (Andre De, Jerry Wayne, One Funny).
+  Source metadata `performer_overrides` maps exact event titles to verified
+  canonical name lists; the migration corrects those three and Sarper Güven's
+  accent spelling. Verify new overrides against the primary event and existing
+  canonical comedian records rather than inferring a name from the truncation.
+- When validated performers are supplied, opt out of persistence-time title
+  substring additions with the transient `Show.infer_lineup_from_title` flag;
+  otherwise names such as Andre De Freitas can acquire an unrelated Andre De.
 - On October 9, 2026 the complete listing contained 122 performance records
   across 48 slugs, all 48 also rendered as anchors; no pagination was present.
 

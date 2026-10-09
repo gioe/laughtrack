@@ -14,7 +14,16 @@ from .data import ComedyConnectionEvent
 
 class ComedyConnectionExtractor:
     @staticmethod
-    def extract_events(html, url):
+    def extract_events(html, url, performer_overrides=None):
+        overrides = performer_overrides or {}
+        if not isinstance(overrides, dict) or any(
+            not isinstance(title, str)
+            or not isinstance(names, list)
+            or not names
+            or any(not isinstance(name, str) or not name.strip() for name in names)
+            for title, names in overrides.items()
+        ):
+            raise ValueError("Comedy Connection performer overrides must map exact titles to nonempty name lists")
         payload = "".join(extract_push_payloads(html))
         event = None
         slug = urlparse(url).path.rstrip("/").split("/")[-1]
@@ -76,7 +85,11 @@ class ComedyConnectionExtractor:
                     ticket_url=ticket_url,
                     sold_out=show.get("status") == "sold-out",
                     price=float(price) if price is not None else None,
-                    performers=[p["name"] for p in performers if isinstance(p, dict) and p.get("name")],
+                    performers=(
+                        list(overrides[event["name"]])
+                        if event["name"] in overrides
+                        else [p["name"] for p in performers if isinstance(p, dict) and p.get("name")]
+                    ),
                 )
             )
         return events

@@ -45,6 +45,9 @@ class Show(DatabaseEntity):
     operation_type: Optional[str] = None  # 'inserted' or 'updated'
     # Scrape-local authority to remove absent ticket tiers; never persisted.
     tickets_complete: bool = True
+    # Scrape-local opt-out when explicit source performers already define the lineup.
+    # Default preserves title-based enrichment for existing producers.
+    infer_lineup_from_title: bool = True
 
     def __post_init__(self) -> None:
         """Argument-level validation and light normalization for Show instances.

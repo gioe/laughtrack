@@ -2,11 +2,14 @@
 
 import json
 from copy import deepcopy
+from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.core.entities.comedian.model import Comedian
+from laughtrack.core.entities.show.handler import ShowHandler
 from laughtrack.scrapers.implementations.venues.comedy_connection.extractor import ComedyConnectionExtractor
 from laughtrack.scrapers.implementations.venues.comedy_connection.scraper import ComedyConnectionScraper
 from laughtrack.utilities.domain.show.utils import ShowUtils
@@ -93,6 +96,58 @@ def test_actual_ticket_links_multishow_and_sold_out_retention(scraper):
         e.to_show(scraper.club, enhanced=False) for e in ComedyConnectionExtractor.extract_events(page(), DETAIL)
     ]
     assert len(ShowUtils.deduplicate_shows(shows + repeated)) == 2
+
+
+@pytest.mark.parametrize(
+    "title, performer, false_match",
+    [
+        ("Andre De Freitas", "André de Freitas", "Andre De"),
+        ("Jerry Wayne Longmire", "Jerry Wayne Longmire", "Jerry Wayne"),
+        ("One Funny Lisa Marie", "Lisa Marie", "One Funny"),
+        ("Sarper Guven", "Sarper Güven", "Sarper Guven"),
+    ],
+)
+def test_explicit_performer_prevents_persistence_title_substring_additions(scraper, title, performer, false_match):
+    event = ComedyConnectionExtractor.extract_events(page(name=title), DETAIL)[0]
+    event.performers = [performer]
+    show = event.to_show(scraper.club)
+    assert show.infer_lineup_from_title is False
+    ShowHandler._process_comedian_additions(None, [show], {title: [Comedian(name=false_match)]})
+    assert len(show.lineup) == 1
+    assert show.lineup[0].name == Comedian(name=performer).name
+
+
+def test_missing_structured_performer_keeps_title_fallback(scraper):
+    event = ComedyConnectionExtractor.extract_events(page(), DETAIL)[0]
+    event.performers = []
+    show = event.to_show(scraper.club)
+    assert show.infer_lineup_from_title is True
+    ShowHandler._process_comedian_additions(None, [show], {show.name: [Comedian(name="Michael Longfellow")]})
+    assert [c.name for c in show.lineup] == ["Michael Longfellow"]
+
+
+@pytest.mark.asyncio
+async def test_native_truncated_jsonld_performer_uses_verified_source_override(scraper, monkeypatch):
+    html = (Path(__file__).parent / "fixtures" / "comedy_connection_andre.html").read_text()
+    url = ROOT + "/events/andre-de-freitas-2026"
+    raw = ComedyConnectionExtractor.extract_events(html, url)
+    assert raw[0].name == "Andre De Freitas"
+    assert raw[0].performers == ["Andre De"]  # Actual upstream JSON-LD defect.
+    scraper.club.active_scraping_source.metadata = {"performer_overrides": {"Andre De Freitas": ["André de Freitas"]}}
+    monkeypatch.setattr(scraper, "fetch_html", AsyncMock(return_value=html))
+    data = await scraper.get_data(url)
+    show = data.event_list[0].to_show(scraper.club)
+    ShowHandler._process_comedian_additions(None, [show], {show.name: [Comedian(name="Andre De")]})
+    assert [c.name for c in show.lineup] == ["André de Freitas"]
+    assert show.tickets[0].purchase_url == raw[0].ticket_url
+    unaffected = ComedyConnectionExtractor.extract_events(page(), DETAIL, {"Andre De Freitas": ["André de Freitas"]})
+    assert unaffected[0].performers == ["Michael Longfellow"]
+
+
+@pytest.mark.parametrize("overrides", [{"Andre De Freitas": "Andre"}, {"Andre De Freitas": []}])
+def test_malformed_performer_override_fails(overrides):
+    with pytest.raises(ValueError, match="performer overrides"):
+        ComedyConnectionExtractor.extract_events(page(), DETAIL, overrides)
 
 
 @pytest.mark.parametrize(
