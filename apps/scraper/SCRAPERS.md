@@ -2270,6 +2270,62 @@ VALUES (<club_id>, 'custom', 'ical',
 
 ---
 
+### Comedy Connection Rhode Island — Native Next.js / Tixologi
+
+| | |
+|---|---|
+| **Scraper key** | `comedy_connection` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | `https://www.ricomedyconnection.com/events` |
+| **Generic?** | ❌ Venue-specific native calendar contract |
+
+**Detection signals:**
+- Native `/events/<slug>` pages with Next.js `self.__next_f.push` payloads.
+- Primary RSC `event.shows` entries contain per-performance `ticketUrl` links to
+  `https://events.tixologi.com/event/<numeric-id>/tickets?isPunchup=true`.
+
+**API/source pattern:**
+- Fetch `/events` through the normal scraper HTTP stack; discover unique local
+  event links and cross-check them against the embedded RSC `events` slugs.
+- Fetch each detail page and decode its primary `event` object using the shared
+  `core/clients/rsc/extractor.py` helpers. No separate ticketing API is required.
+
+**Key extraction notes:**
+- One show per `event.shows` performance; UTC `startDate` is converted to the
+  club's `America/New_York` timezone with DST preserved.
+- Use the performance's actual Tixologi URL for both show identity and ticket
+  purchase. Keep sold-out performances and mark their tickets sold out.
+- Join JSON-LD `ComedyEvent` entries by `#show-<id>` for price and performer.
+  Unknown prices remain null. Ignore RSC `relatedEvents` recommendations.
+- On October 9, 2026 the complete listing contained 122 performance records
+  across 48 slugs, all 48 also rendered as anchors; no pagination was present.
+
+**DB setup:**
+```sql
+-- Reuse existing RI venue identity; preserve the retired SeatEngine source.
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled)
+VALUES (217, 'custom', 'comedy_connection',
+        'https://www.ricomedyconnection.com/events', 0, true)
+ON CONFLICT (club_id, platform, priority) DO UPDATE
+SET scraper_key = EXCLUDED.scraper_key, source_url = EXCLUDED.source_url, enabled = true;
+```
+
+**Failure modes / gotchas:**
+- SeatEngine venue 14 is the old source and can return successful empty scrapes.
+- JSON-LD can retain past performances absent from the native RSC show list;
+  do not use it as the authoritative discovery feed.
+- Missing primary event data, invalid performance ticket/date fields, or a
+  listing/RSC slug mismatch raise errors rather than accepting partial coverage.
+- This contract is distinct from Laugh Factory's Tixologi CMS HTML parser.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/comedy_connection/`
+- `apps/scraper/tests/test_comedy_connection_coverage.py`
+- Comedy Connection, East Providence, RI (club 217) — TASK-4146.
+
+---
+
 ### Tixologi (Laugh Factory CMS)
 
 | | |
