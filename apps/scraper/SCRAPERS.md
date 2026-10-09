@@ -616,6 +616,13 @@ Blocked, failed, or unrecognized pages are failures, not empty calendars. The
 observed unfiltered Rockhouse empty-calendar notice is accepted only with its
 surrounding calendar structure.
 
+Hartford's populated calendar includes the normal `js.datadome.co/tags.js`
+script. Etix ignores that exact tag for block detection only when Rockhouse
+event cards are present and no CAPTCHA-delivery marker exists; remaining
+challenge signatures still fail. Hartford club 4904 uses its public `/shows/`
+URL and `America/New_York`. See [the Hartford onboarding audit](docs/audits/task-4145-hartford-funny-bone.md)
+for exclusions, the corrected pre-existing aggregate show, and repeat-run proof.
+
 Mixed-use calendars require `metadata.comedy_filter=true`. Known non-performance
 titles can be excluded with `metadata.excluded_event_titles` (exact, whitespace-
 normalized, case-insensitive matches); exclusions precede positive comedy
