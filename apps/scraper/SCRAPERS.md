@@ -652,6 +652,48 @@ performances, rejected ambiguities and the Ann Arbor/vendor-access blocker.
 
 ---
 
+### Zanies / RHP Month Calendar
+
+| | |
+|---|---|
+| **Scraper key** | `zanies` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | `https://rosemont.zanies.com/calendar/?view=month` |
+| **Generic?** | ✅ DB-only for the supported Zanies month widget and detail-page shape |
+
+**Detection signals:**
+- RHP `monthCustom.js`, `#eventCalendar.mainCalendar[widget-venues]`, and hidden `#adminAjaxURL` / `#evPostPerPage` inputs.
+- Rosemont's homepage “LOAD MORE SHOWS” links to the month calendar; the homepage alone exposes only a subset of upcoming performances.
+
+**API/source pattern:**
+- Fetch the configured calendar through the scraper HTTP stack, then form-POST to its same-host HTTPS `#adminAjaxURL` (`https://rosemont.zanies.com/wp-admin/admin-ajax.php`).
+- Fields: `action=loadEtixMonthViewEventPageFn`, `data[limit]` from `#evPostPerPage` (Rosemont: `10000`), `data[venues]` from `widget-venues` (Rosemont: `8389`), `data[widget]=true`, and `data[target]=calendar-1`.
+- The public JavaScript retrieves `data.events` in one response; month navigation operates on that returned array rather than fetching successive pages.
+
+**Key extraction notes:**
+- Deduplicate same-host HTTPS `/show/...` URLs from the feed, then use existing Zanies detail extraction for each performance. Ignore past-event `javascript:void(0)` links and other hosts.
+- Preserve native performance pages as show URLs and Etix `/ticket/p/...` links as ticket URLs. Detail dates use year inference and the club's `America/Chicago` timezone; distinct same-day start times remain distinct shows.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled)
+VALUES (4648, 'custom', 'zanies', 'https://rosemont.zanies.com/calendar/?view=month', 0, TRUE)
+ON CONFLICT (club_id, platform, priority) DO NOTHING;
+-- Reuse the existing Rosemont venue. Preserve its enabled Live Nation source
+-- at priority 1 as fallback and leave its retired Ticketmaster source disabled.
+```
+
+**Failure modes / gotchas:**
+- Do not substitute the homepage when verifying full-calendar coverage: on October 8, 2026 it yielded 25 shows versus 119 upcoming calendar performances through May 2027.
+- Missing widget/configuration, malformed feed responses, and a result count reaching the advertised limit raise errors; the scraper must not silently treat a potentially truncated response as complete.
+- This calendar path does not change existing Chicago/Nashville homepage discovery. Confirm the native HTTP smoke and persisted inventory before enabling another venue.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/zanies/scraper.py`
+- `apps/scraper/tests/test_zanies_rosemont_coverage.py`
+- Rosemont club 4648, TASK-4144; native source contract verified against `/wp-content/plugins/rhp-events/views/assets/js/monthCustom.js`.
+
 ### SeatEngine — Identification Checklist
 
 When onboarding a new SeatEngine venue, check the subdomain before assuming which platform variant it uses:
