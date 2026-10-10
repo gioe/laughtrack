@@ -1,0 +1,140 @@
+[
+  {
+    "name": "real comedy",
+    "evidence": [
+      {
+        "kind": "comedy",
+        "provenance": "event_billing",
+        "detail": "Stand-up comedy showcase"
+      }
+    ],
+    "expected": "accept",
+    "reason": "affirmative_event_comedy"
+  },
+  {
+    "name": "mixed comedy and music bill",
+    "evidence": [
+      {
+        "kind": "comedy",
+        "provenance": "event_category",
+        "detail": "Comedy"
+      },
+      {
+        "kind": "music",
+        "provenance": "event_category",
+        "detail": "Live music"
+      }
+    ],
+    "expected": "review",
+    "reason": "conflicting_event_evidence"
+  },
+  {
+    "name": "Harvelles-style music night",
+    "evidence": [
+      {
+        "kind": "music",
+        "provenance": "event_billing",
+        "detail": "Live blues band"
+      }
+    ],
+    "people": [
+      {
+        "id": 1,
+        "name": "Unverified Band",
+        "visible": true
+      }
+    ],
+    "performers": [
+      {
+        "name": "Unverified Band"
+      }
+    ],
+    "expected": "reject",
+    "reason": "explicit_non_comedy_event"
+  },
+  {
+    "name": "blocked alias with valid parent",
+    "evidence": [
+      {
+        "kind": "comedy",
+        "provenance": "event_category",
+        "detail": "Standup"
+      }
+    ],
+    "people": [
+      {
+        "id": 1,
+        "name": "Canonical Comic",
+        "visible": true
+      },
+      {
+        "id": 2,
+        "name": "Decorated Alias",
+        "visible": false,
+        "parent_id": 1
+      }
+    ],
+    "performers": [
+      {
+        "name": "Decorated Alias"
+      },
+      {
+        "name": "Canonical Comic"
+      }
+    ],
+    "expected": "accept",
+    "reason": "canonical_parent_resolved"
+  },
+  {
+    "name": "Second City-style troupe label",
+    "evidence": [
+      {
+        "kind": "comedy",
+        "provenance": "event_billing",
+        "detail": "Sketch comedy performance"
+      }
+    ],
+    "people": [
+      {
+        "id": 1,
+        "name": "The Second City",
+        "visible": false,
+        "entity_kind": "troupe",
+        "block_reason": "show label"
+      }
+    ],
+    "performers": [
+      {
+        "name": "The Second City",
+        "structural_kind": "troupe",
+        "structural_evidence": "Reviewed troupe billing"
+      }
+    ],
+    "expected": "accept",
+    "reason": "structural_label_exception"
+  },
+  {
+    "name": "comedian at sports event",
+    "evidence": [
+      {
+        "kind": "sports",
+        "provenance": "event_category",
+        "detail": "Celebrity basketball game"
+      }
+    ],
+    "people": [
+      {
+        "id": 1,
+        "name": "Recognized Comic",
+        "visible": true
+      }
+    ],
+    "performers": [
+      {
+        "name": "Recognized Comic"
+      }
+    ],
+    "expected": "reject",
+    "reason": "explicit_non_comedy_event"
+  }
+]
