@@ -127,27 +127,45 @@ model EventbriteOrganizerVenue {
   @@map("eventbrite_organizer_venues")
 }
 
+enum ComedyIngestionPolicy {
+  unreviewed
+  comedy_only
+  mixed
+}
+
+enum ComedyGateMode {
+  off
+  shadow
+  enforce
+}
+
 model ScrapingSource {
-  id             Int              @id @default(autoincrement())
-  clubId         Int?             @map("club_id")
-  sourceTargetId Int?             @map("source_target_id")
-  platform       ScrapingPlatform
-  scraperKey     String           @map("scraper_key")
-  seatengineId   Int?             @map("seatengine_id")
-  eventbriteId   String?          @map("eventbrite_id")
-  ticketmasterId String?          @map("ticketmaster_id")
-  wixEventId     String?          @map("wix_event_id")
-  ovationtixId   String?          @map("ovationtix_id")
-  squadupId      String?          @map("squadup_id")
-  seatengineV3Id String?          @map("seatengine_v3_id")
-  sourceUrl      String?          @map("source_url")
-  priority       Int              @default(0)
-  enabled        Boolean          @default(true)
-  metadata       Json             @default("{}")
-  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz
-  club           Club?            @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  sourceTarget   SourceTarget?    @relation(fields: [sourceTargetId], references: [id], onDelete: Cascade)
+  id                   Int                   @id @default(autoincrement())
+  clubId               Int?                  @map("club_id")
+  sourceTargetId       Int?                  @map("source_target_id")
+  platform             ScrapingPlatform
+  scraperKey           String                @map("scraper_key")
+  seatengineId         Int?                  @map("seatengine_id")
+  eventbriteId         String?               @map("eventbrite_id")
+  ticketmasterId       String?               @map("ticketmaster_id")
+  wixEventId           String?               @map("wix_event_id")
+  ovationtixId         String?               @map("ovationtix_id")
+  squadupId            String?               @map("squadup_id")
+  seatengineV3Id       String?               @map("seatengine_v3_id")
+  sourceUrl            String?               @map("source_url")
+  priority             Int                   @default(0)
+  enabled              Boolean               @default(true)
+  metadata             Json                  @default("{}")
+  comedyPolicy         ComedyIngestionPolicy @default(unreviewed) @map("comedy_policy")
+  comedyGateMode       ComedyGateMode        @default(off) @map("comedy_gate_mode")
+  comedyPolicyVersion  Int                   @default(1) @map("comedy_policy_version")
+  comedyReviewedBy     String?               @map("comedy_reviewed_by")
+  comedyReviewedAt     DateTime?             @map("comedy_reviewed_at") @db.Timestamptz
+  comedyReviewEvidence Json                  @default("{}") @map("comedy_review_evidence")
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+  club                 Club?                 @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  sourceTarget         SourceTarget?         @relation(fields: [sourceTargetId], references: [id], onDelete: Cascade)
 
   @@unique([clubId, platform, priority])
   @@unique([sourceTargetId, platform, priority])

@@ -5,6 +5,8 @@ from urllib.parse import urlparse
 
 from psycopg2.extras import DictRow
 
+from .comedy_policy import SourceComedyPolicy
+
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.protocols.database_entity import DatabaseEntity
 
@@ -45,6 +47,7 @@ class ScrapingSource:
     external_id: Optional[str] = None
     chain_scraping_default_id: Optional[int] = None
     chain_id: Optional[int] = None
+    comedy_policy: SourceComedyPolicy = field(default_factory=SourceComedyPolicy)
 
     def __post_init__(self) -> None:
         if self.external_id is None:
@@ -104,6 +107,7 @@ class ScrapingSource:
             source_target_type=raw.get("source_target_type"),
             chain_scraping_default_id=raw.get("chain_scraping_default_id"),
             chain_id=raw.get("chain_id"),
+            comedy_policy=SourceComedyPolicy.from_row(raw),
         )
 
     def typed_id_for_platform(self, *platforms: str) -> Optional[str]:
