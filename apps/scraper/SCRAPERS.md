@@ -52,6 +52,66 @@ canonical section.
 
 ---
 
+### Stir Crazy Comedy Club — native ASP.NET calendar
+
+| | |
+|---|---|
+| **Scraper key** | `stir_crazy` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | `https://www.stircrazycomedyclub.com/calendar` |
+| **Generic?** | ❌ venue-specific public calendar contract |
+
+**Detection signals:** `Services/Services.asmx`, `GetUpcomingShowsByMonth`,
+`GetMaxMonths`, and event-detail `#lstShows` selectors.
+
+**API/source pattern:** The scraper mirrors public site JavaScript: POST JSON
+to `/Services/Services.asmx/GetMaxMonths` with `{}` and to
+`/Services/Services.asmx/GetUpcomingShowsByMonth` with integer `Month` and
+`Year`. Requests require the official calendar page as `Referer`. Responses use
+the ASP.NET `d` envelope. Read every month from the current Phoenix month through
+the inclusive maximum offset, then fetch each distinct event detail.
+
+**Key extraction notes:** `Result.CalendarDays[].CalendarItems[]` provides
+`Show.DateLabel`, `MilitaryTime`, and `IsSoldOut` alongside `Event.Title` and
+`URL`. Match every upcoming calendar timestamp to a detail `ComedyEvent` and
+its real offer. Local timestamps use `America/Phoenix`, without DST. Native
+offer URLs remain ticket links; same-date multiple times remain separate shows.
+Read corroborated performer names and the scoped “Also appearing” section;
+generic show titles remain unknown lineups. Retain class showcases and open
+mics; exclude actual classes, gift products and private events.
+The explicit “No Show Tonight” calendar entry is a closure, not a performance.
+Duplicate detail timestamps can represent ticket tiers (Ilya Axelrod GA $60 /
+VIP $100); match the ticket selector's displayed time and price to preserve
+distinct tier labels on one show. Identical duplicates are harmless; conflicting
+event identity or uncorroborated tier differences fail the run.
+`metadata.performer_overrides` can map an exact event URL path plus local date
+(e.g. `/jay-penn-748#2026-11-27`) to verified
+performer names when program acts appear only in prose or a biography omits
+the headliner's full name. TASK-4148 records corrections for four source-backed
+programs; they do not apply to future dates or reused slugs.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled)
+VALUES (17393, 'custom', 'stir_crazy', 'https://www.stircrazycomedyclub.com/calendar', 0, true)
+ON CONFLICT (club_id, platform, priority) DO UPDATE
+SET scraper_key = EXCLUDED.scraper_key, source_url = EXCLUDED.source_url, enabled = true;
+```
+Preserve canonical club17393; publish visibility only after verified future-show
+ingestion.
+
+**Failure modes / gotchas:** Missing Referer can produce HTTP200 with `d:null`.
+Calendar `Price=0` is a default projection, not a free ticket. Item-number suffixes
+can contain obsolete hours; never decode them as timestamps. JSON-LD `Person`
+is boilerplate even for “The Open Mic” and “Stand Up Class Showcase”. A failed
+month or required detail invalidates the run rather than allowing partial
+inventory to trigger stale-show reconciliation.
+
+**Reference implementation:**
+`apps/scraper/src/laughtrack/scrapers/implementations/venues/stir_crazy/`
+(TASK-4148); native fixture coverage in `tests/test_stir_crazy_coverage.py`.
+
 ## Decision Flowchart
 
 ```

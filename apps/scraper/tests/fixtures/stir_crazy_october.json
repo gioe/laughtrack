@@ -1,0 +1,833 @@
+{
+  "d": {
+    "__type": "StirCrazyComedyClub.BO.DataResult",
+    "IsSuccess": true,
+    "IsResult": true,
+    "Error": "",
+    "Result": {
+      "CalendarDays": [
+        {
+          "DayNumber": 1,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026100119",
+                "DateLabel": "10/1/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Funniest Person In the Universe - Prelim Round 1",
+                "URL": "funniest-person-in-the-universe-prelim-round-1-5253",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1790812800000)/",
+          "DateToString": "10/1/2026"
+        },
+        {
+          "DayNumber": 2,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026100219",
+                "DateLabel": "10/2/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Greg Romero Wilson",
+                "URL": "greg-romero-wilson-6034",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610022130",
+                "DateLabel": "10/2/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Greg Romero Wilson",
+                "URL": "greg-romero-wilson-6034",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1790899200000)/",
+          "DateToString": "10/2/2026"
+        },
+        {
+          "DayNumber": 3,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026100319",
+                "DateLabel": "10/3/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Greg Romero Wilson",
+                "URL": "greg-romero-wilson-6034",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610032130",
+                "DateLabel": "10/3/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Greg Romero Wilson",
+                "URL": "greg-romero-wilson-6034",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1790985600000)/",
+          "DateToString": "10/3/2026"
+        },
+        {
+          "DayNumber": 4,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026100418",
+                "DateLabel": "10/4/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Clean Comedy Night",
+                "URL": "clean-comedy-night-2060",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1791072000000)/",
+          "DateToString": "10/4/2026"
+        },
+        {
+          "DayNumber": 5,
+          "CalendarItems": [],
+          "Date": "/Date(1791158400000)/",
+          "DateToString": "10/5/2026"
+        },
+        {
+          "DayNumber": 6,
+          "CalendarItems": [],
+          "Date": "/Date(1791244800000)/",
+          "DateToString": "10/6/2026"
+        },
+        {
+          "DayNumber": 7,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026100719",
+                "DateLabel": "10/7/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": true,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Birthday Mic Comedy Show",
+                "URL": "birthday-mic-comedy-show-1748",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1791331200000)/",
+          "DateToString": "10/7/2026"
+        },
+        {
+          "DayNumber": 8,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026100819",
+                "DateLabel": "10/8/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Funniest Person In The Universe - Prelim Round 2",
+                "URL": "funniest-person-in-the-universe-prelim-round-2-3471",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1791417600000)/",
+          "DateToString": "10/8/2026"
+        },
+        {
+          "DayNumber": 9,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026100919",
+                "DateLabel": "10/9/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Monroe Martin",
+                "URL": "monroe-martin-3528",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610092130",
+                "DateLabel": "10/9/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Monroe Martin",
+                "URL": "monroe-martin-3528",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1791504000000)/",
+          "DateToString": "10/9/2026"
+        },
+        {
+          "DayNumber": 10,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026101019",
+                "DateLabel": "10/10/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Monroe Martin",
+                "URL": "monroe-martin-3528",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610102130",
+                "DateLabel": "10/10/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Monroe Martin",
+                "URL": "monroe-martin-3528",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1791590400000)/",
+          "DateToString": "10/10/2026"
+        },
+        {
+          "DayNumber": 11,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026101118",
+                "DateLabel": "10/11/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Stand Up Class Showcase",
+                "URL": "stand-up-class-showcase-5725",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "20261011181",
+                "DateLabel": "10/11/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "That's Crazy!",
+                "URL": "thats-crazy-7290",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1791676800000)/",
+          "DateToString": "10/11/2026"
+        },
+        {
+          "DayNumber": 12,
+          "CalendarItems": [],
+          "Date": "/Date(1791763200000)/",
+          "DateToString": "10/12/2026"
+        },
+        {
+          "DayNumber": 13,
+          "CalendarItems": [],
+          "Date": "/Date(1791849600000)/",
+          "DateToString": "10/13/2026"
+        },
+        {
+          "DayNumber": 14,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026101419",
+                "DateLabel": "10/14/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "The Open Mic",
+                "URL": "the-open-mic-59252",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1791936000000)/",
+          "DateToString": "10/14/2026"
+        },
+        {
+          "DayNumber": 15,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026101519",
+                "DateLabel": "10/15/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Clean Open Mic",
+                "URL": "clean-open-mic-9333",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1792022400000)/",
+          "DateToString": "10/15/2026"
+        },
+        {
+          "DayNumber": 16,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026101619",
+                "DateLabel": "10/16/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Ivan Decker",
+                "URL": "ivan-decker-5239",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610162130",
+                "DateLabel": "10/16/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Ivan Decker",
+                "URL": "ivan-decker-5239",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1792108800000)/",
+          "DateToString": "10/16/2026"
+        },
+        {
+          "DayNumber": 17,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026101715",
+                "DateLabel": "10/17/2026",
+                "MilitaryTime": "15:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Life of Nurmi",
+                "URL": "life-of-nurmi-721",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "2026101719",
+                "DateLabel": "10/17/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Ivan Decker",
+                "URL": "ivan-decker-5239",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610172130",
+                "DateLabel": "10/17/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Ivan Decker",
+                "URL": "ivan-decker-5239",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1792195200000)/",
+          "DateToString": "10/17/2026"
+        },
+        {
+          "DayNumber": 18,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026101815",
+                "DateLabel": "10/18/2026",
+                "MilitaryTime": "15:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Stand Up Class Showcase",
+                "URL": "stand-up-class-showcase-1247",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "2026101818",
+                "DateLabel": "10/18/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Dead A** Comedy Show",
+                "URL": "dead-a-comedy-show-4734",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1792281600000)/",
+          "DateToString": "10/18/2026"
+        },
+        {
+          "DayNumber": 19,
+          "CalendarItems": [],
+          "Date": "/Date(1792368000000)/",
+          "DateToString": "10/19/2026"
+        },
+        {
+          "DayNumber": 20,
+          "CalendarItems": [],
+          "Date": "/Date(1792454400000)/",
+          "DateToString": "10/20/2026"
+        },
+        {
+          "DayNumber": 21,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026102119",
+                "DateLabel": "10/21/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "The Open Mic",
+                "URL": "the-open-mic-94372",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1792540800000)/",
+          "DateToString": "10/21/2026"
+        },
+        {
+          "DayNumber": 22,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026102219",
+                "DateLabel": "10/22/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Funniest Person In The Universe - Prelim Round 3",
+                "URL": "funniest-person-in-the-universe-prelim-round-3-143",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1792627200000)/",
+          "DateToString": "10/22/2026"
+        },
+        {
+          "DayNumber": 23,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026102319",
+                "DateLabel": "10/23/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Patrick Garrity",
+                "URL": "patrick-garrity-824",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610232130",
+                "DateLabel": "10/23/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Patrick Garrity",
+                "URL": "patrick-garrity-824",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1792713600000)/",
+          "DateToString": "10/23/2026"
+        },
+        {
+          "DayNumber": 24,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026102419",
+                "DateLabel": "10/24/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Patrick Garrity",
+                "URL": "patrick-garrity-824",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610242130",
+                "DateLabel": "10/24/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Patrick Garrity",
+                "URL": "patrick-garrity-824",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1792800000000)/",
+          "DateToString": "10/24/2026"
+        },
+        {
+          "DayNumber": 25,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026102518",
+                "DateLabel": "10/25/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Manic Hispanic Sunday Funnies",
+                "URL": "manic-hispanic-sunday-funnies-7945",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1792886400000)/",
+          "DateToString": "10/25/2026"
+        },
+        {
+          "DayNumber": 26,
+          "CalendarItems": [],
+          "Date": "/Date(1792972800000)/",
+          "DateToString": "10/26/2026"
+        },
+        {
+          "DayNumber": 27,
+          "CalendarItems": [],
+          "Date": "/Date(1793059200000)/",
+          "DateToString": "10/27/2026"
+        },
+        {
+          "DayNumber": 28,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026102819",
+                "DateLabel": "10/28/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "The Open Mic",
+                "URL": "the-open-mic-10942",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1793145600000)/",
+          "DateToString": "10/28/2026"
+        },
+        {
+          "DayNumber": 29,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026102919",
+                "DateLabel": "10/29/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Funniest Person In The Universe - Prelim Round 4",
+                "URL": "funniest-person-in-the-universe-prelim-round-4-6701",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1793232000000)/",
+          "DateToString": "10/29/2026"
+        },
+        {
+          "DayNumber": 30,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026103019",
+                "DateLabel": "10/30/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Tony Tripoli",
+                "URL": "tony-tripoli-3489",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610302130",
+                "DateLabel": "10/30/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Tony Tripoli",
+                "URL": "tony-tripoli-3489",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1793318400000)/",
+          "DateToString": "10/30/2026"
+        },
+        {
+          "DayNumber": 31,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026103119",
+                "DateLabel": "10/31/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Tony Tripoli",
+                "URL": "tony-tripoli-3489",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202610312130",
+                "DateLabel": "10/31/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Tony Tripoli",
+                "URL": "tony-tripoli-3489",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1793404800000)/",
+          "DateToString": "10/31/2026"
+        }
+      ]
+    }
+  }
+}

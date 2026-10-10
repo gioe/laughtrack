@@ -1,0 +1,723 @@
+{
+  "d": {
+    "__type": "StirCrazyComedyClub.BO.DataResult",
+    "IsSuccess": true,
+    "IsResult": true,
+    "Error": "",
+    "Result": {
+      "CalendarDays": [
+        {
+          "DayNumber": 1,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026110118",
+                "DateLabel": "11/1/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Tons of Fun",
+                "URL": "tons-of-fun-9822",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1793491200000)/",
+          "DateToString": "11/1/2026"
+        },
+        {
+          "DayNumber": 2,
+          "CalendarItems": [],
+          "Date": "/Date(1793577600000)/",
+          "DateToString": "11/2/2026"
+        },
+        {
+          "DayNumber": 3,
+          "CalendarItems": [],
+          "Date": "/Date(1793664000000)/",
+          "DateToString": "11/3/2026"
+        },
+        {
+          "DayNumber": 4,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026110419",
+                "DateLabel": "11/4/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "The Open Mic",
+                "URL": "the-open-mic-82098",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1793750400000)/",
+          "DateToString": "11/4/2026"
+        },
+        {
+          "DayNumber": 5,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026110519",
+                "DateLabel": "11/5/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Funniest Person In the Universe - Prelim Round 5",
+                "URL": "funniest-person-in-the-universe-prelim-round-5-1062",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1793836800000)/",
+          "DateToString": "11/5/2026"
+        },
+        {
+          "DayNumber": 6,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026110619",
+                "DateLabel": "11/6/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Brandon Vestal",
+                "URL": "brandon-vestal-6029",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202611062130",
+                "DateLabel": "11/6/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Brandon Vestal",
+                "URL": "brandon-vestal-6029",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1793923200000)/",
+          "DateToString": "11/6/2026"
+        },
+        {
+          "DayNumber": 7,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026110719",
+                "DateLabel": "11/7/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Brandon Vestal",
+                "URL": "brandon-vestal-6029",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202611072130",
+                "DateLabel": "11/7/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Brandon Vestal",
+                "URL": "brandon-vestal-6029",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1794009600000)/",
+          "DateToString": "11/7/2026"
+        },
+        {
+          "DayNumber": 8,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026110818",
+                "DateLabel": "11/8/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Clean Comedy Night",
+                "URL": "clean-comedy-night-3362",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1794096000000)/",
+          "DateToString": "11/8/2026"
+        },
+        {
+          "DayNumber": 9,
+          "CalendarItems": [],
+          "Date": "/Date(1794182400000)/",
+          "DateToString": "11/9/2026"
+        },
+        {
+          "DayNumber": 10,
+          "CalendarItems": [],
+          "Date": "/Date(1794268800000)/",
+          "DateToString": "11/10/2026"
+        },
+        {
+          "DayNumber": 11,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026111119",
+                "DateLabel": "11/11/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "The Open Mic",
+                "URL": "the-open-mic-48562",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "2026111120301",
+                "DateLabel": "11/11/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Ilya Axelrod",
+                "URL": "ilya-axelrod-256",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1794355200000)/",
+          "DateToString": "11/11/2026"
+        },
+        {
+          "DayNumber": 12,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026111219",
+                "DateLabel": "11/12/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Funniest Person In The Universe - Prelim Round 6",
+                "URL": "funniest-person-in-the-universe-prelim-round-6-8180",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1794441600000)/",
+          "DateToString": "11/12/2026"
+        },
+        {
+          "DayNumber": 13,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026111319",
+                "DateLabel": "11/13/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Cash Levy",
+                "URL": "cash-levy-8137",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202611132130",
+                "DateLabel": "11/13/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Cash Levy",
+                "URL": "cash-levy-8137",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1794528000000)/",
+          "DateToString": "11/13/2026"
+        },
+        {
+          "DayNumber": 14,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026111419",
+                "DateLabel": "11/14/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Cash Levy",
+                "URL": "cash-levy-8137",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202611142130",
+                "DateLabel": "11/14/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Cash Levy",
+                "URL": "cash-levy-8137",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1794614400000)/",
+          "DateToString": "11/14/2026"
+        },
+        {
+          "DayNumber": 15,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026111518",
+                "DateLabel": "11/15/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Stand Up Class Showcase",
+                "URL": "stand-up-class-showcase-3117",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1794700800000)/",
+          "DateToString": "11/15/2026"
+        },
+        {
+          "DayNumber": 16,
+          "CalendarItems": [],
+          "Date": "/Date(1794787200000)/",
+          "DateToString": "11/16/2026"
+        },
+        {
+          "DayNumber": 17,
+          "CalendarItems": [],
+          "Date": "/Date(1794873600000)/",
+          "DateToString": "11/17/2026"
+        },
+        {
+          "DayNumber": 18,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026111819",
+                "DateLabel": "11/18/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "The Open Mic",
+                "URL": "the-open-mic-37844",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1794960000000)/",
+          "DateToString": "11/18/2026"
+        },
+        {
+          "DayNumber": 19,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026111919",
+                "DateLabel": "11/19/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Clean Open Mic",
+                "URL": "clean-open-mic-6763",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1795046400000)/",
+          "DateToString": "11/19/2026"
+        },
+        {
+          "DayNumber": 20,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026112019",
+                "DateLabel": "11/20/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Lisa Alvarado",
+                "URL": "lisa-alvarado-7202",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202611202130",
+                "DateLabel": "11/20/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Lisa Alvarado",
+                "URL": "lisa-alvarado-7202",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1795132800000)/",
+          "DateToString": "11/20/2026"
+        },
+        {
+          "DayNumber": 21,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026112119",
+                "DateLabel": "11/21/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Lisa Alvarado",
+                "URL": "lisa-alvarado-7202",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202611212130",
+                "DateLabel": "11/21/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Lisa Alvarado",
+                "URL": "lisa-alvarado-7202",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1795219200000)/",
+          "DateToString": "11/21/2026"
+        },
+        {
+          "DayNumber": 22,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "20261122182",
+                "DateLabel": "11/22/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Comedy Hypnosis Show",
+                "URL": "comedy-hypnosis-show-5393",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1795305600000)/",
+          "DateToString": "11/22/2026"
+        },
+        {
+          "DayNumber": 23,
+          "CalendarItems": [],
+          "Date": "/Date(1795392000000)/",
+          "DateToString": "11/23/2026"
+        },
+        {
+          "DayNumber": 24,
+          "CalendarItems": [],
+          "Date": "/Date(1795478400000)/",
+          "DateToString": "11/24/2026"
+        },
+        {
+          "DayNumber": 25,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026112519",
+                "DateLabel": "11/25/2026",
+                "MilitaryTime": "19:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "The Open Mic",
+                "URL": "the-open-mic-78062",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1795564800000)/",
+          "DateToString": "11/25/2026"
+        },
+        {
+          "DayNumber": 26,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "",
+                "DateLabel": "11/26/2026",
+                "MilitaryTime": "00:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "No Show Tonight",
+                "URL": "",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1795651200000)/",
+          "DateToString": "11/26/2026"
+        },
+        {
+          "DayNumber": 27,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026112718",
+                "DateLabel": "11/27/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Jay Penn",
+                "URL": "jay-penn-748",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202611272030",
+                "DateLabel": "11/27/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Jay Penn",
+                "URL": "jay-penn-748",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1795737600000)/",
+          "DateToString": "11/27/2026"
+        },
+        {
+          "DayNumber": 28,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026112818",
+                "DateLabel": "11/28/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Jay Penn",
+                "URL": "jay-penn-748",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            },
+            {
+              "Show": {
+                "ItemNumber": "202611282030",
+                "DateLabel": "11/28/2026",
+                "MilitaryTime": "20:30",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Jay Penn",
+                "URL": "jay-penn-748",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1795824000000)/",
+          "DateToString": "11/28/2026"
+        },
+        {
+          "DayNumber": 29,
+          "CalendarItems": [
+            {
+              "Show": {
+                "ItemNumber": "2026112918",
+                "DateLabel": "11/29/2026",
+                "MilitaryTime": "18:00",
+                "IsSoldOut": false,
+                "Price": 0
+              },
+              "Event": {
+                "Title": "Manic Hispanic Sunday Funnies",
+                "URL": "manic-hispanic-sunday-funnies-4294",
+                "PrivateEvent": false,
+                "IsHiddenFromPublic": false,
+                "IsTBA": false
+              },
+              "IsTBA": false
+            }
+          ],
+          "Date": "/Date(1795910400000)/",
+          "DateToString": "11/29/2026"
+        },
+        {
+          "DayNumber": 30,
+          "CalendarItems": [],
+          "Date": "/Date(1795996800000)/",
+          "DateToString": "11/30/2026"
+        }
+      ]
+    }
+  }
+}
