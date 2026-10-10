@@ -16,6 +16,17 @@ Derived club-level programming summary used for discovery and filtering. One row
 ### VenueDenyList
 Reviewed venue discovery rejection keyed by Google Places id. `reason` remains the human-readable audit note, while `googlePrimaryType` stores Google's structured primary type when known and `evidence` stores machine-readable triage details such as legacy reason text, matched club id/type, calendar evidence, or source workflow. `discover-nearby` uses this table to classify denied venues and preserve non-comedy evidence instead of resurfacing them as generic new club candidates.
 
+### ScrapingSource comedy ingestion policy
+Each source independently owns `comedyPolicy` (`unreviewed`, `comedy_only`, or `mixed`) and `comedyGateMode` (`off`, `shadow`, or `enforce`). Policy describes reviewed feed trust, not venue directory eligibility. Sibling feeds at one club can differ. These fields never inherit chain or SourceTarget metadata. `Club.clubType`, visibility, source `enabled`, and platform identity do not imply comedy trust.
+
+The additive migration initializes every existing source to `unreviewed` / `off`; new sources have those same defaults. This task only supplies configuration: no ingestion filter is activated. Future gates interpret `off` as bypass, `shadow` as evaluate without changing ingestion, and `enforce` as applying their decisions. The scraper loader tolerates missing policy columns during code-before-DDL deployment.
+
+`comedyReviewedBy` identifies the reviewing operator or process, `comedyReviewEvidence` is a JSON object holding review reasons and supporting evidence, and `comedyReviewedAt` is database-generated. Non-default inserts and policy, mode, reviewer, or evidence changes require a nonempty reviewer and evidence object. The database owns `comedyPolicyVersion`: inserts start at 1 and each such change increments it; no-op and unrelated updates preserve it. Direct assignments cannot reset versions or forge timestamps. The fields describe the latest review, not a complete revision history.
+
+Any later cached or staged classification must retain `(source_id, comedy_policy_version)` and check both against the current source before reuse or publication. A mismatched version invalidates the decision and requires re-evaluation; a version match alone is not affirmative comedy evidence. Classifier and staging integration belongs to TASK-4153/4154. The scraper `save_source_comedy_policy` helper uses the expected revision to reject stale concurrent writes and runs inside the caller's transaction.
+
+Operational rollback sets `comedyGateMode` back to `off` with reviewer/evidence; it advances the revision and preserves source ID, owner, enabled status, and fetch configuration. Do not drop the new columns or reset the version to roll back enforcement. Migration validation executes the real SQL against isolated PostgreSQL, optionally seeded with the production identity/configuration projection through `SOURCE_POLICY_SNAPSHOT`.
+
 ### SourceTarget
 Non-venue scraper trigger identity for platform, national, or aggregate feeds that should not appear as physical clubs. Use this when a source exists only to drive discovery or scraping and cannot truthfully provide a venue address. `scraping_sources` rows belong to exactly one owner: either `clubId` for venue-scoped scraping or `sourceTargetId` for non-venue scraping. Shows discovered through a source target must still be attributed to real `Club` rows where venue data is available; production attribution remains on `ProductionCompany`.
 
