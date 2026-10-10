@@ -1912,6 +1912,20 @@ UPDATE clubs SET scraper = 'json_ld', scraping_url = 'https://myvenue.com/events
 ```
 
 **Optional `scraping_sources.metadata` flags:**
+- `localize_naive_dates` (bool) — attach the club timezone to offset-free event
+  times; explicit offsets remain unchanged. Required for TicketWeb venue JSON-LD.
+- `performer_prefixes` (list of literal strings) and `performer_aliases` (object)
+  — source-local normalization of explicit performer labels, after HTML entity
+  decoding. Strip known promotional prefixes before exact alias lookup; a null
+  alias suppresses that performer. Defaults leave other sources unchanged.
+- `infer_lineup_from_title: false` — preserve only explicitly supplied performers,
+  including when the source supplies an empty lineup.
+- Catch a Rising Star Princeton (TASK-4149): source URL is TicketWeb venue 44754,
+  with `force_js_rendering: true`, `location_name_filter: "Hyatt Regency Princeton"`,
+  and the options above. The official Joomla calendar omits times; TicketWeb's
+  TheaterEvent blocks supply per-performance local starts and purchase URLs.
+  Venue-page offers omit price, so preserve null. Preserve club 4744 and its
+  Live Nation inventory; Massachusetts tour listings are outside this source.
 - `location_name_filter` (string) — keep only events whose JSON-LD `location.name`
   contains the substring; for multi-venue calendar pages.
 - `detail_fetch` (object) — two-pass scrape when the listing page has only event
