@@ -1,0 +1,3921 @@
+{
+  "as_of": "2026-10-10T00:00:00+00:00",
+  "purpose": "triage_only_not_false_positive_totals",
+  "triage": {
+    "all_history": {
+      "visible_clubs_with_lineups": 2235,
+      "visible_majority_blocked_clubs": 70,
+      "visible_all_blocked_clubs": 52
+    },
+    "upcoming": {
+      "visible_clubs_with_lineups": 1658,
+      "visible_majority_blocked_clubs": 14,
+      "visible_all_blocked_clubs": 8
+    }
+  },
+  "legacy_raw_comparison": {
+    "all_history": {
+      "visible_clubs_with_lineups": 2235,
+      "visible_majority_blocked_clubs": 70,
+      "visible_all_blocked_clubs": 52
+    },
+    "upcoming": {
+      "visible_clubs_with_lineups": 1658,
+      "visible_majority_blocked_clubs": 14,
+      "visible_all_blocked_clubs": 8
+    }
+  },
+  "artifact_scope": "Compact baseline; rerun CLI for all venue/feed metrics and per-show evidence.",
+  "full_report_sha256": "7b8c6138d87f698b5ae284d26f836599dd5a297d88be879d0403637171601a48",
+  "club_count": 3019,
+  "visible_club_count": 2763,
+  "totals": {
+    "all_history": {
+      "shows": 142375,
+      "shows_with_lineups": 69678,
+      "missing_lineups": 72697,
+      "appearances": 118837,
+      "blocked_appearances": 4019,
+      "raw_appearances": 120039,
+      "raw_blocked_appearances": 4311,
+      "rescued_alias_appearances": 292,
+      "blocked_only_shows": 2541,
+      "majority_blocked_shows": 2567
+    },
+    "upcoming": {
+      "shows": 43503,
+      "shows_with_lineups": 24093,
+      "missing_lineups": 19410,
+      "appearances": 30941,
+      "blocked_appearances": 514,
+      "raw_appearances": 31118,
+      "raw_blocked_appearances": 519,
+      "rescued_alias_appearances": 5,
+      "blocked_only_shows": 387,
+      "majority_blocked_shows": 387
+    }
+  },
+  "feed_attribution": {
+    "organizer": 2936,
+    "inferred_source": 93949,
+    "unattributed:ambiguous": 759,
+    "unattributed:missing_key": 28759,
+    "unattributed:no_match": 15972
+  },
+  "majority_blocked_visible_clubs": [
+    {
+      "id": 63,
+      "name": "TK's",
+      "visible": true,
+      "all_history": {
+        "shows": 7,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 6,
+        "lineup_coverage": 0.14285714285714285,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 79,
+      "name": "Underground Comedy",
+      "visible": true,
+      "all_history": {
+        "shows": 447,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 3,
+        "missing_lineups": 444,
+        "lineup_coverage": 0.006711409395973154,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 3,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.6666666666666666,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 0.5,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 3,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "not a comic": 2
+        },
+        "resolution_states": {
+          "blocked_root": 2,
+          "valid_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 84,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 83,
+        "lineup_coverage": 0.011904761904761904,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 1,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": 0.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {
+          "valid_root": 1
+        }
+      }
+    },
+    {
+      "id": 88,
+      "name": "Barrel Room Portland",
+      "visible": true,
+      "all_history": {
+        "shows": 287,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 10,
+        "missing_lineups": 277,
+        "lineup_coverage": 0.03484320557491289,
+        "blocked_only_shows": 7,
+        "majority_blocked_shows": 7,
+        "appearances": 10,
+        "blocked_appearances": 7,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.7,
+        "distinct_performers": 9,
+        "blocked_distinct_performers": 6,
+        "blocked_distinct_ratio": 0.6666666666666666,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 10,
+        "raw_blocked_appearances": 7,
+        "block_reason_appearances": {
+          "not a comic": 7
+        },
+        "resolution_states": {
+          "blocked_root": 7,
+          "valid_root": 3
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 157,
+      "name": "Philly Improv Theater",
+      "visible": true,
+      "all_history": {
+        "shows": 9,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 4,
+        "missing_lineups": 5,
+        "lineup_coverage": 0.4444444444444444,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 1,
+        "appearances": 11,
+        "blocked_appearances": 6,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.5454545454545454,
+        "distinct_performers": 7,
+        "blocked_distinct_performers": 3,
+        "blocked_distinct_ratio": 0.42857142857142855,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 11,
+        "raw_blocked_appearances": 6,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 5,
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 6,
+          "valid_root": 5
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 168,
+      "name": "Laugh Factory Chicago",
+      "visible": true,
+      "all_history": {
+        "shows": 459,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 6,
+        "missing_lineups": 453,
+        "lineup_coverage": 0.013071895424836602,
+        "blocked_only_shows": 4,
+        "majority_blocked_shows": 4,
+        "appearances": 7,
+        "blocked_appearances": 5,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.7142857142857143,
+        "distinct_performers": 3,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 0.3333333333333333,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 7,
+        "raw_blocked_appearances": 5,
+        "block_reason_appearances": {
+          "not a comic": 5
+        },
+        "resolution_states": {
+          "blocked_root": 5,
+          "valid_root": 2
+        }
+      },
+      "upcoming": {
+        "shows": 93,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 93,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 175,
+      "name": "Sunset Strip Comedy Club",
+      "visible": true,
+      "all_history": {
+        "shows": 428,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 26,
+        "missing_lineups": 402,
+        "lineup_coverage": 0.06074766355140187,
+        "blocked_only_shows": 17,
+        "majority_blocked_shows": 17,
+        "appearances": 26,
+        "blocked_appearances": 17,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.6538461538461539,
+        "distinct_performers": 11,
+        "blocked_distinct_performers": 3,
+        "blocked_distinct_ratio": 0.2727272727272727,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 26,
+        "raw_blocked_appearances": 17,
+        "block_reason_appearances": {
+          "not a comic": 17
+        },
+        "resolution_states": {
+          "blocked_root": 17,
+          "valid_root": 9
+        }
+      },
+      "upcoming": {
+        "shows": 111,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 110,
+        "lineup_coverage": 0.009009009009009009,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 1,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": 0.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {
+          "valid_root": 1
+        }
+      }
+    },
+    {
+      "id": 177,
+      "name": "East Austin Comedy",
+      "visible": true,
+      "all_history": {
+        "shows": 423,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 7,
+        "missing_lineups": 416,
+        "lineup_coverage": 0.016548463356973995,
+        "blocked_only_shows": 7,
+        "majority_blocked_shows": 7,
+        "appearances": 7,
+        "blocked_appearances": 7,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 7,
+        "raw_blocked_appearances": 7,
+        "block_reason_appearances": {
+          "not a comic": 7
+        },
+        "resolution_states": {
+          "blocked_root": 7
+        }
+      },
+      "upcoming": {
+        "shows": 49,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 49,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 180,
+      "name": "The Second City",
+      "visible": true,
+      "all_history": {
+        "shows": 469,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 39,
+        "missing_lineups": 430,
+        "lineup_coverage": 0.08315565031982942,
+        "blocked_only_shows": 39,
+        "majority_blocked_shows": 39,
+        "appearances": 39,
+        "blocked_appearances": 39,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 39,
+        "raw_blocked_appearances": 39,
+        "block_reason_appearances": {
+          "not a comic": 39
+        },
+        "resolution_states": {
+          "blocked_root": 39
+        }
+      },
+      "upcoming": {
+        "shows": 173,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 173,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 187,
+      "name": "UP Comedy Club",
+      "visible": true,
+      "all_history": {
+        "shows": 277,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 22,
+        "missing_lineups": 255,
+        "lineup_coverage": 0.07942238267148015,
+        "blocked_only_shows": 22,
+        "majority_blocked_shows": 22,
+        "appearances": 22,
+        "blocked_appearances": 22,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 22,
+        "raw_blocked_appearances": 22,
+        "block_reason_appearances": {
+          "not a comic": 22
+        },
+        "resolution_states": {
+          "blocked_root": 22
+        }
+      },
+      "upcoming": {
+        "shows": 114,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 114,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 192,
+      "name": "The Function SF",
+      "visible": true,
+      "all_history": {
+        "shows": 183,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 10,
+        "missing_lineups": 173,
+        "lineup_coverage": 0.0546448087431694,
+        "blocked_only_shows": 10,
+        "majority_blocked_shows": 10,
+        "appearances": 10,
+        "blocked_appearances": 10,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 10,
+        "raw_blocked_appearances": 10,
+        "block_reason_appearances": {
+          "not a comic": 10
+        },
+        "resolution_states": {
+          "blocked_root": 10
+        }
+      },
+      "upcoming": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 2,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 193,
+      "name": "Cheaper Than Therapy",
+      "visible": true,
+      "all_history": {
+        "shows": 165,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 22,
+        "missing_lineups": 143,
+        "lineup_coverage": 0.13333333333333333,
+        "blocked_only_shows": 22,
+        "majority_blocked_shows": 22,
+        "appearances": 22,
+        "blocked_appearances": 22,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 22,
+        "raw_blocked_appearances": 22,
+        "block_reason_appearances": {
+          "not a comic": 22
+        },
+        "resolution_states": {
+          "blocked_root": 22
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 195,
+      "name": "The Setup SF",
+      "visible": true,
+      "all_history": {
+        "shows": 38,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 4,
+        "missing_lineups": 34,
+        "lineup_coverage": 0.10526315789473684,
+        "blocked_only_shows": 4,
+        "majority_blocked_shows": 4,
+        "appearances": 4,
+        "blocked_appearances": 4,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 4,
+        "raw_blocked_appearances": 4,
+        "block_reason_appearances": {
+          "not a comic": 4
+        },
+        "resolution_states": {
+          "blocked_root": 4
+        }
+      },
+      "upcoming": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 2,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 197,
+      "name": "Third Coast Comedy Club",
+      "visible": true,
+      "all_history": {
+        "shows": 204,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 203,
+        "lineup_coverage": 0.004901960784313725,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "hidden_without_reason": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 409,
+      "name": "Hotbed - DC Comedy Club",
+      "visible": true,
+      "all_history": {
+        "shows": 396,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 5,
+        "missing_lineups": 391,
+        "lineup_coverage": 0.012626262626262626,
+        "blocked_only_shows": 4,
+        "majority_blocked_shows": 4,
+        "appearances": 5,
+        "blocked_appearances": 4,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.8,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 0.5,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 5,
+        "raw_blocked_appearances": 4,
+        "block_reason_appearances": {
+          "not a comic": 4
+        },
+        "resolution_states": {
+          "blocked_root": 4,
+          "valid_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 85,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 84,
+        "lineup_coverage": 0.011764705882352941,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 1,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": 0.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {
+          "valid_root": 1
+        }
+      }
+    },
+    {
+      "id": 542,
+      "name": "The Alley Stage",
+      "visible": true,
+      "all_history": {
+        "shows": 202,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 13,
+        "missing_lineups": 189,
+        "lineup_coverage": 0.06435643564356436,
+        "blocked_only_shows": 12,
+        "majority_blocked_shows": 12,
+        "appearances": 14,
+        "blocked_appearances": 13,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.9285714285714286,
+        "distinct_performers": 10,
+        "blocked_distinct_performers": 9,
+        "blocked_distinct_ratio": 0.9,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 14,
+        "raw_blocked_appearances": 13,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 1,
+          "not a comic": 12
+        },
+        "resolution_states": {
+          "blocked_root": 13,
+          "valid_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 60,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 60,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 552,
+      "name": "The Bit Theater",
+      "visible": true,
+      "all_history": {
+        "shows": 78,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 4,
+        "missing_lineups": 74,
+        "lineup_coverage": 0.05128205128205128,
+        "blocked_only_shows": 4,
+        "majority_blocked_shows": 4,
+        "appearances": 4,
+        "blocked_appearances": 4,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 4,
+        "raw_blocked_appearances": 4,
+        "block_reason_appearances": {
+          "not a comic": 4
+        },
+        "resolution_states": {
+          "blocked_root": 4
+        }
+      },
+      "upcoming": {
+        "shows": 19,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 19,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 579,
+      "name": "The Function Comedy Club and Cocktail Lounge",
+      "visible": true,
+      "all_history": {
+        "shows": 178,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 20,
+        "missing_lineups": 158,
+        "lineup_coverage": 0.11235955056179775,
+        "blocked_only_shows": 20,
+        "majority_blocked_shows": 20,
+        "appearances": 20,
+        "blocked_appearances": 20,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 20,
+        "raw_blocked_appearances": 20,
+        "block_reason_appearances": {
+          "not a comic": 20
+        },
+        "resolution_states": {
+          "blocked_root": 20
+        }
+      },
+      "upcoming": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 2,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 646,
+      "name": "The Comedy Inn",
+      "visible": true,
+      "all_history": {
+        "shows": 33,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 32,
+        "lineup_coverage": 0.030303030303030304,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 4,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 4,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 661,
+      "name": "The Setup Vancouver",
+      "visible": true,
+      "all_history": {
+        "shows": 6,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 5,
+        "lineup_coverage": 0.16666666666666666,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 2,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 794,
+      "name": "The Improv Collective",
+      "visible": true,
+      "all_history": {
+        "shows": 304,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 3,
+        "missing_lineups": 301,
+        "lineup_coverage": 0.009868421052631578,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 3,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.6666666666666666,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 0.5,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 3,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "not a comic": 2
+        },
+        "resolution_states": {
+          "blocked_root": 2,
+          "valid_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 32,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 32,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 2302,
+      "name": "Brewery and the Beast",
+      "visible": true,
+      "all_history": {
+        "shows": 1,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4486,
+      "name": "New World Stages - Stage 4",
+      "visible": true,
+      "all_history": {
+        "shows": 343,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 42,
+        "missing_lineups": 301,
+        "lineup_coverage": 0.12244897959183673,
+        "blocked_only_shows": 42,
+        "majority_blocked_shows": 42,
+        "appearances": 42,
+        "blocked_appearances": 42,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 42,
+        "raw_blocked_appearances": 42,
+        "block_reason_appearances": {
+          "not a comic": 42
+        },
+        "resolution_states": {
+          "blocked_root": 42
+        }
+      },
+      "upcoming": {
+        "shows": 208,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 206,
+        "lineup_coverage": 0.009615384615384616,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 2,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "not a comic": 2
+        },
+        "resolution_states": {
+          "blocked_root": 2
+        }
+      }
+    },
+    {
+      "id": 4488,
+      "name": "Hobby Center",
+      "visible": true,
+      "all_history": {
+        "shows": 4,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 4,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 4,
+        "majority_blocked_shows": 4,
+        "appearances": 4,
+        "blocked_appearances": 4,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 4,
+        "raw_blocked_appearances": 4,
+        "block_reason_appearances": {
+          "not a comic": 4
+        },
+        "resolution_states": {
+          "blocked_root": 4
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4489,
+      "name": "Hamburger Mary's - Las Vegas",
+      "visible": true,
+      "all_history": {
+        "shows": 129,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 129,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 129,
+        "majority_blocked_shows": 129,
+        "appearances": 129,
+        "blocked_appearances": 129,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 129,
+        "raw_blocked_appearances": 129,
+        "block_reason_appearances": {
+          "not a comic": 129
+        },
+        "resolution_states": {
+          "blocked_root": 129
+        }
+      },
+      "upcoming": {
+        "shows": 44,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 44,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 44,
+        "majority_blocked_shows": 44,
+        "appearances": 44,
+        "blocked_appearances": 44,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 44,
+        "raw_blocked_appearances": 44,
+        "block_reason_appearances": {
+          "not a comic": 44
+        },
+        "resolution_states": {
+          "blocked_root": 44
+        }
+      }
+    },
+    {
+      "id": 4490,
+      "name": "St. James Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 119,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 46,
+        "missing_lineups": 73,
+        "lineup_coverage": 0.3865546218487395,
+        "blocked_only_shows": 46,
+        "majority_blocked_shows": 46,
+        "appearances": 46,
+        "blocked_appearances": 46,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 46,
+        "raw_blocked_appearances": 46,
+        "block_reason_appearances": {
+          "not a comic": 46
+        },
+        "resolution_states": {
+          "blocked_root": 46
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4494,
+      "name": "Lyceum Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 340,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 41,
+        "missing_lineups": 299,
+        "lineup_coverage": 0.12058823529411765,
+        "blocked_only_shows": 41,
+        "majority_blocked_shows": 41,
+        "appearances": 41,
+        "blocked_appearances": 41,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 41,
+        "raw_blocked_appearances": 41,
+        "block_reason_appearances": {
+          "not a comic": 41
+        },
+        "resolution_states": {
+          "blocked_root": 41
+        }
+      },
+      "upcoming": {
+        "shows": 206,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 206,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4496,
+      "name": "Bagley Wright Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 15,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 15,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 15,
+        "majority_blocked_shows": 15,
+        "appearances": 15,
+        "blocked_appearances": 15,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 15,
+        "raw_blocked_appearances": 15,
+        "block_reason_appearances": {
+          "not a comic": 15
+        },
+        "resolution_states": {
+          "blocked_root": 15
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4500,
+      "name": "Colonial Downs",
+      "visible": true,
+      "all_history": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 2,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "not a comic": 2
+        },
+        "resolution_states": {
+          "blocked_root": 2
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4501,
+      "name": "Meadow Brook Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 37,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 3,
+        "missing_lineups": 34,
+        "lineup_coverage": 0.08108108108108109,
+        "blocked_only_shows": 3,
+        "majority_blocked_shows": 3,
+        "appearances": 3,
+        "blocked_appearances": 3,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 3,
+        "raw_blocked_appearances": 3,
+        "block_reason_appearances": {
+          "not a comic": 3
+        },
+        "resolution_states": {
+          "blocked_root": 3
+        }
+      },
+      "upcoming": {
+        "shows": 27,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 27,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4502,
+      "name": "The Theater Center",
+      "visible": true,
+      "all_history": {
+        "shows": 225,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 55,
+        "missing_lineups": 170,
+        "lineup_coverage": 0.24444444444444444,
+        "blocked_only_shows": 55,
+        "majority_blocked_shows": 55,
+        "appearances": 55,
+        "blocked_appearances": 55,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 55,
+        "raw_blocked_appearances": 55,
+        "block_reason_appearances": {
+          "not a comic": 55
+        },
+        "resolution_states": {
+          "blocked_root": 55
+        }
+      },
+      "upcoming": {
+        "shows": 99,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 99,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4510,
+      "name": "The Hook at Caesars Atlantic City",
+      "visible": true,
+      "all_history": {
+        "shows": 184,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 115,
+        "missing_lineups": 69,
+        "lineup_coverage": 0.625,
+        "blocked_only_shows": 115,
+        "majority_blocked_shows": 115,
+        "appearances": 115,
+        "blocked_appearances": 115,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 115,
+        "raw_blocked_appearances": 115,
+        "block_reason_appearances": {
+          "not a comic": 115
+        },
+        "resolution_states": {
+          "blocked_root": 115
+        }
+      },
+      "upcoming": {
+        "shows": 66,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 66,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 66,
+        "majority_blocked_shows": 66,
+        "appearances": 66,
+        "blocked_appearances": 66,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 66,
+        "raw_blocked_appearances": 66,
+        "block_reason_appearances": {
+          "not a comic": 66
+        },
+        "resolution_states": {
+          "blocked_root": 66
+        }
+      }
+    },
+    {
+      "id": 4539,
+      "name": "Dudley Riggs Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 88,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 26,
+        "missing_lineups": 62,
+        "lineup_coverage": 0.29545454545454547,
+        "blocked_only_shows": 26,
+        "majority_blocked_shows": 26,
+        "appearances": 26,
+        "blocked_appearances": 26,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 26,
+        "raw_blocked_appearances": 26,
+        "block_reason_appearances": {
+          "not a comic": 26
+        },
+        "resolution_states": {
+          "blocked_root": 26
+        }
+      },
+      "upcoming": {
+        "shows": 58,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 58,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4552,
+      "name": "The Empire Strips Back Theater",
+      "visible": true,
+      "all_history": {
+        "shows": 554,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 132,
+        "missing_lineups": 422,
+        "lineup_coverage": 0.23826714801444043,
+        "blocked_only_shows": 132,
+        "majority_blocked_shows": 132,
+        "appearances": 132,
+        "blocked_appearances": 132,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 132,
+        "raw_blocked_appearances": 132,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 132
+        },
+        "resolution_states": {
+          "blocked_root": 132
+        }
+      },
+      "upcoming": {
+        "shows": 403,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 403,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4618,
+      "name": "Foundation Room at House of Blues Chicago",
+      "visible": true,
+      "all_history": {
+        "shows": 19,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 11,
+        "missing_lineups": 8,
+        "lineup_coverage": 0.5789473684210527,
+        "blocked_only_shows": 11,
+        "majority_blocked_shows": 11,
+        "appearances": 11,
+        "blocked_appearances": 11,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 11,
+        "raw_blocked_appearances": 11,
+        "block_reason_appearances": {
+          "not a comic": 11
+        },
+        "resolution_states": {
+          "blocked_root": 11
+        }
+      },
+      "upcoming": {
+        "shows": 6,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 6,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4652,
+      "name": "Oshkosh Arena",
+      "visible": true,
+      "all_history": {
+        "shows": 4,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 3,
+        "lineup_coverage": 0.25,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4662,
+      "name": "Curran Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 26,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 25,
+        "missing_lineups": 1,
+        "lineup_coverage": 0.9615384615384616,
+        "blocked_only_shows": 24,
+        "majority_blocked_shows": 24,
+        "appearances": 25,
+        "blocked_appearances": 24,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.96,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 0.5,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 25,
+        "raw_blocked_appearances": 24,
+        "block_reason_appearances": {
+          "not a comic": 24
+        },
+        "resolution_states": {
+          "blocked_root": 24,
+          "valid_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 25,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 25,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 24,
+        "majority_blocked_shows": 24,
+        "appearances": 25,
+        "blocked_appearances": 24,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.96,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 0.5,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 25,
+        "raw_blocked_appearances": 24,
+        "block_reason_appearances": {
+          "not a comic": 24
+        },
+        "resolution_states": {
+          "blocked_root": 24,
+          "valid_root": 1
+        }
+      }
+    },
+    {
+      "id": 4684,
+      "name": "The Concert Venue at Harrahs Atlantic City",
+      "visible": true,
+      "all_history": {
+        "shows": 10,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 9,
+        "missing_lineups": 1,
+        "lineup_coverage": 0.9,
+        "blocked_only_shows": 5,
+        "majority_blocked_shows": 5,
+        "appearances": 9,
+        "blocked_appearances": 5,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.5555555555555556,
+        "distinct_performers": 5,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 0.2,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 9,
+        "raw_blocked_appearances": 5,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 5
+        },
+        "resolution_states": {
+          "blocked_root": 5,
+          "valid_root": 4
+        }
+      },
+      "upcoming": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 1,
+        "lineup_coverage": 0.5,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 1,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": 0.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {
+          "valid_root": 1
+        }
+      }
+    },
+    {
+      "id": 4707,
+      "name": "Red Rocks Amphitheatre",
+      "visible": true,
+      "all_history": {
+        "shows": 7,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 6,
+        "missing_lineups": 1,
+        "lineup_coverage": 0.8571428571428571,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 3,
+        "appearances": 11,
+        "blocked_appearances": 6,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.5454545454545454,
+        "distinct_performers": 8,
+        "blocked_distinct_performers": 3,
+        "blocked_distinct_ratio": 0.375,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 11,
+        "raw_blocked_appearances": 6,
+        "block_reason_appearances": {
+          "not a comic": 6
+        },
+        "resolution_states": {
+          "blocked_root": 6,
+          "valid_root": 5
+        }
+      },
+      "upcoming": {
+        "shows": 1,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 1,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": 0.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {
+          "valid_root": 1
+        }
+      }
+    },
+    {
+      "id": 4718,
+      "name": "Carpenter Theatre at Dominion Energy Center",
+      "visible": true,
+      "all_history": {
+        "shows": 31,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 31,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 22,
+        "majority_blocked_shows": 22,
+        "appearances": 46,
+        "blocked_appearances": 37,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.8043478260869565,
+        "distinct_performers": 11,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 0.18181818181818182,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 46,
+        "raw_blocked_appearances": 37,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 37
+        },
+        "resolution_states": {
+          "blocked_root": 37,
+          "valid_root": 9
+        }
+      },
+      "upcoming": {
+        "shows": 27,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 27,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 22,
+        "majority_blocked_shows": 22,
+        "appearances": 42,
+        "blocked_appearances": 37,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.8809523809523809,
+        "distinct_performers": 7,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 0.2857142857142857,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 42,
+        "raw_blocked_appearances": 37,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 37
+        },
+        "resolution_states": {
+          "blocked_root": 37,
+          "valid_root": 5
+        }
+      }
+    },
+    {
+      "id": 4757,
+      "name": "Westgate Las Vegas Resort & Casino",
+      "visible": true,
+      "all_history": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 2,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "not a comic": 2
+        },
+        "resolution_states": {
+          "blocked_root": 2
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 4803,
+      "name": "Lincoln Center - Mitzi E. Newhouse Theater",
+      "visible": true,
+      "all_history": {
+        "shows": 61,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 57,
+        "missing_lineups": 4,
+        "lineup_coverage": 0.9344262295081968,
+        "blocked_only_shows": 57,
+        "majority_blocked_shows": 57,
+        "appearances": 57,
+        "blocked_appearances": 57,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 57,
+        "raw_blocked_appearances": 57,
+        "block_reason_appearances": {
+          "not a comic": 57
+        },
+        "resolution_states": {
+          "blocked_root": 57
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 5058,
+      "name": "Connor Palace at Playhouse Square",
+      "visible": true,
+      "all_history": {
+        "shows": 31,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 23,
+        "missing_lineups": 8,
+        "lineup_coverage": 0.7419354838709677,
+        "blocked_only_shows": 16,
+        "majority_blocked_shows": 16,
+        "appearances": 24,
+        "blocked_appearances": 16,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.6666666666666666,
+        "distinct_performers": 8,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 0.25,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 24,
+        "raw_blocked_appearances": 16,
+        "block_reason_appearances": {
+          "not a comic": 16
+        },
+        "resolution_states": {
+          "blocked_root": 16,
+          "valid_root": 8
+        }
+      },
+      "upcoming": {
+        "shows": 26,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 18,
+        "missing_lineups": 8,
+        "lineup_coverage": 0.6923076923076923,
+        "blocked_only_shows": 16,
+        "majority_blocked_shows": 16,
+        "appearances": 18,
+        "blocked_appearances": 16,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.8888888888888888,
+        "distinct_performers": 4,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 0.5,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 18,
+        "raw_blocked_appearances": 16,
+        "block_reason_appearances": {
+          "not a comic": 16
+        },
+        "resolution_states": {
+          "blocked_root": 16,
+          "valid_root": 2
+        }
+      }
+    },
+    {
+      "id": 5074,
+      "name": "TN Perf Arts Ctr James K Polk Theater",
+      "visible": true,
+      "all_history": {
+        "shows": 1,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 5113,
+      "name": "Asbury Hall at Babeville",
+      "visible": true,
+      "all_history": {
+        "shows": 1,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 5199,
+      "name": "Keller Auditorium",
+      "visible": true,
+      "all_history": {
+        "shows": 55,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 37,
+        "missing_lineups": 18,
+        "lineup_coverage": 0.6727272727272727,
+        "blocked_only_shows": 25,
+        "majority_blocked_shows": 25,
+        "appearances": 56,
+        "blocked_appearances": 43,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.7678571428571429,
+        "distinct_performers": 11,
+        "blocked_distinct_performers": 3,
+        "blocked_distinct_ratio": 0.2727272727272727,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 56,
+        "raw_blocked_appearances": 43,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 36,
+          "not a comic": 7
+        },
+        "resolution_states": {
+          "blocked_root": 43,
+          "valid_root": 13
+        }
+      },
+      "upcoming": {
+        "shows": 44,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 28,
+        "missing_lineups": 16,
+        "lineup_coverage": 0.6363636363636364,
+        "blocked_only_shows": 18,
+        "majority_blocked_shows": 18,
+        "appearances": 46,
+        "blocked_appearances": 36,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.782608695652174,
+        "distinct_performers": 7,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 0.2857142857142857,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 46,
+        "raw_blocked_appearances": 36,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 36
+        },
+        "resolution_states": {
+          "blocked_root": 36,
+          "valid_root": 10
+        }
+      }
+    },
+    {
+      "id": 5353,
+      "name": "Dr. Phillips Performing Arts Center",
+      "visible": true,
+      "all_history": {
+        "shows": 24,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 24,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 20,
+        "majority_blocked_shows": 20,
+        "appearances": 44,
+        "blocked_appearances": 40,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.9090909090909091,
+        "distinct_performers": 6,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 0.3333333333333333,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 44,
+        "raw_blocked_appearances": 40,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 40
+        },
+        "resolution_states": {
+          "blocked_root": 40,
+          "valid_root": 4
+        }
+      },
+      "upcoming": {
+        "shows": 23,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 23,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 20,
+        "majority_blocked_shows": 20,
+        "appearances": 43,
+        "blocked_appearances": 40,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.9302325581395349,
+        "distinct_performers": 5,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 0.4,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 43,
+        "raw_blocked_appearances": 40,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 40
+        },
+        "resolution_states": {
+          "blocked_root": 40,
+          "valid_root": 3
+        }
+      }
+    },
+    {
+      "id": 5433,
+      "name": "Eccles Theater - Salt Lake City",
+      "visible": true,
+      "all_history": {
+        "shows": 12,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 12,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 8,
+        "majority_blocked_shows": 8,
+        "appearances": 12,
+        "blocked_appearances": 8,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.6666666666666666,
+        "distinct_performers": 4,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 0.25,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 12,
+        "raw_blocked_appearances": 8,
+        "block_reason_appearances": {
+          "not a comic": 8
+        },
+        "resolution_states": {
+          "blocked_root": 8,
+          "valid_root": 4
+        }
+      },
+      "upcoming": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 2,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.0,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": 0.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {
+          "valid_root": 2
+        }
+      }
+    },
+    {
+      "id": 8692,
+      "name": "Sixth City Cycles",
+      "visible": true,
+      "all_history": {
+        "shows": 1,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 8703,
+      "name": "The Brothers Lounge",
+      "visible": true,
+      "all_history": {
+        "shows": 8,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 3,
+        "missing_lineups": 5,
+        "lineup_coverage": 0.375,
+        "blocked_only_shows": 3,
+        "majority_blocked_shows": 3,
+        "appearances": 3,
+        "blocked_appearances": 3,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 3,
+        "raw_blocked_appearances": 3,
+        "block_reason_appearances": {
+          "not a comic": 3
+        },
+        "resolution_states": {
+          "blocked_root": 3
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 8834,
+      "name": "Upright Citizens Brigade Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 438,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 11,
+        "missing_lineups": 427,
+        "lineup_coverage": 0.02511415525114155,
+        "blocked_only_shows": 6,
+        "majority_blocked_shows": 6,
+        "appearances": 12,
+        "blocked_appearances": 7,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.5833333333333334,
+        "distinct_performers": 7,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 0.2857142857142857,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 12,
+        "raw_blocked_appearances": 7,
+        "block_reason_appearances": {
+          "not a comic": 7
+        },
+        "resolution_states": {
+          "blocked_root": 7,
+          "valid_root": 5
+        }
+      },
+      "upcoming": {
+        "shows": 69,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 67,
+        "lineup_coverage": 0.028985507246376812,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 2,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.0,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": 0.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {
+          "valid_root": 2
+        }
+      }
+    },
+    {
+      "id": 8836,
+      "name": "The Groundlings Theatre & School",
+      "visible": true,
+      "all_history": {
+        "shows": 270,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 3,
+        "missing_lineups": 267,
+        "lineup_coverage": 0.011111111111111112,
+        "blocked_only_shows": 3,
+        "majority_blocked_shows": 3,
+        "appearances": 3,
+        "blocked_appearances": 3,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 3,
+        "raw_blocked_appearances": 3,
+        "block_reason_appearances": {
+          "not a comic": 3
+        },
+        "resolution_states": {
+          "blocked_root": 3
+        }
+      },
+      "upcoming": {
+        "shows": 98,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 98,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 9064,
+      "name": "Timothy O'Toole's Pub Chicago",
+      "visible": true,
+      "all_history": {
+        "shows": 16,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 15,
+        "lineup_coverage": 0.0625,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 3,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 3,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 9080,
+      "name": "Cole's Bar",
+      "visible": true,
+      "all_history": {
+        "shows": 30,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 29,
+        "lineup_coverage": 0.03333333333333333,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 12,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 12,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11086,
+      "name": "Endgames Improv Theater",
+      "visible": true,
+      "all_history": {
+        "shows": 97,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 95,
+        "lineup_coverage": 0.020618556701030927,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 2,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "not a comic": 2
+        },
+        "resolution_states": {
+          "blocked_root": 2
+        }
+      },
+      "upcoming": {
+        "shows": 40,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 40,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11093,
+      "name": "Pan Theater",
+      "visible": true,
+      "all_history": {
+        "shows": 8,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 8,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 8,
+        "majority_blocked_shows": 8,
+        "appearances": 8,
+        "blocked_appearances": 8,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 8,
+        "raw_blocked_appearances": 8,
+        "block_reason_appearances": {
+          "not a comic": 8
+        },
+        "resolution_states": {
+          "blocked_root": 8
+        }
+      },
+      "upcoming": {
+        "shows": 0,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 0,
+        "lineup_coverage": null,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11113,
+      "name": "Sacramento Comedy Spot",
+      "visible": true,
+      "all_history": {
+        "shows": 134,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 133,
+        "lineup_coverage": 0.007462686567164179,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 63,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 63,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11114,
+      "name": "STAB! Comedy Theater",
+      "visible": true,
+      "all_history": {
+        "shows": 254,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 4,
+        "missing_lineups": 250,
+        "lineup_coverage": 0.015748031496062992,
+        "blocked_only_shows": 4,
+        "majority_blocked_shows": 4,
+        "appearances": 4,
+        "blocked_appearances": 4,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 3,
+        "blocked_distinct_performers": 3,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 4,
+        "raw_blocked_appearances": 4,
+        "block_reason_appearances": {
+          "not a comic": 4
+        },
+        "resolution_states": {
+          "blocked_root": 4
+        }
+      },
+      "upcoming": {
+        "shows": 116,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 116,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11300,
+      "name": "Flipside Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 43,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 41,
+        "lineup_coverage": 0.046511627906976744,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 2,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 2,
+        "blocked_distinct_performers": 2,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 1,
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 2
+        }
+      },
+      "upcoming": {
+        "shows": 7,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 7,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11304,
+      "name": "What If Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 71,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 70,
+        "lineup_coverage": 0.014084507042253521,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 10,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 10,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11437,
+      "name": "The Dinner Detective Minneapolis",
+      "visible": true,
+      "all_history": {
+        "shows": 16,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 3,
+        "missing_lineups": 13,
+        "lineup_coverage": 0.1875,
+        "blocked_only_shows": 3,
+        "majority_blocked_shows": 3,
+        "appearances": 3,
+        "blocked_appearances": 3,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 3,
+        "raw_blocked_appearances": 3,
+        "block_reason_appearances": {
+          "not a comic": 3
+        },
+        "resolution_states": {
+          "blocked_root": 3
+        }
+      },
+      "upcoming": {
+        "shows": 8,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 8,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11441,
+      "name": "Baltimore Improv Group",
+      "visible": true,
+      "all_history": {
+        "shows": 160,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 159,
+        "lineup_coverage": 0.00625,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "Event, class, workshop, non-comedy entity, or scraped prose misclassified as a comedian; preserve shows and other cast.": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 37,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 37,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11447,
+      "name": "The Dinner Detective Cincinnati",
+      "visible": true,
+      "all_history": {
+        "shows": 11,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 9,
+        "lineup_coverage": 0.18181818181818182,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 2,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "not a comic": 2
+        },
+        "resolution_states": {
+          "blocked_root": 2
+        }
+      },
+      "upcoming": {
+        "shows": 6,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 6,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11454,
+      "name": "Sick Puppies Comedy",
+      "visible": true,
+      "all_history": {
+        "shows": 56,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 55,
+        "lineup_coverage": 0.017857142857142856,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 23,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 23,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 11727,
+      "name": "Black Paws Brewing Company",
+      "visible": true,
+      "all_history": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 1,
+        "lineup_coverage": 0.5,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 1,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 1,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 15972,
+      "name": "Fallout Theater",
+      "visible": true,
+      "all_history": {
+        "shows": 346,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 15,
+        "missing_lineups": 331,
+        "lineup_coverage": 0.04335260115606936,
+        "blocked_only_shows": 7,
+        "majority_blocked_shows": 7,
+        "appearances": 19,
+        "blocked_appearances": 11,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.5789473684210527,
+        "distinct_performers": 12,
+        "blocked_distinct_performers": 5,
+        "blocked_distinct_ratio": 0.4166666666666667,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 19,
+        "raw_blocked_appearances": 11,
+        "block_reason_appearances": {
+          "not a comic": 11
+        },
+        "resolution_states": {
+          "blocked_root": 11,
+          "valid_root": 8
+        }
+      },
+      "upcoming": {
+        "shows": 128,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 5,
+        "missing_lineups": 123,
+        "lineup_coverage": 0.0390625,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 5,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 0.0,
+        "distinct_performers": 4,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": 0.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 5,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {
+          "valid_root": 5
+        }
+      }
+    },
+    {
+      "id": 17539,
+      "name": "Axe and Ale House",
+      "visible": true,
+      "all_history": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 1,
+        "missing_lineups": 1,
+        "lineup_coverage": 0.5,
+        "blocked_only_shows": 1,
+        "majority_blocked_shows": 1,
+        "appearances": 1,
+        "blocked_appearances": 1,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 1,
+        "raw_blocked_appearances": 1,
+        "block_reason_appearances": {
+          "not a comic": 1
+        },
+        "resolution_states": {
+          "blocked_root": 1
+        }
+      },
+      "upcoming": {
+        "shows": 1,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 1,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 24485,
+      "name": "Samuel J Friedman Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 76,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 18,
+        "missing_lineups": 58,
+        "lineup_coverage": 0.23684210526315788,
+        "blocked_only_shows": 18,
+        "majority_blocked_shows": 18,
+        "appearances": 18,
+        "blocked_appearances": 18,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 18,
+        "raw_blocked_appearances": 18,
+        "block_reason_appearances": {
+          "hidden_without_reason": 18
+        },
+        "resolution_states": {
+          "blocked_root": 18
+        }
+      },
+      "upcoming": {
+        "shows": 42,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 0,
+        "missing_lineups": 42,
+        "lineup_coverage": 0.0,
+        "blocked_only_shows": 0,
+        "majority_blocked_shows": 0,
+        "appearances": 0,
+        "blocked_appearances": 0,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": null,
+        "distinct_performers": 0,
+        "blocked_distinct_performers": 0,
+        "blocked_distinct_ratio": null,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 0,
+        "raw_blocked_appearances": 0,
+        "block_reason_appearances": {},
+        "resolution_states": {}
+      }
+    },
+    {
+      "id": 25542,
+      "name": "Ahmanson Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 32,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 32,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 32,
+        "majority_blocked_shows": 32,
+        "appearances": 32,
+        "blocked_appearances": 32,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 32,
+        "raw_blocked_appearances": 32,
+        "block_reason_appearances": {
+          "not a comic": 32
+        },
+        "resolution_states": {
+          "blocked_root": 32
+        }
+      },
+      "upcoming": {
+        "shows": 32,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 32,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 32,
+        "majority_blocked_shows": 32,
+        "appearances": 32,
+        "blocked_appearances": 32,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 32,
+        "raw_blocked_appearances": 32,
+        "block_reason_appearances": {
+          "not a comic": 32
+        },
+        "resolution_states": {
+          "blocked_root": 32
+        }
+      }
+    },
+    {
+      "id": 25552,
+      "name": "CIBC Theatre",
+      "visible": true,
+      "all_history": {
+        "shows": 24,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 24,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 24,
+        "majority_blocked_shows": 24,
+        "appearances": 24,
+        "blocked_appearances": 24,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 24,
+        "raw_blocked_appearances": 24,
+        "block_reason_appearances": {
+          "not a comic": 24
+        },
+        "resolution_states": {
+          "blocked_root": 24
+        }
+      },
+      "upcoming": {
+        "shows": 24,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 24,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 24,
+        "majority_blocked_shows": 24,
+        "appearances": 24,
+        "blocked_appearances": 24,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 24,
+        "raw_blocked_appearances": 24,
+        "block_reason_appearances": {
+          "not a comic": 24
+        },
+        "resolution_states": {
+          "blocked_root": 24
+        }
+      }
+    },
+    {
+      "id": 38212,
+      "name": "Paramount Theatre-Charlottesville",
+      "visible": true,
+      "all_history": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 2,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "not a comic": 2
+        },
+        "resolution_states": {
+          "blocked_root": 2
+        }
+      },
+      "upcoming": {
+        "shows": 2,
+        "cancelled_shows": 0,
+        "shows_with_lineups": 2,
+        "missing_lineups": 0,
+        "lineup_coverage": 1.0,
+        "blocked_only_shows": 2,
+        "majority_blocked_shows": 2,
+        "appearances": 2,
+        "blocked_appearances": 2,
+        "unknown_appearances": 0,
+        "blocked_appearance_ratio": 1.0,
+        "distinct_performers": 1,
+        "blocked_distinct_performers": 1,
+        "blocked_distinct_ratio": 1.0,
+        "unblocked_is_not_verified_comedy": true,
+        "rescued_alias_appearances": 0,
+        "raw_appearances": 2,
+        "raw_blocked_appearances": 2,
+        "block_reason_appearances": {
+          "not a comic": 2
+        },
+        "resolution_states": {
+          "blocked_root": 2
+        }
+      }
+    }
+  ],
+  "harvelles": {
+    "id": 475,
+    "name": "Harvelle's Santa Monica",
+    "visible": true,
+    "all_history": {
+      "shows": 248,
+      "cancelled_shows": 0,
+      "shows_with_lineups": 40,
+      "missing_lineups": 208,
+      "lineup_coverage": 0.16129032258064516,
+      "blocked_only_shows": 9,
+      "majority_blocked_shows": 13,
+      "appearances": 68,
+      "blocked_appearances": 27,
+      "unknown_appearances": 0,
+      "blocked_appearance_ratio": 0.39705882352941174,
+      "distinct_performers": 58,
+      "blocked_distinct_performers": 26,
+      "blocked_distinct_ratio": 0.4482758620689655,
+      "unblocked_is_not_verified_comedy": true,
+      "rescued_alias_appearances": 0,
+      "raw_appearances": 68,
+      "raw_blocked_appearances": 27,
+      "block_reason_appearances": {
+        "not a comic": 27
+      },
+      "resolution_states": {
+        "blocked_root": 27,
+        "valid_root": 41
+      }
+    },
+    "upcoming": {
+      "shows": 51,
+      "cancelled_shows": 0,
+      "shows_with_lineups": 8,
+      "missing_lineups": 43,
+      "lineup_coverage": 0.1568627450980392,
+      "blocked_only_shows": 0,
+      "majority_blocked_shows": 0,
+      "appearances": 14,
+      "blocked_appearances": 0,
+      "unknown_appearances": 0,
+      "blocked_appearance_ratio": 0.0,
+      "distinct_performers": 14,
+      "blocked_distinct_performers": 0,
+      "blocked_distinct_ratio": 0.0,
+      "unblocked_is_not_verified_comedy": true,
+      "rescued_alias_appearances": 0,
+      "raw_appearances": 14,
+      "raw_blocked_appearances": 0,
+      "block_reason_appearances": {},
+      "resolution_states": {
+        "valid_root": 14
+      }
+    }
+  },
+  "rescued_venue_count": 75
+}
