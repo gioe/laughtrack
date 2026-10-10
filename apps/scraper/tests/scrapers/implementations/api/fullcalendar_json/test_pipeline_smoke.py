@@ -281,6 +281,9 @@ def persistence(request, monkeypatch):
                 return [dict(r) for r in cur.fetchall()]
         return [dict(r) for r in rows]
 
+    # This storage fixture tests event identity after admission; gate contracts
+    # cover the public boundary with explicit source policy snapshots.
+    monkeypatch.setattr(handler, "_process_single_batch", handler._process_screened_batch)
     monkeypatch.setattr(handler, "transaction", transaction)
     monkeypatch.setattr(handler, "execute_with_cursor", execute)
     monkeypatch.setattr(handler, "execute_batch_operation", batch)

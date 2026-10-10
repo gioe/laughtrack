@@ -383,7 +383,11 @@ class TicketmasterClient(BaseApiClient):
                 }
             )
 
-            return Show.create(**show_data)
+            show = Show.create(**show_data)
+            from laughtrack.core.comedy_eligibility_gate import capture_event_inputs
+
+            capture_event_inputs(show, event_data)
+            return show
 
         except Exception as e:
             self.log_error(f"Error creating show from Ticketmaster API data: {e}")

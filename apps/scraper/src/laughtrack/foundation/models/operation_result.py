@@ -17,6 +17,8 @@ class DatabaseOperationResult:
     # Additional diagnostics
     validation_errors: int = 0
     db_errors: int = 0
+    eligibility_withheld: int = 0
+    reconciliation_safe: bool = True
     # Related-entity write counts
     comedians_inserted: int = 0
     lineup_items_added: int = 0
@@ -34,6 +36,8 @@ class DatabaseOperationResult:
             errors=self.errors + other.errors,
             validation_errors=self.validation_errors + other.validation_errors,
             db_errors=self.db_errors + other.db_errors,
+            eligibility_withheld=self.eligibility_withheld + other.eligibility_withheld,
+            reconciliation_safe=self.reconciliation_safe and other.reconciliation_safe,
             comedians_inserted=self.comedians_inserted + other.comedians_inserted,
             lineup_items_added=self.lineup_items_added + other.lineup_items_added,
             duplicate_details=self.duplicate_details + other.duplicate_details,

@@ -73,6 +73,7 @@ class ClubScrapingResult:
     # config drift (unmerged module, renamed key, gitignored file) from a
     # legitimate zero-shows scrape so the entry script can exit non-zero.
     config_error: bool = False
+    eligibility_source_id: Optional[int] = None
     # Distinct (original_host, final_host) pairs that triggered a cross-host
     # redirect WARN during this club's scrape (TASK-2562 emits the per-scrape
     # WARN, deduped via ScrapeDiagnostics). Propagated up so the run-end

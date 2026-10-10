@@ -241,6 +241,8 @@ async def test_persist_in_chunks_batches_by_chunk_size(platform_club):
     shows = [MagicMock(spec=Show) for _ in range(5)]
 
     with patch("laughtrack.core.entities.show.service.ShowService") as MockService:
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+        MockService.return_value.insert_shows.side_effect = lambda chunk, **kwargs: DatabaseOperationResult(total=len(chunk))
         persisted = await scraper._persist_in_chunks(shows)
 
     insert = MockService.return_value.insert_shows

@@ -887,7 +887,10 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         # Process tickets, tags, and lineups through their handlers
         self.ticket_handler.insert_tickets(updated_shows)
         self.tag_handler.process_show_tags(updated_shows)
-        comedians_inserted, lineup_items_added = self.update_show_lineups(updated_shows)
+        comedians_inserted, lineup_items_added = self._update_screened_show_lineups(updated_shows)
+        written = {(row["id"], Show.key_from_db_row(row)) for row in results if row.get("id")}
+        for show in updated_shows:
+            show.eligibility_persisted = (show.id, show.to_unique_key()) in written
 
         return updated_shows, comedians_inserted, lineup_items_added
 
@@ -916,6 +919,15 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         return results
 
     def _process_single_batch(self, batch: List[Show], fullcalendar_context=None) -> DatabaseOperationResult:
+        from laughtrack.core.comedy_eligibility_gate import EligibilityGate
+
+        with EligibilityGate(self.transaction).screen(batch) as screened:
+            result = self._process_screened_batch(screened.shows, fullcalendar_context=fullcalendar_context)
+        result.eligibility_withheld += screened.withheld
+        result.reconciliation_safe = result.reconciliation_safe and screened.reconciliation_safe
+        return result
+
+    def _process_screened_batch(self, batch: List[Show], fullcalendar_context=None) -> DatabaseOperationResult:
         """Process a single batch of shows.
 
         Args:
@@ -1219,6 +1231,17 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 show.lineup = deduped
 
     def update_show_lineups(self, shows: List[Show]) -> Tuple[int, int]:
+        """Public lineup-only entry point uses the same eligibility fence."""
+        from laughtrack.core.comedy_eligibility_gate import EligibilityGate
+
+        with EligibilityGate(self.transaction).screen(shows) as screened:
+            result = self._update_screened_show_lineups(screened.shows)
+            for show in screened.shows:
+                if hasattr(show, "eligibility_persisted"):
+                    show.eligibility_persisted = show.id is not None
+        return result
+
+    def _update_screened_show_lineups(self, shows: List[Show]) -> Tuple[int, int]:
         """Update lineups for shows with full processing including comedian popularity updates.
 
         Args:

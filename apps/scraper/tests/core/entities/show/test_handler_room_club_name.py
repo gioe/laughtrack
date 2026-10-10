@@ -41,7 +41,7 @@ def _handler(club_rows):
     )
     h.ticket_handler.insert_tickets.return_value = None
     h.tag_handler.process_show_tags.return_value = None
-    h.update_show_lineups = MagicMock(return_value=(0, 0))
+    h._update_screened_show_lineups = MagicMock(return_value=(0, 0))
 
     def fake_exec(query, params=None, return_results=False):
         if query is ShowQueries.GET_CLUB_NAMES_BY_IDS:
@@ -49,6 +49,8 @@ def _handler(club_rows):
         return []
 
     h.execute_with_cursor = MagicMock(side_effect=fake_exec)
+    # Isolate writer identity rules; gate contracts exercise the public boundary.
+    h._process_single_batch = h._process_screened_batch
     return h
 
 

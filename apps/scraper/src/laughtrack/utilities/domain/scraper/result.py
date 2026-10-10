@@ -68,7 +68,13 @@ class ScrapingResultProcessor:
                 scraper_key=club_result.scraper_key,
             )
 
-        if club_result.cancellations:
+        from laughtrack.core.comedy_eligibility_gate import safe_to_reconcile
+
+        if (
+            club_result.cancellations
+            and db_result.reconciliation_safe
+            and safe_to_reconcile(self.show_service.show_handler, club_result)
+        ):
             try:
                 if any(
                     intent.scraper_key != club_result.scraper_key
@@ -86,7 +92,7 @@ class ScrapingResultProcessor:
 
         # A successful fetch is insufficient when persistence rejected part of
         # that inventory. Those untouched rows are not evidence of cancellation.
-        if db_result.errors or db_result.db_errors or db_result.validation_errors:
+        if not db_result.reconciliation_safe or db_result.errors or db_result.db_errors or db_result.validation_errors:
             Logger.warn(
                 f"Skipping stale-show cleanup for '{club_result.club_name}': "
                 "persistence reported errors or ambiguous event identities"
@@ -111,6 +117,10 @@ class ScrapingResultProcessor:
         the upsert re-creates a show on a later clean scrape if the source brings
         it back (self-healing).
         """
+        from laughtrack.core.comedy_eligibility_gate import safe_to_reconcile
+
+        if not safe_to_reconcile(self.show_service.show_handler, club_result):
+            return
         if club_result.scraper_key == "eventbrite":
             # The live/public API excludes private, unpublished and otherwise
             # unresolved events. Even complete pagination cannot establish that

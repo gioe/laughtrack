@@ -25,7 +25,9 @@ def _handler():
     )
     h.ticket_handler.insert_tickets.return_value = None
     h.tag_handler.process_show_tags.return_value = None
-    h.update_show_lineups = MagicMock(return_value=(0, 0))
+    h._update_screened_show_lineups = MagicMock(return_value=(0, 0))
+    # Isolate writer identity rules; gate contracts exercise the public boundary.
+    h._process_single_batch = h._process_screened_batch
     return h
 
 

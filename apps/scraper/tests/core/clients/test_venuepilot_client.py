@@ -81,6 +81,8 @@ def test_create_show_extracts_artists_into_lineup(monkeypatch):
 
     assert show is not None
     assert show.lineup == ["Alice Smith", "Bob Jones"]
+    assert show.eligibility_performer_names == ["Alice Smith", "Bob Jones"]
+    assert show.eligibility_raw_performers_preserved is False
 
 
 def test_create_show_empty_artists_yields_empty_lineup(monkeypatch):

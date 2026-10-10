@@ -64,6 +64,9 @@ class ShowTransformationPipeline:
                     if transformer.can_transform(event_data):
                         transformer_show = transformer.transform_to_show(event_data)
                         if transformer_show is not None:
+                            from laughtrack.core.comedy_eligibility_gate import capture_event_inputs
+
+                            capture_event_inputs(transformer_show, event_data)
                             shows.append(transformer_show)
                             self._warn_if_ticketless(transformer_show)
                         else:

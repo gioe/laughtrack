@@ -8,6 +8,13 @@ from laughtrack.core.models.results import ClubScrapingResult
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 
 
+@pytest.fixture(autouse=True)
+def isolate_source_ownership_guard(monkeypatch):
+    # This suite exercises the legacy clean-scrape/cap/organizer algorithm.
+    # The real source-ownership guard is covered by eligibility gate contracts.
+    monkeypatch.setattr("laughtrack.core.comedy_eligibility_gate.safe_to_reconcile", lambda handler, result: True)
+
+
 def _make_processor():
     from laughtrack.utilities.domain.scraper.result import ScrapingResultProcessor
 

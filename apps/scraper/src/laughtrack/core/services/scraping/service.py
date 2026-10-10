@@ -996,6 +996,10 @@ class ScrapingService:
                 result, timed_out = await self._fetch_club_result(
                     run, club, attempt_club, scraper, key, per_club_timeout
                 )
+                from laughtrack.core.comedy_eligibility_gate import stamp_source
+
+                result.eligibility_source_id = source.id
+                stamp_source(result.shows, source)
                 last_result = result
                 if timed_out:
                     continue

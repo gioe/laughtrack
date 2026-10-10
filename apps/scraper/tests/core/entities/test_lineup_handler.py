@@ -515,7 +515,7 @@ class TestUpdateShowsAndRelatedCallsLineup:
         h.tag_handler.process_show_tags.side_effect = lambda *a, **kw: call_order.append("tags")
 
         shows = [MagicMock(), MagicMock()]
-        results = [MagicMock(), MagicMock()]
+        results = []
 
         # Patch ShowUtils.update_shows_with_results to return our shows
         with patch.object(
@@ -523,7 +523,7 @@ class TestUpdateShowsAndRelatedCallsLineup:
             "update_shows_with_results",
             return_value=shows,
         ):
-            with patch.object(h, "update_show_lineups") as mock_lineup:
+            with patch.object(h, "_update_screened_show_lineups") as mock_lineup:
                 mock_lineup.side_effect = lambda *a, **kw: (call_order.append("lineups"), (0, 0))[1]
                 h._update_shows_and_related(shows, results)
 
@@ -542,9 +542,9 @@ class TestUpdateShowsAndRelatedCallsLineup:
             "update_shows_with_results",
             return_value=updated,
         ):
-            with patch.object(h, "update_show_lineups", return_value=(3, 7)) as mock_lineup:
+            with patch.object(h, "_update_screened_show_lineups", return_value=(3, 7)) as mock_lineup:
                 result_shows, comedians_inserted, lineup_items_added = h._update_shows_and_related(
-                    [MagicMock()], [MagicMock()]
+                    [MagicMock()], []
                 )
                 mock_lineup.assert_called_once_with(updated)
                 assert result_shows == updated, "_update_shows_and_related must return the updated shows list"
@@ -727,6 +727,8 @@ def _make_show_stub(show_id: int, comedians):
     s.id = show_id
     s.name = f"Show {show_id}"
     s.lineup = list(comedians)
+    s.eligibility_source_id = None
+    s.last_scraped_by = None
     return s
 
 

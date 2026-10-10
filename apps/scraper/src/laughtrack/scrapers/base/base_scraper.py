@@ -736,6 +736,10 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             try:
                 Logger.info(f"{self._log_prefix}: Starting scrape", self.logger_context)
                 shows = self.scrape()
+                from laughtrack.core.comedy_eligibility_gate import stamp_source
+
+                source = self.club.active_scraping_source
+                stamp_source(shows, source)
                 execution_time = (datetime.now() - start_time).total_seconds()
 
                 Logger.info(
@@ -780,6 +784,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
 
                 return ClubScrapingResult(
                     club_name=self.club.name,
+                    eligibility_source_id=getattr(self.club.active_scraping_source, "id", None),
                     shows=shows,
                     execution_time=execution_time,
                     error="; ".join(error_parts) if error_parts else None,
@@ -817,6 +822,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
 
                 return ClubScrapingResult(
                     club_name=self.club.name,
+                    eligibility_source_id=getattr(self.club.active_scraping_source, "id", None),
                     shows=[],
                     execution_time=execution_time,
                     error=error_msg,

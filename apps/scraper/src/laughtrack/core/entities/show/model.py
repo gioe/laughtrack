@@ -49,6 +49,14 @@ class Show(DatabaseEntity):
     # Default preserves title-based enrichment for existing producers.
     infer_lineup_from_title: bool = True
 
+    # Scrape-local provenance, never written to public shows columns.
+    eligibility_source_id: Optional[int] = None
+    eligibility_persisted: bool = False
+    eligibility_raw_performers_preserved: bool = False
+    eligibility_gate_mode: Optional[str] = None
+    eligibility_evidence: List[dict] = field(default_factory=list)
+    eligibility_performer_names: Optional[List[str]] = None
+
     def __post_init__(self) -> None:
         """Argument-level validation and light normalization for Show instances.
 
@@ -56,6 +64,20 @@ class Show(DatabaseEntity):
         entities don't enter the system. Cross-record validations remain
         at the persistence layer.
         """
+        if self.eligibility_performer_names is None:
+            raw_names = getattr(self.lineup, "raw_performer_names", None)
+            if raw_names is not None:
+                self.eligibility_performer_names = list(raw_names)
+                self.eligibility_raw_performers_preserved = True
+            else:
+                self.eligibility_performer_names = [
+                    name
+                    for c in self.lineup
+                    if isinstance(name := c if isinstance(c, str) else getattr(c, "name", None), str)
+                    and name.strip()
+                ] or None
+            # Partial upstream lineups never establish affirmative comedy.
+
         # Normalize simple string fields. Decode HTML entities first
         # (e.g. &amp; → &, &#8211; → –, &nbsp; → U+00A0) so the whitespace
         # normalizer can collapse decoded NBSPs alongside other whitespace.

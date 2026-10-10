@@ -208,6 +208,14 @@ def _is_valid_lineup_name(name: Optional[str]) -> bool:
     return True
 
 
+class ObservedLineup(list):
+    """Carry raw performer observations through filtering until Show construction."""
+
+    def __init__(self):
+        super().__init__()
+        self.raw_performer_names = []
+
+
 class ShowFactoryUtils:
     """Utilities for standardizing Show creation from various event types."""
 
@@ -304,7 +312,7 @@ class ShowFactoryUtils:
         if not performers:
             return []
 
-        lineup = []
+        lineup = ObservedLineup()
         for performer in performers:
             try:
                 # Handle different performer formats
@@ -318,6 +326,8 @@ class ShowFactoryUtils:
                     Logger.warning(f"Unknown performer format: {performer}")
                     continue
 
+                if isinstance(name, str) and name.strip():
+                    lineup.raw_performer_names.append(name.strip())
                 if name and _is_valid_lineup_name(name):
                     lineup.append(Comedian(name=name.strip()))
             except Exception as e:
@@ -482,7 +492,7 @@ class ShowFactoryUtils:
         ShowFactoryUtils.validate_required_fields(name, date, club.id)
 
         # Apply defaults
-        lineup = lineup or []
+        lineup = lineup if lineup is not None else []
         tickets = tickets or []
         supplied_tags = supplied_tags or ["event"]
         room = room or ""

@@ -123,17 +123,20 @@ class TicketmasterNationalScraper(BaseScraper):
 
         from laughtrack.core.entities.show.service import ShowService
 
+        from laughtrack.core.comedy_eligibility_gate import stamp_source
+
+        stamp_source(shows, self._club.active_scraping_source)
         service = ShowService()
         loop = asyncio.get_running_loop()
         persisted = 0
         for start in range(0, len(shows), self._PERSIST_CHUNK_SIZE):
             chunk = shows[start : start + self._PERSIST_CHUNK_SIZE]
             try:
-                await loop.run_in_executor(
+                result = await loop.run_in_executor(
                     None,
                     lambda c=chunk: service.insert_shows(c, club_name=self._club.name, scraper_key=self.key),
                 )
-                persisted += len(chunk)
+                persisted += result.total
                 Logger.info(
                     f"{self._log_prefix}: persisted {persisted}/{len(shows)} shows",
                     self.logger_context,

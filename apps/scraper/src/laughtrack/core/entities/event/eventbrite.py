@@ -272,6 +272,14 @@ class EventbriteEvent(ShowConvertible):
                 popularity=0.0,
             )
 
+            show.eligibility_performer_names = list(self.performers) if self.performers is not None else None
+            show.eligibility_raw_performers_preserved = self.performers is not None
+            if self.subcategory_id in _COMEDY_SUBCATEGORY_IDS:
+                show.eligibility_evidence.append({
+                    "kind": "comedy",
+                    "provenance": "event_category",
+                    "detail": f"Eventbrite comedy subcategory {self.subcategory_id}",
+                })
             return show
 
         except Exception as e:
