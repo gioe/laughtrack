@@ -1,0 +1,28 @@
+name: Apply admin event reviews
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: comedy-admin-reviews
+  cancel-in-progress: false
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/scraper
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/scraper-setup
+      - name: Apply reviewed event requests
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        run: python -m scripts.core.process_comedy_admin_reviews --limit 100

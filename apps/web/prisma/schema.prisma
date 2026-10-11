@@ -180,6 +180,7 @@ model ScrapingSource {
 }
 
 model ComedyEventCandidate {
+  adminReviewRequests ComedyAdminReviewRequest[]
   reviewVersion         Int                      @default(0) @map("review_version")
   observations          ComedyEventObservation[]
   reviews               ComedyEventReview[]
@@ -1531,4 +1532,23 @@ model ComedySourceTransition {
 
   @@index([sourceId, id], map: "comedy_source_transitions_history_idx")
   @@map("comedy_source_transitions")
+}
+
+// Admin commands are consumed by Python ReviewStore, never by public persistence.
+model ComedyAdminReviewRequest {
+  id String @id
+  candidateId Int @map("candidate_id")
+  actor String
+  action String
+  reason String
+  snapshot Json
+  status String @default("pending")
+  result Json?
+  error String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+  candidate ComedyEventCandidate @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+
+  @@index([candidateId, createdAt], map: "comedy_admin_review_requests_candidate_idx")
+  @@map("comedy_admin_review_requests")
 }

@@ -1,4 +1,5 @@
 export const PGLITE_TEST_FILES = [
+    "lib/admin/eventReviews.test.ts",
     "app/api/admin/podcast-ownership-reviews/route.test.ts",
     "lib/data/home/getAffinityRails.test.ts",
     "lib/data/home/getFreshAndRisingRails.test.ts",
