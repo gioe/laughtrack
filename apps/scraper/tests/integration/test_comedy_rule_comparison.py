@@ -198,6 +198,25 @@ def test_read_only_evidence_report(versioned):
                    for path in run["imported_source_sha256"])
 
 
+def test_native_group_denominators_do_not_promote_fallback_keys():
+    native = supported_row()
+    repeated_native = copy.deepcopy(native)
+    repeated_native["public_show_id"] = 92
+    fallback = copy.deepcopy(native)
+    fallback["public_show_id"] = 93
+    fallback["source_evidence"]["publication_candidates"][0]["event_key"] = "fallback:hash"
+    unresolved = copy.deepcopy(native)
+    unresolved["public_show_id"] = 94
+    unresolved["source_evidence"] = {"status": "unresolved", "publication_candidates": [],
+                                      "source_performance_id": "known-provider-id-without-owner"}
+    result = comparison.row_denominators([native, repeated_native, fallback, unresolved])
+    assert result["shows"] == 4
+    assert result["resolved_source_event_groups"] == 2
+    assert result["resolved_native_groups"] == 1
+    assert result["unresolved_native_group_occurrences"] == 2
+    assert result["native_identifier_occurrences"] == 1
+
+
 @pytest.mark.parametrize("attempt,message", [
     ("import socket; socket.create_connection(('example.com', 443))", "forbids network"),
     ("import psycopg2; psycopg2.connect('dbname=should_never_connect')", "forbids network"),

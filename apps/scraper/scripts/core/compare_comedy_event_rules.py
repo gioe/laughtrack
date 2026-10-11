@@ -262,13 +262,17 @@ def replay(corpus, *, revisions=REVISIONS, diagnostic=False, ablations=False):
 
 
 def row_denominators(records):
-    native = {(source_identity(row)["source_id"], source_identity(row)["event_key"]) for row in records
-              if source_identity(row)["source_id"] is not None and source_identity(row)["event_key"]}
+    identities = [source_identity(row) for row in records]
+    resolved = {(identity["source_id"], identity["event_key"]) for identity in identities
+                if identity["source_id"] is not None and identity["event_key"]}
+    native = {(source, key) for source, key in resolved if key.startswith("native:")}
     return {"shows": len(records),
             "venue_title_groups": len({(row["context"]["club_id"], row["event_evidence"]["title"]) for row in records}),
+            "resolved_source_event_groups": len(resolved),
             "resolved_native_groups": len(native),
-            "unresolved_native_group_occurrences": sum(source_identity(row)["source_id"] is None
-                                                        or not source_identity(row)["event_key"] for row in records),
+            "unresolved_native_group_occurrences": sum(identity["source_id"] is None
+                                                        or not (identity["event_key"] or "").startswith("native:")
+                                                        for identity in identities),
             "native_identifier_occurrences": sum(bool(source_identity(row)["source_performance_id"]) for row in records)}
 
 
