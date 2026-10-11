@@ -157,7 +157,7 @@ def test_rule_decision_integration(monkeypatch):
         return classify_comedy_eligibility(source_id=7, policy=kwargs.pop("policy", SourceComedyPolicy()),
                                            evidence=event_evidence(show), **kwargs)
 
-    assert CLASSIFIER_VERSION == "comedy-eligibility-v2-rules-v2"
+    assert CLASSIFIER_VERSION == "comedy-eligibility-v2-rules-v3"
     positives = ["R&B Karaoke and Comedy Hosted by Monifah and Jamie Roberts",
                  "Fri Oct 16th Bingo + Comedy = Bingomedy! 8pm",
                  "The Comedy Studio's Tour of Harvard Square: A Comedic Historical Tour and Comedy Show",

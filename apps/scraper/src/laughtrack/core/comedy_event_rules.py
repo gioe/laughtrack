@@ -142,6 +142,12 @@ RULE_REASONS.update({
 })
 RULE_VERSIONS = {family: RULE_VERSION for family in ("non_public", "unrelated_activity")}
 RULE_VERSIONS.update({family: CONTEXT_RULE_VERSION for family in ("event_format", "comedy_format")})
+AUDIENCE_RULE_VERSION = "comedy-audience-formats-v1"
+RULE_REASONS.update({
+    "audience_format": frozenset({"live_performance", "screening", "instruction", "mixer", "ambiguous"}),
+    "audience_content": frozenset({"comedy_instruction", "comedy_screening", "comedy_performance"}),
+})
+RULE_VERSIONS.update({family: AUDIENCE_RULE_VERSION for family in ("audience_format", "audience_content")})
 
 
 def normalized_rule_text(text: str) -> str:
@@ -320,4 +326,125 @@ def context_description_evidence(text: str, url: str) -> list[RuleEvidence]:
                                      positive_allowed=description_comedy_is_offered(checked)):
             if item not in result:
                 result.append(item)
+    return result
+
+
+_AUDIENCE_LIVE = re.compile(
+    r"\b(?:(?:graduation|grad(?:uation)? revue|student|class)\s+(?:comedy\s+)?(?:shows?|showcases?|performances?)"
+    r"|(?:shows?|showcases?)\s*:\s*(?:improv|stand[ -]?up|class|graduation)"
+    r"|(?:improv|stand[ -]?up|comedy)\s+(?:class\s+)?showcases?"
+    r"|(?:improv|stand[ -]?up|comedy)(?:\s+comedy)?\s+graduation"
+    r"|(?:improvised|improvisational)\s+(?:movie|film|comedy|theatre|theater)\s+(?:show|performance)"
+    r"|(?:live\s+)?(?:stand[ -]?up|comedy|improv|sketch comedy)\s+(?:show|performance|theatre|theater)"
+    r"|(?:musical|music) improv(?:isation)? (?:show|jam|performance))\b", re.I,
+)
+_AUDIENCE_SCREEN = re.compile(
+    r"\b(?:(?:(?:movie|film|television|tv|comedy)\s+)?screening"
+    r"|(?:classic\s+)?movie nights?|(?:movie|film|television|tv)\s+(?:viewing|watch party)"
+    r"|watch(?:ing)?\s+(?:a |the )?(?:movie|film|television|tv))\b", re.I,
+)
+_AUDIENCE_CLASS = re.compile(
+    r"\b(?:(?:(?:stand[ -]?up|comedy|improv)(?:\s+(?:comedy|writing))?\s+(?:level\s+\d+\s+)?)class(?:es)?"
+    r"|(?:intro(?:duction)? to |drop-in |beginner(?:s)? )(?:(?:stand[ -]?up|comedy|improv)\s+)?class(?:es)?"
+    r"|(?:class|course)\s+(?:enrollment|registration)|(?:enroll|register|sign up)\s+(?:now\s+)?(?:for|in)\s+(?:a |the |our )?(?:class|course|workshop)"
+    r"|(?:comedy|improv|stand[ -]?up)\s+course)\b", re.I,
+)
+_AUDIENCE_WORKSHOP = re.compile(r"\bworkshops?\b", re.I)
+_AUDIENCE_MIXER = re.compile(r"\b(?:corporate|business|networking) mixer\b", re.I)
+_AUDIENCE_VARIETY = re.compile(r"\b(?:variety|drag|burlesque|magic)\s+(?:show|night|performance)\b", re.I)
+_COMEDY_STUDY = re.compile(
+    r"\b(?:stand[ -]?up(?: comedy)?|comedy(?: writing)?|improv)\s+(?:level\s+\d+\s+)?(?:class(?:es)?|course|workshop)\b"
+    r"|\b(?:class|workshop|course) teaches (?:stand[ -]?up|comedy|improv)\b", re.I,
+)
+_COMEDY_SCREEN = re.compile(r"\bcomedy (?:film|movie|screening)\b", re.I)
+_COMEDY_AUDIENCE_LIVE = re.compile(
+    r"\b(?:stand[ -]?up|comedy|improv)(?:\s+(?:comedy|level|\d+|class|student|university|workshoppe|graduation)){0,5}\s+(?:shows?|showcases?|performances?|graduation|theatre|theater)\b"
+    r"|\bimprovised (?:movie|film|comedy) (?:show|performance)\b"
+    r"|\b(?:music|musical) improv(?:isation)? (?:show|jam|performance)\b", re.I,
+)
+_CLASS_PERFORMANCE = re.compile(r"\b(?:class|workshoppe?)\s+(?:graduation\s+)?(?:shows?|showcases?)\b", re.I)
+
+
+def _audience_item(reason: str, provenance: str, detail: str, *, content: bool = False) -> RuleEvidence:
+    return {"kind": "comedy" if content else "audience_format", "provenance": provenance, "detail": detail,
+            "rule_family": "audience_content" if content else "audience_format",
+            "rule_version": AUDIENCE_RULE_VERSION, "rule_reason": reason}
+
+
+def _audience_matches(text: str, provenance: str, detail: str) -> list[RuleEvidence]:
+    live = _offered_positive_matches(_AUDIENCE_LIVE, text)
+    screen = list(_AUDIENCE_SCREEN.finditer(text))
+    classes = list(_AUDIENCE_CLASS.finditer(text))
+    workshops = list(_AUDIENCE_WORKSHOP.finditer(text))
+    mixer = bool(_AUDIENCE_MIXER.search(text))
+    variety = bool(_AUDIENCE_VARIETY.search(text))
+    if not (live or screen or classes or workshops or mixer or variety):
+        return []
+    if unsafe_context(text) or _BIOGRAPHY.search(text):
+        return [_audience_item("ambiguous", provenance, detail)]
+    # Only a grammatical class-show phrase describes students performing.
+    # An unrelated performance in the same sentence cannot erase enrollment.
+    def performance_component(match):
+        return any(offered.start() < match.end() and match.start() < offered.end()
+                   for offered in _CLASS_PERFORMANCE.finditer(text))
+
+    classes = [match for match in classes if not performance_component(match)]
+    workshops = [match for match in workshops if not performance_component(match)]
+    instruction = bool(classes) or bool(workshops and re.search(
+        r"\b(?:learn|instruction|training|enroll|register|sign up|practice|skills|taught|teaches)\b", text, re.I))
+    formats = {"live_performance"} if live else set()
+    if screen:
+        formats.add("screening")
+    if instruction:
+        formats.add("instruction")
+    if mixer:
+        formats.add("mixer")
+    if (workshops and not instruction) or (variety and not live):
+        formats.add("ambiguous")
+    items = [_audience_item(reason, provenance, detail) for reason in sorted(formats)]
+    # Genre is a separate claim: generic screenings/classes do not establish it.
+    for pattern, reason, applies in (
+        (_COMEDY_STUDY, "comedy_instruction", instruction or workshops),
+        (_COMEDY_SCREEN, "comedy_screening", screen),
+        (_COMEDY_AUDIENCE_LIVE, "comedy_performance", live),
+    ):
+        if applies and _offered_positive_matches(pattern, text):
+            items.append(_audience_item(reason, provenance, detail, content=True))
+    return items
+
+
+def audience_title_evidence(title: object) -> list[RuleEvidence]:
+    if not isinstance(title, str) or not 1 <= len(title) <= 300:
+        return []
+    return _audience_matches(_context_subject(normalized_rule_text(title)), "event_billing", title)
+
+
+def audience_description_evidence(text: str, url: str) -> list[RuleEvidence]:
+    """Use only after validated_event_description; retain current-offering citations."""
+    if not isinstance(text, str) or not 1 <= len(text) <= 16000 or re.search(
+        r"\b(?:ignore|instructions|system prompt|classify|return (?:accept|reject))\b", text, re.I,
+    ):
+        return []
+    result = []
+    for sentence in re.split(r"(?<=[.!?;])\s+|[\r\n]+", text):
+        checked = normalized_rule_text(sentence.strip())
+        if not checked or len(checked) > 600:
+            continue
+        current = _CURRENT_OFFERING.match(checked)
+        instruction = re.match(
+            r"^(?:this (?:class|workshop|course) (?:is|offers|teaches)|(?:enroll|register|sign up) (?:for|in))\b",
+            checked, re.I,
+        )
+        if not (current or instruction):
+            continue
+        if current:
+            offering = checked[current.end():]
+            components = [offering, *re.split(r"\s+(?:and|with|alongside)\s+|\s*[,&+]\s*", offering, flags=re.I)]
+            patterns = (_AUDIENCE_LIVE, _AUDIENCE_SCREEN, _AUDIENCE_CLASS, _AUDIENCE_WORKSHOP,
+                        _AUDIENCE_MIXER, _AUDIENCE_VARIETY, _COMEDY_STUDY, _COMEDY_SCREEN,
+                        _COMEDY_AUDIENCE_LIVE)
+            if not any(pattern.match(re.sub(r"^(?:(?:a|an|live|free)\s+){0,3}", "", component, flags=re.I))
+                       for component in components for pattern in patterns):
+                continue
+        result.extend(_audience_matches(checked, "event_description", f"{url}\n{sentence.strip()}"))
     return result
