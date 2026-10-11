@@ -76,6 +76,13 @@ holdout observations nor compensates for a mixed source's failed guards.
    Maintain an append-only exposure ledger for subsequent batches. New native
    IDs for recurring titles are flagged as correlated series, not independent
    replications. Record excluded and eligible counts before sample selection.
+   Also exclude the entire exposed TASK-4166 search corpus, identified by
+   manifest SHA-256
+   `f6e6e5f11c069e81cb4331cb3884df3b9ceb47ce275db23722c92365a4936c28`.
+   Its source/native mappings are unresolved: reconcile source identity, venue,
+   title and recurring-series evidence conservatively before calling any new
+   native ID fresh. The daily collector's native-ID novelty count alone is not
+   sufficient to establish independence from that search corpus.
 3. Census a source with at most 60 eligible groups. Otherwise sort by earliest
    upcoming occurrence and native ID, split into three date-ordered thirds,
    and take 20 evenly spaced groups per third. Freeze selected IDs and raw
@@ -208,3 +215,31 @@ independent holdout or publication outcome. Fresh validation and enforcement
 criteria 13560/13561 remain incomplete. TASK-4161 is intended to collect unseen
 groups; scheduled collection is still pending and is not evidence that a fresh
 sample exists. The earlier frozen empty selection and thresholds remain intact.
+
+## Subsequent fresh collection check
+
+The collection-only [hosted run 38182226000](https://github.com/gioe/laughtrack/actions/runs/38182226000)
+completed successfully on main revision
+`ac629f16d9cdbb2f02c222e94a10cf28e594912a`. Its inventory collection ran from
+2026-10-11 22:54:50.416862 to 22:54:51.498356 UTC. The saved
+[`task-4160-fresh-recheck.json`](task-4160-fresh-recheck.json) has SHA-256
+`ccdc3c6e807eda1be712d2b42641fe7c8376faae04f8396115e9ade5e4b30733`.
+
+| Source | Occurrences | Native groups | New native groups |
+| --- | ---: | ---: | ---: |
+| 192 — Goodnights | 214 | 84 | 0 |
+| 527 — Santa Monica | 50 | 50 | 0 |
+| 595 — Long Beach | 84 | 37 | 0 |
+| Total | 348 | 171 | 0 |
+
+No group was deferred by the collection budget. The run reports zero
+classification calls, model calls and database writes. The downloaded cumulative
+history has SHA-256
+`9e5a4fcbdb3255a3e373e3fd0d639f403f55393461b272c522feec79b3b57702`.
+This is another empty fresh selection, not a classifier evaluation. It does not
+complete criteria 13560/13561 or permit TASK-4159 to start.
+
+The user authorized TASK-4166 known-error remediation while this data requirement
+remains unmet. Decision 863 removes task-wide blocker 15 solely to permit that
+preparation. Fresh-validation and enforcement criteria remain open; do not replace
+them with a task-wide blocker that prevents further authorized preparation.

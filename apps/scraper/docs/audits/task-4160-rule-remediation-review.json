@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "reviewer": "codex:/root",
+  "reviewed_at": "2026-10-11T23:15:39.758808+00:00",
+  "review_type": "Post-outcome development review of all changed decisions; not independent validation",
+  "candidate_revision": "99cc4161b0d15a76da4d28da158fcbe6007bc5e9",
+  "report_sha256": "b6b18219d74c459abf142a0773b9571a50cfe378744640377f9b1f166b5a4328",
+  "manifest_sha256": "f6e6e5f11c069e81cb4331cb3884df3b9ceb47ce275db23722c92365a4936c28",
+  "records": [
+    {
+      "public_show_id": 5144686,
+      "title": "R&B Bingo",
+      "venue": "Charlotte Comedy Zone",
+      "previous_decision": "reject",
+      "corrected_decision": "review",
+      "disposition": "supported_uncertainty_hold",
+      "rationale": "Bingo billing and available frozen description do not establish or exclude comedy. Keep review; do not count this as retained comedy or a supported non-comedy exclusion.",
+      "evidence_references": [
+        "raw/page-0.json#/data/35/name"
+      ]
+    },
+    {
+      "public_show_id": 3679014,
+      "title": "Tucked & Loaded Drag Bingo: Welcome to the Fun House",
+      "venue": "Spokane Comedy Club",
+      "previous_decision": "reject",
+      "corrected_decision": "review",
+      "disposition": "supported_uncertainty_hold",
+      "rationale": "Bingo billing and available frozen description do not establish or exclude comedy. Keep review; do not count this as retained comedy or a supported non-comedy exclusion.",
+      "evidence_references": [
+        "raw/page-0.json#/data/109/name"
+      ]
+    },
+    {
+      "public_show_id": 7367674,
+      "title": "Uptown Comedy Corner Presents: Jon Kondelik 's Adult Bingo & Naughty Games",
+      "venue": "Uptown Comedy Corner",
+      "previous_decision": "reject",
+      "corrected_decision": "review",
+      "disposition": "known_comedy_still_withheld",
+      "rationale": "Review is safer than title-only rejection, but this remains a known comedy coverage loss. Frozen public description supports the historical mixed-comedy judgment; source-bound ingestion detail is still missing and was not manufactured for replay.",
+      "evidence_references": [
+        "raw/page-0.json#/data/182/name",
+        "raw/page-0.json#/data/182/description"
+      ]
+    },
+    {
+      "public_show_id": 8013080,
+      "title": "Laughter at the Bit: Stand-up Comedy Open Mic",
+      "venue": "The Bit Theater",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-0.json#/data/213/name"
+      ]
+    },
+    {
+      "public_show_id": 6445698,
+      "title": "Live at Sunset Strip: Comedy Showcase",
+      "venue": "Sunset Strip Comedy Club",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-0.json#/data/369/name"
+      ]
+    },
+    {
+      "public_show_id": 7612243,
+      "title": "Stand up comedy on the historic “Comedy Row” in Greenwich Village.",
+      "venue": "Greenwich Village Comedy Club",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-0.json#/data/407/name",
+        "raw/page-0.json#/data/407/description"
+      ]
+    },
+    {
+      "public_show_id": 4562223,
+      "title": "Drag Bingo with Bianca Lynn Breeze & Renae Sance",
+      "venue": "Comedy on State",
+      "previous_decision": "reject",
+      "corrected_decision": "review",
+      "disposition": "supported_uncertainty_hold",
+      "rationale": "Bingo billing and available frozen description do not establish or exclude comedy. Keep review; do not count this as retained comedy or a supported non-comedy exclusion.",
+      "evidence_references": [
+        "raw/page-1.json#/data/150/name",
+        "raw/page-1.json#/data/150/description"
+      ]
+    },
+    {
+      "public_show_id": 3214767,
+      "title": "Don’t Be Yourself! - Weekly Character Comedy Open Mic",
+      "venue": "Lyric Hyperion Theater & Cafe",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-2.json#/data/419/name",
+        "raw/page-2.json#/data/419/description"
+      ]
+    },
+    {
+      "public_show_id": 6085247,
+      "title": "Live at the Barbershop NYC: Hottest Stand Up Comedy Show in NYC! BYOB!",
+      "venue": "East Village Stand Up Comedy",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-2.json#/data/428/name",
+        "raw/page-2.json#/data/428/description"
+      ]
+    },
+    {
+      "public_show_id": 7852401,
+      "title": "Laughs at the Library Comedy Show",
+      "venue": "Dade County Comedy",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-2.json#/data/484/name",
+        "raw/page-2.json#/data/484/description"
+      ]
+    },
+    {
+      "public_show_id": 7978575,
+      "title": "THE UPSTAIRS COMEDY SHOWCASE",
+      "venue": "The Upstairs Comedy Club Los Angeles",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-3.json#/data/118/name"
+      ]
+    },
+    {
+      "public_show_id": 6028959,
+      "title": "Live at the Barbershop Houston: Stand Up Comedy in a Real Barbershop · BYOB",
+      "venue": "East Village Stand Up Comedy",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-4.json#/data/172/name",
+        "raw/page-4.json#/data/172/description"
+      ]
+    },
+    {
+      "public_show_id": 6720036,
+      "title": "SUMMER ORLANDO'S DRAG BINGO",
+      "venue": "Comix Roadhouse",
+      "previous_decision": "reject",
+      "corrected_decision": "review",
+      "disposition": "known_comedy_still_withheld",
+      "rationale": "Review is safer than title-only rejection, but this remains a known comedy coverage loss. Frozen public description supports the historical mixed-comedy judgment; source-bound ingestion detail is still missing and was not manufactured for replay.",
+      "evidence_references": [
+        "raw/page-4.json#/data/273/name",
+        "raw/page-4.json#/data/273/description"
+      ]
+    },
+    {
+      "public_show_id": 7243042,
+      "title": "Sunset Strip After Dark Comedy Showcase",
+      "venue": "Sunset Strip Comedy Club",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-4.json#/data/424/name"
+      ]
+    },
+    {
+      "public_show_id": 7978576,
+      "title": "THE UPSTAIRS COMEDY SHOWCASE",
+      "venue": "The Upstairs Comedy Club Los Angeles",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-4.json#/data/432/name"
+      ]
+    },
+    {
+      "public_show_id": 3621437,
+      "title": "It's Bingo B**** - A Drag Bingo Event!",
+      "venue": "Tacoma Comedy Club",
+      "previous_decision": "reject",
+      "corrected_decision": "review",
+      "disposition": "supported_uncertainty_hold",
+      "rationale": "Bingo billing and available frozen description do not establish or exclude comedy. Keep review; do not count this as retained comedy or a supported non-comedy exclusion.",
+      "evidence_references": [
+        "raw/page-5.json#/data/150/name"
+      ]
+    },
+    {
+      "public_show_id": 7679999,
+      "title": "\"Make 'Em Laugh\" Comedy Night",
+      "venue": "Makeshift Theater Akron",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-5.json#/data/326/name"
+      ]
+    },
+    {
+      "public_show_id": 6619318,
+      "title": "Live at the Barbershop NYC: Hottest Stand Up Comedy Show in NYC! BYOB!",
+      "venue": "East Village Stand Up Comedy",
+      "previous_decision": "review",
+      "corrected_decision": "accept",
+      "disposition": "supported_title_comedy_restoration",
+      "rationale": "Explicit live-comedy billing in this event title survives a location or name wrapper. The restored acceptance is supported in this title-only development diagnostic; it does not resolve missing ingestion identity/policy evidence.",
+      "evidence_references": [
+        "raw/page-5.json#/data/348/name",
+        "raw/page-5.json#/data/348/description"
+      ]
+    }
+  ]
+}

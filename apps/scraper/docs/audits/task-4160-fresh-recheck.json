@@ -1,0 +1,43 @@
+{
+  "run_id": "38182226000-1@ac629f16d9cdbb2f02c222e94a10cf28e594912a",
+  "started_at": "2026-10-11T22:54:50.416862+00:00",
+  "sources": [
+    {
+      "source_id": 192,
+      "club_id": 61,
+      "venue_id": "53",
+      "provider_occurrences": 214,
+      "provider_groups": 84,
+      "new_groups": 0,
+      "deferred_by_budget": 0,
+      "detail_status": {}
+    },
+    {
+      "source_id": 527,
+      "club_id": 475,
+      "venue_id": "450",
+      "provider_occurrences": 50,
+      "provider_groups": 50,
+      "new_groups": 0,
+      "deferred_by_budget": 0,
+      "detail_status": {}
+    },
+    {
+      "source_id": 595,
+      "club_id": 476,
+      "venue_id": "451",
+      "provider_occurrences": 84,
+      "provider_groups": 37,
+      "new_groups": 0,
+      "deferred_by_budget": 0,
+      "detail_status": {}
+    }
+  ],
+  "model_calls": 0,
+  "classification_calls": 0,
+  "database_writes": 0,
+  "new_groups": 0,
+  "finished_at": "2026-10-11T22:54:51.498356+00:00",
+  "total_captured_groups": 0,
+  "previous_history_digest": "f05cb5a8c5ccf05a01e979905a2dcf001590db8c9d7f23d840c8de7f66b84ae7"
+}
