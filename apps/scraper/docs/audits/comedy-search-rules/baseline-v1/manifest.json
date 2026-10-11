@@ -139,5 +139,14 @@
   "timing_provenance": "saved_at_utc comes from original local file modification times recorded by the original audit, not HTTP response headers or request start/end times. Pages may have completed out of order.",
   "snapshot_limitations": "Offset pagination is not transactional. Matching totals, unique IDs and ordering checks detect observable inconsistencies, but cannot prove no inventory changed during collection.",
   "baseline_decision": "observed_publication",
-  "review_artifacts": []
+  "review_artifacts": [
+    {
+      "file": "labels.json",
+      "sha256": "5ca7c9635510ba8a859357863b484912019a59f263cd5ff433ba46c5802b6f6a"
+    },
+    {
+      "file": "mappings.json",
+      "sha256": "a46ef22cad9cfaacf3f088cfc3e8f8046e96ddf6c3457252c45284ed7264b9c5"
+    }
+  ]
 }
