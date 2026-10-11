@@ -160,6 +160,22 @@ def test_format_policy_integration(monkeypatch):
         assert payload["format_policy"]["version"] == FORMAT_POLICY_VERSION
     assert shared("Saturday").content_status == "unknown"  # Arbitrary Show.description is ignored.
     assert shared("Movie Pass", event("This show is an improvised movie performance.", event_id="99")).decision == "review"
+    for title, denial in [
+        ("Movie Screening", "This event does not feature a movie screening."),
+        ("Comedy Class", "This event is not a comedy class."),
+        ("Movie Screening", "This event doesn’t include a movie screening."),
+        ("Comedy Class", "This session won't offer a comedy class."),
+    ]:
+        result = shared(title, event(denial))
+        assert result.decision == "review" and result.audience_format == "ambiguous", result
+        assert result.format_disposition == "review" and not eligible(result)
+        assert any(item.rule_family == "audience_format" and item.rule_reason == "ambiguous"
+                   and item.detail == f"{URL}\n{denial}" for item in result.evidence)
+    for unrelated in ["Our venue does not offer movie screenings.",
+                      "She does not teach a comedy class.",
+                      "Biography: This actor never attended a comedy class."]:
+        assert audience_description_evidence(unrelated, URL) == []
+        assert shared("Saturday", event(unrelated)).content_status == "unknown"
     title = "Comedy Film Screening"
     default_decision, custom_decision = shared(title), shared(title, selected_policy=policy)
     context = model_context({"name": title}, default_decision, [], [])

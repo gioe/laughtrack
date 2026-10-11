@@ -437,6 +437,15 @@ def audience_description_evidence(text: str, url: str) -> list[RuleEvidence]:
         checked = normalized_rule_text(sentence.strip())
         if not checked or len(checked) > 600:
             continue
+        # An explicit denial of this event's format must survive even when it
+        # does not use the affirmative offering grammar. Keep it ambiguous so
+        # conflicting title billing cannot silently become an exclusion.
+        denial = re.match(r"^this (?:event|show|session|class|workshop)\b", checked, re.I) and re.search(
+            r"\b(?:no|not|never|without|isn't|aren't|doesn't|don't|won't|cannot|can't)\b", checked, re.I,
+        )
+        if denial:
+            result.extend(_audience_matches(checked, "event_description", f"{url}\n{sentence.strip()}"))
+            continue
         current = _CURRENT_OFFERING.match(checked)
         instruction = re.match(
             r"^(?:this (?:class|workshop|course) (?:is|offers|teaches)|(?:enroll|register|sign up) (?:for|in))\b",
